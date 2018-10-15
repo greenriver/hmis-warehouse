@@ -175,6 +175,10 @@ module GrdaWarehouse
       where(cohort_column: :exit_destination, value: 'Moved to Inactive', active: 1).first_or_create
       where(cohort_column: :exit_destination, value: 'Other', active: 1).first_or_create
       where(cohort_column: :exit_destination, value: 'Unknown', active: 1).first_or_create
+
+      where(cohort_column: :lgbtq, value: '', active: 1).first_or_create
+      where(cohort_column: :lgbtq, value: 'Yes', active: 1).first_or_create
+      where(cohort_column: :lgbtq, value: 'No', active: 1).first_or_create
     end
 
     def available_cohort_columns

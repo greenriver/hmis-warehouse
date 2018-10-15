@@ -4,7 +4,7 @@ module Exporters::Tableau::Disability
 
   module_function
   def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
-      spec = {
+      columns = {
         entry_exit_uid:       e_t[:EnrollmentID],
         entry_exit_client_id: she_t[:client_id],
         disability_type:      d_t[:DisabilityType],
@@ -30,24 +30,24 @@ module Exporters::Tableau::Disability
       end
       clients = scope
 
-      spec.each do |header, selector|
+      columns.each do |header, selector|
         clients = clients.select selector.as(header.to_s)
       end
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
-          export model, spec, clients, csv
+          export model, columns, clients, csv
         end
         return true
       else
         CSV.generate headers: true do |csv|
-          export model, spec, clients, csv
+          export model, columns, clients, csv
         end
       end
     end
 
-    def export model, spec, clients, csv
-      headers = spec.keys
+    def export model, columns, clients, csv
+      headers = columns.keys
       csv << headers
 
       clients = model.connection.select_all(clients.to_sql).group_by do |h|

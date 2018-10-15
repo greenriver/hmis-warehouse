@@ -1,6 +1,6 @@
 module Cas
-  class SyncToCasJob < ActiveJob::Base
-  
+  class SyncToCasJob < BaseJob
+
     def perform
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
     end

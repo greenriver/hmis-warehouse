@@ -1,5 +1,5 @@
 module Importing::HudZip
-  class FiveOneJob < ActiveJob::Base
+  class FiveOneJob < BaseJob
     queue_as :low_priority
 
     def initialize upload_id:, data_source_id:

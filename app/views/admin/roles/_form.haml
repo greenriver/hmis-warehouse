@@ -1,0 +1,24 @@
+= simple_form_for [:admin, @role] do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name, label: 'Role name'
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Permission
+          %th Administrative?
+          %th Description
+      %tbody
+        - Role.permissions(exclude_health: true).each do |permission|
+          %tr
+            %td
+              = f.input permission, as: :boolean
+            %td
+              - if Role.administrative?(permission: permission)
+                %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+            %td.permission__description
+              %em.text-small.text-muted= Role.description_for permission: permission
+
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'

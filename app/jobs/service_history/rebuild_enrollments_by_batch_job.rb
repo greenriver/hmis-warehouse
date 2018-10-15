@@ -1,5 +1,5 @@
 module ServiceHistory
-  class RebuildEnrollmentsByBatchJob < ActiveJob::Base
+  class RebuildEnrollmentsByBatchJob < BaseJob
     include ArelHelper
     queue_as :low_priority
 
@@ -7,9 +7,9 @@ module ServiceHistory
       @enrollment_ids = enrollment_ids
     end
 
-    def perform 
+    def perform
       Rails.logger.debug "===RebuildEnrollmentsByBatchJob=== Starting to rebuild #{@enrollment_ids.size} enrollments"
-      
+
       @enrollment_ids.each do |id|
         Rails.logger.info "===RebuildEnrollmentsByBatchJob=== Processing enrollment #{id}"
         # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"

@@ -5,7 +5,7 @@ $container-max-width: 1000px;
 $container-padding: 30px;
 $show-menu-on-left: false;
 
-// Heaader
+// Header
 $header-height: 60px;
 $nav-side-width: 185px;
 $nav-side-collapsed-width: 65px;
@@ -39,13 +39,6 @@ $zIndex-10: 1000;
 // Z-index applications Assigning specific and listing here as handy reference
 $zIndex-2--site-name: $zIndex-2;
 $zIndex-3--notice: $zIndex-3;
-
-$directions: (
- 't': top,
- 'l': left,
- 'b': bottom,
- 'r': right
-) !default;
 
 // Forms
 $textarea-min-height: 150px;

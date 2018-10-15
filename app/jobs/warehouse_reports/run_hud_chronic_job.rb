@@ -1,5 +1,5 @@
 module WarehouseReports
-  class RunHudChronicJob < ActiveJob::Base
+  class RunHudChronicJob < BaseJob
     include ArelHelper
     include HudChronic
 
@@ -31,11 +31,11 @@ module WarehouseReports
 
       data = @clients.map do |client|
         hud_chronic = client.hud_chronics.first
-        data_sources = client.source_clients.map do |m| 
+        data_sources = client.source_clients.map do |m|
             m.data_source.short_name
         end.uniq.join(', ')
         source_disabilities = client.source_disabilities.select do |m| ![0,8,9,99].include? m.DisabilityResponse
-        end.map do |m| 
+        end.map do |m|
           m.disability_type_text
         end.uniq.join('<br />').html_safe
 
@@ -69,7 +69,7 @@ module WarehouseReports
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end
-    
+
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end

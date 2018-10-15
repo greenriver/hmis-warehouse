@@ -2,7 +2,11 @@ require 'rails_helper'
 
 model = GrdaWarehouse::WarehouseReports::ReportDefinition
 RSpec.describe model, type: :model do
-
+  let!(:ensure_no_reports_from_migration) {
+    # migrations add reports to the report table, sometimes these show up in testing
+    # on travis, we use schema load, so this is not a problem
+    GrdaWarehouse::WarehouseReports::ReportDefinition.delete_all
+  }
   let!(:admin_role) { create :admin_role }
   let!(:assigned_report_viewer) { create :assigned_report_viewer }
 

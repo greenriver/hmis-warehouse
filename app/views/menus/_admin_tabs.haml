@@ -1,5 +1,5 @@
 - if current_user.can_see_admin_menu?
-  %ul.nav.nav-tabs.margin-bottom-02
+  %ul.nav.nav-tabs.mb-2
     -if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_users_path))}
         = link_to 'Users', admin_users_path, class: 'nav-link'

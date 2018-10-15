@@ -184,7 +184,7 @@ module Cohorts
       @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years]}.to_h
       @days_literally_homeless_three_years = counts.map{|client_id, _, _, literally_homeless_last_three_years| [client_id, literally_homeless_last_three_years]}.to_h
       Rails.logger.info "CLIENTS: #{@clients.to_sql}"
-      @clients = @clients.pluck(*client_columns).map do |row|
+      @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
       Rails.logger.info "CLIENTS: #{@clients.count}"

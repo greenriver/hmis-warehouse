@@ -1,5 +1,5 @@
 class AddAgencyPerformanceReport < ActiveRecord::Migration
-    REPORTS = {
+  REPORTS = {
     'Health' => [
       {
         url: 'warehouse_reports/health/agency_performance',

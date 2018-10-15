@@ -25,7 +25,12 @@
           - Role.permissions(exclude_health: true).each do |permission|
             %tr
               %td
-                =permission.to_s.humanize
+                .permission__name
+                  - if Role.administrative?(permission: permission)
+                    %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+                  = permission.to_s.humanize
+                .permission__description
+                  %em.text-small.text-muted= Role.description_for permission: permission
               - @roles.each do |role|
                 %td
                   =checkmark(role.send(permission))

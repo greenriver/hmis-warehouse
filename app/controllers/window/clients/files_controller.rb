@@ -43,6 +43,7 @@ module Window::Clients
         render :new
         return
       end
+
       begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
         file = allowed_params[:file]
@@ -176,7 +177,7 @@ module Window::Clients
           :consent_form_confirmed,
           :effective_date,
           :expiration_date,
-          :tag_list,
+          tag_list: [],
         )
     end
 

@@ -1,5 +1,5 @@
 module Reporting
-  class RunProjectDataQualityJob < ActiveJob::Base
+  class RunProjectDataQualityJob < BaseJob
     queue_as :high_priority
 
     def perform(report_id:, generate:, send_email:)

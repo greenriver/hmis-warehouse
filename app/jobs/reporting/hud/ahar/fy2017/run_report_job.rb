@@ -1,5 +1,5 @@
 module Reporting::Hud::Ahar::Fy2017
-  class RunReportJob < ActiveJob::Base
+  class RunReportJob < BaseJob
     queue_as :high_priority
 
     def initialize report_id:, result_id:, options:
@@ -11,7 +11,7 @@ module Reporting::Hud::Ahar::Fy2017
     # Only try once, if we try again it erases previous failures since it doesn't bother to try since the previous run
     # is partially complete
     def max_attempts
-      1 
+      1
     end
 
     def perform

@@ -1,5 +1,5 @@
 module Importing
-  class RunImportHudZipJob < ActiveJob::Base
+  class RunImportHudZipJob < BaseJob
     queue_as :low_priority
 
     def perform upload:

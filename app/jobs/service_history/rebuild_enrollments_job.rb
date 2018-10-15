@@ -1,5 +1,5 @@
 module ServiceHistory
-  class RebuildEnrollmentsJob < ActiveJob::Base
+  class RebuildEnrollmentsJob < BaseJob
     include ArelHelper
     queue_as :low_priority
 

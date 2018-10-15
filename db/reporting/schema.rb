@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180917194028) do
+ActiveRecord::Schema.define(version: 20180925175825) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 20180917194028) do
     t.integer "veteran_status"
     t.date    "month_year"
     t.string  "ph_destination"
+    t.integer "project_id"
   end
 
   add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree

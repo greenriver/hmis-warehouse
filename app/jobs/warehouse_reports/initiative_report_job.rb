@@ -1,5 +1,5 @@
 module WarehouseReports
-  class InitiativeReportJob < ActiveJob::Base
+  class InitiativeReportJob < BaseJob
     include ArelHelper
 
     queue_as :initiative_reports
@@ -15,6 +15,6 @@ module WarehouseReports
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end
-    
+
   end
 end

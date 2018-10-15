@@ -1,0 +1,24 @@
+.ho-container.rrh
+  .ho-container__header 
+    %h3 Time in Program
+  .row.rrh-row
+    .col-xs-12.col-md-6.text-center
+      = content_for :program_1_title
+      %h3
+        = @charts.report.time_to_housing_1
+        %br
+        %small on average in the reference program
+      %h3
+        = @charts.report.time_in_housing_1
+        %br
+        %small on average in the reference program
+    .col-xs-12.col-md-6.text-center
+      = content_for :program_2_title
+      %h3
+        = @charts.report.time_to_housing_2
+        %br
+        %small on average in the comparison program
+      %h3
+        = @charts.report.time_in_housing_2
+        %br
+        %small on average in the comparison program
