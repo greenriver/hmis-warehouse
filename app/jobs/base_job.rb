@@ -1,5 +1,7 @@
+
 class BaseJob < ActiveJob::Base
   STARTING_PATH = File.realpath(FileUtils.pwd)
+  include NotifierConfig
 
   before_perform do |job|
     if STARTING_PATH != expected_path
@@ -9,15 +11,32 @@ class BaseJob < ActiveJob::Base
 
       unlock_job!(job)
 
-      # Exit, ignoring signal handlers which would prevent the process from dieing
+      # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
     end
   end
 
+  # when queued with perform_later (active job, this gets used)
+  # This works in both situations
+  rescue_from Exception do |e|
+    notify_on_exception(e)
+  end
+
+  # when queued with Delayed::Job.enqueue TestJob.new (this gets used)
+  # def error(job, e)
+  #   notify_on_exception(e)
+  # end
+
   private
 
+  def notify_on_exception exception
+    setup_notifier('DelayedJobFailure')
+    msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
+    @notifier.ping(msg) if @send_notifications
+  end
+
   def expected_path
-    Rails.cache.fetch('deploy-dir') do 
+    Rails.cache.fetch('deploy-dir') do
       # A default for the first deployment and local development
       # This should be set on deployment.
       File.realpath(FileUtils.pwd)
