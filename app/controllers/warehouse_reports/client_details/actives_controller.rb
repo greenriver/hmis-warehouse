@@ -2,6 +2,7 @@ module WarehouseReports::ClientDetails
   class ActivesController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
 
     def index
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym

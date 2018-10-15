@@ -10,7 +10,8 @@ module WarehouseReports
     before_action :set_reports, only: [:index, :running, :create]
 
     def index
-      @filter = ::Filters::Initiative.new()
+      @filter = ::Filters::Initiative.new({user: current_user})
+      @users = User.where(id: @reports.pluck(:user_id)).index_by(&:id)
     end
 
     def running
@@ -28,13 +29,14 @@ module WarehouseReports
     end
 
     def set_reports
-      @reports = report_source.ordered.
+      @reports = report_scope.ordered.
         for_list.
+        preload(:user).
         limit(50)
     end
 
     def create
-      @filter = ::Filters::Initiative.new(report_params)
+      @filter = ::Filters::Initiative.new(report_params.merge(user: current_user))
       if @filter.valid?
         WarehouseReports::InitiativeReportJob.perform_later(@filter.options_for_initiative().as_json)
         redirect_to warehouse_reports_initiatives_path
@@ -56,7 +58,15 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_source.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
+    end
+
+    def report_scope
+      if current_user.can_edit_anything_super_user?
+        report_source.all
+      else
+        report_source.where(user_id: current_user.id)
+      end
     end
 
     def report_source
@@ -66,9 +76,9 @@ module WarehouseReports
     def report_params
       params.require(:filter).permit(
         :initiative_name,
-        :start, 
+        :start,
         :end,
-        :comparison_start, 
+        :comparison_start,
         :comparison_end,
         :sub_population,
         project_ids: [],
@@ -78,7 +88,7 @@ module WarehouseReports
 
     # Override default to allow token access
     def report_visible?
-      return true if access_by_token? || related_report.viewable_by(current_user).exists? 
+      return true if access_by_token? || related_report.viewable_by(current_user).exists?
       not_authorized!
     end
 
@@ -98,7 +108,7 @@ module WarehouseReports
     def median array
       mid = array.size / 2
       sorted = array.sort
-      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2 
+      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
     end
     helper_method :median
 

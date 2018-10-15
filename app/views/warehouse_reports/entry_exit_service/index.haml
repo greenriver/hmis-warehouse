@@ -1,15 +1,16 @@
 - title = "Clients with Single Day Enrollments with Services"
 - content_for :title, title
-%h1= title 
-= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 .warehouse-reports__entry_exit_service
   .row
     .col-sm-8
-    .col-sm-4
+      %h1= title
+    .col-sm-4.pt-4.text-right
       = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
         Download Excel
 - if @enrollments.any?
+  = render 'warehouse_reports/limited_by_project_note'
   %table.table.table-condensed.table-hover
     %thead
       %tr

@@ -23,13 +23,13 @@ module WarehouseReports
 
     def length_of_stay
       @data = if @filter.valid?
-        projects = @filter.organization.projects.index_by(&:ProjectID)
-        
+        projects = @filter.organization.projects.viewable_by(current_user).index_by(&:ProjectID)
+
         enrollments = service_history_enrollment_source.entry.
           open_between(start_date: @filter.start, end_date: @filter.end).
           where(project_id: projects.keys, data_source_id: projects.values.first.data_source_id)
 
-         
+
         lengths = Rails.cache.fetch(["length_of_stay_controller", params[:mo].to_s], expires_in: 10.minutes) do
           service_history_service_source.where(service_history_enrollment_id: enrollments.select(:id)).
           where(date: (@filter.start - 3.years..@filter.end)).
@@ -37,7 +37,7 @@ module WarehouseReports
           group(:service_history_enrollment_id).
           count(:date)
         end
-  
+
         enrollments = enrollments.group_by(&:project_id)
 
         data = []
@@ -143,9 +143,9 @@ module WarehouseReports
         'average'
       ]
       @filter = if params[:mo].present?
-        ::Filters::MonthAndOrganization.new params.require(:mo)
+        ::Filters::MonthAndOrganization.new params.require(:mo).merge(user: current_user)
       else
-        ::Filters::MonthAndOrganization.new
+        ::Filters::MonthAndOrganization.new({user: current_user})
       end
     end
 

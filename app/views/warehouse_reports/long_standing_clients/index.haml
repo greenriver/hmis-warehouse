@@ -10,7 +10,7 @@
   %label{for: :years}
     Years ago
     = select_tag(:years, options_for_select((3..15), @years), {value: @years})
-    = f.button :submit, value: 'Update View'
+    = f.button :submit, value: 'Update View', class: 'ml-2'
 
 .warehouse-reports__long-standing-clients
   %p= page_entries_info @entries, entry_name: _('client')

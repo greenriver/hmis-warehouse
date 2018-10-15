@@ -9,17 +9,8 @@
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes the following additional fields: Length of Stay (to-date), Living Situation, Destination, Race, Ethnicity.'}}) do
         Download Excel
 = render 'filter'
-.row
-  .col-sm-12
-    %p
-      The following
-      = @enrollments.count
-      clients with
-      = @enrollments.values.flatten(1).count
-      enrollments, have at least one day of service between
-      = @start_date
-      and
-      = "#{@end_date}."
+%p= "The following #{@enrollments.count} clients with #{@enrollments.values.flatten(1).count} enrollments, have at least one day of service between #{@start_date} and #{@end_date}."
+= render 'warehouse_reports/limited_by_project_note'
 
 .row
   .col-sm-12

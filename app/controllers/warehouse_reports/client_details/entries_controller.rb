@@ -3,6 +3,7 @@ module WarehouseReports::ClientDetails
     include ArelHelper
     include ApplicationHelper
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 

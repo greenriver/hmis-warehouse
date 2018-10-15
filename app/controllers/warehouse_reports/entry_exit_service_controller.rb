@@ -2,6 +2,7 @@ module WarehouseReports
   class EntryExitServiceController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+    before_action :set_limited, only: [:index]
     def index
       # Clients who received services for one-day enrollments in housing related projects.
       # this is a translation of an original raw SQL query into Arel
@@ -9,6 +10,7 @@ module WarehouseReports
       sql = clients.
         joins( :warehouse_client_source, enrollments: [ :project, :exit, :services ] ).
         where( p_t[project_source.project_type_column].in project_source::RESIDENTIAL_PROJECT_TYPE_IDS ).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         where( ex_t[:ExitDate].eq s_t[:DateProvided] ).
         where( e_t[:EntryDate].eq s_t[:DateProvided] ).
         select(

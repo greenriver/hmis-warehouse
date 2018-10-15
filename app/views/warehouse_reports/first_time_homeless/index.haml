@@ -7,61 +7,65 @@
   = @range.start
   to
   = @range.end
-= simple_form_for :first_time_homeless, url: warehouse_reports_first_time_homeless_index_path, html: {method: :get, class: 'jFilter'} do |f|
-  .row.margin-bottom-02
-    .col-sm-3
-      = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-    .col-sm-3
-      = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jEnd'}, label: false
-    .col-sm-3
-      = f.button :submit, value: 'Update View'
-  .row
-    .col-sm-3
-      = f.input :project_types, collection: ::HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, data: {placeholder: "Limit by project type"}, class: 'select2'}, label: false
-    .col-sm-3
-      = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, label: false, selected: @sub_population, input_html: {class: 'select2'}
 
-%br
-%h4 All Clients Added
-.row
-  .col-sm-10
-    .jCharts
-      %p.jLoading.text-center Loading...
-  .col-sm-2.text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
-      Download Excel
-%p= page_entries_info @clients, entry_name: _('client')
-%table.table.table-condensed.table-hover
-  %thead
-    %tr
-      %th Last Name
-      %th First Name
-      %th Age at entry
-      %th Veteran Status
-      %th Date of First Service
-      %th Project Type
-      %th Project
-      %th Organization
-      %th Data Source
-  %tbody
-    - @clients.each do |client|
+= simple_form_for :first_time_homeless, url: warehouse_reports_first_time_homeless_index_path, html: {method: :get, class: 'jFilter'} do |f|
+  .d-flex
+    .ml-2
+      = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
+    .ml-2
+      = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jEnd'}, label: false
+    .ml-2
+      = f.input :project_types, collection: ::HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, data: {placeholder: "Limit by project type"}, class: 'select2'}, label: false
+    .ml-2
+      = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, label: false, selected: @sub_population, input_html: {class: 'select2'}
+  .d-flex
+    .ml-auto.mb-4
+      = f.button :submit, value: 'Update View'
+= render 'warehouse_reports/limited_by_project_note'
+
+- if @clients.any?
+  %h4 All Clients Added
+  .row
+    .col-sm-10
+      .jCharts
+        %p.jLoading.text-center Loading...
+    .col-sm-2.text-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
+        Download Excel
+  %p= page_entries_info @clients, entry_name: _('client')
+  %table.table.table-condensed.table-hover
+    %thead
       %tr
-        %td
-          %nobr= link_to client.LastName, client_path(client)
-        %td
-          %nobr= link_to client.FirstName, client_path(client)
-        %td= client.first_service_history.age
-        %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
-        %td= client.first_service_history.date
-        %td
-          = ::HUD.project_type(client.first_service_history.project_type)
-          - if client.first_service_history.project.act_as_project_type.present?
-            acts as
-            = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
-        %td= client.first_service_history.project_name
-        %td= client.first_service_history.organization.try(:OrganizationName)
-        %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
-%p= paginate @clients
+        %th Last Name
+        %th First Name
+        %th Age at entry
+        %th Veteran Status
+        %th Date of First Service
+        %th Project Type
+        %th Project
+        %th Organization
+        %th Data Source
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td
+            %nobr= link_to client.LastName, client_path(client)
+          %td
+            %nobr= link_to client.FirstName, client_path(client)
+          %td= client.first_service_history.age
+          %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+          %td= client.first_service_history.date
+          %td
+            = ::HUD.project_type(client.first_service_history.project_type)
+            - if client.first_service_history.project.act_as_project_type.present?
+              acts as
+              = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
+          %td= client.first_service_history.project_name
+          %td= client.first_service_history.organization.try(:OrganizationName)
+          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+  %p= paginate @clients
+- else
+  %p.text-center No clients found
 
 - content_for :page_js do
   :javascript

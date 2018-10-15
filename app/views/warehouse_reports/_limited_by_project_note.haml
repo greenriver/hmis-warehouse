@@ -1,0 +1,3 @@
+- if @limited
+  %p.alert.alert-info
+    = "This report is limited to #{pluralize(@visible_projects.count, 'project')}: #{@visible_projects.values.join(', ')}."

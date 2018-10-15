@@ -3,7 +3,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     def index
-      # using date instead of first_date_in_program below because it is indexed 
+      # using date instead of first_date_in_program below because it is indexed
       # and is identical on entry records
       @years = (params[:years] || 5).to_i
       @entries = service_history_source.
@@ -14,7 +14,7 @@ module WarehouseReports
         order(date: :asc).
         page(params[:page]).per(25)
       @clients = client_source.where(id: @entries.map(&:client_id)).preload(source_clients: :data_source).index_by(&:id)
-      
+
     end
 
     private def client_source
@@ -22,7 +22,8 @@ module WarehouseReports
     end
 
     private def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment.entry
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
     private def data_source_source

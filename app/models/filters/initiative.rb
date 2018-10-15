@@ -8,6 +8,7 @@ module Filters
     attribute :initiative_name, String, default: nil
     attribute :project_ids, Array, default: []
     attribute :project_group_ids, Array, default: []
+    attribute :user
 
     validates_presence_of :initiative_name, :start, :end, :comparison_start, :comparison_end
 
@@ -20,7 +21,7 @@ module Filters
       end
       if project_ids.reject(&:blank?).blank? && project_group_ids.reject(&:blank?).blank?
         errors.add(:project_ids, 'At least one project or project group is required.')
-      end 
+      end
     end
 
     def comparison_range
@@ -60,6 +61,7 @@ module Filters
         comparison_end: self.comparison_end,
         projects: effective_project_ids,
         sub_population: sub_population,
+        user_id: user.id,
       }
     end
 
@@ -73,15 +75,17 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      project_ids.reject(&:blank?).map(&:to_i)
+      visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      project_ids.reject(&:blank?).map(&:to_i).select{ |id| visible_project_ids.include?(id) }
     end
 
     def effective_project_ids_from_project_groups
+      return [] unless user.can_edit_project_groups?
       GrdaWarehouse::ProjectGroup.joins(:projects).
         where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
-  
+
     def all_project_ids
       GrdaWarehouse::Hud::Project.pluck(:id)
     end
