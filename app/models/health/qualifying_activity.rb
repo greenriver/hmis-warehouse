@@ -43,7 +43,7 @@ module Health
     end
 
     scope :not_valid_unpayable, -> do
-      where.not(reached_client: :no, mode_of_contact: [:phone_call, :video_call])
+      where.not(id: valid_unpayable.select(:id))
     end
 
     belongs_to :source, polymorphic: true

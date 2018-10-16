@@ -448,7 +448,7 @@ module Health
     end
 
     def qualified_activities_since date: 1.months.ago
-      qualifying_activities.in_range(date..Date.tomorrow)
+      qualifying_activities.not_valid_unpayable.in_range(date..Date.tomorrow)
     end
 
     def import_epic_team_members

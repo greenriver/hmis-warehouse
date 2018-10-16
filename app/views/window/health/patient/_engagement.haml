@@ -7,4 +7,4 @@
     .patient__engagement-countdown
       = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
   .patient__engagement-engaged
-    = link_to_if patient.client.present?, "#{pluralize(patient.qualified_activities_since(date: Date.today.beginning_of_month).count, 'Qualifying Activities')} in #{Date.today.strftime('%B')}", url
+    = link_to_if patient.client.present?, "#{pluralize(patient.qualified_activities_since(date: Date.today.beginning_of_month).count, 'Valid Qualifying Activities')} in #{Date.today.strftime('%B')}", url

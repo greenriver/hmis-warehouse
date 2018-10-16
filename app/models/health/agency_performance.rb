@@ -220,7 +220,7 @@ module Health
     # Qualifying  Activities
     def qualifying_activity_dates
       @qualifying_activity_dates ||= Health::QualifyingActivity.submittable.
-        # not_valid_unpayable.
+        not_valid_unpayable.
         distinct.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).
