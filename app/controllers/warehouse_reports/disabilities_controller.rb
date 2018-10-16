@@ -6,6 +6,7 @@ module WarehouseReports
 
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
+
       if params[:commit].present?
         WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
       end
@@ -33,14 +34,25 @@ module WarehouseReports
     end
 
     def filter_params
-      filter_params = params.require(:filter).permit(
-        disabilities: [],
-        project_types: [],
-      ) rescue {}
+      filter_params = begin
+        f_params = params.require(:filter).permit(
+          disabilities: [],
+          project_types: [],
+        )
+        if f_params[:disabilities].present?
+          f_params[:disabilities] = f_params[:disabilities].select{|m| available_disabilities.values.include?(m.to_i)}
+        end
+        f_params
+      rescue
+        {}
+      end
     end
 
     def available_disabilities
-      ::HUD.disability_types.invert
+      exclude = []
+      exclude << 'HIV/AIDS' unless can_view_hiv_status?
+      exclude << 'Mental health problem' unless can_view_dmh_status?
+      ::HUD.disability_types.invert.except(*exclude)
     end
     helper_method :available_disabilities
 

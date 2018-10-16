@@ -55,15 +55,27 @@ module ApplicationHelper
   end
 
   def ssn(number)
-    # pad with leading 0s if we don't have enough characters
-    number = number.to_s.rjust(9, '0') if number.present?
-    content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, '\1-\2-\3')
+    if can_view_full_ssn?
+      # pad with leading 0s if we don't have enough characters
+      number = number.to_s.rjust(9, '0') if number.present?
+      content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, '\1-\2-\3')
+    else
+      masked_ssn(number)
+    end
   end
 
   def masked_ssn(number)
     # pad with leading 0s if we don't have enough characters
     number = number.to_s.rjust(9, '0') if number.present?
     content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, 'XXX-XX-\3')
+  end
+
+  def dob_or_age dob
+    if can_view_full_dob?
+      dob
+    else
+      GrdaWarehouse::Hud::Client.age(date: Date.today, dob: dob)
+    end
   end
 
   def date_format(dob)
