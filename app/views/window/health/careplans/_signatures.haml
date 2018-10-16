@@ -1,7 +1,10 @@
 .pctp__signature.mb-4
   - if careplan.patient_signed_on
-    = checkmark(true)
-    Patient Signature (#{careplan.patient_signed_on&.to_date})
+    .signature-words
+      = checkmark(true)
+      Patient Signature 
+    .signature-date
+      (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
     .btn-group
       %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
@@ -21,8 +24,11 @@
       Upload signed pdf or enter signature date
 .pctp__signature
   - if careplan.provider_signed_on
-    = checkmark(true)
-    PCP Signature (#{careplan.provider_signed_on&.to_date})
+    .signature-words
+      = checkmark(true)
+      PCP Signature 
+    .signature-date
+      (#{careplan.provider_signed_on&.to_date})
   - elsif careplan.aco_signature_requests.outstanding.exists?
     .pcpt__signature-aco.mb-2
       - aco_signature_request = careplan.aco_signature_requests.order(created_at: :desc).limit(1).first
@@ -78,8 +84,12 @@
       Upload signed pdf or enter signature date
 - if expires_on = careplan.expires_on
   - if expires_on > Date.today
-    .pctp__expiration.mt-2.ml-4
-      Careplan expires #{expires_on}
+    .pctp__expiration.mt-2
+      Careplan expires 
+      %br
+      #{expires_on}
   - else
-    .pctp__expired.mt-2.ml-4
-      Careplan expired #{expires_on}
+    .pctp__expired.mt-2
+      Careplan expired
+      %br
+      #{expires_on}
