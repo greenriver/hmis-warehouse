@@ -81,7 +81,7 @@ module ReportGenerators::Lsa::Fy2018
           remove_report_files()
           log_and_ping('LSA Complete')
         ensure
-          # remove_temporary_rds()
+          remove_temporary_rds()
         end
         finish_report()
       else
