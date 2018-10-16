@@ -81,7 +81,7 @@ module ReportGenerators::Lsa::Fy2018
           remove_report_files()
           log_and_ping('LSA Complete')
         ensure
-          remove_temporary_rds()
+          # remove_temporary_rds()
         end
         finish_report()
       else
@@ -101,7 +101,9 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      # return GrdaWarehouse::HmisExport.find(95)
+      if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
+        return GrdaWarehouse::HmisExport.find(@hmis_export_id)
+      end
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
       existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
@@ -248,7 +250,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def remove_temporary_rds
-      @rds&.terminate! unless Rails.env.development?
+      @rds&.terminate! if @destroy_rds
     end
 
     def setup_hmis_table_structure

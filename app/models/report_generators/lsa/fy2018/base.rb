@@ -3,6 +3,11 @@ module ReportGenerators::Lsa::Fy2018
   include ArelHelper
     attr_accessor :report
 
+    def initialize destroy_rds: true, hmis_export_id: nil
+      @destroy_rds = destroy_rds
+      @hmis_export_id = hmis_export_id
+    end
+
     def setup_filters
       # convert various inputs to project ids for the HUD HMIS export
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
