@@ -617,9 +617,11 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select
-      @options ||= begin
+    def self.options_for_select user:
+      # don't cache this, it's a class method
+      @options = begin
         options = {}
+        self.viewable_by(user).
         joins(:organization).pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
           options[org] ||= []
           options[org] << [project_name, id]

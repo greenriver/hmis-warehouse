@@ -60,7 +60,11 @@ module WarehouseReports
     end
 
     def export_scope
-      export_source.all
+      if current_user.can_edit_anything_super_user?
+        export_source.all
+      else
+        export_source.where(user_id: current_user.id)
+      end
     end
 
     def report_params

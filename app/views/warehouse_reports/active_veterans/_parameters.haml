@@ -5,5 +5,9 @@
     =k.humanize.downcase
   %label.label.label-primary.parameter-value
     %strong
-      = v.is_a?(Array) ? v.compact.delete_if(&:blank?).map(&:upcase).join(', ') : v
+      - v = v.compact.delete_if(&:blank?).map(&:upcase).join(', ') if v.is_a?(Array)
+      - if v.blank?
+        All
+      - else
+      = v
   &nbsp;

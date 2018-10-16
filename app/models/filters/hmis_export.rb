@@ -12,11 +12,11 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :user_id, Integer, default: nil
-    
+
     validates_presence_of :start_date, :end_date
 
     validate do
-      if end_date.present? && start_date.present? 
+      if end_date.present? && start_date.present?
         if end_date < start_date
           errors.add :end_date, 'must follow start date'
         end
@@ -55,6 +55,7 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
+      return [] unless user.can_edit_project_groups?
       GrdaWarehouse::ProjectGroup.joins(:projects).
         where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
@@ -62,18 +63,24 @@ module Filters
 
     def effective_project_ids_from_organizations
       GrdaWarehouse::Hud::Organization.joins(:projects).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(id: organization_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_data_sources
       GrdaWarehouse::DataSource.joins(:projects).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def all_project_ids
-      GrdaWarehouse::Hud::Project.pluck(:id)
+      GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+    end
+
+    def user
+      User.find(user_id)
     end
   end
 end

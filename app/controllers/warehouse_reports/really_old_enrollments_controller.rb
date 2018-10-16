@@ -1,15 +1,18 @@
 module WarehouseReports
   class ReallyOldEnrollmentsController < ApplicationController
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
+
     def index
       @date = (params[:date] || '1980-01-01').to_date
       et = GrdaWarehouse::Hud::Enrollment.arel_table
-      @clients = client_source
-        .joins(:source_enrollments)
-        .preload(:source_enrollments)
-        .where( et[:EntryDate].lt @date )
-        .order(:LastName, :FirstName)
-        .page(params[:page]).per(25)
+      @clients = client_source.
+        joins(source_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        preload(:source_enrollments).
+        where( et[:EntryDate].lt @date ).
+        order(:LastName, :FirstName).
+        page(params[:page]).per(25)
     end
 
     private def client_source

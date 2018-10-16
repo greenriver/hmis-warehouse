@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181012130754) do
+ActiveRecord::Schema.define(version: 20181015132958) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1690,6 +1690,7 @@ ActiveRecord::Schema.define(version: 20181012130754) do
     t.text    "description"
     t.integer "weight",       default: 0,    null: false
     t.boolean "enabled",      default: true, null: false
+    t.boolean "limitable",    default: true, null: false
   end
 
   create_table "report_tokens", force: :cascade do |t|

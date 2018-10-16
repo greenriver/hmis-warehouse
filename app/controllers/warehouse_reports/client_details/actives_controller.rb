@@ -2,8 +2,7 @@ module WarehouseReports::ClientDetails
   class ActivesController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
-
-    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
+    before_action :set_limited, only: [:index]
 
     def index
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
@@ -70,7 +69,7 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
     def homeless_service_history_source

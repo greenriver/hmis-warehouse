@@ -3,6 +3,7 @@ module Filters
     attribute :org, Integer, default: -> (s,_) {s.default_org}
     attribute :month, Integer, default: Date.today.month
     attribute :year, Integer, default: Date.today.year
+    attribute :user, User, default: nil
 
     validates :org, presence: true
 
@@ -11,23 +12,23 @@ module Filters
     end
 
     def organizations
-        @organizations ||= GrdaWarehouse::Hud::Organization.residential.distinct.order(:OrganizationName)
-      end
+      @organizations ||= organization_scope.distinct.order(:OrganizationName)
+    end
 
-      def disambiguated_organizations
-        @disambiguated_organizations ||= organizations.
-          includes(:data_source).
-          group_by(&:name).
-          flat_map do |name, orgs|
-            if orgs.many?
-              orgs.map do |org|
-                [ disambiguated_name(org), org.id ]
-              end
-            else
-              [[ name, orgs.first.id ]]
+    def disambiguated_organizations
+      @disambiguated_organizations ||= organizations.
+        includes(:data_source).
+        group_by(&:name).
+        flat_map do |name, orgs|
+          if orgs.many?
+            orgs.map do |org|
+              [ disambiguated_name(org), org.id ]
             end
-        end.to_h
-      end
+          else
+            [[ name, orgs.first.id ]]
+          end
+      end.to_h
+    end
 
     def disambiguated_name(org)
       "#{org.name} < #{org.data_source.short_name}"
@@ -44,7 +45,7 @@ module Filters
     end
 
     def default_org
-      GrdaWarehouse::Hud::Organization.residential.
+      organization_scope.
       order(:OrganizationName).
       distinct.
       limit(1).
@@ -52,7 +53,7 @@ module Filters
     end
 
     def organization
-      @organization ||= organizations.find org
+      @organization ||= organizations.find org rescue organizations.first
     end
 
     def years
@@ -65,6 +66,14 @@ module Filters
 
     def latest_year
       @latest_year ||= Date.today.year
+    end
+
+    def organization_scope
+      if user.present?
+        GrdaWarehouse::Hud::Organization.residential.viewable_by(user)
+      else
+        GrdaWarehouse::Hud::Organization.residential
+      end
     end
 
     validate do

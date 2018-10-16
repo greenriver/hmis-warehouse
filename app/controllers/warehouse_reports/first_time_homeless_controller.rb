@@ -2,6 +2,7 @@ module WarehouseReports
   class FirstTimeHomelessController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
       @range = ::Filters::DateRange.new(date_range_options)
@@ -18,7 +19,8 @@ module WarehouseReports
 
         set_first_time_homeless_client_ids()
 
-        @clients = client_source.joins(:first_service_history).
+        @clients = client_source.joins(first_service_history: :project).
+          merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
           where(she_t[:record_type].eq('first')).
           where(id: @first_time_client_ids.to_a).
@@ -68,7 +70,7 @@ module WarehouseReports
         @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
       end
       @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
-      
+
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
 
       set_first_time_homeless_client_ids()

@@ -17,5 +17,13 @@ module WarehouseReportAuthorization
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
     helper_method :related_report
+
+    # useful for determining if a report has been limited to a specific set of projects
+    # because of a user's access level
+    def set_limited
+      all_project_ids = GrdaWarehouse::Hud::Project.order(id: :asc).pluck(:id)
+      @visible_projects = GrdaWarehouse::Hud::Project.viewable_by(current_user).order(id: :asc).pluck(:id, :ProjectName).to_h
+      @limited = all_project_ids != @visible_projects.keys
+    end
   end
 end

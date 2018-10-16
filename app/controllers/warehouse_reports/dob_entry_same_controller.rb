@@ -1,15 +1,17 @@
 module WarehouseReports
   class DobEntrySameController < ApplicationController
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
     def index
       et = GrdaWarehouse::Hud::Enrollment.arel_table
-      @clients = client_source.distinct
-        .joins(source_enrollments: :project)
-        .preload(source_enrollments: :project)
-        .where( client_source.arel_table[:DOB].eq et[:EntryDate] ) #'Client.DOB = EntryDate')
-        .where.not(DOB: nil)
-        .order(DOB: :asc)
-        .page(params[:page]).per(25)
+      @clients = client_source.distinct.
+        joins(source_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        preload(source_enrollments: :project).
+        where( client_source.arel_table[:DOB].eq et[:EntryDate] ). #'Client.DOB = EntryDate')
+        where.not(DOB: nil).
+        order(DOB: :asc).
+        page(params[:page]).per(25)
     end
 
     private def client_source

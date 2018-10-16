@@ -3,6 +3,7 @@
 - et = GrdaWarehouse::Hud::Enrollment.arel_table
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+= render 'warehouse_reports/limited_by_project_note'
 .warehouse-reports__missing-projects
   %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-condensed.table-hover

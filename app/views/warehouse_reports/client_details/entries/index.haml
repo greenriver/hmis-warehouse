@@ -10,16 +10,15 @@
         Download Excel
 
 = render 'filter'
-.row
-  .col-sm-12
-    %p
-      = @enrollments.count
-      Clients have entries in 
-      = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_code]
-      between
-      = @start_date
-      and
-      = "#{@end_date}."
+%p
+  = @enrollments.count
+  Clients have entries in
+  = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_code]
+  between
+  = @start_date
+  and
+  = "#{@end_date}."
+= render 'warehouse_reports/limited_by_project_note'
 
 
 - @buckets.each do |group, clients|
@@ -64,5 +63,4 @@
                   = enrollment[:project_name]
                 %td
                   = enrollment[:organization_name]
-                
-          
+

@@ -35,7 +35,9 @@ module WarehouseReports
     ).map(&:humanize).map(&:titleize).freeze
 
     def index
-      @query = MissingValuesQuery.new **( params[:q] || {} ).symbolize_keys
+      report_params = {user: current_user}
+      report_params.merge!(params[:q]) if params[:q]
+      @query = MissingValuesQuery.new **( report_params ).symbolize_keys
       @query.valid?   # this initializes the object so simple form will render it correctly
       respond_to :html, :xlsx
     end
@@ -49,6 +51,7 @@ module WarehouseReports
       attribute :data_source,  Integer, lazy: true, default: -> (s,_) { s.all_sources[:data_sources].first.last }
       attribute :organization, Integer, lazy: true, default: -> (s,_) { s.all_sources[:organizations].first.last }
       attribute :project,      Integer, lazy: true, default: -> (s,_) { s.all_sources[:projects].first.last }
+      attribute :user
 
       validates :columns, presence: true
       validates :source, inclusion: { in: SOURCES }, allow_blank: false
@@ -203,6 +206,7 @@ module WarehouseReports
           ot = organizations.arel_table
           pt = projects.arel_table
           sql = data_sources.importable.joins( organizations: :projects ).
+            merge(projects.viewable_by(user)).
             select( st[:id], st[:name], st[:short_name], ot[:id], ot[:OrganizationName], pt[:id], pt[:ProjectName] ).
             to_sql
           rows = data_sources.connection.select_rows sql

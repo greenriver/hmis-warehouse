@@ -17,8 +17,8 @@ class ApplicationController < ActionController::Base
   before_filter :set_hostname
 
   around_filter :cache_grda_warehouse_base_queries
-  before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
-  after_action :log_activity, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
+  before_action :compose_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
+  after_action :log_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
   before_filter :set_gettext_locale

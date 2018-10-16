@@ -1,6 +1,8 @@
 module WarehouseReports
   class OpenEnrollmentsNoServiceController < ApplicationController
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
+
     def index
       @sort_options = sort_options
       @column = sort_column
@@ -14,7 +16,7 @@ module WarehouseReports
         ongoing.bed_night.
         with_service_between(start_date: cutoff, end_date: Date.today)
       open_enrollments_no_service = open_enrollments - service_in_last_30_days
-      earliest_entry = [open_enrollments.minimum(:first_date_in_program), 3.years.ago.to_date].max
+      earliest_entry = [open_enrollments.minimum(:first_date_in_program), 3.years.ago.to_date].max rescue 3.years.ago.to_date
       @entries = open_enrollments_no_service
       client_ids = @entries.map(&:client_id).uniq
       @clients = client_source.where(id: client_ids).
@@ -28,20 +30,20 @@ module WarehouseReports
         maximum(:date)
       respond_to do |format|
         format.html do
-          
+
         end
-        format.xlsx do      
-          
+        format.xlsx do
+
         end
       end
     end
 
-    
+
     private def client_source
       GrdaWarehouse::Hud::Client
     end
     private def service_history_enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
     private def service_history_service_source
       GrdaWarehouse::ServiceHistoryService
@@ -60,33 +62,33 @@ module WarehouseReports
     private def sort_options
       [
         # {
-        #   title: 'Last name A-Z', 
-        #   column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName", 
+        #   title: 'Last name A-Z',
+        #   column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName",
         #   direction: 'asc'
         # },
         # {
-        #   title: 'Last name Z-A', 
-        #   column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName", 
+        #   title: 'Last name Z-A',
+        #   column: "#{GrdaWarehouse::Hud::Client.quoted_table_name}.LastName",
         #   direction: 'desc'
         # },
         {
-          title: 'Project', 
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_name", 
+          title: 'Project',
+          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_name",
           direction: 'asc'
         },
         {
-          title: 'Longest', 
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program", 
+          title: 'Longest',
+          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
           direction: 'asc'
         },
         {
-          title: 'Shortest', 
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program", 
+          title: 'Shortest',
+          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
           direction: 'desc'
         },
         # {
-        #   title: 'Most Recently Seen', 
-        #   column: "max_date", 
+        #   title: 'Most Recently Seen',
+        #   column: "max_date",
         #   direction: 'desc'
         # },
       ]
@@ -95,8 +97,8 @@ module WarehouseReports
     private def cols
       [
         :id,
-        :enrollment_group_id, 
-        :data_source_id, 
+        :enrollment_group_id,
+        :data_source_id,
         :project_id,
         :organization_id,
         :project_name,

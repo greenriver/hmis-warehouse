@@ -1,11 +1,12 @@
-- title = "Clients with Initial Entry Dates on Their DOB"
+- title = "Clients with Entry Dates on Their DOB"
 - content_for :title, title
-%h1= title 
+%h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 .warehouse-reports__missing-projects
   %p
-    The following clients were born on the same day they entered homelessness.
+    The following clients were born on the same day they entered a project.
+  = render 'warehouse_reports/limited_by_project_note'
   %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-condensed.table-hover
     %thead
@@ -16,11 +17,10 @@
         %th Project
     %tbody
       - @clients.each do |client|
-        - if client.DOB == client.source_enrollments.sort_by{|m| m[:EntryDate]}.first.EntryDate
-          - enrollment = client.source_enrollments.sort_by{|m| m[:EntryDate]}.first
-          %tr
-            %td= link_to client.name, client_path(client)
-            %td= client.DOB
-            %td= enrollment.EntryDate
-            %td= enrollment.project&.ProjectName
+        - enrollment = client.source_enrollments.select{ |m| m[:EntryDate] == client.DOB }.first
+        %tr
+          %td= link_to client.name, client_path(client)
+          %td= client.DOB
+          %td= enrollment.EntryDate
+          %td= enrollment.project&.ProjectName
 %p= paginate @clients

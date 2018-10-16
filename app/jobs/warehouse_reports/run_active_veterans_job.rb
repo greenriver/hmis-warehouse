@@ -8,8 +8,16 @@ module WarehouseReports
       report.started_at = DateTime.now
       report.parameters = params
 
+      user = User.find(params[:current_user_id])
+      report.user_id = user.id
+      report.parameters[:visible_projects] = if user.can_edit_anything_super_user?
+        [:all, 'All']
+      else
+          GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+      end
+
       range = ::Filters::DateRangeAndProject.new(params['range'])
-      scope = service_history_scope
+      scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
 
       project_types = range.project_type.select(&:present?).map(&:to_sym)
       if project_types.any?
@@ -87,7 +95,7 @@ module WarehouseReports
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
   end
