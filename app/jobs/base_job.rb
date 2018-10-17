@@ -31,7 +31,7 @@ class BaseJob < ActiveJob::Base
     if STARTING_PATH != expected_path
       notify_on_restart(job.inspect)
       notify_on_restart(self.inspect)
-      job = self unless job.respond_to? :job_id
+      job = self unless job.respond_to? :locked_by
       notify_on_restart(job.inspect)
       msg = "Started dir is `#{STARTING_PATH}`"
       notify_on_restart(msg)
@@ -41,7 +41,7 @@ class BaseJob < ActiveJob::Base
       notify_on_restart(msg)
       msg = "Restarting stale delayed job: #{job.locked_by}"
       notify_on_restart(msg)
-      unlock_job!(job.job_id)
+      unlock_job!(job.id)
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
