@@ -14,7 +14,7 @@ class BaseJob < ActiveJob::Base
       msg = "Restarting stale delayed job: #{job&.locked_by}"
       notify_on_restart(msg)
 
-      unlock_job!(job)
+      unlock_job!(job.job_id)
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
@@ -29,15 +29,17 @@ class BaseJob < ActiveJob::Base
   # When called through Delayed::Job, uses this hook
   def before job
     if STARTING_PATH != expected_path
+      job = self unless job.respond_to? :job_id
+  
       msg = "Started dir is `#{STARTING_PATH}`"
       notify_on_restart(msg)
       msg = "Current dir is `#{expected_path}`"
       notify_on_restart(msg)
       msg = "Exiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)
-      msg = "Restarting stale delayed job: #{job&.locked_by}"
+      msg = "Restarting stale delayed job: #{job.locked_by}"
       notify_on_restart(msg)
-      unlock_job!(self)
+      unlock_job!(job.id)
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
@@ -71,14 +73,8 @@ class BaseJob < ActiveJob::Base
     end
   end
 
-  def unlock_job!(job)
-    notify_on_restart(job.inspect)
+  def unlock_job!(job_id)
     a_t = Delayed::Job.arel_table
-    if job.is_a? Delayed::Backend::ActiveRecord::Job
-      job_id = job.id
-    else
-      job_id = job.job_id 
-    end
     job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
     job_object.update_attributes(locked_by: nil, locked_at: nil)
   end
