@@ -1,16 +1,20 @@
-
 class BaseJob < ActiveJob::Base
   STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
 
   before_perform do |job|
     if STARTING_PATH != expected_path
-      Rails.logger.info "Started dir is `#{STARTING_PATH}`"
-      Rails.logger.info "Current dir is `#{expected_path}`"
-      Rails.logger.info "Exiting in order to let systemd restart me in the correct directory."
+      msg = "Started dir is `#{STARTING_PATH}`"
+      notify_on_restart(msg)
+      msg = "Current dir is `#{expected_path}`"
+      notify_on_restart(msg)
+      msg = "Exiting in order to let systemd restart me in the correct directory."
+      notify_on_restart(msg)
+      msg = "Restarting stale delayed job: #{job&.locked_by}"
+      notify_on_restart(msg)
 
       unlock_job!(job)
-
+      
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
     end
@@ -23,11 +27,18 @@ class BaseJob < ActiveJob::Base
   end
 
   # when queued with Delayed::Job.enqueue TestJob.new (this gets used)
-  # def error(job, e)
-  #   notify_on_exception(e)
-  # end
+  # This will send two notifications for each error, probably
+  def error(job, e)
+    notify_on_exception(e)
+  end
 
   private
+
+  def notify_on_restart msg
+    Rails.logger.info msg
+    setup_notifier('DelayedJobRestarter')
+    @notifier.ping(msg) if @send_notifications
+  end
 
   def notify_on_exception exception
     setup_notifier('DelayedJobFailure')
