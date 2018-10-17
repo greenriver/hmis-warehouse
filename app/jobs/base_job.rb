@@ -2,6 +2,7 @@ class BaseJob < ActiveJob::Base
   STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
 
+  # When called through Active::Job, uses this hook
   before_perform do |job|
     if STARTING_PATH != expected_path
       msg = "Started dir is `#{STARTING_PATH}`"
@@ -19,7 +20,13 @@ class BaseJob < ActiveJob::Base
       exit!(0)
     end
   end
+  # when queued with perform_later (active job, this gets used)
+  # This works in both situations
+  rescue_from Exception do |e|
+    notify_on_exception(e)
+  end
 
+  # When called through Delayed::Job, uses this hook
   def before job
     if STARTING_PATH != expected_path
       msg = "Started dir is `#{STARTING_PATH}`"
@@ -36,13 +43,6 @@ class BaseJob < ActiveJob::Base
       exit!(0)
     end
   end
-
-  # when queued with perform_later (active job, this gets used)
-  # This works in both situations
-  rescue_from Exception do |e|
-    notify_on_exception(e)
-  end
-
   # when queued with Delayed::Job.enqueue TestJob.new (this gets used)
   # This will send two notifications for each error, probably
   def error(job, e)
@@ -72,13 +72,14 @@ class BaseJob < ActiveJob::Base
   end
 
   def unlock_job!(job)
+    notify_on_restart(job.inspect)
+    a_t = Delayed::Job.arel_table
     if job.is_a? Delayed::Backend::ActiveRecord::Job
-      job_object = job
+      job_id = job.id
     else
-      a_t = Delayed::Job.arel_table
-      job_id = job.job_id
-      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
+      job_id = job.job_id 
     end
+    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
     job_object.update_attributes(locked_by: nil, locked_at: nil)
   end
 end
