@@ -29,8 +29,8 @@ class BaseJob < ActiveJob::Base
   # When called through Delayed::Job, uses this hook
   def before job
     if STARTING_PATH != expected_path
-      notify_on_restart("job: #{job.responds_to?(:locked_by).inspect} #{job.responds_to?(:job_id).inspect}")
-      notify_on_restart("self: #{self.responds_to?(:locked_by).inspect} #{self.responds_to?(:job_id).inspect}")
+      notify_on_restart("job: #{job.respond_to?(:locked_by).inspect} #{job.respond_to?(:job_id).inspect}")
+      notify_on_restart("self: #{self.respond_to?(:locked_by).inspect} #{self.respond_to?(:job_id).inspect}")
       notify_on_restart("job: #{job.inspect}")
       notify_on_restart("self: #{self.inspect}")
       job = self unless job.respond_to? :locked_by
