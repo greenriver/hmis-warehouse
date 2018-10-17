@@ -21,6 +21,7 @@ class BaseJob < ActiveJob::Base
   end
 
   def before job
+    binding.pry
     if STARTING_PATH != expected_path
       msg = "Started dir is `#{STARTING_PATH}`"
       notify_on_restart(msg)
