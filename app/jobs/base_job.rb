@@ -20,6 +20,24 @@ class BaseJob < ActiveJob::Base
     end
   end
 
+  def before job
+    if STARTING_PATH != expected_path
+      msg = "Started dir is `#{STARTING_PATH}`"
+      notify_on_restart(msg)
+      msg = "Current dir is `#{expected_path}`"
+      notify_on_restart(msg)
+      msg = "Exiting in order to let systemd restart me in the correct directory."
+      notify_on_restart(msg)
+      msg = "Restarting stale delayed job: #{job&.locked_by}"
+      notify_on_restart(msg)
+
+      unlock_job!(job)
+      
+      # Exit, ignoring signal handlers which would prevent the process from dying
+      exit!(0)
+    end
+  end
+
   # when queued with perform_later (active job, this gets used)
   # This works in both situations
   rescue_from Exception do |e|
