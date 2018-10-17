@@ -24,6 +24,12 @@ module WarehouseReports
       end
     end
 
+    def destroy
+      @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find params[:id]
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_disabilities_path)
+    end
+
     def running
       @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
     end

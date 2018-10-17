@@ -173,7 +173,7 @@ Rails.application.routes.draw do
         get :running
       end
     end
-    resources :disabilities, only: [:index, :show] do
+    resources :disabilities, only: [:index, :show, :destroy] do
       collection do
         get :summary
         get :running
