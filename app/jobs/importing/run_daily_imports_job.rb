@@ -134,6 +134,8 @@ module Importing
       # @notifier.ping('Data source date spans set') if @send_notifications
 
       Rails.cache.clear
+      # re-set cache key for delayed job
+      Rails.cache.write('deploy-dir', File.realpath(FileUtils.pwd))
 
       # Generate some duplicates if we need to, but not too many
       opts = {
