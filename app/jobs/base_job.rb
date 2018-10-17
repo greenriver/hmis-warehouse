@@ -81,8 +81,8 @@ class BaseJob < ActiveJob::Base
     notify_on_restart("job_id: #{job_id}")
     a_t = Delayed::Job.arel_table
     notify_on_exception("#{Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).to_sql}")
-    notify_on_exception("#{Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).count}")
-    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
+    notify_on_exception("#{Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).count}")
+    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
     job_object.update_attributes(locked_by: nil, locked_at: nil) if job_object
   end
 end
