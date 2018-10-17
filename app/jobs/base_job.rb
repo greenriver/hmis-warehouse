@@ -29,8 +29,10 @@ class BaseJob < ActiveJob::Base
   # When called through Delayed::Job, uses this hook
   def before job
     if STARTING_PATH != expected_path
+      notify_on_restart(job.inspect)
+      notify_on_restart(self.inspect)
       job = self unless job.respond_to? :job_id
-  
+      notify_on_restart(job.inspect)
       msg = "Started dir is `#{STARTING_PATH}`"
       notify_on_restart(msg)
       msg = "Current dir is `#{expected_path}`"
