@@ -11,10 +11,13 @@ class BaseJob < ActiveJob::Base
       notify_on_restart(msg)
       msg = "Exiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)
-      msg = "Restarting stale delayed job: #{job&.locked_by}"
-      notify_on_restart(msg)
-
-      unlock_job!(job.job_id)
+      if job.respond_to? :locked_by
+        msg = "Restarting stale delayed job: #{job&.locked_by}"
+        notify_on_restart(msg)
+      end
+      if job.respond_to? :job_id
+        unlock_job!(job.job_id)
+      end
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
