@@ -30,8 +30,6 @@ class BaseJob < ActiveJob::Base
       notify_on_restart(msg)
       msg = "Restarting stale delayed job: #{job&.locked_by}"
       notify_on_restart(msg)
-      notify_on_restart(self.inspect)
-      notify_on_restart(job.inspect)
       unlock_job!(self)
       
       # Exit, ignoring signal handlers which would prevent the process from dying
@@ -74,10 +72,13 @@ class BaseJob < ActiveJob::Base
   end
 
   def unlock_job!(job)
-    a_t = Delayed::Job.arel_table
-    job_id = job&.job_id || job.id
-    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
-
+    if job.is_a? Delayed::Backend::ActiveRecord::Job
+      job_object = job
+    else
+      a_t = Delayed::Job.arel_table
+      job_id = job.job_id
+      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
+    end
     job_object.update_attributes(locked_by: nil, locked_at: nil)
   end
 end
