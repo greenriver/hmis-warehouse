@@ -31,6 +31,12 @@ module WarehouseReports
       end
     end
 
+    def destroy
+      @report = report_source.find params[:id]
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_active_veterans_path)
+    end
+
     def running
       @reports = report_source.ordered.limit(50)
     end

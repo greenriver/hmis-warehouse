@@ -189,7 +189,7 @@ Rails.application.routes.draw do
         get :running
       end
     end
-    resources :active_veterans, only: [:index, :show] do
+    resources :active_veterans, only: [:index, :show, :destroy] do
       collection do
         get :summary
         get :running
