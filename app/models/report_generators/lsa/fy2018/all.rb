@@ -226,6 +226,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_lsa_report
       load 'lib/rds_sql_server/lsa_sql_server.rb'
+      LsaSqlServer::LSAReport.delete_all
       LsaSqlServer::LSAReport.create!(
         ReportID: Time.now.to_i,
         ReportDate: Date.today,
