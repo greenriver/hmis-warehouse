@@ -31,7 +31,7 @@ class BaseJob < ActiveJob::Base
       msg = "Restarting stale delayed job: #{job&.locked_by}"
       notify_on_restart(msg)
 
-      unlock_job!(job)
+      unlock_job!(self)
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
