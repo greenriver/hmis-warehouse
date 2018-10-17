@@ -75,7 +75,7 @@ class BaseJob < ActiveJob::Base
   def unlock_job!(job)
     a_t = Delayed::Job.arel_table
     job_id = job&.job_id || job.id
-    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job.job_id}%")).first
+    job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%")).first
 
     job_object.update_attributes(locked_by: nil, locked_at: nil)
   end
