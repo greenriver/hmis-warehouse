@@ -183,7 +183,7 @@ Rails.application.routes.draw do
       get :summary, on: :collection
       get :running, on: :collection
     end
-    resources :hud_chronics, only: [:index, :show] do
+    resources :hud_chronics, only: [:index, :show, :destroy] do
       collection do
         get :summary
         get :running

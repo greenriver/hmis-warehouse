@@ -32,6 +32,12 @@ module WarehouseReports
       end
     end
 
+    def destroy
+      @report = report_source.find params[:id]
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_hud_chronics_path)
+    end
+
     def running
       @jobs = Delayed::Job.where(queue: 'hud_chronic_report').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
@@ -97,6 +103,10 @@ module WarehouseReports
         {title: 'Months in 3 yrs (asc)', column: 'chronic.months_in_last_three_years', direction: 'asc'},
         {title: 'Months in 3 yrs (desc)', column: 'chronic.months_in_last_three_years', direction: 'desc'},
       ]
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'HUD Chronic Clients Report' }
     end
 
   end
