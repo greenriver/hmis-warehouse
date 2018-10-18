@@ -13,12 +13,17 @@
     %ul.l-print__summary-items
       %li
         %dl
+          %dt Patient DOB
+          %dd= @patient.birthdate&.to_date
+      %li
+        %dl
           %dt Initial Date
           %dd= @careplan.initial_date&.to_date
       %li
         %dl
           %dt Review Date
           %dd= @careplan.review_date&.to_date
+
 
   = render 'window/health/careplans/team_members_table'
 
