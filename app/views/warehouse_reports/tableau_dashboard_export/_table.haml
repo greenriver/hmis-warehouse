@@ -7,7 +7,8 @@
       %th Status
       %th Started
       %th Finished
-      %th
+      %th Download
+      %th Delete
     %tbody
       - @reports.each do |report|
         %tr
@@ -21,3 +22,7 @@
               = link_to action: :show, id: report.id do
                 %span.icon-download2
                 Download
+          %td
+            - if report.completed_at
+              = link_to warehouse_reports_tableau_dashboard_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+                %i.icon-cross

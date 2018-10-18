@@ -27,6 +27,9 @@ module WarehouseReports
     end
 
     def destroy
+      @report = report_source.find params[:id]
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_tableau_dashboard_export_index_path)
     end
 
     def report_source
