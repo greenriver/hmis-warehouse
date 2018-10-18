@@ -5,6 +5,8 @@ class BaseJob < ActiveJob::Base
   # When called through Active::Job, uses this hook
   before_perform do |job|
     if STARTING_PATH != expected_path
+      notify_on_restart(job.inspect)
+      notify_on_restart(self.inspect)
       msg = "Started dir is `#{STARTING_PATH}`"
       notify_on_restart(msg)
       msg = "Current dir is `#{expected_path}`"
