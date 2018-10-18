@@ -9,3 +9,5 @@
         = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
       .col-sm-4
         = f.submit 'Update Date Range', class: 'btn btn-primary mt-no-label'
+    %p
+      Selected date range limits missing Qualifying Activity column.  Only patients enrolled before the end date are included.  All other columns include all patients.

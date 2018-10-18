@@ -41,7 +41,7 @@ module WarehouseReports
       end
     end
     helper_method :available_projects
-        
+
     # AHAR reporting dates
     private def oct_1
       @oct_1 ||= begin
@@ -61,7 +61,7 @@ module WarehouseReports
     end
 
     private def project_source
-      GrdaWarehouse::Hud::Project  
+      GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
 
     private def service_history_source

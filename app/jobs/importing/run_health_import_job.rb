@@ -1,5 +1,5 @@
 module Importing
-  class RunHealthImportJob < ActiveJob::Base
+  class RunHealthImportJob < BaseJob
     queue_as :low_priority
 
     def perform

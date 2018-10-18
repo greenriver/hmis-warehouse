@@ -2,6 +2,8 @@ module WarehouseReports
   class ProjectTypeReconciliationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
+
     def index
       @projects = project_source.joins(:organization, :data_source).
         where(
@@ -12,7 +14,7 @@ module WarehouseReports
     end
 
     def project_source
-      GrdaWarehouse::Hud::Project
+      GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
 
   end

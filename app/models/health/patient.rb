@@ -408,6 +408,10 @@ module Health
       recent_cha&.answer(:r_q1b).presence
     end
 
+    def current_email
+      @current_email||= email || client.email || 'patient@openpath.biz'
+    end
+
     def advanced_directive
       {
         name: recent_cha&.answer(:r_q6a),
@@ -444,7 +448,7 @@ module Health
     end
 
     def qualified_activities_since date: 1.months.ago
-      qualifying_activities.in_range(date..Date.tomorrow)
+      qualifying_activities.not_valid_unpayable.in_range(date..Date.tomorrow)
     end
 
     def import_epic_team_members

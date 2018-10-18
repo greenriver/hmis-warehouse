@@ -1,5 +1,5 @@
 module WarehouseReports
-  class HmisSixOneOneExportJob < ActiveJob::Base
+  class HmisSixOneOneExportJob < BaseJob
     include ArelHelper
 
     queue_as :hmis_six_one_one_export

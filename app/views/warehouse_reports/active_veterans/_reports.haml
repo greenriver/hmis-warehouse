@@ -6,6 +6,18 @@
     %td= job.run_at
     %td= render 'spinner'
     %td= render 'parameters', report: report
+    %td
+      - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
+        - title = report.parameters['visible_projects'].map(&:last).join(', ')
+        - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
+        %span{data: data}
+          Limited
+      - else
+        Unlimited
+
+    %td
+      - if report.user_id
+        = User.find(report.user_id)&.name
 - @reports.each do |report|
   %tr
     %td
@@ -15,6 +27,17 @@
         = report.client_count
         clients
     %td= render 'parameters', report: report
+    %td
+      - if report.parameters['visible_projects'].present? && report.parameters['visible_projects'].first != 'all'
+        - title = report.parameters['visible_projects'].map(&:last).join(', ')
+        - data = {toggle: :tooltip, title: "Limited by access to the following projects: #{title}"}
+        %span{data: data}
+          Limited
+      - else
+        Unlimited
+    %td
+      - if report.user_id
+        = User.find(report.user_id)&.name
     %td
       = link_to warehouse_reports_active_veteran_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
         %i.icon-cross

@@ -1,0 +1,95 @@
+.pctp__signature.mb-4
+  - if careplan.patient_signed_on
+    .signature-words
+      = checkmark(true)
+      Patient Signature 
+    .signature-date
+      (#{careplan.patient_signed_on&.to_date})
+  - elsif careplan.id == @careplan.id
+    .btn-group
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+        Get Patient Signature
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          - url = polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id, post_sign_path: url_for, sign_out: true})
+          - method = :post
+          = link_to url, method: method do
+            Have Patient Sign using this device
+        %li
+          = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
+            Upload signed pdf
+  - else
+    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+      Upload signed pdf or enter signature date
+.pctp__signature
+  - if careplan.provider_signed_on
+    .signature-words
+      = checkmark(true)
+      PCP Signature 
+    .signature-date
+      (#{careplan.provider_signed_on&.to_date})
+  - elsif careplan.aco_signature_requests.outstanding.exists?
+    .pcpt__signature-aco.mb-2
+      - aco_signature_request = careplan.aco_signature_requests.order(created_at: :desc).limit(1).first
+      - if aco_signature_request.expired?
+        .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{aco_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{aco_signature_request.requestor_name}. <br />Valid until: #{aco_signature_request.expires_at}", html: 'true'}}
+          ACO Signature request expired
+      - else
+        .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{aco_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{aco_signature_request.requestor_name}. <br />Valid until: #{aco_signature_request.expires_at}", html: 'true'}}
+          ACO signature requested
+          %br
+          from #{aco_signature_request.to_name}
+      = link_to polymorphic_path(careplan_path_generator + [:aco_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: aco_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
+        Cancel this ACO Signature Request
+  - elsif careplan.pcp_signature_requests.exists?
+    - pcp_signature_request = careplan.pcp_signature_requests.order(created_at: :desc).limit(1).first
+    - if pcp_signature_request.signed?
+      = checkmark(true)
+      PCP Signature (#{pcp_signature_request.completed_at.to_date})
+    - elsif pcp_signature_request.expired?
+      .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
+        PCP Signature request expired
+
+      = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
+        Cancel this PCP Signature Request
+    - elsif pcp_signature_request.outstanding? && pcp_signature_request.sent_at
+      .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
+        PCP signature requested
+        %br
+        from #{pcp_signature_request.to_name}
+      = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
+        Cancel this PCP Signature Request
+    - else
+      PCP signature request queued to send.
+  - elsif careplan.id == @careplan.id
+    .btn-group
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+        Get PCP Signature
+        %span.caret
+      %ul.dropdown-menu
+        %li
+          - url = polymorphic_path([:new] + careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id})
+          = link_to url, data: {loads_in_pjax_modal: true} do
+            Send to PCP via email
+        %li
+          - url = polymorphic_path([:new] + careplan_path_generator + [:aco_signature_request], {client_id: @client.id, careplan_id: careplan.id})
+          = link_to url, data: {loads_in_pjax_modal: true} do
+            Send request to ACO Contact
+        %li
+          = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file') do
+            Upload signed pdf
+  - else
+    = link_to polymorphic_path([:edit] + careplan_path_generator, id: careplan, anchor: 'upload_file'), class: 'btn btn-sm btn-secondary' do
+      Upload signed pdf or enter signature date
+- if expires_on = careplan.expires_on
+  - if expires_on > Date.today
+    .pctp__expiration.mt-2
+      Careplan expires 
+      %br
+      #{expires_on}
+  - else
+    .pctp__expired.mt-2
+      Careplan expired
+      %br
+      #{expires_on}

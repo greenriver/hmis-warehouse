@@ -12,7 +12,7 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      cohort_client.client.processed_service_history&.rrh_desired
+      cohort_client.client.rrh_desired
     end
   end
 end

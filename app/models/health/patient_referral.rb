@@ -173,9 +173,15 @@ module Health
       # nothing to do if we have a client already
       return if client.present?
       update(effective_date: Date.today)
-      source_client = create_source_client
-      destination_client = connect_destination_client(source_client)
-      create_patient(destination_client)
+      # look for an existing patient
+      if Health::Patient.where(medicaid_id: medicaid_id).exists?
+        patient = Health::Patient.where(medicaid_id: medicaid_id).first
+        create_patient(patient.client)
+      else
+        source_client = create_source_client
+        destination_client = connect_destination_client(source_client)
+        create_patient(destination_client)
+      end
     end
 
     def create_source_client
@@ -232,7 +238,8 @@ module Health
     end
 
     def create_patient destination_client
-      patient = Health::Patient.create(
+      patient = Health::Patient.where(medicaid_id: medicaid_id).first_or_initialize
+      patient.assign_attributes(
         id_in_source: id,
         first_name: first_name,
         last_name: last_name,
@@ -244,6 +251,7 @@ module Health
         engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
+      patient.save!
       patient.import_epic_team_members
       if rejected?
         # soft delete

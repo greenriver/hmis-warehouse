@@ -1,14 +1,12 @@
-= render :partial => 'menus/admin_tabs'
 - title = 'Edit Warehouse Alert'
 - content_for :title, title
-
+%h1= content_for :title
+= render :partial => 'menus/admin_tabs'
 .row
-  .col-sm-11
-    %h1= content_for :title
-  .col-sm-1
-    .row
-      .col-sm-12
-        = link_to admin_warehouse_alert_path(@alert), class: 'btn btn-primary margin-bottom-02' do
-          View
+  .col-sm-8
+    = render "form", alert: @alert
+  .col-sm-4.text-right
+    = link_to admin_warehouse_alert_path(@alert), class: 'btn btn-primary margin-bottom-02' do
+      View
 
-= render "form", alert: @alert
+

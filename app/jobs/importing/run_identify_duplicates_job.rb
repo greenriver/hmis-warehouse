@@ -1,5 +1,5 @@
 module Importing
-  class RunIdentifyDuplicatesJob < ActiveJob::Base
+  class RunIdentifyDuplicatesJob < BaseJob
     queue_as :low_priority
 
     def perform

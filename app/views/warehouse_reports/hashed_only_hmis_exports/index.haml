@@ -5,7 +5,6 @@
 
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
-
 .warehouse-reports__completed.warehouse-reports__hmis_export
   %table.table.table-hover
     %thead
@@ -17,7 +16,7 @@
         %th Delete
     %tbody.report-listing
       = render 'reports'
-= link_to 'Reports', running_warehouse_reports_hashed_only_hmis_exports_path, class: 'jReportBlock', remote: true 
+= link_to 'Reports', running_warehouse_reports_hashed_only_hmis_exports_path, class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript

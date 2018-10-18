@@ -7,10 +7,14 @@
         - main_client_name = client.source_clients.visible_in_window_to(current_user).first.data_source.short_name
       - else
         - main_client_name = akas.shift
-      .clients__client-name.h4= main_client_name
       .clients__client-additional-names
+        .client__client-name
+          .client-aka
+            = main_client_name
         - akas.each_with_index do | aka, i |
-          %div= aka
+          .client__client-name
+            .client-aka
+              = aka
       = render 'relationships', client: client
     .client__details.client__details--demographics
       = render 'clients/chronic_flags', client: client

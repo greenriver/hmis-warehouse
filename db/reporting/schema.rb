@@ -11,14 +11,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180917194028) do
+ActiveRecord::Schema.define(version: 20180925175825) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-
-  create_table "ea_test", id: false, force: :cascade do |t|
-    t.integer "id"
-  end
 
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
@@ -38,6 +34,7 @@ ActiveRecord::Schema.define(version: 20180917194028) do
     t.integer "veteran_status"
     t.date    "month_year"
     t.string  "ph_destination"
+    t.integer "project_id"
   end
 
   add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree

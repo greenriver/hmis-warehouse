@@ -22,6 +22,8 @@ gem 'with_advisory_lock'
 # gem 'schema_plus_views'
 gem 'scenic'
 gem 'memoist', require: false
+gem 'rserve-client', require: false
+gem 'rserve-simpler', require: false
 
 # File processing
 gem 'carrierwave'
@@ -32,11 +34,14 @@ gem 'acts-as-taggable-on', '~> 4.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
+gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'paper_trail'
 gem 'validates_email_format_of'
+gem 'ruby-mailchecker'
+gem "email_check"
 gem 'text'
 
 gem "lograge"
@@ -56,7 +61,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
-gem 'select2-rails'
+gem 'select2-rails', git: 'https://github.com/greenriver/select2-rails.git'
 gem 'font-awesome-sass'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
@@ -69,6 +74,8 @@ gem 'htmlentities'
 # ETO API related
 gem "rest-client", "~> 2.0"
 gem "gmail", require: false
+
+gem 'stupidedi', require: false
 
 # for de-duping clients
 gem 'redcarpet'

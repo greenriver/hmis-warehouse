@@ -18,7 +18,7 @@
       %th{rowspan: 2} ID
       %th{rowspan: 2} Client
       %th{rowspan: 2} First Date Homeless
-      %th{rowspan: 2} DOB
+      %th{rowspan: 2}= if can_view_full_dob? then 'DOB' else 'Age' end
       %th{rowspan: 2} SSN
       %th{rowspan: 2} Veteran in
       %th{colspan: 5} Enrollments open during date range
@@ -41,7 +41,7 @@
           = link_to client_path(id: client['id']) do
             = client['name']
         %td{rowspan: span}= client['first_service_history']
-        %td{rowspan: span}= date_format client['DOB'].to_date
+        %td{rowspan: span}= dob_or_age client['DOB'].to_date
         %td.nobr{rowspan: span}= ssn client['SSN']
         %td{rowspan: span}
           - client['data_sources'].each do |ds|

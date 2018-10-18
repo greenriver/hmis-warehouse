@@ -86,6 +86,7 @@ module Health
         with_patient.
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
+        where(hpr_t[:enrollment_start_date].lt(@range.last)).
         pluck(:patient_id, :agency_id).to_h
     end
 
@@ -149,7 +150,6 @@ module Health
         merge(GrdaWarehouse::HmisForm.self_sufficiency).
         distinct.
         where(id: client_ids.keys). # limit to clients in scope
-        where(hmis_form_t[:collected_at].between(@range)).
         pluck(:id, hmis_form_t[:collected_at].to_sql).
         to_h
     end
@@ -220,6 +220,7 @@ module Health
     # Qualifying  Activities
     def qualifying_activity_dates
       @qualifying_activity_dates ||= Health::QualifyingActivity.submittable.
+        not_valid_unpayable.
         distinct.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).

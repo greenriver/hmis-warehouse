@@ -178,6 +178,19 @@ module GrdaWarehouse::Hud
       r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
       where(self.project_type_override.in(r_non_homeless))
     end
+
+    scope :with_hud_project_type, -> (project_types) do
+      where(self.project_type_override.in(project_types))
+    end
+    scope :with_project_type, -> (project_types) do
+      where(project_type_column => project_types)
+    end
+
+    scope :in_coc, -> (coc_code:) do
+      joins(:project_cocs).
+        merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+    end
+
     scope :night_by_night, -> do
       where(TrackingMethod: 3)
     end
@@ -604,9 +617,11 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select
-      @options ||= begin
+    def self.options_for_select user:
+      # don't cache this, it's a class method
+      @options = begin
         options = {}
+        self.viewable_by(user).
         joins(:organization).pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
           options[org] ||= []
           options[org] << [project_name, id]

@@ -1,5 +1,5 @@
 module WarehouseReports
-  class RunActiveVeteransJob < ActiveJob::Base
+  class RunActiveVeteransJob < BaseJob
 
     queue_as :active_veterans_report
 
@@ -8,8 +8,16 @@ module WarehouseReports
       report.started_at = DateTime.now
       report.parameters = params
 
+      user = User.find(params[:current_user_id])
+      report.user_id = user.id
+      report.parameters[:visible_projects] = if user.can_edit_anything_super_user?
+        [:all, 'All']
+      else
+          GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+      end
+
       range = ::Filters::DateRangeAndProject.new(params['range'])
-      scope = service_history_scope
+      scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
 
       project_types = range.project_type.select(&:present?).map(&:to_sym)
       if project_types.any?
@@ -33,7 +41,7 @@ module WarehouseReports
           Hash[service_history_columns.keys.zip(row)]
         end.compact.
         group_by{|m| m[:client_id]}
-      
+
       # remove anyone who doesn't actually have an open enrollment during the time (these can be added by extrapolated SO or poor data where we have service on the exit date)
       clients = clients.select{|c| enrollments.keys.include?(c.id)}
 
@@ -60,7 +68,7 @@ module WarehouseReports
 
       NotifyUser.active_veterans_report_finished(params[:current_user_id], report.id).deliver_later
     end
-    
+
     def service_history_scope
       project_types = project_source::RESIDENTIAL_PROJECT_TYPES.values_at(:es, :th, :so, :sh).flatten.uniq.sort
       service_history_source.where(service_history_source.project_type_column => project_types)
@@ -74,20 +82,20 @@ module WarehouseReports
       enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
       ds_table = GrdaWarehouse::DataSource.arel_table
       service_history_columns = {
-        client_id: :client_id, 
-        project_id: :project_id, 
-        first_date_in_program: :first_date_in_program, 
-        last_date_in_program: :last_date_in_program, 
-        project_name: :project_name, 
+        client_id: :client_id,
+        project_id: :project_id,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_name: :project_name,
         project_type: service_history_source.project_type_column,
         data_source_id: :data_source_id,
         PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
         ds_short_name: ds_table[:short_name].as('short_name').to_sql,
       }
     end
-    
+
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
   end

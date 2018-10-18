@@ -10,11 +10,11 @@ module WarehouseReports
       if params[:commit].present?
         WarehouseReports::RunActiveVeteransJob.perform_later(params.merge(current_user_id: current_user.id))
       end
-      @reports = report_source.select(report_source.column_names - ['data']).ordered.limit(50)
+      @reports = report_scope.select(report_scope.column_names - ['data']).ordered.limit(50)
     end
 
     def show
-      @report = report_source.find params[:id]
+      @report = report_scope.find params[:id].to_i
       @clients = @report.data
       @sort_options = sort_options
 
@@ -38,11 +38,21 @@ module WarehouseReports
     end
 
     def running
-      @reports = report_source.ordered.limit(50)
+      @reports = report_scope.ordered.limit(50)
     end
 
     def report_source
       GrdaWarehouse::WarehouseReports::ActiveVeteransReport
+    end
+
+    # If you can see all data sources etc, then show all copies of the report,
+    # otherwise just show your own
+    def report_scope
+      if can_edit_anything_super_user?
+        report_source
+      else
+        report_source.where(user_id: current_user.id)
+      end
     end
 
     private

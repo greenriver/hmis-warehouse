@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180919135034) do
+ActiveRecord::Schema.define(version: 20181015132958) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -158,6 +158,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
+  add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
   add_index "Disabilities", ["ExportID"], name: "disabilities_export_id", using: :btree
   add_index "Disabilities", ["PersonalID"], name: "index_Disabilities_on_PersonalID", using: :btree
@@ -1074,9 +1075,9 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.string   "related_users"
     t.date     "disability_verification_date"
     t.string   "missing_documents"
-    t.boolean  "lgbtq"
     t.string   "sleeping_location"
     t.string   "exit_destination"
+    t.string   "lgbtq"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1130,6 +1131,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.boolean "so_day_as_month",                           default: true
     t.text    "client_details"
     t.boolean "allow_multiple_file_tags",                  default: false,                    null: false
+    t.boolean "infer_family_from_household_id",            default: false,                    null: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1211,7 +1213,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.datetime "updated_at",                      null: false
     t.datetime "deleted_at"
     t.boolean  "faked_pii",       default: false
-    t.json     "project_ids"
+    t.jsonb    "project_ids"
     t.boolean  "include_deleted", default: false
     t.string   "content_type"
     t.binary   "content"
@@ -1688,6 +1690,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.text    "description"
     t.integer "weight",       default: 0,    null: false
     t.boolean "enabled",      default: true, null: false
+    t.boolean "limitable",    default: true, null: false
   end
 
   create_table "report_tokens", force: :cascade do |t|
@@ -2895,8 +2898,8 @@ ActiveRecord::Schema.define(version: 20180919135034) do
   create_table "warehouse_clients_processed", force: :cascade do |t|
     t.integer  "client_id"
     t.string   "routine"
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                             null: false
+    t.datetime "updated_at",                                             null: false
     t.datetime "last_service_updated_at"
     t.integer  "days_served"
     t.date     "first_date_served"
@@ -2919,6 +2922,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.boolean  "rrh_desired"
     t.decimal  "vispdat_priority_score"
     t.decimal  "vispdat_score"
+    t.boolean  "active_in_cas_match",                    default: false
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
@@ -2937,6 +2941,7 @@ ActiveRecord::Schema.define(version: 20180919135034) do
     t.integer  "client_count"
     t.json     "support"
     t.string   "token"
+    t.integer  "user_id"
   end
 
   create_table "weather", force: :cascade do |t|

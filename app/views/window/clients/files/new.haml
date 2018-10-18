@@ -1,13 +1,11 @@
-- title = "Upload a File for #{@client.name}"
+- title = "Upload a File"
 - content_for :title, title
 
 = render 'crumbs'
 
+
+= render 'window/clients/aliases'
+= render 'window/clients/tab_navigation', current: window_client_files_path(@client)
 %h1= title
-.row
-  .col-sm-12
-    = render 'window/clients/tab_navigation', current: window_client_files_path(@client)
+= render 'form'
 
-    = render 'form'
-
-  

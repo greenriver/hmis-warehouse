@@ -8,11 +8,12 @@
       = @patient.name
   = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
 
-  = f.input :provider_id, label: 'Primary Care Provider', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
-  = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
-.col-md-6
-  = f.input :responsible_team_member_id, label: 'Responsible Team Member', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
+  = f.input :provider_id, label: 'Primary Care Provider', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked? && f.object.provider_id.present?
 
-  = f.input :representative_id, label: 'Designated Representative', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html
+  = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+
+.col-md-6
+
+  = f.input :representative_id, label: 'Designated Representative', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked?
 
 

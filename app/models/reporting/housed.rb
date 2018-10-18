@@ -4,6 +4,11 @@ module Reporting
     include ArelHelper
     include TsqlImport
 
+    scope :viewable_by, -> (user) do
+      # need to pluck project ids from the warehouse database
+      where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id))
+    end
+
     def populate!
       return unless source_data.present?
       headers = source_data.first.keys
@@ -44,10 +49,14 @@ module Reporting
           join(af_t).on(she_service[:data_source_id].eq(af_t[:data_source_id]).
             and(she_service[:project_id].eq(af_t[:ProjectID]))).
           join(she_residential).on(she_service[:client_id].eq(she_residential[:client_id])).
-            where(
-              she_residential[:project_id].eq(af_t[:ResProjectID]).
-              and(af_t[:DateDeleted].eq(nil))
-            ).
+          join(p_t).on(she_residential[:project_id].eq(p_t[:ProjectID]).
+            and(she_residential[:data_source_id].eq(p_t[:data_source_id]).
+            and(p_t[:DateDeleted].eq(nil))
+          )).
+          where(
+            she_residential[:project_id].eq(af_t[:ResProjectID]).
+            and(af_t[:DateDeleted].eq(nil))
+          ).
           project(
             she_service[:first_date_in_program].as('search_start'),
             she_service[:last_date_in_program].as('search_end'),
@@ -58,6 +67,7 @@ module Reporting
             she_service[:project_name].as('service_project'),
             she_residential[:project_name].as('residential_project'),
             she_residential[:client_id],
+            p_t[:id].as('project_id'),
             "'enrollment_based' as source"
           )
 
@@ -66,7 +76,12 @@ module Reporting
               she_t[:enrollment_group_id].eq(e_t[:EnrollmentID]).
               and(she_t[:data_source_id].eq(e_t[:data_source_id])).
               and(she_t[:project_id].eq(e_t[:ProjectID]))
-            ).where(
+          ).
+          join(p_t).on(she_t[:project_id].eq(p_t[:ProjectID]).
+            and(she_t[:data_source_id].eq(p_t[:data_source_id]).
+            and(p_t[:DateDeleted].eq(nil))
+          )).
+          where(
               e_t[:MoveInDate].not_eq(nil).
               and(e_t[:DateDeleted].eq(nil))
             ).
@@ -80,6 +95,7 @@ module Reporting
             she_t[:project_name].as('service_project'),
             she_t[:project_name].as('residential_project'),
             she_t[:client_id],
+            p_t[:id].as('project_id'),
             "'move-in-date' as source"
           )
 
@@ -88,10 +104,15 @@ module Reporting
               she_t[:enrollment_group_id].eq(e_t[:EnrollmentID]).
               and(she_t[:data_source_id].eq(e_t[:data_source_id])).
               and(she_t[:project_id].eq(e_t[:ProjectID]))
-            ).where(
-              she_t[:computed_project_type].in([3, 10]).
-              and(e_t[:DateDeleted].eq(nil))
-            ).
+          ).
+          join(p_t).on(she_t[:project_id].eq(p_t[:ProjectID]).
+            and(she_t[:data_source_id].eq(p_t[:data_source_id]).
+            and(p_t[:DateDeleted].eq(nil))
+          )).
+          where(
+            she_t[:computed_project_type].in([3, 10]).
+            and(e_t[:DateDeleted].eq(nil))
+          ).
           project(
             e_t[:EntryDate].as('search_start'),
             e_t[:EntryDate].as('search_end'),
@@ -102,13 +123,25 @@ module Reporting
             she_t[:project_name].as('service_project'),
             she_t[:project_name].as('residential_project'),
             she_t[:client_id],
+            p_t[:id].as('project_id'),
             "'ph-or-psh' as source"
           )
-        query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
+        # Remove ph_based section, deemed not relevant
+        # query = unionize([enrollment_based.distinct, move_in_based.distinct, ph_based.distinct])
+        query = unionize([enrollment_based.distinct, move_in_based.distinct])
+
         results = GrdaWarehouseBase.connection.exec_query(query.to_sql)
         keys = results.columns.map(&:to_sym)
         results.cast_values.map do |row|
           Hash[keys.zip(row)]
+        end.group_by do |row|
+          [row[:client_id], row[:housing_exit], row[:destination]]
+        end.map do |_, enrollments|
+          # Client would enter and exit multiple times and would exit on two different dates, keep first housing exit by date for each client
+          # group by client_id, housing_exit, destination, keep first (aka index_by)
+          #
+          # housed %<>% arrange(client_id, housing_exit, destination) %>% distinct(search_start, search_end, housed_date, client_id, service_project, residential_project, fromLast=FALSE, .keep_all = TRUE)
+          enrollments.sort_by{|row| row[:housing_exit]}.first
         end
       end
     end

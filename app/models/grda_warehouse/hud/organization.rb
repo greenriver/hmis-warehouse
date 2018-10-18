@@ -57,9 +57,10 @@ module GrdaWarehouse::Hud
     end
 
     def self.bed_utilization_by_project filter:
+      user = filter.user
       # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
       project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, GrdaWarehouse::Hud::Project.project_type_column]
-      GrdaWarehouse::Hud::Project.
+      project_scope_for_user(user).
         joins( :service_history, :organization ).
         merge(self.residential).
         where( o_t[:OrganizationID].eq filter.organization.OrganizationID ).
@@ -70,6 +71,14 @@ module GrdaWarehouse::Hud
         select( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [sh_t[:client_id]] )] ).as('client_count') ).
         includes(:inventories).
         group_by(&:id)
+    end
+
+    def self.project_scope_for_user user=nil
+      if user.present?
+        GrdaWarehouse::Hud::Project.viewable_by(user)
+      else
+        GrdaWarehouse::Hud::Project
+      end
     end
 
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
@@ -191,9 +200,11 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select
-      @options ||= begin
+    def self.options_for_select user:
+      # don't cache this, it's a class method
+      @options = begin
         options = {}
+        viewable_by(user).
         joins(:data_source).pluck(ds_t[:name].as('ds_name').to_sql, :OrganizationName, :id).each do |ds, org_name, id|
           options[ds] ||= []
           options[ds] << [org_name, id]

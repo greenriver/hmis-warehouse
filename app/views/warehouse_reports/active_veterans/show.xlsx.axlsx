@@ -6,26 +6,26 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
 
   sheet.add_row([
     'Warehouse Client ID',
-    'First Name', 
-    'Last Name', 
-    'DOB', 
+    'First Name',
+    'Last Name',
+    if can_view_full_dob? then 'DOB' else 'Age' end,
     'SSN',
     'Veteran in',
     'First Date Homeless',
     'Number of enrollments',
-    'Data Source', 
-    'Project Type', 
-    'Project', 
-    'Entry', 
+    'Data Source',
+    'Project Type',
+    'Project',
+    'Entry',
     'Exit'
   ], :style => title)
 
   @clients.each do |client|
     row = [
-      client['id'], 
-      client['FirstName'], 
+      client['id'],
+      client['FirstName'],
       client['LastName'],
-      client['DOB'], 
+      dob_or_age(client['DOB'].to_date),
       client['SSN'],
       client['data_sources'].join(', '),
       client['first_date_served'],

@@ -1,5 +1,5 @@
 module Importing
-  class NonHmisJob < ActiveJob::Base
+  class NonHmisJob < BaseJob
     queue_as :low_priority
 
     def initialize upload:, data_source_id:
@@ -14,7 +14,7 @@ module Importing
       file = File.open(path, 'w+b')
       file.write(@upload.content)
       task = GrdaWarehouse::Tasks::EnrollmentExtrasImport.new(
-        source: file, 
+        source: file,
         data_source_id: @data_source_id
       )
       task.run!

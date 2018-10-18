@@ -1,0 +1,10 @@
+- content_for :program_1_title do
+  %h4.text-center= "Reference Program: #{@charts.program_1_name}"
+- content_for :program_2_title do
+  %h4.text-center= "Comparison Program: #{@charts.program_2_name}"
+= render 'overview'
+= render 'time_in_program'
+= render 'outcomes'
+= render 'exits'
+= render 'returns'
+= render 'demographics'

@@ -17,7 +17,7 @@ module WarehouseReports
     end
 
     def export_scope
-      export_source.where(hash_status: 4)
+      super().where(hash_status: 4)
     end
 
     def report_params

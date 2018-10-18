@@ -1,5 +1,5 @@
 module WarehouseReports
-  class HealthMemberStatusReportJob < ActiveJob::Base
+  class HealthMemberStatusReportJob < BaseJob
     queue_as :high_priority
 
     attr_accessor :params, :report_start_date, :report_end_date, :report_id, :current_user_id

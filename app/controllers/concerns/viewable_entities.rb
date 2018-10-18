@@ -6,7 +6,8 @@ module ViewableEntities
     private def data_source_viewability(base)
       {
         selected:    @user.data_sources.map(&:id),
-        input_html:  { class: 'jUserViewable', name: "#{base}[data_sources][]" },
+        label:       'Data Sources',
+        input_html:  { class: 'jUserViewable jDataSources', name: "#{base}[data_sources][]" },
         collection:  GrdaWarehouse::DataSource.viewable_by(current_user).order(:name),
         placeholder: 'Data Source',
         multiple:    true
@@ -28,7 +29,7 @@ module ViewableEntities
         placeholder:  'Organization',
         multiple:     true,
         input_html: {
-          class: 'jUserViewable',
+          class: 'jUserViewable jOrganizations',
           name:  "#{base}[organizations][]"
         },
       }
@@ -49,7 +50,7 @@ module ViewableEntities
         placeholder:  'Project',
         multiple:     true,
         input_html: {
-          class: 'jUserViewable',
+          class: 'jUserViewable jProjects',
           name:  "#{base}[projects][]"
         },
       }
@@ -61,13 +62,13 @@ module ViewableEntities
         "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck :CoCCode
       end.uniq&.compact&.sort
       {
-        label:       'CoC codes',
+        label:       'CoC Codes',
         selected:    @user.coc_codes,
         collection:  collection,
         placeholder: 'Project',
         multiple:    true,
         input_html: {
-          class: 'jUserViewable',
+          class: 'jUserViewable jCocCodes',
           name:  "#{base}[coc_codes][]"
         },
       }
@@ -85,7 +86,7 @@ module ViewableEntities
         placeholder: 'Report',
         multiple:    true,
         input_html: {
-          class: 'jUserViewable',
+          class: 'jUserViewable jReports',
           name:  "#{base}[reports][]"
         },
       }
@@ -100,7 +101,7 @@ module ViewableEntities
         placeholder: 'Cohort',
         multiple:    true,
         input_html: {
-          class: 'jUserViewable',
+          class: 'jUserViewable jCohorts',
           name:  "#{base}[cohorts][]"
         },
       }

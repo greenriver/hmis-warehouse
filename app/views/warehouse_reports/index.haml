@@ -18,7 +18,10 @@
           - if report
             %article.c-card.c-card--padded.c-card--flex
               = link_to report.url, class: 'c-card__content' do
-                .c-card__title= report.name
+                .c-card__title
+                  - unless report.limitable?
+                    %i.icon-notification{data: {toggle: :tooltip, title: 'Report is not limited by assigned projects.'}}
+                  = report.name
                 .c-card__description= report.description.html_safe
 
 

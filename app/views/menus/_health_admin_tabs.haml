@@ -51,13 +51,12 @@
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)
-  .row
-    %ul.nav.nav-tabs.margin-bottom-02
-      - tabs.each do |tab|
-        - if tab[:visible]
-          %li.nav-item{role: 'presentation', class: tab[:controllers].include?(controller_name) ? 'active' : ''}
-            = link_to tab[:path] do
-              = tab[:title].html_safe
+  %ul.nav.nav-tabs.mb-2
+    - tabs.each do |tab|
+      - if tab[:visible]
+        %li.nav-item{role: 'presentation', class: tab[:controllers].include?(controller_name) ? 'active' : ''}
+          = link_to tab[:path] do
+            = tab[:title].html_safe
 
 
 

@@ -49,6 +49,7 @@ module WarehouseReports::Health
     def precalculated
       @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
       @report = Health::Claim.precalculated.last
+      return unless @report
       @payable = {}
       @unpayable = {}
       @duplicate = {}

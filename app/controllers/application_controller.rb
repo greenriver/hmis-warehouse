@@ -14,10 +14,11 @@ class ApplicationController < ActionController::Base
 
   before_filter :set_paper_trail_whodunnit
   before_filter :set_notification
+  before_filter :set_hostname
 
   around_filter :cache_grda_warehouse_base_queries
-  before_action :compose_activity, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
-  after_action :log_activity, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
+  before_action :compose_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
+  after_action :log_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
   before_filter :set_gettext_locale
@@ -42,6 +43,17 @@ class ApplicationController < ActionController::Base
   end
 
   protected
+
+  def redirect_back(*args)
+    argsdup = args.dup
+    fallback = argsdup.delete(:fallback_location) || root_path
+
+    if request.env['HTTP_REFERER'].present?
+      redirect_to request.env['HTTP_REFERER'], *argsdup
+    else
+      redirect_to fallback, *argsdup
+    end
+  end
 
   def locale
     default_locale = 'en'
@@ -127,10 +139,19 @@ class ApplicationController < ActionController::Base
     all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
     migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
     raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+
+    # Reporting
+    all = ActiveRecord::Migrator.migrations(['db/reporting/migrate']).collect(&:version)
+    migrated = ReportingBase.connection.select_rows(query).flatten(1).map(&:to_i)
+    raise ActiveRecord::MigrationError.new "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
   end
 
   def pjax_request?
     false
   end
   helper_method :pjax_request?
+
+  def set_hostname
+    @op_hostname ||= `hostname` rescue 'test-server'
+  end
 end

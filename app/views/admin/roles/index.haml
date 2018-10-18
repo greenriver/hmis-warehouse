@@ -1,0 +1,39 @@
+= render 'admin/users/breadcrumbs'
+- content_for(:title, t('.title'))
+.row
+  .col-sm-8
+    %h1= t '.title'
+  .col-sm-4
+    = link_to new_admin_role_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+      %span.icon-plus
+      Add a role
+.row.table-utilities
+  .col-sm-8
+    %p= page_entries_info @roles, entry_name: _('role')
+.row
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed
+        %thead
+          %th Permission:
+          - @roles.each do |role|
+            %th
+              = link_to role.name, action: :edit, id: role
+          %th
+          %th
+        %tbody
+          - Role.permissions(exclude_health: true).each do |permission|
+            %tr
+              %td
+                .permission__name
+                  - if Role.administrative?(permission: permission)
+                    %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+                  = permission.to_s.humanize
+                .permission__description
+                  %em.text-small.text-muted= Role.description_for permission: permission
+              - @roles.each do |role|
+                %td
+                  =checkmark(role.send(permission))
+
+
+    %p= paginate @roles

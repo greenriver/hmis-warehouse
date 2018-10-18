@@ -19,9 +19,38 @@ module Health
     has_many :team_members, through: :patient, class_name: Health::Team::Member.name
     has_many :hpc_goals, through: :patient, class_name: Health::Goal::Hpc.name
 
+    has_many :aco_signature_requests, class_name: Health::SignatureRequests::AcoSignatureRequest.name
+
+    # PCP
+    has_many :pcp_signature_requests, class_name: Health::SignatureRequests::PcpSignatureRequest.name
+    has_many :pcp_signed_signature_requests, -> do
+      merge(Health::SignatureRequest.complete)
+    end, class_name: Health::SignatureRequests::PcpSignatureRequest.name
+    has_many :pcp_signable_documents, through: :pcp_signature_requests, source: :signable_document
+    has_many :pcp_signed_documents, -> do
+      merge(Health::SignableDocument.signed.with_document)
+    end, through: :pcp_signed_signature_requests, source: :signable_document
+    has_many :pcp_signed_health_files, through: :pcp_signed_documents, source: :health_files
+
+    # Patient
+    has_many :patient_signature_requests, class_name: Health::SignatureRequests::PatientSignatureRequest.name
+    has_many :patient_signed_signature_requests, -> do
+      merge(Health::SignatureRequest.complete)
+    end, class_name: Health::SignatureRequests::PatientSignatureRequest.name
+    has_many :patient_signable_documents, through: :patient_signature_requests, source: :signable_document
+    has_many :patient_signed_documents, -> do
+      merge(Health::SignableDocument.signed.with_document)
+    end, through: :patient_signed_signature_requests, source: :signable_document
+    has_many :patient_signed_health_files, through: :patient_signed_documents, source: :health_files
+
     belongs_to :responsible_team_member, class_name: Health::Team::Member.name
     belongs_to :provider, class_name: Health::Team::Member.name
     belongs_to :representative, class_name: Health::Team::Member.name
+
+    has_many :signable_documents, as: :signable
+    has_one :primary_signable_document, -> do
+      where(signable_documents: {primary: true})
+    end, class_name: Health::SignableDocument.name, as: :signable
 
     serialize :service_archive, Array
     serialize :equipment_archive, Array
@@ -45,7 +74,7 @@ module Health
       where(status: :rejected)
     end
     scope :sorted, -> do
-      order(updated_at: :desc)
+      order(id: :desc, initial_date: :desc, updated_at: :desc)
     end
 
     scope :pcp_signed, -> do
@@ -59,6 +88,17 @@ module Health
     end
 
     # End Scopes
+
+    # if the care plan has been signed, return the health file id associated with the most
+    # recent signature
+    # if it hasn't been signed at all, return nil
+    def most_appropriate_pdf_id
+      pcp_sig = pcp_signature_requests.complete.order(completed_at: :desc).limit(1).first
+      patient_sig = patient_signature_requests.complete.order(completed_at: :desc).limit(1).first
+      return nil if pcp_sig.blank? && patient_sig.blank?
+      most_recently_signed = [pcp_sig, patient_sig].compact.max{|a,b| a.completed_at <=> b.completed_at}
+      most_recently_signed&.signable_document&.health_file_id
+    end
 
     def editable?
       ! locked
@@ -74,7 +114,7 @@ module Health
     end
 
     def set_lock
-      if self.patient_signed_on.present? && self.provider_signed_on.present?
+      if self.patient_signed_on.present? || self.provider_signed_on.present?
         self.locked = true
         archive_services
         archive_equipment
@@ -121,6 +161,14 @@ module Health
       attributes['initial_date'] = Date.today
       attributes['review_date'] = Date.today + 6.months
       return attributes
+    end
+
+    def expires_on
+      return unless provider_signed_on && patient_signed_on
+      ([
+        provider_signed_on,
+        patient_signed_on
+      ].compact.max + 6.months).to_date
     end
   end
 end

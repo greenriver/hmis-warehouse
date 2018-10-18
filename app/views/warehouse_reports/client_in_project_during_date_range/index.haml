@@ -1,6 +1,6 @@
 - title = "Clients in a Project for a Given Date Range"
 - content_for :title, title
-%h1= title 
+%h1= title
 = render '/warehouse_reports/breadcrumbs'
 = simple_form_for :project, url: warehouse_reports_client_in_project_during_date_range_index_path, html: {method: :get} do |f|
   .row
@@ -16,7 +16,7 @@
   .row
     .col-sm-8
       %p
-        = page_entries_info @clients
+        = page_entries_info @clients, entry_name: 'Client'
     .col-sm-4
       .pull-right
         = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do

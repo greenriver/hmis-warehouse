@@ -3,41 +3,41 @@ module TableauExport
   included do
     module_function
 
-      def default_start
-        '2014-01-01'.to_date
-      end
-      private_class_method :default_start
+    def default_start
+      '2014-01-01'.to_date
+    end
+    private_class_method :default_start
 
-      def default_end
-        DateTime.current
-      end
-      private_class_method :default_end
+    def default_end
+      DateTime.current
+    end
+    private_class_method :default_end
 
-      def project_types
-        [
-          1, # => 'Emergency Shelter',
-          2, #=> 'Transitional Housing',
-          3, #=> 'PH - Permanent Supportive Housing',
-          4, #=> 'Street Outreach',
-          # 6, #=> 'Services Only',
-          # 7, #=> 'Other',
-          8, #=> 'Safe Haven',
-          9, #=> 'PH – Housing Only',
-          10, #=> 'PH – Housing with Services (no disability required for entry)',
-          # 11, #=> 'Day Shelter',
-          12, #=> 'Homelessness Prevention',
-          13, #=> 'PH - Rapid Re-Housing',
-          14, #=> 'Coordinated Assessment',
-        ]
-      end
+    def project_types
+      [
+        1, # => 'Emergency Shelter',
+        2, #=> 'Transitional Housing',
+        3, #=> 'PH - Permanent Supportive Housing',
+        4, #=> 'Street Outreach',
+        # 6, #=> 'Services Only',
+        # 7, #=> 'Other',
+        8, #=> 'Safe Haven',
+        9, #=> 'PH – Housing Only',
+        10, #=> 'PH – Housing with Services (no disability required for entry)',
+        # 11, #=> 'Day Shelter',
+        12, #=> 'Homelessness Prevention',
+        13, #=> 'PH - Rapid Re-Housing',
+        14, #=> 'Coordinated Assessment',
+      ]
+    end
 
-      def null
-        lit 'NULL'
-      end
-      private_class_method :null
+    def null
+      lit 'NULL'
+    end
+    private_class_method :null
 
 
-      def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
+    def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
       model = she_t.engine
       spec = {
         client_uid:  she_t[:client_id], # in use
@@ -88,7 +88,7 @@ module TableauExport
         non_repeaters.map do |h|
           value = path[h.to_s].presence
           value = case h
-          
+
           when :hh_config
             value == 't' ? 'Single' : 'Family'
           else

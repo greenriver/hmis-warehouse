@@ -1,5 +1,5 @@
 module Importing
-  class RunAddServiceHistoryJob < ActiveJob::Base
+  class RunAddServiceHistoryJob < BaseJob
     queue_as :low_priority
 
     def perform

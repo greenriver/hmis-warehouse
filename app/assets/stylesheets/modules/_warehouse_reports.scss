@@ -103,3 +103,15 @@
 {
   vertical-align: middle !important;
 }
+
+.table-bordered > thead > tr > th.agency-performance__date-effected,
+.table-bordered > tbody > tr > td.agency-performance__date-effected,
+.table-bordered > tfoot > tr > td.agency-performance__date-effected
+{
+  border-left: 4px solid $gray-050;
+}
+
+.agency-performance__without
+{
+  background-color: lighten($brand-primary-ll, 5%);
+}

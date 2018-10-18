@@ -3,6 +3,7 @@ module WarehouseReports::ClientDetails
     include ArelHelper
     include ApplicationHelper
     include WarehouseReportAuthorization
+    before_action :set_limited, only: [:index]
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -53,7 +54,7 @@ module WarehouseReports::ClientDetails
         in_project_type(project_type).
         order(first_date_in_program: :desc).
       pluck(*entered_columns.values).
-      map do |row| 
+      map do |row|
         Hash[entered_columns.keys.zip(row)]
       end.
       group_by{ |row| row[:client_id] }
@@ -76,7 +77,7 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
     def homeless_service_history_source
@@ -85,11 +86,11 @@ module WarehouseReports::ClientDetails
       history_scope(scope, @sub_population)
     end
 
-    def entered_columns 
+    def entered_columns
       {
-        project_type: she_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        project_type: she_t[service_history_source.project_type_column].as('project_type').to_sql,
         first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
+        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
         client_id: she_t[:client_id].as('client_id').to_sql,
         project_name: she_t[:project_name].as('project_name').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
@@ -97,7 +98,7 @@ module WarehouseReports::ClientDetails
         organization_name: o_t[:OrganizationName].as('organization_name').to_sql,
       }
     end
-     
+
     def setup_data_structure start_date:
       month_name = start_date.to_time.strftime('%B')
       {

@@ -1,0 +1,35 @@
+- title = "Rapid Rehousing Dashboard"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+- path = program_data_warehouse_reports_rrh_index_path(program_1_id: @program_1_id, program_2_id: @program_2_id)
+.row
+  .col-xs-6
+    .ho-container.rrh
+      %h4.ho-container__header Reference Program
+      .form-group
+        = select_tag :program_1, options_for_select(@programs_for_select, @program_1_id), include_blank: 'All', class: 'form-control', id: 'program-1-filter'
+  .col-xs-6
+    .ho-container.rrh
+      %h4.ho-container__header Comparison Program
+      .form-group
+        = select_tag :program_2, options_for_select(@programs_for_select, @program_2_id), include_blank: 'All', class: 'form-control', id: 'program-2-filter'
+.row
+  .col-xs-12.text-center
+    = link_to 'Compare Programs', '#', class: 'btn btn-primary margin-top-04', data: {behavior: 'update charts', path: path}
+%hr
+#rrh-report__container
+#rrh-report__loading
+#d3-tooltip
+
+- content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      var load = #{(@program_1_id.present? || @program_2_id.present?).to_json}
+      var charts = new App.D3Chart.RRHCharts('#rrh-report__container','#program-1-filter', '#program-2-filter', {});
+      if(load) {
+        charts.load();
+      } else {
+        charts.listen();
+      } 
+    })

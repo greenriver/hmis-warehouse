@@ -1,12 +1,12 @@
 module Confidence
-  class SourceExitsJob < ActiveJob::Base
+  class SourceExitsJob < BaseJob
     include ArelHelper
 
     def initialize client_ids:
       @client_ids = client_ids
     end
 
-    def perform 
+    def perform
       @client_ids.each do |id|
         GrdaWarehouse::Confidence::SourceExits.calculate_queued_for_client(id)
       end

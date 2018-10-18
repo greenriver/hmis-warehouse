@@ -1,0 +1,27 @@
+:ruby
+  emails      = [ 'patient@openpath.biz' ]
+  good_emails = emails.all? { |email| email.match(Health::SignableDocument::EMAIL_REGEX) }
+
+  warning = <<~WARNING.gsub(/\s+/, ' ')
+    Each upload counts toward your HelloSign costs. It doesn't matter who ends up
+    signing it or not signing it. This will supersede any existing document for
+    this row.
+  WARNING
+
+- if good_emails
+  = link_to polymorphic_path(careplan_path_generator + [:signable_documents], {client_id: @client.id, careplan_id: careplan.id}), method: :post, data: {confirm: warning} do
+    - if doc.persisted?
+      %span{style: 'color: orange'}
+        %i.icon-upload2
+        Upload replacement
+    - else
+      %i.icon-upload2
+      Upload
+- else
+  You need a valid email for the patient to sign.
+
+%br
+- if doc.signature_request_id.present?
+  = link_to doc.remote_pdf_url, target: '_blank', title: "See HelloSign's copy. This link may not be the latest available. Reload this page to check." do
+    %i.icon-eye
+    View

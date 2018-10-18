@@ -54,7 +54,8 @@ class DataQualityReportsController < ApplicationController
       raise ActionController::RoutingError.new('Not Found') if token.blank?
       return true if token.valid?
     else
-      return require_can_view_client_level_details!
+      require_can_view_client_level_details!
+      return
     end
     raise ActionController::RoutingError.new('Not Found')
   end
@@ -66,7 +67,7 @@ class DataQualityReportsController < ApplicationController
   def missing_grade_source
     GrdaWarehouse::Grades::Missing
   end
-      
+
   def utilization_grade_scope
     utilization_grade_source.all
   end

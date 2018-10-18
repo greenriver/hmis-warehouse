@@ -4,6 +4,11 @@
 - content_for :title, title
 
 .l-print
+  %article.l-print__section.health__care-hub-note
+    %p
+      The
+      %strong Boston Coordinated Care Hub
+      is a Behavioral Health Community Partner Program offered by MassHealth in the City of Boston to help coordinate care and services for eligible MassHealth enrollees. One of your patients has consented to participate in this program and has worked with us to develop a person-centered plan of care that needs your approval and electronic signature.
   %article.l-print__section
     %ul.l-print__summary-items
       %li
@@ -15,7 +20,7 @@
           %dt Review Date
           %dd= @careplan.review_date&.to_date
 
-  = render 'team_members_table'
+  = render 'window/health/careplans/team_members_table'
 
   %article.health-care-plan__about-me.l-print__section--page
     %h1 About Me
@@ -31,7 +36,7 @@
     .l-print__item
       %h4 My Barriers
       = simple_format @careplan.patient_barriers
-  = render 'goals_table'
+  = render 'window/health/careplans/goals_table'
 
   %article.health-care-plan__services.l-print__section--page
     = render 'window/health/careplans/service_list'
@@ -51,7 +56,7 @@
     = render 'window/health/comprehensive_health_assessments/show'
 
   %article.health-care-plan__responsible-parties
-    %h1 Responsible Parties
+    %h1 Responsible Parties Signatures
 
     %dl.l-print__item
       %dt.inline Patient:
@@ -59,13 +64,6 @@
       %dd.l-print__signature &nbsp;
       %dt.inline Signed On:
       %dd.inline= @careplan.patient_signed_on&.to_date
-
-    %dl.l-print__item
-      %dt.inline Responsible Team Member:
-      %dd.inline= @careplan.responsible_team_member&.full_name
-      %dd.l-print__signature &nbsp;
-      %dt.inline Signed On:
-      %dd.inline= @careplan.responsible_team_member_signed_on
 
     %dl.l-print__item
       %dt.inline Representative:

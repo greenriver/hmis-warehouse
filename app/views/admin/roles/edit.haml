@@ -1,0 +1,10 @@
+= render 'breadcrumbs'
+
+%h1
+  Edit Role:
+  = @role.name
+= render 'form'
+.text-right
+  = link_to admin_role_path(@role),  method: :delete, data: {confirm: "Would you really like to delete #{@role.name}?"} do
+    %span.icon-cross
+    Delete

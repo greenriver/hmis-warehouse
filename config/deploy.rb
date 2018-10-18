@@ -26,10 +26,6 @@ else
   }
 end
 
-unless ENV['SKIP_JOBS']=='true'
-  after 'passenger:restart', 'delayed_job:restart'
-end
-
 set :ssh_port, ENV.fetch('SSH_PORT') { '22' }
 set :deploy_user , ENV.fetch('DEPLOY_USER')
 
@@ -136,16 +132,6 @@ namespace :deploy do
       end
     end
   end
-
-  after :restart, :clear_cache do
-    on roles(:web), in: :groups, limit: 3, wait: 10 do
-      # Here we can do anything such as:
-      # within release_path do
-      #   execute :rake, 'cache:clear'
-      # end
-    end
-  end
-
 end
 
 after 'deploy:migrating', :check_for_bootability do
@@ -161,3 +147,20 @@ task :echo_options do
   puts "Deploying as: #{fetch(:deploy_user)} on port: #{fetch(:ssh_port)} to location: #{deploy_to}\n\n"
 end
 after 'git:wrapper', :echo_options
+
+task :trigger_job_restarts do
+  on roles(:app) do
+    within current_path do
+      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', File.realpath(FileUtils.pwd))\""
+    end
+  end
+end
+after 'deploy:symlink:release', :trigger_job_restarts
+
+# set this variable on your first deployments to each environment. 
+# remove these lines after all servers are deployed.
+# e.g. 
+#      MANUAL_SYSTEMD_RESTART=true cap aws_staging deploy
+if ENV['MANUAL_SYSTEMD_RESTART']=='true'
+  after 'deploy:symlink:release', 'delayed_job:restart'
+end

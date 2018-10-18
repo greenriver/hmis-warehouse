@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-13 10:07-0400\n"
-"PO-Revision-Date: 2018-08-13 10:07-0400\n"
+"POT-Creation-Date: 2018-10-05 13:34-0400\n"
+"PO-Revision-Date: 2018-10-05 13:34-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -55,6 +55,9 @@ msgid "Asylee, Refugee"
 msgstr ""
 
 msgid "Available for matching in CAS"
+msgstr ""
+
+msgid "BH CP Request for Care Plan Signature"
 msgstr ""
 
 msgid "Bed Utilization Percentages"
@@ -3429,6 +3432,12 @@ msgstr ""
 msgid "CSPECH Eligible"
 msgstr ""
 
+msgid "Case Manager"
+msgstr ""
+
+msgid "Chapter 115"
+msgstr ""
+
 msgid "Children under age 18 in household"
 msgstr ""
 
@@ -3436,6 +3445,9 @@ msgid "Chronically Homeless for CAS"
 msgstr ""
 
 msgid "City of Boston DND Warehouse"
+msgstr ""
+
+msgid "Client Search"
 msgstr ""
 
 msgid "Clients"
@@ -3450,6 +3462,9 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Date Document Ready"
+msgstr ""
+
 msgid "Destination (Program Type)"
 msgstr ""
 
@@ -3459,10 +3474,10 @@ msgstr ""
 msgid "Ending Veteran & Chronic Homelessness in Boston"
 msgstr ""
 
-msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
+msgid "Exit Destination"
 msgstr ""
 
-msgid "Front Door Triage"
+msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
 msgstr ""
 
 msgid "Full HAN Release"
@@ -3498,6 +3513,12 @@ msgstr ""
 msgid "Housing Release Status"
 msgstr ""
 
+msgid "Housing Track Enrolled"
+msgstr ""
+
+msgid "Housing Track Suggested"
+msgstr ""
+
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
 msgstr ""
 
@@ -3525,6 +3546,9 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
+msgid "Legal Barriers"
+msgstr ""
+
 msgid "Life-Time Sex Offender"
 msgstr ""
 
@@ -3534,7 +3558,22 @@ msgstr ""
 msgid "Limited CAS Release on File"
 msgstr ""
 
+msgid "Location"
+msgstr ""
+
+msgid "Location Type"
+msgstr ""
+
+msgid "Manually entered date at which the client became document ready"
+msgstr ""
+
 msgid "Meth Production Conviction"
+msgstr ""
+
+msgid "Minimum number of bedrooms"
+msgstr ""
+
+msgid "Minimum occupancy"
 msgstr ""
 
 msgid "Missing Data Percentages"
@@ -3549,6 +3588,9 @@ msgstr ""
 msgid "My Patients"
 msgstr ""
 
+msgid "Next Step"
+msgstr ""
+
 msgid "Organizations"
 msgstr ""
 
@@ -3558,6 +3600,12 @@ msgstr ""
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
+msgid "Pre-contemplative Last Date Approached"
+msgstr ""
+
+msgid "Primary Housing Track Suggested"
+msgstr ""
+
 msgid "Process Duplicates"
 msgstr ""
 
@@ -3565,6 +3613,9 @@ msgid "Project Groups"
 msgstr ""
 
 msgid "Projects"
+msgstr ""
+
+msgid "Provider"
 msgstr ""
 
 msgid "Report failed to queue."
@@ -3582,7 +3633,25 @@ msgstr ""
 msgid "Reports"
 msgstr ""
 
+msgid "Requires ground floor unit or elevator access"
+msgstr ""
+
+msgid "Requires wheelchair accessible unit"
+msgstr ""
+
+msgid "SIF/PACE Eligible"
+msgstr ""
+
 msgid "Shelter Agency Contacts"
+msgstr ""
+
+msgid "Sleeping Location"
+msgstr ""
+
+msgid "St. Francis House"
+msgstr ""
+
+msgid "Subpopulation"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
@@ -3601,9 +3670,6 @@ msgid "U.S Citizen or Permanent Resident"
 msgstr ""
 
 msgid "Unable to create new Data Source"
-msgstr ""
-
-msgid "Update Data Source"
 msgstr ""
 
 msgid "Upload failed to queue, did you attach a file?"

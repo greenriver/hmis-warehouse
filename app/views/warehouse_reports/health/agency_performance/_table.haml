@@ -1,16 +1,16 @@
-%table.table.table-condensed.table-bordered
+%table.table.table-bordered
   %thead
     %tr
       %th Agency
       %th Patients Assigned
       %th Consented
       %th With CHA
-      %th Without CHA
+      %th.agency-performance__without Without CHA
       %th With SSM
-      %th Without SSM
+      %th.agency-performance__without Without SSM
       %th With Signed Care Plan
-      %th Without Signed Care Plan
-      %th With No Qualifying Activities between #{@report.range.first} and #{@report.range.last}
+      %th.agency-performance__without Without Signed Care Plan
+      %th.agency-performance__without.agency-performance__date-effected With No Valid Qualifying Activities Between #{@report.range.first} and #{@report.range.last}
   %tbody
     - @agencies.each do |agency|
       %tr
@@ -24,22 +24,22 @@
         %td.text-right
           - title = "#{pluralize(agency.with_chas.size, 'Patient')} with CHAs"
           = link_to_if permission, agency.with_chas.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_chas), data: { loads_in_pjax_modal: true }
-        %td.text-right
+        %td.agency-performance__without.text-right
           - title = "#{pluralize(agency.without_chas.size, 'Patient')} without CHAs"
           = link_to_if permission, agency.without_chas.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_chas), data: { loads_in_pjax_modal: true }
         %td.text-right
           - title = "#{pluralize(agency.with_ssms.size, 'Patient')} with SSMs"
           = link_to_if permission, agency.with_ssms.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_ssms), data: { loads_in_pjax_modal: true }
-        %td.text-right
+        %td.agency-performance__without.text-right
           - title = "#{pluralize(agency.without_ssms.size, 'Patient')} without SSMs"
           = link_to_if permission, agency.without_ssms.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_ssms), data: { loads_in_pjax_modal: true }
         %td.text-right
           - title = "#{pluralize(agency.with_signed_careplans.size, 'Patient')} with Signed Care Plans"
           = link_to_if permission, agency.with_signed_careplans.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_signed_careplans), data: { loads_in_pjax_modal: true }
-        %td.text-right
+        %td.agency-performance__without.text-right
           - title = "#{pluralize(agency.without_signed_careplans.size, 'Patient')} without Signed Care Plans"
           = link_to_if permission, agency.without_signed_careplans.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_signed_careplans), data: { loads_in_pjax_modal: true }
-        %td.text-right
+        %td.agency-performance__without.agency-performance__date-effected.text-right
           - title = "#{pluralize(agency.without_qualifying_activities_within_range.size, 'Patient')} without Qualifying Activities in Chosen Date Range"
           = link_to_if permission, agency.without_qualifying_activities_within_range.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_qualifying_activities_within_range), data: { loads_in_pjax_modal: true }
   - if @agencies.size > 1
@@ -49,9 +49,9 @@
         %td.text-right= @totals.patient_referrals.size
         %td.text-right= @totals.consented_patients.size
         %td.text-right= @totals.with_chas.size
-        %td.text-right= @totals.without_chas.size
+        %td.agency-performance__without.text-right= @totals.without_chas.size
         %td.text-right= @totals.with_ssms.size
-        %td.text-right= @totals.without_ssms.size
+        %td.agency-performance__without.text-right= @totals.without_ssms.size
         %td.text-right= @totals.with_signed_careplans.size
-        %td.text-right= @totals.without_signed_careplans.size
-        %td.text-right= @totals.without_qualifying_activities_within_range.size
+        %td.agency-performance__without.text-right= @totals.without_signed_careplans.size
+        %td.agency-performance__date-effected.agency-performance__without.text-right= @totals.without_qualifying_activities_within_range.size

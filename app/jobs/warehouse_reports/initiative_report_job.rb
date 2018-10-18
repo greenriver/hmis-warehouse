@@ -1,12 +1,12 @@
 module WarehouseReports
-  class InitiativeReportJob < ActiveJob::Base
+  class InitiativeReportJob < BaseJob
     include ArelHelper
 
     queue_as :initiative_reports
 
     def perform options
       options = options.with_indifferent_access
-      report = GrdaWarehouse::WarehouseReports::InitiativeReport.new(parameters: options).run!
+      report = GrdaWarehouse::WarehouseReports::InitiativeReport.new(parameters: options, user_id: options[:user_id]).run!
       # NotifyUser.hmis_export_finished(options[:user_id], report.id).deliver_later
     end
 
@@ -15,6 +15,6 @@ module WarehouseReports
       Rails.logger.info msg
       Rails.logger.info "="*msg.length if underline
     end
-    
+
   end
 end

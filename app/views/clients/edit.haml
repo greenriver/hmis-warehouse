@@ -1,11 +1,10 @@
 - title = "Potential Duplicates for #{@client.name}"
 - content_for :title, title
 = render 'breadcrumbs'
-%h1= title
-.row
-  .col-sm-12
-    = render 'tab_navigation', current: edit_client_path(@client)
 
+= render 'window/clients/aliases'
+= render 'tab_navigation', current: edit_client_path(@client)
+%h1= title
 - if @client.source_clients.size > 1
   = render 'unmerge_form'
 %hr

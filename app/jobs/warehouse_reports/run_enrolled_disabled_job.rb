@@ -1,5 +1,5 @@
 module WarehouseReports
-  class RunEnrolledDisabledJob < ActiveJob::Base
+  class RunEnrolledDisabledJob < BaseJob
 
     queue_as :enrolled_disabled_report
 
@@ -7,6 +7,14 @@ module WarehouseReports
       report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new
       report.started_at = DateTime.now
       report.parameters = params
+
+      @user = User.find(params[:current_user_id])
+      report.user_id = @user.id
+      report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
+        [:all, 'All']
+      else
+          GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
+      end
 
       filter_params = params[:filter]
 
@@ -41,7 +49,7 @@ module WarehouseReports
     end
 
     def project_source
-      GrdaWarehouse::Hud::Project
+      GrdaWarehouse::Hud::Project.viewable_by(@user)
     end
 
     def service_history_enrollment_source
