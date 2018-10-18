@@ -32,7 +32,7 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find params[:id]
+      @report = report_source.find params[:id].to_i
       @report.destroy
       respond_with(@report, location: warehouse_reports_active_veterans_path)
     end
