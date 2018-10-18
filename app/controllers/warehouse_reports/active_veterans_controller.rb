@@ -104,5 +104,9 @@ module WarehouseReports
 
       end
     end
+
+    def flash_interpolation_options
+      { resource_name: 'Active Veterans Report' }
+    end
   end
 end

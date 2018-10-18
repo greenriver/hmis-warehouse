@@ -59,5 +59,9 @@ module WarehouseReports
       attribute :disabilities, Array, lazy: true, default: []
       attribute :project_types, Array, lazy: true, default: []
     end
+
+    def flash_interpolation_options
+      { resource_name: 'Enrolled Clients with Disabilities Report' }
+    end
   end
 end
