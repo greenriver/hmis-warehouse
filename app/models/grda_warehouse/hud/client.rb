@@ -167,7 +167,7 @@ module GrdaWarehouse::Hud
       cohort_clients.select do |cc|
         # meta.inactive is related to days of inactivity in HMIS
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && ! meta.inactive && ! cc.ineligible?
+        cc.active? && cc.cohort&.active? && (cc.housed_date.blank? || cc.destination.blank?) && ! meta.inactive && ! cc.ineligible?
       end.map(&:cohort).compact.uniq
     end
 
