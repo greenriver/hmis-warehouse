@@ -9,11 +9,11 @@ module WarehouseReports
       if params[:commit].present?
         WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
       end
-      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+      @reports = report_source.ordered.limit(50)
     end
 
     def show
-      @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find params[:id]
+      @report = report_source.find params[:id]
       @clients = @report.data
 
       respond_to do |format|
@@ -25,13 +25,13 @@ module WarehouseReports
     end
 
     def destroy
-      @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find params[:id]
+      @report = report_source.find params[:id]
       @report.destroy
       respond_with(@report, location: warehouse_reports_disabilities_path)
     end
 
     def running
-      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+      @reports = report_source.ordered.limit(50)
     end
 
     def set_jobs
@@ -43,6 +43,10 @@ module WarehouseReports
         disabilities: [],
         project_types: [],
       ) rescue {}
+    end
+
+    def report_source
+      GrdaWarehouse::WarehouseReports::EnrolledDisabledReport
     end
 
     def available_disabilities
