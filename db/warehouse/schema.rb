@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181019160628) do
+ActiveRecord::Schema.define(version: 20181019185052) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1107,6 +1107,7 @@ ActiveRecord::Schema.define(version: 20181019160628) do
     t.string   "short_name"
     t.integer  "days_of_inactivity",       default: 90
     t.boolean  "show_on_client_dashboard", default: true,   null: false
+    t.boolean  "visible_in_cas",           default: true,   null: false
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree
@@ -1191,12 +1192,13 @@ ActiveRecord::Schema.define(version: 20181019160628) do
   end
 
   create_table "enrollment_change_histories", force: :cascade do |t|
-    t.integer  "client_id",   null: false
-    t.date     "on",          null: false
+    t.integer  "client_id",               null: false
+    t.date     "on",                      null: false
     t.jsonb    "residential"
     t.jsonb    "other"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "version",     default: 0, null: false
   end
 
   add_index "enrollment_change_histories", ["client_id"], name: "index_enrollment_change_histories_on_client_id", using: :btree
