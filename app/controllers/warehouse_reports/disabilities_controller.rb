@@ -3,6 +3,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     before_action :set_jobs, only: [:index, :running]
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
@@ -10,11 +11,10 @@ module WarehouseReports
       if params[:commit].present?
         WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
       end
-      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+      @reports = report_source.ordered.limit(50)
     end
 
     def show
-      @report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.find params[:id]
       @clients = @report.data
 
       respond_to do |format|
@@ -25,12 +25,21 @@ module WarehouseReports
       end
     end
 
+    def destroy
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_disabilities_path)
+    end
+
     def running
-      @reports = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.ordered.limit(50)
+      @reports = report_source.ordered.limit(50)
     end
 
     def set_jobs
       @jobs = Delayed::Job.where(queue: 'enrolled_disabled_report').order(run_at: :desc)
+    end
+
+    def set_report
+      @report = report_source.find params[:id].to_i
     end
 
     def filter_params
@@ -46,6 +55,10 @@ module WarehouseReports
       rescue
         {}
       end
+    end
+
+    def report_source
+      GrdaWarehouse::WarehouseReports::EnrolledDisabledReport
     end
 
     def available_disabilities
@@ -64,6 +77,10 @@ module WarehouseReports
     class DisabilityProjectTypeFilter < ModelForm
       attribute :disabilities, Array, lazy: true, default: []
       attribute :project_types, Array, lazy: true, default: []
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Enrolled Clients with Disabilities Report' }
     end
   end
 end

@@ -58,7 +58,7 @@ Rails.application.configure do
   # make the development log noisy so you can see request parameters, views rendered, etc.
   config.lograge.enabled = false
 
-  config.force_ssl = false
+  config.force_ssl = true
 
   config.cache_store = ActiveSupport::Cache::RedisStore.new(
     Rails.application.config_for(:cache_store).merge(expires_in: 8.hours)

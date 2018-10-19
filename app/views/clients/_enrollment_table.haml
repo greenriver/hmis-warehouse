@@ -1,0 +1,88 @@
+- if enrollments.any?
+  - any_homeless = enrollments.any?{ |e| e[:homeless] }
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Program Name < Agency Name
+        %th Entry
+        %th Exit
+        %th Most Recent Day Served
+        %th.text-right Days Served
+        %th.text-right
+          %span{data: {toggle: :tooltip, title: "Days homeless is a count of the unique dates homeless.  Adjusted days, is the number of days in the project type that don't overlap other enrollments within the same project type."}}
+            - if any_homeless
+              Homeless / Adjusted Days
+            - else
+              Adjusted Days
+        %th.text-right Months Served
+        %th Household Members
+      - total_days = @client.total_days(enrollments)
+      - total_homeless = @days_homeless || @client.days_homeless
+      - total_adjusted_days = @client.total_adjusted_days(enrollments)
+      - total_months = @client.total_months(enrollments)
+      %tr
+        %th.text-right{colspan: 5} Totals:
+        %th.num-cell= total_days
+        %th.num-cell
+          - if any_homeless
+            = total_homeless
+            \/
+            = total_adjusted_days
+          - else
+            = total_adjusted_days
+        %th.num-cell= total_months
+    %tbody
+    - enrollments.each do |e|
+      - episode_class = ''
+      - if e[:new_episode]
+        - episode_class = 'enrollment__new-episode'
+      %tr{class: episode_class}
+        %td.nobr
+          %span.id-sqr{ 'data-id' => e[:client_source_id]}
+          .enrollment__project_type{class: e[:class]}
+            %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
+              = e[:project_type]
+          - if e[:confidential_project] && @include_confidential_names
+            .confidential_project{data: {toggle: :tooltip, title: GrdaWarehouse::Hud::Project.confidential_project_name}}
+              CP
+        %td
+          %span{data: @client.program_tooltip_data_for_enrollment(e)}
+            - if include_links
+              = link_to e[:project_name], project_path(id: e[:project_id])
+            - else
+              = e[:project_name]
+
+        %td
+          - living_situation = HUD.living_situation(e[:living_situation])
+          - if living_situation == e[:living_situation]
+            - living_situation = 'Unknown'
+          %span{data: {toggle: :tooltip, title: "Prior Living Situation: #{living_situation}"}}
+            = e[:entry_date]
+        %td
+          - destination = HUD.destination(e[:destination])
+          - if destination == e[:destination]
+            - destination = 'Unknown'
+          %span{data: {toggle: :tooltip, title: "Destination: #{destination}"}}
+            = e[:exit_date]
+        %td= e[:most_recent_service]
+        %td.num-cell= e[:days]
+        %td.num-cell
+          - if e[:homeless]
+            = e[:homeless_days]
+            \/
+            = e[:adjusted_days]
+          - else
+            = e[:adjusted_days]
+        %td.num-cell
+          = e[:months_served].size
+        %td
+          - if e[:household].present?
+            - e[:household].each do |c|
+              = "#{c['FirstName']} #{c['LastName']}"
+              Age:
+              = c['age']
+              %br
+- else
+  %p.ml-3.mt-3
+    No enrollments on file

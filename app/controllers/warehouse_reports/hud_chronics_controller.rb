@@ -6,6 +6,7 @@ module WarehouseReports
     
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       if params[:commit].present?
@@ -16,7 +17,6 @@ module WarehouseReports
     end
 
     def show
-      @report = report_source.find params[:id]
       @clients = @report.data
       @sort_options = sort_options
 
@@ -30,6 +30,11 @@ module WarehouseReports
           headers['Content-Disposition'] = "attachment; filename='HUD Chronic Clients on #{date}.xlsx'"
         end
       end
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_hud_chronics_path)
     end
 
     def running
@@ -68,6 +73,10 @@ module WarehouseReports
 
     private 
 
+    def set_report
+      @report = report_source.find params[:id].to_i
+    end
+
     def sort_clients
       @column, @direction = params.slice(:column, :direction).values 
       @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
@@ -97,6 +106,10 @@ module WarehouseReports
         {title: 'Months in 3 yrs (asc)', column: 'chronic.months_in_last_three_years', direction: 'asc'},
         {title: 'Months in 3 yrs (desc)', column: 'chronic.months_in_last_three_years', direction: 'desc'},
       ]
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'HUD Chronic Clients Report' }
     end
 
   end
