@@ -1,8 +1,15 @@
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
+  include ActionView::Helpers::DateHelper
   belongs_to :file, class_name: GrdaWarehouse::DashboardExportFile.name
 
   def complete?
     completed_at.present?
+  end
+
+  def completed_in
+    return '' unless complete?
+    seconds = ((completed_at - created_at)/1.minute).round * 60
+    distance_of_time_in_words(seconds)
   end
 
   def user_name
@@ -23,7 +30,7 @@ class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
 
   def status
     if complete?
-      "Completed"
+      "Completed in #{completed_in}"
     elsif started_at.present?
       "Started"
     else

@@ -4,6 +4,7 @@ module WarehouseReports
 
     before_action :set_jobs, only: [:index, :running]
     before_action :sort_options, only: :index
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       @range = ::Filters::DateRangeAndProject.new(report_params[:range])
@@ -14,7 +15,6 @@ module WarehouseReports
     end
 
     def show
-      @report = report_scope.find params[:id].to_i
       @clients = @report.data
       @sort_options = sort_options
 
@@ -29,6 +29,11 @@ module WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_active_veterans_path)
     end
 
     def running
@@ -53,6 +58,10 @@ module WarehouseReports
 
     def set_jobs
       @jobs = Delayed::Job.where(queue: 'active_veterans_report').order(run_at: :desc)
+    end
+
+    def set_report
+      @report = report_source.find params[:id].to_i
     end
 
     def report_params
@@ -107,6 +116,10 @@ module WarehouseReports
         }
 
       end
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Active Veterans Report' }
     end
   end
 end
