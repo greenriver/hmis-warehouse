@@ -1,0 +1,17 @@
+- title = "Historical Enrollment Data for #{@client.name} on #{@date}"
+- content_for :title, title
+%h1= title
+= render 'clients/anomalies/breadcrumbs'
+
+= simple_form_for :history, method: :get do |f|
+  .row
+    .col-sm-4
+      = f.input :date, collection: @available_dates, label: false, selected: @date, include_blank: false
+    .col-sm-2
+      = f.submit 'Update View', class: ['btn', 'btn-secondary']
+
+- @histories.each do |history|
+  %h2 Residential Enrollments
+  = render 'clients/enrollment_table', enrollments: history.residential.map(&:with_indifferent_access), include_links: true
+  %h2 Other Enrollments
+  = render 'clients/enrollment_table', enrollments: history.other.map(&:with_indifferent_access), include_links: true

@@ -11,6 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+
 ActiveRecord::Schema.define(version: 20181019182438) do
 
   # These are extensions that must be enabled in order to support this database
@@ -1198,6 +1199,7 @@ ActiveRecord::Schema.define(version: 20181019182438) do
     t.jsonb    "other"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "version",     default: 1, null: false
   end
 
   add_index "enrollment_change_histories", ["client_id"], name: "index_enrollment_change_histories_on_client_id", using: :btree

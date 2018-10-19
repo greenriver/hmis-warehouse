@@ -32,6 +32,9 @@
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
         %header
           %h1.h3 Residential Enrollments
+          .ml-2
+            = link_to enrollment_history_index_path(@client) do
+              %i.icon-settings_backup_restore
           .c-color-key.ml-auto
             %span.c-color-key__swatch.enrollment__new-episode--key
             %span.c-color-key__title New Episode
