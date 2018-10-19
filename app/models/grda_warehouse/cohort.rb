@@ -22,6 +22,10 @@ module GrdaWarehouse
       where(active_cohort: false)
     end
 
+    scope :visible_in_cas, -> do
+      where(visible_in_cas: true)
+    end
+
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope

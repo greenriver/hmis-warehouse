@@ -120,6 +120,7 @@ class CohortsController < ApplicationController
       :active_cohort,
       :static_column_count,
       :show_on_client_dashboard,
+      :visible_in_cas,
       user_ids: []
     )
   end
