@@ -178,6 +178,11 @@ module GrdaWarehouse::Hud
       active_cohorts.map(&:id)
     end
 
+    # This prevents leaking involvement in confidential cohorts
+    def cohort_ids_for_cas
+      GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard

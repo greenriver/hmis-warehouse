@@ -11,7 +11,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181019185052) do
+
+ActiveRecord::Schema.define(version: 20181019182438) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1192,8 +1193,8 @@ ActiveRecord::Schema.define(version: 20181019185052) do
   end
 
   create_table "enrollment_change_histories", force: :cascade do |t|
-    t.integer  "client_id",               null: false
-    t.date     "on",                      null: false
+    t.integer  "client_id",   null: false
+    t.date     "on",          null: false
     t.jsonb    "residential"
     t.jsonb    "other"
     t.datetime "created_at"

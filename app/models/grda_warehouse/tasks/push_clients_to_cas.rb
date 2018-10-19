@@ -98,7 +98,7 @@ module GrdaWarehouse::Tasks
         congregate_housing: :congregate_housing,
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
-        active_cohort_ids: :active_cohort_ids,
+        active_cohort_ids: :cohort_ids_for_cas,
         assessment_score: :score_for_rrh_assessment,
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
