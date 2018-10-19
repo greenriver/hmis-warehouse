@@ -30,6 +30,7 @@ module GrdaWarehouse
         other: client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments).to_json,
         created_at: Time.now,
         updated_at: Time.now,
+        version: 1,
       }
     end
   end
