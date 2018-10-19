@@ -312,6 +312,7 @@ Rails.application.routes.draw do
       patch :merge
       patch :unmerge
       resource :cas_active, only: :update
+      resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
     end
     resource :history, only: [:show], controller: 'clients/history' do
       post :queue, on: :collection

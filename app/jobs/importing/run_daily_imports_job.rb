@@ -137,6 +137,9 @@ module Importing
       # re-set cache key for delayed job
       Rails.cache.write('deploy-dir', File.realpath(FileUtils.pwd))
 
+      # take snapshots of client enrollments 
+      GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
+
       # Generate some duplicates if we need to, but not too many
       opts = {
         threshold: -1.45,

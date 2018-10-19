@@ -162,6 +162,8 @@ module GrdaWarehouse::Hud
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
+    has_many :enrollment_change_histories
+
     # do not include ineligible clients for Sync with CAS
     def active_cohorts
       cohort_clients.select do |cc|
@@ -1797,6 +1799,10 @@ module GrdaWarehouse::Hud
 
       # Relationships
       GrdaWarehouse::UserClient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # Enrollment Histories
+      GrdaWarehouse::EnrollmentChangeHistory.where(client_id: previous_id).
         update_all(client_id: new_id)
     end
 
