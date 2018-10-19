@@ -11,6 +11,7 @@
       = f.submit 'Update View', class: ['btn', 'btn-secondary']
 
 - @histories.each do |history|
+  - @days_homeless = history.days_homeless
   %h2 Residential Enrollments
   = render 'clients/enrollment_table', enrollments: history.residential.map(&:with_indifferent_access), include_links: true
   %h2 Other Enrollments

@@ -18,7 +18,7 @@
         %th.text-right Months Served
         %th Household Members
       - total_days = @client.total_days(enrollments)
-      - total_homeless = @client.days_homeless
+      - total_homeless = @days_homeless || @client.days_homeless
       - total_adjusted_days = @client.total_adjusted_days(enrollments)
       - total_months = @client.total_months(enrollments)
       %tr
