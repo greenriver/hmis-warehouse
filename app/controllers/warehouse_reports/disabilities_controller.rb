@@ -3,7 +3,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     before_action :set_jobs, only: [:index, :running]
-    before_action :set_report, only: [:show, :destroy
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)

@@ -6,7 +6,7 @@ module WarehouseReports
     
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
-    before_action :set_report, only: [:show, :destroy
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       if params[:commit].present?

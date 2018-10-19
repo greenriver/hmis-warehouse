@@ -1,7 +1,7 @@
 module WarehouseReports
   class TableauDashboardExportController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_report, only: [:show, :destroy
+    before_action :set_report, only: [:show, :destroy]
 
     def index
       @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
