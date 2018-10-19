@@ -6,6 +6,7 @@ module WarehouseReports
     
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
+    before_action :set_report, only: [:show, :destroy
 
     def index
       if params[:commit].present?
@@ -16,7 +17,6 @@ module WarehouseReports
     end
 
     def show
-      @report = report_source.find params[:id].to_i
       @clients = @report.data
       @sort_options = sort_options
 
@@ -33,7 +33,6 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find params[:id].to_i
       @report.destroy
       respond_with(@report, location: warehouse_reports_hud_chronics_path)
     end
@@ -73,6 +72,10 @@ module WarehouseReports
     end
 
     private 
+
+    def set_report
+      @report = report_source.find params[:id].to_i
+    end
 
     def sort_clients
       @column, @direction = params.slice(:column, :direction).values 

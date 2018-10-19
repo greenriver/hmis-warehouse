@@ -3,6 +3,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     before_action :set_jobs, only: [:index, :running]
+    before_action :set_report, only: [:show, :destroy
 
     def index
       @filter = DisabilityProjectTypeFilter.new(filter_params)
@@ -14,7 +15,6 @@ module WarehouseReports
     end
 
     def show
-      @report = report_source.find params[:id]
       @clients = @report.data
 
       respond_to do |format|
@@ -26,7 +26,6 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find params[:id].to_i
       @report.destroy
       respond_with(@report, location: warehouse_reports_disabilities_path)
     end
@@ -37,6 +36,10 @@ module WarehouseReports
 
     def set_jobs
       @jobs = Delayed::Job.where(queue: 'enrolled_disabled_report').order(run_at: :desc)
+    end
+
+    def set_report
+      @report = report_source.find params[:id].to_i
     end
 
     def filter_params

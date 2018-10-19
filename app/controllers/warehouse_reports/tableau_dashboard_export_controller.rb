@@ -1,6 +1,7 @@
 module WarehouseReports
   class TableauDashboardExportController < ApplicationController
     include WarehouseReportAuthorization
+    before_action :set_report, only: [:show, :destroy
 
     def index
       @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
@@ -12,7 +13,6 @@ module WarehouseReports
 
     #download
     def show
-      @report = report_source.find(params[:id].to_i)
       @file = @report.file
       send_data @file.content,
         type: @file.content_type,
@@ -27,13 +27,16 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find params[:id].to_i
       @report.destroy
       respond_with(@report, location: warehouse_reports_tableau_dashboard_export_index_path)
     end
 
     def report_source
       GrdaWarehouse::DashboardExportReport
+    end
+
+    def set_report
+      @report = report_source.find params[:id].to_i
     end
 
     def report_params
