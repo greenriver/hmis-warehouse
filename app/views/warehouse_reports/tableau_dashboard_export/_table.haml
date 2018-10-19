@@ -3,10 +3,9 @@
   %table.table.table-condensed
     %thead
       %th CoC Code
-      %th User
-      %th Status
+      %th Run by
       %th Started
-      %th Finished
+      %th Status
       %th Download
       %th Delete
     %tbody
@@ -14,15 +13,13 @@
         %tr
           %td= report.display_coc_code
           %td= report.user_name
-          %td= report.status
           %td= report.created_at
-          %td= report.completed_at
+          %td= report.status
           %td
-            - if report.completed_at
+            - if report.complete?
               = link_to action: :show, id: report.id do
                 %span.icon-download2
                 Download
           %td
-            - if report.completed_at
-              = link_to warehouse_reports_tableau_dashboard_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
-                %i.icon-cross
+            = link_to warehouse_reports_tableau_dashboard_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+              %i.icon-cross
