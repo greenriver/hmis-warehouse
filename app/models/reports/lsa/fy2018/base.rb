@@ -8,6 +8,10 @@ module Reports::Lsa::Fy2018
       'Longitudinal System Analysis '
     end
 
+    def file_name options
+      "#{name}-#{options['coc_code']}"
+    end
+
     def download_type
       :zip
     end

@@ -102,7 +102,8 @@ class ReportResultsController < ApplicationController
           redirect_to action: :show
         end
         file = @result.file.first
-        send_data file.content, filename: "#{@report.name}-#{@result.created_at.strftime('%Y-%m-%dT%H%M')}.zip", type: file.content_type, disposition: 'attachment'
+        filename = @report.try(:file_name, @result.options) || @report.name
+        send_data file.content, filename: "#{filename}-#{@result.created_at.strftime('%Y-%m-%dT%H%M')}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end

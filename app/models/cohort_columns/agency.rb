@@ -15,6 +15,7 @@ module CohortColumns
             agencies << organization_name
             agencies << "#{organization_name}: #{project_name}"
           end
+        agencies << 'Confidential Project'
         agencies.to_a.sort
       end
     end
