@@ -32,8 +32,8 @@ module GrdaWarehouse
         updated_at: Time.now,
         version: 1,
       }
-      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments).to_json rescue []
-      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments).to_json rescue []
+      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments).to_json rescue '[]'
+      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments).to_json rescue '[]'
       attributes_for_client[:days_homeless] = client.days_homeless rescue 0
       return attributes_for_client
     end
