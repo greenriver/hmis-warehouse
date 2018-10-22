@@ -58,34 +58,38 @@ module GrdaWarehouse::Tasks
     end
 
     def invalidate_incorrect_family_enrollments
-      debug_log "Checking for enrollments flagged as individual where they should be family"
-      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-        merge(
-          GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            joins(:project).merge(
-              GrdaWarehouse::Hud::Project.family
-            ).where(presented_as_individual: true)
-        )
-      count = query.count
-      debug_log "Found #{count}"
-      if count > 0
-        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
-        query.update_all(processed_as: nil, processed_hash: nil)
-      end
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        debug_log "NOT Checking for enrollments flagged as individual where they should be family and vice versa, using household id to determine families"
+      else
+        debug_log "Checking for enrollments flagged as individual where they should be family"
+        query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+          merge(
+            GrdaWarehouse::ServiceHistoryEnrollment.entry.
+              joins(:project).merge(
+                GrdaWarehouse::Hud::Project.family
+              ).where(presented_as_individual: true)
+          )
+        count = query.count
+        debug_log "Found #{count}"
 
-      debug_log "Checking for enrollments flagged as family where they should be individual"
-      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-        merge(
-          GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            joins(:project).merge(
-              GrdaWarehouse::Hud::Project.serves_individuals_only
-            ).where(presented_as_individual: false)
-        )
-      count = query.count
-      debug_log "Found #{count}"
-      if count > 0
-        @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
-        query.update_all(processed_as: nil, processed_hash: nil)
+        if count > 0
+          @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
+          query.update_all(processed_as: nil, processed_hash: nil)
+        end
+        debug_log "Checking for enrollments flagged as family where they should be individual"
+        query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+          merge(
+            GrdaWarehouse::ServiceHistoryEnrollment.entry.
+              joins(:project).merge(
+                GrdaWarehouse::Hud::Project.serves_individuals_only
+              ).where(presented_as_individual: false)
+          )
+        count = query.count
+        debug_log "Found #{count}"
+        if count > 0
+          @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+          query.update_all(processed_as: nil, processed_hash: nil)
+        end
       end
     end
 
