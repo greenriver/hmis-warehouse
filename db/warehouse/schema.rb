@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181019185052) do
+ActiveRecord::Schema.define(version: 20181022144551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1078,6 +1078,7 @@ ActiveRecord::Schema.define(version: 20181019185052) do
     t.string   "sleeping_location"
     t.string   "exit_destination"
     t.string   "lgbtq"
+    t.string   "school_district"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree

@@ -254,6 +254,7 @@ module GrdaWarehouse
         ::CohortColumns::SleepingLocation.new(),
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
+        ::CohortColumns::SchoolDistrict.new(),
       ]
     end
 
