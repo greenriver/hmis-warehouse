@@ -5,20 +5,20 @@ Required only if using sp_LSAPersonDemoGraphics, but useful in
 validating values in LSA upload files and producing traditional
 report tables. 
 
-	ref_lsaFiles - updated 9/20/2018
-		FileID, FileName (includes HMIS CSV PDDE files and LSA files)
-	ref_lsaColumns - updated 9/20/2018
-		FileID, ColumnID, ColumnName, DataType,
-		Nullable (can the column have a null value when uploaded?), 
-		and List (does the column have a limited list of valid predefined values?)
-	ref_lsaValues - updated 9/28/2018 
-		FileID, ColumnID, intValue (valid upload value), 
-		and textValue (identifies what the intValue signifies in the upload for the column)
+  ref_lsaFiles - updated 9/20/2018
+    FileID, FileName (includes HMIS CSV PDDE files and LSA files)
+  ref_lsaColumns - updated 9/20/2018
+    FileID, ColumnID, ColumnName, DataType,
+    Nullable (can the column have a null value when uploaded?), 
+    and List (does the column have a limited list of valid predefined values?)
+  ref_lsaValues - updated 9/28/2018 
+    FileID, ColumnID, intValue (valid upload value), 
+    and textValue (identifies what the intValue signifies in the upload for the column)
 
 10/11/2018 - uploaded to github
-		
+    
 ***********************************************************/
-		
+    
 if object_id ('FK_ref_lsaValues_ref_lsaColumns') is not null ALTER TABLE ref_lsaValues DROP CONSTRAINT FK_ref_lsaValues_ref_lsaColumns
 ;
 if object_id ('FK_ref_lsaColumns_ref_lsaFiles') is not null ALTER TABLE ref_lsaColumns DROP CONSTRAINT FK_ref_lsaColumns_ref_lsaFiles
@@ -30,27 +30,27 @@ if object_id ('ref_lsaColumns') is not null drop table ref_lsaColumns
 if object_id ('ref_lsaFiles') is not null drop table ref_lsaFiles
 ;
 create table ref_lsaFiles (
-	FileNumber int not null
-	, FileName varchar(255)
-	, PRIMARY KEY (FileNumber)
+  FileNumber int not null
+  , FileName varchar(255)
+  , PRIMARY KEY (FileNumber)
 )
 ;
 create table ref_lsaColumns (
-	FileNumber int not null
-	, ColumnNumber int not null
-	, ColumnName varchar(255)
-	, DataType varchar(50) not null
-	, Nullable bit not null
-	, List bit not null
-	, PRIMARY KEY (FileNumber, ColumnNumber)
+  FileNumber int not null
+  , ColumnNumber int not null
+  , ColumnName varchar(255)
+  , DataType varchar(50) not null
+  , Nullable bit not null
+  , List bit not null
+  , PRIMARY KEY (FileNumber, ColumnNumber)
 )
 ;
 create table ref_lsaValues (
-	FileNumber int not null
-	, ColumnNumber int not null
-	, intValue int not null
-	, textValue varchar(255) not null
-	, PRIMARY KEY (FileNumber, ColumnNumber, intValue)
+  FileNumber int not null
+  , ColumnNumber int not null
+  , intValue int not null
+  , textValue varchar(255) not null
+  , PRIMARY KEY (FileNumber, ColumnNumber, intValue)
 )
 ;
 ALTER TABLE ref_lsaValues  WITH CHECK ADD  CONSTRAINT FK_ref_lsaValues_ref_lsaColumns FOREIGN KEY(FileNumber, ColumnNumber)
@@ -310,8 +310,8 @@ insert into ref_lsaColumns (FileNumber, ColumnNumber, ColumnName, DataType, Null
 insert into ref_lsaColumns (FileNumber, ColumnNumber, ColumnName, DataType, Nullable, List) values (99, 2, 'HHComposition', 'int', 1, 1)
 
 --Populate ref_lsaValues
-insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (1, 2,1, 'Systemwide')
-insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (1, 2,2, 'Project-focused')
+insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (1, 10,1, 'Systemwide')
+insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (1, 10,2, 'Project-focused')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (2, 2,1, 'Engage with continuum for first time or after at least 730 days inactive')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (2, 2,2, 'Return 15-730 days after exit to permanent destination')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (2, 2,3, 'Re-engage 15-730 days after exit to temporary destination')
