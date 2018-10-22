@@ -76,14 +76,14 @@ module Dashboards
 
     def id_of_most_recent_report
       # assumes that newer reports have higher ids -- may not hold on dev
-      months.max_by {|k, v| k}[0] # id is key of the map
+      months.max_by {|k, _| k}&.first # id is key of the map
     end
 
     def selected_report_for (report_class)
        selected_report = active_report_class.find(selected_report_id)
       report_class.where(
-          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day])
-          .limit(1).first
+          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]).
+          limit(1).first
     end
   end
 end
