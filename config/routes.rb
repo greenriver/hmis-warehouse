@@ -394,7 +394,7 @@ Rails.application.routes.draw do
   resources :dashboards, only: [:index]
   namespace :dashboards do
     sub_populations.each do |sub_population|
-      resources(sub_population, only: [:index]) do
+      resources(sub_population, only: [:index, :create]) do
         collection do
           get :active
           get :housed

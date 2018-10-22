@@ -10,10 +10,12 @@ module Dashboards
       @census_start_date = '2015-07-01'.to_date
       @census_end_date = 1.weeks.ago.to_date
 
+      @months = months
+      @selected = selected_report_id
     end
 
     def active
-      @report = active_report_class.ordered.first
+      @report = selected_report_for(active_report_class)
       if @report.present?
         data = @report[:data].with_indifferent_access
         @data = data[:data]
@@ -28,7 +30,7 @@ module Dashboards
     end
 
     def housed
-      @report = housed_report_class.ordered.first
+      @report = selected_report_for(housed_report_class)
       if @report.present?
         data = @report[:data].with_indifferent_access
         @ph_clients = data[:ph_clients]
@@ -42,7 +44,7 @@ module Dashboards
     end
 
     def entered
-      @report = entered_report_class.ordered.first
+      @report = selected_report_for(entered_report_class)
       if @report.present?
         data = @report[:data].with_indifferent_access
         @enrollments_by_type = data[:enrollments_by_type]
@@ -58,5 +60,30 @@ module Dashboards
       render layout: !request.xhr?
     end
 
+    def months
+      months = {}
+      active_report_class.ordered.select(:id, :parameters).index_by(&:parameters).each do | key, report |
+        report.set_date_range
+        start_date = report.range.start
+        months[report.id] = "#{Date::MONTHNAMES[start_date.month]} #{start_date.year}"
+      end
+      months
+    end
+
+    def selected_report_id
+      params[:choose_report][:month].to_i rescue id_of_most_recent_report
+    end
+
+    def id_of_most_recent_report
+      # assumes that newer reports have higher ids -- may not hold on dev
+      months.max_by {|k, v| k}[0] # id is key of the map
+    end
+
+    def selected_report_for (report_class)
+       selected_report = active_report_class.find(selected_report_id)
+      report_class.where(
+          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day])
+          .limit(1).first
+    end
   end
 end
