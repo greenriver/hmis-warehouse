@@ -18,5 +18,10 @@ module Window::Health
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Files"
+    end
+
   end
 end

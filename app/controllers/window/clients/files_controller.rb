@@ -7,6 +7,7 @@ module Window::Clients
     before_action :set_files, only: [:index]
     before_action :set_window
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
+    after_action :log_client
 
     def index
       @consent_editable = consent_editable?
@@ -240,6 +241,10 @@ module Window::Clients
     def editable_scope
       file_source.window.where(client_id: @client.id).
         editable_by?(current_user)
+    end
+
+    protected def title_for_show
+      "#{@client.name} - Files"
     end
 
   end

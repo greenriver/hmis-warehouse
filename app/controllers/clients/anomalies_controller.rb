@@ -3,6 +3,7 @@ module Clients
     before_action :require_can_track_anomalies!
     before_action :set_anomaly, only: [:edit, :update, :destroy]
     before_action :set_client
+    after_action :log_client
     
     def index
       @anomalies = @client.anomalies.group_by(&:status)
@@ -57,6 +58,10 @@ module Clients
 
     def flash_interpolation_options
       { resource_name: 'Issue' }
+    end
+
+    protected def title_for_show
+      "#{@client.name} - Anomalies"
     end
 
     private def anomaly_params

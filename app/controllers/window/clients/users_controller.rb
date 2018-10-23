@@ -5,6 +5,7 @@ module Window::Clients
     before_action :require_can_assign_or_view_users_to_clients!
     before_action :set_client
     before_action :set_user, only: [:edit, :update, :destroy]
+    after_action :log_client
 
     def index
       @user = user_source.new()
@@ -73,6 +74,10 @@ module Window::Clients
 
     def set_user
       @user = user_scope.find(params[:id].to_i)
+    end
+
+    protected def title_for_show
+      "#{@client.name} - Relationships"
     end
 
   end

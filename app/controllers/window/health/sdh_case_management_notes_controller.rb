@@ -182,5 +182,8 @@ module Window::Health
       { resource_name: 'Case Management Note' }
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - Case Management Notes"
+    end
   end
 end

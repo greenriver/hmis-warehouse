@@ -130,5 +130,8 @@ module Window::Health
       { resource_name: 'Self-Sufficiency Matrix' }
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - SSM"
+    end
   end
 end

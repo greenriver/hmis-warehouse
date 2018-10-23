@@ -194,5 +194,9 @@ module Window::Health
     end
     helper_method :delete_goal_path
 
+    protected def title_for_show
+      "#{@client.name} - Health - Careplans"
+    end
+
   end
 end

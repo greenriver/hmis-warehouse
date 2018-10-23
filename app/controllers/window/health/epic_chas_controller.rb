@@ -25,5 +25,9 @@ module Window::Health
     def form_scope
       Health::EpicCha.all
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Epic CHA"
+    end
   end
 end
