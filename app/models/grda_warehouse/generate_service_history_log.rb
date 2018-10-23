@@ -11,18 +11,18 @@ class GrdaWarehouse::GenerateServiceHistoryLog < GrdaWarehouseBase
   end
 
   def clients_processed
-    generate_service_history_batch_logs.reduce(0) { |sum, batch| sum += batch.updated + batch.patched }
+    generate_service_history_batch_logs.sum(:updated, :patched)
   end
 
   def total_clients
-    generate_service_history_batch_logs.reduce(0) { |sum, batch| sum += batch.to_process }
+    generate_service_history_batch_logs.sum(:to_process)
   end
 
   def clients_updated
-    generate_service_history_batch_logs.reduce(0) { |sum, batch| sum += batch.updated }
+    generate_service_history_batch_logs.sum(:updated)
   end
 
   def clients_patched
-    generate_service_history_batch_logs.reduce(0) { |sum, batch| sum += batch.patched }
+    generate_service_history_batch_logs.sum(:patched)
   end
 end
