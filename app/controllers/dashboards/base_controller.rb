@@ -62,7 +62,7 @@ module Dashboards
 
     def months
       months = {}
-      active_report_class.ordered.select(:id, :parameters).where(created_at:'2018-03-01'.to_date..Date.today)).
+      active_report_class.ordered.select(:id, :parameters).where(created_at:'2018-03-01'.to_date..Date.today).
           index_by(&:parameters).first(36).each do | key, report |
         report.set_date_range
         start_date = report.range.start
