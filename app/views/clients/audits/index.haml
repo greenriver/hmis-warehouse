@@ -1,0 +1,23 @@
+- title = "Notes"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+= render 'window/clients/aliases'
+= render 'clients/tab_navigation', current: client_audits_path(@client)
+
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Date
+      %th User
+      %th Action
+  %tbody
+    - @audit_log.each do |item|
+      %tr
+        %td
+          = item.created_at
+        %td
+          = item.user.first_name
+          = item.user.last_name
+        %td
+          = item.action_name
