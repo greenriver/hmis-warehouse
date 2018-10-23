@@ -5,11 +5,24 @@ class GrdaWarehouse::GenerateServiceHistoryLog < GrdaWarehouseBase
   has_many :generate_service_history_batch_logs
 
   def import_time
-    if completed_at.present?
-      seconds = ((completed_at - started_at)/1.minute).round * 60
-      distance_of_time_in_words(seconds)
-    else
-      'incomplete'
-    end
+    completed_at = generate_service_history_batch_logs.maximum(:updated_at)
+    seconds = ((completed_at - started_at)/1.minute).round * 60
+    distance_of_time_in_words(seconds)
+  end
+
+  def clients_processed
+    generate_service_history_batch_logs.sum(:updated, :patched)
+  end
+
+  def total_clients
+    generate_service_history_batch_logs.sum(:to_process)
+  end
+
+  def clients_updated
+    generate_service_history_batch_logs.sum(:updated)
+  end
+
+  def clients_patched
+    generate_service_history_batch_logs.sum(:patched)
   end
 end
