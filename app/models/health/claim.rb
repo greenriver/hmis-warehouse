@@ -110,7 +110,7 @@ module Health
         pr = patient.patient_referral
 
         city_state_zip = [pr.address_city, pr.address_state, pr.address_zip]
-        if city_state_zip.compact.count != 3
+        if city_state_zip.reject(&:blank?).count != 3
           city_state_zip = [@sender.city, @sender.state, @sender.zip]
         end
         b.HL @hl, '1', '22', '0'
