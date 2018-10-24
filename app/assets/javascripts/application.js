@@ -49,6 +49,7 @@
 //= require cha
 //= require vispdats
 //= require files
+//= require table_search
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps

@@ -53,3 +53,10 @@
 
 
     %p= paginate @roles
+
+- content_for :page_js do
+  :javascript
+    new App.TableSeach({
+      inputClass: '.j-search-permissions',
+      rowClass: '.j-permission-row',
+    })
