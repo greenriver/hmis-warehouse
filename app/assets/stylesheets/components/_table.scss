@@ -16,18 +16,24 @@ $table-border-color-secondary: #F0F0F0;
 .c-table > thead > tr > th,
 .c-table > tbody > tr > td {
   padding: space(4) space(3);
-  /* border-bottom: 1px solid $table-border-color-primary; */
 }
 
 .c-table > thead > tr > th {
   border-bottom: 0;
-  @include font-bold(18px);
   vertical-align: middle;
   border-bottom: 0;
   padding: space(4) space(3);
 }
 
+.c-table__header-title {
+  @include font-bold(18px);
+}
+
 .c-table__header { }
+
+.c-table__header .pagination {
+  margin-bottom: 0;
+}
 
 .c-table__header > th {
   background: rgb(238, 238, 238);
@@ -70,9 +76,12 @@ $table-border-color-secondary: #F0F0F0;
 }
 
 .c-table__icon-key {
-  margin-left: auto;
   @include font-default(14px);
   color: $gray-065;
+}
+
+.c-table__icon-key--right {
+  margin-left: auto;
 }
 
 .c-table__icon-key span {
