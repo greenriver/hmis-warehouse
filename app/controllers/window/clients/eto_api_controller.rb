@@ -4,6 +4,7 @@ module Window::Clients
     
     before_action :require_can_view_client_window!
     before_action :set_client
+    after_action :log_client
     
     def show
       render json: @client.api_status

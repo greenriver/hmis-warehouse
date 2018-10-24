@@ -11,6 +11,7 @@ module Window
     before_action :set_client, :check_release, only: [:show]
     before_action :set_client_from_client_id, only: [:image, :rollup]
     before_action :require_can_create_clients!, only: [:new, :create]
+    after_action :log_client, except: [:rollup, :image]
 
     def index
       @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results)

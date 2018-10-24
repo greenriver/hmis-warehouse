@@ -48,5 +48,9 @@ module Window::Health
     def flash_interpolation_options
       { resource_name: 'Goal' }
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Goals"
+    end
   end
 end

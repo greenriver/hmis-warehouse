@@ -39,11 +39,50 @@ module ActivityLogger
 
     def log_item(item)
       @activity.item_model = item.class.name
+      @activity.item_id ||= item.id
     end
 
     def log_activity
       @activity.title = send("title_for_#{@activity.action_name}") rescue nil
       @activity.save if @activity.user_id.present?
+    end
+
+    # override as necessary in the controller
+    protected def title_for_show
+      return @client.name if @client.present?
+      return @user.name if @user.present?
+    end
+
+    protected def title_for_new
+      title_for_show
+    end
+
+    protected def title_for_edit
+      title_for_show
+    end
+
+    protected def title_for_update
+      title_for_show
+    end
+
+    protected def title_for_create
+      title_for_show
+    end
+
+    protected def title_for_destroy
+      title_for_show
+    end
+
+    protected def title_for_index
+      title_for_show
+    end
+
+    protected def log_client
+      log_item(@client) if @client.present?
+    end
+
+    protected def log_user
+      log_item(@user) if @user.present?
     end
   end
 end

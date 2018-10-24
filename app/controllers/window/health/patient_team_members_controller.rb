@@ -24,5 +24,8 @@ module Window::Health
     end
     helper_method :team_member_form_path
 
+    protected def title_for_show
+      "#{@client.name} - Health - Team"
+    end
   end
 end

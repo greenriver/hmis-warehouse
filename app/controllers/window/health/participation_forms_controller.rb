@@ -133,5 +133,9 @@ module Window::Health
       form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_participation?
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - Participation Form"
+    end
+
   end
 end

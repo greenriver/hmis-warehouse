@@ -47,6 +47,10 @@ class Role < ActiveRecord::Base
         description: 'Provides the ability to merge clients and make other edits. This should only be given to administrator level users.',
         administrative: true,
       },
+      can_audit_clients: {
+        description: 'Access to see who has looked at or changed a client record. This should only be given to administrator level users.',
+        administrative: true,
+      },
       can_view_censuses: {
         description: 'Access to the nightly census dashboard, only at the aggregate level',
         administrative: false,
