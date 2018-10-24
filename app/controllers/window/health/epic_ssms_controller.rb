@@ -25,5 +25,9 @@ module Window::Health
     def form_scope
       Health::EpicSsm.all
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Epic SSM"
+    end
   end
 end

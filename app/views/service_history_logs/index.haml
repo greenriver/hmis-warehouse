@@ -9,10 +9,10 @@
         %thead
           %tr
             %th Started
-            %th Completed In
-            %th Clients added
+            %th Execution time
+            %th Clients processed
             %th Clients updated
-            %th Client histories cleaned
+            %th Clients patched
           %tbody
             - @service.each do |d|
               %tr
@@ -21,11 +21,12 @@
                 %td
                   = d.import_time
                 %td
-                  = d.to_add
+                  = d.clients_processed
+                  of
+                  = d.total_clients
                 %td
-                  = d.to_update
+                  = d.clients_updated
                 %td
-                  = d.to_delete
-               
+                  = d.clients_patched
 
 %p= paginate @service

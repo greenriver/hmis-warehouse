@@ -1,5 +1,8 @@
 %p
-  The following claims file was generated on #{@report.completed_at.strftime('%b %e, %Y at %I:%M%P')}.
+  The following claims file was generated on
+  %strong #{@report.completed_at.strftime('%b %e, %Y at %I:%M%P')} 
+  for PID/SL
+  %strong #{@report.pid_sl_from_claims_file}.
 = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", class: 'btn btn-secondary btn-sm', target: '_blank' do
   %i.icon-download2
   Download Claims File

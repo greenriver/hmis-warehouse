@@ -19,21 +19,23 @@
         = @service_history.started_at
     %tr
       %th
-        Completed In
+        Execution time
       %td
         = @service_history.import_time
     %tr
       %th
-        Clients added
+        Client processed
       %td
-        = number_with_delimiter @service_history.to_add
+        = @service_history.clients_processed
+        of
+        = @service_history.total_clients
     %tr
       %th
         Clients updated
       %td
-        = number_with_delimiter @service_history.to_update
+        = number_with_delimiter @service_history.clients_updated
     %tr
       %th
-        Client histories cleaned
+        Clients patched
       %td
-        = @service_history.to_delete
+        = number_with_delimiter @service_history.clients_patched

@@ -15,5 +15,9 @@ module Window::Health
 
       render layout: !request.xhr?
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Utilization"
+    end
   end
 end

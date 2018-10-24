@@ -4,6 +4,7 @@ module Clients
     
     before_action :require_can_edit_clients!
     before_action :set_client
+    after_action :log_client
 
     def index
       @date = params[:history][:date].to_date rescue Date.yesterday
@@ -23,6 +24,10 @@ module Clients
     end
     def history_scope
       history_source.where(client_id: @client.id)
+    end
+
+    def title_for_show
+      "#{@client.name} - Historical Enrollments"
     end
 
   end

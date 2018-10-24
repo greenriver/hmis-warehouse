@@ -9,4 +9,8 @@ class ActivityLog < ActiveRecord::Base
       "View"
     end
   end
+
+  def clean_object_name
+    item_model&.gsub('GrdaWarehouse::Hud::', '')
+  end
 end

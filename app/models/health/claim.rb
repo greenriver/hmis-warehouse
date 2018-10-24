@@ -110,7 +110,7 @@ module Health
         pr = patient.patient_referral
 
         city_state_zip = [pr.address_city, pr.address_state, pr.address_zip]
-        if city_state_zip.compact.empty?
+        if city_state_zip.compact.count != 3
           city_state_zip = [@sender.city, @sender.state, @sender.zip]
         end
         b.HL @hl, '1', '22', '0'
@@ -166,6 +166,34 @@ module Health
       end
       return file
     end
+
+    def pid_sl_from_claims_file
+      pid_sl = ''
+      parsed_claims_file.first.tap do |m|
+        el(m, 6){|e| pid_sl = e}
+      end
+      return pid_sl
+    end
+
+    def parsed_claims_file
+      config = Stupidedi::Config.hipaa
+      parser = Stupidedi::Builder::StateMachine.build(config)
+      parser, result = parser.read(Stupidedi::Reader.build(claims_file))
+      if result.fatal?
+        result.explain{|reason| raise reason + " at #{result.position.inspect}" }
+      end
+      return parser
+    end
+
+    # Helper function: fetch an element from the current segment
+    def el(m, *ns, &block)
+      if Stupidedi::Either === m
+        m.tap{|m| el(m, *ns, &block) }
+      else
+        yield(*ns.map{|n| m.elementn(n).map(&:value).fetch })
+      end
+    end
+
 
     def start_report
       update(started_at: Time.now)

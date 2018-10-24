@@ -19,5 +19,9 @@ module Window::Health
         .page(params[:page]).per(25)
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - Qualifying Activities"
+    end
+
   end
 end

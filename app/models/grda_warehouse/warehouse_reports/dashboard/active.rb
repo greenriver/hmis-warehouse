@@ -1,6 +1,8 @@
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Active < GrdaWarehouse::WarehouseReports::Dashboard::Base
 
+    attr_accessor :range
+
     def self.params
       start = 1.months.ago.beginning_of_month.to_date
       # unless Rails.env.production?
@@ -17,6 +19,12 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       end_date = parameters.with_indifferent_access[:end]
       @range = ::Filters::DateRange.new({start: start_date, end: end_date})
       @month_name = @range.start.to_time.strftime('%B')
+    end
+
+
+    scope :for_month, -> (date: Date.today) do
+      start_of_month = date&.to_date&.beginning_of_month
+      where("parameters->> 'start' = ? or parameters ->> 'start_date' = ?", start_of_month, start_of_month)
     end
 
     def init
@@ -66,6 +74,5 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         data: @data,
       }
     end
-
   end
 end

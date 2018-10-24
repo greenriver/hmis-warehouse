@@ -4,6 +4,7 @@ module Clients
     
     before_action :require_can_edit_clients!
     before_action :set_client
+    after_action :log_client
 
     def edit
       @note = GrdaWarehouse::ClientNotes::Base.new
@@ -44,6 +45,10 @@ module Clients
 
       def client_source
         GrdaWarehouse::Hud::Client
+      end
+
+      def title_for_show
+        "#{@client.name} - Chronic"
       end
   end
 end

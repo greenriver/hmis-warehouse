@@ -12,16 +12,23 @@
           %tr
             %th Action
             %th Item
-            %th Method
+            %th Item Type
             %th Date
             %th IP Address
         %tbody
           - @activity_log.each do |i|
             - title = i.title || i.controller_name
             %tr
-              %td= i.action_name
+              %td
+                - tooltip = "Method: #{i.method}"
+                %span.action{data: {toggle: :tooltip, title: tooltip}}
+                  = i.action_name
+              
               %td= link_to title, i.path
-              %td= i.method
+              %td
+                - tooltip = "Class: #{i.item_model}"
+                %span.action{data: {toggle: :tooltip, title: tooltip}}
+                  = i.clean_object_name
               %td= i.created_at
               %td= i.ip_address
 %p= paginate @activity_log
