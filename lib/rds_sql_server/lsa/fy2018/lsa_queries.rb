@@ -655,7 +655,8 @@ module LsaSqlServer
         insert into ch_Episodes (PersonalID, episodeStart, episodeEnd)
         select distinct s.PersonalID, s.chDate, min(e.chDate)
         from ch_Time s
-        inner join ch_Time e on e.PersonalID = s.PersonalID  and e.chDate > s.chDate
+        --CHANGE 10/24/2018 'e.chDate > s.chDate' to >= for one day episodes
+        inner join ch_Time e on e.PersonalID = s.PersonalID  and e.chDate >= s.chDate
         where s.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, -1, s.chDate))
           and e.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, 1, e.chDate))
         group by s.PersonalID, s.chDate
@@ -756,8 +757,8 @@ module LsaSqlServer
                 and ((hn.PreviousStreetESSH is NULL)
                   or (hn.PreviousStreetESSH = 1
                     and hn.DateToStreetESSH is null))))
-        where CHTime <> 400
-          and CHTimeStatus not in (1,2)
+        --CHANGE 10/24/2018 - align WHERE clause to specs (no change in output)
+        where (CHTime in (1,270) or CHTimeStatus = 3)
           and HoHAdult > 0
 
         update tmp_Person
@@ -1043,19 +1044,16 @@ module LsaSqlServer
         4.23 Set tmp_Person Population Identifiers from Active Households
         **********************************************************************/
         update lp
-          --CHANGE 10/5/2018 - more corrections to HHAdultAge
-        set lp.HHAdultAge = coalesce((select
-              --HHTypes 3 and 99 are excluded by the CASE statement
-              case when max(n.AgeGroup) >= 98 then -1
-                when max(n.AgeGroup) <= 17 then -1
-                when min(n.AgeGroup) between 18 and 25
-                  and max(n.AgeGroup) between 25 and 55 then 25
-                when max(n.AgeGroup) = 21 then 18
-                when max(n.AgeGroup) = 24 then 24
-                when min(n.AgeGroup) between 64 and 65 then 55
-                else -1 end
+        --CHANGE 10/23/2018 - correction to pull HHAdultAge from active_Household
+        -- and not from active_Enrollment (github issue #23).
+        set lp.HHAdultAge = coalesce((select case when min(hh.HHAdultAge) between 18 and 24
+              then min(hh.HHAdultAge) 
+            else max(hh.HHAdultAge) end
             from active_Enrollment n
-            where n.PersonalID = lp.PersonalID and n.HHType in (1,2)), -1)
+            inner join active_Household hh on hh.HouseholdID = n.HouseholdID
+              and ((hh.HHType = 1 and hh.HHAdultAge between 18 and 55) 
+                or (hh.HHType = 2 and hh.HHAdultAge between 18 and 24))
+            where n.PersonalID = lp.PersonalID), -1)
            , lp.AC3Plus = (select max(hhid.AC3Plus)
             from active_Household hhid
             inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1294,32 +1292,38 @@ module LsaSqlServer
         /*************************************************************************
         4.27 Set tmp_Household RRH and PSH Move-In Status Indicators
         **********************************************************************/
+        --CHANGE 10/23/2018 - To align with specs where household has multiple RRH/PSH
+        -- enrollments, updated so status is preferentially based on MoveInDate in 
+        -- report period (top priority), MoveInDate prior to ReportStart (2nd),
+        -- or no MoveInDate (lowest).
         update hh
         set hh.RRHMoveIn = case when hh.RRHStatus = 0 then -1
+            when stat.RRHMoveIn = 10 then 1
             else stat.RRHMoveIn end
           , hh.PSHMoveIn = case when hh.PSHStatus = 0 then -1
+            when stat.PSHMoveIn = 10 then 1
             else stat.PSHMoveIn end
         from tmp_Household hh
         left outer join (select distinct hhid.HoHID, hhid.HHType
-            , RRHMoveIn = (select min(case when an.MoveInDate is null
+            , RRHMoveIn = (select max(case when an.MoveInDate is null
                 then 0
-                when an.MoveInDate >= rpt.ReportStart then 1
+                when an.MoveInDate >= rpt.ReportStart then 10
                 else 2 end)
-              from active_Enrollment an
+              from active_Enrollment an 
               inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-              where an.PersonalID = hhid.HoHID
+              where an.PersonalID = hhid.HoHID 
                 and an.HouseholdID = hhid.HouseholdID
                 and hhid.ProjectType = 13)
-            , PSHMoveIn = (select min(case when an.MoveInDate is null
+            , PSHMoveIn = (select max(case when an.MoveInDate is null
                 then 0
-                when an.MoveInDate >= rpt.ReportStart then 1
+                when an.MoveInDate >= rpt.ReportStart then 10
                 else 2 end)
-              from active_Enrollment an
+              from active_Enrollment an 
               inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-              where an.PersonalID = hhid.HoHID
+              where an.PersonalID = hhid.HoHID 
                 and an.HouseholdID = hhid.HouseholdID
-                and hhid.ProjectType = 3)
-          from active_Household hhid) stat on
+                and hhid.ProjectType = 3)     
+          from active_Household hhid) stat on 
             stat.HoHID = hh.HoHID and stat.HHType = hh.HHType
 
       SQL
@@ -1523,13 +1527,15 @@ module LsaSqlServer
         4.28.d Set tmp_Household Destination for Each Project Group
         **********************************************************************/
 
+        --CHANGE 10/23/2018 - populate EST/RRH/PSHDestination based on most recent EXIT  
+        -- from project group (and NOT exit for enrollment with most recent entry date)  
         update lhh
-        set ESTDestination = -1
+        set ESTDestination = -1 
         from tmp_Household lhh
         where ESTStatus not in (12,22)
 
         update lhh
-        set ESTDestination =
+        set ESTDestination = 
           case when hx.Destination = 3 then 1 --PSH
            when hx.Destination = 31 then 2  --PH - rent/temp subsidy
            when hx.Destination in (19,20,21,26,28) then 3 --PH - rent/own with subsidy
@@ -1546,21 +1552,26 @@ module LsaSqlServer
            when hx.Destination = 13 then 14 --Friends - temp
            when hx.Destination = 24 then 15 --Deceased
            else 99  end
-        from active_Enrollment an
-        inner join tmp_Household lhh on lhh.HoHID = an.PersonalID
-          and lhh.HHType = an.HHType
-        inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-        where an.RelationshipToHoH = 1 and an.ExitDate is not null
-          and an.MostRecent = 1 and an.ProjectType in (1,2,8)
-
-
+        from tmp_Household lhh 
+        inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+        inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+        where lhh.ESTDestination is null 
+          and hn.EnrollmentID in 
+            (select top 1 an.EnrollmentID 
+             from active_Enrollment an
+             where an.ProjectType in (1,2,8) 
+              and an.PersonalID = lhh.HoHID
+              and an.RelationshipToHoH = 1
+              and an.HHType = lhh.HHType
+             order by an.ExitDate desc)
+          
         update lhh
-        set RRHDestination = -1
+        set RRHDestination = -1 
         from tmp_Household lhh
         where RRHStatus not in (12,22)
 
         update lhh
-        set RRHDestination =
+        set RRHDestination = 
           case when hx.Destination = 3 then 1 --PSH
            when hx.Destination = 31 then 2  --PH - rent/temp subsidy
            when hx.Destination in (19,20,21,26,28) then 3 --PH - rent/own with subsidy
@@ -1577,20 +1588,26 @@ module LsaSqlServer
            when hx.Destination = 13 then 14 --Friends - temp
            when hx.Destination = 24 then 15 --Deceased
            else 99  end
-        from active_Enrollment an
-        inner join tmp_Household lhh on lhh.HoHID = an.PersonalID
-          and lhh.HHType = an.HHType
-        inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-        where an.RelationshipToHoH = 1 and an.ExitDate is not null
-          and an.MostRecent = 1 and an.ProjectType = 13
+        from tmp_Household lhh 
+        inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+        inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+        where lhh.RRHDestination is null 
+          and hn.EnrollmentID in 
+            (select top 1 an.EnrollmentID 
+             from active_Enrollment an
+             where an.ProjectType = 13
+              and an.PersonalID = lhh.HoHID
+              and an.RelationshipToHoH = 1
+              and an.HHType = lhh.HHType
+             order by an.ExitDate desc)
 
         update lhh
-        set PSHDestination = -1
+        set PSHDestination = -1 
         from tmp_Household lhh
         where PSHStatus not in (12,22)
 
         update lhh
-        set PSHDestination =
+        set PSHDestination = 
           case when hx.Destination = 3 then 1 --PSH
            when hx.Destination = 31 then 2  --PH - rent/temp subsidy
            when hx.Destination in (19,20,21,26,28) then 3 --PH - rent/own with subsidy
@@ -1607,12 +1624,18 @@ module LsaSqlServer
            when hx.Destination = 13 then 14 --Friends - temp
            when hx.Destination = 24 then 15 --Deceased
            else 99  end
-        from active_Enrollment an
-        inner join tmp_Household lhh on lhh.HoHID = an.PersonalID
-          and lhh.HHType = an.HHType
-        inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-        where an.RelationshipToHoH = 1 and an.ExitDate is not null
-          and an.MostRecent = 1 and an.ProjectType = 3
+        from tmp_Household lhh 
+        inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+        inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+        where lhh.PSHDestination is null 
+          and hn.EnrollmentID in 
+            (select top 1 an.EnrollmentID 
+             from active_Enrollment an
+             where an.ProjectType = 13
+              and an.PersonalID = lhh.HoHID
+              and an.RelationshipToHoH = 1
+              and an.HHType = lhh.HHType
+             order by an.ExitDate desc)
 
       SQL
     end
@@ -1791,7 +1814,11 @@ module LsaSqlServer
           , MoveInDate
           , ExitDate
           , Active)
-        select distinct hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+        select distinct hn.PersonalID
+          -- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
+          -- otherwise, use HHType based on HH member age(s) at project entry.
+          , case when an.EnrollmentID is not null then an.HHType else hh.HHType end
+          , hn.EnrollmentID, p.ProjectType
           , case when p.TrackingMethod = 3 then null else hn.EntryDate end
           , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
           , case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -1804,30 +1831,30 @@ module LsaSqlServer
         left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
           and hx.ExitDate <= rpt.ReportEnd
         inner join hmis_Project p on p.ProjectID = hn.ProjectID
-        inner join (select hhid.HouseholdID, case
+        inner join (select hhid.HouseholdID, case 
               --if at least 1 adult and 1 child, HHType = 2
-            when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0
+            when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0 
               then 2
             --If not adult/child, any unknown age means HHType = 99
-            when sum(hhid.AgeStatus/100) > 0
+            when sum(hhid.AgeStatus/100) > 0 
               then 99
             --child only HHType = 3
-            when sum(hhid.AgeStatus%10) > 0
+            when sum(hhid.AgeStatus%10) > 0 
               then 3
             --adult only HHType = 1
             when sum((hhid.AgeStatus/10)%100) > 0
               then 1
             else 99 end as HHType
             from (select distinct hn.HouseholdID
-              , case when c.DOBDataQuality in (8,9)
-                  or c.DOB is null
+              , case when c.DOBDataQuality in (8,9) 
+                  or c.DOB is null 
                   or c.DOB = '1/1/1900'
                   or c.DOB > hn.EntryDate
                   or c.DOB = hn.EntryDate and hn.RelationshipToHoH = 1
-                  or dateadd(yy, 105, c.DOB) <= hn.EntryDate
+                  or dateadd(yy, 105, c.DOB) <= hn.EntryDate 
                   or c.DOBDataQuality is null
                   or c.DOBDataQuality not in (1,2) then 100
-                when dateadd(yy, 18, c.DOB) <= hn.EntryDate then 10
+                when dateadd(yy, 18, c.DOB) <= hn.EntryDate then 10 
                 else 1 end as AgeStatus
               from hmis_Enrollment hn
               inner join hmis_Client c on c.PersonalID = hn.PersonalID
@@ -1842,11 +1869,12 @@ module LsaSqlServer
               ) hhid
             group by hhid.HouseholdID
             ) hh on hh.HouseholdID = hn.HouseholdID
-        where
+        where 
           an.EnrollmentID is not null --All active enrollments are relevant.
           or (hx.ExitDate >= '10/1/2012'-- Inactive enrollments potentially relevant...
-            and lhh.Stat = 5 --... if HH was 'continously engaged' at ReportStart...
-            and lhh.PSHMoveIn <> 2) --...and not housed in PSH at ReportStart.
+                and hh.HHType = lhh.HHType -- if they occurred under the same HHType
+            and lhh.Stat = 5 --... and HH was 'continously engaged' at ReportStart...
+            and lhh.PSHMoveIn <> 2) --...and HH was not housed in PSH at ReportStart.
       SQL
     end
 
@@ -2109,17 +2137,22 @@ module LsaSqlServer
         /*****************************************************************
         4.37 Update ESTStatus and RRHStatus
         *****************************************************************/
+        --CHANGE 10/23/2018 - for both UPDATE statements, join to sys_Time
+        -- and align methodology with specs (github issue #24)
+
         update lhh
         set lhh.ESTStatus = 2
         from tmp_Household lhh
-        where lhh.ESTStatus = 0
-          and (lhh.ESTDays > 0)
+        inner join sys_Time st on st.HoHID = lhh.HoHID and st.HHType = lhh.HHType
+        where lhh.ESTStatus = 0 
+          and st.sysStatus in (3,4) 
 
         update lhh
         set lhh.RRHStatus = 2
         from tmp_Household lhh
-        where lhh.RRHStatus = 0
-          and (RRHPreMoveInDays > 0 or RRHHousedDays > 0)
+        inner join sys_Time st on st.HoHID = lhh.HoHID and st.HHType = lhh.HHType
+        where lhh.RRHStatus = 0 
+          and st.sysStatus = 6
 
       SQL
     end
@@ -2129,34 +2162,38 @@ module LsaSqlServer
         /*****************************************************************
         4.38 Set SystemPath for LSAHousehold
         *****************************************************************/
+        --CHANGE 10/23/2018 use 'ESTStatus = 0' instead of 'ESDays <= 0 and THDays <= 0' 
+        -- for SystemPath 4, 8, and 11 (no impact on output; modified for consistency with specs).
+        -- (issue #23)
         update lhh
-        set SystemPath =
-          case when ESTStatus not in (21,22) and RRHStatus not in (21,22) and PSHMoveIn = 2
+        set lhh.SystemPath = 
+          case when lhh.ESTStatus not in (21,22) and lhh.RRHStatus not in (21,22) and lhh.PSHMoveIn = 2 
             then -1
-          when ESDays >= 1 and THDays <= 0 and RRHStatus = 0 and PSHStatus = 0
+          when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
             then 1
-          when ESDays <= 0 and THDays >= 1 and RRHStatus = 0 and PSHStatus = 0
+          when lhh.ESDays <= 0 and lhh.THDays >= 1 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
             then 2
-          when ESDays >= 1 and THDays >= 1 and RRHStatus = 0 and PSHStatus = 0
+          when lhh.ESDays >= 1 and lhh.THDays >= 1 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
             then 3
-          when ESDays <= 0 and THDays <= 0 and RRHStatus >= 2 and PSHStatus = 0
+          when lhh.ESTStatus = 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
             then 4
-          when ESDays >= 1 and THDays <= 0 and RRHStatus >= 2 and PSHStatus = 0
+          when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
             then 5
-          when ESDays <= 0 and THDays >= 1 and RRHStatus >= 2 and PSHStatus = 0
+          when lhh.ESDays <= 0 and lhh.THDays >= 1 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
             then 6
-          when ESDays >= 1 and THDays >= 1 and RRHStatus >= 2 and PSHStatus = 0
+          when lhh.ESDays >= 1 and lhh.THDays >= 1 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
             then 7
-          when ESDays <= 0 and THDays <= 0 and RRHStatus = 0 and PSHStatus >= 11 and PSHMoveIn <> 2
+          when lhh.ESTStatus = 0 and lhh.RRHStatus = 0 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
             then 8
-          when ESDays >= 1 and THDays <= 0 and RRHStatus = 0 and PSHStatus >= 11 and PSHMoveIn <> 2
+          when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus = 0 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
             then 9
-          when ESDays >= 1 and THDays <= 0 and RRHStatus >= 2 and PSHStatus >= 11 and PSHMoveIn <> 2
+          when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
             then 10
-          when ESDays <= 0 and THDays <= 0 and RRHStatus >= 2 and PSHStatus >= 11 and PSHMoveIn <> 2
+          when lhh.ESTStatus = 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
             then 11
           else 12 end
         from tmp_Household lhh
+
 
       SQL
     end
@@ -2564,7 +2601,8 @@ module LsaSqlServer
               when min(adultAges.AgeGroup) = 55 then 55
               when min(adultAges.AgeGroup) < 55
                 and max(adultAges.AgeGroup) > 24 then 25
-              else NULL end as AgeGroup
+              --CHANGE 10/23/2018 set to -1 vs NULL as default
+              else -1 end as AgeGroup
           from (select distinct ex.HoHID, hoh.EnrollmentID 
               , case when c.DOB is null 
                   or c.DOB = '1/1/1900'
@@ -2696,7 +2734,11 @@ module LsaSqlServer
           , MoveInDate
           , ExitDate
           , Active)
-        select distinct hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+        select distinct hn.PersonalID
+          --CHANGE 10/22/2018 use HHType as already calculated for qualifying exit; 
+          -- otherwise, use HHType based on HH member age(s) at project entry.
+          , case when ex.EnrollmentID = hn.EnrollmentID then ex.HHType else hh.HHType end
+          , hn.EnrollmentID, p.ProjectType
           , case when p.TrackingMethod = 3 then null else hn.EntryDate end
           , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
           , case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -2742,7 +2784,12 @@ module LsaSqlServer
               ) hhid
             group by hhid.HouseholdID
             ) hh on hh.HouseholdID = hn.HouseholdID
-        group by hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+        --CHANGE 10/24/2018 - limit inserts to enrollments where the HHType as calculated by the subquery 
+        --  matches tmp_Exit HHType OR the enrollment is associated with the qualifying exit. (issue #28)
+        where hh.HHType = ex.HHType or hn.EnrollmentID = ex.EnrollmentID
+        group by hn.PersonalID
+          , case when ex.EnrollmentID = hn.EnrollmentID then ex.HHType else hh.HHType end
+          , hn.EnrollmentID, p.ProjectType
           , case when p.TrackingMethod = 3 then null else hn.EntryDate end
           , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
           , case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -3236,11 +3283,11 @@ module LsaSqlServer
           --Row 14 = all households placed in PH
           , case when lh.RRHMoveIn in (1,2) then 14
             --Row 12 = exited households not placed in PH
-            when RRHStatus in (12,22) then 12
+            when RRHStatus in (12,22) then 12 
             --Row 13 = active households not placed in PH
             else 13 end as ReportRow
           , lh.ReportID
-        from tmp_Household lh
+        from tmp_Household lh 
         inner join ref_Populations pop on
           (lh.HHType = pop.HHType or pop.HHType is null)
           and (lh.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -3255,13 +3302,13 @@ module LsaSqlServer
           and (lh.HoHRace = pop.HoHRace or pop.HoHRace is null)
           and (lh.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
           and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
-        where lh.RRHMoveIn > 0
+        where lh.RRHStatus > 2 --CHANGED 10/23/2018 from 'where lh.RRHMoveIn > 0'
           and pop.Core = 1
         group by pop.PopID
           , pop.HHType
           , case when lh.RRHMoveIn in (1,2) then 14
-            when RRHStatus in (12,22) then 12
-            else 13 end
+            when RRHStatus in (12,22) then 12 
+            else 13 end 
           , lh.ReportID
 
         --Time housed in RRH
@@ -3273,11 +3320,11 @@ module LsaSqlServer
           , pop.PopID as Population
           , -1 as SystemPath
           --Row 15 = exited households
-          , case when RRHStatus in (12,22) then 15
-            --Row 16 = active households
+          , case when RRHStatus in (12,22) then 15 
+            --Row 16 = active households 
             else 16 end as ReportRow
           , lh.ReportID
-        from tmp_Household lh
+        from tmp_Household lh 
         inner join ref_Populations pop on
           (lh.HHType = pop.HHType or pop.HHType is null)
           and (lh.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -3296,7 +3343,7 @@ module LsaSqlServer
           and pop.Core = 1
         group by pop.PopID
           , pop.HHType
-          , case when RRHStatus in (12,22) then 15
+          , case when RRHStatus in (12,22) then 15 
             else 16 end
           , lh.ReportID
       SQL
@@ -3849,12 +3896,12 @@ module LsaSqlServer
           (Value, Cohort, Universe, HHType
           , Population, SystemPath, ReportRow, ReportID)
         select count (distinct lp.PersonalID)
-          , cd.Cohort, case p.ProjectType
-            when 1 then 11
-            when 8 then 12
-            when 2 then 13
-            when 13 then 14
-            else 15 end
+          , cd.Cohort, case p.ProjectType 
+            when 1 then 11 
+            when 8 then 12  
+            when 2 then 13  
+            when 13 then 14 
+            else 15 end 
           , coalesce(pop.HHType, 0) as HHType
           , pop.PopID, -1, 55
           , cast(p.ExportID as int)
@@ -3877,19 +3924,20 @@ module LsaSqlServer
           and (lp.Race = pop.Race or pop.Race is null)
           and (lp.Ethnicity = pop.Ethnicity or pop.Ethnicity is null)
         inner join tmp_CohortDates cd on cd.CohortEnd >= an.EntryDate
-            --The date criteria for these counts differs from the general LSA
+            --The date criteria for these counts differs from the general LSA 
             --criteria for 'active', which includes those who exited on the start date.
-            --Here, at least one bednight in the cohort period is required, so any exit
+            --Here, at least one bednight in the cohort period is required, so any exit 
             --must be at least one day AFTER the start of the cohort period.
             and (cd.CohortStart < an.ExitDate or an.ExitDate is null)
         inner join lsa_Project p on p.ProjectID = an.ProjectID
-        where cd.Cohort > 0
-          and pop.PopType = 3
+        where cd.Cohort > 0 
+          --CHANGE 10/23/2018 exclude popID 100, which is not required by specs
+          and pop.PopType = 3 and pop.PopID <> 100
           and (
              --for RRH and PSH, count only people who are housed in period
-            (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
+            (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd) 
             --for night-by-night ES, count only people with bednights in period
-            or (p.TrackingMethod = 3
+            or (p.TrackingMethod = 3 
               and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
             or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
             )
@@ -3901,7 +3949,7 @@ module LsaSqlServer
           (Value, Cohort, Universe, HHType
           , Population, SystemPath, ReportRow, ReportID)
         select count (distinct lp.PersonalID)
-          , cd.Cohort, 16
+          , cd.Cohort, 16 
           , coalesce(pop.HHType, 0) as HHType
           , pop.PopID, -1, 55
           , cast(p.ExportID as int)
@@ -3924,17 +3972,18 @@ module LsaSqlServer
           and (lp.Race = pop.Race or pop.Race is null)
           and (lp.Ethnicity = pop.Ethnicity or pop.Ethnicity is null)
         inner join tmp_CohortDates cd on cd.CohortEnd >= an.EntryDate
-            --The date criteria for these counts differs from the general LSA
+            --The date criteria for these counts differs from the general LSA 
             --criteria for 'active', which includes those who exited on the start date.
-            --Here, at least one bednight in the cohort period is required, so any exit
+            --Here, at least one bednight in the cohort period is required, so any exit 
             --must be at least one day AFTER the start of the cohort period.
             and (cd.CohortStart < an.ExitDate or an.ExitDate is null)
         inner join lsa_Project p on p.ProjectID = an.ProjectID
-        where cd.Cohort > 0
-          and pop.PopType = 3
+        where cd.Cohort > 0 
+          --CHANGE 10/23/2018 exclude PopID 100, which is not required by specs ( issue #8).
+          and pop.PopType = 3 and pop.PopID <> 100
           and (
             --for night-by-night ES, count only people with bednights in period
-            (p.TrackingMethod = 3
+            (p.TrackingMethod = 3 
               and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
             or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
             )
@@ -4190,174 +4239,175 @@ module LsaSqlServer
         /**********************************************************************
         4.69 Set LSAReport Data Quality Values for Report Period
         **********************************************************************/
-        update rpt
-          set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              where lp.ReportID = rpt.ReportID)
-          , UnduplicatedAdult1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              where lp.ReportID = rpt.ReportID
-                and lp.Age between 18 and 65)
-          , AdultHoHEntry1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65))
-          , ClientEntry1 = (select count(distinct n.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID)
-          , ClientExit1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and an.ExitDate is not null)
-          , Household1 = (select count(distinct an.HouseholdID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID)
-          , HoHPermToPH1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-              inner join hmis_Exit x on x.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and an.RelationshipToHoH = 1
-                and an.ProjectType in (3,13)
-                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) )
-          , DOB1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and an.AgeGroup in (98,99))
-          , Gender1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and (c.Gender not in (0,1,2,3,4) or c.Gender is null))
-          , Race1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0)
-                  + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0)
-                  + coalesce(c.White,0) = 0
-                  or c.RaceNone in (8,9,99)))
-          , Ethnicity1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and (c.Ethnicity not in (0,1) or c.Ethnicity is null))
-          , VetStatus1 = (select count(distinct lp.PersonalID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-                and an.AgeGroup between 18 and 65
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
-          , RelationshipToHoH1 = (select count(distinct n.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-              where lp.ReportID = rpt.ReportID
-                --CHANGE 9/28/2018 add parentheses
-                and (n.RelationshipToHoH not in (1,2,3,4,5)
-                  or n.RelationshipToHoH is null))
-          , DisablingCond1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+        update rpt 
+        set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            where lp.ReportID = rpt.ReportID)
+        , UnduplicatedAdult1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            where lp.ReportID = rpt.ReportID
+              and lp.Age between 18 and 65)
+        , AdultHoHEntry1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65))
+        , ClientEntry1 = (select count(distinct n.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID)
+        , ClientExit1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and an.ExitDate is not null)
+        , Household1 = (select count(distinct an.HouseholdID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID)
+        , HoHPermToPH1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            inner join hmis_Exit x on x.EnrollmentID = an.EnrollmentID 
+            where lp.ReportID = rpt.ReportID
+              and an.RelationshipToHoH = 1
+              and an.ProjectType in (3,13)
+              and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) )
+        , DOB1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and an.AgeGroup in (98,99))
+        , Gender1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and (c.Gender not in (0,1,2,3,4) or c.Gender is null))
+        , Race1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0) 
+                + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0) 
+                + coalesce(c.White,0) = 0
+                or c.RaceNone in (8,9,99)))
+        , Ethnicity1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and (c.Ethnicity not in (0,1) or c.Ethnicity is null))
+        , VetStatus1 = (select count(distinct lp.PersonalID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              and an.AgeGroup between 18 and 65
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
+        , RelationshipToHoH1 = (select count(distinct n.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+            where lp.ReportID = rpt.ReportID
+              --CHANGE 9/28/2018 add parentheses 
+              and (n.RelationshipToHoH not in (1,2,3,4,5) 
+                or n.RelationshipToHoH is null))
+        , DisablingCond1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
+        , LivingSituation1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
+        , LengthOfStay1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and an.RelationshipToHoH = 1 
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              -- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay
+              and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
+        , HomelessDate1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              and ( 
+                (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null) 
+                or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11) 
+                    and hn.DateToStreetESSH is null)
+                or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+                  and hn.LivingSituation in (4,5,6,7,15,24) 
+                  and hn.DateToStreetESSH is null))
+                )
+        , TimesHomeless1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              and (hn.TimesHomelessPastThreeYears not between 1 and 4  
+                or hn.TimesHomelessPastThreeYears is null))
+        , MonthsHomeless1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
+              or hn.MonthsHomelessPastThreeYears is null))
+        , DV1 = (select count(distinct an.EnrollmentID)
+            from tmp_Person lp
+            inner join hmis_Client c on c.PersonalID = lp.PersonalID
+            inner join active_Enrollment an on an.PersonalID = c.PersonalID
+            left outer join hmis_HealthAndDV dv on dv.EnrollmentID = an.EnrollmentID
+              and dv.DataCollectionStage = 1
+            where lp.ReportID = rpt.ReportID
+              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+              and (dv.DomesticViolenceVictim not in (0,1)
+                  or dv.DomesticViolenceVictim is null
+                  or (dv.DomesticViolenceVictim = 1 and 
+                    (dv.CurrentlyFleeing not in (0,1) 
+                      or dv.CurrentlyFleeing is null))))
+        , Destination1 = (select count(distinct n.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+            inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
+            where lp.ReportID = rpt.ReportID
+              and n.ExitDate is not null
+              and (x.Destination in (8,9,17,30,99) or x.Destination is null))
+        , NotOneHoH1 = (select count(distinct ah.HouseholdID)
+            from active_Household ah
+            left outer join (select an.HouseholdID
+                , count(distinct hn.PersonalID) as hoh
+              from active_Enrollment an 
               inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
-          , LivingSituation1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
-          , LengthOfStay1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and an.RelationshipToHoH = 1
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and (hn.LengthOfStay in (8,9) or hn.LengthOfStay is null))
-          , HomelessDate1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and ( 
-                  (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null)
-                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11)
-                      and hn.DateToStreetESSH is null)
-                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
-                    and hn.LivingSituation in (4,5,6,7,15,24)
-                    and hn.DateToStreetESSH is null))
-                  )
-          , TimesHomeless1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and (hn.TimesHomelessPastThreeYears not between 1 and 4
-                  or hn.TimesHomelessPastThreeYears is null))
-          , MonthsHomeless1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and (hn.MonthsHomelessPastThreeYears not between 101 and 113
-                or hn.MonthsHomelessPastThreeYears is null))
-          , DV1 = (select count(distinct an.EnrollmentID)
-              from tmp_Person lp
-              inner join hmis_Client c on c.PersonalID = lp.PersonalID
-              inner join active_Enrollment an on an.PersonalID = c.PersonalID
-              left outer join hmis_HealthAndDV dv on dv.EnrollmentID = an.EnrollmentID
-                and dv.DataCollectionStage = 1
-              where lp.ReportID = rpt.ReportID
-                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-                and (dv.DomesticViolenceVictim not in (0,1)
-                    or dv.DomesticViolenceVictim is null
-                    or (dv.DomesticViolenceVictim = 1 and
-                      (dv.CurrentlyFleeing not in (0,1)
-                        or dv.CurrentlyFleeing is null))))
-          , Destination1 = (select count(distinct n.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and n.ExitDate is not null
-                and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-          , NotOneHoH1 = (select count(distinct ah.HouseholdID)
-              from active_Household ah
-              left outer join (select an.HouseholdID
-                  , count(distinct hn.PersonalID) as hoh
-                from active_Enrollment an
-                inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-                  and hn.RelationshipToHoH = 1
-                group by an.HouseholdID
-                ) hoh on hoh.HouseholdID = ah.HouseholdID
-              where hoh.hoh <> 1 or hoh.HouseholdID is null)
-          , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
-              from tmp_Person lp
-              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
-              where lp.ReportID = rpt.ReportID
-                and n.RelationshipToHoH = 1
-                and n.ProjectType in (3,13)
-                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23)
-                and n.MoveInDate is null), 0)
-        from lsa_Report rpt
+                and hn.RelationshipToHoH = 1
+              group by an.HouseholdID
+              ) hoh on hoh.HouseholdID = ah.HouseholdID
+            where hoh.hoh <> 1 or hoh.HouseholdID is null)
+        , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
+            from tmp_Person lp
+            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+            inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
+            where lp.ReportID = rpt.ReportID
+              and n.RelationshipToHoH = 1
+              and n.ProjectType in (3,13)
+              and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) 
+              and n.MoveInDate is null), 0)
+      from lsa_Report rpt
 
       SQL
     end
@@ -4418,39 +4468,39 @@ module LsaSqlServer
         /**********************************************************************
         4.71 Set LSAReport Data Quality Values for Three Year Period
         **********************************************************************/
-        update rpt
+        update rpt 
           set UnduplicatedClient3 = (select count(distinct n.PersonalID)
               from dq_Enrollment n)
           , UnduplicatedAdult3 = (select count(distinct n.PersonalID)
-              from dq_Enrollment n
+              from dq_Enrollment n 
               where n.Adult = 1)
           , AdultHoHEntry3 = (select count(distinct n.EnrollmentID)
-              from dq_Enrollment n
+              from dq_Enrollment n 
               where n.Adult = 1 or n.RelationshipToHoH = 1)
           , ClientEntry3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n)
           , ClientExit3 = (select count(distinct n.EnrollmentID)
-              from dq_Enrollment n
+              from dq_Enrollment n 
               where n.ExitDate is not null)
           , Household3 = (select count(distinct n.HouseholdID)
               from dq_Enrollment n)
           , HoHPermToPH3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
-              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
               where n.RelationshipToHoH = 1
                 and n.ProjectType in (3,13)
                 and x.Destination in (3,31,19,20,21,26,28,10,11,22,23))
           ,   NoCoC = (select count (distinct n.HouseholdID)
-              from hmis_Enrollment n
-              left outer join hmis_EnrollmentCoC coc on
-                coc.EnrollmentID = n.EnrollmentID
+              from hmis_Enrollment n 
+              left outer join hmis_EnrollmentCoC coc on 
+                coc.EnrollmentID = n.EnrollmentID 
               inner join hmis_Project p on p.ProjectID = n.ProjectID
                 and p.ContinuumProject = 1 and p.ProjectType in (1,2,3,8,13)
               inner join hmis_ProjectCoC pcoc on pcoc.CoCCode = rpt.ReportCoC
-              left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+              left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
                 and x.ExitDate >= dateadd(yy, -3, rpt.ReportStart)
-              where n.EntryDate <= rpt.ReportEnd
-                and n.RelationshipToHoH = 1
+              where n.EntryDate <= rpt.ReportEnd 
+                and n.RelationshipToHoH = 1 
                 and coc.CoCCode is null)
           , SSNNotProvided = (select count(distinct n.PersonalID)
               from dq_Enrollment n
@@ -4461,13 +4511,13 @@ module LsaSqlServer
           , ClientSSNNotUnique = (select count(distinct n.PersonalID)
               from dq_Enrollment n
               inner join hmis_Client c on c.PersonalID = n.PersonalID
-              inner join hmis_Client oc on oc.SSN = c.SSN
+              inner join hmis_Client oc on oc.SSN = c.SSN 
                 and oc.PersonalID <> c.PersonalID
-              inner join dq_Enrollment dqn on dqn.PersonalID = oc.PersonalID
+              inner join dq_Enrollment dqn on dqn.PersonalID = oc.PersonalID 
               where n.SSNValid = 1)
           , DistinctSSNValueNotUnique = (select count(distinct d.SSN)
               from (select distinct c.SSN
-                from hmis_Client c
+                from hmis_Client c 
                 inner join dq_Enrollment n on n.PersonalID = c.PersonalID
                   and n.SSNValid = 1
                 group by c.SSN
@@ -4482,8 +4532,8 @@ module LsaSqlServer
           , Race3 = (select count(distinct n.PersonalID)
               from dq_Enrollment n
               inner join hmis_Client c on c.PersonalID = n.PersonalID
-              where (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0)
-                  + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0)
+              where (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0) 
+                  + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0) 
                   + coalesce(c.White,0) = 0
                   or c.RaceNone in (8,9,99)))
           , Ethnicity3 = (select count(distinct n.PersonalID)
@@ -4493,7 +4543,7 @@ module LsaSqlServer
           , VetStatus3 = (select count(distinct c.PersonalID)
               from dq_Enrollment n
               inner join hmis_Client c on c.PersonalID = n.PersonalID
-              where n.Adult = 1
+              where n.Adult = 1 
                 and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
           , RelationshipToHoH3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
@@ -4511,30 +4561,31 @@ module LsaSqlServer
               from dq_Enrollment n
               inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
               where (n.RelationshipToHoH = 1 or n.Adult = 1)
-                and (hn.LengthOfStay in (8,9) or hn.LengthOfStay is null))
+                -- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay         
+                and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
           , HomelessDate3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
               inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
               where (n.RelationshipToHoH = 1 or n.Adult = 1)
                 and ( 
-                (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null)
-                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11)
+                (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null) 
+                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11) 
                       and hn.DateToStreetESSH is null)
                   or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
-                    and hn.LivingSituation in (4,5,6,7,15,24)
+                    and hn.LivingSituation in (4,5,6,7,15,24) 
                     and hn.DateToStreetESSH is null))
                 )
           , TimesHomeless3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
               inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
               where (n.RelationshipToHoH = 1 or n.Adult = 1)
-                and (hn.TimesHomelessPastThreeYears not between 1 and 4
+                and (hn.TimesHomelessPastThreeYears not between 1 and 4  
                   or hn.TimesHomelessPastThreeYears is null))
           , MonthsHomeless3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
               inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
               where (n.RelationshipToHoH = 1 or n.Adult = 1)
-                and (hn.MonthsHomelessPastThreeYears not between 101 and 113
+                and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
                 or hn.MonthsHomelessPastThreeYears is null))
           , DV3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
@@ -4543,12 +4594,12 @@ module LsaSqlServer
               where (n.RelationshipToHoH = 1 or n.Adult = 1)
                 and (dv.DomesticViolenceVictim not in (0,1)
                     or dv.DomesticViolenceVictim is null
-                    or (dv.DomesticViolenceVictim = 1 and
-                      (dv.CurrentlyFleeing not in (0,1)
+                    or (dv.DomesticViolenceVictim = 1 and 
+                      (dv.CurrentlyFleeing not in (0,1) 
                         or dv.CurrentlyFleeing is null))))
           , Destination3 = (select count(distinct n.EnrollmentID)
               from dq_Enrollment n
-              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
               where n.ExitDate is not null
                 and (x.Destination in (8,9,17,30,99) or x.Destination is null))
           , NotOneHoH3 = (select count(distinct n.HouseholdID)
@@ -4561,10 +4612,10 @@ module LsaSqlServer
               where hoh.hoh <> 1 or hoh.HouseholdID is null)
           , MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)
               from dq_Enrollment n
-              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
               where n.RelationshipToHoH = 1
                 and n.ProjectType in (3,13)
-                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23)
+                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) 
                 and n.MoveInDate is null), 0)
         from lsa_Report rpt
 
@@ -4613,7 +4664,7 @@ module LsaSqlServer
           , ESTGeography, ESTLivingSit, ESTDestination
           , RRHPreMoveInDays, RRHPSHPreMoveInDays, RRHHousedDays, SystemDaysNotPSHHoused
           , RRHGeography, RRHLivingSit, RRHDestination
-          , SystemHomelessDays, Other3917Days, TotalHomelessDays
+          , SystemHomelessDays, Other3917Days, TotalHomelessDays 
           , PSHGeography, PSHLivingSit, PSHDestination
           , PSHHousedDays, SystemPath, ReportID)
         select count (distinct HoHID + cast(HHType as nvarchar)), Stat
@@ -4630,134 +4681,134 @@ module LsaSqlServer
           , HHAdultAge
           , HHParent, ESTStatus, RRHStatus, RRHMoveIn, PSHStatus, PSHMoveIn
           , case when ESDays between 1 and 7 then 7
-            when ESDays between 8 and 30 then 30
-            when ESDays between 31 and 60 then 60
-            when ESDays between 61 and 90 then 90
-            when ESDays between 91 and 180 then 180
-            when ESDays between 181 and 365 then 365
-            when ESDays between 366 and 547 then 547
-            when ESDays between 548 and 730 then 730
-            when ESDays between 731 and 1094 then 1094
+            when ESDays between 8 and 30 then 30 
+            when ESDays between 31 and 60 then 60 
+            when ESDays between 61 and 90 then 90 
+            when ESDays between 91 and 180 then 180 
+            when ESDays between 181 and 365 then 365 
+            when ESDays between 366 and 547 then 547 
+            when ESDays between 548 and 730 then 730 
+            when ESDays between 731 and 1094 then 1094 
             when ESDays > 1094 then 1095
-            else ESDays end
+            else ESDays end 
           , case when THDays between 1 and 7 then 7
-            when THDays between 8 and 30 then 30
-            when THDays between 31 and 60 then 60
-            when THDays between 61 and 90 then 90
-            when THDays between 91 and 180 then 180
-            when THDays between 181 and 365 then 365
-            when THDays between 366 and 547 then 547
-            when THDays between 548 and 730 then 730
-            when THDays between 731 and 1094 then 1094
+            when THDays between 8 and 30 then 30 
+            when THDays between 31 and 60 then 60 
+            when THDays between 61 and 90 then 90 
+            when THDays between 91 and 180 then 180 
+            when THDays between 181 and 365 then 365 
+            when THDays between 366 and 547 then 547 
+            when THDays between 548 and 730 then 730 
+            when THDays between 731 and 1094 then 1094 
             when THDays > 1094 then 1095
-            else THDays end
+            else THDays end 
           , case when ESTDays between 1 and 7 then 7
-            when ESTDays between 8 and 30 then 30
-            when ESTDays between 31 and 60 then 60
-            when ESTDays between 61 and 90 then 90
-            when ESTDays between 91 and 180 then 180
-            when ESTDays between 181 and 365 then 365
-            when ESTDays between 366 and 547 then 547
-            when ESTDays between 548 and 730 then 730
-            when ESTDays between 731 and 1094 then 1094
+            when ESTDays between 8 and 30 then 30 
+            when ESTDays between 31 and 60 then 60 
+            when ESTDays between 61 and 90 then 90 
+            when ESTDays between 91 and 180 then 180 
+            when ESTDays between 181 and 365 then 365 
+            when ESTDays between 366 and 547 then 547 
+            when ESTDays between 548 and 730 then 730 
+            when ESTDays between 731 and 1094 then 1094 
             when ESTDays > 1094 then 1095
-            else ESTDays end
+            else ESTDays end 
           , ESTGeography, ESTLivingSit, ESTDestination
           , case when RRHPreMoveInDays between 1 and 7 then 7
-            when RRHPreMoveInDays between 8 and 30 then 30
-            when RRHPreMoveInDays between 31 and 60 then 60
-            when RRHPreMoveInDays between 61 and 90 then 90
-            when RRHPreMoveInDays between 91 and 180 then 180
-            when RRHPreMoveInDays between 181 and 365 then 365
-            when RRHPreMoveInDays between 366 and 547 then 547
-            when RRHPreMoveInDays between 548 and 730 then 730
-            when RRHPreMoveInDays between 731 and 1094 then 1094
+            when RRHPreMoveInDays between 8 and 30 then 30 
+            when RRHPreMoveInDays between 31 and 60 then 60 
+            when RRHPreMoveInDays between 61 and 90 then 90 
+            when RRHPreMoveInDays between 91 and 180 then 180 
+            when RRHPreMoveInDays between 181 and 365 then 365 
+            when RRHPreMoveInDays between 366 and 547 then 547 
+            when RRHPreMoveInDays between 548 and 730 then 730 
+            when RRHPreMoveInDays between 731 and 1094 then 1094 
             when RRHPreMoveInDays > 1094 then 1095
-            else RRHPreMoveInDays end
+            else RRHPreMoveInDays end 
           , case when RRHPSHPreMoveInDays between 1 and 7 then 7
-            when RRHPSHPreMoveInDays between 8 and 30 then 30
-            when RRHPSHPreMoveInDays between 31 and 60 then 60
-            when RRHPSHPreMoveInDays between 61 and 90 then 90
-            when RRHPSHPreMoveInDays between 91 and 180 then 180
-            when RRHPSHPreMoveInDays between 181 and 365 then 365
-            when RRHPSHPreMoveInDays between 366 and 547 then 547
-            when RRHPSHPreMoveInDays between 548 and 730 then 730
-            when RRHPSHPreMoveInDays between 731 and 1094 then 1094
+            when RRHPSHPreMoveInDays between 8 and 30 then 30 
+            when RRHPSHPreMoveInDays between 31 and 60 then 60 
+            when RRHPSHPreMoveInDays between 61 and 90 then 90 
+            when RRHPSHPreMoveInDays between 91 and 180 then 180 
+            when RRHPSHPreMoveInDays between 181 and 365 then 365 
+            when RRHPSHPreMoveInDays between 366 and 547 then 547 
+            when RRHPSHPreMoveInDays between 548 and 730 then 730 
+            when RRHPSHPreMoveInDays between 731 and 1094 then 1094 
             when RRHPSHPreMoveInDays > 1094 then 1095
-            else RRHPSHPreMoveInDays end
+            else RRHPSHPreMoveInDays end 
           , case when RRHHousedDays between 1 and 7 then 7
-            when RRHHousedDays between 8 and 30 then 30
-            when RRHHousedDays between 31 and 60 then 60
-            when RRHHousedDays between 61 and 90 then 90
-            when RRHHousedDays between 91 and 180 then 180
-            when RRHHousedDays between 181 and 365 then 365
-            when RRHHousedDays between 366 and 547 then 547
-            when RRHHousedDays between 548 and 730 then 730
-            when RRHHousedDays between 731 and 1094 then 1094
+            when RRHHousedDays between 8 and 30 then 30 
+            when RRHHousedDays between 31 and 60 then 60 
+            when RRHHousedDays between 61 and 90 then 90 
+            when RRHHousedDays between 91 and 180 then 180 
+            when RRHHousedDays between 181 and 365 then 365 
+            when RRHHousedDays between 366 and 547 then 547 
+            when RRHHousedDays between 548 and 730 then 730 
+            when RRHHousedDays between 731 and 1094 then 1094 
             when RRHHousedDays > 1094 then 1095
-            else RRHHousedDays end
+            else RRHHousedDays end 
           , case when SystemDaysNotPSHHoused between 1 and 7 then 7
-            when SystemDaysNotPSHHoused between 8 and 30 then 30
-            when SystemDaysNotPSHHoused between 31 and 60 then 60
-            when SystemDaysNotPSHHoused between 61 and 90 then 90
-            when SystemDaysNotPSHHoused between 91 and 180 then 180
-            when SystemDaysNotPSHHoused between 181 and 365 then 365
-            when SystemDaysNotPSHHoused between 366 and 547 then 547
-            when SystemDaysNotPSHHoused between 548 and 730 then 730
-            when SystemDaysNotPSHHoused between 731 and 1094 then 1094
+            when SystemDaysNotPSHHoused between 8 and 30 then 30 
+            when SystemDaysNotPSHHoused between 31 and 60 then 60 
+            when SystemDaysNotPSHHoused between 61 and 90 then 90 
+            when SystemDaysNotPSHHoused between 91 and 180 then 180 
+            when SystemDaysNotPSHHoused between 181 and 365 then 365 
+            when SystemDaysNotPSHHoused between 366 and 547 then 547 
+            when SystemDaysNotPSHHoused between 548 and 730 then 730 
+            when SystemDaysNotPSHHoused between 731 and 1094 then 1094 
             when SystemDaysNotPSHHoused > 1094 then 1095
-            else SystemDaysNotPSHHoused end
+            else SystemDaysNotPSHHoused end 
           , RRHGeography, RRHLivingSit, RRHDestination
           , case when SystemHomelessDays between 1 and 7 then 7
-            when SystemHomelessDays between 8 and 30 then 30
-            when SystemHomelessDays between 31 and 60 then 60
-            when SystemHomelessDays between 61 and 90 then 90
-            when SystemHomelessDays between 91 and 180 then 180
-            when SystemHomelessDays between 181 and 365 then 365
-            when SystemHomelessDays between 366 and 547 then 547
-            when SystemHomelessDays between 548 and 730 then 730
-            when SystemHomelessDays between 731 and 1094 then 1094
+            when SystemHomelessDays between 8 and 30 then 30 
+            when SystemHomelessDays between 31 and 60 then 60 
+            when SystemHomelessDays between 61 and 90 then 90 
+            when SystemHomelessDays between 91 and 180 then 180 
+            when SystemHomelessDays between 181 and 365 then 365 
+            when SystemHomelessDays between 366 and 547 then 547 
+            when SystemHomelessDays between 548 and 730 then 730 
+            when SystemHomelessDays between 731 and 1094 then 1094 
             when SystemHomelessDays > 1094 then 1095
-            else SystemHomelessDays end
+            else SystemHomelessDays end 
           , case when Other3917Days between 1 and 7 then 7
-            when Other3917Days between 8 and 30 then 30
-            when Other3917Days between 31 and 60 then 60
-            when Other3917Days between 61 and 90 then 90
-            when Other3917Days between 91 and 180 then 180
-            when Other3917Days between 181 and 365 then 365
-            when Other3917Days between 366 and 547 then 547
-            when Other3917Days between 548 and 730 then 730
-            when Other3917Days between 731 and 1094 then 1094
+            when Other3917Days between 8 and 30 then 30 
+            when Other3917Days between 31 and 60 then 60 
+            when Other3917Days between 61 and 90 then 90 
+            when Other3917Days between 91 and 180 then 180 
+            when Other3917Days between 181 and 365 then 365 
+            when Other3917Days between 366 and 547 then 547 
+            when Other3917Days between 548 and 730 then 730 
+            when Other3917Days between 731 and 1094 then 1094 
             when Other3917Days > 1094 then 1095
-            else Other3917Days end
+            else Other3917Days end 
           , case when TotalHomelessDays between 1 and 7 then 7
-            when TotalHomelessDays between 8 and 30 then 30
-            when TotalHomelessDays between 31 and 60 then 60
-            when TotalHomelessDays between 61 and 90 then 90
-            when TotalHomelessDays between 91 and 180 then 180
-            when TotalHomelessDays between 181 and 365 then 365
-            when TotalHomelessDays between 366 and 547 then 547
-            when TotalHomelessDays between 548 and 730 then 730
-            when TotalHomelessDays between 731 and 1094 then 1094
+            when TotalHomelessDays between 8 and 30 then 30 
+            when TotalHomelessDays between 31 and 60 then 60 
+            when TotalHomelessDays between 61 and 90 then 90 
+            when TotalHomelessDays between 91 and 180 then 180 
+            when TotalHomelessDays between 181 and 365 then 365 
+            when TotalHomelessDays between 366 and 547 then 547 
+            when TotalHomelessDays between 548 and 730 then 730 
+            when TotalHomelessDays between 731 and 1094 then 1094 
             when TotalHomelessDays > 1094 then 1095
-            else TotalHomelessDays end
+            else TotalHomelessDays end 
           , PSHGeography, PSHLivingSit, PSHDestination
           --NOTE:  These are different grouping categories from above!
           , case when PSHMoveIn not in (1,2) then -1
-            when PSHHousedDays < 90 then 3
-            when PSHHousedDays between 91 and 180 then 6
-            when PSHHousedDays between 181 and 365 then 12
-            when PSHHousedDays between 366 and 730 then 24
-            when PSHHousedDays between 731 and 1095 then 36
-            when PSHHousedDays between 1096 and 1460 then 48
-            when PSHHousedDays between 1461 and 1825 then 60
-            when PSHHousedDays between 1826 and 2555 then 84
-            when PSHHousedDays between 2556 and 3650 then 120
+            when PSHHousedDays <= 90 then 3
+            when PSHHousedDays between 91 and 180 then 6 
+            when PSHHousedDays between 181 and 365 then 12 
+            when PSHHousedDays between 366 and 730 then 24 
+            when PSHHousedDays between 731 and 1095 then 36 
+            when PSHHousedDays between 1096 and 1460 then 48 
+            when PSHHousedDays between 1461 and 1825 then 60 
+            when PSHHousedDays between 1826 and 2555 then 84 
+            when PSHHousedDays between 2556 and 3650 then 120 
             when PSHHousedDays > 3650 then 121
-            else PSHHousedDays end
+            else PSHHousedDays end 
           , SystemPath, ReportID
         from tmp_Household
-        group by Stat
+        group by Stat 
           , case when ReturnTime between 15 and 30 then 30
             when ReturnTime between 31 and 60 then 60
             when ReturnTime between 61 and 180 then 180
@@ -4771,132 +4822,133 @@ module LsaSqlServer
           , HHAdultAge
           , HHParent, ESTStatus, RRHStatus, RRHMoveIn, PSHStatus, PSHMoveIn
           , case when ESDays between 1 and 7 then 7
-            when ESDays between 8 and 30 then 30
-            when ESDays between 31 and 60 then 60
-            when ESDays between 61 and 90 then 90
-            when ESDays between 91 and 180 then 180
-            when ESDays between 181 and 365 then 365
-            when ESDays between 366 and 547 then 547
-            when ESDays between 548 and 730 then 730
-            when ESDays between 731 and 1094 then 1094
+            when ESDays between 8 and 30 then 30 
+            when ESDays between 31 and 60 then 60 
+            when ESDays between 61 and 90 then 90 
+            when ESDays between 91 and 180 then 180 
+            when ESDays between 181 and 365 then 365 
+            when ESDays between 366 and 547 then 547 
+            when ESDays between 548 and 730 then 730 
+            when ESDays between 731 and 1094 then 1094 
             when ESDays > 1094 then 1095
-            else ESDays end
+            else ESDays end 
           , case when THDays between 1 and 7 then 7
-            when THDays between 8 and 30 then 30
-            when THDays between 31 and 60 then 60
-            when THDays between 61 and 90 then 90
-            when THDays between 91 and 180 then 180
-            when THDays between 181 and 365 then 365
-            when THDays between 366 and 547 then 547
-            when THDays between 548 and 730 then 730
-            when THDays between 731 and 1094 then 1094
+            when THDays between 8 and 30 then 30 
+            when THDays between 31 and 60 then 60 
+            when THDays between 61 and 90 then 90 
+            when THDays between 91 and 180 then 180 
+            when THDays between 181 and 365 then 365 
+            when THDays between 366 and 547 then 547 
+            when THDays between 548 and 730 then 730 
+            when THDays between 731 and 1094 then 1094 
             when THDays > 1094 then 1095
-            else THDays end
+            else THDays end 
           , case when ESTDays between 1 and 7 then 7
-            when ESTDays between 8 and 30 then 30
-            when ESTDays between 31 and 60 then 60
-            when ESTDays between 61 and 90 then 90
-            when ESTDays between 91 and 180 then 180
-            when ESTDays between 181 and 365 then 365
-            when ESTDays between 366 and 547 then 547
-            when ESTDays between 548 and 730 then 730
-            when ESTDays between 731 and 1094 then 1094
+            when ESTDays between 8 and 30 then 30 
+            when ESTDays between 31 and 60 then 60 
+            when ESTDays between 61 and 90 then 90 
+            when ESTDays between 91 and 180 then 180 
+            when ESTDays between 181 and 365 then 365 
+            when ESTDays between 366 and 547 then 547 
+            when ESTDays between 548 and 730 then 730 
+            when ESTDays between 731 and 1094 then 1094 
             when ESTDays > 1094 then 1095
-            else ESTDays end
+            else ESTDays end 
           , ESTGeography, ESTLivingSit, ESTDestination
           , case when RRHPreMoveInDays between 1 and 7 then 7
-            when RRHPreMoveInDays between 8 and 30 then 30
-            when RRHPreMoveInDays between 31 and 60 then 60
-            when RRHPreMoveInDays between 61 and 90 then 90
-            when RRHPreMoveInDays between 91 and 180 then 180
-            when RRHPreMoveInDays between 181 and 365 then 365
-            when RRHPreMoveInDays between 366 and 547 then 547
-            when RRHPreMoveInDays between 548 and 730 then 730
-            when RRHPreMoveInDays between 731 and 1094 then 1094
+            when RRHPreMoveInDays between 8 and 30 then 30 
+            when RRHPreMoveInDays between 31 and 60 then 60 
+            when RRHPreMoveInDays between 61 and 90 then 90 
+            when RRHPreMoveInDays between 91 and 180 then 180 
+            when RRHPreMoveInDays between 181 and 365 then 365 
+            when RRHPreMoveInDays between 366 and 547 then 547 
+            when RRHPreMoveInDays between 548 and 730 then 730 
+            when RRHPreMoveInDays between 731 and 1094 then 1094 
             when RRHPreMoveInDays > 1094 then 1095
-            else RRHPreMoveInDays end
+            else RRHPreMoveInDays end 
           , case when RRHPSHPreMoveInDays between 1 and 7 then 7
-            when RRHPSHPreMoveInDays between 8 and 30 then 30
-            when RRHPSHPreMoveInDays between 31 and 60 then 60
-            when RRHPSHPreMoveInDays between 61 and 90 then 90
-            when RRHPSHPreMoveInDays between 91 and 180 then 180
-            when RRHPSHPreMoveInDays between 181 and 365 then 365
-            when RRHPSHPreMoveInDays between 366 and 547 then 547
-            when RRHPSHPreMoveInDays between 548 and 730 then 730
-            when RRHPSHPreMoveInDays between 731 and 1094 then 1094
+            when RRHPSHPreMoveInDays between 8 and 30 then 30 
+            when RRHPSHPreMoveInDays between 31 and 60 then 60 
+            when RRHPSHPreMoveInDays between 61 and 90 then 90 
+            when RRHPSHPreMoveInDays between 91 and 180 then 180 
+            when RRHPSHPreMoveInDays between 181 and 365 then 365 
+            when RRHPSHPreMoveInDays between 366 and 547 then 547 
+            when RRHPSHPreMoveInDays between 548 and 730 then 730 
+            when RRHPSHPreMoveInDays between 731 and 1094 then 1094 
             when RRHPSHPreMoveInDays > 1094 then 1095
-            else RRHPSHPreMoveInDays end
+            else RRHPSHPreMoveInDays end 
           , case when RRHHousedDays between 1 and 7 then 7
-            when RRHHousedDays between 8 and 30 then 30
-            when RRHHousedDays between 31 and 60 then 60
-            when RRHHousedDays between 61 and 90 then 90
-            when RRHHousedDays between 91 and 180 then 180
-            when RRHHousedDays between 181 and 365 then 365
-            when RRHHousedDays between 366 and 547 then 547
-            when RRHHousedDays between 548 and 730 then 730
-            when RRHHousedDays between 731 and 1094 then 1094
+            when RRHHousedDays between 8 and 30 then 30 
+            when RRHHousedDays between 31 and 60 then 60 
+            when RRHHousedDays between 61 and 90 then 90 
+            when RRHHousedDays between 91 and 180 then 180 
+            when RRHHousedDays between 181 and 365 then 365 
+            when RRHHousedDays between 366 and 547 then 547 
+            when RRHHousedDays between 548 and 730 then 730 
+            when RRHHousedDays between 731 and 1094 then 1094 
             when RRHHousedDays > 1094 then 1095
-            else RRHHousedDays end
+            else RRHHousedDays end 
           , case when SystemDaysNotPSHHoused between 1 and 7 then 7
-            when SystemDaysNotPSHHoused between 8 and 30 then 30
-            when SystemDaysNotPSHHoused between 31 and 60 then 60
-            when SystemDaysNotPSHHoused between 61 and 90 then 90
-            when SystemDaysNotPSHHoused between 91 and 180 then 180
-            when SystemDaysNotPSHHoused between 181 and 365 then 365
-            when SystemDaysNotPSHHoused between 366 and 547 then 547
-            when SystemDaysNotPSHHoused between 548 and 730 then 730
-            when SystemDaysNotPSHHoused between 731 and 1094 then 1094
+            when SystemDaysNotPSHHoused between 8 and 30 then 30 
+            when SystemDaysNotPSHHoused between 31 and 60 then 60 
+            when SystemDaysNotPSHHoused between 61 and 90 then 90 
+            when SystemDaysNotPSHHoused between 91 and 180 then 180 
+            when SystemDaysNotPSHHoused between 181 and 365 then 365 
+            when SystemDaysNotPSHHoused between 366 and 547 then 547 
+            when SystemDaysNotPSHHoused between 548 and 730 then 730 
+            when SystemDaysNotPSHHoused between 731 and 1094 then 1094 
             when SystemDaysNotPSHHoused > 1094 then 1095
-            else SystemDaysNotPSHHoused end
+            else SystemDaysNotPSHHoused end 
           , RRHGeography, RRHLivingSit, RRHDestination
           , case when SystemHomelessDays between 1 and 7 then 7
-            when SystemHomelessDays between 8 and 30 then 30
-            when SystemHomelessDays between 31 and 60 then 60
-            when SystemHomelessDays between 61 and 90 then 90
-            when SystemHomelessDays between 91 and 180 then 180
-            when SystemHomelessDays between 181 and 365 then 365
-            when SystemHomelessDays between 366 and 547 then 547
-            when SystemHomelessDays between 548 and 730 then 730
-            when SystemHomelessDays between 731 and 1094 then 1094
+            when SystemHomelessDays between 8 and 30 then 30 
+            when SystemHomelessDays between 31 and 60 then 60 
+            when SystemHomelessDays between 61 and 90 then 90 
+            when SystemHomelessDays between 91 and 180 then 180 
+            when SystemHomelessDays between 181 and 365 then 365 
+            when SystemHomelessDays between 366 and 547 then 547 
+            when SystemHomelessDays between 548 and 730 then 730 
+            when SystemHomelessDays between 731 and 1094 then 1094 
             when SystemHomelessDays > 1094 then 1095
-            else SystemHomelessDays end
+            else SystemHomelessDays end 
           , case when Other3917Days between 1 and 7 then 7
-            when Other3917Days between 8 and 30 then 30
-            when Other3917Days between 31 and 60 then 60
-            when Other3917Days between 61 and 90 then 90
-            when Other3917Days between 91 and 180 then 180
-            when Other3917Days between 181 and 365 then 365
-            when Other3917Days between 366 and 547 then 547
-            when Other3917Days between 548 and 730 then 730
-            when Other3917Days between 731 and 1094 then 1094
+            when Other3917Days between 8 and 30 then 30 
+            when Other3917Days between 31 and 60 then 60 
+            when Other3917Days between 61 and 90 then 90 
+            when Other3917Days between 91 and 180 then 180 
+            when Other3917Days between 181 and 365 then 365 
+            when Other3917Days between 366 and 547 then 547 
+            when Other3917Days between 548 and 730 then 730 
+            when Other3917Days between 731 and 1094 then 1094 
             when Other3917Days > 1094 then 1095
-            else Other3917Days end
+            else Other3917Days end 
           , case when TotalHomelessDays between 1 and 7 then 7
-            when TotalHomelessDays between 8 and 30 then 30
-            when TotalHomelessDays between 31 and 60 then 60
-            when TotalHomelessDays between 61 and 90 then 90
-            when TotalHomelessDays between 91 and 180 then 180
-            when TotalHomelessDays between 181 and 365 then 365
-            when TotalHomelessDays between 366 and 547 then 547
-            when TotalHomelessDays between 548 and 730 then 730
-            when TotalHomelessDays between 731 and 1094 then 1094
+            when TotalHomelessDays between 8 and 30 then 30 
+            when TotalHomelessDays between 31 and 60 then 60 
+            when TotalHomelessDays between 61 and 90 then 90 
+            when TotalHomelessDays between 91 and 180 then 180 
+            when TotalHomelessDays between 181 and 365 then 365 
+            when TotalHomelessDays between 366 and 547 then 547 
+            when TotalHomelessDays between 548 and 730 then 730 
+            when TotalHomelessDays between 731 and 1094 then 1094 
             when TotalHomelessDays > 1094 then 1095
-            else TotalHomelessDays end
+            else TotalHomelessDays end 
           , PSHGeography, PSHLivingSit, PSHDestination
           , case when PSHMoveIn not in (1,2) then -1
-            when PSHHousedDays < 90 then 3
-            when PSHHousedDays between 91 and 180 then 6
-            when PSHHousedDays between 181 and 365 then 12
-            when PSHHousedDays between 366 and 730 then 24
-            when PSHHousedDays between 731 and 1095 then 36
-            when PSHHousedDays between 1096 and 1460 then 48
-            when PSHHousedDays between 1461 and 1825 then 60
-            when PSHHousedDays between 1826 and 2555 then 84
-            when PSHHousedDays between 2556 and 3650 then 120
+            --CHANGE 10/23/2018 set to 3 for <= 90, not < 90
+            when PSHHousedDays <= 90 then 3
+            when PSHHousedDays between 91 and 180 then 6 
+            when PSHHousedDays between 181 and 365 then 12 
+            when PSHHousedDays between 366 and 730 then 24 
+            when PSHHousedDays between 731 and 1095 then 36 
+            when PSHHousedDays between 1096 and 1460 then 48 
+            when PSHHousedDays between 1461 and 1825 then 60 
+            when PSHHousedDays between 1826 and 2555 then 84 
+            when PSHHousedDays between 2556 and 3650 then 120 
             when PSHHousedDays > 3650 then 121
-            else PSHHousedDays end
+            else PSHHousedDays end 
           , SystemPath, ReportID
-
+          
         -- LSAExit
         delete from lsa_Exit
         insert into lsa_Exit (RowTotal
@@ -4925,6 +4977,7 @@ module LsaSqlServer
             else ReturnTime end
           , HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
           , HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
+
       SQL
     end
   end
