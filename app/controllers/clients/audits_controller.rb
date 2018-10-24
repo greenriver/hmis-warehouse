@@ -1,10 +1,11 @@
 class Clients::AuditsController < ApplicationController
   include ClientPathGenerator
+  before_action :require_can_audit_clients!
+  before_action :set_client
+  after_action :log_client
 
   def index
-    client_id = get_client_id
-    @client = client_scope.find(client_id)
-
+    client_id = @client.id
     al_t = ActivityLog.arel_table
     @audit_log = ActivityLog.where(item_model: GrdaWarehouse::Hud::Client.name).
         where(al_t[:path].matches("%clients/#{client_id}/%").  # contains client_id
@@ -13,11 +14,16 @@ class Clients::AuditsController < ApplicationController
         page(params[:page]).per(50)
   end
 
-  def get_client_id
-    params[:client_id].to_i
-  end
+  protected
+    def set_client
+      @client = client_scope.find(params[:client_id].to_i)
+    end
 
-  def client_scope
-    GrdaWarehouse::Hud::Client.destination
-  end
+    def client_scope
+      GrdaWarehouse::Hud::Client.destination
+    end
+
+    def title_for_show
+      "#{@client.name} - Audit"
+    end
 end
