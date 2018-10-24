@@ -23,9 +23,9 @@
               %td
                 = item.created_at
               %td
-                = item.user.first_name
-                = item.user.last_name
-                = "<#{item.user.email}>"
+                = link_to admin_user_path(item.user.id) do 
+                  = item.user.first_name
+                  = item.user.last_name
               - title = item.title || item.controller_name
               %td
                 - tooltip = "Method: #{item.method}"
