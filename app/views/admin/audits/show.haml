@@ -3,6 +3,8 @@
 - content_for :title do
   = title
 %h1= title
+= link_to admin_user_edit_history_path(@user), class: 'btn btn-primary pull-right margin-bottom-02' do
+  View Edit History
 %p= paginate @activity_log
 .row.table-utilities
   .col-sm-12
