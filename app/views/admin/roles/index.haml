@@ -28,7 +28,7 @@
             %th.c-table__cell--border-r-primary{colspan:1}
               %input.form-control.j-search-permissions{placeholder: 'Search permissions'}
             - @roles.each do |role|
-              %th.c-table__cell--border-r-secondary.text-center
+              %th.c-table__cell--border-r-secondary.c-table__header-title.text-center
                 = link_to role.name, action: :edit, id: role
 
         %tbody
