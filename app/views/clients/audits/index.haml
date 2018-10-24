@@ -1,9 +1,11 @@
-- title = "Notes"
+- title = "Access History"
 - content_for :title, title
 = render 'clients/breadcrumbs'
 
 = render 'window/clients/aliases'
 = render 'clients/tab_navigation', current: client_audits_path(@client)
+
+%h1=content_for :title
 
 %table.table.table-condensed
   %thead
@@ -20,4 +22,6 @@
           = item.user.first_name
           = item.user.last_name
         %td
-          = item.action_name
+          = item.describe_action
+
+= paginate @audit_log
