@@ -19,7 +19,7 @@
             .d-flex.ml-auto.align-items-center
               .mr-4.d-flex
                 = paginate @roles
-              = link_to new_admin_role_path, class: 'btn btn-primary btn-ms ml-auto' do
+              = link_to new_admin_role_path, class: 'btn btn-default btn-sm ml-auto' do
                 %span.icon-plus
                 Add a role
       %tr.c-table__header.c-table__header--secondary
@@ -51,7 +51,8 @@
 - content_for :page_js do
   :javascript
     $('.j-table').DataTable({
-      scrollY: 500,
+      scrollY: '55vh',
+      scrollCollapse: true,
       scrollX: true,
       searching: false,
       ordering: false,
