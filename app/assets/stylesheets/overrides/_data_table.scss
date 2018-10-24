@@ -2,3 +2,22 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
   border: 0;
 }
+
+.dataTables_scrollBody {
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-020;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gray-050;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $gray-060;
+  }
+}
