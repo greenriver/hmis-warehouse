@@ -6,22 +6,31 @@
 = render 'clients/tab_navigation', current: client_audits_path(@client)
 
 %h1=content_for :title
+%p= paginate @audit_log
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Date
+            %th User
+            %th Action
+            %th Item
+        %tbody
+          - @audit_log.each do |item|
+            %tr
+              %td
+                = item.created_at
+              %td
+                = item.user.first_name
+                = item.user.last_name
+                = "<#{item.user.email}>"
+              - title = item.title || item.controller_name
+              %td
+                - tooltip = "Method: #{item.method}"
+                %span.action{data: {toggle: :tooltip, title: tooltip}}
+                  = item.action_name
 
-%table.table.table-condensed
-  %thead
-    %tr
-      %th Date
-      %th User
-      %th Action
-  %tbody
-    - @audit_log.each do |item|
-      %tr
-        %td
-          = item.created_at
-        %td
-          = item.user.first_name
-          = item.user.last_name
-        %td
-          = item.describe_action
-
-= paginate @audit_log
+              %td= link_to title, item.path
+      %p= paginate @audit_log
