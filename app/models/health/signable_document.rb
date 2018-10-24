@@ -134,7 +134,7 @@ module Health
         UpdateHealthFileFromHelloSignJob.
           set(wait: 30.seconds).
           perform_later(self.id)
-      elsif self.signed_by?(careplan.provider.email)
+      elsif careplan.provider.present? && self.signed_by?(careplan.provider.email)
         # process PCP signature, careplan has already been updated, we just need to fetch the file
         UpdateHealthFileFromHelloSignJob.
           set(wait: 30.seconds).
