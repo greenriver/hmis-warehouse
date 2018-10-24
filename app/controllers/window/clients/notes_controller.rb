@@ -6,6 +6,7 @@ module Window::Clients
     # before_action :require_can_edit_client_notes!, only: [:destroy]
     before_action :set_note, only: [:destroy]
     before_action :set_client
+    after_action :log_client
     
     def index
       @notes = @client.window_notes.visible_by(current_user, @client)
@@ -66,11 +67,15 @@ module Window::Clients
 
     # Only allow a trusted parameter "white list" through.
     private def note_params
-    params.require(:note).
-      permit(
-        :note,
-        :type,
-      )
-  end
+      params.require(:note).
+        permit(
+          :note,
+          :type,
+        )
+    end
+
+    protected def title_for_show
+      "#{@client.name} - Notes"
+    end
   end
 end

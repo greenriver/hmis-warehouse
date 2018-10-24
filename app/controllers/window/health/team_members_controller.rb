@@ -34,5 +34,9 @@ module Window::Health
     def flash_interpolation_options
       { resource_name: 'Team Member' }
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Team"
+    end
   end
 end

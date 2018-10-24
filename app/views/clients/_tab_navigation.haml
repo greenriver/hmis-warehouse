@@ -41,6 +41,10 @@
         title: 'Merge',
         permission: can_edit_clients?,
       },
+      client_audits_path(@client) => {
+        title: 'Audit',
+        permission: can_view_clients?,
+      },
     }
     health = {
       # BH CP Pages

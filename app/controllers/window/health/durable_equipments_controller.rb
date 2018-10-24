@@ -87,5 +87,9 @@ module Window::Health
     def flash_interpolation_options
       { resource_name: 'Durable Medical Equipment Item' }
     end
+
+    protected def title_for_show
+      "#{@client.name} - Health - Durable Medical Equipment"
+    end
   end
 end

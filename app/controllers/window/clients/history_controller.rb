@@ -9,6 +9,7 @@ module Window::Clients
     skip_before_action :require_can_see_this_client_demographics!, only: [:pdf]
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_client_needing_processing!, only: [:pdf]
+    after_action :log_client
 
     def show
       @ordered_dates = @dates.keys.sort
@@ -197,6 +198,10 @@ module Window::Clients
       client_source.destination.
         joins(source_clients: :data_source).
         merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    end
+
+    protected def title_for_show
+      "#{@client.name} - Service History"
     end
   end
 end

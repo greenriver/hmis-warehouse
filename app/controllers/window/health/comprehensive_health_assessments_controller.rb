@@ -118,5 +118,9 @@ module Window::Health
       form_params[:completed] == 'yes' || form_params[:completed] == '1'
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - CHA"
+    end
+
   end
 end
