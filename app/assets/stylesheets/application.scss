@@ -8,7 +8,8 @@
   'settings/variables',
   'settings/icons',
   'settings/spacing',
-  'settings/stack_order';
+  'settings/stack_order',
+  'settings/typography';
 
 // Tools
 // (Mixins, Functions)
@@ -70,6 +71,7 @@
   'components/color_key',
   'components/loading',
   'components/spinner',
+  'components/table',
   'components/tag';
 
 // @import 'base/grid_framework';

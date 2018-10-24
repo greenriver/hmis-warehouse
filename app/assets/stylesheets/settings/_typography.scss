@@ -1,0 +1,68 @@
+// copied from https://engageinteractive.co.uk/blog/top-10-scss-mixins
+@mixin font-open-sans($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+  font-family: $font-body;
+  @if $size { font-size: rem($size); }
+  @if $color { color: $color; }
+  @if $weight { font-weight: $weight; }
+  @if $lh { line-height: $lh; }
+  @if $tracking { letter-spacing: tracking($tracking); }
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+}
+
+@mixin font-open-sans-condensed($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+  font-family: $font-header;
+  @if $size { font-size: rem($size); }
+  @if $color { color: $color; }
+  @if $weight { font-weight: $weight; }
+  @if $lh { line-height: $lh; }
+  @if $tracking { letter-spacing: tracking($tracking); }
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+}
+
+
+@mixin font-default($size: false, $color: false, $lh: false, $tracking: false) {
+  @include font-open-sans($size: $size, $weight: font-weight(normal), $color: $color, $lh: $lh, $tracking: $tracking);
+  @content;
+}
+
+@mixin font-semibold($size: false, $color: false, $lh: false, $tracking: false) {
+  @include font-open-sans($size: $size, $weight: font-weight(semibold), $color: $color, $lh: $lh, $tracking: $tracking);
+  @content;
+}
+
+@mixin font-bold($size: false, $color: false, $lh: false, $tracking: false) {
+  @include font-open-sans($size: $size, $weight: font-weight(bold), $color: $color, $lh: $lh, $tracking: $tracking);
+  @content;
+}
+
+@mixin font-base() {
+  @include font-default() {
+    color: $text-color;
+  }
+}
+
+@mixin font-heading($size: false, $color: false, $weight: false,  $lh: false, $tracking: false) {
+  @include font-open-sans-condensed($size: $size, $weight: font-weight(normal), $color: $color, $lh: $lh, $tracking: $tracking);
+}
+
+@mixin h1 {
+  @include font-heading(30px, $gray-700, $lh: line-height(41, 30));
+}
+
+@mixin h2 {
+  @include font-heading(24px, $gray-700, $lh: line-height(27, 24));
+}
+
+@mixin h3 {
+  @include font-bold(14px, $gray-500, $lh: line-height(16, 14));
+}
+
+@mixin h4 {
+  @include font-arial(14px, $gray-500, $lh: line-height(16, 14));
+}
+
+@mixin h5 {
+  @include font-arial(16px, $gray-500, $weight: bold, $lh: line-height(18, 16));
+}

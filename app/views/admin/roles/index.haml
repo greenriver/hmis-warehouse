@@ -4,36 +4,52 @@
   .col-sm-8
     %h1= t '.title'
   .col-sm-4
-    = link_to new_admin_role_path, class: 'btn btn-primary pull-right margin-bottom-02' do
-      %span.icon-plus
-      Add a role
 .row.table-utilities
   .col-sm-8
     %p= page_entries_info @roles, entry_name: _('role')
 .row
   .col-sm-12
     .table-responsive
-      %table.table.table-condensed
+      %table.c-table.c-table--striped
         %thead
-          %th Permission:
-          - @roles.each do |role|
-            %th
-              = link_to role.name, action: :edit, id: role
-          %th
-          %th
+          %tr.c-table__header.c-table__header--primary
+            %th.c-table__cell--border-r-primary.v-align-middle{colspan:1}
+              .d-flex.align-items-center
+                %span Permissions
+                %span.c-table__icon-key
+                  %i.icon-lock
+                  %span Administrative Permission
+
+            %th{colspan:@roles.length}
+              %div.d-flex.align-items-center
+                %span Roles
+                = link_to new_admin_role_path, class: 'btn btn-primary btn-ms ml-auto' do
+                  %span.icon-plus
+                  Add a role
+          %tr.c-table__header.c-table__header--secondary
+            %th.c-table__cell--border-r-primary{colspan:1}
+              %input.form-control.j-search-permissions{placeholder: 'Search permissions'}
+            - @roles.each do |role|
+              %th.c-table__cell--border-r-secondary
+                = link_to role.name, action: :edit, id: role
+
         %tbody
           - Role.permissions(exclude_health: true).each do |permission|
-            %tr
-              %td
-                .permission__name
-                  - if Role.administrative?(permission: permission)
-                    %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+            %tr.j-permission-row{'data-title' => permission.to_s.humanize}
+              %td.c-table__cell--border-r-primary{colspan:1}
+                .c-table__cell-title.d-flex.align-items-start
                   = permission.to_s.humanize
-                .permission__description
-                  %em.text-small.text-muted= Role.description_for permission: permission
+                  - if Role.administrative?(permission: permission)
+                    %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+                .c-table__cell-description
+                  = Role.description_for permission: permission
               - @roles.each do |role|
-                %td
-                  =checkmark(role.send(permission))
+                - permitted = role.send(permission)
+                %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon{class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+                  - if permitted
+                    = icon('fas', 'check-circle')
+                  - else
+                    = icon('far', 'times-circle')
 
 
     %p= paginate @roles

@@ -47,3 +47,13 @@ $textarea-min-height: 150px;
 $nav-tab-active-border-color: darken($brand-primary, 10%);
 $nav-tab-active-active-bg: lighten($tab-bg, 30%);
 $nav-tab-active-color: darken($tab-bg, 40%);
+
+// Font-families
+$font-body             : 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-header           : 'Open Sans Condensed', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-weights: (
+  normal   : 400,
+  default  : 400,
+  semibold : 600,
+  bold     : 700,
+);
