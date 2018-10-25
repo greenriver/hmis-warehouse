@@ -3,12 +3,24 @@
 
   .row
     .col-sm-6
+      %h3 User Information
       .form-inputs
-        = f.input :first_name, required: true
-        = f.input :last_name, required: true
-        = f.input :email, as: :email, required: true
-        = f.input :phone
-        = f.input :agency
+        .row
+          .col-sm-10
+            = f.input :first_name, required: true
+        .row
+          .col-sm-10
+            = f.input :last_name, required: true
+        .row
+          .col-sm-8
+            = f.input :email, as: :email, required: true
+        .row
+          .col-sm-4
+            = f.input :phone
+        .row
+          .col-sm-10
+            = f.input :agency
+    .col-sm-6
       .form--checkbox-groups
         %h3 Notifications
         %p Which notifications should this user receive?
@@ -24,10 +36,11 @@
         =# f.input :dnd_staff, label: 'DND Staff'
         =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
 
-      .form-actions
-        = f.button :submit, class: 'btn btn-primary'
-    .col-sm-6
-      = render '/users/user_viewable_entities', f: f
+  = render '/users/user_viewable_entities', f: f
+
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'
+
 -# When we've connected contacts to user accounts, this would be a good roll-up place to show the contact relationships
 -# - unless @user.new_record?
 -#   = render 'contact_relationships'

@@ -1,37 +1,43 @@
 - base ||= 'user'
-.form-inputs
-  %h3 Viewable Entities
-  - if ( panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name) ).any?
-    %p
-      %em
-        The
-        = panopticon.to_sentence
-        = 'role'.pluralize panopticon.length
-        can view all entities.
-  %p.alert.alert-info
-    %i.icon-warning
-    Clients with records in specified data sources will be visible
-    in the window to this user, regardless of data source visibility settings if they belong to a role with the
-    %strong "Can see clients in window for assigned data sources"
-    permission
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jDataSources'}} Clear Data Sources
-  = f.input :data_sources,  **data_source_viewability(base)
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jOrganizations'}} Clear Organizations
-  = f.input :organizations, **organization_viewability(base)
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jProjects'}} Clear Projects
-  = f.input :projects,      **project_viewability(base)
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jCocCodes'}} Clear CoC Codes
-  = f.input :coc_codes,     **coc_viewability(base)
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jReports'}} Clear Reports
-  = f.input :reports,       **reports_viewability(base)
-  .d-flex
-    %button.jClearSelect.btn.btn-xs.ml-auto{data: {input_class: 'jCohorts'}} Clear Cohorts
-  = f.input :cohorts,       **cohort_viewability(base)
+
+%h3 Viewable Entities
+- if ( panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name) ).any?
+  %p
+    %em
+      The
+      = panopticon.to_sentence
+      = 'role'.pluralize panopticon.length
+      can view all entities.
+%p.alert.alert-info
+  %i.icon-warning
+  Clients with records in specified data sources will be visible
+  in the window to this user, regardless of data source visibility settings if they belong to a role with the
+  %strong "Can see clients in window for assigned data sources"
+  permission
+%ul.nav.nav-tabs.mb-0
+  -# %li.nav-item.active
+  -#   %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}}
+  -#     User Roles
+  %li.nav-item.active
+    %a.nav-link{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}}
+      Data Access Assignments
+  %li.nav-item
+    %a.nav-link{href: '#reports-cohorts', role: "presentation", data: {toggle: :tab}}
+      Reports &amp; Cohorts
+
+.tab-content
+  -# .tab-pane.active.fade.in#user-roles
+    -# = render 'users/entity_column', entity: [], title: 'User Roles'
+  .tab-pane.fade.active.in#data-access-assignments
+    .c-columns
+      = render 'users/entity_column', entity: data_source_viewability(base), title: 'Data Sources', f: f
+      = render 'users/entity_column', entity: organization_viewability(base), title: 'Organizations', f: f
+      = render 'users/entity_column', entity: project_viewability(base), title: 'Projects', f: f
+      = render 'users/entity_column', entity: coc_viewability(base), title: 'CoC Codes', f: f
+  .tab-pane.fade#reports-cohorts
+    .c-columns
+      = render 'users/entity_column', entity: reports_viewability(base), title: 'Reports', f: f
+      = render 'users/entity_column', entity: cohort_viewability(base), title: 'Cohorts', f: f
 
 - content_for :page_js do
   :coffeescript
