@@ -40,19 +40,6 @@
       = render 'users/entity_column', entity: cohort_viewability(base), title: 'Cohorts', f: f
 
 - content_for :page_js do
+  :javascript
+    new App.ViewableEntities()
   :coffeescript
-    $('.jClearSelect').on 'click', (e) ->
-      e.preventDefault()
-      select_class = $(e.currentTarget).data('input-class')
-      $("select." + select_class).find('option:selected').prop("selected", false)
-      $("select." + select_class).trigger('change')
-    $('.jUserViewable').each ->
-      $t = $(@)
-      values = ( $(i).val() for i in $t.find('option[selected]') )
-      $ ->
-        $t.select2
-          minimumResultsForSearch: 10
-          placeholder: $t.attr('placeholder')
-          tags: true
-          multiple: true
-        $t.val(values).trigger('change')

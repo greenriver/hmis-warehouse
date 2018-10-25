@@ -29,6 +29,10 @@ $column-border-color-l: lighten($column-border-color, 5%);
 .c-columns__column-content {
   flex: 1 1 auto;
   overflow: auto;
+  &.inactive {
+    opacity: .4;
+    pointer-events: none;
+  }
 }
 
 .c-columns__column-title {
@@ -37,7 +41,7 @@ $column-border-color-l: lighten($column-border-color, 5%);
 
 .c-columns__column-actions {
   width: 100%;
-  padding: space(4);
+  border-bottom: 2px solid $column-border-color;
 }
 
 .c-columns__column-actions .select2-container {
@@ -47,6 +51,11 @@ $column-border-color-l: lighten($column-border-color, 5%);
 
 .c-columns__column-actions .select2-selection__rendered {
   display: none !important;
+}
+
+.c-columns__column-action {
+  padding: space(4);
+  border-top: 2px solid $column-border-color;
 }
 
 .c-columns__column-buttons {
