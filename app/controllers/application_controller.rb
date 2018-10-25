@@ -113,11 +113,6 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :email, :password, :password_confirmation, :name])
   end
 
-
-  def after_sign_in_path_for(resource)
-    
-  end
-
   # Redirect to window page after signin if you have
   # no where else to go (and you can see it)
   def after_sign_in_path_for(resource)
