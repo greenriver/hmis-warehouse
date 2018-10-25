@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181025123951) do
+ActiveRecord::Schema.define(version: 20181025135153) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+  enable_extension "postgis"
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"
@@ -38,29 +39,6 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree
   add_index "activity_logs", ["user_id"], name: "index_activity_logs_on_user_id", using: :btree
-
-  create_table "cas_reports", force: :cascade do |t|
-    t.integer  "client_id",                                          null: false
-    t.integer  "match_id",                                           null: false
-    t.integer  "decision_id",                                        null: false
-    t.integer  "decision_order",                                     null: false
-    t.string   "match_step",                                         null: false
-    t.string   "decision_status",                                    null: false
-    t.boolean  "current_step",                       default: false, null: false
-    t.boolean  "active_match",                       default: false, null: false
-    t.datetime "created_at",                                         null: false
-    t.datetime "updated_at",                                         null: false
-    t.integer  "elapsed_days",                       default: 0,     null: false
-    t.datetime "client_last_seen_date"
-    t.datetime "criminal_hearing_date"
-    t.string   "decline_reason"
-    t.string   "not_working_with_client_reason"
-    t.string   "administrative_cancel_reason"
-    t.boolean  "client_spoken_with_services_agency"
-    t.boolean  "cori_release_form_submitted"
-  end
-
-  add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
 
   create_table "client_service_history", id: false, force: :cascade do |t|
     t.integer "unduplicated_client_id"
@@ -109,6 +87,35 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
+
+  create_table "glacier_archives", force: :cascade do |t|
+    t.integer  "glacier_vault_id",                           null: false
+    t.text     "upload_id",                                  null: false
+    t.text     "archive_id"
+    t.text     "checksum"
+    t.text     "location"
+    t.string   "status",             default: "initialized", null: false
+    t.boolean  "verified",           default: false,         null: false
+    t.integer  "size_in_bytes"
+    t.datetime "upload_started_at"
+    t.datetime "upload_finished_at"
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+  end
+
+  add_index "glacier_archives", ["glacier_vault_id"], name: "index_glacier_archives_on_glacier_vault_id", using: :btree
+  add_index "glacier_archives", ["upload_id"], name: "index_glacier_archives_on_upload_id", unique: true, using: :btree
+
+  create_table "glacier_vaults", force: :cascade do |t|
+    t.string   "name",                   null: false
+    t.datetime "vault_created_at"
+    t.datetime "last_upload_attempt_at"
+    t.datetime "last_upload_success_at"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  add_index "glacier_vaults", ["name"], name: "index_glacier_vaults_on_name", unique: true, using: :btree
 
   create_table "imports", force: :cascade do |t|
     t.string   "file"
@@ -211,79 +218,77 @@ ActiveRecord::Schema.define(version: 20181025123951) do
     t.boolean  "can_view_imports",                                    default: false
     t.boolean  "can_edit_roles",                                      default: false
     t.boolean  "can_view_projects",                                   default: false
-    t.boolean  "can_view_organizations",                              default: false
-    t.boolean  "can_view_client_window",                              default: false
-    t.boolean  "can_upload_hud_zips",                                 default: false
-    t.boolean  "can_administer_health",                               default: false
-    t.boolean  "can_edit_client_health",                              default: false
-    t.boolean  "can_view_client_health",                              default: false
-    t.boolean  "health_role",                                         default: false, null: false
-    t.boolean  "can_edit_project_groups",                             default: false
-    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_edit_projects",                                   default: false
+    t.boolean  "can_edit_project_groups",                             default: false
+    t.boolean  "can_view_organizations",                              default: false
     t.boolean  "can_edit_organizations",                              default: false
     t.boolean  "can_edit_data_sources",                               default: false
+    t.boolean  "can_search_window",                                   default: false
+    t.boolean  "can_view_client_window",                              default: false
+    t.boolean  "can_upload_hud_zips",                                 default: false
     t.boolean  "can_edit_translations",                               default: false
     t.boolean  "can_manage_assessments",                              default: false
-    t.boolean  "can_manage_config",                                   default: false
-    t.boolean  "can_edit_dq_grades",                                  default: false
+    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_manage_client_files",                             default: false
     t.boolean  "can_manage_window_client_files",                      default: false
+    t.boolean  "can_see_own_file_uploads",                            default: false
+    t.boolean  "can_manage_config",                                   default: false
+    t.boolean  "can_edit_dq_grades",                                  default: false
     t.boolean  "can_view_vspdat",                                     default: false
     t.boolean  "can_edit_vspdat",                                     default: false
+    t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_create_clients",                                  default: false
     t.boolean  "can_view_client_history_calendar",                    default: false
-    t.boolean  "can_view_aggregate_health",                           default: false
-    t.boolean  "can_assign_users_to_clients",                         default: false
-    t.boolean  "can_view_client_user_assignments",                    default: false
-    t.boolean  "can_export_hmis_data",                                default: false
-    t.boolean  "can_confirm_housing_release",                         default: false
-    t.boolean  "can_see_own_file_uploads",                            default: false
-    t.boolean  "can_search_window",                                   default: false
-    t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_edit_client_notes",                               default: false
     t.boolean  "can_edit_window_client_notes",                        default: false
     t.boolean  "can_see_own_window_client_notes",                     default: false
-    t.boolean  "can_track_anomalies",                                 default: false
-    t.boolean  "can_view_all_reports",                                default: false
-    t.boolean  "can_assign_reports",                                  default: false
-    t.boolean  "can_view_assigned_reports",                           default: false
-    t.boolean  "can_view_reports",                                    default: false
     t.boolean  "can_manage_cohorts",                                  default: false
     t.boolean  "can_edit_cohort_clients",                             default: false
     t.boolean  "can_edit_assigned_cohorts",                           default: false
     t.boolean  "can_view_assigned_cohorts",                           default: false
+    t.boolean  "can_assign_users_to_clients",                         default: false
+    t.boolean  "can_view_client_user_assignments",                    default: false
+    t.boolean  "can_export_hmis_data",                                default: false
+    t.boolean  "can_confirm_housing_release",                         default: false
+    t.boolean  "can_track_anomalies",                                 default: false
+    t.boolean  "can_view_all_reports",                                default: false
+    t.boolean  "can_assign_reports",                                  default: false
+    t.boolean  "can_view_assigned_reports",                           default: false
+    t.boolean  "can_view_project_data_quality_client_details",        default: false
     t.boolean  "can_manage_organization_users",                       default: false
     t.boolean  "can_add_administrative_event",                        default: false
-    t.boolean  "can_view_project_data_quality_client_details",        default: false
-    t.boolean  "can_manage_health_agency",                            default: false, null: false
+    t.boolean  "can_administer_health",                               default: false
+    t.boolean  "can_edit_client_health",                              default: false
+    t.boolean  "can_view_client_health",                              default: false
+    t.boolean  "can_view_aggregate_health",                           default: false
+    t.boolean  "can_manage_health_agency",                            default: false
     t.boolean  "can_approve_patient_assignments",                     default: false
     t.boolean  "can_manage_claims",                                   default: false
     t.boolean  "can_manage_all_patients",                             default: false
     t.boolean  "can_manage_patients_for_own_agency",                  default: false
+    t.boolean  "can_approve_cha",                                     default: false
+    t.boolean  "can_approve_ssm",                                     default: false
+    t.boolean  "can_approve_release",                                 default: false
+    t.boolean  "can_approve_participation",                           default: false
     t.boolean  "can_edit_all_patient_items",                          default: false
     t.boolean  "can_edit_patient_items_for_own_agency",               default: false
     t.boolean  "can_create_care_plans_for_own_agency",                default: false
     t.boolean  "can_view_all_patients",                               default: false
     t.boolean  "can_view_patients_for_own_agency",                    default: false
     t.boolean  "can_add_case_management_notes",                       default: false
-    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
-    t.boolean  "can_approve_patient_items_for_agency",                default: false
-    t.boolean  "can_approve_cha",                                     default: false
-    t.boolean  "can_approve_ssm",                                     default: false
-    t.boolean  "can_approve_release",                                 default: false
-    t.boolean  "can_approve_participation",                           default: false
+    t.boolean  "health_role",                                         default: false, null: false
     t.boolean  "can_manage_care_coordinators",                        default: false
-    t.boolean  "can_manage_accountable_care_organizations",           default: false
-    t.boolean  "can_view_member_health_reports",                      default: false
-    t.boolean  "can_edit_warehouse_alerts",                           default: false
+    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
     t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
     t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
-    t.boolean  "can_upload_dashboard_extras",                         default: false
-    t.boolean  "can_view_all_user_client_assignments",                default: false
-    t.boolean  "can_audit_users",                                     default: false
+    t.boolean  "can_edit_warehouse_alerts",                           default: false
+    t.boolean  "can_manage_accountable_care_organizations",           default: false
+    t.boolean  "can_view_member_health_reports",                      default: false
     t.boolean  "can_audit_clients",                                   default: false
+    t.boolean  "can_audit_users",                                     default: false
     t.boolean  "can_export_anonymous_hmis_data",                      default: false
+    t.boolean  "can_view_all_user_client_assignments",                default: false
+    t.boolean  "can_upload_dashboard_extras",                         default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -300,6 +305,13 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   end
 
   add_index "similarity_metrics", ["type"], name: "index_similarity_metrics_on_type", unique: true, using: :btree
+
+  create_table "spatial_ref_sys", primary_key: "srid", force: :cascade do |t|
+    t.string  "auth_name", limit: 256
+    t.integer "auth_srid"
+    t.string  "srtext",    limit: 2048
+    t.string  "proj4text", limit: 2048
+  end
 
   create_table "translation_keys", force: :cascade do |t|
     t.string   "key",        default: "", null: false
@@ -425,8 +437,166 @@ ActiveRecord::Schema.define(version: 20181025123951) do
     t.datetime "deleted_at"
   end
 
+  add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"
   add_foreign_key "user_roles", "roles", on_delete: :cascade
   add_foreign_key "user_roles", "users", on_delete: :cascade
+
+  create_view "index_stats",  sql_definition: <<-SQL
+      WITH table_stats AS (
+           SELECT psut.relname,
+              psut.n_live_tup,
+              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
+             FROM pg_stat_user_tables psut
+            ORDER BY psut.n_live_tup DESC
+          ), table_io AS (
+           SELECT psiut.relname,
+              sum(psiut.heap_blks_read) AS table_page_read,
+              sum(psiut.heap_blks_hit) AS table_page_hit,
+              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
+             FROM pg_statio_user_tables psiut
+            GROUP BY psiut.relname
+            ORDER BY (sum(psiut.heap_blks_read)) DESC
+          ), index_io AS (
+           SELECT psiui.relname,
+              psiui.indexrelname,
+              sum(psiui.idx_blks_read) AS idx_page_read,
+              sum(psiui.idx_blks_hit) AS idx_page_hit,
+              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
+             FROM pg_statio_user_indexes psiui
+            GROUP BY psiui.relname, psiui.indexrelname
+            ORDER BY (sum(psiui.idx_blks_read)) DESC
+          )
+   SELECT ts.relname,
+      ts.n_live_tup,
+      ts.index_use_ratio,
+      ti.table_page_read,
+      ti.table_page_hit,
+      ti.table_hit_ratio,
+      ii.indexrelname,
+      ii.idx_page_read,
+      ii.idx_page_hit,
+      ii.idx_hit_ratio
+     FROM ((table_stats ts
+       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
+       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
+    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+  SQL
+
+  create_view "todd_stats",  sql_definition: <<-SQL
+      SELECT pg_stat_all_tables.relname,
+      round((
+          CASE
+              WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      pg_stat_all_tables.n_live_tup AS "Live rows",
+      pg_stat_all_tables.n_dead_tup AS "Dead rows",
+      pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 05:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 05:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+              ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 05:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 05:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 05:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+              ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 05:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+      (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+  SQL
+
+  create_view "geography_columns",  sql_definition: <<-SQL
+      SELECT current_database() AS f_table_catalog,
+      n.nspname AS f_table_schema,
+      c.relname AS f_table_name,
+      a.attname AS f_geography_column,
+      postgis_typmod_dims(a.atttypmod) AS coord_dimension,
+      postgis_typmod_srid(a.atttypmod) AS srid,
+      postgis_typmod_type(a.atttypmod) AS type
+     FROM pg_class c,
+      pg_attribute a,
+      pg_type t,
+      pg_namespace n
+    WHERE ((t.typname = 'geography'::name) AND (a.attisdropped = false) AND (a.atttypid = t.oid) AND (a.attrelid = c.oid) AND (c.relnamespace = n.oid) AND (c.relkind = ANY (ARRAY['r'::"char", 'v'::"char", 'm'::"char", 'f'::"char", 'p'::"char"])) AND (NOT pg_is_other_temp_schema(c.relnamespace)) AND has_table_privilege(c.oid, 'SELECT'::text));
+  SQL
+
+  create_view "geometry_columns",  sql_definition: <<-SQL
+      SELECT (current_database())::character varying(256) AS f_table_catalog,
+      n.nspname AS f_table_schema,
+      c.relname AS f_table_name,
+      a.attname AS f_geometry_column,
+      COALESCE(postgis_typmod_dims(a.atttypmod), sn.ndims, 2) AS coord_dimension,
+      COALESCE(NULLIF(postgis_typmod_srid(a.atttypmod), 0), sr.srid, 0) AS srid,
+      (replace(replace(COALESCE(NULLIF(upper(postgis_typmod_type(a.atttypmod)), 'GEOMETRY'::text), st.type, 'GEOMETRY'::text), 'ZM'::text, ''::text), 'Z'::text, ''::text))::character varying(30) AS type
+     FROM ((((((pg_class c
+       JOIN pg_attribute a ON (((a.attrelid = c.oid) AND (NOT a.attisdropped))))
+       JOIN pg_namespace n ON ((c.relnamespace = n.oid)))
+       JOIN pg_type t ON ((a.atttypid = t.oid)))
+       LEFT JOIN ( SELECT s.connamespace,
+              s.conrelid,
+              s.conkey,
+              replace(split_part(s.consrc, ''''::text, 2), ')'::text, ''::text) AS type
+             FROM pg_constraint s
+            WHERE (s.consrc ~~* '%geometrytype(% = %'::text)) st ON (((st.connamespace = n.oid) AND (st.conrelid = c.oid) AND (a.attnum = ANY (st.conkey)))))
+       LEFT JOIN ( SELECT s.connamespace,
+              s.conrelid,
+              s.conkey,
+              (replace(split_part(s.consrc, ' = '::text, 2), ')'::text, ''::text))::integer AS ndims
+             FROM pg_constraint s
+            WHERE (s.consrc ~~* '%ndims(% = %'::text)) sn ON (((sn.connamespace = n.oid) AND (sn.conrelid = c.oid) AND (a.attnum = ANY (sn.conkey)))))
+       LEFT JOIN ( SELECT s.connamespace,
+              s.conrelid,
+              s.conkey,
+              (replace(replace(split_part(s.consrc, ' = '::text, 2), ')'::text, ''::text), '('::text, ''::text))::integer AS srid
+             FROM pg_constraint s
+            WHERE (s.consrc ~~* '%srid(% = %'::text)) sr ON (((sr.connamespace = n.oid) AND (sr.conrelid = c.oid) AND (a.attnum = ANY (sr.conkey)))))
+    WHERE ((c.relkind = ANY (ARRAY['r'::"char", 'v'::"char", 'm'::"char", 'f'::"char", 'p'::"char"])) AND (NOT (c.relname = 'raster_columns'::name)) AND (t.typname = 'geometry'::name) AND (NOT pg_is_other_temp_schema(c.relnamespace)) AND has_table_privilege(c.oid, 'SELECT'::text));
+  SQL
+
+  create_view "raster_columns",  sql_definition: <<-SQL
+      SELECT current_database() AS r_table_catalog,
+      n.nspname AS r_table_schema,
+      c.relname AS r_table_name,
+      a.attname AS r_raster_column,
+      COALESCE(_raster_constraint_info_srid(n.nspname, c.relname, a.attname), ( SELECT st_srid('010100000000000000000000000000000000000000'::geometry) AS st_srid)) AS srid,
+      _raster_constraint_info_scale(n.nspname, c.relname, a.attname, 'x'::bpchar) AS scale_x,
+      _raster_constraint_info_scale(n.nspname, c.relname, a.attname, 'y'::bpchar) AS scale_y,
+      _raster_constraint_info_blocksize(n.nspname, c.relname, a.attname, 'width'::text) AS blocksize_x,
+      _raster_constraint_info_blocksize(n.nspname, c.relname, a.attname, 'height'::text) AS blocksize_y,
+      COALESCE(_raster_constraint_info_alignment(n.nspname, c.relname, a.attname), false) AS same_alignment,
+      COALESCE(_raster_constraint_info_regular_blocking(n.nspname, c.relname, a.attname), false) AS regular_blocking,
+      _raster_constraint_info_num_bands(n.nspname, c.relname, a.attname) AS num_bands,
+      _raster_constraint_info_pixel_types(n.nspname, c.relname, a.attname) AS pixel_types,
+      _raster_constraint_info_nodata_values(n.nspname, c.relname, a.attname) AS nodata_values,
+      _raster_constraint_info_out_db(n.nspname, c.relname, a.attname) AS out_db,
+      _raster_constraint_info_extent(n.nspname, c.relname, a.attname) AS extent,
+      COALESCE(_raster_constraint_info_index(n.nspname, c.relname, a.attname), false) AS spatial_index
+     FROM pg_class c,
+      pg_attribute a,
+      pg_type t,
+      pg_namespace n
+    WHERE ((t.typname = 'raster'::name) AND (a.attisdropped = false) AND (a.atttypid = t.oid) AND (a.attrelid = c.oid) AND (c.relnamespace = n.oid) AND (c.relkind = ANY (ARRAY['r'::"char", 'v'::"char", 'm'::"char", 'f'::"char", 'p'::"char"])) AND (NOT pg_is_other_temp_schema(c.relnamespace)) AND has_table_privilege(c.oid, 'SELECT'::text));
+  SQL
+
+  create_view "raster_overviews",  sql_definition: <<-SQL
+      SELECT current_database() AS o_table_catalog,
+      n.nspname AS o_table_schema,
+      c.relname AS o_table_name,
+      a.attname AS o_raster_column,
+      current_database() AS r_table_catalog,
+      (split_part(split_part(s.consrc, '''::name'::text, 1), ''''::text, 2))::name AS r_table_schema,
+      (split_part(split_part(s.consrc, '''::name'::text, 2), ''''::text, 2))::name AS r_table_name,
+      (split_part(split_part(s.consrc, '''::name'::text, 3), ''''::text, 2))::name AS r_raster_column,
+      (btrim(split_part(s.consrc, ','::text, 2)))::integer AS overview_factor
+     FROM pg_class c,
+      pg_attribute a,
+      pg_type t,
+      pg_namespace n,
+      pg_constraint s
+    WHERE ((t.typname = 'raster'::name) AND (a.attisdropped = false) AND (a.atttypid = t.oid) AND (a.attrelid = c.oid) AND (c.relnamespace = n.oid) AND ((c.relkind)::text = ANY ((ARRAY['r'::character(1), 'v'::character(1), 'm'::character(1), 'f'::character(1)])::text[])) AND (s.connamespace = n.oid) AND (s.conrelid = c.oid) AND (s.consrc ~~ '%_overview_constraint(%'::text) AND (NOT pg_is_other_temp_schema(c.relnamespace)) AND has_table_privilege(c.oid, 'SELECT'::text));
+  SQL
+
 end
