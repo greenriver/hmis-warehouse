@@ -74,6 +74,7 @@ module WarehouseReports
         :hash_status,
         :period_type,
         :include_deleted,
+        :faked_pii,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],

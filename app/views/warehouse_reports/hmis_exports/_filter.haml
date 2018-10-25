@@ -29,6 +29,8 @@
         %p Full Refresh
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
+      - if can_export_anonymous_hmis_data?
+        = f.input :faked_pii
     .row
       .col-sm-12
         %h4 Notes About Choices
