@@ -12,6 +12,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :user_id, Integer, default: nil
+    attribute :faked_pii, Boolean, default: false
 
     validates_presence_of :start_date, :end_date
 
@@ -34,6 +35,7 @@ module Filters
           directive: directive,
           hash_status: hash_status,
           include_deleted: include_deleted,
+          faked_pii: faked_pii,
           user_id: user_id,
         }
       end

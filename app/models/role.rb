@@ -215,6 +215,10 @@ class Role < ActiveRecord::Base
         description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data',
         administrative: false,
       },
+      can_export_anonymous_hmis_data: {
+        description: 'Fake data exports for developers',
+        administrative: true,
+      },
       can_confirm_housing_release: {
         description: 'Ability to confirm uploaded housing releases',
         administrative: true,
