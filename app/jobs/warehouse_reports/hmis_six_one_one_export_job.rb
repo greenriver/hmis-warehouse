@@ -14,6 +14,7 @@ module WarehouseReports
         directive: options[:directive],
         hash_status: options[:hash_status],
         include_deleted: options[:include_deleted],
+        faked_pii: options[:faked_pii],
         user_id: options[:user_id]
       ).export!
       NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later

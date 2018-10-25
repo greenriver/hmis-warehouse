@@ -30,7 +30,8 @@
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
       - if can_export_anonymous_hmis_data?
-        = f.input :faked_pii
+        .col-sm-6
+          = f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked? This can be used to export data useful for developers.'
     .row
       .col-sm-12
         %h4 Notes About Choices
