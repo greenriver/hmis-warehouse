@@ -113,9 +113,17 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :email, :password, :password_confirmation, :name])
   end
 
+
+  def after_sign_in_path_for(resource)
+    
+  end
+
   # Redirect to window page after signin if you have
   # no where else to go (and you can see it)
   def after_sign_in_path_for(resource)
+    # alert users if their password has been compromised
+    set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
+    
     last_url = session["user_return_to"]
     if last_url.present?
       last_url

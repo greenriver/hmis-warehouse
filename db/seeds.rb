@@ -6,7 +6,7 @@ dnd_staff = Role.where(name: 'dnd_staff').first_or_create
 
 # Add a user.  This should not be added in production
 unless Rails.env =~ /production|staging/
-  inital_password = Faker::Internet.password
+  inital_password = "#{Faker::Internet.password}#{Faker::Internet.password}"
   user = User.new
   user.email = 'noreply@example.com'
   user.first_name = "Sample"

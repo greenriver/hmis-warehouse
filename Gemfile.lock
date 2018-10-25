@@ -177,6 +177,9 @@ GEM
       railties (>= 4.1.0, < 6.0)
       responders
       warden (~> 1.2.3)
+    devise-pwned_password (0.1.6)
+      devise (~> 4)
+      pwned (~> 1.2.1)
     devise_invitable (1.6.1)
       actionmailer (>= 3.2.6)
       devise (>= 3.2.0)
@@ -358,6 +361,7 @@ GEM
       pry (>= 0.9.10)
     public_suffix (2.0.4)
     puma (3.7.1)
+    pwned (1.2.1)
     quiet_assets (1.1.0)
       railties (>= 3.1, < 5.0)
     rack (1.6.10)
@@ -604,6 +608,7 @@ DEPENDENCIES
   daemons
   delayed_job_active_record
   devise (~> 4)
+  devise-pwned_password
   devise_invitable
   dotenv-rails
   email_check
