@@ -3,3 +3,24 @@
 - content_for :title do
   = title
 %h1= title
+
+%p= paginate @versions
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-condensed.table-hover
+        %thead
+          %tr
+            %th Date
+            %th Item
+            %th Changes
+        %tbody
+          - @versions.each do |version|
+            - changes = describe_changes_to version
+            - if changes.present?
+              %tr
+                %td= version.created_at
+                %td= name_of_item_for version
+                %td= "Changed #{changes}"
+
+%p= paginate @versions
