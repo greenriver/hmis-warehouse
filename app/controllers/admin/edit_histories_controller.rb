@@ -6,7 +6,7 @@ module Admin
     helper_method :name_of_item_for
     helper_method :describe_changes_to
 
-    WHITELIST = %w{phone agency}
+    WHITELIST = %w{first_name last_name email phone agency}
 
     def show
       @versions = PaperTrail::Version.where(whodunnit: @user_id).
@@ -16,27 +16,28 @@ module Admin
     end
 
     def name_of_item_for(version)
-      version.reify.name
+      version.reify.name rescue version
     end
 
     def describe_changes_to(version)
       if version.object_changes.nil?
         changed = {}
         current = version.reify
-        if version.previous
+        if version.previous.present? && version.previous.object.present?
           previous = version.previous.reify
           changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
           changed_attr.each do |name|
             changed[name] = [previous[name], current[name]]
           end
         else
-          # Should we describe a create here?
+          # How should we describe a create here?
         end
         #TODO store the change object_changes
       else
         changed = version.changeset
       end
-      changed.slice(*WHITELIST).map do |name, values|
+      #changed.slice(WHITELIST).map do |name, values|
+      changed.map do |name, values|
         "#{name}: from \"#{values.first}\" to \"#{values.last}\""
       end.to_sentence
     end
