@@ -30,8 +30,7 @@ $column-border-color-l: lighten($column-border-color, 5%);
   flex: 1 1 auto;
   overflow: auto;
   &.inactive {
-    opacity: .4;
-    pointer-events: none;
+    opacity: .8;
   }
 }
 
@@ -45,12 +44,19 @@ $column-border-color-l: lighten($column-border-color, 5%);
 }
 
 .c-columns__column-actions .select2-container {
-  width: 100% !important;
+  width: 100% !important; // Overide select2's inline styling
   display: block;
 }
 
-.c-columns__column-actions .select2-selection__rendered {
-  display: none !important;
+.c-columns__column-actions .select2-selection__choice {
+  display: none !important; // Overide select2's inline styling
+}
+.c-columns__column-actions .select2-search__field {
+  width: 100% !important; // Overide select2's inline styling
+}
+
+.c-columns__column-action .form-group {
+  margin-bottom: 0
 }
 
 .c-columns__column-action {

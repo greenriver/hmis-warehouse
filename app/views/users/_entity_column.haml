@@ -5,7 +5,7 @@
     .c-columns__column-buttons
       = link_to '#', class: 'j-add', data: {toggle: 'tooltip'}, title: "Add #{name}" do
         = icon('fas', 'plus')
-      = link_to '#', class: 'j-remove-all', data: {toggle: 'tooltip'}, title: "Remove All" do
+      = link_to '#', class: 'j-remove-all-toggle', data: {toggle: 'tooltip'}, title: "Remove All" do
         = icon('fas', 'times-circle')
 
   .c-columns__column-actions
@@ -15,23 +15,8 @@
       .d-flex.align-items-center
         %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?
         .d-flex
-          .btn.btn-sm.btn-secondary.mr-2.j-remove-all No
-          .btn.btn-sm.btn-danger Yes
+          .btn.btn-sm.btn-secondary.mr-2.j-remove-all-toggle No
+          .btn.btn-sm.btn-danger.j-remove-all Yes
 
   .c-columns__column-content.j-column-content
-    %ul.c-columns__column-list
-      - entity[:collection].each do |c|
-        %li.c-columns__column-list-item
-          %span
-            - if c.is_a? ActiveRecord::Base
-              = c.name
-            - elsif c.is_a? Array
-              = c.first
-              -# = c.last
-              -# %ul
-              -#   - c.last.each do |org|
-              -#     %li= org.name
-            - else
-              = c
-          %span
-            = icon('fas', 'times-circle')
+    %ul.c-columns__column-list.j-list

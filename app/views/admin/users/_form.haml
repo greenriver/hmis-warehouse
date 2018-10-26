@@ -20,6 +20,13 @@
         .row
           .col-sm-10
             = f.input :agency
+  .row
+    .col-sm-6
+      .form--checkbox-groups
+        %h3 Roles for Access Permissions
+        = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
+        =# f.input :dnd_staff, label: 'DND Staff'
+        =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
     .col-sm-6
       .form--checkbox-groups
         %h3 Notifications
@@ -30,11 +37,6 @@
         - if GrdaWarehouse::DataSource.authoritative.exists?
           = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
         = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
-      .form--checkbox-groups
-        %h3 Roles for Access Permissions
-        = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
-        =# f.input :dnd_staff, label: 'DND Staff'
-        =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
 
   = render '/users/user_viewable_entities', f: f
 

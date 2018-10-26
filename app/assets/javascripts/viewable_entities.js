@@ -5,6 +5,7 @@ App.ViewableEntities = class {
   }
 
   registerEvents() {
+    const self = this
     const showHideEl = (event, relatedElement) => {
       event.preventDefault()
       const $container = $(event.currentTarget).closest('.j-column')
@@ -23,16 +24,59 @@ App.ViewableEntities = class {
       $element.find('.jUserViewable').select2(select2Action)
     }
 
+    const getSelect2 = (el) => {
+      return $(el).closest('.j-column').find('.jUserViewable')
+    }
+
     $('.j-add').on('click', (event) => {
       const elements = showHideEl(event, 'add')
     })
-    $('.j-remove-all').on('click', (event) => {
+    $('.j-remove-all-toggle').on('click', (event) => {
       const elements = showHideEl(event, 'remove')
+    })
+    $('.j-remove-all').on('click', function (event) {
+      self.removeAll(getSelect2(this), $(this).closest('.j-column'))
+    })
+    $('.j-list').on('click', 'li', function (event) {
+      self.removeItem(this, getSelect2(this))
     })
   }
 
+  renderList(items, $list) {
+    const $listContainer = $list.closest('.j-column').find('.j-list')
+    const ids = Object.keys(items)
+    $listContainer.html(
+      Object.values(items).map((item, i) => `
+        <li class='c-columns__column-list-item' data-id=${ids[i]}>
+          <span>${item}</span>
+          <span> <i class='fas fa-times-circle'></i></span>
+        </li>
+      `).join('')
+    )
+  }
+
+  removeAll($select2, $container) {
+    $select2
+      .val('')
+      .trigger('change')
+    $container.find('.j-list').html('')
+    $container.find('.j-column-actions-remove').addClass('hide')
+  }
+
+  removeItem(item, $select2) {
+    const currentIds = $select2.val()
+    const index = currentIds.indexOf($(item).data('id').toString())
+    if (index > -1) {
+      currentIds.splice(index, 1);
+    }
+    $select2
+      .val(currentIds)
+      .trigger('change')
+    item.remove()
+  }
 
   initSelect2() {
+    const self = this
     $('.jClearSelect').on('click', function(event) {
       event.preventDefault()
       var select_class = $(event.currentTarget).data('input-class');
@@ -40,29 +84,39 @@ App.ViewableEntities = class {
       return $("select." + select_class).trigger('change');
     })
 
-    $('.jUserViewable').each(function() {
-      var $t, i, values
-      $t = $(this)
-      values = function() {
-        var j, len, ref, results
-        ref = $t.find('option[selected]');
-        results = [];
-        for (j = 0, len = ref.length; j < len; j++) {
-          i = ref[j];
-          results.push($(i).val());
-        }
-        return results
+    const values = function($this, includeSelected=false) {
+      let query = 'option[selected]'
+      if (includeSelected) {
+        query = ':selected'
       }
+      const $selectedOptions = $this.find(query);
+      const values = $this.val()
+      const selected = {}
+      $selectedOptions.each(function(i, el) {
+        selected[el.value] = el.textContent
+      })
+      self.renderList(selected, $this)
+      return selected
+    }
 
+    const init = ($this) => {
       return $(function() {
-        $t.select2({
+        $this.select2({
           minimumResultsForSearch: 10,
-          placeholder: $t.attr('placeholder'),
-          tags: true,
+          placeholder: 'Search for ' + $this.attr('placeholder'),
+          tags: false,
           multiple: true
         })
-        return $t.val(values).trigger('change');
+        $this.val(Object.keys(values($this))).trigger('change');
       })
+    }
+
+    $('.jUserViewable').each(function() {
+      const $this = $(this)
+      $this.on('select2:select select2:unselect', function(){
+        self.renderList(values($(this), true), $(this))
+      })
+      init($this)
     })
   }
 }
