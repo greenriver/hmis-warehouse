@@ -288,6 +288,11 @@ Rails.application.routes.draw do
           post :submit
         end
       end
+      resources :patient_referrals, only: [:index] do
+        collection do
+          patch :update
+        end
+      end
     end
   end
 

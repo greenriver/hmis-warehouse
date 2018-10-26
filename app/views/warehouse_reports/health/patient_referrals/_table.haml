@@ -1,0 +1,31 @@
+= simple_form_for :patient_referrals, url: warehouse_reports_health_patient_referrals_path, method: :patch do |f|
+  .row
+    .col-sm-4
+      = f.input :engagement_date, as: :date_picker, hint: 'Date by which all checked patients below will need their PCTP signatures.', input_html: {value: @date}
+  %table.table.table-striped
+    %thead
+      %tr
+        %th
+          %input#jEnrollmentDate.jCheckAll{type: :checkbox, checked: true}
+        %th Patient
+        %th Referral Date
+        %th Engagement Date
+        
+    %tbody
+      - @patients.each do |patient|
+        %tr
+          %td
+            %input{name: "patients[#{patient.id}][engagement_date]", type: :checkbox, checked: true, class: :jEnrollmentDate}
+          %td
+            = link_to polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client.id) do 
+              = patient.name
+          %td= patient.patient_referral.effective_date.to_date
+          %td= patient.engagement_date
+          
+
+    %tfoot
+      %tr
+        %td
+        %td
+        %td
+        %td= f.submit 'Update Patient Referrals', class: 'btn btn-primary'
