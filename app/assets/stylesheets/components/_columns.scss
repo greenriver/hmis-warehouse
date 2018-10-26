@@ -1,18 +1,40 @@
 $column-border-color: $gray-020;
 $column-border-color-l: lighten($column-border-color, 5%);
+$column-header-color: #eff3f8;
 
 .c-columns {
   display: flex;
   background: $white;
   border-bottom: 1px solid $column-border-color;
   max-height: 50vh;
+  position: relative;
+  overflow: auto;
+}
+
+.c-columns__veil {
+  @include cover;
+  background: rgba($white, .5);
+  pinter-events: none;
+}
+
+.c-columns__message {
+  background: $column-header-color;
+  display: flex;
+  align-items: center;
+  padding: space(4);
+}
+
+.c-columns__message p {
+  margin: 0;
+  @include font-bold(16px);
 }
 
 .c-columns__column {
   display: flex;
   flex-direction: column;
   flex: 1 1 25%;
-  min-width: 25%;
+  width: 25%;
+  min-width: 250px;
   border-right: 1px solid $column-border-color;
   border-left: 1px solid $column-border-color;
 }
@@ -22,7 +44,7 @@ $column-border-color-l: lighten($column-border-color, 5%);
   align-items: center;
   flex: 0 0 auto;
   padding: space(4);
-  background: #eff3f8;
+  background: $column-header-color;
   border-bottom: 1px solid $column-border-color-l;
 }
 
