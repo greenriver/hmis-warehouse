@@ -289,10 +289,10 @@
   right: 0;
 }
 
-@mixin scrollbar {
+@mixin scrollbar ($size: 10px) {
   &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: $size;
+    height: $size;
   }
 
   &::-webkit-scrollbar-track {

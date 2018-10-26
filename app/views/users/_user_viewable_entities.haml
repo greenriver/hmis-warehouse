@@ -1,7 +1,8 @@
 - base ||= 'user'
 
 %h3 Viewable Entities
-- can_view_all_entities = ( panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name) ).any?
+- can_view_all_entities = @user.can_edit_anything_super_user?
+- panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name)
 - can_view_all_entities_message = "The #{panopticon.to_sentence} #{'role'.pluralize panopticon.length} can view all entities."
 
 %p.alert.alert-info
@@ -32,10 +33,11 @@
           = icon('fas', 'info-circle', class: 'mr-2')
           = can_view_all_entities_message
     .c-columns{class: ('static' if can_view_all_entities)}
-      = render 'users/entity_column', entity: data_source_viewability(base), title: 'Data Sources', f: f
-      = render 'users/entity_column', entity: organization_viewability(base), title: 'Organizations', f: f
-      = render 'users/entity_column', entity: project_viewability(base), title: 'Projects', f: f
-      = render 'users/entity_column', entity: coc_viewability(base), title: 'CoC Codes', f: f
+      = render 'users/entity_column', entity: data_source_viewability(base), f: f
+      = render 'users/entity_column', entity: organization_viewability(base), f: f
+      = render 'users/entity_column', entity: project_viewability(base), associated_items: @user.coc_codes.map{|code| [code, GrdaWarehouse::Hud::Project.project_names_for_coc(code)]}, f: f
+      = render 'users/entity_column', entity: coc_viewability(base), f: f
+
       - if can_view_all_entities
         .c-columns__veil
   .tab-pane.fade#reports-cohorts

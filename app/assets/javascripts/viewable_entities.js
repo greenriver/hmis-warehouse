@@ -52,9 +52,13 @@ App.ViewableEntities = class {
         <span> <i class='fas fa-times-circle'></i></span>
       </li>
     `).join('')
-    $listContainer.html(
-      itemsMarkup ||
-      '<li class="c-columns__column-list-item font-italic">No ' + this.getEntityName($container) + ' selected.</li>')
+    const hasAssociated = $listContainer.siblings().first().children().length
+    let noDataMessage = '<li class="c-columns__column-list-item--read-only font-italic">No ' + this.getEntityName($container) + ' selected.</li>'
+    if (hasAssociated) {
+      noDataMessage = ''
+    }
+    $listContainer.html(itemsMarkup || noDataMessage)
+
   }
 
   getEntityName($column) {

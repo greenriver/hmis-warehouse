@@ -8,10 +8,11 @@ $columns-breakpoint: lg;
   flex-direction: column;
   background: $white;
   border-bottom: 1px solid $column-border-color;
-  max-height: 50vh;
   position: relative;
   overflow: auto;
+  @include scrollbar(5px);
   @include media-breakpoint-up($columns-breakpoint) {
+    max-height: 50vh;
     flex-direction: row;
   }
 }
@@ -60,7 +61,7 @@ $columns-breakpoint: lg;
 .c-columns__column-content {
   flex: 1 1 auto;
   overflow: auto;
-  @include scrollbar;
+  @include scrollbar(5px);
   &.inactive {
     opacity: .8;
   }
@@ -68,6 +69,7 @@ $columns-breakpoint: lg;
 
 .c-columns__column-title {
   margin: 0;
+  @include font-bold(16px);
 }
 
 .c-columns__column-actions {
@@ -118,6 +120,10 @@ $columns-breakpoint: lg;
 
 .c-columns__column-list {
   @include list-unstyled;
+  margin-bottom: 0;
+  &:empty {
+    display: none;
+  }
 }
 
 .c-columns__column-list-item,
@@ -129,12 +135,11 @@ $columns-breakpoint: lg;
 .c-columns__column-list-item {
   display: flex;
   cursor: pointer;
-}
 
-.c-columns__column-list-item {
   &:hover {
     background: lighten($gray-015, 2%);
     span:last-of-type {
+      transform: scale(1.5);
       color: $brand-danger;
     }
   }
@@ -145,7 +150,15 @@ $columns-breakpoint: lg;
     margin-left: auto;
     padding-left: space(3);
     color: $gray-030;
+    transition: .15s;
+    transform: scale(1);
+    transform-origin: center;
   }
+}
+
+.c-columns__column-list-item--read-only .asterisk {
+  font-size: 12px;
+  color: $gray-050;
 }
 
 .c-columns__column-list-item-title {
