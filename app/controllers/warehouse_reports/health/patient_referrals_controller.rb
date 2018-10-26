@@ -11,9 +11,20 @@ module WarehouseReports::Health
     before_action :set_referral_date
     
     def index
+      columns = {
+        id: hp_t[:id].to_sql,
+        client_id: hp_t[:client_id].to_sql,
+        first_name: hp_t[:first_name].to_sql,
+        last_name: hp_t[:last_name].to_sql,
+        effective_date: hpr_t[:effective_date].to_sql,
+        engagement_date: hp_t[:engagement_date].to_sql,
+        rejected: hpr_t[:rejected].to_sql,
+      }
       @patients = patient_source.joins(:patient_referral).
         merge(patient_referral_source.not_confirmed_rejected.referred_on(@referral_date)).
-        preload(:client)
+        pluck(*columns.values).map do |row|
+          ::OpenStruct.new(Hash[columns.keys.zip(row)])
+        end
     end
 
     def update
