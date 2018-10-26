@@ -24,7 +24,7 @@
       %span.icon-checkmark.mr-1.o-color--gray-l
     Comprehensive Health Assessment
   .patient__remaining_careplan
-    - if patient.careplans.locked.exists?
+    - if patient.careplans.fully_signed.exists?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l

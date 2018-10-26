@@ -25,6 +25,9 @@ module Health
     scope :with_patient, -> { where.not patient_id: nil }
     scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
+    scope :referred_on, -> (date) do
+      where(effective_date: [date.beginning_of_day..date.to_time.end_of_day])
+    end
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
