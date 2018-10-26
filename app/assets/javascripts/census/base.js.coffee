@@ -20,47 +20,30 @@ class App.Census.Base
     @charts
     
   _build_charts: ->
-    # Default chart options
-    Chart.defaults.global.defaultFontSize = 10
-    Chart.defaults.global.onClick = @_follow_link
-    Chart.defaults.global.hover.onHover = @_process_hover
-    Chart.defaults.global.title.position = 'top'
-    Chart.defaults.global.legend.display = true
-    Chart.defaults.global.legend.position = 'right'
-    Chart.defaults.global.tooltips.bodyFontSize = 12
-    Chart.defaults.global.tooltips.displayColors = false
-    Chart.defaults.global.elements.point.hitRadius = 2
-    Chart.defaults.global.elements.point.radius = 2
-    Chart.defaults.global.animation.onComplete = @_animation_complete
-
+    
     @_build_census()
 
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}" 
-    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div>")
-    $('.jCharts').append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='census-chart' data-project='#{census_detail_slug}'>")
-    chart_canvas = $("\##{chart_id}")
+    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}'></div>")
 
-    default_options = 
-      bezierCurve: false,
-      scales: 
-        xAxes: [
-          type: 'time',
-          time:
-            minUnit: 'day'
-            min: @start_date,
-            max: @end_date,
-        ],
-        yAxes: [
-          ticks: 
-            beginAtZero: true
-        ],
-    options = $.extend(options, default_options)
+    console.log(data, id, census_detail_slug, options)
+    x_axis = $.map data.datasets[0].data, (row) ->
+      row['x']
+    client_counts = $.map data.datasets[0].data, (row) ->
+      row['y']
+    inventory_counts = $.map data.datasets[1].data, (row) ->
+      row['y']
 
-    @charts[id] = new Chart chart_canvas, 
-      type: 'scatter',
-      data: data,
-      options: options,
+    chart = bb.generate
+      data: 
+        x: 'x'
+        columns: [['x'] + x_axis, ['clients'] + client_counts, ['inventory'] + inventory_counts]
+      bindto: "\##{chart_id}"
+      axis:
+        x:
+          type: "timeseries"
+
         
   # Override as necessary
   _follow_link: (event) =>
