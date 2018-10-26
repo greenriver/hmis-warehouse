@@ -46,6 +46,7 @@ en:
       signed_in: "You have successfully signed in."
       signed_out: ""
       already_signed_out: "Signed out successfully."
+      warn_pwned: "We have recently implemented additional account security checks.  Your password occurs in at least one publicly available password list; please change it under the Edit Account option in the menu."
     unlocks:
       send_instructions: "You will receive an email with account unlocking instructions within a few minutes."
       send_paranoid_instructions: "If your account exists, you will receive an email with instructions for how to unlock it in a few minutes."
@@ -60,3 +61,4 @@ en:
       not_saved:
         one: "1 error prohibited this %{resource} from being saved:"
         other: "%{count} errors prohibited this %{resource} from being saved:"
+      pwned_password: "this password occurs in at least one publicly available password list; please choose something else."
