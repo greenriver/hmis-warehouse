@@ -58,7 +58,7 @@
         Comprehensive Health Assessment
   %li
     - if @patient.careplans.locked.exists?
-      - careplan = @patient.careplans.locked.last
+      - careplan = @patient.careplans.fully_signed.last
       = link_to window_client_health_careplan_path(client_id: @client.id, id: careplan.id) do
         %span.icon-checkmark.o-color--positive.mr-1
         PCTP Signed
