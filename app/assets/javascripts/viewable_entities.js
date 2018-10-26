@@ -54,7 +54,7 @@ App.ViewableEntities = class {
     `).join('')
     $listContainer.html(
       itemsMarkup ||
-      '<li class="c-columns__column-list-item">No ' + this.getEntityName($container) + ' selected.</li>')
+      '<li class="c-columns__column-list-item font-italic">No ' + this.getEntityName($container) + ' selected.</li>')
   }
 
   getEntityName($column) {

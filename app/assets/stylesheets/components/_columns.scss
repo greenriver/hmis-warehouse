@@ -60,6 +60,7 @@ $columns-breakpoint: lg;
 .c-columns__column-content {
   flex: 1 1 auto;
   overflow: auto;
+  @include scrollbar;
   &.inactive {
     opacity: .8;
   }
@@ -119,9 +120,13 @@ $columns-breakpoint: lg;
   @include list-unstyled;
 }
 
-.c-columns__column-list-item {
+.c-columns__column-list-item,
+.c-columns__column-list-item--read-only {
   padding: space(3) space(4);
   border-top: 1px solid $column-border-color-l;
+}
+
+.c-columns__column-list-item {
   display: flex;
   cursor: pointer;
 }
@@ -140,5 +145,30 @@ $columns-breakpoint: lg;
     margin-left: auto;
     padding-left: space(3);
     color: $gray-030;
+  }
+}
+
+.c-columns__column-list-item-title {
+  font-weight: bold;
+  display: block;
+  margin-bottom: rem(3px);
+  width: 100%;
+}
+
+.c-columns__column-list-item-description {
+  color: $gray-060;
+  margin:0;
+}
+
+.c-columns__column-content .checkbox {
+  margin: 0;
+  label {
+    @extend .c-columns__column-list-item;
+    display: flex;
+    align-items: center;
+  }
+  input {
+    position: static;
+    margin: 0 space(2) 0 0;
   }
 }

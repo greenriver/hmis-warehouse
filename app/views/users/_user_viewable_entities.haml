@@ -11,10 +11,10 @@
   %strong "Can see clients in window for assigned data sources"
   permission
 %ul.nav.nav-tabs.mb-0
-  -# %li.nav-item.active
-  -#   %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}}
-  -#     User Roles
   %li.nav-item.active
+    %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}}
+      User Roles
+  %li.nav-item
     %a.nav-link{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}}
       Data Access Assignments
   %li.nav-item
@@ -22,9 +22,10 @@
       Reports &amp; Cohorts
 
 .tab-content
-  -# .tab-pane.active.fade.in#user-roles
-    -# = render 'users/entity_column', entity: [], title: 'User Roles'
-  .tab-pane.fade.active.in#data-access-assignments
+  .tab-pane.active.fade.in#user-roles
+    .c-columns
+      = render 'users/roles', roles: roles, f: f, user: @user
+  .tab-pane.fade.in#data-access-assignments
     - if can_view_all_entities
       .c-columns__message
         %p
