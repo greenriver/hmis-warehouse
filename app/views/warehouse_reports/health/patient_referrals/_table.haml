@@ -10,6 +10,7 @@
         %th Patient
         %th Referral Date
         %th Engagement Date
+        %th Previously Removed or Refused
         
     %tbody
       - @patients.each do |patient|
@@ -21,10 +22,11 @@
               #{patient.first_name} #{patient.last_name}
           %td= patient.effective_date.to_date
           %td= patient.engagement_date
-          
+          %td= checkmark patient.rejected
 
     %tfoot
       %tr
+        %td
         %td
         %td
         %td
