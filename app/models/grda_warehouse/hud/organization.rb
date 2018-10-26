@@ -188,6 +188,10 @@ module GrdaWarehouse::Hud
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
     end
 
+    def project_names
+      projects.order(ProjectName: :asc).pluck(:ProjectName)
+    end
+
     alias_attribute :name, :OrganizationName
 
     def self.text_search(text)

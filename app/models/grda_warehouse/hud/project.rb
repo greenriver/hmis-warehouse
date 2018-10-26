@@ -447,6 +447,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def self.project_names_for_coc coc_code
+      in_coc(coc_code: coc_code).order(ProjectName: :asc).pluck(:ProjectName)
+    end
+
     def bed_night_tracking?
       self.TrackingMethod == 3 || street_outreach_and_acts_as_bednight?
     end
