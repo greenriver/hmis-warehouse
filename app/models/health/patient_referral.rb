@@ -22,6 +22,7 @@ module Health
     scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
     scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
     scope :rejected, -> {where(rejected: true)}
+    scope :not_rejected, -> {where(rejected: false)}
     scope :with_patient, -> { where.not patient_id: nil }
     scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }

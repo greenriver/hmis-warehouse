@@ -257,7 +257,7 @@ module Health
 
     def days_to_engage
       return 0 unless engagement_date.present?
-      (engagement_date - Date.today).to_i.clamp(0, 180)
+      (engagement_date - Date.today).to_i.clamp(0, 365)
     end
 
     def chas
