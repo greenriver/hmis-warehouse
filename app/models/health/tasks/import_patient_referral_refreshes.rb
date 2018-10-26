@@ -21,6 +21,7 @@ module Health::Tasks
           remove_files()
           return
         end
+        @incoming_medicaid_ids = []
         @unprocessed.each do |file_path|
           local_path = File.join(directory, file_path)
           notify "Processing patient referral refreshes in #{local_path}"
@@ -33,11 +34,11 @@ module Health::Tasks
             row = Hash[db_headers.zip(file.row(i))]
 
             # send a note, and skip if we found anything other than a new or active referral
-            # TODO: handle deletions and inactivations
             if ! row[:record_status].in?(['A', 'N'])
               notify "Patient Referral Refresh Importer found a record that is not Active or New, please see import_patient_referrals.rb, skipping for now, value: #{row[:record_status]}"
               next
             end
+            @incoming_medicaid_ids << row[:medicaid_id]
             patient_referral = Health::PatientReferral.
               where(medicaid_id: row[:medicaid_id]).
               first_or_initialize
@@ -47,17 +48,30 @@ module Health::Tasks
             # if we have a new row or an update
             # save it
             updated_on = Date.strptime(row[:updated_on].to_s, '%Y%m%d')
-            binding.pry
             if patient_referral.updated_on.blank? || updated_on > patient_referral.updated_on
               patient_referral.assign_attributes(row)
+              # Make sure people are not marked rejected if they are appear on this list
+              # and haven't been marked as dis-enrolled
+              if patient_referral.disenrollment_date.blank?
+                patient_referral.rejected = false
+                patient_referral.rejected_reason = :Remove_Removal
+              end
               patient_referral.save!
             end
           end
           Health::PatientReferralImport.create(file_name: file_path)
         end
+        reject_any_not_included()
       end
 
       remove_files()
+    end
+
+    def reject_any_not_included
+      existing_medicaid_ids = Health::PatientReferral.not_rejected.distinct.pluck(:medicaid_id)
+      newly_rejected = existing_medicaid_ids - @incoming_medicaid_ids
+      Health::PatientReferral.not_rejected.where(medicaid_id: newly_rejected).
+        update_all(rejected: true, rejected_reason: 9) # Reported_Eligibility_Loss
     end
 
     # Are there any REFRESH_* files we have not yet processed?
