@@ -1,5 +1,5 @@
 - name = entity[:label] || entity[:placeholder]
-.c-columns__column.j-column
+.c-columns__column.j-column{data: {title: name.pluralize}}
   .c-columns__column-header
     %h3.c-columns__column-title=name
     .c-columns__column-buttons

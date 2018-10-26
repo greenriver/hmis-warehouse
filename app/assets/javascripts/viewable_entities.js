@@ -43,16 +43,22 @@ App.ViewableEntities = class {
   }
 
   renderList(items, $list) {
-    const $listContainer = $list.closest('.j-column').find('.j-list')
+    const $container = $list.closest('.j-column')
+    const $listContainer = $container.find('.j-list')
     const ids = Object.keys(items)
+    const itemsMarkup = Object.values(items).map((item, i) => `
+      <li class='c-columns__column-list-item' data-id=${ids[i]}>
+        <span>${item}</span>
+        <span> <i class='fas fa-times-circle'></i></span>
+      </li>
+    `).join('')
     $listContainer.html(
-      Object.values(items).map((item, i) => `
-        <li class='c-columns__column-list-item' data-id=${ids[i]}>
-          <span>${item}</span>
-          <span> <i class='fas fa-times-circle'></i></span>
-        </li>
-      `).join('')
-    )
+      itemsMarkup ||
+      '<li class="c-columns__column-list-item">No ' + this.getEntityName($container) + ' selected.</li>')
+  }
+
+  getEntityName($column) {
+    return $column.data('title') || ''
   }
 
   removeAll($select2, $container) {

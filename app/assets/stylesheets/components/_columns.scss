@@ -1,14 +1,19 @@
 $column-border-color: $gray-020;
 $column-border-color-l: lighten($column-border-color, 5%);
 $column-header-color: #eff3f8;
+$columns-breakpoint: lg;
 
 .c-columns {
   display: flex;
+  flex-direction: column;
   background: $white;
   border-bottom: 1px solid $column-border-color;
   max-height: 50vh;
   position: relative;
   overflow: auto;
+  @include media-breakpoint-up($columns-breakpoint) {
+    flex-direction: row;
+  }
 }
 
 .c-columns__veil {
@@ -32,11 +37,15 @@ $column-header-color: #eff3f8;
 .c-columns__column {
   display: flex;
   flex-direction: column;
-  flex: 1 1 25%;
-  width: 25%;
+  flex: 1 1 100%;
+  width: 100%;
   min-width: 250px;
   border-right: 1px solid $column-border-color;
   border-left: 1px solid $column-border-color;
+  @include media-breakpoint-up($columns-breakpoint) {
+    flex: 1 1 25%;
+    width: 25%;
+  }
 }
 
 .c-columns__column-header {
