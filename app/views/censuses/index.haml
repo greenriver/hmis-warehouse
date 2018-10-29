@@ -1,4 +1,4 @@
-= javascript_include_tag 'billboard/billboard.min.js'
+
 = stylesheet_link_tag 'billboard/billboard.min.css'
 - content_for :title, 'Nightly Census'
 %h1= content_for :title
@@ -11,6 +11,7 @@
       %p.jLoading.text-center Loading...
 
 - content_for :page_js do
+  #{javascript_include_tag 'billboard/billboard.min.js'}
   :javascript
     (function($) {
       census = new App.Census.#{@census.class.name.split('::').last}('#{date_range_censuses_path()}', '#{@census.class.name}', '#{@start_date}', '#{@end_date}');

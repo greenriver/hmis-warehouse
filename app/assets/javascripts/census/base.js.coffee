@@ -4,6 +4,7 @@ class App.Census.Base
   constructor: (@url, @type, @start_date, @end_date, @options) ->
     @data = {}
     @charts = {}
+    @chart_data = {}
     @width = @_width()
     @height = @_height()
 
@@ -25,7 +26,7 @@ class App.Census.Base
 
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}" 
-    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}'></div>")
+    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
 
     console.log(data, id, census_detail_slug, options)
     x_axis = $.map data.datasets[0].data, (row) ->
@@ -35,27 +36,45 @@ class App.Census.Base
     inventory_counts = $.map data.datasets[1].data, (row) ->
       row['y']
 
+    @chart_data[chart_id] = {}
+    @chart_data[chart_id]['census_detail_slug'] = census_detail_slug
+    @chart_data[chart_id]['yesterday_counts'] = {}
+    $.map data.datasets[0].data, (row) =>
+      @chart_data[chart_id]['yesterday_counts'][row['x']] = row['yesterday']
+
+    x_axis.unshift('x')
+    client_counts.unshift('clients')
+    inventory_counts.unshift('inventory')
+
     chart = bb.generate
       data: 
         x: 'x'
-        columns: [['x'] + x_axis, ['clients'] + client_counts, ['inventory'] + inventory_counts]
+        columns: [ x_axis, client_counts, inventory_counts]
+        onclick: @_follow_link
       bindto: "\##{chart_id}"
       axis:
         x:
           type: "timeseries"
+          tick:
+            format: "%b %e, %Y"
+        y: 
+          min: 0
+    @charts[chart_id] = chart
 
         
   # Override as necessary
-  _follow_link: (event) =>
-    chart = @charts[event.target.id.replace('census-chart-', '')]
-    project = $(event.target).data('project')
+  _follow_link: (d, element) =>
+    chart_id = $(element).closest('.jChart').attr('id')
+    chart = @charts[chart_id]
+    date = d.x.toISOString().split('T')[0]
+    yesterday = @chart_data[chart_id]['yesterday_counts'][date]
+    change = d.value - yesterday
+    project = @chart_data[chart_id]['census_detail_slug']
 
-    # If we clicked on a point, send us to the list of associated clients
-    if point = chart.getElementAtEvent(event)[0]
-      date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
-      params = {type: @type, date: date, project: project}
-      url = @url.replace('date_range', 'details') + '?' + $.param(params)
-      window.open url
+    # # If we clicked on a point, send us to the list of associated clients
+    params = {type: @type, date: date, project: project}
+    url = @url.replace('date_range', 'details') + '?' + $.param(params)
+    window.open url
 
   _process_hover: (event, item) =>
     if item.length
