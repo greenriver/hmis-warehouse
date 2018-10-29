@@ -5,7 +5,9 @@ class App.Census.CensusByProjectType extends App.Census.Base
     id = 0
     for project_type, data of @data  
       util = window.App.util.new
-      options = {}
+      options = 
+        size: 
+          height: 200
       census_detail_slug = "#{project_type}"
       @_individual_chart(data, id, census_detail_slug, options)
       id += 1

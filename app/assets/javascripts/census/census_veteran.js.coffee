@@ -10,7 +10,9 @@ class App.Census.CensusVeteran extends App.Census.Base
         if @options?.disabled_datasets?.includes data.datasets[i].label
           data.datasets[i].hidden = true
 
-      options = {}
+      options = 
+        size: 
+          height: 200
       census_detail_slug = "#{project_type}"
       @_individual_chart(data, id, census_detail_slug, options)
       id += 1
