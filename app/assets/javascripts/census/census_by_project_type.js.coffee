@@ -5,18 +5,7 @@ class App.Census.CensusByProjectType extends App.Census.Base
     id = 0
     for project_type, data of @data  
       util = window.App.util.new
-      for i of data.datasets
-        hash = window.App.util.hashCode(data.title.text)
-        color = window.App.util.intToRGB(hash + i * 200)
-        data.datasets[i].borderColor = "\##{color}"
-        data.datasets[i].backgroundColor = "transparent"
-        data.datasets[i].lineTension = 0
-        data.datasets[i].borderWidth = 1
-
-      options =
-        tooltips: 
-          callbacks: 
-            label: @_format_tooltip_label
+      options = {}
       census_detail_slug = "#{project_type}"
       @_individual_chart(data, id, census_detail_slug, options)
       id += 1

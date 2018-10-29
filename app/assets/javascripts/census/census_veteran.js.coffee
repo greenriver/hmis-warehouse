@@ -7,19 +7,10 @@ class App.Census.CensusVeteran extends App.Census.Base
       continue if @options?.excluded_datasets?.includes project_type
       util = window.App.util.new
       for i of data.datasets
-        hash = window.App.util.hashCode(data.title.text)
-        color = window.App.util.intToRGB(hash + i * 200)
-        data.datasets[i].borderColor = "\##{color}"
-        data.datasets[i].backgroundColor = "transparent"
-        data.datasets[i].lineTension = 0
-        data.datasets[i].borderWidth = 1
         if @options?.disabled_datasets?.includes data.datasets[i].label
           data.datasets[i].hidden = true
 
-      options =
-        tooltips: 
-          callbacks: 
-            label: @_format_tooltip_label
+      options = {}
       census_detail_slug = "#{project_type}"
       @_individual_chart(data, id, census_detail_slug, options)
       id += 1

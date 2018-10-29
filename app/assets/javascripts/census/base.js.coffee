@@ -52,7 +52,7 @@ class App.Census.Base
         $.map data.datasets[i].data, (row) =>
           @chart_data[chart_id][i]['yesterday_counts'][row['x']] = row['yesterday']
 
-    chart = bb.generate
+    chart_options = 
       data: 
         x: 'x'
         columns: columns
@@ -62,15 +62,21 @@ class App.Census.Base
         x:
           type: "timeseries"
           tick:
+            count: 4
             format: "%b %e, %Y"
         y: 
           min: 0
+          tick:
+            count: 4
       grid:
         y:
           show: true
       tooltip: 
           contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
             @_tooltip_contents(chart_id, d, defaultTitleFormat, defaultValueFormat, color)
+      legend:
+        position: 'right'
+    chart = bb.generate($.extend chart_options, options)
     @charts[chart_id] = chart
 
         
@@ -83,6 +89,7 @@ class App.Census.Base
     html = "<table class='#{chart.internal.CLASS.tooltip}'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
     $(d).each (i) =>
       row = d[i]
+      console.log(d, row)
       bg_color = color(row.id)
       html += "<tr class='#{chart.internal.CLASS.tooltipName}#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
       box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
