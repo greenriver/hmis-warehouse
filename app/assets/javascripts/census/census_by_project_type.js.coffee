@@ -21,34 +21,14 @@ class App.Census.CensusByProjectType extends App.Census.Base
       @_individual_chart(data, id, census_detail_slug, options)
       id += 1
 
-  _follow_link: (event) =>
-    chart = @charts[event.target.id.replace('census-chart-', '')]
-    project = $(event.target).data('project')
+  _follow_link: (d, element) =>
+    chart_id = $(element).closest('.jChart').attr('id')
+    date = d.x.toISOString().split('T')[0]
+    project = @chart_data[chart_id]['census_detail_slug']
 
-    # If we clicked on a point, send us to the list of associated clients
-    if point = chart.getElementAtEvent(event)[0]
-      date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
-      params = {type: @type, date: date, project_type: project}
-      url = @url.replace('date_range', 'details') + '?' + $.param(params)
-      window.open url
+    # # If we clicked on a point, send us to the list of associated clients
+    params = {type: @type, date: date, project_type: project}
+    url = @url.replace('date_range', 'details') + '?' + $.param(params)
+    window.open url
  
-  _format_tooltip_label: (tool_tip, data) =>
-    return unless tool_tip
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    yesterday_count = data['datasets'][tool_tip.datasetIndex]['data'][tool_tip.index]['yesterday']
-    change_count = tool_tip.yLabel - yesterday_count
-    change_percent = (change_count / tool_tip.yLabel * 100).toFixed(2)
-    if tool_tip.datasetIndex == 0
-      tool_tip.label = [
-        date_string,
-        "Client count: #{tool_tip.yLabel}",
-        "Change from previous day: #{change_count} (#{change_percent}%)"
-      ]
-    else
-      tool_tip.label = [
-        date_string,
-        "Bed inventory: #{tool_tip.yLabel}"
-      ]
-
     

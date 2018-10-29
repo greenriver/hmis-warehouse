@@ -15,11 +15,12 @@ class App.Census.CombinedProjectType extends App.Census.Base
       'star',
       'triangle',
     ]
+    # console.log @data
     for group, data of @data
       continue if @options?.excluded_datasets?.includes(group)
       util = window.App.util.new
+      # console.log group, data
       for i of data.datasets
-        console.log data
         hash = window.App.util.hashCode(data.title.text)
         color = window.App.util.intToRGB(hash + (i+ 1) * 200)
         data.datasets[i].borderColor ?= "\##{color}"
@@ -42,18 +43,5 @@ class App.Census.CombinedProjectType extends App.Census.Base
   _follow_link: (event) =>
     return
     
-  _format_tooltip_label: (tool_tip, data) =>
-    return unless tool_tip
-    chart = @charts[event.target.id.replace('census-chart-', '')]
-    dataset_index = tool_tip.datasetIndex
-    dataset_label = chart.config.data.datasets[dataset_index].label
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    tool_tip.label = [
-      dataset_label,
-      date_string,
-      "Client count: #{tool_tip.yLabel}",
-    ]
-  
   _height: ->
     150

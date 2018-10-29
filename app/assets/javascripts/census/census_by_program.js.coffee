@@ -23,22 +23,3 @@ class App.Census.CensusByProgram extends App.Census.Base
           census_detail_slug = "#{data_source}-#{organization}-#{project}"
           @_individual_chart(data, id, census_detail_slug, options)
           id += 1        
-       
-  _format_tooltip_label: (tool_tip, data) =>
-    return unless tool_tip
-    d = new Date(tool_tip.xLabel)
-    date_string = new Date((d.getTime() + (d.getTimezoneOffset() * 60000))).toDateString()
-    yesterday_count = data['datasets'][tool_tip.datasetIndex]['data'][tool_tip.index]['yesterday']
-    change_count = tool_tip.yLabel - yesterday_count
-    change_percent = (change_count / tool_tip.yLabel * 100).toFixed(2)
-    if tool_tip.datasetIndex == 0
-      tool_tip.label = [
-        date_string,
-        "Client count: #{tool_tip.yLabel}",
-        "Change from previous day: #{change_count} (#{change_percent}%)"
-      ]
-    else
-      tool_tip.label = [
-        date_string,
-        "Bed inventory: #{tool_tip.yLabel}"
-      ]

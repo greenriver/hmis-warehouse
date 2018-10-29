@@ -19,5 +19,7 @@
 
 - if @show_census
   = render 'census'
-
+= content_for :page_js do
+  #{javascript_include_tag 'billboard/billboard.min.js'}
+  #{javascript_include_tag 'moment.min.js'}
 = render 'index_js'

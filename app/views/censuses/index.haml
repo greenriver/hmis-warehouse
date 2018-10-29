@@ -12,6 +12,7 @@
 
 - content_for :page_js do
   #{javascript_include_tag 'billboard/billboard.min.js'}
+  #{javascript_include_tag 'moment.min.js'}
   :javascript
     (function($) {
       census = new App.Census.#{@census.class.name.split('::').last}('#{date_range_censuses_path()}', '#{@census.class.name}', '#{@start_date}', '#{@end_date}');
