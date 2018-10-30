@@ -31,7 +31,7 @@ RSpec.describe AccountsController, type: :controller do
         patch :update, user: { first_name: 'Joe', email: 'info@greenriver.com' }
       end
       it 'does not update' do
-        expect( User.first.first_name ).to_not eq 'Joe'
+        expect( User.not_system.first.first_name ).to_not eq 'Joe'
       end
       it 'has an error' do
         expect( assigns(:user).errors.count ).to eq 1
@@ -56,14 +56,14 @@ RSpec.describe AccountsController, type: :controller do
         patch :update, user: changes
       end
       it 'updates first_name' do
-        expect( User.first.first_name ).to eq changes[:first_name]
+        expect( User.not_system.first.first_name ).to eq changes[:first_name]
       end
       it 'updates last_name' do
-        expect( User.first.last_name ).to eq changes[:last_name]
+        expect( User.not_system.first.last_name ).to eq changes[:last_name]
       end
       it 'updates email' do
         assigns(:user).confirm
-        expect( User.first.email ).to eq changes[:email]
+        expect( User.not_system.first.email ).to eq changes[:email]
       end
       it 'sends an email confirmation email' do
         expect( email.to ).to eq [changes[:email]]

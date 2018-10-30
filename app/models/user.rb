@@ -29,6 +29,7 @@ class User < ActiveRecord::Base
   end
   scope :active, -> {where active: true}
   scope :inactive, -> {where active: false}
+  scope :not_system, -> { where.not(first_name: 'System') }
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
