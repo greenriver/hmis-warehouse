@@ -90,13 +90,21 @@ module Censuses
           trend_data = [
             {
               x: dates.first[:x],
-              y: predicted_ys.first,
-            },
-            {
-              x: dates.last[:x],
-              y: predicted_ys.last,
+              y: predicted_ys.first&.round,
             },
           ]
+
+          trend_data += y[1..-2].each_with_index.map do |date, i| 
+            {
+              x: date, 
+              y: (predicted_ys.first + i * slope).round
+            }
+          end
+          trend_data << {
+            x: dates.last[:x],
+            y: predicted_ys.last&.round,
+          }
+          
           trend_label = "#{titles[label]} trend"
           data[:datasets] << {
             label: trend_label,
