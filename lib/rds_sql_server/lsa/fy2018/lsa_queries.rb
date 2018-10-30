@@ -654,14 +654,14 @@ module LsaSqlServer
 
         insert into ch_Episodes (PersonalID, episodeStart, episodeEnd)
         select distinct s.PersonalID, s.chDate, min(e.chDate)
-        from ch_Time s
+        from ch_Time s 
         --CHANGE 10/24/2018 'e.chDate > s.chDate' to >= for one day episodes
         inner join ch_Time e on e.PersonalID = s.PersonalID  and e.chDate >= s.chDate
         where s.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, -1, s.chDate))
           and e.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, 1, e.chDate))
         group by s.PersonalID, s.chDate
 
-        update chep
+        update chep 
         set episodeDays = datediff(dd, chep.episodeStart, chep.episodeEnd) + 1
         from ch_Episodes chep
 
@@ -718,24 +718,26 @@ module LsaSqlServer
         4.19 Update Selected CHTime and CHTimeStatus Values
         **********************************************************************/
         --Anyone not CH based on system use data + 3.917 date ranges
-        --will be counted as chronically homeless if an *active* enrollment shows
+        --will be counted as chronically homeless if any enrollment where 
+        --EntryDate is in the year ending on LastActive shows
         --12 or more ESSHSTreet months and 4 or more times homeless
         --(and DisabilityStatus = 1)
-        update lp
+
+        update lp 
         set CHTime = 400
           , CHTimeStatus = 2
         from tmp_Person lp
-        inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-        inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-          and hn.MonthsHomelessPastThreeYears in (112,113)
+        inner join ch_Enrollment cn on cn.PersonalID = lp.PersonalID
+        inner join hmis_Enrollment hn on hn.EnrollmentID = cn.EnrollmentID
+          and hn.MonthsHomelessPastThreeYears in (112,113) 
           and hn.TimesHomelessPastThreeYears = 4
           and hn.EntryDate >= dateadd(dd, -364, lp.LastActive)
-        where
+        where 
           (HoHAdult > 0 and CHTime is null) or CHTime <> 365 or chTimeStatus = 3
 
-        --Anyone who doesn't meet CH time criteria and is missing data in 3.917
+        --Anyone who doesn't meet CH time criteria and is missing data in 3.917 
         --for an active enrollment should be identified as missing data.
-        update lp
+        update lp 
         set CHTime = coalesce(lp.CHTime, 0)
           , CHTimeStatus = 99
         from tmp_Person lp
@@ -744,24 +746,24 @@ module LsaSqlServer
           and ((hn.DateToStreetESSH > hn.EntryDate)
             or (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null)
             or (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null)
-            or (an.ProjectType in (1,8) and (hn.DateToStreetESSH is null))
-            or (hn.MonthsHomelessPastThreeYears in (8,9,99))
-            or (hn.MonthsHomelessPastThreeYears is null)
-            or (hn.TimesHomelessPastThreeYears in (8,9,99))
+            or (an.ProjectType in (1,8) and (hn.DateToStreetESSH is null)) 
+            or (hn.MonthsHomelessPastThreeYears in (8,9,99)) 
+            or (hn.MonthsHomelessPastThreeYears is null) 
+            or (hn.TimesHomelessPastThreeYears in (8,9,99))  
             or (hn.TimesHomelessPastThreeYears is null)
             or (hn.LivingSituation in (1,16,18) and hn.DateToStreetESSH is null)
             or (hn.LengthOfStay in (10,11) and ((hn.PreviousStreetESSH is null)
                 or (hn.PreviousStreetESSH = 1 and hn.DateToStreetESSH is null)))
-            or (hn.LivingSituation in (4,5,6,7,15,24)
+            or (hn.LivingSituation in (4,5,6,7,15,24) 
                 and hn.LengthOfStay in (2,3)
                 and ((hn.PreviousStreetESSH is NULL)
-                  or (hn.PreviousStreetESSH = 1
+                  or (hn.PreviousStreetESSH = 1 
                     and hn.DateToStreetESSH is null))))
         --CHANGE 10/24/2018 - align WHERE clause to specs (no change in output)
         where (CHTime in (1,270) or CHTimeStatus = 3)
           and HoHAdult > 0
 
-        update tmp_Person
+        update tmp_Person 
         set CHTime = 0, CHTimeStatus = -1
         where HoHAdult > 0 and CHTime is null
 
@@ -1044,17 +1046,17 @@ module LsaSqlServer
         4.23 Set tmp_Person Population Identifiers from Active Households
         **********************************************************************/
         update lp
-        --CHANGE 10/23/2018 - correction to pull HHAdultAge from active_Household
-        -- and not from active_Enrollment (github issue #23).
+          --CHANGE 10/23/2018 - correction to pull HHAdultAge from active_Household
+          -- and not from active_Enrollment (github issue #23).
         set lp.HHAdultAge = coalesce((select case when min(hh.HHAdultAge) between 18 and 24
               then min(hh.HHAdultAge) 
             else max(hh.HHAdultAge) end
-            from active_Enrollment n
+            from active_Enrollment n 
             inner join active_Household hh on hh.HouseholdID = n.HouseholdID
               and ((hh.HHType = 1 and hh.HHAdultAge between 18 and 55) 
                 or (hh.HHType = 2 and hh.HHAdultAge between 18 and 24))
             where n.PersonalID = lp.PersonalID), -1)
-           , lp.AC3Plus = (select max(hhid.AC3Plus)
+           , lp.AC3Plus = (select max(hhid.AC3Plus) 
             from active_Household hhid
             inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
             where n.PersonalID = lp.PersonalID)
@@ -1079,13 +1081,13 @@ module LsaSqlServer
                 case when hhid.HHChronic = 0 then 0
                   when hhid.HHType = 1 then 100
                   when hhid.HHType = 2 then 20
-                  when hhid.HHType = 3 then 3
+                  when hhid.HHType = 3 then 3 
                   else 0 end))
               from active_Household hhid
               inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
               where n.PersonalID = lp.PersonalID)
             , HHVet = (select convert(varchar(3),sum(distinct
-                case when hhid.HHVet = 0 then 0
+                case when hhid.HHVet = 0 then 0 
                   when hhid.HHType = 1 then 100
                   when hhid.HHType = 2 then 20
                   else 0 end))
@@ -1096,7 +1098,7 @@ module LsaSqlServer
                 case when hhid.HHDisability = 0 then 0
                   when hhid.HHType = 1 then 100
                   when hhid.HHType = 2 then 20
-                  when hhid.HHType = 3 then 3
+                  when hhid.HHType = 3 then 3 
                   else 0 end))
               from active_Household hhid
               inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1106,7 +1108,7 @@ module LsaSqlServer
                   when hhid.HHType = 1 then 100
                   --CHANGE 9/28/2018 delete HHAdultAge in (18,24) and move to HHParent where it belongs
                   when hhid.HHType = 2 then 20
-                  when hhid.HHType = 3 then 3
+                  when hhid.HHType = 3 then 3 
                   else 0 end))
               from active_Household hhid
               inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1115,7 +1117,7 @@ module LsaSqlServer
                 case when hhid.HHParent = 0 then 0
                   --CHANGE 9/28/2018 - add HHAdultAge in (18,24)
                   when hhid.HHType = 2 and hhid.HHAdultAge in (18,24) then 20
-                  when hhid.HHType = 3 then 3
+                  when hhid.HHType = 3 then 3 
                   else 0 end))
               from active_Household hhid
               inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1526,7 +1528,6 @@ module LsaSqlServer
         /*************************************************************************
         4.28.d Set tmp_Household Destination for Each Project Group
         **********************************************************************/
-
         --CHANGE 10/23/2018 - populate EST/RRH/PSHDestination based on most recent EXIT  
         -- from project group (and NOT exit for enrollment with most recent entry date)  
         update lhh
@@ -1631,7 +1632,8 @@ module LsaSqlServer
           and hn.EnrollmentID in 
             (select top 1 an.EnrollmentID 
              from active_Enrollment an
-             where an.ProjectType = 13
+             --CHANGE 10/24/2018 correct project type to 3 (was 13)
+             where an.ProjectType = 3
               and an.PersonalID = lhh.HoHID
               and an.RelationshipToHoH = 1
               and an.HHType = lhh.HHType
@@ -1806,6 +1808,9 @@ module LsaSqlServer
       SqlServerBase.connection.execute (<<~SQL);
         /*****************************************************************
         4.32 Get Enrollments Relevant to Last Inactive Date and Other System Use Days
+
+        NOTE 10/5/2018 - The INSERT includes both active and potentially relevant
+             inactive enrollments.
         *****************************************************************/
         delete from sys_Enrollment
 
@@ -4240,174 +4245,174 @@ module LsaSqlServer
         4.69 Set LSAReport Data Quality Values for Report Period
         **********************************************************************/
         update rpt 
-        set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            where lp.ReportID = rpt.ReportID)
-        , UnduplicatedAdult1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            where lp.ReportID = rpt.ReportID
-              and lp.Age between 18 and 65)
-        , AdultHoHEntry1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65))
-        , ClientEntry1 = (select count(distinct n.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID)
-        , ClientExit1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and an.ExitDate is not null)
-        , Household1 = (select count(distinct an.HouseholdID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID)
-        , HoHPermToPH1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            inner join hmis_Exit x on x.EnrollmentID = an.EnrollmentID 
-            where lp.ReportID = rpt.ReportID
-              and an.RelationshipToHoH = 1
-              and an.ProjectType in (3,13)
-              and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) )
-        , DOB1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and an.AgeGroup in (98,99))
-        , Gender1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and (c.Gender not in (0,1,2,3,4) or c.Gender is null))
-        , Race1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0) 
-                + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0) 
-                + coalesce(c.White,0) = 0
-                or c.RaceNone in (8,9,99)))
-        , Ethnicity1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and (c.Ethnicity not in (0,1) or c.Ethnicity is null))
-        , VetStatus1 = (select count(distinct lp.PersonalID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-              and an.AgeGroup between 18 and 65
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
-        , RelationshipToHoH1 = (select count(distinct n.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-            where lp.ReportID = rpt.ReportID
-              --CHANGE 9/28/2018 add parentheses 
-              and (n.RelationshipToHoH not in (1,2,3,4,5) 
-                or n.RelationshipToHoH is null))
-        , DisablingCond1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
-        , LivingSituation1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
-        , LengthOfStay1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and an.RelationshipToHoH = 1 
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              -- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay
-              and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
-        , HomelessDate1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              and ( 
-                (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null) 
-                or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11) 
-                    and hn.DateToStreetESSH is null)
-                or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
-                  and hn.LivingSituation in (4,5,6,7,15,24) 
-                  and hn.DateToStreetESSH is null))
-                )
-        , TimesHomeless1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              and (hn.TimesHomelessPastThreeYears not between 1 and 4  
-                or hn.TimesHomelessPastThreeYears is null))
-        , MonthsHomeless1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
-              or hn.MonthsHomelessPastThreeYears is null))
-        , DV1 = (select count(distinct an.EnrollmentID)
-            from tmp_Person lp
-            inner join hmis_Client c on c.PersonalID = lp.PersonalID
-            inner join active_Enrollment an on an.PersonalID = c.PersonalID
-            left outer join hmis_HealthAndDV dv on dv.EnrollmentID = an.EnrollmentID
-              and dv.DataCollectionStage = 1
-            where lp.ReportID = rpt.ReportID
-              and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-              and (dv.DomesticViolenceVictim not in (0,1)
-                  or dv.DomesticViolenceVictim is null
-                  or (dv.DomesticViolenceVictim = 1 and 
-                    (dv.CurrentlyFleeing not in (0,1) 
-                      or dv.CurrentlyFleeing is null))))
-        , Destination1 = (select count(distinct n.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-            inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-            where lp.ReportID = rpt.ReportID
-              and n.ExitDate is not null
-              and (x.Destination in (8,9,17,30,99) or x.Destination is null))
-        , NotOneHoH1 = (select count(distinct ah.HouseholdID)
-            from active_Household ah
-            left outer join (select an.HouseholdID
-                , count(distinct hn.PersonalID) as hoh
-              from active_Enrollment an 
+          set UnduplicatedClient1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              where lp.ReportID = rpt.ReportID)
+          , UnduplicatedAdult1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              where lp.ReportID = rpt.ReportID
+                and lp.Age between 18 and 65)
+          , AdultHoHEntry1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65))
+          , ClientEntry1 = (select count(distinct n.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID)
+          , ClientExit1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and an.ExitDate is not null)
+          , Household1 = (select count(distinct an.HouseholdID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID)
+          , HoHPermToPH1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              inner join hmis_Exit x on x.EnrollmentID = an.EnrollmentID 
+              where lp.ReportID = rpt.ReportID
+                and an.RelationshipToHoH = 1
+                and an.ProjectType in (3,13)
+                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) )
+          , DOB1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and an.AgeGroup in (98,99))
+          , Gender1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and (c.Gender not in (0,1,2,3,4) or c.Gender is null))
+          , Race1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and (coalesce(c.AmIndAKNative,0) + coalesce(c.Asian,0) 
+                  + coalesce(c.BlackAfAmerican,0) + coalesce(c.NativeHIOtherPacific,0) 
+                  + coalesce(c.White,0) = 0
+                  or c.RaceNone in (8,9,99)))
+          , Ethnicity1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and (c.Ethnicity not in (0,1) or c.Ethnicity is null))
+          , VetStatus1 = (select count(distinct lp.PersonalID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+                and an.AgeGroup between 18 and 65
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
+          , RelationshipToHoH1 = (select count(distinct n.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+              where lp.ReportID = rpt.ReportID
+                --CHANGE 9/28/2018 add parentheses 
+                and (n.RelationshipToHoH not in (1,2,3,4,5) 
+                  or n.RelationshipToHoH is null))
+          , DisablingCond1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
               inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
-                and hn.RelationshipToHoH = 1
-              group by an.HouseholdID
-              ) hoh on hoh.HouseholdID = ah.HouseholdID
-            where hoh.hoh <> 1 or hoh.HouseholdID is null)
-        , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
-            from tmp_Person lp
-            inner join active_Enrollment n on n.PersonalID = lp.PersonalID
-            inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-            where lp.ReportID = rpt.ReportID
-              and n.RelationshipToHoH = 1
-              and n.ProjectType in (3,13)
-              and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) 
-              and n.MoveInDate is null), 0)
-      from lsa_Report rpt
+              where lp.ReportID = rpt.ReportID
+                and (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
+          , LivingSituation1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
+          , LengthOfStay1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              where lp.ReportID = rpt.ReportID
+                and an.RelationshipToHoH = 1 
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                -- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay
+                and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
+          , HomelessDate1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                and ( 
+                  (hn.LivingSituation in (1,16,18,27) and hn.DateToStreetESSH is null) 
+                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11) 
+                      and hn.DateToStreetESSH is null)
+                  or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+                    and hn.LivingSituation in (4,5,6,7,15,24) 
+                    and hn.DateToStreetESSH is null))
+                  )
+          , TimesHomeless1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                and (hn.TimesHomelessPastThreeYears not between 1 and 4  
+                  or hn.TimesHomelessPastThreeYears is null))
+          , MonthsHomeless1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                and (hn.MonthsHomelessPastThreeYears not between 101 and 113 
+                or hn.MonthsHomelessPastThreeYears is null))
+          , DV1 = (select count(distinct an.EnrollmentID)
+              from tmp_Person lp
+              inner join hmis_Client c on c.PersonalID = lp.PersonalID
+              inner join active_Enrollment an on an.PersonalID = c.PersonalID
+              left outer join hmis_HealthAndDV dv on dv.EnrollmentID = an.EnrollmentID
+                and dv.DataCollectionStage = 1
+              where lp.ReportID = rpt.ReportID
+                and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
+                and (dv.DomesticViolenceVictim not in (0,1)
+                    or dv.DomesticViolenceVictim is null
+                    or (dv.DomesticViolenceVictim = 1 and 
+                      (dv.CurrentlyFleeing not in (0,1) 
+                        or dv.CurrentlyFleeing is null))))
+          , Destination1 = (select count(distinct n.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
+              where lp.ReportID = rpt.ReportID
+                and n.ExitDate is not null
+                and (x.Destination in (8,9,17,30,99) or x.Destination is null))
+          , NotOneHoH1 = (select count(distinct ah.HouseholdID)
+              from active_Household ah
+              left outer join (select an.HouseholdID
+                  , count(distinct hn.PersonalID) as hoh
+                from active_Enrollment an 
+                inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+                  and hn.RelationshipToHoH = 1
+                group by an.HouseholdID
+                ) hoh on hoh.HouseholdID = ah.HouseholdID
+              where hoh.hoh <> 1 or hoh.HouseholdID is null)
+          , MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
+              from tmp_Person lp
+              inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+              inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
+              where lp.ReportID = rpt.ReportID
+                and n.RelationshipToHoH = 1
+                and n.ProjectType in (3,13)
+                and x.Destination in (3,31,19,20,21,26,28,10,11,22,23) 
+                and n.MoveInDate is null), 0)
+        from lsa_Report rpt
 
       SQL
     end
@@ -4977,6 +4982,7 @@ module LsaSqlServer
             else ReturnTime end
           , HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
           , HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
+
 
       SQL
     end

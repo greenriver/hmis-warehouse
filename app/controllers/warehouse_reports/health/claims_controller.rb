@@ -19,6 +19,7 @@ module WarehouseReports::Health
         @unpayable = {}
         @duplicate = {}
         @report.qualifying_activities.joins(:patient).
+          preload(:patient).
           order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
           each do |qa|
           # Bucket results
@@ -54,6 +55,7 @@ module WarehouseReports::Health
       @unpayable = {}
       @duplicate = {}
       @report.qualifying_activities.joins(:patient).
+        preload(:patient).
         order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
         each do |qa|
         # Bucket results
