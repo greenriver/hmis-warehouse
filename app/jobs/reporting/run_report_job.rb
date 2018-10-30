@@ -36,6 +36,7 @@ module Reporting
     def error(job, exception)
       result =  ReportResult.find(YAML.load(job.handler).result_id.to_i)
       result.update(job_status: "Failed: #{exception.message}")
+      super(job, exception)
     end
   end
 end

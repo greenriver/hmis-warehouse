@@ -451,6 +451,11 @@ module Health
       qualifying_activities.not_valid_unpayable.in_range(date..Date.tomorrow)
     end
 
+    # This does not return a scope
+    def valid_qualified_activities_since date: 1.months.ago
+      qualified_activities_since(date: date).to_a.select(&:procedure_valid?)
+    end
+
     def import_epic_team_members
       # I think this updates this for changes made here PT story #158636393
       potential_team = epic_team_members.unprocessed.to_a

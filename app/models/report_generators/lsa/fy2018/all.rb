@@ -347,14 +347,24 @@ module ReportGenerators::Lsa::Fy2018
         rep = LsaSqlServer::LSAQueries.new
         rep.project_ids = @project_ids
       end
+
+      # some setup
+      rep.clear
+      rep.insert_projects
+
+      # error early if we can't find a particular query
+      # This would indicate there has been a change to the sample code
+      rep.validate_file
+
+      # loop through the LSA queries
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
       step_percent = 60.0 / rep.steps.count
-      rep.steps.each_with_index do |meth, i|
+      rep.steps.each_with_index do |step, i|
         percent = 30 + i * step_percent
         update_report_progress percent: percent.round(2)
-        rep.public_send(meth)
-        log_and_ping("LSA Query #{meth} complete")
+        rep.run_query(step)
+        log_and_ping("LSA Query #{step} complete")
       end
     end
 

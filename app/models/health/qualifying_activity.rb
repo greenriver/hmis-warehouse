@@ -344,6 +344,7 @@ module Health
       return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
       procedure_code = self.procedure_code
       modifiers = self.modifiers
+      reached_client = self.reached_client
       # Some special cases
       return false if modifiers.include?('U2') && modifiers.include?('U3')
       return false if modifiers.include?('U1') && modifiers.include?('HQ')
@@ -359,6 +360,10 @@ module Health
       else
         procedure_code = procedure_code&.to_sym
       end
+
+      if reached_client.to_s == 'no'
+        return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
+      end
       return false if procedure_code.blank?
       return true if modifiers.empty?
 
@@ -370,7 +375,7 @@ module Health
     def meets_date_restrictions?
       return true unless restricted_procedure_codes.include? procedure_code
       if in_first_three_months_procedure_codes.include? procedure_code
-        return occurred_prior_to_engagement_date
+        return occurred_within_three_months_of_enrollment
       end
       return true
     end
@@ -444,8 +449,8 @@ module Health
       same_of_type_for_day_for_patient.submitted.exists?
     end
 
-    def occurred_prior_to_engagement_date
-      date_of_activity.present? && patient&.engagement_date.present? && date_of_activity <= patient.engagement_date
+    def occurred_within_three_months_of_enrollment
+      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.effective_date + 3.months)
     end
 
     def once_per_day_procedure_codes
