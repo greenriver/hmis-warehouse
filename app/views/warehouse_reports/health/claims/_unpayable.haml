@@ -4,7 +4,7 @@
     - sample_qa = qas.first
     .c-card.c-card--padded.c-card--flex
       .c-card__content
-        .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client.id)
+        .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client_id)
         .c-card__description
           %table.table.table-condensed.table-striped.table-hover
             %thead
