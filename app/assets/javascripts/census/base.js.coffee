@@ -4,6 +4,7 @@ class App.Census.Base
   constructor: (@url, @type, @start_date, @end_date, @options) ->
     @data = {}
     @charts = {}
+    @chart_data = {}
     @width = @_width()
     @height = @_height()
 
@@ -20,59 +21,133 @@ class App.Census.Base
     @charts
     
   _build_charts: ->
-    # Default chart options
-    Chart.defaults.global.defaultFontSize = 10
-    Chart.defaults.global.onClick = @_follow_link
-    Chart.defaults.global.hover.onHover = @_process_hover
-    Chart.defaults.global.title.position = 'top'
-    Chart.defaults.global.legend.display = true
-    Chart.defaults.global.legend.position = 'right'
-    Chart.defaults.global.tooltips.bodyFontSize = 12
-    Chart.defaults.global.tooltips.displayColors = false
-    Chart.defaults.global.elements.point.hitRadius = 2
-    Chart.defaults.global.elements.point.radius = 2
-    Chart.defaults.global.animation.onComplete = @_animation_complete
-
+    
     @_build_census()
 
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}" 
-    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div>")
-    $('.jCharts').append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='census-chart' data-project='#{census_detail_slug}'>")
-    chart_canvas = $("\##{chart_id}")
+    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
 
-    default_options = 
-      bezierCurve: false,
-      scales: 
-        xAxes: [
-          type: 'time',
-          time:
-            minUnit: 'day'
-            min: @start_date,
-            max: @end_date,
-        ],
-        yAxes: [
-          ticks: 
-            beginAtZero: true
-        ],
-    options = $.extend(options, default_options)
+    # console.log(data, id, census_detail_slug, options)
 
-    @charts[id] = new Chart chart_canvas, 
-      type: 'scatter',
-      data: data,
-      options: options,
+    @chart_data[chart_id] = {}
+    @chart_data[chart_id]['title'] = data.title.text
+    @chart_data[chart_id]['census_detail_slug'] = census_detail_slug
+    
+    columns = []
+
+    x_axis = $.map data.datasets[0].data, (row) ->
+      row['x']
+    x_axis.unshift('x')
+    columns.push(x_axis)
+    max_value = 0
+    $(data.datasets).each (i) => 
+      @chart_data[chart_id][i] = {}
+      column = $.map data.datasets[i].data, (row) ->
+        max_value = row['y'] if row['y'] > max_value
+        row['y']
+      column.unshift(data.datasets[i].label)
+      columns.push(column)
+      if data.datasets[i].data[0].yesterday?
+        @chart_data[chart_id][i]['yesterday_counts'] = {}
+        $.map data.datasets[i].data, (row) =>
+          @chart_data[chart_id][i]['yesterday_counts'][row['x']] = row['yesterday']
+    if max_value > 100
+      max_value = Math.ceil(max_value/100)*100
+    else
+      max_value = Math.ceil(max_value/10)*10
+    if max_value % 4 == 0
+      first_line = Math.round(max_value/4)
+      second_line = first_line * 2
+      third_line = first_line * 3
+      tick_values = [0, first_line, second_line, third_line, max_value]
+    else
+      first_line = Math.round(max_value/2)
+      tick_values = [0, first_line, max_value]
+
+    chart_options = 
+      data: 
+        x: 'x'
+        columns: columns
+        onclick: @_follow_link
+      bindto: "\##{chart_id}"
+      axis:
+        x:
+          type: "timeseries"
+          tick:
+            count: 10
+            format: "%b %e, %Y"
+        y: 
+          min: 0
+          max: max_value
+          tick:
+            values: tick_values
+            format: (x) ->
+              Math.round(x)
+     
+      grid:
+        y:
+          show: true
+      tooltip: 
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
+          @_tooltip_contents(chart_id, d, defaultTitleFormat, defaultValueFormat, color)
+      legend:
+        position: 'right'
+    chart = bb.generate($.extend chart_options, options)
+    @charts[chart_id] = chart
+
         
-  # Override as necessary
-  _follow_link: (event) =>
-    chart = @charts[event.target.id.replace('census-chart-', '')]
-    project = $(event.target).data('project')
+  _tooltip_contents: (chart_id, d, defaultTitleFormat, defaultValueFormat, color) =>
+    # Somewhat reverse engineered from here: 
+    # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
+    chart = @charts[chart_id]
+    date = d[0].x.toISOString().split('T')[0]
+    tooltip_title = moment(date).format('ll')
+    html = "<table class='#{chart.internal.CLASS.tooltip}'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
+    $(d).each (i) =>
+      row = d[i]
 
-    # If we clicked on a point, send us to the list of associated clients
-    if point = chart.getElementAtEvent(event)[0]
-      date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
-      params = {type: @type, date: date, project: project}
-      url = @url.replace('date_range', 'details') + '?' + $.param(params)
-      window.open url
+      if row?
+        bg_color = color(row.id)
+        html += "<tr class='#{chart.internal.CLASS.tooltipName}#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
+        box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
+        value = "<td>#{row.value}</td>"
+        html += box
+        html += value
+        if @chart_data[chart_id][i]['yesterday_counts']?
+          yesterday = @chart_data[chart_id][i]['yesterday_counts'][date]
+          change = row.value - yesterday
+          # html += '<tr>'
+          if change > 0
+            bg_color = '#006600'
+            polygon = "<path d='M 5,0.5 9.5,9.75 0.5,9.75 z' style='fill:#{bg_color}; stroke:#{bg_color}' />"
+          else if change == 0
+            bg_color = '#000000'
+            polygon = "<rect width='10' height='10' style='fill:#{bg_color}' ></polygon>"
+          else
+            bg_color = '#990000'
+            polygon = "<path d='M 0.5,0.5 9.75,0.5 5,9.75 z' style='fill:#{bg_color}; stroke:#{bg_color}' />"
+          box = "<td class='name'><svg>#{polygon}</svg>change</td>"
+          value = "<td>#{change}</td></tr>"
+          html += box
+          html += value
+        # html += '</tr>'
+        else
+          html += '<td></td><td></td>'
+
+    html += '</table>'
+    html
+
+  # Override as necessary
+  _follow_link: (d, element) =>
+    chart_id = $(element).closest('.jChart').attr('id')
+    date = d.x.toISOString().split('T')[0]
+    project = @chart_data[chart_id]['census_detail_slug']
+
+    # # If we clicked on a point, send us to the list of associated clients
+    params = {type: @type, date: date, project: project}
+    url = @url.replace('date_range', 'details') + '?' + $.param(params)
+    window.open url
 
   _process_hover: (event, item) =>
     if item.length
