@@ -12,15 +12,19 @@
         %thead
           %tr
             %th Date
-            %th Item
+            %th Editor
             %th Changes
         %tbody
           - @versions.each do |version|
             - changes = describe_changes_to version
+            - editor = name_of_whodunnit version
             - if changes.present?
               %tr
                 %td= version.created_at
-                %td= name_of_item_for version
-                %td= "Changed #{changes}"
+                %td= editor
+                %td
+                  - changes.each do |change|
+                    = change
+                    %br
 
 %p= paginate @versions
