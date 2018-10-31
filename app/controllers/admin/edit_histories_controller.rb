@@ -3,9 +3,6 @@ module Admin
     before_action :require_can_audit_users! #TODO other parts?
     before_action :set_user
 
-    helper_method :name_of_whodunnit
-    helper_method :describe_changes_to
-
     WHITELIST = %w{first_name last_name email phone agency receive_file_upload_notifications
       notify_of_vispdat_completed notify_on_anomaly_identified}
 
@@ -22,11 +19,14 @@ module Admin
         User.find(who).name
       end
     end
+    helper_method :name_of_whodunnit
 
+    # TODO: eventually, this should be moved to the appropriate models
     def describe_changes_to(version)
       item_type = version.item_type
       results = []
       if item_type == 'GrdaWarehouse::UserViewableEntity'
+        # GrdaWarehouse::UserViewableEntity these only get created or deleted
         if version.event == 'create'
           changes = get_changes_to(version)
           results << "Added #{version.referenced_entity_name} to #{humanize_entity_type_name(changes[:entity_type].last)}."
@@ -35,6 +35,7 @@ module Admin
           results << "Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}."
         end
       elsif item_type == 'UserRole'
+        # UserRole these only get created or deleted
         if version.event == 'create'
           results << "Added role #{version.referenced_entity_name}"
         else
@@ -48,6 +49,7 @@ module Admin
       end
       results
     end
+    helper_method :describe_changes_to
 
     private
 
@@ -70,7 +72,7 @@ module Admin
     def compute_changes_to(version)
       changed = {}
       current = version.reify
-      if version.event != 'destroy'
+      if current.present? && version.event != 'destroy'
         if version.previous.present? && version.previous.object.present?
           previous = version.previous.reify
           changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
@@ -90,7 +92,7 @@ module Admin
 
         #version.object_changes = copy_of_changed
         #version.save`
-      else
+      elsif current.present?
         # Describe a destroy as setting all attributes to nil
         current.attributes.map(&:first).each do |name|
           changed[name] = [current[name], nil]
