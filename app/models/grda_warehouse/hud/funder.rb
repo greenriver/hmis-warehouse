@@ -38,6 +38,14 @@ module GrdaWarehouse::Hud
       where(closed_within_range.or(opened_within_range).or(open_throughout))
     end
 
+    def valid_funder_code?
+      self.class.valid_funder_code?(self.Funder)
+    end
+    
+    def self.valid_funder_code? funder
+      HUD.funding_sources.keys.include?(funder)
+    end
+
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
     end

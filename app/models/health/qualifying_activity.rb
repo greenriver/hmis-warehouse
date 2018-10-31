@@ -361,6 +361,7 @@ module Health
         procedure_code = procedure_code&.to_sym
       end
 
+      # If the client isn't reached, and it's an in-person encounter, you can only count outreach attempts
       if reached_client.to_s == 'no'
         return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
       end
@@ -422,10 +423,15 @@ module Health
     # Some procedure modifier/client_reached combinations are technically valid,
     # but obviously un-payable
     # For example: U3 (phone call) with client_reached "did not reach"
+    # or the outreach was outside of the allowable window
     # Flag these for possibly ignoring in the future
     def valid_unpayable?
-      if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
-        return true
+      if procedure_valid?
+        if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
+          return true
+        elsif meets_date_restrictions?
+          return true
+        end
       end
 
       return false

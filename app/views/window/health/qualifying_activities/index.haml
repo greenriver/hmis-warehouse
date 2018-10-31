@@ -28,7 +28,7 @@
         - @qualifying_activities.each do |qa|
           %tr{class: qa.validity_class}
             %td= qa.date_of_activity.to_date
-            %td= qa.claim_submitted_on
+            %td= qa.claim_submitted_on.to_date
             %td= qa.title_for_activity
             %td= qa.title_for_mode_of_contact
             %td= qa.title_for_client_reached
