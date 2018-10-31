@@ -14,4 +14,12 @@ class UserRole < ActiveRecord::Base
   def referenced_entity_name
     role.name
   end
+
+  def self.describe_changes(version, changes)
+    if version.event == 'create'
+      [ "Added role #{version.referenced_entity_name}" ]
+    else
+      [ "Removed role #{version.referenced_entity_name}" ]
+    end
+  end
 end

@@ -14,5 +14,18 @@ module GrdaWarehouse
     def entity_name
       entity.name
     end
+
+    def self.describe_changes(version, changes)
+      if version.event == 'create'
+        [ "Added #{version.referenced_entity_name} to #{humanize_entity_type_name(changes[:entity_type].last)}." ]
+      else
+        current = version.reify
+        [ "Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}." ]
+      end
+    end
+
+    def self.humanize_entity_type_name(name)
+      name.split('::').last.underscore.pluralize.humanize.titleize
+    end
   end
 end

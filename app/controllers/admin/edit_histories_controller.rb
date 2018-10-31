@@ -1,10 +1,7 @@
 module Admin
   class EditHistoriesController < ::ApplicationController
-    before_action :require_can_audit_users! #TODO other parts?
+    before_action :require_can_audit_users!
     before_action :set_user
-
-    WHITELIST = %w{first_name last_name email phone agency receive_file_upload_notifications
-      notify_of_vispdat_completed notify_on_anomaly_identified}
 
     def show
       pt_a = PaperTrail::Version.arel_table
@@ -21,89 +18,58 @@ module Admin
     end
     helper_method :name_of_whodunnit
 
-    # TODO: eventually, this should be moved to the appropriate models
     def describe_changes_to(version)
-      item_type = version.item_type
-      results = []
-      if item_type == 'GrdaWarehouse::UserViewableEntity'
-        # GrdaWarehouse::UserViewableEntity these only get created or deleted
-        if version.event == 'create'
-          changes = get_changes_to(version)
-          results << "Added #{version.referenced_entity_name} to #{humanize_entity_type_name(changes[:entity_type].last)}."
-        else
-          current = version.reify
-          results << "Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}."
-        end
-      elsif item_type == 'UserRole'
-        # UserRole these only get created or deleted
-        if version.event == 'create'
-          results << "Added role #{version.referenced_entity_name}"
-        else
-          results << "Removed role #{version.referenced_entity_name}"
-        end
-      else
-        changed = get_changes_to(version)
-        changed.map do |name, values|
-          results << "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"." if WHITELIST.include?(name)
-        end
-      end
-      results
+      klass = version.item_type.constantize
+      klass.describe_changes(version, get_changes_to(version))
     end
     helper_method :describe_changes_to
 
     private
 
-    def humanize_entity_type_name(name)
-      humanize_attribute_name(name.split('::').last.underscore.pluralize)
-    end
-
-    def humanize_attribute_name(name)
-      name.humanize.titleize
-    end
-
-    def get_changes_to(version)
-      if version.object_changes.nil?
-        compute_changes_to(version)
-      else
-        version.changeset
-      end
-    end
-
-    def compute_changes_to(version)
-      changed = {}
-      current = version.reify
-      if current.present? && version.event != 'destroy'
-        if version.previous.present? && version.previous.object.present?
-          previous = version.previous.reify
-          changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
-          changed_attr.each do |name|
-            changed[name] = [previous[name], current[name]]
-          end
+      def get_changes_to(version)
+        if version.object_changes.nil?
+          compute_changes_to(version)
         else
-          # A create - so, all attributes are new
-          current.attributes.to_a.each do |name|
-            changed[name] = [nil, current[name]]
-          end
-        end
-        #TODO cache computed change
-        #copy_of_changed = changed.clone # Serialize can be in place, so we clone to avoid stepping on the changed map
-        #serializer = PaperTrail::AttributeSerializers::ObjectChangesAttribute.new(current.class)
-        #serializer.serialize(copy_of_changed)
-
-        #version.object_changes = copy_of_changed
-        #version.save`
-      elsif current.present?
-        # Describe a destroy as setting all attributes to nil
-        current.attributes.map(&:first).each do |name|
-          changed[name] = [current[name], nil]
+          version.changeset
         end
       end
-      changed
-    end
 
-    def set_user
-      @user_id = params[:user_id].to_i
-      @user = User.find(@user_id)
-    end
+      def compute_changes_to(version)
+        changed = {}
+        current = version.reify
+        if current.present? && version.event != 'destroy'
+          if version.previous.present? && version.previous.object.present?
+            previous = version.previous.reify
+            changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
+            changed_attr.each do |name|
+              changed[name] = [previous[name], current[name]]
+            end
+          else
+            # A create - so, all attributes are new
+            current.attributes.to_a.each do |name|
+              changed[name] = [nil, current[name]]
+            end
+          end
+          #TODO cache computed change
+          #copy_of_changed = changed.clone # Serialize can be in place, so we clone to avoid stepping on the changed map
+          #serializer = PaperTrail::AttributeSerializers::ObjectChangesAttribute.new(current.class)
+          #serializer.serialize(copy_of_changed)
+
+          #version.object_changes = copy_of_changed
+          #version.save`
+        elsif current.present?
+          # Describe a destroy as setting all attributes to nil
+          current.attributes.map(&:first).each do |name|
+            changed[name] = [current[name], nil]
+          end
+        end
+        changed
+      end
+
+      def set_user
+        @user_id = params[:user_id].to_i
+        @user = User.find(@user_id)
+      end
+
   end
 end
