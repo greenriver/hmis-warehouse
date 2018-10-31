@@ -410,7 +410,9 @@ module Health
 
     def calculate_payability!
       # Meets general restrictions
-      self.naturally_payable = procedure_valid? && meets_date_restrictions?
+      # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
+      # will still be submitted
+      self.naturally_payable = procedure_valid?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -429,8 +431,10 @@ module Health
       if procedure_valid?
         if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
           return true
-        elsif meets_date_restrictions?
+        elsif ! meets_date_restrictions?
           return true
+        else
+          return false
         end
       end
 
@@ -456,7 +460,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment
-      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.effective_date + 3.months)
+      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
     end
 
     def once_per_day_procedure_codes

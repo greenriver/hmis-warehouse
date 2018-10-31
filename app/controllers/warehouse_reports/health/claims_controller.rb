@@ -18,6 +18,7 @@ module WarehouseReports::Health
         @payable = {}
         @unpayable = {}
         @duplicate = {}
+        @valid_unpayable = {}
         @report.qualifying_activities.joins(:patient).
           preload(:patient).
           order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
@@ -26,6 +27,9 @@ module WarehouseReports::Health
           if qa.duplicate? && qa.naturally_payable?
             @duplicate[qa.patient_id] ||= []
             @duplicate[qa.patient_id] << qa
+          elsif qa.naturally_payable? && qa.valid_unpayable?
+            @valid_unpayable[qa.patient_id] ||= []
+            @valid_unpayable[qa.patient_id] << qa
           elsif ! qa.naturally_payable?
             @unpayable[qa.patient_id] ||= []
             @unpayable[qa.patient_id] << qa
@@ -54,6 +58,7 @@ module WarehouseReports::Health
       @payable = {}
       @unpayable = {}
       @duplicate = {}
+      @valid_unpayable = {}
       @report.qualifying_activities.joins(:patient).
         preload(:patient).
         order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
@@ -62,6 +67,9 @@ module WarehouseReports::Health
         if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
+        elsif qa.naturally_payable? && qa.valid_unpayable?
+            @valid_unpayable[qa.patient_id] ||= []
+            @valid_unpayable[qa.patient_id] << qa
         elsif ! qa.naturally_payable?
           @unpayable[qa.patient_id] ||= []
           @unpayable[qa.patient_id] << qa
@@ -120,6 +128,7 @@ module WarehouseReports::Health
       @payable = {}
       @unpayable = {}
       @duplicate = {}
+      @valid_unpayable = {}
       qualifying_activities.each do |qa|
         # force re-calculation
         qa.calculate_payability!
@@ -127,6 +136,9 @@ module WarehouseReports::Health
         if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
+        elsif qa.naturally_payable? && qa.valid_unpayable?
+            @valid_unpayable[qa.patient_id] ||= []
+            @valid_unpayable[qa.patient_id] << qa
         elsif ! qa.naturally_payable?
           @unpayable[qa.patient_id] ||= []
           @unpayable[qa.patient_id] << qa

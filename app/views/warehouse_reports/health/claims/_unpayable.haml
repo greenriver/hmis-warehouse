@@ -1,4 +1,8 @@
-= render 'window/health/qualifying_activities/payability_key'
+.row
+  .col-sm-6
+    = render 'window/health/qualifying_activities/payability_key'
+  .col-sm-6.text-right
+    = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
 .o-card-grid
   - qa_group.each do |_, qas|
     - sample_qa = qas.first

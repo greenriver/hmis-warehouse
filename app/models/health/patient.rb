@@ -260,6 +260,14 @@ module Health
       (engagement_date - Date.today).to_i.clamp(0, 365)
     end
 
+    def outreach_cutoff_date
+      if effective_date.present?
+        (effective_date + 3.months).to_date
+      else
+        (Date.today + 3.months).to_date
+      end
+    end
+
     def chas
       comprehensive_health_assessments
 
