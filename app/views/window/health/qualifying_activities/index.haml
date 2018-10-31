@@ -16,18 +16,19 @@
     .col-sm-6
       = render 'payability_key'
     .col-sm-6
-      %p.ml-auto.text-small.text-right
-        %strong
-          Enrollment date:
-        = @patient.effective_date&.to_date
-        %br
-        %strong
-          Outreach cut-off date:
-        = @patient.outreach_cutoff_date
-        %br
-        %strong
-          Days remaining to engage patient:
-        = @patient.days_to_engage
+      .ml-auto
+        .w-100.text-small.text-right
+          %strong
+            Enrollment date:
+          = @patient.effective_date&.to_date
+        .w-100.text-small.text-right
+          %strong
+            Outreach cut-off date:
+          = @patient.outreach_cutoff_date
+        .w-100.text-small.text-right
+          %strong
+            Days remaining to engage patient:
+          = @patient.days_to_engage
   - if @qualifying_activities.present?
     %table.table.table-condensed
       %thead
