@@ -34,6 +34,12 @@ module Admin
           current = version.reify
           results << "Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}."
         end
+      elsif item_type == 'UserRole'
+        if version.event == 'create'
+          results << "Added role #{version.referenced_entity_name}"
+        else
+          results << "Removed role #{version.referenced_entity_name}"
+        end
       else
         changed = get_changes_to(version)
         changed.map do |name, values|
