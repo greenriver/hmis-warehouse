@@ -281,8 +281,8 @@ class User < ActiveRecord::Base
   end
 
   def self.describe_changes(version, changes)
-    changes.map do |name, values|
-      "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"." if WHITELIST.include?(name)
+    changes.slice(*WHITELIST).map do |name, values|
+      "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
     end
   end
 
