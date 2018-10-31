@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181025135153) do
+ActiveRecord::Schema.define(version: 20181031172440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -89,18 +89,18 @@ ActiveRecord::Schema.define(version: 20181025135153) do
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
 
   create_table "glacier_archives", force: :cascade do |t|
-    t.integer  "glacier_vault_id",                           null: false
-    t.text     "upload_id",                                  null: false
+    t.integer  "glacier_vault_id",                                     null: false
+    t.text     "upload_id",                                            null: false
     t.text     "archive_id"
     t.text     "checksum"
     t.text     "location"
-    t.string   "status",             default: "initialized", null: false
-    t.boolean  "verified",           default: false,         null: false
-    t.integer  "size_in_bytes"
+    t.string   "status",                       default: "initialized", null: false
+    t.boolean  "verified",                     default: false,         null: false
+    t.integer  "size_in_bytes",      limit: 8
     t.datetime "upload_started_at"
     t.datetime "upload_finished_at"
-    t.datetime "created_at",                                 null: false
-    t.datetime "updated_at",                                 null: false
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
   end
 
   add_index "glacier_archives", ["glacier_vault_id"], name: "index_glacier_archives_on_glacier_vault_id", using: :btree

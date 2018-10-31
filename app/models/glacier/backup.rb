@@ -34,17 +34,22 @@ module Glacier
       #   * Note that we do this so that the `gpg -r` part below won't prompt if it's okay to encrypt to an unsigned key. --yes doesn't help.
       #   * accept Todd's apology for having to do this.
 
-      databases = [
-        DB_CONFIG['database'],
-        ENV['WAREHOUSE_DATABASE_DB']
-      ]
+      databases = if ENV['GLACIER_DATABASES'].blank? || ENV['GLACIER_DATABASES'] == 'DEFAULT'
+                    [
+                      DB_CONFIG['database'],
+                      ENV['WAREHOUSE_DATABASE_DB'],
+                      ENV['DATABASE_CAS_DB']
+                    ]
+                  else
+                    ENV['GLACIER_DATABASES'].split(",")
+                  end
 
       client = ENV.fetch('CLIENT') { 'unknown-client' }
 
       databases.each do |database_name|
         new({
           cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
-          archive_name: "#{client}-#{Rails.env}-#{database_name}-#{Time.now}"
+          archive_name: "#{client}-#{Rails.env}-#{database_name}-#{Time.now.to_s(:iso8601)}"
         }).run!
       end
 
