@@ -36,7 +36,7 @@ module Admin
         User.transaction do
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          @user.user_roles.where.not(role_id: user_params[:role_ids].select(&:present?)).destroy_all
+          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
           @user.update(user_params)
 
           # Restore any health roles we previously had

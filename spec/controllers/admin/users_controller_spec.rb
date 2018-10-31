@@ -2,9 +2,9 @@ require 'rails_helper'
 
 RSpec.describe Admin::UsersController, type: :controller do
 
-  let(:user)       { create(:user) }
-  let(:admin)       { create(:user) }
-  let(:admin_role)  { create :admin_role }
+  let!(:user)       { create(:user) }
+  let!(:admin)       { create(:user) }
+  let!(:admin_role)  { create :admin_role }
 
   before(:each) do
     authenticate admin
@@ -29,8 +29,7 @@ RSpec.describe Admin::UsersController, type: :controller do
 
     context 'when updating vi-spdat notifications' do
 
-      let(:updated_user) { User.first }
-
+      let(:updated_user) { User.not_system.first }
       before(:each) do
         patch :update, id: updated_user.id, user: { notify_on_vispdat_completed: '1' }
       end
@@ -41,7 +40,7 @@ RSpec.describe Admin::UsersController, type: :controller do
 
     context 'when updating new client notifications' do
 
-      let(:updated_user) { User.first }
+      let(:updated_user) { User.not_system.first }
 
       before(:each) do
         patch :update, id: updated_user.id, user: { notify_on_client_added: '1' }
