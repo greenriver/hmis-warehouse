@@ -23,7 +23,8 @@ module Health
       return false unless email
       # whitelisted_domain_regex.match(email)
       # Check that the email is not from a free or disposable or invalid email provider
-      email_address =  ::EmailCheck::EmailAddress.new(email)
+      email_address = ::EmailCheck::EmailAddress.new(email)
+      return false if email_address.blank?
       ! email_address.free_email_provider? && ! email_address.blacklisted_domain? && MailChecker.valid?(email)
     end
 
