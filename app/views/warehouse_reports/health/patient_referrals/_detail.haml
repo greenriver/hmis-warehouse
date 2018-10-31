@@ -1,0 +1,14 @@
+= content_for :modal_title do
+  #{sanitize @section} for #{@agency.name}
+
+- if @patients.present?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Patient
+    %tbody
+      - @patients.each do |patient|
+        %tr
+          %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+- else
+  No patients found

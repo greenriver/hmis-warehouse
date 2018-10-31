@@ -1141,7 +1141,8 @@ delete from ch_Episodes
 insert into ch_Episodes (PersonalID, episodeStart, episodeEnd)
 select distinct s.PersonalID, s.chDate, min(e.chDate)
 from ch_Time s 
-inner join ch_Time e on e.PersonalID = s.PersonalID  and e.chDate > s.chDate
+--CHANGE 10/24/2018 'e.chDate > s.chDate' to >= for one day episodes
+inner join ch_Time e on e.PersonalID = s.PersonalID  and e.chDate >= s.chDate
 where s.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, -1, s.chDate))
 	and e.PersonalID not in (select PersonalID from ch_Time where chDate = dateadd(dd, 1, e.chDate))
 group by s.PersonalID, s.chDate
@@ -1193,15 +1194,16 @@ where HoHAdult > 0 and CHTime is null
 4.19 Update Selected CHTime and CHTimeStatus Values
 **********************************************************************/
 --Anyone not CH based on system use data + 3.917 date ranges
---will be counted as chronically homeless if an *active* enrollment shows
+--will be counted as chronically homeless if any enrollment where 
+--EntryDate is in the year ending on LastActive shows
 --12 or more ESSHSTreet months and 4 or more times homeless
 --(and DisabilityStatus = 1)
 update lp 
 set CHTime = 400
 	, CHTimeStatus = 2
 from tmp_Person lp
-inner join active_Enrollment an on an.PersonalID = lp.PersonalID
-inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
+inner join ch_Enrollment cn on cn.PersonalID = lp.PersonalID
+inner join hmis_Enrollment hn on hn.EnrollmentID = cn.EnrollmentID
 	and hn.MonthsHomelessPastThreeYears in (112,113) 
 	and hn.TimesHomelessPastThreeYears = 4
 	and hn.EntryDate >= dateadd(dd, -364, lp.LastActive)
@@ -1232,8 +1234,8 @@ inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
 				and ((hn.PreviousStreetESSH is NULL)
 					or (hn.PreviousStreetESSH = 1 
 						and hn.DateToStreetESSH is null))))
-where CHTime <> 400
-	and CHTimeStatus not in (1,2)
+--CHANGE 10/24/2018 - align WHERE clause to specs (no change in output)
+where (CHTime in (1,270) or CHTimeStatus = 3)
 	and HoHAdult > 0
 
 update tmp_Person 
@@ -1501,19 +1503,16 @@ from active_Household ahh
 4.23 Set tmp_Person Population Identifiers from Active Households
 **********************************************************************/
 update lp
-	--CHANGE 10/5/2018 - more corrections to HHAdultAge 
-set lp.HHAdultAge = coalesce((select 
-			--HHTypes 3 and 99 are excluded by the CASE statement
-			case when max(n.AgeGroup) >= 98 then -1
-				when max(n.AgeGroup) <= 17 then -1
-				when min(n.AgeGroup) between 18 and 25 
-					and max(n.AgeGroup) between 25 and 55 then 25
-				when max(n.AgeGroup) = 21 then 18
-				when max(n.AgeGroup) = 24 then 24
-				when min(n.AgeGroup) between 64 and 65 then 55
-				else -1 end
+	--CHANGE 10/23/2018 - correction to pull HHAdultAge from active_Household
+	-- and not from active_Enrollment (github issue #23).
+set lp.HHAdultAge = coalesce((select case when min(hh.HHAdultAge) between 18 and 24
+			then min(hh.HHAdultAge) 
+		else max(hh.HHAdultAge) end
 		from active_Enrollment n 
-		where n.PersonalID = lp.PersonalID and n.HHType in (1,2)), -1)
+		inner join active_Household hh on hh.HouseholdID = n.HouseholdID
+			and ((hh.HHType = 1 and hh.HHAdultAge between 18 and 55) 
+				or (hh.HHType = 2 and hh.HHAdultAge between 18 and 24))
+		where n.PersonalID = lp.PersonalID), -1)
    , lp.AC3Plus = (select max(hhid.AC3Plus) 
 		from active_Household hhid
 		inner join active_Enrollment n on hhid.HouseholdID = n.HouseholdID
@@ -1740,25 +1739,31 @@ where PSHStatus > 0
 /*************************************************************************
 4.27 Set tmp_Household RRH and PSH Move-In Status Indicators
 **********************************************************************/
+--CHANGE 10/23/2018 - To align with specs where household has multiple RRH/PSH
+-- enrollments, updated so status is preferentially based on MoveInDate in 
+-- report period (top priority), MoveInDate prior to ReportStart (2nd),
+-- or no MoveInDate (lowest).
 update hh
 set hh.RRHMoveIn = case when hh.RRHStatus = 0 then -1
+		when stat.RRHMoveIn = 10 then 1
 		else stat.RRHMoveIn end
 	, hh.PSHMoveIn = case when hh.PSHStatus = 0 then -1
+		when stat.PSHMoveIn = 10 then 1
 		else stat.PSHMoveIn end
 from tmp_Household hh
 left outer join (select distinct hhid.HoHID, hhid.HHType
-		, RRHMoveIn = (select min(case when an.MoveInDate is null
+		, RRHMoveIn = (select max(case when an.MoveInDate is null
 				then 0
-				when an.MoveInDate >= rpt.ReportStart then 1
+				when an.MoveInDate >= rpt.ReportStart then 10
 				else 2 end)
 			from active_Enrollment an 
 			inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
 			where an.PersonalID = hhid.HoHID 
 				and an.HouseholdID = hhid.HouseholdID
 				and hhid.ProjectType = 13)
-		, PSHMoveIn = (select min(case when an.MoveInDate is null
+		, PSHMoveIn = (select max(case when an.MoveInDate is null
 				then 0
-				when an.MoveInDate >= rpt.ReportStart then 1
+				when an.MoveInDate >= rpt.ReportStart then 10
 				else 2 end)
 			from active_Enrollment an 
 			inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
@@ -1958,7 +1963,8 @@ where lhh.PSHLivingSit is null
 /*************************************************************************
 4.28.d Set tmp_Household Destination for Each Project Group 
 **********************************************************************/
-
+--CHANGE 10/23/2018 - populate EST/RRH/PSHDestination based on most recent EXIT  
+-- from project group (and NOT exit for enrollment with most recent entry date)  
 update lhh
 set ESTDestination = -1 
 from tmp_Household lhh
@@ -1982,12 +1988,18 @@ set ESTDestination =
 	 when hx.Destination = 13 then 14	--Friends - temp
 	 when hx.Destination = 24 then 15	--Deceased
 	 else 99	end
+from tmp_Household lhh 
+inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+where lhh.ESTDestination is null 
+	and hn.EnrollmentID in 
+		(select top 1 an.EnrollmentID 
 from active_Enrollment an 
-inner join tmp_Household lhh on lhh.HoHID = an.PersonalID 	
-	and lhh.HHType = an.HHType
-inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-where an.RelationshipToHoH = 1 and an.ExitDate is not null
-	and an.MostRecent = 1 and an.ProjectType in (1,2,8)
+		 where an.ProjectType in (1,2,8) 
+			and an.PersonalID = lhh.HoHID
+			and an.RelationshipToHoH = 1
+			and an.HHType = lhh.HHType
+		 order by an.ExitDate desc)
 	
 update lhh
 set RRHDestination = -1 
@@ -2012,12 +2024,18 @@ set RRHDestination =
 	 when hx.Destination = 13 then 14	--Friends - temp
 	 when hx.Destination = 24 then 15	--Deceased
 	 else 99	end
+from tmp_Household lhh 
+inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+where lhh.RRHDestination is null 
+	and hn.EnrollmentID in 
+		(select top 1 an.EnrollmentID 
 from active_Enrollment an 
-inner join tmp_Household lhh on lhh.HoHID = an.PersonalID 	
-	and lhh.HHType = an.HHType
-inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-where an.RelationshipToHoH = 1 and an.ExitDate is not null
-	and an.MostRecent = 1 and an.ProjectType = 13
+		 where an.ProjectType = 13
+			and an.PersonalID = lhh.HoHID
+			and an.RelationshipToHoH = 1
+			and an.HHType = lhh.HHType
+		 order by an.ExitDate desc)
 
 update lhh
 set PSHDestination = -1 
@@ -2042,13 +2060,19 @@ set PSHDestination =
 	 when hx.Destination = 13 then 14	--Friends - temp
 	 when hx.Destination = 24 then 15	--Deceased
 	 else 99	end
+from tmp_Household lhh 
+inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
+inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+where lhh.PSHDestination is null 
+	and hn.EnrollmentID in 
+		(select top 1 an.EnrollmentID 
 from active_Enrollment an 
-inner join tmp_Household lhh on lhh.HoHID = an.PersonalID 	
-	and lhh.HHType = an.HHType
-inner join hmis_Exit hx on hx.EnrollmentID = an.EnrollmentID
-where an.RelationshipToHoH = 1 and an.ExitDate is not null
-	and an.MostRecent = 1 and an.ProjectType = 3
-
+		 --CHANGE 10/24/2018 correct project type to 3 (was 13)
+		 where an.ProjectType = 3
+			and an.PersonalID = lhh.HoHID
+			and an.RelationshipToHoH = 1
+			and an.HHType = lhh.HHType
+		 order by an.ExitDate desc)
 
 /*************************************************************************
 4.29.a Get Earliest EntryDate from Active Enrollments 
@@ -2206,7 +2230,11 @@ insert into sys_Enrollment (HoHID, HHType, EnrollmentID, ProjectType
 	, MoveInDate
 	, ExitDate
 	, Active)
-select distinct hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+select distinct hn.PersonalID
+	-- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
+	-- otherwise, use HHType based on HH member age(s) at project entry.
+	, case when an.EnrollmentID is not null then an.HHType else hh.HHType end
+	, hn.EnrollmentID, p.ProjectType
 	, case when p.TrackingMethod = 3 then null else hn.EntryDate end
 	, case when p.ProjectType in (3,13) then hn.MoveInDate else null end
 	, case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -2260,8 +2288,9 @@ inner join (select hhid.HouseholdID, case
 where 
 	an.EnrollmentID is not null --All active enrollments are relevant.
 	or (hx.ExitDate >= '10/1/2012'-- Inactive enrollments potentially relevant...
-		and lhh.Stat = 5 --... if HH was 'continously engaged' at ReportStart...
-		and lhh.PSHMoveIn <> 2) --...and not housed in PSH at ReportStart.
+	    	and hh.HHType = lhh.HHType -- if they occurred under the same HHType
+		and lhh.Stat = 5 --... and HH was 'continously engaged' at ReportStart...
+		and lhh.PSHMoveIn <> 2) --...and HH was not housed in PSH at ReportStart.
 /*****************************************************************
 4.33 Get Last Inactive Date
 *****************************************************************/
@@ -2494,46 +2523,54 @@ where lhh.PSHHousedDays = 0 and lhh.PSHStatus = 0
 /*****************************************************************
 4.37 Update ESTStatus and RRHStatus
 *****************************************************************/
+--CHANGE 10/23/2018 - for both UPDATE statements, join to sys_Time
+-- and align methodology with specs (github issue #24)
+
 update lhh
 set lhh.ESTStatus = 2
 from tmp_Household lhh
+inner join sys_Time st on st.HoHID = lhh.HoHID and st.HHType = lhh.HHType
 where lhh.ESTStatus = 0 
-	and (lhh.ESTDays > 0) 
+	and st.sysStatus in (3,4) 
 
 update lhh
 set lhh.RRHStatus = 2
 from tmp_Household lhh
+inner join sys_Time st on st.HoHID = lhh.HoHID and st.HHType = lhh.HHType
 where lhh.RRHStatus = 0 
-	and (RRHPreMoveInDays > 0 or RRHHousedDays > 0)
+	and st.sysStatus = 6
 
 /*****************************************************************
 4.38 Set SystemPath for LSAHousehold
 *****************************************************************/
+--CHANGE 10/23/2018 use 'ESTStatus = 0' instead of 'ESDays <= 0 and THDays <= 0' 
+-- for SystemPath 4, 8, and 11 (no impact on output; modified for consistency with specs).
+-- (issue #23)
 update lhh
-set SystemPath = 
-	case when ESTStatus not in (21,22) and RRHStatus not in (21,22) and PSHMoveIn = 2 
+set lhh.SystemPath = 
+	case when lhh.ESTStatus not in (21,22) and lhh.RRHStatus not in (21,22) and lhh.PSHMoveIn = 2 
 		then -1
-	when ESDays >= 1 and THDays <= 0 and RRHStatus = 0 and PSHStatus = 0 
+	when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
 		then 1
-	when ESDays <= 0 and THDays >= 1 and RRHStatus = 0 and PSHStatus = 0 
+	when lhh.ESDays <= 0 and lhh.THDays >= 1 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
 		then 2
-	when ESDays >= 1 and THDays >= 1 and RRHStatus = 0 and PSHStatus = 0 
+	when lhh.ESDays >= 1 and lhh.THDays >= 1 and lhh.RRHStatus = 0 and lhh.PSHStatus = 0 
 		then 3
-	when ESDays <= 0 and THDays <= 0 and RRHStatus >= 2 and PSHStatus = 0 
+	when lhh.ESTStatus = 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
 		then 4
-	when ESDays >= 1 and THDays <= 0 and RRHStatus >= 2 and PSHStatus = 0 
+	when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
 		then 5
-	when ESDays <= 0 and THDays >= 1 and RRHStatus >= 2 and PSHStatus = 0 
+	when lhh.ESDays <= 0 and lhh.THDays >= 1 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
 		then 6
-	when ESDays >= 1 and THDays >= 1 and RRHStatus >= 2 and PSHStatus = 0 
+	when lhh.ESDays >= 1 and lhh.THDays >= 1 and lhh.RRHStatus >= 2 and lhh.PSHStatus = 0 
 		then 7
-	when ESDays <= 0 and THDays <= 0 and RRHStatus = 0 and PSHStatus >= 11 and PSHMoveIn <> 2
+	when lhh.ESTStatus = 0 and lhh.RRHStatus = 0 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
 		then 8
-	when ESDays >= 1 and THDays <= 0 and RRHStatus = 0 and PSHStatus >= 11 and PSHMoveIn <> 2
+	when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus = 0 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
 		then 9
-	when ESDays >= 1 and THDays <= 0 and RRHStatus >= 2 and PSHStatus >= 11 and PSHMoveIn <> 2
+	when lhh.ESDays >= 1 and lhh.THDays <= 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
 		then 10
-	when ESDays <= 0 and THDays <= 0 and RRHStatus >= 2 and PSHStatus >= 11 and PSHMoveIn <> 2
+	when lhh.ESTStatus = 0 and lhh.RRHStatus >= 2 and lhh.PSHStatus >= 11 and lhh.PSHMoveIn <> 2
 		then 11
 	else 12 end
 from tmp_Household lhh
@@ -2917,7 +2954,8 @@ inner join
 			when min(adultAges.AgeGroup) = 55 then 55
 			when min(adultAges.AgeGroup) < 55
 				and max(adultAges.AgeGroup) > 24 then 25
-			else NULL end as AgeGroup
+	 		--CHANGE 10/23/2018 set to -1 vs NULL as default
+			else -1 end as AgeGroup
 	from (select distinct ex.HoHID, hoh.EnrollmentID 
 			, case when c.DOB is null 
 					or c.DOB = '1/1/1900'
@@ -3038,7 +3076,11 @@ insert into sys_Enrollment (HoHID, HHType, EnrollmentID, ProjectType
 	, MoveInDate
 	, ExitDate
 	, Active)
-select distinct hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+select distinct hn.PersonalID
+	--CHANGE 10/22/2018 use HHType as already calculated for qualifying exit; 
+	-- otherwise, use HHType based on HH member age(s) at project entry.
+	, case when ex.EnrollmentID = hn.EnrollmentID then ex.HHType else hh.HHType end
+	, hn.EnrollmentID, p.ProjectType
 	, case when p.TrackingMethod = 3 then null else hn.EntryDate end
 	, case when p.ProjectType in (3,13) then hn.MoveInDate else null end
 	, case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -3084,7 +3126,12 @@ inner join
 			) hhid
 		group by hhid.HouseholdID
 		) hh on hh.HouseholdID = hn.HouseholdID
-group by hn.PersonalID, hh.HHType, hn.EnrollmentID, p.ProjectType
+--CHANGE 10/24/2018 - limit inserts to enrollments where the HHType as calculated by the subquery 
+--  matches tmp_Exit HHType OR the enrollment is associated with the qualifying exit. (issue #28)
+where hh.HHType = ex.HHType or hn.EnrollmentID = ex.EnrollmentID
+group by hn.PersonalID
+	, case when ex.EnrollmentID = hn.EnrollmentID then ex.HHType else hh.HHType end
+	, hn.EnrollmentID, p.ProjectType
 	, case when p.TrackingMethod = 3 then null else hn.EntryDate end
 	, case when p.ProjectType in (3,13) then hn.MoveInDate else null end
 	, case when p.TrackingMethod = 3 then null else hx.ExitDate end
@@ -3581,7 +3628,7 @@ inner join ref_Populations pop on
 	and (lh.HoHRace = pop.HoHRace or pop.HoHRace is null)
 	and (lh.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 	and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
-where lh.RRHMoveIn > 0
+where lh.RRHStatus > 2 --CHANGED 10/23/2018 from 'where lh.RRHMoveIn > 0'
 	and pop.Core = 1
 group by pop.PopID
 	, pop.HHType
@@ -4163,7 +4210,8 @@ inner join tmp_CohortDates cd on cd.CohortEnd >= an.EntryDate
 	  and (cd.CohortStart < an.ExitDate or an.ExitDate is null)
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 where cd.Cohort > 0 
-	and pop.PopType = 3 
+	--CHANGE 10/23/2018 exclude popID 100, which is not required by specs
+	and pop.PopType = 3 and pop.PopID <> 100
 	and (
 		 --for RRH and PSH, count only people who are housed in period
 		(p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd) 
@@ -4210,7 +4258,8 @@ inner join tmp_CohortDates cd on cd.CohortEnd >= an.EntryDate
 	  and (cd.CohortStart < an.ExitDate or an.ExitDate is null)
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 where cd.Cohort > 0 
-	and pop.PopType = 3 
+	--CHANGE 10/23/2018 exclude PopID 100, which is not required by specs ( issue #8).
+	and pop.PopType = 3 and pop.PopID <> 100
 	and (
 		--for night-by-night ES, count only people with bednights in period
 		(p.TrackingMethod = 3 
@@ -4539,7 +4588,8 @@ update rpt
 			where lp.ReportID = rpt.ReportID
 				and an.RelationshipToHoH = 1 
 				and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
-				and (hn.LengthOfStay in (8,9) or hn.LengthOfStay is null))
+				-- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay
+				and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
 	,	HomelessDate1 = (select count(distinct an.EnrollmentID)
 			from tmp_Person lp
 			inner join hmis_Client c on c.PersonalID = lp.PersonalID
@@ -4757,7 +4807,8 @@ update rpt
 			from dq_Enrollment n
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.RelationshipToHoH = 1 or n.Adult = 1)
-				and (hn.LengthOfStay in (8,9) or hn.LengthOfStay is null))
+				-- CHANGE 10/23/2018 add 99 to list of checked values for LengthOfStay				 
+				and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
 	,	HomelessDate3 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
@@ -4981,7 +5032,7 @@ select count (distinct HoHID + cast(HHType as nvarchar)), Stat
 	, PSHGeography, PSHLivingSit, PSHDestination
 	--NOTE:  These are different grouping categories from above!
 	, case when PSHMoveIn not in (1,2) then -1
-		when PSHHousedDays < 90 then 3
+		when PSHHousedDays <= 90 then 3
 		when PSHHousedDays between 91 and 180 then 6 
 		when PSHHousedDays between 181 and 365 then 12 
 		when PSHHousedDays between 366 and 730 then 24 
@@ -5121,7 +5172,8 @@ group by Stat
 		else TotalHomelessDays end 
 	, PSHGeography, PSHLivingSit, PSHDestination
 	, case when PSHMoveIn not in (1,2) then -1
-		when PSHHousedDays < 90 then 3
+		--CHANGE 10/23/2018 set to 3 for <= 90, not < 90
+		when PSHHousedDays <= 90 then 3
 		when PSHHousedDays between 91 and 180 then 6 
 		when PSHHousedDays between 181 and 365 then 12 
 		when PSHHousedDays between 366 and 730 then 24 
@@ -5162,3 +5214,7 @@ group by Cohort, Stat, ExitFrom, ExitTo
 		else ReturnTime end
 	, HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
 	, HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
+
+/**********************************************************************
+END
+**********************************************************************/

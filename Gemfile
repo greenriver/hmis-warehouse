@@ -38,6 +38,7 @@ gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable'
+gem 'devise-pwned_password'
 gem 'paper_trail'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
@@ -118,6 +119,7 @@ gem 'redis-rails'
 #AWS SDK
 gem 'aws-sdk-rails', require: false
 gem 'aws-sdk', '~> 2', require: false
+gem 'json'
 gem 'awesome_print'
 
 gem 'auto-session-timeout'

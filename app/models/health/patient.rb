@@ -257,7 +257,15 @@ module Health
 
     def days_to_engage
       return 0 unless engagement_date.present?
-      (engagement_date - Date.today).to_i.clamp(0, 180)
+      (engagement_date - Date.today).to_i.clamp(0, 365)
+    end
+
+    def outreach_cutoff_date
+      if effective_date.present?
+        (effective_date + 3.months).to_date
+      else
+        (Date.today + 3.months).to_date
+      end
     end
 
     def chas
@@ -449,6 +457,11 @@ module Health
 
     def qualified_activities_since date: 1.months.ago
       qualifying_activities.not_valid_unpayable.in_range(date..Date.tomorrow)
+    end
+
+    # This does not return a scope
+    def valid_qualified_activities_since date: 1.months.ago
+      qualified_activities_since(date: date).to_a.select(&:procedure_valid?)
     end
 
     def import_epic_team_members

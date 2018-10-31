@@ -4,7 +4,7 @@ include ActiveJob::TestHelper
 RSpec.describe Message, type: :model do
   ActiveJob::Base.queue_adapter = :test
   describe 'When user email schedule set to immediate: ' do
-    let!(:user) { create :user, email: "noreply@greenriver.com", email_schedule: 'immediate' }
+    let!(:user) { create :user, email: "noreply-for-testing@greenriver.com", email_schedule: 'immediate' }
 
     describe 'Sending a message with deliver_now' do
       it 'creates a message' do 
@@ -46,7 +46,7 @@ RSpec.describe Message, type: :model do
   end
 
   describe 'When user email schedule set to daily: ' do
-    let!(:user) { create :user, email: "noreply@greenriver.com", email_schedule: 'daily' }
+    let!(:user) { create :user, email: "noreply-for-testing@greenriver.com", email_schedule: 'daily' }
 
     describe 'Sending a message with deliver_now' do
       it 'creates a message' do 

@@ -47,6 +47,10 @@ class Role < ActiveRecord::Base
         description: 'Provides the ability to merge clients and make other edits. This should only be given to administrator level users.',
         administrative: true,
       },
+      can_audit_clients: {
+        description: 'Access to see who has looked at or changed a client record. This should only be given to administrator level users.',
+        administrative: true,
+      },
       can_view_censuses: {
         description: 'Access to the nightly census dashboard, only at the aggregate level',
         administrative: false,
@@ -210,6 +214,10 @@ class Role < ActiveRecord::Base
       can_export_hmis_data: {
         description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data',
         administrative: false,
+      },
+      can_export_anonymous_hmis_data: {
+        description: 'Fake data exports for developers',
+        administrative: true,
       },
       can_confirm_housing_release: {
         description: 'Ability to confirm uploaded housing releases',

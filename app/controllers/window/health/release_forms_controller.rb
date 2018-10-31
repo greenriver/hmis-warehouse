@@ -134,5 +134,9 @@ module Window::Health
       form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_release?
     end
 
+    protected def title_for_show
+      "#{@client.name} - Health - Release Form"
+    end
+
   end
 end

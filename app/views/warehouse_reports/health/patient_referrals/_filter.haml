@@ -1,0 +1,7 @@
+= simple_form_for :filter, method: :get do |f|
+  .well
+    .row
+      .col-sm-4
+        = f.input :referral_date, collection: @referral_dates, selected: @referral_date.to_date
+      .col-sm-4
+        = f.submit 'Show Referrals', class: 'btn btn-primary mt-no-label'

@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -289,6 +288,11 @@ Rails.application.routes.draw do
           post :submit
         end
       end
+      resources :patient_referrals, only: [:index] do
+        collection do
+          patch :update
+        end
+      end
     end
   end
 
@@ -337,6 +341,7 @@ Rails.application.routes.draw do
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
+    resources :audits, only: [:index], controller: 'clients/audits'
     healthcare_routes(window: false)
   end
 

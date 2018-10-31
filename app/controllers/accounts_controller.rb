@@ -19,7 +19,7 @@ class AccountsController < ApplicationController
     if @user.update_with_password(account_params)
       flash[:notice] = changed_notes.join(' ')
 
-      sign_in(@user, :bypass => true)
+      bypass_sign_in(@user)
       redirect_to edit_account_path
     else
       render 'edit'

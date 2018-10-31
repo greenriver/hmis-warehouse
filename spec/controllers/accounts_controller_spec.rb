@@ -31,7 +31,7 @@ RSpec.describe AccountsController, type: :controller do
         patch :update, user: { first_name: 'Joe', email: 'info@greenriver.com' }
       end
       it 'does not update' do
-        expect( User.first.first_name ).to_not eq 'Joe'
+        expect( User.not_system.first.first_name ).to_not eq 'Joe'
       end
       it 'has an error' do
         expect( assigns(:user).errors.count ).to eq 1
@@ -48,7 +48,7 @@ RSpec.describe AccountsController, type: :controller do
           first_name: 'Fake',
           last_name: 'User',
           email: 'info@greenriver.com',
-          current_password: 'abcd1234'
+          current_password: Digest::SHA256.hexdigest('abcd1234abcd1234')
         }
       end
 
@@ -56,14 +56,14 @@ RSpec.describe AccountsController, type: :controller do
         patch :update, user: changes
       end
       it 'updates first_name' do
-        expect( User.first.first_name ).to eq changes[:first_name]
+        expect( User.not_system.first.first_name ).to eq changes[:first_name]
       end
       it 'updates last_name' do
-        expect( User.first.last_name ).to eq changes[:last_name]
+        expect( User.not_system.first.last_name ).to eq changes[:last_name]
       end
       it 'updates email' do
         assigns(:user).confirm
-        expect( User.first.email ).to eq changes[:email]
+        expect( User.not_system.first.email ).to eq changes[:email]
       end
       it 'sends an email confirmation email' do
         expect( email.to ).to eq [changes[:email]]
@@ -76,9 +76,9 @@ RSpec.describe AccountsController, type: :controller do
 
         let(:changes) do
           {
-            current_password: 'abcd1234',
-            password: 'secret12',
-            password_confirmation: 'secret12'
+            current_password: Digest::SHA256.hexdigest('abcd1234abcd1234'),
+            password: Digest::SHA256.hexdigest('secret12'),
+            password_confirmation: Digest::SHA256.hexdigest('secret12')
           }
         end
 
@@ -86,15 +86,7 @@ RSpec.describe AccountsController, type: :controller do
           patch :update, user: changes
           expect( email.to ).to eq [user.email]
         end
-        pending 'changes password' do
-          expect {
-            patch :update, user: changes
-          }.to change(User.first, :encrypted_password)
-        end
-        pending 'redirects to edit' do
-          patch :update, user: changes
-          expect( response ).to redirect_to edit_account_path
-        end
+        
       end
     end
   end

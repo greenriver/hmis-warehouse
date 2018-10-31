@@ -27,6 +27,7 @@ module WarehouseReports
     def error(job, exception)
       @report = report_source.find(report_id)
       @report.update(error: "Failed: #{exception.message}")
+      super(job, exception)
     end
 
     def report_source

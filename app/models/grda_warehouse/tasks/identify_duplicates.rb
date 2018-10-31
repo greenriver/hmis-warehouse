@@ -8,6 +8,7 @@ module GrdaWarehouse::Tasks
       @unprocessed = load_unprocessed()
 
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+      return unless @dnd_warehouse_data_source
       # compare unprocessed to destinations, looking for a match
       # If we don't find a match:
       #   create a new destination (based on the unprocessed client)

@@ -2,6 +2,7 @@ module Clients
   class FilesController < Window::Clients::FilesController
     include ClientPathGenerator
     before_action :require_can_manage_client_files!
+    after_action :log_client
 
     def window_visible? visibility
       visibility

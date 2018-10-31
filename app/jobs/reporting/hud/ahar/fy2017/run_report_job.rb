@@ -27,6 +27,7 @@ module Reporting::Hud::Ahar::Fy2017
     def error(job, exception)
       result =  ReportResult.find(@result_id)
       result.update(job_status: "Failed: #{exception.message}")
+      super(job, exception)
     end
   end
 end

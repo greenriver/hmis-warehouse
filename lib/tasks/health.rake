@@ -27,6 +27,7 @@ namespace :health do
   desc "Import patient Referrals"
   task import_patient_referrals: [:environment, "log:info_to_stdout"] do
     Health::Tasks::ImportPatientReferrals.new.import!
+    Health::Tasks::ImportPatientReferralRefreshes.new.import!
   end
 
   desc "Fix HealthFile relationships"

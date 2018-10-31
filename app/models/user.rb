@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :invitable, :database_authenticatable,
          :recoverable, :rememberable, :trackable, :validatable,
-         :lockable, :timeoutable, :confirmable, password_length: 8..128
+         :lockable, :timeoutable, :confirmable, :pwned_password, password_length: 10..128
   #has_secure_password # not needed with devise
 
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
@@ -29,6 +29,7 @@ class User < ActiveRecord::Base
   end
   scope :active, -> {where active: true}
   scope :inactive, -> {where active: false}
+  scope :not_system, -> { where.not(first_name: 'System') }
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary

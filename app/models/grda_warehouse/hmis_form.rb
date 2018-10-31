@@ -247,8 +247,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def clean_activity_title qa
     activity = qa[:questions].select{|m| m[:question] == 'Which of these activities took place?'}.first.try(:[], :answer)
-    case activity
-    when 'Comprehensive assessment', 'Health Assessment'
+    case activity&.downcase
+    when 'comprehensive assessment', 'health assessment'
       'Comprehensive Health Assessment'
     else
       activity

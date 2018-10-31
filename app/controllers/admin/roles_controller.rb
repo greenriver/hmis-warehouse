@@ -2,6 +2,8 @@ module Admin
   class RolesController < ApplicationController
     before_action :require_can_edit_roles!
     helper_method :sort_column, :sort_direction
+    before_action :set_role, only: [:edit, :update, :destroy]
+
     require 'active_support'
     require 'active_support/core_ext/string/inflections'
 
@@ -17,32 +19,19 @@ module Admin
     end
 
     def edit
-      @role = role_scope.find params[:id]
     end
 
     def update
-      @role = role_scope.find params[:id]
-      @role.update_attributes role_params
-      if @role.save 
-        redirect_to({action: :index}, notice: 'Role updated')
-      else
-        flash[:error] = 'Please review the form problems below'
-        render :edit
-      end
+      @role.update role_params
+      respond_with(@role, location: admin_roles_path)
     end
 
     def create
-      @role = Role.new(role_params)
-      if @role.save 
-        redirect_to({action: :index}, notice: 'Role created')
-      else
-        flash[:error] = 'Please review the form problems below'
-        render :edit
-      end
+      @role = Role.create(role_params)
+      respond_with(@role, location: admin_roles_path)
     end
 
     def destroy
-      @role = role_scope.find params[:id]
       @role.destroy
       redirect_to({action: :index}, notice: 'Role deleted')
     end
@@ -59,6 +48,11 @@ module Admin
     end
 
     private
+
+      def set_role
+        @role = role_scope.find(params[:id].to_i)
+      end
+
       def role_scope
         Role.editable
       end

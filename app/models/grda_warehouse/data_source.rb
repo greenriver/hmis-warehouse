@@ -236,6 +236,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     exports.any?
   end
 
+  def organization_names
+    organizations.order(OrganizationName: :asc).pluck(:OrganizationName)
+  end
+
+  def project_names
+    projects.order(ProjectName: :asc).pluck(:ProjectName)
+  end
+
   class << self
     extend Memoist
     def health_authoritative_id

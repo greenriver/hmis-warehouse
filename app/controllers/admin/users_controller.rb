@@ -110,10 +110,5 @@ module Admin
       %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
     end
 
-    private def log_user
-      log_item(@user) if @user.present?
-    end
-
-
   end
 end

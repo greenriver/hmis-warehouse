@@ -2,6 +2,7 @@ module Clients
   class NotesController < Window::Clients::NotesController
     include ClientPathGenerator
     before_action :require_can_edit_client_notes!
+    after_action :log_client
 
     def index
       @notes = @client.notes
@@ -30,6 +31,5 @@ module Clients
     def client_scope
       GrdaWarehouse::Hud::Client.destination
     end
-  
   end
 end

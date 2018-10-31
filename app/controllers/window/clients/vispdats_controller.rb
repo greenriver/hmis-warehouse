@@ -7,6 +7,7 @@ module Window::Clients
 
     before_action :set_client
     before_action :set_vispdat, only: [:show, :edit, :update, :destroy, :add_child, :remove_child]
+    after_action :log_client
 
     def index
       @vispdats = @client.vispdats.
@@ -162,6 +163,10 @@ module Window::Clients
 
       def tag_list
         file_params[:tag_list] || []
+      end
+
+      def title_for_show
+        "#{@client.name} - VI-SPDATs"
       end
   end
 end
