@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181026125946) do
+ActiveRecord::Schema.define(version: 20181031151924) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2726,12 +2726,13 @@ ActiveRecord::Schema.define(version: 20181026125946) do
   add_index "user_clients", ["user_id"], name: "index_user_clients_on_user_id", using: :btree
 
   create_table "user_viewable_entities", force: :cascade do |t|
-    t.integer "user_id",     null: false
-    t.integer "entity_id",   null: false
-    t.string  "entity_type", null: false
+    t.integer  "user_id",     null: false
+    t.integer  "entity_id",   null: false
+    t.string   "entity_type", null: false
+    t.datetime "deleted_at"
   end
 
-  add_index "user_viewable_entities", ["user_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_user", unique: true, using: :btree
+  add_index "user_viewable_entities", ["user_id", "entity_id", "entity_type", "deleted_at"], name: "one_entity_per_type_per_user_allows_delete", unique: true, using: :btree
 
   create_table "vispdats", force: :cascade do |t|
     t.integer  "client_id"
