@@ -366,42 +366,39 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 2.6.1
-  def funding_source(id, reverse=false)
-    map = {
-      1 => 'HUD: CoC – Homelessness Prevention (High Performing Comm. Only)',
-      2 => 'HUD: CoC – Permanent Supportive Housing',
-      3 => 'HUD: CoC – Rapid Re-Housing',
-      4 => 'HUD: CoC – Supportive Services Only',
-      5 => 'HUD: CoC – Transitional Housing',
-      6 => 'HUD: CoC – Safe Haven',
-      7 => 'HUD: CoC – Single Room Occupancy (SRO)',
-      8 => 'HUD: ESG – Emergency Shelter (operating and/or essential services)',
-      9 => 'HUD: ESG – Homelessness Prevention',
-      10 => 'HUD: ESG – Rapid Rehousing',
-      11 => 'HUD: ESG – Street Outreach',
-      12 => 'HUD: Rural Housing Stability Assistance Program',
-      13 => 'HUD: HOPWA – Hotel/Motel Vouchers',
-      14 => 'HUD: HOPWA – Housing Information',
-      15 => 'HUD: HOPWA – Permanent Housing (facility based or TBRA)',
-      16 => 'HUD: HOPWA – Permanent Housing Placement',
-      17 => 'HUD: HOPWA – Short-Term Rent, Mortgage, Utility assistance',
-      18 => 'HUD: HOPWA – Short-Term Supportive Facility',
-      19 => 'HUD: HOPWA – Transitional Housing (facility based or TBRA)',
-      20 => 'HUD: HUD/VASH',
-      21 => 'HHS: PATH – Street Outreach & Supportive Services Only',
-      22 => 'HHS: RHY – Basic Center Program (prevention and shelter)',
-      23 => 'HHS: RHY – Maternity Group Home for Pregnant and Parenting Youth',
-      24 => 'HHS: RHY – Transitional Living Program',
-      25 => 'HHS: RHY – Street Outreach Project',
-      26 => 'HHS: RHY – Demonstration Project**',
-      27 => 'VA: Community Contract Emergency Housing',
-      28 => 'VA: Community Contract Residential Treatment Program***',
-      # 29 => 'VA: Domiciliary Care***',
-      30 => 'VA: Community Contract Safe Haven Program***',
-      31 => 'VA: Grant and Per Diem Program',
-      32 => 'VA: Compensated Work Therapy Transitional Residence***',
-      33 => 'VA: Supportive Services for Veteran Families',
+
+  def funding_sources
+    {
+      1 => 'HUD:  CoC – Homelessness Prevention (High Performing Comm.  Only)',
+      2 => 'HUD:  CoC – Permanent Supportive Housing ',
+      3 => 'HUD:  CoC – Rapid Re-Housing',
+      4 => 'HUD:  CoC – Supportive Services Only',
+      5 => 'HUD:  CoC – Transitional Housing',
+      6 => 'HUD:  CoC – Safe Haven',
+      7 => 'HUD:  CoC – Single Room Occupancy (SRO)',
+      8 => 'HUD:  ESG – Emergency Shelter (operating and/or essential services)',
+      9 => 'HUD:  ESG – Homelessness Prevention ',
+      10 => 'HUD:  ESG – Rapid Rehousing',
+      11 => 'HUD:  ESG – Street Outreach',
+      12 => 'HUD:  Rural Housing Stability Assistance Program ',
+      13 => 'HUD:  HOPWA – Hotel/Motel Vouchers',
+      14 => 'HUD:  HOPWA – Housing Information',
+      15 => 'HUD:  HOPWA – Permanent Housing (facility based or TBRA)',
+      16 => 'HUD:  HOPWA – Permanent Housing Placement  ',
+      17 => 'HUD:  HOPWA – Short-Term Rent, Mortgage, Utility assistance',
+      18 => 'HUD:  HOPWA – Short-Term Supportive Facility',
+      19 => 'HUD:  HOPWA – Transitional Housing (facility based or TBRA)',
+      20 => 'HUD:  HUD/VASH',
+      21 => 'HHS:  PATH – Street Outreach & Supportive Services Only',
+      22 => 'HHS:  RHY – Basic Center Program (prevention and shelter)',
+      23 => 'HHS:  RHY – Maternity Group Home for Pregnant and Parenting Youth',
+      24 => 'HHS:  RHY – Transitional Living Program',
+      25 => 'HHS:  RHY – Street Outreach Project',
+      26 => 'HHS:  RHY – Demonstration Project**',
+      27 => 'VA:  CRS Contract Residential Services',
+      30 => 'VA:  Community Contract Safe Haven Program',
+      32 => 'VA:  Compensated Work Therapy Transitional Residence',
+      33 => 'VA:  Supportive Services for Veteran Families',
       34 => 'N/A',
       35 => 'HUD:  Pay for Success',
       36 => 'HUD:  Public and Indian Housing (PIH) Programs',
@@ -411,9 +408,13 @@ module HUD
       40 => 'VA:  Grant Per Diem – Clinical Treatment',
       41 => 'VA:  Grant Per Diem – Service Intensive Transitional Housing',
       42 => 'VA:  Grant Per Diem – Transition in Place',
-      43 => 'HUD: CoC – Youth Homeless Demonstration Program (YHDP)',
+      43 => 'HUD:CoC – Youth Homeless Demonstration Program (YHDP)',
     }
+  end
 
+  # 2.6.1
+  def funding_source(id, reverse=false)
+    map = funding_sources
     _translate map, id, reverse
   end
 

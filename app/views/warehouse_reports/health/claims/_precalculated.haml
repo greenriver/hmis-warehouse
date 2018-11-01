@@ -1,18 +1,21 @@
 %ul.nav.nav-tabs
   %li.nav-item.active
     %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
-      Un-Payable
+      Invalid QA
   %li.nav-item
     %a.nav-link{href: '#duplicate', role: "presentation", data: {toggle: :tab}}
       Duplicate
-  %li.nav-item
+  %li.nav-item.payable
+    %a.nav-link{href: '#valid-unpayable', role: "presentation", data: {toggle: :tab}}
+      Valid QA, Unpayable
+  %li.nav-item.payable
     %a.nav-link{href: '#payable', role: "presentation", data: {toggle: :tab}}
-      Payable
+      Valid QA, Payable
 
 .tab-content
   .tab-pane.active#unpayable
     %p
-      The following qualifying activities are un-payable per the
+      The following qualifying activities are invalid and therefore un-payable per the
       %strong #{@sender.receiver_name} Community Partners Manual: Qualifying Activity Reporting.
     %p
       Any qualifying activities marked
@@ -21,12 +24,9 @@
       %strong no,
       will remain on this list until they are adjusted such that they are payable, or until they are 6 months old.
     = simple_form_for :force_payable, url: qualifying_activities_warehouse_reports_health_claims_path do |f|
-      .d-flex
-        .form-actions.ml-auto
-          = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
       .unpayable-wrapper.overflow-scroll
         %p Found #{pluralize(@unpayable.count, 'client')} with #{pluralize(@unpayable.values.flatten.count, 'unpayable qualifying activity')}.
-        = render 'unpayable', qa_group: @unpayable
+        = render 'unpayable', qa_group: @unpayable, f: f
       .d-flex
         .form-actions.ml-auto
           = f.submit 'Update Qualifying Activities', class: "btn btn-primary"
@@ -36,12 +36,19 @@
     .duplicate-wrapper.overflow-scroll
       %p Found #{pluralize(@duplicate.count, 'client')} with #{pluralize(@duplicate.values.flatten.count, 'duplicate qualifying activity')}.
       = render 'payable', qa_group: @duplicate
+  .tab-pane#valid-unpayable
+    %p
+      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name} even though it is fairly certain the claim will be denied. 
+    .payable-wrapper.overflow-scroll
+      %p Found #{pluralize(@valid_unpayable.count, 'client')} with #{pluralize(@valid_unpayable.values.flatten.count, 'valid, unpayable qualifying activity')}.
+      = render 'payable', qa_group: @valid_unpayable
+
   .tab-pane#payable
     %p
-      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition and qualifying activities marked
+      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name}.  In addition qualifying activities marked
       %strong force payable
       on the
-      %strong Un-Payable
+      %strong Invalid
       tab will be included.
     .payable-wrapper.overflow-scroll
       %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.

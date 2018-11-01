@@ -1,6 +1,6 @@
 - if @show_missing_data
   .alert.alert-warning
-    The LSA report requires some project descriptors.  The following projects are missing either Project HousingType, Geography Geocode, or Geography GeographyType.
+    The LSA report requires some project descriptors.  The following projects are missing either Project HousingType, Geography Geocode, or Geography GeographyType, or have an invalid Funder.
   %table.table.table-condensed
     %thead
       %tr
@@ -11,6 +11,7 @@
         %th Geocode
         %th GeographyType
         %th Geography InformationDate
+        %th Funder
     %tbody
       - @missing_projects.each do |project|
         %tr
@@ -21,6 +22,7 @@
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
           %td= yes_no(! @missing_data[:missing_gepgraphy_type].include?(project))
           %td= yes_no(! @missing_data[:missing_gepgraphy_information_date].include?(project))
+          %td= yes_no(! @missing_data[:invalid_funders].include?(project))
 
 = simple_form_for :report_result do |f|
   - year = if Date.today.month >= 10 then Date.today.year else Date.today.year - 1 end

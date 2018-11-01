@@ -29,6 +29,7 @@ class User < ActiveRecord::Base
   end
   scope :active, -> {where active: true}
   scope :inactive, -> {where active: false}
+  scope :not_system, -> { where.not(first_name: 'System') }
 
   # NOTE: users and rows in this join table are in different databases, so transactions
   # aren't going to play well across this boundary
@@ -279,7 +280,29 @@ class User < ActiveRecord::Base
     true
   end
 
+  def self.describe_changes(version, changes)
+    changes.slice(*whitelist_for_changes_display).map do |name, values|
+      "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
+    end
+  end
+
+  def self.humanize_attribute_name(name)
+    name.humanize.titleize
+  end
+
   private
+
+    def self.whitelist_for_changes_display
+      [
+        'first_name',
+        'last_name email',
+        'phone',
+        'agency',
+        'receive_file_upload_notifications',
+        'notify_of_vispdat_completed',
+        'notify_on_anomaly_identified',
+      ].freeze
+    end
 
     def viewable(model)
       if can_edit_anything_super_user?

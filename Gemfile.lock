@@ -640,6 +640,7 @@ DEPENDENCIES
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails
+  json
   kaminari
   launchy
   letsencrypt_plugin
@@ -710,4 +711,4 @@ DEPENDENCIES
   wkhtmltopdf-binary
 
 BUNDLED WITH
-   1.16.2
+   1.16.5

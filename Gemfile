@@ -119,6 +119,7 @@ gem 'redis-rails'
 #AWS SDK
 gem 'aws-sdk-rails', require: false
 gem 'aws-sdk', '~> 2', require: false
+gem 'json'
 gem 'awesome_print'
 
 gem 'auto-session-timeout'

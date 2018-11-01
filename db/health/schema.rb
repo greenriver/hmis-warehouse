@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180907122443) do
+ActiveRecord::Schema.define(version: 20181026155224) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -697,6 +697,8 @@ ActiveRecord::Schema.define(version: 20180907122443) do
     t.date     "updated_on"
     t.date     "exported_on"
     t.boolean  "removal_acknowledged",             default: false
+    t.date     "disenrollment_date"
+    t.string   "stop_reason_description"
   end
 
   create_table "patients", force: :cascade do |t|

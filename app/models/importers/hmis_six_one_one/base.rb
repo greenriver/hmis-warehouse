@@ -84,6 +84,8 @@ module Importers::HMISSixOneOne
           import_services()
 
           complete_import()
+          match_clients()
+          update_project_types()
           log("Import complete")
         ensure
           remove_import_files() if @remove_files
@@ -95,6 +97,15 @@ module Importers::HMISSixOneOne
       import_file_path = "#{@file_path}/#{@data_source.id}"
       Rails.logger.info "Removing #{import_file_path}"
       FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
+    end
+
+    def update_project_types
+      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    end
+
+    def match_clients
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
     end
 
     def complete_import
