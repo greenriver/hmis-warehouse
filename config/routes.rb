@@ -515,6 +515,7 @@ Rails.application.routes.draw do
       resource :resend_invitation, only: :create
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
+      resource :edit_history, only: :show
     end
     resources :roles
     namespace :dashboard do
