@@ -18,22 +18,26 @@ module WarehouseReports::Health
         @payable = {}
         @unpayable = {}
         @duplicate = {}
-        @report.qualifying_activities.joins(:patient).
-          preload(:patient).
-          order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
-          each do |qa|
-          # Bucket results
-          if qa.duplicate? && qa.naturally_payable?
-            @duplicate[qa.patient_id] ||= []
-            @duplicate[qa.patient_id] << qa
-          elsif ! qa.naturally_payable?
-            @unpayable[qa.patient_id] ||= []
-            @unpayable[qa.patient_id] << qa
-          else
-            @payable[qa.patient_id] ||= []
-            @payable[qa.patient_id] << qa
-          end
-        end
+        @valid_unpayable = {}
+        # @report.qualifying_activities.joins(:patient).
+        #   preload(:patient).
+        #   order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
+        #   each do |qa|
+        #   # Bucket results
+        #   if qa.duplicate? && qa.naturally_payable?
+        #     @duplicate[qa.patient_id] ||= []
+        #     @duplicate[qa.patient_id] << qa
+        #   elsif qa.naturally_payable? && qa.valid_unpayable?
+        #     @valid_unpayable[qa.patient_id] ||= []
+        #     @valid_unpayable[qa.patient_id] << qa
+        #   elsif ! qa.naturally_payable?
+        #     @unpayable[qa.patient_id] ||= []
+        #     @unpayable[qa.patient_id] << qa
+        #   else
+        #     @payable[qa.patient_id] ||= []
+        #     @payable[qa.patient_id] << qa
+        #   end
+        # end
       elsif Health::Claim.incomplete.exists?
         @state = :running
         @report = Health::Claim.incomplete.last || Health::Claim.queued.last
@@ -54,14 +58,18 @@ module WarehouseReports::Health
       @payable = {}
       @unpayable = {}
       @duplicate = {}
+      @valid_unpayable = {}
       @report.qualifying_activities.joins(:patient).
-        preload(:patient).
+        preload(patient: :patient_referral).
         order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
         each do |qa|
         # Bucket results
         if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
+        elsif qa.naturally_payable? && qa.valid_unpayable?
+            @valid_unpayable[qa.patient_id] ||= []
+            @valid_unpayable[qa.patient_id] << qa
         elsif ! qa.naturally_payable?
           @unpayable[qa.patient_id] ||= []
           @unpayable[qa.patient_id] << qa
@@ -111,32 +119,36 @@ module WarehouseReports::Health
       end
     end
 
-    def qualifying_activities_for_patients
-      patient_ids = params[:patient_ids].split(',').compact.map(&:to_i)
-      qualifying_activities = Health::QualifyingActivity.unsubmitted.
-        where(patient_id: patient_ids).
-        order(date_of_activity: :asc, id: :asc).
-        preload(patient: :client)
-      @payable = {}
-      @unpayable = {}
-      @duplicate = {}
-      qualifying_activities.each do |qa|
-        # force re-calculation
-        qa.calculate_payability!
-        # Bucket results
-        if qa.duplicate? && qa.naturally_payable?
-          @duplicate[qa.patient_id] ||= []
-          @duplicate[qa.patient_id] << qa
-        elsif ! qa.naturally_payable?
-          @unpayable[qa.patient_id] ||= []
-          @unpayable[qa.patient_id] << qa
-        else
-          @payable[qa.patient_id] ||= []
-          @payable[qa.patient_id] << qa
-        end
-      end
-      render layout: false
-    end
+    # def qualifying_activities_for_patients
+    #   patient_ids = params[:patient_ids].split(',').compact.map(&:to_i)
+    #   qualifying_activities = Health::QualifyingActivity.unsubmitted.
+    #     where(patient_id: patient_ids).
+    #     order(date_of_activity: :asc, id: :asc).
+    #     preload(patient: :client)
+    #   @payable = {}
+    #   @unpayable = {}
+    #   @duplicate = {}
+    #   @valid_unpayable = {}
+    #   qualifying_activities.each do |qa|
+    #     # force re-calculation
+    #     qa.calculate_payability!
+    #     # Bucket results
+    #     if qa.duplicate? && qa.naturally_payable?
+    #       @duplicate[qa.patient_id] ||= []
+    #       @duplicate[qa.patient_id] << qa
+    #     elsif qa.naturally_payable? && qa.valid_unpayable?
+    #         @valid_unpayable[qa.patient_id] ||= []
+    #         @valid_unpayable[qa.patient_id] << qa
+    #     elsif ! qa.naturally_payable?
+    #       @unpayable[qa.patient_id] ||= []
+    #       @unpayable[qa.patient_id] << qa
+    #     else
+    #       @payable[qa.patient_id] ||= []
+    #       @payable[qa.patient_id] << qa
+    #     end
+    #   end
+    #   render layout: false
+    # end
 
     def show
 

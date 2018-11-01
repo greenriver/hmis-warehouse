@@ -115,3 +115,15 @@
 {
   background-color: lighten($brand-primary-ll, 5%);
 }
+
+.nav-tabs > li.active.payable > a, 
+.nav-tabs > li.active.payable > a:hover, 
+.nav-tabs > li.active.payable > a:focus
+{
+  box-shadow: inset 0px 2px 0px 0px $brand-success; 
+}
+
+.nav-tabs > li.payable > a:link
+{
+  box-shadow: inset 0px 2px 0px -1px $brand-success;
+}

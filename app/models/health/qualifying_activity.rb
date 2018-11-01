@@ -38,8 +38,25 @@ module Health
       where.not(duplicate_id: nil)
     end
 
+    # Some procedure modifier/client_reached combinations are technically valid,
+    # but obviously un-payable
+    # For example: U3 (phone call) with client_reached "did not reach"
+    # or the outreach was outside of the allowable window
+    # Flag these for possibly ignoring in the future
+    # NOTE: this needs to stay in-sync with the method valid_unpayable?
     scope :valid_unpayable, -> do
-      where(reached_client: :no, mode_of_contact: [:phone_call, :video_call])
+      joins(patient: :patient_referral).
+      where(
+        hqa_t[:reached_client].eq(:no).
+        and(
+          hqa_t[:mode_of_contact].in([:phone_call, :video_call])
+        ).or(
+          hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:effective_date].to_sql} + INTERVAL '3 months'")).
+          and(
+            hqa_t[:activity].in(in_first_three_months_activities)
+          )
+        )
+      )
     end
 
     scope :not_valid_unpayable, -> do
@@ -233,13 +250,6 @@ module Health
       follow_up.blank?
     end
 
-    # rules change, figure out what's currently payable and mark them as such
-    # def self.update_naturally_payable!
-    #   unsubmitted.each do |qa|
-    #     qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
-    #   end
-    # end
-
     def self.load_string_collection(collection)
       collection.map{|k, v| [v, k]}
     end
@@ -361,6 +371,7 @@ module Health
         procedure_code = procedure_code&.to_sym
       end
 
+      # If the client isn't reached, and it's an in-person encounter, you can only count outreach attempts
       if reached_client.to_s == 'no'
         return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
       end
@@ -409,7 +420,9 @@ module Health
 
     def calculate_payability!
       # Meets general restrictions
-      self.naturally_payable = procedure_valid? && meets_date_restrictions?
+      # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
+      # will still be submitted
+      self.naturally_payable = procedure_valid?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -419,15 +432,19 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
-    # Some procedure modifier/client_reached combinations are technically valid,
-    # but obviously un-payable
-    # For example: U3 (phone call) with client_reached "did not reach"
-    # Flag these for possibly ignoring in the future
+    # NOTE: this needs to stay in-sync with the scope valid_unpayable
+    # for speed reasons we re-implement the logic here
     def valid_unpayable?
+      return false unless procedure_valid?
+      # Only valid procedures
+      # Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
         return true
       end
-
+      # unpayable if it doesn't meet the date restrictions
+      if ! meets_date_restrictions?
+        return true
+      end
       return false
     end
 
@@ -450,7 +467,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment
-      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.effective_date + 3.months)
+      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
     end
 
     def once_per_day_procedure_codes
@@ -464,9 +481,19 @@ module Health
     end
 
     def in_first_three_months_procedure_codes
+      self.class.in_first_three_months_procedure_codes
+    end
+
+    def self.in_first_three_months_procedure_codes
       [
         'G9011',
       ]
+    end
+
+    def self.in_first_three_months_activities
+      activities.select do |_, act|
+        in_first_three_months_procedure_codes.include? act[:code]
+      end.keys
     end
 
     def restricted_procedure_codes

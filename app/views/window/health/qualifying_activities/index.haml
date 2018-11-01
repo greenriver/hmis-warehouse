@@ -7,10 +7,28 @@
     .col-sm-8
       = render 'filter', data: {placement: 'bottom'}
     .col-sm-4.mt-4
+      
+  .table-utilities.mt-2
+    %p.w-100= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
+    %p= paginate @qualifying_activities
+    
+  .row
+    .col-sm-6
       = render 'payability_key'
-  .table-utilities
-    %p.mr-5= page_entries_info @qualifying_activities, entry_name: _('qualifying activities')
-
+    .col-sm-6
+      .ml-auto
+        .w-100.text-small.text-right
+          %strong
+            Enrollment date:
+          = @patient.enrollment_start_date&.to_date
+        .w-100.text-small.text-right
+          %strong
+            Outreach cut-off date:
+          = @patient.outreach_cutoff_date
+        .w-100.text-small.text-right
+          %strong
+            Days remaining to engage patient:
+          = @patient.days_to_engage
   - if @qualifying_activities.present?
     %table.table.table-condensed
       %thead
@@ -28,7 +46,7 @@
         - @qualifying_activities.each do |qa|
           %tr{class: qa.validity_class}
             %td= qa.date_of_activity.to_date
-            %td= qa.claim_submitted_on
+            %td= qa.claim_submitted_on&.to_date
             %td= qa.title_for_activity
             %td= qa.title_for_mode_of_contact
             %td= qa.title_for_client_reached
@@ -36,6 +54,6 @@
             %td= qa.user_full_name
             %td.qa__procedure-code= qa.procedure_code
             %td= qa.modifiers.join('>')
-      %p= paginate @qualifying_activities
+      
   - else
     %p.no-data None on file.

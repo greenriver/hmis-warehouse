@@ -2,6 +2,9 @@
   .row
     .col-sm-4
       = f.input :engagement_date, as: :date_picker, hint: 'Date by which all checked patients below will need their PCTP signatures.', input_html: {value: @date}
+    .col-sm-4
+      .mt-7
+        = f.input :enrollment_start_date, as: :date_picker, label: 'Referral date', input_html: { value: @referral_date }
   %table.table.table-striped
     %thead
       %tr
@@ -18,9 +21,12 @@
           %td
             %input{name: "patients[#{patient.id}][engagement_date]", type: :checkbox, checked: true, class: :jEnrollmentDate}
           %td
-            = link_to polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id) do 
+            - if patient.client_id.present?
+              = link_to polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id) do 
+                #{patient.first_name} #{patient.last_name}
+            - else
               #{patient.first_name} #{patient.last_name}
-          %td= patient.effective_date.to_date
+          %td= patient.enrollment_start_date&.to_date
           %td= patient.engagement_date
           %td= checkmark patient.rejected
 

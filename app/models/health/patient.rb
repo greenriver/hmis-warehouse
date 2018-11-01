@@ -188,6 +188,7 @@ module Health
     end
 
     delegate :effective_date, to: :patient_referral
+    delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
 
     self.source_key = :PAT_ID
@@ -258,6 +259,18 @@ module Health
     def days_to_engage
       return 0 unless engagement_date.present?
       (engagement_date - Date.today).to_i.clamp(0, 365)
+    end
+
+    def self.outreach_cutoff_span
+      3.months
+    end
+
+    def outreach_cutoff_date
+      if enrollment_start_date.present?
+        (enrollment_start_date + self.class.outreach_cutoff_span).to_date
+      else
+        (Date.today + self.class.outreach_cutoff_span).to_date
+      end
     end
 
     def chas

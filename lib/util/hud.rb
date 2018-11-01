@@ -366,9 +366,9 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 2.6.1
-  def funding_source(id, reverse=false)
-    map = {
+
+  def funding_sources
+    {
       1 => 'HUD:  CoC – Homelessness Prevention (High Performing Comm.  Only)',
       2 => 'HUD:  CoC – Permanent Supportive Housing ',
       3 => 'HUD:  CoC – Rapid Re-Housing',
@@ -410,7 +410,11 @@ module HUD
       42 => 'VA:  Grant Per Diem – Transition in Place',
       43 => 'HUD:CoC – Youth Homeless Demonstration Program (YHDP)',
     }
+  end
 
+  # 2.6.1
+  def funding_source(id, reverse=false)
+    map = funding_sources
     _translate map, id, reverse
   end
 

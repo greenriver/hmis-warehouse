@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181025123951) do
+ActiveRecord::Schema.define(version: 20181031172440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,29 +38,6 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree
   add_index "activity_logs", ["user_id"], name: "index_activity_logs_on_user_id", using: :btree
-
-  create_table "cas_reports", force: :cascade do |t|
-    t.integer  "client_id",                                          null: false
-    t.integer  "match_id",                                           null: false
-    t.integer  "decision_id",                                        null: false
-    t.integer  "decision_order",                                     null: false
-    t.string   "match_step",                                         null: false
-    t.string   "decision_status",                                    null: false
-    t.boolean  "current_step",                       default: false, null: false
-    t.boolean  "active_match",                       default: false, null: false
-    t.datetime "created_at",                                         null: false
-    t.datetime "updated_at",                                         null: false
-    t.integer  "elapsed_days",                       default: 0,     null: false
-    t.datetime "client_last_seen_date"
-    t.datetime "criminal_hearing_date"
-    t.string   "decline_reason"
-    t.string   "not_working_with_client_reason"
-    t.string   "administrative_cancel_reason"
-    t.boolean  "client_spoken_with_services_agency"
-    t.boolean  "cori_release_form_submitted"
-  end
-
-  add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
 
   create_table "client_service_history", id: false, force: :cascade do |t|
     t.integer "unduplicated_client_id"
@@ -109,6 +86,35 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
+
+  create_table "glacier_archives", force: :cascade do |t|
+    t.integer  "glacier_vault_id",                                     null: false
+    t.text     "upload_id",                                            null: false
+    t.text     "archive_id"
+    t.text     "checksum"
+    t.text     "location"
+    t.string   "status",                       default: "initialized", null: false
+    t.boolean  "verified",                     default: false,         null: false
+    t.integer  "size_in_bytes",      limit: 8
+    t.datetime "upload_started_at"
+    t.datetime "upload_finished_at"
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
+  end
+
+  add_index "glacier_archives", ["glacier_vault_id"], name: "index_glacier_archives_on_glacier_vault_id", using: :btree
+  add_index "glacier_archives", ["upload_id"], name: "index_glacier_archives_on_upload_id", unique: true, using: :btree
+
+  create_table "glacier_vaults", force: :cascade do |t|
+    t.string   "name",                   null: false
+    t.datetime "vault_created_at"
+    t.datetime "last_upload_attempt_at"
+    t.datetime "last_upload_success_at"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  add_index "glacier_vaults", ["name"], name: "index_glacier_vaults_on_name", unique: true, using: :btree
 
   create_table "imports", force: :cascade do |t|
     t.string   "file"
@@ -199,89 +205,87 @@ ActiveRecord::Schema.define(version: 20181025123951) do
     t.string   "verb"
     t.datetime "created_at",                                                          null: false
     t.datetime "updated_at",                                                          null: false
+    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_view_clients",                                    default: false
     t.boolean  "can_edit_clients",                                    default: false
     t.boolean  "can_view_censuses",                                   default: false
     t.boolean  "can_view_census_details",                             default: false
     t.boolean  "can_edit_users",                                      default: false
+    t.boolean  "can_edit_roles",                                      default: false
+    t.boolean  "can_audit_users",                                     default: false
     t.boolean  "can_view_full_ssn",                                   default: false
     t.boolean  "can_view_full_dob",                                   default: false
     t.boolean  "can_view_hiv_status",                                 default: false
     t.boolean  "can_view_dmh_status",                                 default: false
     t.boolean  "can_view_imports",                                    default: false
-    t.boolean  "can_edit_roles",                                      default: false
     t.boolean  "can_view_projects",                                   default: false
-    t.boolean  "can_view_organizations",                              default: false
-    t.boolean  "can_view_client_window",                              default: false
-    t.boolean  "can_upload_hud_zips",                                 default: false
-    t.boolean  "can_administer_health",                               default: false
-    t.boolean  "can_edit_client_health",                              default: false
-    t.boolean  "can_view_client_health",                              default: false
-    t.boolean  "health_role",                                         default: false, null: false
-    t.boolean  "can_edit_project_groups",                             default: false
-    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_edit_projects",                                   default: false
+    t.boolean  "can_edit_project_groups",                             default: false
+    t.boolean  "can_view_organizations",                              default: false
     t.boolean  "can_edit_organizations",                              default: false
     t.boolean  "can_edit_data_sources",                               default: false
+    t.boolean  "can_search_window",                                   default: false
+    t.boolean  "can_view_client_window",                              default: false
+    t.boolean  "can_upload_hud_zips",                                 default: false
     t.boolean  "can_edit_translations",                               default: false
     t.boolean  "can_manage_assessments",                              default: false
-    t.boolean  "can_manage_config",                                   default: false
-    t.boolean  "can_edit_dq_grades",                                  default: false
     t.boolean  "can_manage_client_files",                             default: false
     t.boolean  "can_manage_window_client_files",                      default: false
+    t.boolean  "can_see_own_file_uploads",                            default: false
+    t.boolean  "can_manage_config",                                   default: false
+    t.boolean  "can_edit_dq_grades",                                  default: false
     t.boolean  "can_view_vspdat",                                     default: false
     t.boolean  "can_edit_vspdat",                                     default: false
+    t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_create_clients",                                  default: false
     t.boolean  "can_view_client_history_calendar",                    default: false
-    t.boolean  "can_view_aggregate_health",                           default: false
-    t.boolean  "can_assign_users_to_clients",                         default: false
-    t.boolean  "can_view_client_user_assignments",                    default: false
-    t.boolean  "can_export_hmis_data",                                default: false
-    t.boolean  "can_confirm_housing_release",                         default: false
-    t.boolean  "can_see_own_file_uploads",                            default: false
-    t.boolean  "can_search_window",                                   default: false
-    t.boolean  "can_submit_vspdat",                                   default: false
     t.boolean  "can_edit_client_notes",                               default: false
     t.boolean  "can_edit_window_client_notes",                        default: false
     t.boolean  "can_see_own_window_client_notes",                     default: false
-    t.boolean  "can_track_anomalies",                                 default: false
-    t.boolean  "can_view_all_reports",                                default: false
-    t.boolean  "can_assign_reports",                                  default: false
-    t.boolean  "can_view_assigned_reports",                           default: false
-    t.boolean  "can_view_reports",                                    default: false
     t.boolean  "can_manage_cohorts",                                  default: false
     t.boolean  "can_edit_cohort_clients",                             default: false
     t.boolean  "can_edit_assigned_cohorts",                           default: false
     t.boolean  "can_view_assigned_cohorts",                           default: false
-    t.boolean  "can_manage_organization_users",                       default: false
-    t.boolean  "can_add_administrative_event",                        default: false
+    t.boolean  "can_assign_users_to_clients",                         default: false
+    t.boolean  "can_view_client_user_assignments",                    default: false
+    t.boolean  "can_export_hmis_data",                                default: false
+    t.boolean  "can_confirm_housing_release",                         default: false
+    t.boolean  "can_track_anomalies",                                 default: false
+    t.boolean  "can_view_all_reports",                                default: false
+    t.boolean  "can_assign_reports",                                  default: false
+    t.boolean  "can_view_assigned_reports",                           default: false
     t.boolean  "can_view_project_data_quality_client_details",        default: false
-    t.boolean  "can_manage_health_agency",                            default: false, null: false
+    t.boolean  "can_manage_organization_users",                       default: false
+    t.boolean  "can_view_all_user_client_assignments",                default: false
+    t.boolean  "can_add_administrative_event",                        default: false
+    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
+    t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
+    t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
+    t.boolean  "can_edit_warehouse_alerts",                           default: false
+    t.boolean  "can_upload_dashboard_extras",                         default: false
+    t.boolean  "can_administer_health",                               default: false
+    t.boolean  "can_edit_client_health",                              default: false
+    t.boolean  "can_view_client_health",                              default: false
+    t.boolean  "can_view_aggregate_health",                           default: false
+    t.boolean  "can_manage_health_agency",                            default: false
     t.boolean  "can_approve_patient_assignments",                     default: false
     t.boolean  "can_manage_claims",                                   default: false
     t.boolean  "can_manage_all_patients",                             default: false
     t.boolean  "can_manage_patients_for_own_agency",                  default: false
+    t.boolean  "can_manage_care_coordinators",                        default: false
+    t.boolean  "can_approve_cha",                                     default: false
+    t.boolean  "can_approve_ssm",                                     default: false
+    t.boolean  "can_approve_release",                                 default: false
+    t.boolean  "can_approve_participation",                           default: false
     t.boolean  "can_edit_all_patient_items",                          default: false
     t.boolean  "can_edit_patient_items_for_own_agency",               default: false
     t.boolean  "can_create_care_plans_for_own_agency",                default: false
     t.boolean  "can_view_all_patients",                               default: false
     t.boolean  "can_view_patients_for_own_agency",                    default: false
     t.boolean  "can_add_case_management_notes",                       default: false
-    t.boolean  "can_see_clients_in_window_for_assigned_data_sources", default: false
-    t.boolean  "can_approve_patient_items_for_agency",                default: false
-    t.boolean  "can_approve_cha",                                     default: false
-    t.boolean  "can_approve_ssm",                                     default: false
-    t.boolean  "can_approve_release",                                 default: false
-    t.boolean  "can_approve_participation",                           default: false
-    t.boolean  "can_manage_care_coordinators",                        default: false
     t.boolean  "can_manage_accountable_care_organizations",           default: false
     t.boolean  "can_view_member_health_reports",                      default: false
-    t.boolean  "can_edit_warehouse_alerts",                           default: false
-    t.boolean  "can_upload_deidentified_hud_hmis_files",              default: false
-    t.boolean  "can_upload_whitelisted_hud_hmis_files",               default: false
-    t.boolean  "can_upload_dashboard_extras",                         default: false
-    t.boolean  "can_view_all_user_client_assignments",                default: false
-    t.boolean  "can_audit_users",                                     default: false
+    t.boolean  "health_role",                                         default: false, null: false
     t.boolean  "can_audit_clients",                                   default: false
     t.boolean  "can_export_anonymous_hmis_data",                      default: false
   end
@@ -347,6 +351,7 @@ ActiveRecord::Schema.define(version: 20181025123951) do
     t.integer  "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
   end
 
   add_index "user_roles", ["role_id"], name: "index_user_roles_on_role_id", using: :btree
@@ -404,15 +409,18 @@ ActiveRecord::Schema.define(version: 20181025123951) do
   add_index "users", ["unlock_token"], name: "index_users_on_unlock_token", unique: true, using: :btree
 
   create_table "versions", force: :cascade do |t|
-    t.string   "item_type",  null: false
-    t.integer  "item_id",    null: false
-    t.string   "event",      null: false
+    t.string   "item_type",              null: false
+    t.integer  "item_id",                null: false
+    t.string   "event",                  null: false
     t.string   "whodunnit"
     t.text     "object"
     t.datetime "created_at"
     t.integer  "user_id"
     t.string   "session_id"
     t.string   "request_id"
+    t.text     "object_changes"
+    t.integer  "referenced_user_id"
+    t.string   "referenced_entity_name"
   end
 
   add_index "versions", ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id", using: :btree
@@ -425,6 +433,7 @@ ActiveRecord::Schema.define(version: 20181025123951) do
     t.datetime "deleted_at"
   end
 
+  add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"
   add_foreign_key "user_roles", "roles", on_delete: :cascade
