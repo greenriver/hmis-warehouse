@@ -38,8 +38,24 @@ module Health
       where.not(duplicate_id: nil)
     end
 
+    # Some procedure modifier/client_reached combinations are technically valid,
+    # but obviously un-payable
+    # For example: U3 (phone call) with client_reached "did not reach"
+    # or the outreach was outside of the allowable window
+    # Flag these for possibly ignoring in the future
     scope :valid_unpayable, -> do
-      where(reached_client: :no, mode_of_contact: [:phone_call, :video_call])
+      joins(patient: :patient_referral).
+      where(
+        hqa_t[:reached_client].eq(:no).
+        and(
+          hqa_t[:mode_of_contact].in([:phone_call, :video_call])
+        ).or(
+          hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:effective_date].to_sql} + INTERVAL '3 months'")).
+          and(
+            hqa_t[:activity].in(in_first_three_months_activities)
+          )
+        )
+      )
     end
 
     scope :not_valid_unpayable, -> do
@@ -422,22 +438,9 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
-    # Some procedure modifier/client_reached combinations are technically valid,
-    # but obviously un-payable
-    # For example: U3 (phone call) with client_reached "did not reach"
-    # or the outreach was outside of the allowable window
-    # Flag these for possibly ignoring in the future
+    
     def valid_unpayable?
-      if procedure_valid?
-        if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
-          return true
-        elsif ! meets_date_restrictions?
-          return true
-        else
-          return false
-        end
-      end
-
+      return self.class.valid_unpayable.where(id: self.id).exists? if procedure_valid?
       return false
     end
 
@@ -474,9 +477,19 @@ module Health
     end
 
     def in_first_three_months_procedure_codes
+      self.class.in_first_three_months_procedure_codes
+    end
+
+    def self.in_first_three_months_procedure_codes
       [
         'G9011',
       ]
+    end
+
+    def self.in_first_three_months_activities
+      activities.select do |_, act|
+        in_first_three_months_procedure_codes.include? act[:code]
+      end.keys
     end
 
     def restricted_procedure_codes

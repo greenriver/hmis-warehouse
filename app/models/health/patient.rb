@@ -260,11 +260,15 @@ module Health
       (engagement_date - Date.today).to_i.clamp(0, 365)
     end
 
+    def self.outreach_cutoff_span
+      3.months
+    end
+
     def outreach_cutoff_date
       if effective_date.present?
-        (effective_date + 3.months).to_date
+        (effective_date + self.class.outreach_cutoff_span).to_date
       else
-        (Date.today + 3.months).to_date
+        (Date.today + self.class.outreach_cutoff_span).to_date
       end
     end
 
