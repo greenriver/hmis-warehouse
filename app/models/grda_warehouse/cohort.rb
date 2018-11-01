@@ -205,6 +205,7 @@ module GrdaWarehouse
         ::CohortColumns::VashEligible.new(),
         ::CohortColumns::Chapter115.new(),
         ::CohortColumns::Veteran.new(),
+        ::CohortColumns::ClientNotes.new(),
         ::CohortColumns::Notes.new(),
         ::CohortColumns::VispdatScore.new(),
         ::CohortColumns::VispdatPriorityScore.new(),
