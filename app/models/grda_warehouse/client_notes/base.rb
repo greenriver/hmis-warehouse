@@ -12,7 +12,11 @@ module GrdaWarehouse::ClientNotes
     
     scope :chronic_justifications, -> do
       where(type: GrdaWarehouse::ClientNotes::ChronicJustification)
-    end 
+    end
+
+    scope :cohort_notes, -> do
+      where(type: GrdaWarehouse::ClientNotes::CohortNote)
+    end
 
     def self.type_name
       raise "Must be implemented in sub-class"
@@ -26,6 +30,7 @@ module GrdaWarehouse::ClientNotes
       [
         GrdaWarehouse::ClientNotes::WindowNote,
         GrdaWarehouse::ClientNotes::ChronicJustification,
+        GrdaWarehouse::ClientNotes::CohortNote,
       ]
     end
     
