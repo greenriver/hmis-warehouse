@@ -15,10 +15,14 @@ module Cohorts
 
     def create
       begin
-        @note = note_source.create(note_params.merge({
-                                                         client_id: @cohort_client.client_id,
-                                                         user_id: current_user.id,
-                                                     }))
+        @note = note_source.create(
+          note_params.merge(
+            {
+              client_id: @cohort_client.client_id,
+              user_id: current_user.id,
+            }
+          )
+        )
         @cohort_client.touch
         respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
       rescue
