@@ -281,7 +281,7 @@ class User < ActiveRecord::Base
   end
 
   def self.describe_changes(version, changes)
-    changes.slice(*WHITELIST).map do |name, values|
+    changes.slice(*whitelist_for_changes_display).map do |name, values|
       "Changed #{humanize_attribute_name(name)}: from \"#{values.first}\" to \"#{values.last}\"."
     end
   end
@@ -292,8 +292,17 @@ class User < ActiveRecord::Base
 
   private
 
-    WHITELIST = %w{first_name last_name email phone agency receive_file_upload_notifications
-      notify_of_vispdat_completed notify_on_anomaly_identified}
+    def self.whitelist_for_changes_display
+      [
+        'first_name',
+        'last_name email',
+        'phone',
+        'agency',
+        'receive_file_upload_notifications',
+        'notify_of_vispdat_completed',
+        'notify_on_anomaly_identified',
+      ].freeze
+    end
 
     def viewable(model)
       if can_edit_anything_super_user?

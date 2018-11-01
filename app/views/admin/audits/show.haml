@@ -1,36 +1,36 @@
 = render 'breadcrumbs'
 - title = "#{@user.name} Audit Log"
-- content_for :title do
-  = title
+- content_for :title, title
 %h1= title
-= link_to admin_user_edit_history_path(@user), class: 'btn btn-primary pull-right margin-bottom-02' do
-  View Edit History
-%p= paginate @activity_log
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-condensed.table-hover
-        %thead
-          %tr
-            %th Action
-            %th Item
-            %th Item Type
-            %th Date
-            %th IP Address
-        %tbody
-          - @activity_log.each do |i|
-            - title = i.title || i.controller_name
-            %tr
-              %td
-                - tooltip = "Method: #{i.method}"
-                %span.action{data: {toggle: :tooltip, title: tooltip}}
-                  = i.action_name
-              
-              %td= link_to title, i.path
-              %td
-                - tooltip = "Class: #{i.item_model}"
-                %span.action{data: {toggle: :tooltip, title: tooltip}}
-                  = i.clean_object_name
-              %td= i.created_at
-              %td= i.ip_address
+.d-flex
+  %p= paginate @activity_log
+  .mb-2.ml-auto
+    = link_to admin_user_edit_history_path(@user), class: 'btn btn-primary' do
+      View Edit History
+
+.table-responsive
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Action
+        %th Item
+        %th Item Type
+        %th Date
+        %th IP Address
+    %tbody
+      - @activity_log.each do |i|
+        - title = i.title || i.controller_name
+        %tr
+          %td
+            - tooltip = "Method: #{i.method}"
+            %span.action{data: {toggle: :tooltip, title: tooltip}}
+              = i.action_name
+          
+          %td= link_to title, i.path
+          %td
+            - tooltip = "Class: #{i.item_model}"
+            %span.action{data: {toggle: :tooltip, title: tooltip}}
+              = i.clean_object_name
+          %td= i.created_at
+          %td= i.ip_address
 %p= paginate @activity_log
