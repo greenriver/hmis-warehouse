@@ -35,17 +35,19 @@ module Admin
       begin
         User.transaction do
           @user.skip_reconfirmation!
+          # Associations don't play well with acts_as_paranoid, so manually clean up user roles
+          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
           @user.update(user_params)
 
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
           @user.set_viewables viewable_params
         end
-      rescue Exception => e
+     rescue Exception => e
         flash[:error] = 'Please review the form problems below'
         render :edit
         return
-      end
+     end
       redirect_to({action: :index}, notice: 'User updated')
     end
 
