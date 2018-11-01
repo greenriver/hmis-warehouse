@@ -265,8 +265,8 @@ module Health
     end
 
     def outreach_cutoff_date
-      if effective_date.present?
-        (effective_date + self.class.outreach_cutoff_span).to_date
+      if enrollment_start_date.present?
+        (enrollment_start_date + self.class.outreach_cutoff_span).to_date
       else
         (Date.today + self.class.outreach_cutoff_span).to_date
       end
