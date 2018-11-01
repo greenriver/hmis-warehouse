@@ -43,6 +43,7 @@ module Health
     # For example: U3 (phone call) with client_reached "did not reach"
     # or the outreach was outside of the allowable window
     # Flag these for possibly ignoring in the future
+    # NOTE: this needs to stay in-sync with the method valid_unpayable?
     scope :valid_unpayable, -> do
       joins(patient: :patient_referral).
       where(
@@ -249,13 +250,6 @@ module Health
       follow_up.blank?
     end
 
-    # rules change, figure out what's currently payable and mark them as such
-    # def self.update_naturally_payable!
-    #   unsubmitted.each do |qa|
-    #     qa.update(naturally_payable: qa.procedure_valid? && qa.meets_restrictions?)
-    #   end
-    # end
-
     def self.load_string_collection(collection)
       collection.map{|k, v| [v, k]}
     end
@@ -438,9 +432,19 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
-    
+    # NOTE: this needs to stay in-sync with the scope valid_unpayable
+    # for speed reasons we re-implement the logic here
     def valid_unpayable?
-      return self.class.valid_unpayable.where(id: self.id).exists? if procedure_valid?
+      return false unless procedure_valid?
+      # Only valid procedures
+      # Unpayable if this was a phone/video call where the client wasn't reached
+      if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
+        return true
+      end
+      # unpayable if it doesn't meet the date restrictions
+      if ! meets_date_restrictions?
+        return true
+      end
       return false
     end
 
