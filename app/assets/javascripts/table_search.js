@@ -1,4 +1,4 @@
-App.TableSeach = class TableSeach {
+App.TableSearch = class TableSearch {
   constructor(props) {
     this.props = props
     this.registerEvents()
