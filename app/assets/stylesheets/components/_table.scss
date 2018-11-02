@@ -1,0 +1,90 @@
+$table-border-color-primary: rgb(203, 203, 203);
+$table-border-color-secondary: #F0F0F0;
+
+.c-table {
+  background: $white;
+  @extend .table;
+  border: 1px solid $table-border-color-secondary;
+}
+
+.c-table--striped tbody tr {
+  &:nth-of-type(odd) td {
+    background: rgb(247, 247, 247);
+  }
+}
+
+.c-table > thead > tr > th,
+.c-table > tbody > tr > td {
+  padding: space(4) space(3);
+}
+
+.c-table > thead > tr > th {
+  border-bottom: 0;
+  vertical-align: middle;
+  border-bottom: 0;
+  padding: space(4) space(3);
+}
+
+.c-table__header-title {
+  @include font-bold(18px);
+}
+
+.c-table__header { }
+
+.c-table__header .pagination {
+  margin-bottom: 0;
+}
+
+.c-table__header > th {
+  background: rgb(238, 238, 238);
+  padding: space(4) space(3);
+}
+
+.c-table__header--secondary > th {
+  background: $white;
+  white-space: nowrap;
+}
+
+.c-table__cell--border-r-primary,
+.c-table__cell--border-r-secondary {
+  border-right: 1px solid $table-border-color-primary;
+}
+
+.c-table__cell--border-r-secondary {
+  border-color: $table-border-color-secondary;
+}
+
+.c-table__cell-title {
+  @include font-bold(14px);
+  margin-bottom: space(2);
+}
+
+.c-table__cell-description {
+  @include font-default(14px);
+}
+
+.c-table__cell-icon {
+  font-size: rem(28px);
+}
+
+.c-table__cell-icon--active {
+  color: $brand-success;
+}
+
+.c-table__cell-icon--inactive {
+  color: $gray-050;
+  font-size: rem(22px);
+}
+
+.c-table__icon-key {
+  @include font-default(14px);
+  color: $gray-065;
+}
+
+.c-table__icon-key--right {
+  margin-left: auto;
+}
+
+.c-table__icon-key span {
+  font-style: italic;
+}
