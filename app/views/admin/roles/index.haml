@@ -5,7 +5,7 @@
   %table.c-table.c-table--striped.j-table
     %thead
       %tr.c-table__header.c-table__header--primary
-        %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'width: 400px'}
+        %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'min-width: 400px'}
           .d-flex.align-items-center.flex-wrap
             %span.c-table__header-title Permissions
             %span.c-table__icon-key.c-table__icon-key--right
@@ -51,13 +51,16 @@
 - content_for :page_js do
   :javascript
     $('.j-table').DataTable({
-      scrollY: '55vh',
+      // scrollY: '55vh',
       scrollCollapse: true,
       scrollX: true,
       searching: false,
       ordering: false,
       paging: false,
-      bInfo : false,
+      bInfo: false,
+      fixedColumns: {
+        leftColumns: 1
+      }
     });
 
     new App.TableSeach({

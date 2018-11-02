@@ -1,4 +1,4 @@
-- associated_items ||= []
+- associated_items ||= @user.associated_by(associations: associations) rescue []
 - name = entity[:label] || entity[:placeholder]
 
 .c-columns__column.j-column{data: {title: name.pluralize}}
@@ -26,8 +26,6 @@
       - associated_items.each do |associated, items|
         - items.each do |a|
           %li.c-columns__column-list-item--read-only
-            %span.d-block
+            %span.d-block{data: {toggle: 'tooltip'}, title: "Access by association with #{associated}"}
               = a
-              %span{data: {toggle: 'tooltip'}, title: "Access by association with #{associated}"}
-                = icon('fas', 'asterisk', class: 'asterisk')
-            %span.c-columns__column-list-item-description=associated
+              %em.d-block.text-small.c-columns__column-list-item-description=associated
