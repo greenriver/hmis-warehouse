@@ -8,7 +8,7 @@ module ViewableEntities
         selected:    @user.data_sources.map(&:id),
         label:       'Data Sources',
         input_html:  { class: 'jUserViewable jDataSources', name: "#{base}[data_sources][]" },
-        collection:  GrdaWarehouse::DataSource.viewable_by(current_user).order(:name),
+        collection:  GrdaWarehouse::DataSource.source.viewable_by(current_user).order(:name),
         placeholder: 'Data Source',
         multiple:    true
       }
@@ -94,7 +94,7 @@ module ViewableEntities
     helper_method :reports_viewability
 
     private def cohort_viewability(base)
-      model = GrdaWarehouse::Cohort.viewable_by(current_user)
+      model = GrdaWarehouse::Cohort.active.viewable_by(current_user)
       {
         selected:    @user.cohorts.map(&:id),
         collection:  model.order(:name),
