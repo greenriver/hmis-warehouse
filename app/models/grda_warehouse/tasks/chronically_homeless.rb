@@ -34,12 +34,16 @@ module GrdaWarehouse::Tasks
       dry_run: false,
       client_ids: nil,
       debug: false,
-      sanity_check: false
+      sanity_check: false,
+      show_progress: false
     )
       self.logger = Rails.logger
       @progress_format = '%a: '
-      @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
-      @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
+      @show_progress = show_progress
+      if @show_progress
+        @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
+        @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
+      end
       @date = date
       @hard_stop = @date.beginning_of_month
       @count_so_as_full_month = GrdaWarehouse::Config.get(:so_day_as_month)
@@ -101,7 +105,9 @@ module GrdaWarehouse::Tasks
             end
           end
         end
-        @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
+        if @show_progress
+          @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
+        end
       end
       logger.info "Found #{@chronically_homeless.size} chronically homeless clients"
       if @dry_run
