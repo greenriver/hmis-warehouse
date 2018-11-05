@@ -47,8 +47,9 @@ module TableauExport
         exit:        she_t[:last_date_in_program], # in use
         destination: she_t[:destination], # in use
         coc_code:    ec_t[:CoCCode], # in use
+        coc_name:    nil, # in use
       }
-      repeaters     = %i( prog entry exit destination coc_code )
+      repeaters     = %i( prog entry exit destination coc_code coc_name )
       non_repeaters = spec.keys - repeaters
 
       scope = model.
@@ -69,6 +70,7 @@ module TableauExport
       end
       paths = scope
       spec.each do |header, selector|
+        next if selector.nil?
         paths = paths.select selector.as(header.to_s)
       end
 
@@ -108,6 +110,8 @@ module TableauExport
               value && DateTime.parse(value).strftime('%Y-%m-%d')
             # when :destination
             #   ::HUD.destination value.to_i if value
+            when :coc_name
+              ::HUD.coc_name(path['coc_code'])
             else
               value
             end
