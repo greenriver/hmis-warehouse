@@ -63,7 +63,7 @@ gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
 gem 'select2-rails', git: 'https://github.com/greenriver/select2-rails.git'
-gem 'font-awesome-sass'
+gem 'font-awesome-sass', '~> 5.4.1'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
@@ -139,6 +139,8 @@ group :development, :test do
   gem 'byebug'
   gem 'pry-rails'
   gem 'foreman'
+  gem 'bundler-audit', require: false
+  gem 'brakeman', require: false
   gem 'rspec-rails'
   gem 'factory_girl_rails'
   gem 'guard-rspec', require: false
@@ -148,8 +150,6 @@ group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
   gem 'html2haml'
-  gem 'brakeman', require: false
-  gem 'bundler-audit', require: false
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
   gem 'capistrano-passenger'

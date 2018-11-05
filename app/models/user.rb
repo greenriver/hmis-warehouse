@@ -165,6 +165,37 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::Cohort
   end
 
+  def associated_by associations:
+    return [] unless associations.present?
+    associations.flat_map do |association|
+      case association
+      when :coc_code
+        coc_codes.map do |code| 
+          [
+            code, 
+            GrdaWarehouse::Hud::Project.project_names_for_coc(code)
+          ]
+        end
+      when :organization
+        organizations.preload(:projects).map do |org|
+          [
+            org.OrganizationName,
+            org.projects.map(&:ProjectName)
+          ]
+        end
+      when :data_source
+        data_sources.preload(:projects).map do |ds|
+          [
+            ds.name,
+            ds.projects.map(&:ProjectName)
+          ]
+        end
+      else
+        []
+      end
+    end
+  end
+
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)
   end

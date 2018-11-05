@@ -1,0 +1,24 @@
+.c-columns__column
+  .c-columns__column-header
+    %h3.c-columns__column-title Roles
+  .c-columns__column-content
+    = f.association :roles, as: :check_boxes, label_method: :role_name, collection: roles, label: false
+    =# f.input :dnd_staff, label: 'DND Staff'
+    =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
+
+.c-columns__column
+  .c-columns__column-header
+    %h3.c-columns__column-title Permissions Granted
+  .c-columns__column-content.j-column-content
+    %ul.c-columns__column-list
+      - # show non-health permissions
+      - user_permissions = user.load_effective_permissions.select{|k,v| v && Role.permissions(exclude_health: true).include?(k)}
+      - if user_permissions.any?
+        - user_permissions.each do |permission|
+          %li.c-columns__column-list-item--read-only
+            %span.c-columns__column-list-item-title= permission.first.to_s.humanize
+            %span.c-columns__column-list-item-description= Role.description_for permission: permission.first
+
+      - else
+        %li.c-columns__column-list-item.font-italic
+          User currently has no permissions

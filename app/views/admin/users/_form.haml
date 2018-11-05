@@ -1,33 +1,11 @@
 = simple_form_for [:admin, @user] do |f|
   = f.error_notification
 
-  .row
-    .col-sm-6
-      .form-inputs
-        = f.input :first_name, required: true
-        = f.input :last_name, required: true
-        = f.input :email, as: :email, required: true
-        = f.input :phone
-        = f.input :agency
-      .form--checkbox-groups
-        %h3 Notifications
-        %p Which notifications should this user receive?
-        = f.input :receive_file_upload_notifications, label: 'File uploads'
-        - if can_edit_vspdat? # you can only assign this if you can also edit them
-          = f.input :notify_on_vispdat_completed, label: "VI-SPDAT submissions", as: :boolean
-        - if GrdaWarehouse::DataSource.authoritative.exists?
-          = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
-        = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
-      .form--checkbox-groups
-        %h3 Roles for Access Permissions
-        = f.association :roles, as: :check_boxes, label_method: :role_name, collection: Role.editable
-        =# f.input :dnd_staff, label: 'DND Staff'
-        =# f.input :housing_subsidy_admin, label: 'Housing Subsidy Administrator (HSA)'
+  = render 'admin/users/form_fields', f: f
 
-      .form-actions
-        = f.button :submit, class: 'btn btn-primary'
-    .col-sm-6
-      = render '/users/user_viewable_entities', f: f
+  .form-actions.mt-4
+    = f.button :submit, class: 'btn btn-primary'
+
 -# When we've connected contacts to user accounts, this would be a good roll-up place to show the contact relationships
 -# - unless @user.new_record?
 -#   = render 'contact_relationships'

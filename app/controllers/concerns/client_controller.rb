@@ -41,8 +41,8 @@ module ClientController
         )
       end
 
-      # Filter by population
-      if params[:population].present?
+      # Filter by population with whitelist
+      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values.inlclude?(params[:population].to_sym)
         population = params[:population].to_sym
         if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values.include?(population)
           @clients = @clients.public_send(population)

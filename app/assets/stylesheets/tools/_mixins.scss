@@ -280,3 +280,30 @@
     color: $gray-030;
   }
 }
+
+@mixin cover {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+@mixin scrollbar ($size: 10px) {
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-020;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gray-050;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: $gray-060;
+  }
+}

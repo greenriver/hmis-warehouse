@@ -152,6 +152,7 @@ module GrdaWarehouse::Hud
     has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
     has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
     has_many :anomaly_notes, class_name: GrdaWarehouse::ClientNotes::AnomalyNote.name
+    has_many :cohort_notes, class_name: GrdaWarehouse::ClientNotes::CohortNote.name
 
     has_many :anomalies, class_name: GrdaWarehouse::Anomaly.name
     has_many :cas_houseds, class_name: GrdaWarehouse::CasHoused.name

@@ -1,0 +1,21 @@
+.row
+  .col-sm-12.text-right.margin-bottom-02
+    = link_to new_cohort_cohort_client_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
+      %i.icon-plus
+      Add a note
+- @cohort_client.client.cohort_notes.each do |note|
+  .row
+    .col-sm-10
+      = note.note
+      %p.attribution
+        = note.user.name
+        on
+        = note.updated_at.to_date
+    .col-sm-2
+      - if note.destroyable_by current_user
+        = link_to cohort_cohort_client_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger btn-icon-only', method: :delete, remote: true do
+          %i.icon-cross
+          Destroy
+
+- content_for :modal_title do
+  Notes for #{@cohort_client.client.full_name}

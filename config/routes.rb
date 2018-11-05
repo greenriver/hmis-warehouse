@@ -420,6 +420,7 @@ Rails.application.routes.draw do
       get :field, on: :member
       patch :re_rank, on: :collection
       resources :cohort_client_notes, controller: 'cohorts/notes'
+      resources :client_notes, controller: 'cohorts/client_notes'
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
