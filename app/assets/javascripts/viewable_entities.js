@@ -46,19 +46,28 @@ App.ViewableEntities = class {
     const $container = $list.closest('.j-column')
     const $listContainer = $container.find('.j-list')
     const ids = Object.keys(items)
-    const itemsMarkup = Object.values(items).map((item, i) => `
-      <li class='c-columns__column-list-item' data-id=${ids[i]}>
-        <span>${item}</span>
-        <span> <i class='fas fa-times-circle'></i></span>
-      </li>
-    `).join('')
+    const unlimitable_ids = ($list.data('unlimitable') || [])
+    const itemsMarkup = Object.values(items).map((item, i) => {
+      let unlimitable = ''
+      if (unlimitable_ids.includes(Number.parseInt(ids[i]))) {
+        console.log('hi')
+        unlimitable = '<span data-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>'
+      }
+      return `
+        <li class='c-columns__column-list-item' data-id=${ids[i]}>
+          <span>${item}</span>
+          ${unlimitable}
+          <span> <i class='fas fa-times-circle'></i></span>
+        </li>
+      `
+    }).join('')
     const hasAssociated = $listContainer.siblings().first().children().length
     let noDataMessage = '<li class="c-columns__column-list-item--read-only font-italic">No ' + this.getEntityName($container) + ' selected.</li>'
     if (hasAssociated) {
       noDataMessage = ''
     }
     $listContainer.html(itemsMarkup || noDataMessage)
-
+    $('[data-toggle="tooltip"]').tooltip()
   }
 
   getEntityName($column) {

@@ -80,6 +80,7 @@ module ViewableEntities
       collection = model.order( :report_group, :name ).map do |rd|
         [ "#{rd.report_group}: #{rd.name}", rd.id ]
       end
+      unlimitable = model.where(limitable: false).pluck(:id)
       {
         selected:    @user.reports.map(&:id),
         collection:  collection,
@@ -87,7 +88,8 @@ module ViewableEntities
         multiple:    true,
         input_html: {
           class: 'jUserViewable jReports',
-          name:  "#{base}[reports][]"
+          name:  "#{base}[reports][]",
+          data: {unlimitable: unlimitable.to_json}
         },
       }
     end
