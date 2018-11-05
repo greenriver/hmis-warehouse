@@ -1,0 +1,85 @@
+module Glacier
+  class Runner
+    include NotifierConfig
+
+    DB_CONFIG = Rails.configuration.database_configuration[Rails.env]
+
+    def initialize
+      setup_notifier("Glacier Backups")
+    end
+
+    def restore!(archive_id:, database_name: )
+      unless database_name.match?(/_restore/)
+        raise "database name must have restore in it for safety. Remove this line if you know what you're doing." 
+      end
+
+      processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{db_host}"
+
+      Restore.new({
+        archive_id: archive_id, 
+        processing_cmd: processing_cmd
+      }).run!
+    end
+
+    def database!
+      _safely do
+        # You must do these things to set up gpg:
+        #   * log in to the server doing the backup
+        #   * become ubuntu (sudo su - ubuntu) if you're setting this up for a cronjob
+        #   * gpg --gen-key
+        #   * set real values for the questions. You don't have to remember the password you use.
+        #   * gpg --sign-key openpath.host
+        #   * repeat on all servers and for all users you plan to run this task as.
+        #   * Note that we do this so that the `gpg -r` part below won't prompt if it's okay to encrypt to an unsigned key. --yes doesn't help.
+        #   * accept Todd's apology for having to do this.
+
+        databases = if ENV['GLACIER_DATABASES'].blank? || ENV['GLACIER_DATABASES'] == 'DEFAULT'
+                      [
+                        ENV['DATABASE_APP_DB'],
+                        ENV['WAREHOUSE_DATABASE_DB'],
+                        ENV['DATABASE_CAS_DB']
+                      ]
+                    else
+                      ENV['GLACIER_DATABASES'].split(",")
+                    end
+
+        databases.each do |database_name|
+          Backup.new({
+            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
+            archive_name: "#{client}-#{Rails.env}-#{database_name}-#{Time.now.to_s(:iso8601)}",
+            notes: "Database backup. Databases: [#{databases.join(',')}]. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+          }).run!
+        end
+      end
+    end
+
+    def files!(path)
+      _safely do
+        cmd = "tar -zcf - #{path} | gpg -e -r #{recipient}"
+        norm_path = path.gsub(/[^\d\w]/, '_')
+
+        Backup.new({
+          cmd: cmd,
+          archive_name: "#{client}-#{Rails.env}-#{norm_path}-#{Time.now.to_s(:iso8601)}",
+          notes: "File system backup. Path: [#{path}]. Compressed with gzip and encrypted for #{recipient}. Restore command will be of the form `gpg -d | tar -zxf - -C ./place_to_restore",
+        }).run!
+      end
+    end
+
+    private
+
+    define_method(:client)    { ENV.fetch('CLIENT') { 'unknown-client' } }
+    define_method(:db_host)   { DB_CONFIG['host'] || 'localhost' }
+    define_method(:db_user)   { DB_CONFIG['username'] }
+    define_method(:recipient) { ENV.fetch('ENCRYPTION_RECIPIENT') }
+
+    def _safely
+      begin
+        yield
+      rescue StandardError => e
+        @notifier.ping("Glacier backups failed\n#{e.message}\n #{e.backtrace.join("\n")}") if @send_notifications
+        raise e
+      end
+    end
+  end
+end

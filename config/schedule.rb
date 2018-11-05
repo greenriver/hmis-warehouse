@@ -60,4 +60,17 @@ if environment == 'production'
       rake "health:daily"
     end
   end
+
+  if ENV['GLACIER_NEEDS_BACKUP']=='true'
+    import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+    database_backup_time = Time.parse(import_schedule) - 3.hours
+
+    every :month, at: database_backup_time do
+      rake "glacier:backup:database"
+    end
+
+    every :month, at: database_backup_time-1.hour do
+      rake "glacier:backup:files"
+    end
+  end
 end
