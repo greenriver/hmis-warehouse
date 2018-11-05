@@ -308,6 +308,26 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       individual.adult
     end
 
+    def self.know_standard_cohorts
+      [
+        :all_clients,
+        :veteran,
+        :non_veteran,
+        :family,
+        :individual,
+        :youth,
+        :children,
+        :adult,
+        :unaccompanied_youth,
+        :parenting_youth,
+        :children_only,
+        :parenting_juvenile,
+        :parenting_children,
+        :individual_adult,
+        :individual_adults,
+      ]
+    end
+
 
     # End Standard Cohort Scopes
     #################################

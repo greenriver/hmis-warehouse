@@ -99,7 +99,12 @@ module Cohorts
     def new
       @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
-      @population = params[:population]
+      # whitelist for scope
+      @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(params[:population]&.to_sym)
+          params[:population]
+        else
+          :all_clients
+        end
       @actives = actives_params()
       @client_ids = params[:batch].try(:[], :client_ids)
 
@@ -110,27 +115,6 @@ module Cohorts
           preload(source_clients: :data_source).
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
-      elsif @population
-        # Force service to fall within the correct age ranges for some populations
-        service_scope = :current_scope
-        if ['youth', 'children'].include? @population
-          service_scope = @population
-        elsif @population == 'parenting_children'
-          service_scope = :children
-        elsif @population == 'parenting_youth'
-          service_scope = :youth
-        end
-
-        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
-            homeless.
-            ongoing.
-            entry.
-            with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
-            where(she_t[:client_id].eq(c_t[:id])).
-            send(@population).select(c_t[:id])
-        @clients = client_scope.
-          where(id: enrollment_query).distinct
-
       elsif @actives
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.where(
             she_t[:client_id].eq(wcp_t[:client_id])
@@ -169,7 +153,26 @@ module Cohorts
           end
           # Active record seems to have trouble with the complicated nature of this scope
           @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
+      elsif @population
+        # Force service to fall within the correct age ranges for some populations
+        service_scope = :current_scope
+        if ['youth', 'children'].include? @population
+          service_scope = @population
+        elsif @population == 'parenting_children'
+          service_scope = :children
+        elsif @population == 'parenting_youth'
+          service_scope = :youth
+        end
 
+        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
+            homeless.
+            ongoing.
+            entry.
+            with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
+            where(she_t[:client_id].eq(c_t[:id])).
+            send(@population).select(c_t[:id])
+        @clients = client_scope.
+          where(id: enrollment_query).distinct
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
         @clients = client_scope.where(id: @client_ids)
@@ -188,6 +191,7 @@ module Cohorts
         Hash[client_columns.zip(row)]
       end
       Rails.logger.info "CLIENTS: #{@clients.count}"
+
     end
 
     def load_cohort_names

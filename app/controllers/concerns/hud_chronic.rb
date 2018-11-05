@@ -29,8 +29,20 @@ module HudChronic
     def set_sort
       client_at = client_source.arel_table
       @column = params[:sort] || 'months_in_last_three_years'
-      @direction = params[:direction] || 'desc'
-      table = %w(FirstName LastName).include?( @column ) ? client_at : hc_t
+      @direction = if ['asc', 'desc'].include?(params[:direction])
+        params[:direction]
+      else
+        'desc'
+      end
+      # whitelist for column
+      table = if ['FirstName', 'LastName'].include?(@column) 
+        client_at
+      elsif chronic_source.column_names.include?(@column)
+        hc_t
+      else
+        @column = 'months_in_last_three_years'
+        hc_t
+      end
       @order = table[@column].send(@direction)
     end
 
