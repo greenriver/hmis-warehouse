@@ -1673,7 +1673,7 @@ module HUD
   end
 
   def coc_name(coc_code)
-    cocs[coc_code]
+    cocs.try(:[]m coc_code) || coc_code
   end
 
   def cocs
