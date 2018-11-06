@@ -1,5 +1,7 @@
 module Health
   class MemberStatusReport < HealthBase
+    include ArelHelper
+
     acts_as_paranoid
     has_many :member_status_report_patients
     belongs_to :user, required: true
@@ -19,7 +21,8 @@ module Health
         patient = pr.patient
 
         most_recent_qualifying_activity = patient&.qualifying_activities&.direct_contact&.order(date_of_activity: :desc)&.limit(1)&.first
-        qa_activity_dates = patient&.qualifying_activities&.in_range(report_range)&.pluck(:date_of_activity)&.uniq || []
+        # Any qa before the end of the report range?
+        qa_activity_dates = patient&.qualifying_activities&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
 
         # only include patients referred before the report end date
         next if pr.enrollment_start_date.blank? || pr.enrollment_start_date > report_range.end
@@ -36,7 +39,7 @@ module Health
           medicaid_id: pr.medicaid_id,
           member_first_name: pr.first_name,
           member_last_name: pr.last_name,
-          member_middle_initial: pr.middle_initial,
+          member_middle_initial: pr.middle_initial&.first,
           member_suffix: pr.suffix,
           member_date_of_birth: pr.birthdate,
           member_sex: pr.gender,
@@ -70,6 +73,7 @@ module Health
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver
         report_patient = member_status_report_patients.create!(attributes)
+        
       end
       complete_report
     end
@@ -135,7 +139,7 @@ module Health
     end
 
     def patient_referrals
-      Health::PatientReferral.not_confirmed_rejected.includes(patient: :qualifying_activities)
+      Health::PatientReferral.not_confirmed_rejected.includes(patient: :qualifying_activities).preload(patient: :qualifying_activities)
     end
 
     def report_range
