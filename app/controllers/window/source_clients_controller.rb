@@ -6,7 +6,7 @@ module Window
     before_action :require_can_create_clients!
     before_action :set_client
     before_action :set_destination_client
-    after_action :log_client
+    after_action :log_client, except: [:image]
 
     def edit
 
