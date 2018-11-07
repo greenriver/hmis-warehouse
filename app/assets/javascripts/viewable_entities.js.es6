@@ -1,4 +1,4 @@
-App.ViewableEntities = class {
+window.App.ViewableEntities = class {
   constructor() {
     this.registerEvents()
     this.initSelect2()

@@ -1,4 +1,4 @@
-App.TableSearch = class TableSearch {
+window.App.TableSearch = class TableSearch {
   constructor(props) {
     this.props = props
     this.registerEvents()
