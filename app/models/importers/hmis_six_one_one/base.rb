@@ -343,8 +343,7 @@ module Importers::HMISSixOneOne
     end
 
     # Headers need to match our style
-    def clean_header_row(header_row, klass)
-      source_headers = CSV.parse_line(header_row)
+    def clean_header_row(source_headers, klass)
       indexed_headers = klass.hud_csv_headers.map do |k|
         [k.to_s.downcase, k]
       end.to_h
@@ -354,13 +353,16 @@ module Importers::HMISSixOneOne
     end
 
     def clean_source_file destination_path:, read_from:, klass:
-      header_row = read_from.readline
-      comma_count = nil
-      if header_valid?(header_row, klass)
-        comma_count = header_row.count(',')
+      csv = CSV.new(read_from, headers: true)
+      # read the first row so we can set the headers
+      row = csv.shift
+      headers = csv.headers
+      csv.rewind # go back to the start for processing
+      
+      if header_valid?(headers, klass)
         # we need to accept different cased headers, but we need our
         # case for import, so we'll fix that up here and use ours going forward
-        header = clean_header_row(header_row, klass)
+        header = clean_header_row(headers, klass)
         write_to = CSV.open(
           destination_path,
           'wb',
@@ -369,47 +371,29 @@ module Importers::HMISSixOneOne
           force_quotes: true
           )
       else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{header_row}; expected a subset of: #{klass.hud_csv_headers}"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{csv.headers.to_s}; expected a subset of: #{klass.hud_csv_headers}"
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
-
-      read_from.each_line do |line|
+      csv.each do |row|
         begin
-          while short_line?(line, comma_count)
-            logger.warn "Found a short line in #{read_from.path}"
-            line = line.gsub(/[\r\n]*/, '')
-            read_from.seek(+1, IO::SEEK_CUR)
-            next_line = read_from.readline
-            line += next_line
-            if long_line?(line, comma_count)
-              bad_line = line.gsub(next_line, '')
-              msg = "Unable to fix a line, not importing:"
-              add_error(file_path: read_from.path, message: msg, line: bad_line)
-              line = '"' + next_line
-            end
+          # remove any internal newlines
+          row.each{ |k,v| row[k] = v&.gsub(/[\r\n]*/, ' ') }
+
+          if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'
+            klass.deidentify_client_name row
           end
-          begin
-            row = CSV.parse_line(line, headers: header)
-            # logger.debug "#{row}"
-            if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'
-              klass.deidentify_client_name row
-            end
-            if row.count == header.count
-              row = set_useful_export_id(row: row, export_id: export_id_addition)
-              track_max_updated(row)
-              write_to << row
-            else
-              msg = "Line length is incorrect, unable to import:"
-              add_error(file_path: read_from.path, message: msg, line: line)
-            end
-          rescue CSV::MalformedCSVError => exception
-            message = "Failed to process line, #{exception.message}:"
-            add_error(file_path: read_from.path, message: message, line: line)
+          if row.count == header.count
+            row = set_useful_export_id(row: row, export_id: export_id_addition)
+            track_max_updated(row)
+            write_to << row
+          else
+            msg = "Line length is incorrect, unable to import:"
+            add_error(file_path: read_from.path, message: msg, line: row.to_s)
           end
         rescue Exception => exception
           message = "Failed while processing #{read_from.path}, #{exception.message}:"
-          add_error(file_path: read_from.path, message: message, line: line)
+          add_error(file_path: read_from.path, message: message, line: row.to_s)
         end
       end
       write_to.close
@@ -417,15 +401,15 @@ module Importers::HMISSixOneOne
 
     def header_valid?(line, klass)
       # just make sure we don't have anything we don't know how to process
-      (CSV.parse_line(line)&.map(&:downcase)&.map(&:to_sym) - klass.hud_csv_headers.map(&:downcase)).blank?
+      (line&.map(&:downcase)&.map(&:to_sym) - klass.hud_csv_headers.map(&:downcase)).blank?
     end
 
     def short_line?(line, comma_count)
-      line.count(',') < comma_count
+      CSV.parse_line(line).count < comma_count rescue line.count(',') < comma_count
     end
 
     def long_line?(line, comma_count)
-      line.count(',') > comma_count
+      CSV.parse_line(line).count > (comma_count + 1) rescue line.count(',') > comma_count
     end
 
     def export_id_addition
