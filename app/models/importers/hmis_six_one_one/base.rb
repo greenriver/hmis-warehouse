@@ -378,7 +378,7 @@ module Importers::HMISSixOneOne
       csv.each do |row|
         begin
           # remove any internal newlines
-          row.each{ |k,v| row[k] = v&.gsub(/[\r\n]*/, ' ') }
+          row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
 
           if @deidentified && klass.name == 'GrdaWarehouse::Import::HMISSixOneOne::Client'
             klass.deidentify_client_name row
