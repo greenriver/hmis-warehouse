@@ -96,7 +96,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def sql_server_identifier
-      "#{ ENV.fetch('CLIENT') }-#{ Rails.env }-LSA-#{@report.id}".downcase
+      "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
     end
 
     def create_hmis_csv_export
