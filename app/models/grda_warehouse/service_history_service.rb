@@ -3,6 +3,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ServiceHistoryServiceConcern
 
   belongs_to :service_history_enrollment, inverse_of: :service_history_services
+  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
   scope :hud_project_type, -> (project_types) do
     in_project_type(project_types)
