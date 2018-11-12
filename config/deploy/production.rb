@@ -8,9 +8,9 @@ raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
 set :branch, 'master'
 
 puts "Allowable hosts: #{ENV['HOSTS']}"
-puts "Hosts specified for deployment: #{ENV['HOST1']} #{ENV['HOST2']} #{ENV['HOST3']}"
+puts "Hosts specified for deployment: #{ENV['HOST_WITH_CRON']} #{ENV['HOST2']} #{ENV['HOST3']}"
 
-server ENV['HOST1'], user: ENV['DEPLOY_USER'], roles: %w{app db web job cron}, port: fetch(:ssh_port)
+server ENV['HOST_WITH_CRON'], user: ENV['DEPLOY_USER'], roles: %w{app db web job cron}, port: fetch(:ssh_port)
 if ENV['HOST2'] != nil
   server ENV['HOST2'], user: ENV['DEPLOY_USER'], roles: %w{app web job}, port: fetch(:ssh_port)
 end
