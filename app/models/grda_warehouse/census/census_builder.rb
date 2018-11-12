@@ -68,6 +68,7 @@ module GrdaWarehouse::Census
         update_object_map(get_parenting_juvenile_client_ids(project_type), project_type_code, :parenting_juveniles)
         update_object_map(get_all_client_ids(project_type), project_type_code, :all_clients)
 
+        # TODO Add homeless_for_date_range to ServiceHistoryService w/ correlated subquery to negate non-homelessness
         @by_client.each do | date, census_row |
           update_object_map(get_homeless_veteran_client_ids(date), :homeless, :veterans)
           update_object_map(get_literally_homeless_veteran_client_ids(date), :literally_homeless, :veterans)
@@ -132,22 +133,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 [:client, :service_history_enrollment],
-                                 GrdaWarehouse::Hud::Client.veteran,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          [:client, :service_history_enrollment],
+          GrdaWarehouse::Hud::Client.veteran,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 [:client, :service_history_enrollment],
-                                 GrdaWarehouse::Hud::Client.veteran,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          [:client, :service_history_enrollment],
+          GrdaWarehouse::Hud::Client.veteran,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :client,
-                                 GrdaWarehouse::Hud::Client.veteran)
+          :client,
+          GrdaWarehouse::Hud::Client.veteran)
       end
 
       # Non-veteran
@@ -158,22 +159,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_non_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 [:client, :service_history_enrollment],
-                                 GrdaWarehouse::Hud::Client.non_veteran,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          [:client, :service_history_enrollment],
+          GrdaWarehouse::Hud::Client.non_veteran,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_non_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 [:client, :service_history_enrollment],
-                                 GrdaWarehouse::Hud::Client.non_veteran,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
-      end
+          [:client, :service_history_enrollment],
+          GrdaWarehouse::Hud::Client.non_veteran,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+  end
 
       def get_system_non_veteran_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :client,
-                                 GrdaWarehouse::Hud::Client.non_veteran)
+         :client,
+          GrdaWarehouse::Hud::Client.non_veteran)
       end
 
       # Child
@@ -184,22 +185,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_child_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.children,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+           GrdaWarehouse::ServiceHistoryEnrollment.children,
+           GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_child_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.children,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.children,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_child_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.children)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.children)
       end
 
       # Adult
@@ -210,22 +211,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_adult_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.adult,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.adult,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_adult_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.adult,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.adult,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_adult_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.adult)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.adult)
       end
 
       # Youth
@@ -236,22 +237,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.youth,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.youth,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.youth,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.youth,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.youth)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.youth)
       end
 
       # Family
@@ -262,22 +263,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_family_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.family,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.family,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_family_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.family,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.family,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_family_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.family)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.family)
       end
 
       # Individual
@@ -288,22 +289,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_individual_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.individual,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.individual,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_individual_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.individual,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.individual,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_individual_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.individual)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.individual)
       end
 
       # Parenting Youth
@@ -314,22 +315,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_parenting_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_parenting_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_parenting_youth_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
       end
 
       # Parenting Juvenile
@@ -340,22 +341,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_parenting_juvenile_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_parenting_juvenile_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_parenting_juvenile_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
       end
 
       # All Clients
@@ -366,22 +367,22 @@ module GrdaWarehouse::Census
 
       def get_homeless_all_clients_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
+          GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: on_date))
       end
 
       def get_literally_homeless_all_clients_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
+          GrdaWarehouse::ServiceHistoryEnrollment.hud_currently_homeless(date: on_date))
       end
 
       def get_system_all_clients_client_ids (on_date)
         get_aggregate_client_ids(on_date,
-                                 :service_history_enrollment,
-                                 GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
+          :service_history_enrollment,
+          GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
       end
 
       #
@@ -430,7 +431,7 @@ module GrdaWarehouse::Census
 
         @by_count.each do | project_id, census_collection |
           census_collection.each do | date, census_item |
-            census_item.beds = GrdaWarehouse::Hud::Project.find(project_id).inventories.where(i_t[:InventoryStartDate].lteq(date), i_t[:InventoryEndDate].gteq(date)).sum(:beds)
+            census_item.beds = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(date..date).sum(:beds)
           end
         end
       end
