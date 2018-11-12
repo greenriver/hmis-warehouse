@@ -5,7 +5,7 @@ class CreateNightlyCensusByProjectTypeClients < ActiveRecord::Migration
 
       [  'literally_homeless', 'system', 'homeless', 'ph', 'es', 'th', 'so', 'sh' ].each do |type|
         [ 'veterans', 'non_veterans', 'children', 'adults', 'youth', 'families', 'individuals',
-          'parenting_youth', 'parenting_juveniles', 'all_clients', 'beds' ].each do |count|
+          'parenting_youth', 'parenting_juveniles', 'all_clients'].each do |count|
           t.jsonb "#{type}_#{count}", default: []
         end
       end

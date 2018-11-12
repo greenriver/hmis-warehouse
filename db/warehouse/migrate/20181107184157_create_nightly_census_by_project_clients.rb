@@ -5,7 +5,7 @@ class CreateNightlyCensusByProjectClients < ActiveRecord::Migration
       t.string :project_id, null: false
 
       [ 'veterans', 'non_veterans', 'children', 'adults', 'youth', 'families', 'individuals',
-        'parenting_youth', 'parenting_juveniles', 'all_clients', 'beds' ].each do |count|
+        'parenting_youth', 'parenting_juveniles', 'all_clients'].each do |count|
         t.jsonb count, default: []
       end
 
