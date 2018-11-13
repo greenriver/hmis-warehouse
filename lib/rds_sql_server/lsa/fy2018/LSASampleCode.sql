@@ -1743,35 +1743,71 @@ where PSHStatus > 0
 -- enrollments, updated so status is preferentially based on MoveInDate in 
 -- report period (top priority), MoveInDate prior to ReportStart (2nd),
 -- or no MoveInDate (lowest).
+--CHANGE 11/9/2018 - Revise change described above (did not work as intended). 
+
 update hh
-set hh.RRHMoveIn = case when hh.RRHStatus = 0 then -1
-		when stat.RRHMoveIn = 10 then 1
-		else stat.RRHMoveIn end
-	, hh.PSHMoveIn = case when hh.PSHStatus = 0 then -1
-		when stat.PSHMoveIn = 10 then 1
-		else stat.PSHMoveIn end
+set hh.RRHMoveIn = -1 --not served in RRH
 from tmp_Household hh
-left outer join (select distinct hhid.HoHID, hhid.HHType
-		, RRHMoveIn = (select max(case when an.MoveInDate is null
-				then 0
-				when an.MoveInDate >= rpt.ReportStart then 10
-				else 2 end)
-			from active_Enrollment an 
+where hh.RRHStatus = 0
+
+update hh
+set hh.RRHMoveIn = 1 --move-in to PH in current report period
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
 			inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-			where an.PersonalID = hhid.HoHID 
-				and an.HouseholdID = hhid.HouseholdID
-				and hhid.ProjectType = 13)
-		, PSHMoveIn = (select max(case when an.MoveInDate is null
-				then 0
-				when an.MoveInDate >= rpt.ReportStart then 10
-				else 2 end)
-			from active_Enrollment an 
+where an.ProjectType = 13 and an.MoveInDate >= rpt.ReportStart
+	and hh.RRHMoveIn is null 
+
+update hh
+set hh.RRHMoveIn = 2 --move-in to PH prior to ReportStart
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
+inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate 
+where an.ProjectType = 13 and an.MoveInDate < rpt.ReportStart
+	and hh.RRHMoveIn is null 
+
+update hh
+set hh.RRHMoveIn = 0 --served in RRH with no move-in 
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
+inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate 
+where an.ProjectType = 13 and an.MoveInDate is null
+	and hh.RRHMoveIn is null 
+
+update hh
+set hh.PSHMoveIn = -1 --not served in PSH
+from tmp_Household hh
+where hh.PSHStatus = 0
+
+update hh
+set hh.PSHMoveIn = 1 --move-in to PH in current report period
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
+inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate 
+where an.ProjectType = 3 and an.MoveInDate >= rpt.ReportStart
+	and hh.PSHMoveIn is null 
+
+update hh
+set hh.PSHMoveIn = 2 --move-in to PH prior to ReportStart
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
 			inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-			where an.PersonalID = hhid.HoHID 
-				and an.HouseholdID = hhid.HouseholdID
-				and hhid.ProjectType = 3)			
-	from active_Household hhid) stat on 
-		stat.HoHID = hh.HoHID and stat.HHType = hh.HHType
+where an.ProjectType = 3 and an.MoveInDate < rpt.ReportStart
+	and hh.PSHMoveIn is null 
+
+update hh
+set hh.PSHMoveIn = 0 --served in PSH with no move-in
+from tmp_Household hh
+inner join active_Enrollment an on an.PersonalID = hh.HoHID
+	and an.HHType = hh.HHType 
+inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate 
+where an.ProjectType = 3 and an.MoveInDate is null
+	and hh.PSHMoveIn is null 
 
 /*************************************************************************
 4.28.a Get Most Recent Enrollment in Each ProjectGroup for HoH 
@@ -2657,7 +2693,11 @@ inner join
 				when dateadd(yy, 18, c.DOB) <= cd.CohortStart then 10 
 				else 1 end as AgeStatus
 			from hmis_Enrollment hn
-			inner join tmp_CohortDates cd on cd.CohortEnd >= hn.EntryDate
+			--CHANGE 11/9/2018 add join to hmis_Exit, correct join criteria for tmp_CohortDates
+			--to eliminate counting some individuals as both an adult and a child.
+			inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+			inner join tmp_CohortDates cd on hx.ExitDate between cd.CohortStart and cd.CohortEnd 
+				and cd.Cohort <= 1
 			inner join hmis_Client c on c.PersonalID = hn.PersonalID
 			inner join 
 					--hoh identifies exits for heads of household
@@ -3091,7 +3131,7 @@ from tmp_Exit ex
 inner join hmis_Enrollment hn on hn.PersonalID = ex.HoHID
 	and hn.RelationshipToHoH = 1
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
-	and hx.ExitDate <= ex.ExitDate
+	--CHANGE 11/8/2018 move ExitDate criteria from join to WHERE clause (with changes to criteria) 
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
 inner join 
 		--HouseholdIDs with LSA household types
@@ -3128,7 +3168,20 @@ inner join
 		) hh on hh.HouseholdID = hn.HouseholdID
 --CHANGE 10/24/2018 - limit inserts to enrollments where the HHType as calculated by the subquery 
 --  matches tmp_Exit HHType OR the enrollment is associated with the qualifying exit. (issue #28)
-where hh.HHType = ex.HHType or hn.EnrollmentID = ex.EnrollmentID
+--CHANGE 11/8/2018 revise/expand and comment/explain WHERE criteria
+where (hh.HHType = ex.HHType or hn.EnrollmentID = ex.EnrollmentID)
+	-- exclude enrollments not active on/after 10/1/2012 -- never relevant
+	and hx.ExitDate between '10/1/2012' and ex.ExitDate
+	--The enrollment for the qualifying exit is always relevant 	
+	and ((hn.EnrollmentID = ex.EnrollmentID)
+		 --Enrollments prior to ES/SH/TH (homeless) qualifying exits are potentially relevant 
+		 or (p.ProjectType in (1,2,8))
+		 --Enrollments prior to RRH/PSH qualifying exits without MoveInDate (homeless) 
+		 --  are potentially relevant
+		 or (p.ProjectType in (3,13) and hn.MoveInDate is null)
+		 --Enrollments prior to RRH/PSH qualifying exits w/MoveInDates are only potentially relevant 
+		 --  if the stay in PH was less than seven days 
+		 or (p.ProjectType in (3,13) and datediff(dd, hn.MoveInDate, hx.ExitDate) < 7))
 group by hn.PersonalID
 	, case when ex.EnrollmentID = hn.EnrollmentID then ex.HHType else hh.HHType end
 	, hn.EnrollmentID, p.ProjectType
@@ -4342,7 +4395,7 @@ left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= an.MoveInDate
 left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 	and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 where pop.PopID in (0,1,2) and pop.SystemPath is null and pop.PopType = 1
-group by p.ProjectID, p.ExportID, pop.PopID, pop.HHType, p.ProjectType
+group by p.ExportID, pop.PopID, pop.HHType, p.ProjectType
 
 insert into lsa_Calculated
 	(Value, Cohort, Universe, HHType
@@ -4371,6 +4424,7 @@ left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 	and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 where pop.PopID in (0,1,2) and pop.SystemPath is null and pop.PopType = 1
 	and p.ProjectType in (1,8,2)
+--CHANGE 11/9/2018 - remove ProjectID from GROUP BY
 group by p.ExportID, pop.PopID, pop.HHType
 
 /**********************************************************************
@@ -4455,7 +4509,8 @@ left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= an.MoveInDate
 left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 	and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 where pop.PopID in (3,6) and pop.PopType = 3
-group by p.ProjectID, p.ExportID, pop.PopID, pop.HHType, p.ProjectType
+--CHANGE 11/9/2018 - remove ProjectID from GROUP BY
+group by p.ExportID, pop.PopID, pop.HHType, p.ProjectType
 
 --ES/SH/TH unduplicated
 insert into lsa_Calculated
@@ -4700,7 +4755,8 @@ inner join hmis_Enrollment n on n.EntryDate <= rpt.ReportEnd
 inner join hmis_Project p on p.ProjectID = n.ProjectID
 inner join hmis_Client c on c.PersonalID = n.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-	and x.ExitDate >= dateadd(yy, -3, rpt.ReportStart)
+	--CHANGE 11/8/2018 ExitDate >= ReportEnd (not ReportStart) - 3 years
+	and x.ExitDate >= dateadd(yy, -3, rpt.ReportEnd)
 inner join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDate
 	from hmis_Enrollment hh
 	inner join lsa_Report rpt on hh.EntryDate <= rpt.ReportEnd
