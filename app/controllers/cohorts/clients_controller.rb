@@ -102,8 +102,10 @@ module Cohorts
       # whitelist for scope
       @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(params[:population]&.to_sym)
           params[:population]
-        else
+        elsif params.keys.include?('population')
           :all_clients
+        else
+          false
         end
       @actives = actives_params()
       @client_ids = params[:batch].try(:[], :client_ids)
@@ -314,7 +316,7 @@ module Cohorts
     end
 
     def actives_params
-      return unless params[:actives].present?
+      return false unless params[:actives].present?
       params.require(:actives).permit(
         :start,
         :end,
