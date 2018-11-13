@@ -98,26 +98,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "44a03b6e474796258f67e2921f8497b6cda5017c3b19f558665e040c1400a916",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 173,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "GrdaWarehouse::ServiceHistoryEnrollment.homeless.ongoing.entry.with_service_between(:start_date => 3.months.ago.to_date, :end_date => Date.today, :service_scope => ((((:current_scope or :youth) or :children) or :BRAKEMAN_SAFE_LITERAL))).where(she_t[:client_id].eq(c_t[:id])).send((params[:population] or :all_clients))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Cohorts::ClientsController",
-        "method": "new"
-      },
-      "user_input": "params[:population]",
-      "confidence": "High",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "46e89facb6f575693e76b059e8ff397a2737fcdae21ac4cba044afea33238cc5",
@@ -183,6 +163,26 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/window/clients_controller.rb",
+      "line": 48,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Window::ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/window/clients_controller.rb",
       "line": 54,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
@@ -224,26 +224,6 @@
       "message": "User controlled method execution",
       "file": "app/controllers/window/clients_controller.rb",
       "line": 79,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Window::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/window/clients_controller.rb",
-      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -542,7 +522,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method constantize called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 291,
+      "line": 293,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -673,6 +653,26 @@
       "note": ""
     },
     {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "e73d3f9d1a892b01784b8d34c18c5280c281559fc1670e066754a36beac0865d",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 175,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "GrdaWarehouse::ServiceHistoryEnrollment.homeless.ongoing.entry.with_service_between(:start_date => 3.months.ago.to_date, :end_date => Date.today, :service_scope => ((((:current_scope or :youth) or :children) or :BRAKEMAN_SAFE_LITERAL))).where(she_t[:client_id].eq(c_t[:id])).send((params[:population] or params.keys.include?(\"population\") ? (:all_clients) : (false)))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "new"
+      },
+      "user_input": "params[:population]",
+      "confidence": "High",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "e7e25cd7ce0f9cfaa8969f2b09c808daaacda57fb4a179bf4b1fe449feed7199",
@@ -772,6 +772,6 @@
       "note": ""
     }
   ],
-  "updated": "2018-11-05 11:50:13 -0500",
+  "updated": "2018-11-13 18:16:08 -0500",
   "brakeman_version": "4.3.1"
 }
