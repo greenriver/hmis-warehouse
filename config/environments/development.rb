@@ -42,7 +42,7 @@ Rails.application.configure do
   # Duplicate Production asset handling
   # config.assets.debug = false
   # config.serve_static_files = true
-  # config.assets.js_compressor = Uglifier.new(harmony: true)
+  config.assets.js_compressor = Uglifier.new(harmony: true)
   # config.assets.compile = true
   # config.assets.digest = true
 

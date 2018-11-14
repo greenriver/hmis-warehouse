@@ -42,6 +42,7 @@
 // App specific code
 //////////////////////////
 //= require namespace
+//= require polyfills
 //= require pjax-modals
 //= require util
 //= require site_menu
