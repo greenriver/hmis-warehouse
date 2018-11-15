@@ -46,11 +46,16 @@ window.App.ViewableEntities = class {
     const $container = $list.closest('.j-column')
     const $listContainer = $container.find('.j-list')
     const ids = Object.keys(items)
-    const unlimitable_ids = ($list.data('unlimitable') || [])
-    const itemsMarkup = Object.values(items).map((item, i) => {
+    const unlimitableIds = ($list.data('unlimitable') || [])
+    const itemValues = []
+    for (const i in items) {
+      if (items.hasOwnProperty(i)) {
+        itemValues.push(items[i]);
+      }
+    }
+    const itemsMarkup = itemValues.map((item, i) => {
       let unlimitable = ''
-      if (unlimitable_ids.includes(Number.parseInt(ids[i]))) {
-        console.log('hi')
+      if ( unlimitableIds.includes( parseInt( ids[i] ) ) ) {
         unlimitable = '<span data-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>'
       }
       return `
@@ -91,7 +96,7 @@ window.App.ViewableEntities = class {
     $select2
       .val(currentIds)
       .trigger('change')
-    item.remove()
+    $(item).remove()
   }
 
   initSelect2() {
