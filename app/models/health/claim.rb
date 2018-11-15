@@ -116,7 +116,7 @@ module Health
         b.HL @hl, '1', '22', '0'
           b.SBR 'P', '18', nil, nil, nil, nil, nil, nil, 'MC'
           b.NM1 'IL', '1', pr.last_name, pr.first_name, nil, nil, nil, 'MI', pr.medicaid_id
-          b.N3 pr.address_line_1.presence || @sender.address_1
+          b.N3((pr.address_line_1.presence || @sender.address_1)&.gsub("\n", ' '))
           b.N4 *city_state_zip
           b.DMG 'D8', pr.birthdate&.strftime('%Y%m%d'), pr.gender || 'U'
           b.NM1 'PR', '2', @sender.receiver_name, nil, nil, nil, nil, 'PI', @sender.receiver_id
