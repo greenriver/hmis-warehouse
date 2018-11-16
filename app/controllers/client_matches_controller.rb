@@ -37,13 +37,7 @@ class ClientMatchesController < ApplicationController
     GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
       pluck(:client_id, :project_name).each do |row|
         @ongoing_enrollments[row.first] << row.last
-      end
-
-    # @matches.each do |match|
-    #   @ongoing_enrollments[match.destination_client.id] = match.destination_client.service_history.entry.ongoing.pluck(:project_name)
-    #   @ongoing_enrollments[match.source_client.id] = match.source_client.service_history.entry.ongoing.pluck(:project_name)
-    # end
-   
+      end   
   end
 
 
