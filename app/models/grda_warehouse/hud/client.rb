@@ -2158,9 +2158,13 @@ module GrdaWarehouse::Hud
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
       Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
-        enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
-        enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
-        enrollments || []
+        if en_scope.count == 0
+          []
+        else
+          enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
+          enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
+          enrollments || []
+        end
       end
     end
 
