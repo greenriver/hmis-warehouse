@@ -1,3 +1,10 @@
+# From the Data Standards
+# When a project reduces inventory, but will continue to serve the same household type with a smaller number of beds, a new record should be added with an 'Information Date’ of the effective date of the decrease; the same Inventory Start Date from the previous record should be used. The earlier record should be closed out by recording an Inventory End Date that is the day prior to the effective date of the decrease.
+# 
+# This is the clearest indication of how the three dates are supposed to function.
+# 1. InventoryStartDate is when the physical beds/units were constructed
+# 2. InformationDate is the start of when the beds can be used/counted
+# 3. InventoryEndDate when the beds are no longer available for use
 module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes

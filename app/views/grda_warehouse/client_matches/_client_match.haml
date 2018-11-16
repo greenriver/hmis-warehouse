@@ -43,12 +43,14 @@
       %tr
         %th
         %td
-          - if client_a.image_for_source_client.present?
+          -# using length > 100 instead of present?  present? doesn't like 
+          -# some UTF-8/binary 
+          - if client_a.image_for_source_client.length > 100
             = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
         %td
         %td
         %td
-          - if client_b.image_for_source_client.present?
+          - if client_b.image_for_source_client.length > 100
             = image_tag(polymorphic_path(source_client_image_path_generator, id: client_b.id), style: 'width: 125px;')
         %td
       %tr

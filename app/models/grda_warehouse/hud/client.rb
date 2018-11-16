@@ -1104,7 +1104,7 @@ module GrdaWarehouse::Hud
     end
 
     def image_for_source_client(cache_for=10.minutes)
-      return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
+      return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
