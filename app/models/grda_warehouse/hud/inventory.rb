@@ -47,14 +47,29 @@ module GrdaWarehouse::Hud
 
     scope :within_range, -> (range) do
       where(
-        i_t[:InventoryStartDate].eq(nil).and(i_t[:InventoryEndDate].eq(nil)).
+        i_t[:InformationDate].eq(nil).and(i_t[:InventoryStartDate].eq(nil)).and(i_t[:InventoryEndDate].eq(nil)).
         or(
-          i_t[:InventoryStartDate].lt(range.last).
+          i_t[:InformationDate].lt(range.last).
           and(i_t[:InventoryEndDate].eq(nil))
         ).
         or(
-          i_t[:InventoryStartDate].lt(range.last).
+          i_t[:InformationDate].lt(range.last).
           and(i_t[:InventoryEndDate].gt(range.first))
+        ).
+        or(
+            i_t[:InformationDate].eq(nil).
+            and(i_t[:InventoryStartDate].lt(range.last)).
+            and(i_t[:InventoryEndDate].eq(nil))
+        ).
+        or(
+            i_t[:InformationDate].eq(nil).
+            and(i_t[:InventoryStartDate].lt(range.last)).
+            and(i_t[:InventoryEndDate].gt(range.first))
+        ).
+        or(
+            i_t[:InformationDate].eq(nil).
+            and(i_t[:InventoryStartDate].eq(nil)).
+            and(i_t[:InventoryEndDate].gt(range.first))
         )
       )
     end
