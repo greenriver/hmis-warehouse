@@ -23,13 +23,20 @@ class ClientMatchesController < ApplicationController
       preload(
         destination_client: [
           :data_source,
-          :destination_client
+          destination_client: :destination_client
         ],
         source_client: [
           :data_source,
-          :destination_client
+          destination_client: :destination_client
         ],
       ).order(ordering).page(params[:page])
+
+    @ongoing_enrollments = {} 
+    @matches.each do |match|
+      @ongoing_enrollments[match.destination_client.id] = match.destination_client.service_history.entry.ongoing.pluck(:project_name)
+      @ongoing_enrollments[match.source_client.id] = match.source_client.service_history.entry.ongoing.pluck(:project_name)
+    end
+   
   end
 
 

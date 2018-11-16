@@ -97,10 +97,16 @@
         %td
       %tr
         %th Active enrollments
-        %td= client_a.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
+        %td
+          - enrollments = @ongoing_enrollments[client_a.id]
+          - if enrollments.any?
+            = enrollments.join('<br />').html_safe
         %td
         %td
-        %td= client_b.destination_client.service_history.entry.ongoing.pluck(:project_name).join('<br />').html_safe
+        %td
+          - enrollments = @ongoing_enrollments[client_b.id]
+          - if enrollments.any?
+            = enrollments.join('<br />').html_safe
   .client-match--actions
     - if match.candidate?
       = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})
