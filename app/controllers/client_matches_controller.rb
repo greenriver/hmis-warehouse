@@ -31,11 +31,18 @@ class ClientMatchesController < ApplicationController
         ],
       ).order(ordering).page(params[:page])
 
-    @ongoing_enrollments = {} 
-    @matches.each do |match|
-      @ongoing_enrollments[match.destination_client.id] = match.destination_client.service_history.entry.ongoing.pluck(:project_name)
-      @ongoing_enrollments[match.source_client.id] = match.source_client.service_history.entry.ongoing.pluck(:project_name)
-    end
+
+    client_ids = @matches.map{|m| [m.destination_client.destination_client.id, m.source_client.destination_client.id]}.flatten
+    @ongoing_enrollments = client_ids.map{|id| [id, []]}.to_h
+    GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
+      pluck(:client_id, :project_name).each do |row|
+        @ongoing_enrollments[row.first] << row.last
+      end
+
+    # @matches.each do |match|
+    #   @ongoing_enrollments[match.destination_client.id] = match.destination_client.service_history.entry.ongoing.pluck(:project_name)
+    #   @ongoing_enrollments[match.source_client.id] = match.source_client.service_history.entry.ongoing.pluck(:project_name)
+    # end
    
   end
 
@@ -68,6 +75,7 @@ class ClientMatchesController < ApplicationController
       dst.merge_from(src, reviewed_by: current_user, reviewed_at: @client_match.updated_at, client_match_id: @client_match.id)
       Importing::RunAddServiceHistoryJob.perform_later
     end
+
     respond_to do |format|
       format.json {render json: @client_match.as_json(methods: [:source_group_id])}
       format.html {redirect_to (request.referrer.presence || match_clients.path)}

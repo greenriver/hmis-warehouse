@@ -98,13 +98,13 @@
       %tr
         %th Active enrollments
         %td
-          - enrollments = @ongoing_enrollments[client_a.id]
+          - enrollments = @ongoing_enrollments[client_a.destination_client.id]
           - if enrollments.any?
             = enrollments.join('<br />').html_safe
         %td
         %td
         %td
-          - enrollments = @ongoing_enrollments[client_b.id]
+          - enrollments = @ongoing_enrollments[client_b.destination_client.id]
           - if enrollments.any?
             = enrollments.join('<br />').html_safe
   .client-match--actions
