@@ -2,9 +2,10 @@
 module Health
   class CareplanSaver
 
-    def initialize user:, careplan: Health::Careplan.new
+    def initialize user:, careplan: Health::Careplan.new, create_qa: false
       @user = user
       @careplan = careplan
+      @create_qa = create_qa
       @qualifying_activity = setup_qualifying_activity
     end
 
@@ -20,12 +21,16 @@ module Health
       success = true
       begin
         @careplan.class.transaction do
-          if @careplan.just_signed?
+          if @careplan.just_signed? && @create_qa
             @qualifying_activity.activity = :pctp_signed
           end
+          
           @careplan.save!
-          @qualifying_activity.source_id = @careplan.id
-          @qualifying_activity.save
+
+          if @create_qa
+            @qualifying_activity.source_id = @careplan.id
+            @qualifying_activity.save
+          end
           @careplan.set_lock
         end
       rescue Exception => e

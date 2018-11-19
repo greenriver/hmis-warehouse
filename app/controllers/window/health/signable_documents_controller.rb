@@ -113,7 +113,7 @@ module Window::Health
             )
           end
           # This gets called by a non-user, log this as a system user
-          Health::CareplanSaver.new(careplan: careplan, user: User.setup_system_user).update
+          Health::CareplanSaver.new(careplan: careplan, user: User.setup_system_user, create_qa: true).update
         end
       end
 
