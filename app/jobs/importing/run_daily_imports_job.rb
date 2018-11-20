@@ -147,7 +147,7 @@ module Importing
 
         Rails.cache.clear
         # re-set cache key for delayed job
-        Rails.cache.write('deploy-dir', GrdaWarehouse::Config.deployed_to)
+        Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
 
         # take snapshots of client enrollments 
         GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!

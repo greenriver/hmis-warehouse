@@ -4,10 +4,6 @@ module GrdaWarehouse
 
     after_save :invalidate_cache
 
-    def self.deployed_to
-      Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}
-    end
-
     def self.available_cas_methods
       {
         'Use Available in CAS flag' => :cas_flag,
