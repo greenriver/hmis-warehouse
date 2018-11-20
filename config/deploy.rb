@@ -150,8 +150,8 @@ after 'git:wrapper', :echo_options
 
 task :trigger_job_restarts do
   on roles(:app) do
-    within current_path do
-      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)})\""
+    within release_path do
+      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)\""
     end
   end
 end
