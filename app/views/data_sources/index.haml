@@ -35,7 +35,7 @@
                   - stall_date = data_source.stalled_since?(most_recently_completed)
                   - if stall_date
                     .label.label-warning
-                      stalled: #{stall_date}
+                      same file since: #{stall_date}
               %td
                 = checkmark(data_source.visible_in_window)
               %td
