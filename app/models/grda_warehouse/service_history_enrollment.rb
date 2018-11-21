@@ -76,22 +76,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(where_closed.or(where_open))
   end
 
-  # This is the old logic, still not completely convinced of the new logic
-  # They do differ, but I believe the new logic is more correct
-  scope :old_open_between, -> (start_date:, end_date:) do
-    at = arel_table
-
-    closed_within_range = at[:last_date_in_program].gt(start_date).
-      and(at[:first_date_in_program].lteq(end_date))
-    opened_within_range = at[:first_date_in_program].gteq(start_date).
-      and(at[:first_date_in_program].lt(end_date))
-    open_throughout = at[:first_date_in_program].lt(start_date).
-      and(at[:last_date_in_program].gt(start_date).
-        or(at[:last_date_in_program].eq(nil))
-      )
-    where(closed_within_range.or(opened_within_range).or(open_throughout))
-  end
-
   scope :open_between, -> (start_date:, end_date:) do
     at = arel_table
     # Excellent discussion of why this works:
@@ -168,6 +152,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     entry.open_between(start_date: start_date, end_date: end_date)
   end
 
+  scope :exit_within_date_range, -> (start_date: , end_date: ) do
+    self.exit.where(last_date_in_program: [start_date..end_date])
+  end
+
   scope :service_in_last_three_years, -> {
     service_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
   }
@@ -229,6 +217,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :in_project_type, -> (project_types) do
     where(project_type_column => project_types)
+  end
+
+  # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)
+  # also accepts an array of ids if you want a multi-project query
+  scope :in_project, -> (project_id) do
+    joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: project_id))
   end
 
   scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do

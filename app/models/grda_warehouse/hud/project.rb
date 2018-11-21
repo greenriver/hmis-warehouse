@@ -3,6 +3,7 @@ module GrdaWarehouse::Hud
   class Project < Base
     include ArelHelper
     include HudSharedScopes
+    include ProjectReport
     self.table_name = :Project
     self.hud_key = :ProjectID
     acts_as_paranoid column: :DateDeleted
