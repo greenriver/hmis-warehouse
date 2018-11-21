@@ -228,6 +228,36 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  # are there any uploads for this data_source
+  # with the same file name on previous days
+  # where the upload was uploaded by the system user?
+  # return the first date we saw this filename or nil
+  def stalled_since? date
+    return nil unless date.present?
+    day_before = date - 1.days
+    two_months_ago = date - 2.months
+    user = User.setup_system_user
+    stalled = GrdaWarehouse::Upload.where(
+      data_source_id: id,
+      user_id: user.id,
+      file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
+        order(id: :desc).
+        select(:file).
+        limit(1),
+      completed_at: [two_months_ago .. day_before]
+      ).exists?
+    if stalled
+      GrdaWarehouse::Upload.where(
+          data_source_id: id,
+          user_id: user.id,
+          file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
+            order(id: :desc).
+            select(:file).
+            limit(1)
+        ).minimum(:completed_at).to_date
+    end
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end
