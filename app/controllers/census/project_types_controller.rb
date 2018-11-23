@@ -21,7 +21,7 @@ module Census
       @data = @census.for_date_range_combined(
         start_date: @range.start, 
         end_date: @range.end,
-        scope: scope
+        #scope: scope
       )
       @data[:title] = {text: 'Daily Census by Project Type'}
       render json: {all: @data}

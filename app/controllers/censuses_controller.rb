@@ -66,12 +66,15 @@ class CensusesController < ApplicationController
     @census = klass.new
     start_date = params[:start_date]
     end_date = params[:end_date]
-    scope = nil
+    # scope = nil
     # Allow single program display
     if params[:project_id].present? && params[:data_source_id].present?
-      scope = GrdaWarehouse::CensusByProject.where(ProjectID: params[:project_id].to_i, data_source_id: params[:data_source_id].to_i)
+      render json: @census.for_date_range(start_date, end_date, params[:data_source_id].to_i, params[:project_id].to_i)
+      # scope = GrdaWarehouse::CensusByProject.where(ProjectID: params[:project_id].to_i, data_source_id: params[:data_source_id].to_i)
+    else
+      render json: @census.for_date_range(start_date, end_date)
     end
-    render json: @census.for_date_range(start_date, end_date, scope: scope)
+    # render json: @census.for_date_range(start_date, end_date, scope: scope)
   end
 
   private def project_scope
