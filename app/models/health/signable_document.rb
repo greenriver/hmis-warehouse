@@ -126,7 +126,7 @@ module Health
       if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
         user = User.setup_system_user
         careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
-        Health::CareplanSaver.new(careplan: careplan, user: user).update
+        Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
         self.signature_request.update(completed_at: careplan.patient_signed_on)
 
         #update_health_file_from_hello_sign

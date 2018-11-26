@@ -67,6 +67,7 @@ module Exporters::Tableau::EntryExit
         prior_es_enrollment_last3_count:  nil, # in use
         local_planning_group:             p_t[:local_planning_group], # in use
         confidential:                     p_t[:confidential], # in use
+        coc_name:                         nil, # in use
       }
     end
 
@@ -337,6 +338,8 @@ module Exporters::Tableau::EntryExit
                 GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es].include?(enrollment['prog_type'].to_i) &&
                 (three_years_prior...entry_date).include?(enrollment['entry_exit_entry_date'].to_date)
               end.count
+            when :coc_name
+              ::HUD.coc_name(row['coc_code'])
             else
               value
             end

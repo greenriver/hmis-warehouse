@@ -2,3 +2,7 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
   border: 0;
 }
+
+.dataTables_scrollBody {
+  @include scrollbar;
+}

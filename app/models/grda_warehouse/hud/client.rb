@@ -1104,7 +1104,7 @@ module GrdaWarehouse::Hud
     end
 
     def image_for_source_client(cache_for=10.minutes)
-      return unless GrdaWarehouse::Config.get(:eto_api_available) && source?
+      return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
       ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
@@ -2158,9 +2158,13 @@ module GrdaWarehouse::Hud
 
     def enrollments_for_rollup en_scope: scope, include_confidential_names: false, only_ongoing: false
       Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}", expires_in: CACHE_EXPIRY) do
-        enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
-        enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
-        enrollments || []
+        if en_scope.count == 0
+          []
+        else
+          enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names)
+          enrollments = enrollments.select{|m| m[:exit_date].blank?} if only_ongoing
+          enrollments || []
+        end
       end
     end
 

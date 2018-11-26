@@ -23,13 +23,21 @@ class ClientMatchesController < ApplicationController
       preload(
         destination_client: [
           :data_source,
-          :destination_client
+          destination_client: :destination_client
         ],
         source_client: [
           :data_source,
-          :destination_client
+          destination_client: :destination_client
         ],
       ).order(ordering).page(params[:page])
+
+
+    client_ids = @matches.map{|m| [m.destination_client.destination_client.id, m.source_client.destination_client.id]}.flatten
+    @ongoing_enrollments = client_ids.map{|id| [id, []]}.to_h
+    GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
+      pluck(:client_id, :project_name).each do |row|
+        @ongoing_enrollments[row.first] << row.last
+      end   
   end
 
 
@@ -61,6 +69,7 @@ class ClientMatchesController < ApplicationController
       dst.merge_from(src, reviewed_by: current_user, reviewed_at: @client_match.updated_at, client_match_id: @client_match.id)
       Importing::RunAddServiceHistoryJob.perform_later
     end
+
     respond_to do |format|
       format.json {render json: @client_match.as_json(methods: [:source_group_id])}
       format.html {redirect_to (request.referrer.presence || match_clients.path)}

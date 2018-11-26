@@ -12,6 +12,18 @@ Delayed::Worker.queue_attributes = {
   low_priority: { priority: 5 },
 }
 
+# Monkey patch so Delayed::Worker knows where it started
+# Delayed::Worker::Deployment.deployed_to
+module Delayed
+  class Worker
+    class Deployment
+      def self.deployed_to
+        Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}
+      end
+    end
+  end
+end
+
 root_folder = File.basename(Rails.root)
 # If the root folder is all digits, we're probably on a deployed server
 ENV['CURRENT_PATH'] = if /^\d+$/.match?(root_folder)
