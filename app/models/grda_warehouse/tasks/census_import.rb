@@ -10,6 +10,27 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
+      Rails.logger.info 'Processing GrdaWarehouse::Census census format'
+
+      GrdaWarehouseBase.transaction do
+
+        if @replace_all
+          Rails.logger.info 'Replacing all GrdaWarehouse::Census census records'
+        end
+
+        # Determine the appropriate date range
+        if @replace_all
+          start_date = history_scope.order(ht[:date]).first.date
+          end_date = Date.today
+        else
+          end_date = Date.today
+          start_date = end_date - 3.years
+        end
+        GrdaWarehouse::Census::CensusBuilder.new.create_census(start_date, end_date)
+      end
+
+      Rails.logger.info 'Processing GrdaWarehouse census format'
+
       GrdaWarehouseBase.transaction do
         if @replace_all
           Rails.logger.info 'Replacing all previous census records'
