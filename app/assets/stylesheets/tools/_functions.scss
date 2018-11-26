@@ -41,3 +41,9 @@
 @function line-height($height, $font-size) {
   @return strip-unit($height) / strip-unit($font-size);
 }
+
+// @param {Number} $position - Text string of position
+// @return {Number} - z-index value
+@function font-weight($weight-string) {
+  @return map-get($font-weights, $weight-string);
+}

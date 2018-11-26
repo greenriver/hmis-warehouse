@@ -2,9 +2,10 @@
 module Health
   class ParticipationSaver
 
-    def initialize user:, form: Health::ParticipationForm.new
+    def initialize user:, form: Health::ParticipationForm.new, create_qa: false
       @user = user
       @form = form
+      @create_qa = create_qa
       @qualifying_activity = setup_qualifying_activity
     end
 
@@ -18,7 +19,7 @@ module Health
         @form.class.transaction do
           include_qualifying_activity = @form.signature_on.present? && @form.signature_on_changed?
           @form.save!
-          if include_qualifying_activity
+          if include_qualifying_activity && @create_qa
             @qualifying_activity.source_id = @form.id
             @qualifying_activity.save
           end

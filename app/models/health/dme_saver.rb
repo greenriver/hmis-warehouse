@@ -2,9 +2,10 @@
 module Health
   class DmeSaver
 
-    def initialize user:, equipment: Health::Equipment.new
+    def initialize user:, equipment: Health::Equipment.new, create_qa: false
       @user = user
       @equipment = equipment
+      @create_qa = create_qa
       @qualifying_activity = setup_qualifying_activity
     end
 
@@ -15,8 +16,10 @@ module Health
     def update
       @equipment.class.transaction do 
         @equipment.save!
-        @qualifying_activity.source_id = @equipment.id
-        @qualifying_activity.save
+        if @create_qa
+          @qualifying_activity.source_id = @equipment.id
+          @qualifying_activity.save
+        end
       end
     end
 

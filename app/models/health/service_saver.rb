@@ -2,9 +2,10 @@
 module Health
   class ServiceSaver
 
-    def initialize user:, service: Health::Service.new
+    def initialize user:, service: Health::Service.new, create_qa: false
       @user = user
       @service = service
+      @create_qa = create_qa
       @qualifying_activity = setup_qualifying_activity
     end
 
@@ -15,8 +16,10 @@ module Health
     def update
       @service.class.transaction do 
         @service.save!
-        @qualifying_activity.source_id = @service.id
-        @qualifying_activity.save
+        if @create_qa
+          @qualifying_activity.source_id = @service.id
+          @qualifying_activity.save
+        end
       end
     end
 

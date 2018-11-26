@@ -68,7 +68,9 @@ module GrdaWarehouse::Tasks
           )
          
         end
-        @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
+        if @show_progress
+          @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
+        end
       end
       logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"
       if @dry_run

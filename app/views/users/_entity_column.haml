@@ -1,0 +1,31 @@
+- associated_items ||= @user.associated_by(associations: associations) rescue []
+- name = entity[:label] || entity[:placeholder]
+
+.c-columns__column.j-column{data: {title: name.pluralize}}
+  .c-columns__column-header
+    %h3.c-columns__column-title=name.pluralize
+    .c-columns__column-buttons
+      = link_to '#', class: 'j-add', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Add #{name}" do
+        = icon('fas', 'plus')
+      = link_to '#', class: 'j-remove-all-toggle', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Remove All #{name.pluralize}" do
+        = icon('fas', 'times-circle')
+
+  .c-columns__column-actions
+    .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
+      = f.input name.parameterize('_').to_sym,  **entity, label: false
+    .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove
+      .d-flex.align-items-center
+        %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?
+        .d-flex
+          .btn.btn-sm.btn-secondary.mr-2.j-remove-all-toggle No
+          .btn.btn-sm.btn-danger.j-remove-all Yes
+
+  .c-columns__column-content.j-column-content
+    %ul.c-columns__column-list.j-list
+    %ul.c-columns__column-list.c-columns__column-list--associated
+      - associated_items.each do |associated, items|
+        - items.each do |a|
+          %li.c-columns__column-list-item--read-only
+            %span.d-block{data: {toggle: 'tooltip'}, title: "Access by association with #{associated}"}
+              = a
+              %em.d-block.text-small.c-columns__column-list-item-description=associated

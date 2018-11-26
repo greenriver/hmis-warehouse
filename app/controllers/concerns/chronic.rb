@@ -30,8 +30,21 @@ module Chronic
       chronic_at = chronic_source.arel_table
       client_at = client_source.arel_table
       @column = params[:sort] || 'homeless_since'
-      @direction = params[:direction] || 'asc'
-      table = %w(FirstName LastName).include?( @column ) ? client_at : chronic_at
+      # whitelist for sort direction
+      @direction = if ['asc', 'desc'].include?(params[:direction])
+        params[:direction]
+      else
+        'asc'
+      end
+      # whitelist for column
+      table = if ['FirstName', 'LastName'].include?(@column) 
+        client_at
+      elsif chronic_source.column_names.include?(@column)
+        chronic_at
+      else
+        @column = 'homeless_since'
+        chronic_at
+      end
       @order = table[@column].send(@direction)
     end
 

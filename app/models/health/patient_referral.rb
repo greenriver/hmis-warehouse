@@ -135,7 +135,8 @@ module Health
     end
 
     def record_status
-      if inactive_outreach_stati.include?(outreach_status)
+      # patient has an inactive status, or has been rejected 
+      if inactive_outreach_stati.include?(outreach_status) || rejected?
         'I'
       else
         'A'

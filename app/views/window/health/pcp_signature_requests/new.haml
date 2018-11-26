@@ -5,7 +5,7 @@
   The PCP must be listed as a team member on the Care Plan and have an email address with their organization’s domain name. (e.g. @tuftsmedical.org
   %strong not
   @gmail.com).
-- if @careplan.provider.present? && ! Health::Agency.email_valid?(@careplan.provider.email)
+- if @careplan.provider.present? && ! Health::Agency.email_valid?(@careplan.provider&.email)
   .alert.alert-warning
     %p
       Current PCP #{@careplan.provider.full_name} does not have an acceptable email.

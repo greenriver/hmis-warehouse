@@ -571,11 +571,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @build_until ||= if exit&.ExitDate.present?
         # no bed night should be given on the exit date per System Performance Measures programming spec: The [project exit date] itself is not included because it does not represent a night spent in the project.
         # We will count the stay as one day if the entry and exit are on the same day
-        if entry_exit_tracking? && self.EntryDate != exit.ExitDate
+        exit_date = if entry_exit_tracking? && self.EntryDate != exit.ExitDate
           exit.ExitDate - 1.day
         else
           exit.ExitDate # Trust the data for night-by-night
         end
+        # NOTE: this is limited to the end of next year, sometimes we get exit dates that are *very* far in the future.  This will preserve the ability to set future end dates and prevent extra rebuilds, but will continue extending the days into the future.
+        [
+          exit_date,
+          (Date.today + 1.year).end_of_year
+        ].min
       else
         [
           export.effective_export_end_date,

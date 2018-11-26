@@ -1,11 +1,11 @@
 # config valid only for current version of Capistrano
 lock '3.11.0'
 
-set :application, 'boston_hmis'
+set :application, 'warhouse'
 set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
-set :whenever_identifier, ->{ "#{fetch(:application)}_#{fetch(:stage)}" }
+set :whenever_identifier, ->{ "#{fetch(:client)}-#{fetch(:application)}_#{fetch(:stage)}" }
 set :cron_user, ENV.fetch('CRON_USER') { 'ubuntu'}
 set :whenever_roles, [:cron, :production_cron, :staging_cron]
 set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && /usr/share/rvm/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
@@ -150,8 +150,8 @@ after 'git:wrapper', :echo_options
 
 task :trigger_job_restarts do
   on roles(:app) do
-    within current_path do
-      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', File.realpath(FileUtils.pwd))\""
+    within release_path do
+      execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)\""
     end
   end
 end

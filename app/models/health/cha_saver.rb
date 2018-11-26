@@ -2,11 +2,12 @@
 module Health
   class ChaSaver
 
-    def initialize user:, cha: Health::ComprehensiveHealthAssessment.new, complete: false, reviewed: false
+    def initialize user:, cha: Health::ComprehensiveHealthAssessment.new, complete: false, reviewed: false, create_qa: false
       @user = user
       @cha = cha
       @complete = complete
       @reviewed = reviewed
+      @create_qa = create_qa
       @qualifying_activity = setup_qualifying_activity
 
       @cha.completed_at = Time.current if @complete
@@ -35,7 +36,7 @@ module Health
       @cha.class.transaction do
         @cha.completed_at = nil unless @complete
         @cha.save!
-        if @complete && @reviewed
+        if @complete && @reviewed && @create_qa
           @qualifying_activity.source_id = @cha.id
           @qualifying_activity.save
         end

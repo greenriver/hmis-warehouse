@@ -1,5 +1,6 @@
 module NotifierConfig
   extend ActiveSupport::Concern
+
   included do
     attr_accessor :notifier_config
 

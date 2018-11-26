@@ -57,7 +57,7 @@ class BaseJob < ActiveJob::Base
     Rails.cache.fetch('deploy-dir') do
       # A default for the first deployment and local development
       # This should be set on deployment.
-      File.realpath(FileUtils.pwd)
+      Delayed::Worker::Deployment.deployed_to
     end
   end
 
