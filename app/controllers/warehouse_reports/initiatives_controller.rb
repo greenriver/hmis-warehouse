@@ -62,7 +62,7 @@ module WarehouseReports
     end
 
     def report_scope
-      if current_user.can_edit_anything_super_user?
+      if current_user.present? && current_user.can_edit_anything_super_user?
         report_source.all
       else
         report_source.where(user_id: current_user.id)
@@ -93,7 +93,7 @@ module WarehouseReports
     end
 
     def access_by_token?
-      return false if current_user
+      return false if current_user.present?
       if params[:token].blank?
         raise ActionController::RoutingError.new('Not Found') and return
       end
