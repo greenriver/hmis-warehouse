@@ -2305,74 +2305,81 @@ group by an.PersonalID, an.HHType, cal.theDate
 NOTE 10/5/2018 - The INSERT includes both active and potentially relevant
      inactive enrollments.
 *****************************************************************/
+select hhid.HouseholdID, case 
+  --if at least 1 adult and 1 child, HHType = 2
+when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0 
+  then 2
+--If not adult/child, any unknown age means HHType = 99
+when sum(hhid.AgeStatus/100) > 0 
+  then 99
+--child only HHType = 3
+when sum(hhid.AgeStatus%10) > 0 
+  then 3
+--adult only HHType = 1
+when sum((hhid.AgeStatus/10)%100) > 0
+  then 1
+else 99 end as HHType
+into #hh
+from (select distinct hn.HouseholdID
+  , case when c.DOBDataQuality in (8,9) 
+      or c.DOB is null 
+      or c.DOB = '1/1/1900'
+      or c.DOB > hn.EntryDate
+      or c.DOB = hn.EntryDate and hn.RelationshipToHoH = 1
+      or dateadd(yy, 105, c.DOB) <= hn.EntryDate 
+      or c.DOBDataQuality is null
+      or c.DOBDataQuality not in (1,2) then 100
+    when dateadd(yy, 18, c.DOB) <= hn.EntryDate then 10 
+    else 1 end as AgeStatus
+  from hmis_Enrollment hn
+  inner join hmis_Client c on c.PersonalID = hn.PersonalID
+  inner join (select distinct hhinfo.HouseholdID
+      from hmis_Enrollment hhinfo
+      inner join lsa_Report rpt on hhinfo.EntryDate <= rpt.ReportEnd
+      inner join hmis_Project p on p.ProjectID = hhinfo.ProjectID
+      inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
+        and coc.CoCCode = rpt.ReportCoC
+      where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
+      ) hoh on hoh.HouseholdID = hn.HouseholdID
+  ) hhid
+group by hhid.HouseholdID
+
+CREATE NONCLUSTERED INDEX ix_household_id_2 ON #hh2 (HouseholdID);
+CREATE NONCLUSTERED INDEX ix_hhtype_2 ON #hh2 (HHType);
+
 delete from sys_Enrollment
 
 insert into sys_Enrollment (HoHID, HHType, EnrollmentID, ProjectType
-	, EntryDate
-	, MoveInDate
-	, ExitDate
-	, Active)
+  , EntryDate
+  , MoveInDate
+  , ExitDate
+  , Active)
 select distinct hn.PersonalID
-	-- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
-	-- otherwise, use HHType based on HH member age(s) at project entry.
-	, case when an.EnrollmentID is not null then an.HHType else hh.HHType end
-	, hn.EnrollmentID, p.ProjectType
-	, case when p.TrackingMethod = 3 then null else hn.EntryDate end
-	, case when p.ProjectType in (3,13) then hn.MoveInDate else null end
-	, case when p.TrackingMethod = 3 then null else hx.ExitDate end
-	, case when an.EnrollmentID is not null then 1 else 0 end
+  -- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
+  -- otherwise, use HHType based on HH member age(s) at project entry.
+  , case when an.EnrollmentID is not null then an.HHType else hh.HHType end
+  , hn.EnrollmentID, p.ProjectType
+  , case when p.TrackingMethod = 3 then null else hn.EntryDate end
+  , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
+  , case when p.TrackingMethod = 3 then null else hx.ExitDate end
+  , case when an.EnrollmentID is not null then 1 else 0 end
 from tmp_Household lhh
 inner join lsa_Report rpt on rpt.ReportID = lhh.ReportID
 inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
-	and hn.RelationshipToHoH = 1
+  and hn.RelationshipToHoH = 1
 left outer join active_Enrollment an on an.EnrollmentID = hn.EnrollmentID
 left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
-	and hx.ExitDate <= rpt.ReportEnd
+  and hx.ExitDate <= rpt.ReportEnd
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
-inner join (select hhid.HouseholdID, case	
-	    --if at least 1 adult and 1 child, HHType = 2
-		when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0 
-			then 2
-		--If not adult/child, any unknown age means HHType = 99
-		when sum(hhid.AgeStatus/100) > 0 
-			then 99
-		--child only HHType = 3
-		when sum(hhid.AgeStatus%10) > 0 
-			then 3
-		--adult only HHType = 1
-		when sum((hhid.AgeStatus/10)%100) > 0
-			then 1
-		else 99 end as HHType
-		from (select distinct hn.HouseholdID
-			, case when c.DOBDataQuality in (8,9) 
-					or c.DOB is null 
-					or c.DOB = '1/1/1900'
-					or c.DOB > hn.EntryDate
-					or c.DOB = hn.EntryDate and hn.RelationshipToHoH = 1
-					or dateadd(yy, 105, c.DOB) <= hn.EntryDate 
-					or c.DOBDataQuality is null
-					or c.DOBDataQuality not in (1,2) then 100
-				when dateadd(yy, 18, c.DOB) <= hn.EntryDate then 10 
-				else 1 end as AgeStatus
-			from hmis_Enrollment hn
-			inner join hmis_Client c on c.PersonalID = hn.PersonalID
-			inner join (select distinct hhinfo.HouseholdID
-					from hmis_Enrollment hhinfo
-					inner join lsa_Report rpt on hhinfo.EntryDate <= rpt.ReportEnd
-					inner join hmis_Project p on p.ProjectID = hhinfo.ProjectID
-					inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
-						and coc.CoCCode = rpt.ReportCoC
-					where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
-					) hoh on hoh.HouseholdID = hn.HouseholdID
-			) hhid
-		group by hhid.HouseholdID
-		) hh on hh.HouseholdID = hn.HouseholdID
+inner join #hh on #hh.HouseholdID = hn.HouseholdID
 where 
-	an.EnrollmentID is not null --All active enrollments are relevant.
-	or (hx.ExitDate >= '10/1/2012'-- Inactive enrollments potentially relevant...
-	    	and hh.HHType = lhh.HHType -- if they occurred under the same HHType
-		and lhh.Stat = 5 --... and HH was 'continously engaged' at ReportStart...
-		and lhh.PSHMoveIn <> 2) --...and HH was not housed in PSH at ReportStart.
+  an.EnrollmentID is not null --All active enrollments are relevant.
+  or (hx.ExitDate >= '10/1/2012'-- Inactive enrollments potentially relevant...
+        and #hh.HHType = lhh.HHType -- if they occurred under the same HHType
+    and lhh.Stat = 5 --... and HH was 'continously engaged' at ReportStart...
+    and lhh.PSHMoveIn <> 2) --...and HH was not housed in PSH at ReportStart.
+
+drop table #hh;
 /*****************************************************************
 4.33 Get Last Inactive Date
 *****************************************************************/
