@@ -35,16 +35,12 @@ module Censuses
       yesterday = nil
       adjusted_start_date = start_date.to_date - 1.day
 
+      @shape ||= {}
       project_scope = GrdaWarehouse::Census::ByProjectType.for_date_range(adjusted_start_date, end_date)
 
       veterans = {}
       non_veterans = {}
       yesterday = nil
-      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
-        veterans[project_type] = []
-        non_veterans[project_type] = []
-        add_dimension(project_type, veterans[project_type], non_veterans[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
-      end
 
       project_scope.each do | census_record |
         if yesterday.nil?
@@ -58,17 +54,26 @@ module Censuses
         end
 
         GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+          veterans[project_type] ||= []
+          non_veterans[project_type] ||= []
+
           veterans[project_type] << { x: census_record.date, y: census_record["#{project_type}_veterans"], yesterday: yesterday["#{project_type}_veterans"] }
           non_veterans[project_type] << { x: census_record.date, y: census_record["#{project_type}_non_veterans"], yesterday: yesterday["#{project_type}_non_veterans"]  }
         end
 
         yesterday = census_record
       end
+
+      # Only include dimensions that contain data
+      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+        if veterans[project_type].present? && veterans[project_type].size > 0
+          add_dimension(project_type, veterans[project_type], non_veterans[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
+        end
+      end
       @shape
     end
 
     private def add_dimension (project_type, veterans, non_veterans, title)
-      @shape ||= {}
       @shape[project_type] ||= {}
       @shape[project_type][:datasets] ||= []
       @shape[project_type][:datasets][0] ||= { label: "Veteran Count", data: veterans }

@@ -36,6 +36,8 @@ module Censuses
     # }
 
     def for_date_range (start_date, end_date, data_source_id = 0, project_id = 0)
+      @shape ||= {}
+
       if data_source_id != 0 && project_id != 0
         for_project_id(start_date, end_date, data_source_id, project_id)
       else
@@ -99,20 +101,20 @@ module Censuses
       client_data = []
       bed_data = []
 
-      add_dimension(data_source_id, organization_id, project_id, client_data, bed_data, dimension_label)
-
       bounded_scope.each do | item |
-
         # item.first = date, item.second = clients, item.last = beds
         client_data << { x: item.first, y: item.second, yesterday: yesterday }
         bed_data << { x: item.first, y: item.last }
 
         yesterday = item.second
       end
+
+      if client_data.size > 0
+        add_dimension(data_source_id, organization_id, project_id, client_data, bed_data, dimension_label)
+      end
     end
 
     private def add_dimension (data_source_id, organization_id, project_id, clients, beds, title)
-      @shape ||= {}
       @shape[data_source_id] ||= {}
       @shape[data_source_id][organization_id] ||= {}
       @shape[data_source_id][organization_id][project_id] ||= {}

@@ -29,13 +29,9 @@ module Censuses
 
       project_scope = GrdaWarehouse::Census::ByProjectType.for_date_range(adjusted_start_date, end_date)
 
+      @shape ||= {}
       clients = {}
       yesterday = nil
-
-      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
-        clients[project_type] = []
-        add_dimension(project_type, clients[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
-      end
 
       project_scope.each do | census_record |
         if yesterday.nil?
@@ -49,11 +45,20 @@ module Censuses
         end
 
         GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+          clients[project_type] ||= []
           clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"], yesterday: yesterday["#{project_type}_all_clients"] }
         end
 
         yesterday = census_record
       end
+
+      # Only include dimensions that contain data
+      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+        if clients[project_type].present? && clients[project_type].size > 0
+          add_dimension(project_type, clients[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
+        end
+      end
+
       @shape
     end
 
@@ -89,6 +94,7 @@ module Censuses
       # }
       #
 
+      @shape ||= {}
       project_scope = GrdaWarehouse::Census::ByProjectType.for_date_range(start_date, end_date)
       clients = {}
       total = {}
@@ -103,10 +109,12 @@ module Censuses
       end
 
       GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do | project_type |
-        add_combined_dimension(clients[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}",
-            GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
-        add_trend_dimension(compute_trend(clients[project_type]), "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]} trend",
-            GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
+        if clients[project_type].present? && clients[project_type].size > 0
+          add_combined_dimension(clients[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}",
+              GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
+          add_trend_dimension(compute_trend(clients[project_type]), "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]} trend",
+              GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
+        end
       end
 
       totals = total.map {|date, value| {x: date, y: value}}
@@ -116,7 +124,6 @@ module Censuses
     end
 
     private def add_dimension (project_type, clients, title)
-      @shape ||= {}
       @shape[project_type] ||= {}
       @shape[project_type][:datasets] ||= []
       @shape[project_type][:datasets][0] ||= { label: "Client Count", data: clients }
@@ -128,14 +135,12 @@ module Censuses
 
     # Add dimension from "for_date_range_combined"
     private def add_combined_dimension (clients, title, color)
-      @shape ||= {}
       @shape[:datasets] ||= []
       @shape[:datasets] << { label: title, data: clients, borderColor: color }
       @shape
     end
 
     private def add_trend_dimension (trend, title, color)
-      @shape ||= {}
       @shape[:datasets] ||= []
       @shape[:datasets] << { label: title, data: trend, borderColor: color, pointStyle: 'cross', borderWidth: 2, pointRadius: 0 }
       @shape
