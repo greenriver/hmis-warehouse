@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181105154441) do
+ActiveRecord::Schema.define(version: 20181128180134) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -125,6 +125,7 @@ ActiveRecord::Schema.define(version: 20181105154441) do
     t.datetime "updated_at",                                           null: false
     t.text     "notes"
     t.string   "job_id"
+    t.string   "archive_name"
   end
 
   add_index "glacier_archives", ["glacier_vault_id"], name: "index_glacier_archives_on_glacier_vault_id", using: :btree

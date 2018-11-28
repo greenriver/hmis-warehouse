@@ -80,6 +80,7 @@ module Glacier
       if self.uploader.successful?
         self.archive.update_attributes({
           archive_id: self.uploader.archive_id,
+          archive_name: self.archive_name,
           checksum: self.uploader.checksum,
           size_in_bytes: self.uploader.archive_size,
           location: self.uploader.location,

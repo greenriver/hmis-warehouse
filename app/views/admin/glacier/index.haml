@@ -8,6 +8,7 @@
     %thead
       %tr
         %th Vault
+        %th Archive
         %th Initiated
         %th Completed
         %th Location
@@ -19,6 +20,7 @@
           - @archives[vault.id].each do |archive|
             %tr
               %td= vault.name
+              %td= archive.archive_name
               %td= archive.upload_started_at
               %td= archive.upload_finished_at
               %td= archive.location
