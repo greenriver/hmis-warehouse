@@ -1,5 +1,5 @@
 module Censuses
-  class CensusByProjectType < Base
+  class CensusByProjectType < ProjectTypeBase
 
     def for_date_range (start_date, end_date)
       # JSON shape
@@ -115,8 +115,6 @@ module Censuses
       @shape
     end
 
-    private
-
     def add_dimension (project_type, clients, title)
       @shape ||= {}
       @shape[project_type] ||= {}
@@ -160,6 +158,11 @@ module Censuses
       end
 
       trend_data << { x: data.last[:x], y: predicted_ys.last&.round }
+    end
+
+    def enrollment_scope (date, project_type, population)
+      GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
+          in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
     end
   end
 end

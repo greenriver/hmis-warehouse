@@ -127,47 +127,6 @@ module Censuses
 
     # detail view
 
-    def for_date (date, data_source, organization, project)
-      columns = {
-          'LastName' => c_t[:LastName].to_sql,
-          'FirstName' => c_t[:FirstName].to_sql,
-          'ProjectName' => she_t[:project_name].to_sql,
-          'short_name' => ds_t[:short_name].to_sql,
-          'client_id' => she_t[:client_id].to_sql,
-      }
-
-      local_census_scope = census_scope.for_date_range(date, date)
-      if data_source != 'all'
-        local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
-      end
-      if organization != 'all'
-        local_census_scope = local_census_scope.by_organization_id(organization.to_i)
-      end
-      if project != 'all'
-        local_census_scope = local_census_scope.by_project_id(project.to_i)
-      end
-
-      local_enrollment_scope = enrollment_scope.service_within_date_range(start_date: date, end_date: date)
-      if data_source != 'all'
-        local_enrollment_scope = local_enrollment_scope.where(data_source_id: data_source.to_i)
-      end
-      if organization != 'all'
-        local_enrollment_scope = local_enrollment_scope.where(organization_id: organization.to_i)
-      end
-      if project != 'all'
-        local_enrollment_scope = local_enrollment_scope.where(project_id: project.to_i)
-      end
-
-      local_enrollment_scope.
-          where(client_id: local_census_scope.pluck(:all_clients).flatten).
-          joins(:client, :data_source).
-          pluck(*columns.values).
-          #order(:LastName, :FirstName).
-          map do | row |
-        Hash[columns.keys.zip( row )]
-      end
-    end
-
     def detail_name (project_code)
       data_source_id, organization_id, project_id = project_code.split('-')
       if data_source_id == 'all'
@@ -184,5 +143,40 @@ module Censuses
       project_name = GrdaWarehouse::Hud::Project.find(project_id.to_i).name
       return "#{project_name} at #{organization_name} on"
     end
+
+    def for_date (date, data_source = nil, organization = nil, project = nil)
+      columns = {
+          'LastName' => c_t[:LastName].to_sql,
+          'FirstName' => c_t[:FirstName].to_sql,
+          'ProjectName' => she_t[:project_name].to_sql,
+          'short_name' => ds_t[:short_name].to_sql,
+          'client_id' => she_t[:client_id].to_sql,
+      }
+
+      local_census_scope = census_scope.for_date_range(date, date)
+      local_enrollment_scope = enrollment_scope.service_within_date_range(start_date: date, end_date: date)
+      if data_source && data_source != 'all'
+        local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
+        local_enrollment_scope = local_enrollment_scope.where(data_source_id: data_source.to_i)
+      end
+      if organization && organization != 'all'
+        local_census_scope = local_census_scope.by_organization_id(organization.to_i)
+        local_enrollment_scope = local_enrollment_scope.where(organization_id: organization.to_i)
+      end
+      if project && project != 'all'
+        local_census_scope = local_census_scope.by_project_id(project.to_i)
+        local_enrollment_scope = local_enrollment_scope.where(project_id: project.to_i)
+      end
+
+      local_enrollment_scope.
+          where(client_id: local_census_scope.pluck(:all_clients).flatten).
+          joins(:client, :data_source).
+          pluck(*columns.values).
+          #order(:LastName, :FirstName).
+          map do | row |
+        Hash[columns.keys.zip( row )]
+      end
+    end
+
   end
 end

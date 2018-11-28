@@ -1,5 +1,5 @@
 module Censuses
-  class CensusVeteran < Base
+  class CensusVeteran < ProjectTypeBase
     # JSON shape
     # {
     #   project_type: {
@@ -77,6 +77,17 @@ module Censuses
       @shape[project_type][:title][:display] ||= true
       @shape[project_type][:title][:text] ||= title
       @shape
+    end
+
+
+    def enrollment_scope (date, project_type, population)
+      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
+          in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
+      if population == :veterans
+        enrollment_scope.veteran
+      else
+        enrollment_scope.non_veteran
+      end
     end
 
   end
