@@ -25,5 +25,5 @@
               %td= archive.upload_finished_at
               %td= archive.location
               %td= archive.status
-              %td= archive.size_in_bytes
+              %td= number_to_human_size archive.size_in_bytes
               %td= archive.notes

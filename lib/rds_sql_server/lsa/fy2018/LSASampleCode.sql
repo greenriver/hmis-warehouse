@@ -2701,11 +2701,6 @@ from lsa_Report rpt
 /*****************************************************************
 4.40 Get Exit Cohort Members and Enrollments
 *****************************************************************/
-
-drop table #hh;
-/*****************************************************************
-4.40 Get Exit Cohort Members and Enrollments
-*****************************************************************/
 select hhid.HouseholdID, case
       when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0 then 2
       when sum(hhid.AgeStatus/100) > 0 then 99
