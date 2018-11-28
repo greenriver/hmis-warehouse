@@ -2354,8 +2354,8 @@ from (select distinct hn.HouseholdID
   ) hhid
 group by hhid.HouseholdID
 
-CREATE NONCLUSTERED INDEX ix_household_id_2 ON #hh2 (HouseholdID);
-CREATE NONCLUSTERED INDEX ix_hhtype_2 ON #hh2 (HHType);
+CREATE NONCLUSTERED INDEX ix_household_id_2 ON #hh (HouseholdID);
+CREATE NONCLUSTERED INDEX ix_hhtype_2 ON #hh (HHType);
 
 delete from sys_Enrollment
 
