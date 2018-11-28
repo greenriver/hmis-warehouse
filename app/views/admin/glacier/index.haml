@@ -1,0 +1,23 @@
+- title = 'Glacier Archives'
+- content_for :title, title
+%h1= content_for(:title)
+
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Vault
+      %th Uploaded At
+      %th Location
+      %th Status
+      %th Size
+      %th Notes
+    %tbody
+    - @vaults.each do |vault|
+      - @archives[vault.id].each do |archive|
+        %tr
+          %td= vault.name
+          %td= archive.upload_finished_at
+          %td= archive.location
+          %td= archive.status
+          %td= archive.size_in_bytes
+          %td= archive.notes
