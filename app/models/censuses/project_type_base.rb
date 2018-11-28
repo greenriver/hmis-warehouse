@@ -25,8 +25,22 @@ module Censuses
       end
     end
 
+    def prior_year_averages (year, project_type, population)
+      {
+          year: year,
+          ave_client_count: census_data_scope(year).average("#{project_type}_#{population}").round(2),
+      }
+    end
+
     def census_scope (date)
       GrdaWarehouse::Census::ByProjectTypeClient.for_date_range(date, date)
+    end
+
+    def census_data_scope (year)
+      start_date = Date.new(year).beginning_of_year
+      end_date = Date.new(year).end_of_year
+
+      GrdaWarehouse::Census::ByProjectType.for_date_range(start_date, end_date)
     end
 
   end

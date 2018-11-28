@@ -66,7 +66,7 @@ module Censuses
       @shape
     end
 
-    def for_project_id (start_date, end_date, data_source_id, project_id)
+    private def for_project_id (start_date, end_date, data_source_id, project_id)
       project = GrdaWarehouse::Hud::Project.find(project_id)
       project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select{|k, v| v.include?(project[:ProjectType])}.keys.first.upcase
       dimension_scope = root_data_scope.by_project_id(project_id)
@@ -75,21 +75,21 @@ module Censuses
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 
-    def for_data_source_id (start_date, end_date, data_source_id)
+    private def for_data_source_id (start_date, end_date, data_source_id)
       data_source_name = GrdaWarehouse::DataSource.find(data_source_id).name
       dimension_label = "All programs from #{data_source_name}"
       dimension_scope = root_data_scope.by_data_source_id(data_source_id)
       compute_dimension(start_date, end_date, data_source_id, 'all', 'all', dimension_label, dimension_scope)
     end
 
-    def for_organization_id (start_date, end_date, data_source_id, organization_id)
+    private def for_organization_id (start_date, end_date, data_source_id, organization_id)
       organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name
       dimension_label = "All programs from #{organization_name}"
       dimension_scope = root_data_scope.by_organization_id(organization_id)
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
     end
 
-    def compute_dimension (start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
+    private def compute_dimension (start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
       # Move the start of the range to include "yesterday"
       yesterday = 0
       adjusted_start_date = start_date.to_date - 1.day
@@ -111,7 +111,7 @@ module Censuses
       end
     end
 
-    def add_dimension (data_source_id, organization_id, project_id, clients, beds, title)
+    private def add_dimension (data_source_id, organization_id, project_id, clients, beds, title)
       @shape ||= {}
       @shape[data_source_id] ||= {}
       @shape[data_source_id][organization_id] ||= {}
@@ -125,7 +125,7 @@ module Censuses
       @shape
     end
 
-    # detail view
+    # Detail view
 
     def detail_name (project_code)
       data_source_id, organization_id, project_id = project_code.split('-')
@@ -176,6 +176,45 @@ module Censuses
           map do | row |
         Hash[columns.keys.zip( row )]
       end
+    end
+
+    def prior_year_averages (year, data_source = nil, organization = nil, project = nil)
+      start_date = Date.new(year).beginning_of_year
+      end_date = Date.new(year).end_of_year
+
+      local_census_scope = root_data_scope.for_date_range(start_date, end_date)
+      if data_source && data_source != 'all'
+        local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
+      end
+      if organization && organization != 'all'
+        local_census_scope = local_census_scope.by_organization_id(organization.to_i)
+      end
+      if project && project != 'all'
+        local_census_scope = local_census_scope.by_project_id(project.to_i)
+      end
+
+      {
+          year: year,
+          ave_client_count: local_census_scope.average(:all_clients).round(2),
+          ave_bed_inventory: local_census_scope.average(:beds).round(2),
+          ave_seasonal_inventory: seasonal_inventory(year).round(2),
+      }
+    end
+
+    private def seasonal_inventory (year)
+      start_date = Date.new(year).beginning_of_year
+      end_date = Date.new(year).end_of_year
+
+      counts = {}
+      (start_date..end_date).each do | date |
+        counts[date] = 0
+        GrdaWarehouse::Hud::Inventory.within_range(date..date).each do | inventory |
+          if inventory.Availability.present? && inventory.Availability != 1
+            counts[date] += inventory.beds
+          end
+        end
+      end
+      counts.values.sum().to_f / counts.values.count.to_f
     end
 
   end

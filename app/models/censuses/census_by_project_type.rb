@@ -115,7 +115,7 @@ module Censuses
       @shape
     end
 
-    def add_dimension (project_type, clients, title)
+    private def add_dimension (project_type, clients, title)
       @shape ||= {}
       @shape[project_type] ||= {}
       @shape[project_type][:datasets] ||= []
@@ -127,14 +127,14 @@ module Censuses
     end
 
     # Add dimension from "for_date_range_combined"
-    def add_combined_dimension (clients, title, color)
+    private def add_combined_dimension (clients, title, color)
       @shape ||= {}
       @shape[:datasets] ||= []
       @shape[:datasets] << { label: title, data: clients, borderColor: color }
       @shape
     end
 
-    def add_trend_dimension (trend, title, color)
+    private def add_trend_dimension (trend, title, color)
       @shape ||= {}
       @shape[:datasets] ||= []
       @shape[:datasets] << { label: title, data: trend, borderColor: color, pointStyle: 'cross', borderWidth: 2, pointRadius: 0 }
@@ -142,7 +142,7 @@ module Censuses
     end
 
     # Compute data for trend line from array
-    def compute_trend (data)
+    private def compute_trend (data)
       y = data.map { | item | item[:y] }
       x = (0...y.count).to_a
 
@@ -159,6 +159,8 @@ module Censuses
 
       trend_data << { x: data.last[:x], y: predicted_ys.last&.round }
     end
+
+    # Detail view
 
     def enrollment_scope (date, project_type, population)
       GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).

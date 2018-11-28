@@ -21,7 +21,7 @@ class CensusesController < ApplicationController
       ds_id, org_id, p_id = params[:project].split('-')
       @clients = census.for_date(@date, ds_id, org_id, p_id)
       @yesterday_client_count = census.for_date(@date - 1.day, ds_id, org_id, p_id).size
-      @prior_year_averages = load_prior_year_averages_by_project(@date.year - 1, ds_id, org_id, p_id)
+      @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id)
       @involved_projects = project_scope.where(data_source_id: ds_id, ProjectID: p_id)
     elsif params[:project_type].present?
       project_type = params[:project_type].downcase.to_sym
@@ -39,19 +39,17 @@ class CensusesController < ApplicationController
           @census_detail_name = "Veterans in #{@census_detail_name}"
           @clients = census.project_for_date(@date, project_type,:veterans)
           @yesterday_client_count = census.project_for_date(@date - 1.day, project_type,:veterans).size
-          #scope = scope.where(Client: {VeteranStatus: 1})
-          @prior_year_averages = load_prior_year_averages_by_project_type(@date.year - 1, project_type, true)
+          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans)
         else
           @census_detail_name = "Non-Veterans in #{@census_detail_name}"
           @clients = census.project_for_date(@date, project_type,:non_veterans)
           @yesterday_client_count = census.project_for_date(@date - 1.day, project_type,:non_veterans).size
-          #scope = scope.where.not(Client: {VeteranStatus: 1})
-          @prior_year_averages = load_prior_year_averages_by_project_type(@date.year - 1, project_type, false)
+          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans)
         end
       else
-        @clients = census.for_date(@date, project_type)
+        @clients = census.project_for_date(@date, project_type)
         @yesterday_client_count = census.project_for_date(@date - 1.day, project_type).size
-        @prior_year_averages ||= load_prior_year_averages_by_project_type(@date.year - 1, project_type)
+        @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :all_clients)
         @involved_projects = base_project_scope.merge(sh_scope)
       end
     else
@@ -70,27 +68,16 @@ class CensusesController < ApplicationController
     @census = klass.new
     start_date = params[:start_date]
     end_date = params[:end_date]
-    # scope = nil
     # Allow single program display
     if params[:project_id].present? && params[:data_source_id].present?
       render json: @census.for_date_range(start_date, end_date, params[:data_source_id].to_i, params[:project_id].to_i)
-      # scope = GrdaWarehouse::CensusByProject.where(ProjectID: params[:project_id].to_i, data_source_id: params[:data_source_id].to_i)
     else
       render json: @census.for_date_range(start_date, end_date)
     end
-    # render json: @census.for_date_range(start_date, end_date, scope: scope)
   end
 
   private def project_scope
     GrdaWarehouse::Hud::Project
-  end
-
-  private def census_by_year_scope
-    GrdaWarehouse::CensusByYear.residential
-  end
-
-  private def census_by_year_project_type_scope
-    GrdaWarehouse::CensusByProjectType.residential
   end
 
   private def census_types
@@ -100,57 +87,6 @@ class CensusesController < ApplicationController
       'By Program': 'Censuses::CensusByProgram',
       'Veteran': 'Censuses::CensusVeteran',
     }
-  end
-
-  private def load_prior_year_averages_by_project year, ds_id, org_id, p_id
-    scope = census_by_year_scope.where(year: year)
-    if ds_id != 'all'
-      scope = scope.where(data_source_id: ds_id.to_i)
-    end
-    if org_id != 'all'
-      scope = scope.where(OrganizationID: org_id)
-    end
-    if p_id != 'all'
-      scope = scope.where(ProjectID: p_id)
-    end
-    client_count = scope.map{|m| m[:client_count]}.compact.reduce(0, :+)
-    ave_days_of_service_count = scope.map{|m| m[:days_of_service]}.compact.reduce(0, :+)/scope.size.to_f
-    ave_client_count = 0
-    if scope.map{|m| m[:days_of_service]}.compact.reduce(0, :+)/scope.size.to_f > 0
-      ave_client_count = (client_count/ave_days_of_service_count.to_f).round(2)
-    end
-
-    {}.tap do |m|
-      m[:year] = year
-      m[:ave_client_count] = ave_client_count
-      m[:ave_bed_inventory] = scope.map{|m| m[:bed_inventory]}.reduce(0, :+)/scope.size.to_f
-      m[:ave_seasonal_inventory] = scope.map{|m| m[:seasonal_inventory]}.compact.reduce(0, :+)/scope.size.to_f
-      m[:ave_overflow_inventory] = scope.map{|m| m[:overflow_inventory]}.compact.reduce(0, :+)/scope.size.to_f
-    end
-  end
-
-  private def load_prior_year_averages_by_project_type year, project_type, veteran=nil
-    scope = census_by_year_project_type_scope
-    if census_by_year_project_type_scope.engine.postgres?
-      scope = scope.where(['extract(year from date) = ?', year])
-    else
-      scope = scope.where(['year(date) = ?', year])
-    end
-    scope = scope.
-      where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
-    if veteran.present?
-      scope = scope.where(veteran: veteran)
-    end
-    client_count = scope.map{|m| m[:client_count].to_i}.compact.reduce(0, :+)
-    ave_days_of_service_count = scope.map{|m| m[:date]}.uniq.size
-
-    {}.tap do |m|
-      m[:year] = year
-      m[:ave_client_count] = (client_count/ave_days_of_service_count.to_f).round(2)
-      m[:ave_bed_inventory] = nil
-      m[:ave_seasonal_inventory] = nil
-      m[:ave_overflow_inventory] = nil
-    end
   end
 
 end

@@ -67,7 +67,7 @@ module Censuses
       @shape
     end
 
-    def add_dimension (project_type, veterans, non_veterans, title)
+    private def add_dimension (project_type, veterans, non_veterans, title)
       @shape ||= {}
       @shape[project_type] ||= {}
       @shape[project_type][:datasets] ||= []
@@ -79,6 +79,7 @@ module Censuses
       @shape
     end
 
+    # Detail view
 
     def enrollment_scope (date, project_type, population)
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
