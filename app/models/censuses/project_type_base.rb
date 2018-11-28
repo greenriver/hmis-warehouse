@@ -6,7 +6,7 @@ module Censuses
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end
 
-    def project_for_date (date, project_type, population = 'all_clients')
+    def clients_for_date (date, project_type, population = 'all_clients')
       columns = {
           'LastName' => c_t[:LastName].to_sql,
           'FirstName' => c_t[:FirstName].to_sql,
@@ -15,8 +15,8 @@ module Censuses
           'client_id' => she_t[:client_id].to_sql,
       }
 
-      enrollment_scope(date, project_type, population).
-          where(client_id: census_scope(date).pluck("#{project_type}_#{population}").flatten).
+      enrollment_details_scope(date, project_type, population).
+          where(client_id: census_client_ids_scope(date).pluck("#{project_type}_#{population}").flatten).
           joins(:client, :data_source).
           pluck(*columns.values).
           #order(:LastName, :FirstName).
@@ -28,15 +28,15 @@ module Censuses
     def prior_year_averages (year, project_type, population)
       {
           year: year,
-          ave_client_count: census_data_scope(year).average("#{project_type}_#{population}").round(2),
+          ave_client_count: census_values_scope(year).average("#{project_type}_#{population}").round(2),
       }
     end
 
-    def census_scope (date)
+    private def census_client_ids_scope (date)
       GrdaWarehouse::Census::ByProjectTypeClient.for_date_range(date, date)
     end
 
-    def census_data_scope (year)
+    private def census_values_scope (year)
       start_date = Date.new(year).beginning_of_year
       end_date = Date.new(year).end_of_year
 

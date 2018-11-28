@@ -41,7 +41,7 @@ module Censuses
       if data_source_id != 0 && project_id != 0
         for_project_id(start_date, end_date, data_source_id, project_id)
       else
-        root_projects_scope.each do | project |
+        census_projects_scope.each do | project |
           for_project_id(start_date, end_date, project.data_source_id, project.id)
         end
 
@@ -71,7 +71,7 @@ module Censuses
     private def for_project_id (start_date, end_date, data_source_id, project_id)
       project = GrdaWarehouse::Hud::Project.find(project_id)
       project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select{|k, v| v.include?(project[:ProjectType])}.keys.first.upcase
-      dimension_scope = root_data_scope.by_project_id(project_id)
+      dimension_scope = census_data_scope.by_project_id(project_id)
       organization_id = project.organization.id
       dimension_label = "#{project.name} (#{project_type}) < #{project.organization.name} < #{project.data_source.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
@@ -80,14 +80,14 @@ module Censuses
     private def for_data_source_id (start_date, end_date, data_source_id)
       data_source_name = GrdaWarehouse::DataSource.find(data_source_id).name
       dimension_label = "All programs from #{data_source_name}"
-      dimension_scope = root_data_scope.by_data_source_id(data_source_id)
+      dimension_scope = census_data_scope.by_data_source_id(data_source_id)
       compute_dimension(start_date, end_date, data_source_id, 'all', 'all', dimension_label, dimension_scope)
     end
 
     private def for_organization_id (start_date, end_date, data_source_id, organization_id)
       organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name
       dimension_label = "All programs from #{organization_name}"
-      dimension_scope = root_data_scope.by_organization_id(organization_id)
+      dimension_scope = census_data_scope.by_organization_id(organization_id)
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
     end
 
@@ -146,7 +146,7 @@ module Censuses
       return "#{project_name} at #{organization_name} on"
     end
 
-    def for_date (date, data_source = nil, organization = nil, project = nil)
+    def clients_for_date (date, data_source = nil, organization = nil, project = nil)
       columns = {
           'LastName' => c_t[:LastName].to_sql,
           'FirstName' => c_t[:FirstName].to_sql,
@@ -155,8 +155,8 @@ module Censuses
           'client_id' => she_t[:client_id].to_sql,
       }
 
-      local_census_scope = census_scope.for_date_range(date, date)
-      local_enrollment_scope = enrollment_scope.service_within_date_range(start_date: date, end_date: date)
+      local_census_scope = census_client_ids_scope.for_date_range(date, date)
+      local_enrollment_scope = enrollment_details_scope.service_within_date_range(start_date: date, end_date: date)
       if data_source && data_source != 'all'
         local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
         local_enrollment_scope = local_enrollment_scope.where(data_source_id: data_source.to_i)
@@ -184,7 +184,7 @@ module Censuses
       start_date = Date.new(year).beginning_of_year
       end_date = Date.new(year).end_of_year
 
-      local_census_scope = root_data_scope.for_date_range(start_date, end_date)
+      local_census_scope = census_data_scope.for_date_range(start_date, end_date)
       if data_source && data_source != 'all'
         local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
       end

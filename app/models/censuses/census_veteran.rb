@@ -86,7 +86,7 @@ module Censuses
 
     # Detail view
 
-    def enrollment_scope (date, project_type, population)
+    def enrollment_details_scope (date, project_type, population)
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
           in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
       if population == :veterans

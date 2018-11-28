@@ -37,25 +37,25 @@ class CensusesController < ApplicationController
         @involved_projects = base_project_scope.merge(sh_scope.joins(:client).where(Client: {VeteranStatus: 1}))
         if params[:veteran] == 'Veteran Count'
           @census_detail_name = "Veterans in #{@census_detail_name}"
-          @clients = census.project_for_date(@date, project_type,:veterans)
-          @yesterday_client_count = census.project_for_date(@date - 1.day, project_type,:veterans).size
+          @clients = census.clients_for_date(@date, project_type,:veterans)
+          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:veterans).size
           @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans)
         else
           @census_detail_name = "Non-Veterans in #{@census_detail_name}"
-          @clients = census.project_for_date(@date, project_type,:non_veterans)
-          @yesterday_client_count = census.project_for_date(@date - 1.day, project_type,:non_veterans).size
+          @clients = census.clients_for_date(@date, project_type,:non_veterans)
+          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:non_veterans).size
           @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans)
         end
       else
-        @clients = census.project_for_date(@date, project_type)
-        @yesterday_client_count = census.project_for_date(@date - 1.day, project_type).size
+        @clients = census.clients_for_date(@date, project_type)
+        @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type).size
         @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :all_clients)
         @involved_projects = base_project_scope.merge(sh_scope)
       end
     else
       @census_detail_name = 'All'
-      @clients = census.for_date(@date)
-      @yesterday_client_count = census.for_date(@date - 1.day).size
+      @clients = census.clients_for_date(@date)
+      @yesterday_client_count = census.clients_for_date(@date - 1.day).size
     end
     respond_to do |format|
       format.html {}
