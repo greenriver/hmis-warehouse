@@ -24,3 +24,6 @@
     -if can_edit_warehouse_alerts?
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "warehouse_alerts")}
         = link_to 'Warehouse Alerts', admin_warehouse_alerts_path, class: 'nav-link'
+    -if can_add_administrative_event?
+      %li.nav-item{role: "presentation", class: ('active' if controller_name == "glacier")}
+        = link_to 'Backups', admin_glacier_index_path, class: 'nav-link'

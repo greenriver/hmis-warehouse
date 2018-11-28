@@ -1,23 +1,27 @@
 - title = 'Glacier Archives'
 - content_for :title, title
 %h1= content_for(:title)
+= render :partial => 'menus/admin_tabs'
 
-%table.table.table-condensed
-  %thead
-    %tr
-      %th Vault
-      %th Uploaded At
-      %th Location
-      %th Status
-      %th Size
-      %th Notes
-    %tbody
-    - @vaults.each do |vault|
-      - @archives[vault.id].each do |archive|
-        %tr
-          %td= vault.name
-          %td= archive.upload_finished_at
-          %td= archive.location
-          %td= archive.status
-          %td= archive.size_in_bytes
-          %td= archive.notes
+.table-responsive
+  %table.table.table-striped.table-hover{style: 'table-layout: fixed; word-wrap: break-word;'}
+    %thead
+      %tr
+        %th Vault
+        %th Initiated
+        %th Completed
+        %th Location
+        %th Status
+        %th Size
+        %th Notes
+      %tbody
+        - @vaults.each do |vault|
+          - @archives[vault.id].each do |archive|
+            %tr
+              %td= vault.name
+              %td= archive.upload_started_at
+              %td= archive.upload_finished_at
+              %td= archive.location
+              %td= archive.status
+              %td= archive.size_in_bytes
+              %td= archive.notes

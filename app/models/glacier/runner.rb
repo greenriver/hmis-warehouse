@@ -47,7 +47,7 @@ module Glacier
           Backup.new({
             cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
             archive_name: "#{client}-#{Rails.env}-#{database_name}-#{Time.now.to_s(:iso8601)}",
-            notes: "Database backup. Databases: [#{databases.join(',')}]. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+            notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
           }).run!
         end
       end
