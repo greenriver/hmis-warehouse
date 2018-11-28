@@ -85,15 +85,25 @@ module Glacier
         else
           Rails.logger.info { "Uploading chunk #{chunk_count}: #{chunk.range}" }
         end
-
-        _client.upload_multipart_part({
-          account_id: "-",
-          body: chunk.body,
-          checksum: chunk.digest,
-          range: chunk.range,
-          upload_id: self.upload_id,
-          vault_name: vault_name
-        })
+        max_attempts = 3
+        attempt = 0
+        while attempt <= max_attempts
+          attempt += 1
+          begin
+            _client.upload_multipart_part({
+              account_id: "-",
+              body: chunk.body,
+              checksum: chunk.digest,
+              range: chunk.range,
+              upload_id: self.upload_id,
+              vault_name: vault_name
+            })
+            break
+          rescue Aws::Glacier::Errors::RequestTimeoutException => e
+            Rails.logger.info { "FAILED Uploading chunk #{chunk_count}: #{chunk.range} #{e.message}" }
+            raise e if attempt > max_attempts
+          end
+        end
       end
 
       Rails.logger.info("Finishing #{self.archive_name}: #{self.chunker.digest}")

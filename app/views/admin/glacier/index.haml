@@ -2,6 +2,13 @@
 - content_for :title, title
 %h1= content_for(:title)
 = render :partial => 'menus/admin_tabs'
+.row
+  .col-sm-6= page_entries_info @archives, entry_name: 'Archive'
+  .col-sm-6.text-right 
+    Total size stored in Glacier
+    %strong
+      = number_to_human_size @total_size
+%p= paginate @archives
 
 .table-responsive
   %table.table.table-striped.table-hover{style: 'table-layout: fixed; word-wrap: break-word;'}
@@ -16,14 +23,13 @@
         %th Size
         %th Notes
       %tbody
-        - @vaults.each do |vault|
-          - @archives[vault.id].each do |archive|
-            %tr
-              %td= vault.name
-              %td= archive.archive_name
-              %td= archive.upload_started_at
-              %td= archive.upload_finished_at
-              %td= archive.location
-              %td= archive.status
-              %td= number_to_human_size archive.size_in_bytes
-              %td= archive.notes
+        - @archives.each do |archive|
+          %tr
+            %td= @vaults[archive.glacier_vault_id].try(:name)
+            %td= archive.archive_name
+            %td= archive.upload_started_at
+            %td= archive.upload_finished_at
+            %td= archive.location
+            %td= archive.status
+            %td= number_to_human_size archive.size_in_bytes
+            %td= archive.notes
