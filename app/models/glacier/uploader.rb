@@ -100,7 +100,7 @@ module Glacier
             })
             break
           rescue Aws::Glacier::Errors::RequestTimeoutException => e
-            Rails.logger.info { "FAILED Uploading chunk #{chunk_count}: #{chunk.range} #{e.message}" }
+            Rails.logger.info { "FAILED Uploading chunk #{chunk_count}: #{chunk.range} attempt #{attempt} of #{max_attempts}. #{e.message}" }
             raise e if attempt > max_attempts
           end
         end
