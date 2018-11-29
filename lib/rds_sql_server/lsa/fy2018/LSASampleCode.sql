@@ -2397,7 +2397,7 @@ insert into sys_Enrollment (HoHID, HHType, EnrollmentID, ProjectType
 select distinct hn.PersonalID
   -- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
   -- otherwise, use HHType based on HH member age(s) at project entry.
-  , case when an.EnrollmentID is not null then an.HHType else hh.HHType end
+  , case when an.EnrollmentID is not null then an.HHType else #hh.HHType end
   , hn.EnrollmentID, p.ProjectType
   , case when p.TrackingMethod = 3 then null else hn.EntryDate end
   , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
