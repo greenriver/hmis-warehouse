@@ -24,7 +24,9 @@ class CensusesController < ApplicationController
       @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id)
       @involved_projects = project_scope.where(data_source_id: ds_id, ProjectID: p_id)
     elsif params[:project_type].present?
-      project_type = params[:project_type].downcase.to_sym
+      # Whitelist project_types
+      project_type =  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect{|m| m == params[:project_type].downcase.to_sym}
+
       @census_detail_name = census.detail_name(project_type)
 
       pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
