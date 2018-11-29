@@ -2,6 +2,8 @@
 
 module Glacier
   class Uploader < AwsService
+    include ActionView::Helpers::DateHelper
+    
     attr_accessor :archive_name
     attr_accessor :file_stream
     attr_accessor :vault_name
