@@ -9,6 +9,7 @@ require 'digest'
 
 module Glacier
   class Chunker
+    include ActionView::Helpers::DateHelper
     attr_reader :file_stream
     attr_accessor :digest, :part_size, :archive_size
 
@@ -35,22 +36,24 @@ module Glacier
       self.archive_size = 0
 
       beginning_byte = 0
-
+      start_time = Time.now
       while chunk = file_stream.read(part_size)
+        Rails.logger.info "Processing chunk; elapsed time: #{distance_of_time_in_words(Time.now - start_time)}"
         chunk_shas = _get_chunk_shas(chunk)
-
+        Rails.logger.info "SHAing chunk; elapsed time: #{distance_of_time_in_words(Time.now - start_time)}"
         self.archive_size += chunk.length
 
         tree_hash = _get_treehash(chunk_shas)
-
+        Rails.logger.info "Tree Hash chunk; elapsed time: #{distance_of_time_in_words(Time.now - start_time)}"
         shas << tree_hash
 
         ending_byte = beginning_byte+chunk.length-1
         range = "bytes #{beginning_byte}-#{ending_byte}/*"
 
         yield(Chunk.new(chunk, _sha_as_string(tree_hash), range))
-
+        Rails.logger.info "Chunk yielded; elapsed time: #{distance_of_time_in_words(Time.now - start_time)}"
         beginning_byte += chunk.length
+        start_time = Time.now
       end
 
       # Entire multi-part digest
