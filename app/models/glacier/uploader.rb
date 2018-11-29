@@ -87,6 +87,7 @@ module Glacier
         end
         max_attempts = 3
         attempt = 0
+        start_time = Time.now
         while attempt <= max_attempts
           attempt += 1
           begin
@@ -98,6 +99,8 @@ module Glacier
               upload_id: self.upload_id,
               vault_name: vault_name
             })
+            end_time = Time.now
+            Rails.logger.info "Uploaded chunk #{chunk_count} in #{distance_of_time_in_words(end_time - start_time)}"
             break
           rescue Aws::Glacier::Errors::RequestTimeoutException => e
             Rails.logger.info { "FAILED Uploading chunk #{chunk_count}: #{chunk.range} attempt #{attempt} of #{max_attempts}. #{e.message}" }
