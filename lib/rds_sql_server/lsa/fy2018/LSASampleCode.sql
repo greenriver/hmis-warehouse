@@ -33,6 +33,48 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+--11/29/2018 hmis_tables in the sample db all have primary keys identified / 
+--  clustered indexes on their respective primary keys.  
+--  The indexes created by the next 5 statements on hmis_tables in the  
+--  reduced the execution time in the sample db for the whole script by 20%.  
+--  They do not alter output in any way and are certainly not required.
+ 
+if not exists (select * from sys.indexes where name = 'ix_hmis_Services_EnrollmentID_RecordType')
+begin
+  create index ix_hmis_Services_EnrollmentID_RecordType 
+    on hmis_Services (EnrollmentID, RecordType) include (DateProvided)
+end
+
+
+if not exists (select * from sys.indexes where name = 'ix_hmis_EnrollmentCoC_EnrollmentID')
+begin
+  create index ix_hmis_EnrollmentCoC_EnrollmentID 
+    on hmis_EnrollmentCoC (EnrollmentID) include (CoCCode, InformationDate)
+
+end
+
+
+if not exists (select * from sys.indexes where name = 'ix_hmis_Enrollment_HouseholdID')
+begin
+  create index ix_hmis_Enrollment_HouseholdID 
+    on hmis_Enrollment (HouseholdID) include (PersonalID, EntryDate, RelationshipToHoH)
+end
+
+
+if not exists (select * from sys.indexes where name = 'ix_hmis_HealthAndDV_EnrollmentID')
+begin
+  create index ix_hmis_HealthAndDV_EnrollmentID 
+    on hmis_HealthAndDV (EnrollmentID) include (PersonalID, DomesticViolenceVictim, CurrentlyFleeing)
+end
+
+
+if not exists (select * from sys.indexes where name = 'ix_hmis_Enrollment_ProjectID')
+begin
+  create index ix_hmis_Enrollment_ProjectID 
+    on hmis_Enrollment (ProjectID) include (EnrollmentID, EntryDate, HouseholdID)
+
+end
+
 if object_id ('active_Enrollment') is null 
 begin
   CREATE TABLE dbo.active_Enrollment(
