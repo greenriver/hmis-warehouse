@@ -68,6 +68,7 @@ module Glacier
         self.archive.update_attributes({
           upload_id: self.uploader.upload_id,
           upload_started_at: Time.now,
+          archive_name: self.archive_name,
           status: "uploading",
           notes: self.notes
         })

@@ -16,8 +16,7 @@
       %tr
         %th Vault
         %th Archive
-        %th Initiated
-        %th Completed
+        %th Process
         %th Location
         %th Status
         %th Size
@@ -27,8 +26,16 @@
           %tr
             %td= @vaults[archive.glacier_vault_id].try(:name)
             %td= archive.archive_name
-            %td= archive.upload_started_at
-            %td= archive.upload_finished_at
+            %td
+              = archive.upload_started_at
+              - if archive.upload_finished_at
+                - run_time = distance_of_time_in_words(archive.upload_finished_at - archive.upload_started_at)
+                = " - #{archive.upload_finished_at}" 
+                %br
+                (#{run_time})
+              - else
+                = " - incomplete"
+
             %td= archive.location
             %td= archive.status
             %td= number_to_human_size archive.size_in_bytes
