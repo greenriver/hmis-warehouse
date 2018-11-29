@@ -16,7 +16,7 @@ module Censuses
       }
 
       enrollment_details_scope(date, project_type, population).
-          where(client_id: census_client_ids_scope(date).pluck("#{project_type}_#{population}").flatten).
+          where(client_id: census_client_ids_scope(date).pluck(client_id_column_name(project_type, population)).flatten).
           joins(:client, :data_source).
           pluck(*columns.values).
           #order(:LastName, :FirstName).
@@ -28,8 +28,16 @@ module Censuses
     def prior_year_averages (year, project_type, population)
       {
           year: year,
-          ave_client_count: census_values_scope(year).average("#{project_type}_#{population}").round(2),
+          ave_client_count: census_values_scope(year).average(values_column_name(project_type, population)).round(2),
       }
+    end
+
+    private def client_id_column_name (project_type, population)
+      GrdaWarehouse::Census::ByProjectTypeClient.arel_table["#{project_type}_#{population}"].to_sql
+    end
+
+    private def values_column_name (project_type, population)
+      GrdaWarehouse::Census::ByProjectType.arel_table["#{project_type}_#{population}"].to_sql
     end
 
     private def census_client_ids_scope (date)
