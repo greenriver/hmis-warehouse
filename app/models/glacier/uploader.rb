@@ -19,7 +19,7 @@ module Glacier
 
     # Must be a power of two.
     # We break the upload into parts this big.
-    MEGS_PER_PART = 32
+    MEGS_PER_PART = 256
     #MEGS_PER_PART = 2
 
     def initialize(vault_name:, file_stream:, archive_name:, start_at_chunk: 0, upload_id: nil)

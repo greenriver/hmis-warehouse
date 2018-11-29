@@ -16,7 +16,7 @@ module Glacier
 
     Chunk = Struct.new(:body, :digest, :range)
 
-    def initialize file_stream:, part_megs: 64
+    def initialize file_stream:, part_megs: 16
       exponent = Math.log2(part_megs)
       if (exponent.to_i - exponent) != 0
         raise "part_megs must be a power of two"
