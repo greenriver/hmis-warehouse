@@ -44,7 +44,7 @@ module ReportGenerators::Lsa::Fy2018
         setup_filters()
         @report_start ||= @report.options['report_start'].to_date
         @report_end ||= @report.options['report_end'].to_date
-        Rails.logger.info "Starting report #{@report.report.name}"
+        log_and_ping("Starting report #{@report.report.name}")
         begin
           # error really early if we have issues with the sample code
           validate_lsa_sample_code()
@@ -81,6 +81,7 @@ module ReportGenerators::Lsa::Fy2018
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
+          update_report_progress percent: 100
           log_and_ping('LSA Complete')
         ensure
           remove_temporary_rds()

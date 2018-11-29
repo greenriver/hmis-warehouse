@@ -1,7 +1,7 @@
 # https://docs.aws.amazon.com/amazonglacier/latest/dev/checksum-calculations.html
 #
-# Large backups get broken into individual files and uploaded indivdually.
-# During this process, we use a specified algorithm, implemented below, to caclulate
+# Large backups get broken into individual files and uploaded individually.
+# During this process, we use a specified algorithm, implemented below, to calculate
 # hashes/fingerprints/digests of each piece and the entire upload. I think "checksum"
 # isn't the right term, but ignore that.
 
