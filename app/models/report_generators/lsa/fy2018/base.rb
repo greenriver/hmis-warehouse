@@ -3,7 +3,7 @@ module ReportGenerators::Lsa::Fy2018
   include ArelHelper
     attr_accessor :report
 
-    def initialize destroy_rds: false, hmis_export_id: nil
+    def initialize destroy_rds: true, hmis_export_id: nil
       @destroy_rds = destroy_rds
       @hmis_export_id = hmis_export_id
     end
