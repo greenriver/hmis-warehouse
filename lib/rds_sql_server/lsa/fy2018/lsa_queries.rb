@@ -117,6 +117,7 @@ module LsaSqlServer
       # grab the section up until the next comment, removing the comment
       query = ss.scan_until(/#{Regexp.escape(stop_sequence)}/).gsub(stop_sequence, '')
       query = "/** #{key} **/" + query
+      query.gsub('GO', '')
     end
 
     def start_regex key

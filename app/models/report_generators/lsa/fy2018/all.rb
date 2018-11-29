@@ -46,6 +46,8 @@ module ReportGenerators::Lsa::Fy2018
         @report_end ||= @report.options['report_end'].to_date
         Rails.logger.info "Starting report #{@report.report.name}"
         begin
+          # error really early if we have issues with the sample code
+          validate_lsa_sample_code()
           @hmis_export = create_hmis_csv_export()
           update_report_progress percent: 15
           log_and_ping('HMIS Export complete')
@@ -335,7 +337,12 @@ module ReportGenerators::Lsa::Fy2018
       load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
-
+    def validate_lsa_sample_code
+      ::Rds.identifier = sql_server_identifier
+      ::Rds.timeout = 60_000_000
+      load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
+      rep.validate_file
+    end
 
     def run_lsa_queries
       ::Rds.identifier = sql_server_identifier
@@ -351,10 +358,6 @@ module ReportGenerators::Lsa::Fy2018
       # some setup
       rep.clear
       rep.insert_projects
-
-      # error early if we can't find a particular query
-      # This would indicate there has been a change to the sample code
-      rep.validate_file
 
       # loop through the LSA queries
       report_steps = rep.steps
