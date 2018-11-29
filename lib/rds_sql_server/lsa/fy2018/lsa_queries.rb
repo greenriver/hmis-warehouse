@@ -381,9 +381,7 @@ module LsaSqlServer
     end
 
     def four_forty_six
-      '4.46 Get Other Enrollments Relevant to Exit Cohort System Path'
-
-      '4.46 Set SystemPath for Exit Cohort Households'
+      '4.46 Set System Path for Exit Cohort Households'
     end
 
     def four_forty_seven_to_fifty_one
