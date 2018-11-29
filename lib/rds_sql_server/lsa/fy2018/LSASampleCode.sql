@@ -2277,6 +2277,7 @@ set lhh.StatEnrollmentID =
 from tmp_Household lhh
 
 drop table #hh
+GO
 
 /*************************************************************************
 4.29.c Set System Engagement Status for tmp_Household
@@ -2397,7 +2398,7 @@ insert into sys_Enrollment (HoHID, HHType, EnrollmentID, ProjectType
 select distinct hn.PersonalID
   -- CHANGE 10/23/2018 for active enrollments, use HHType as already calculated; 
   -- otherwise, use HHType based on HH member age(s) at project entry.
-  , case when an.EnrollmentID is not null then an.HHType else hh.HHType end
+  , case when an.EnrollmentID is not null then an.HHType else #hh.HHType end
   , hn.EnrollmentID, p.ProjectType
   , case when p.TrackingMethod = 3 then null else hn.EntryDate end
   , case when p.ProjectType in (3,13) then hn.MoveInDate else null end
@@ -2419,7 +2420,8 @@ where
     and lhh.Stat = 5 --... and HH was 'continously engaged' at ReportStart...
     and lhh.PSHMoveIn <> 2) --...and HH was not housed in PSH at ReportStart.
 
-drop table #hh;
+drop table #hh
+GO
 /*****************************************************************
 4.33 Get Last Inactive Date
 *****************************************************************/
@@ -2464,7 +2466,8 @@ left outer join (select lhh.HoHID, lhh.HHType, max(cal.theDate) as inactive
 group by lhh.HoHID, lhh.HHType
   ) lastDay on lastDay.HoHID = lhh.HoHID and lastDay.HHType = lhh.HHType
 
-drop table #padded;
+drop table #padded
+GO
  
 /*****************************************************************
 4.34 Get Dates of Other System Use
@@ -2918,8 +2921,10 @@ where hn.RelationshipToHoH = 1 and #b.HoHID is null and cd.Cohort <= 0
     where mostrecent.EnrollmentID = hn.EnrollmentID 
     order by mostrecent.InformationDate desc)
 
-drop table #hh;
-drop table #b;
+drop table #hh
+GO
+drop table #b
+GO
 
 /*****************************************************************
 4.41 Get EnrollmentIDs for Exit Cohort Households
@@ -3026,7 +3031,8 @@ set ex.ReturnDate = (select min(hn.EntryDate)
             between dateadd(dd, 15, ex.ExitDate) and dateadd(dd, 730, ex.ExitDate))
 from tmp_Exit ex
 
-drop table #hh;
+drop table #hh
+GO
 
 update ex
 set ex.ReturnTime = 
@@ -3234,7 +3240,8 @@ set ex.StatEnrollmentID = (select top 1 previous.EnrollmentID
       order by hx.ExitDate desc)
 from tmp_Exit ex
 
-drop table #hh;
+drop table #hh
+GO
 
 update ex
 set ex.Stat = case when ex.StatEnrollmentID is null then 1
