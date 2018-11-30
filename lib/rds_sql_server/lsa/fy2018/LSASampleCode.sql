@@ -3103,6 +3103,9 @@ set ex.HoHRace = case
 from tmp_Exit ex
 inner join hmis_Client c on c.PersonalID = ex.HoHID 
 
+--CHANGE 11/29/2018 add join to hmis_Exit and verify ExitDate >= CohortStart
+--  in pop subquery and age sub-subquery so that population identifiers are 
+--  based solely on HoH and HH members who exited in the cohort period 
 
 update ex
 set ex.HHVet = pop.HHVet
@@ -3131,8 +3134,11 @@ inner join (
     , max(case when hn.RelationshipToHoH = 2 and age.ageStat = 0 then 1
       else 0 end) as HHParent
   from tmp_Exit ex
+  inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
   inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
   inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+  inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+    and hx.ExitDate >= cd.CohortStart
   inner join hmis_Client c on c.PersonalID = hn.PersonalID
   left outer join hmis_HealthAndDV dv on hn.EnrollmentID = dv.EnrollmentID
   inner join (select distinct hn.PersonalID
@@ -3152,10 +3158,15 @@ inner join (
     inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
     inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
     inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+    inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+      and hx.ExitDate >= cd.CohortStart
     inner join hmis_Client c on c.PersonalID = hn.PersonalID
     ) age on age.PersonalID = hn.PersonalID
   group by ex.EnrollmentID) pop on pop.EnrollmentID = ex.EnrollmentID
 
+--CHANGE 11/29/2018 add join to hmis_Exit and verify ExitDate >= CohortStart
+--  in adultAges subquery so that HHAdultAge is based solely on HoH and HH members
+--  who exited in the cohort period 
 update ex
 set ex.HHAdultAge = ageGroup.AgeGroup
 from 
@@ -3195,6 +3206,8 @@ inner join
       inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
       inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
       inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+      inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+        and hx.ExitDate >= cd.CohortStart
       inner join hmis_Client c on c.PersonalID = hn.PersonalID
       ) adultAges
   group by adultAges.HoHID, adultAges.EnrollmentID 

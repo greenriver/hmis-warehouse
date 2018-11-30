@@ -95,8 +95,12 @@ module Glacier
       })
     end
 
+    def partial_uploads(vault_name)
+      _client.list_multipart_uploads(account_id: '-', vault_name: vault_name).uploads_list
+    end
+    
     def cleanup_partial_uploads!(vault_name)
-      _client.list_multipart_uploads(account_id: '-', vault_name: vault_name).uploads_list.each do |upload|
+      partial_uploads(vault_name).each do |upload|
         Rails.logger.info "Removing incomplete #{upload.archive_description} upload from #{vault_name}"
         _client.abort_multipart_upload(upload_id: upload.multipart_upload_id, vault_name: vault_name)
       end
