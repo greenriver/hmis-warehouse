@@ -24,7 +24,7 @@ module Glacier
       _create_records!
       _stream_to_glacier!
       _save_results!
-      _remove_incomplete_uploads!
+      # _remove_incomplete_uploads!
     end
 
     private
