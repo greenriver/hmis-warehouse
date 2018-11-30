@@ -68,7 +68,6 @@ module GrdaWarehouse::Census
         update_object_map(get_parenting_juvenile_client_ids(project_type), project_type_code, :parenting_juveniles)
         update_object_map(get_all_client_ids(project_type), project_type_code, :all_clients)
 
-        # TODO Add homeless_for_date_range to ServiceHistoryService w/ correlated subquery to negate non-homelessness
         @by_client.each do | date, census_row |
           update_object_map(get_homeless_veteran_client_ids(date), :homeless, :veterans)
           update_object_map(get_literally_homeless_veteran_client_ids(date), :literally_homeless, :veterans)
