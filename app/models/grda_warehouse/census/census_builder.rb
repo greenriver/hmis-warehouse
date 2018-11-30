@@ -5,7 +5,7 @@ module GrdaWarehouse::Census
       batch_start_date = start_date
       while batch_start_date <= end_date
         # Batches are 1 month, or to the end_date if closer
-        batch_end_date = [ batch_start_date + 1.month, end_date ].min
+        batch_end_date = [ batch_start_date + 1.years, end_date ].min
 
         # By Project Type
         batch_by_project_type = ProjectTypeBatch.new(batch_start_date, batch_end_date)
@@ -430,18 +430,18 @@ module GrdaWarehouse::Census
         update_object_map(get_all_client_ids, :all_clients)
 
         @by_count.each do | project_id, census_collection |
-          inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(start_date..end_date)
+          inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(@start_date..@end_date)
           census_collection.each do | date, census_item |
             census_item.beds = inventories.select do | inventory |
-              ((inventoryInformationDate.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
+              ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
                   (inventory.InventoryEndDate.blank?)) ||
-              ((inventoryInformationDate.InformationDate.present? && inventory.InformationDate < date) &&
+              ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
                   (inventory.InventoryEndDate.blank?)) ||
-              ((inventoryInformationDate.InformationDate.present? && inventory.InformationDate < date) &&
+              ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
                   (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date)) ||
-              ((inventoryInformationDate.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+              ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
                   (inventory.InventoryEndDate.blank?)) ||
-              ((inventoryInformationDate.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+              ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
                   (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
             end.sum(:beds)
           end
