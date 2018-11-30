@@ -38,6 +38,7 @@ class App.Cohorts.Cohort
     @load_pages()
     @resize_columns()
     @enable_searching()
+    @enable_bulk_delete()
 
   initialize_grid: () =>
     @set_grid_column_headers()
@@ -163,6 +164,20 @@ class App.Cohorts.Cohort
     $(searchField).removeAttr('disabled')
     $(searchField).on 'keyup', (e) =>
       @grid_options.api.setQuickFilter($(searchField).val());
+
+  enable_bulk_delete: () =>
+    form = $(@wrapper_selector).find('.jBulkDelete')
+    button = $(form).find('.jBulkDelete button')
+    cc_id_field = $(form).find('input.cohort_client_ids')
+    
+    $(button).on 'click', (e) =>
+      e.preventDefault()
+      cohort_client_ids = $.map @grid_options.api.getSelectedRows(), (column, index) =>
+        column.meta.cohort_client_id
+      # if cohort_client_ids.length > 0
+      #   cc_id_field.attr 'value', cohort_client_ids  
+        
+      
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')

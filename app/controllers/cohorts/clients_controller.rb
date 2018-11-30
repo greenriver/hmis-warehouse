@@ -277,6 +277,10 @@ module Cohorts
 
     end
 
+    def pre_bulk_destroy
+     
+    end
+
     def re_rank
       new_order = params.require(:rank_order)&.split(',')&.map(&:to_i)
       new_order.each_with_index do |cohort_client_id, index|
