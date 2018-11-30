@@ -3,7 +3,7 @@ module Censuses
 
     # what projects should be included?
     def census_projects_scope
-      GrdaWarehouse::Hud::Project.all
+      GrdaWarehouse::Hud::Project.order(:data_source_id, :OrganizationID).residential
     end
 
     # what data should be included?
@@ -18,7 +18,7 @@ module Censuses
 
     # where to find enrollment information for the detail view
     def enrollment_details_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.all
+      GrdaWarehouse::ServiceHistoryEnrollment.residential
     end
   end
 end

@@ -25,6 +25,43 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     where(project_type_column => project_types)
   end
 
+
+  scope :homeless_only, -> (start_date:, end_date:) do
+    # CHRONIC_PROJECT_TYPES
+    # HOMELESS_PROJECT_TYPES
+    homeless_project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - homeless_project_types
+
+    where(
+      project_type: homeless_project_types,
+      date: (start_date..end_date)
+    ).
+    where(
+      GrdaWarehouse::ServiceHistoryService.
+        where(shs_t[:client_id].eq(arel_table[:client_id])).
+        where(date: (start_date..end_date)).
+        where.not(project_type: non_homeless).
+        exists
+    )
+  end
+
+  scope :literally_homeless_only, -> (start_date:, end_date:) do
+    homeless_project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - homeless_project_types
+
+    where(
+      project_type: homeless_project_types,
+      date: (start_date..end_date)
+    ).
+    where(
+      GrdaWarehouse::ServiceHistoryService.
+        where(shs_t[:client_id].eq(arel_table[:client_id])).
+        where(date: (start_date..end_date)).
+        where.not(project_type: non_homeless).
+        exists
+    )
+  end
+
   scope :youth, -> do
     where(age: (18..24))
   end

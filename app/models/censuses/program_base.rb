@@ -197,9 +197,9 @@ module Censuses
 
       {
           year: year,
-          ave_client_count: local_census_scope.average(:all_clients).round(2),
-          ave_bed_inventory: local_census_scope.average(:beds).round(2),
-          ave_seasonal_inventory: seasonal_inventory(year).round(2),
+          ave_client_count: local_census_scope.average(:all_clients)&.round(2) || 0,
+          ave_bed_inventory: local_census_scope.average(:beds)&.round(2) || 0,
+          ave_seasonal_inventory: seasonal_inventory(year)&.round(2) || 0,
       }
     end
 

@@ -19,8 +19,8 @@ class CensusesController < ApplicationController
     if params[:project].present?
       @census_detail_name = census.detail_name(params[:project])
       ds_id, org_id, p_id = params[:project].split('-')
-      @clients = census.for_date(@date, ds_id, org_id, p_id)
-      @yesterday_client_count = census.for_date(@date - 1.day, ds_id, org_id, p_id).size
+      @clients = census.clients_for_date(@date, ds_id, org_id, p_id)
+      @yesterday_client_count = census.clients_for_date(@date - 1.day, ds_id, org_id, p_id).size
       @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id)
       @involved_projects = project_scope.where(data_source_id: ds_id, ProjectID: p_id)
     elsif params[:project_type].present?
