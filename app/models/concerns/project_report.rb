@@ -24,6 +24,15 @@ module ProjectReport
       exiting_scope(start_date: start_date, end_date: end_date).distinct
     end
 
+    def housed_between(start_date:, end_date:)
+      enrolled_scope(start_date: start_date, end_date: end_date).
+        joins(:enrollment).
+        merge(
+          GrdaWarehouse::Hud::Enrollment.
+            where(MoveInDate: (start_date..end_date))
+        )
+    end
+
     def bed_inventory_counts(start_date:, end_date:)
       @bed_inventory_counts ||= inventory_scope(start_date: start_date, end_date: end_date).sum(:BedInventory)
     end

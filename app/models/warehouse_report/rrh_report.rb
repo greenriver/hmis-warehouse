@@ -1,3 +1,4 @@
+# dev projects -- with affiliation: 11; single RRH: 2
 class WarehouseReport::RrhReport
   include ArelHelper
 
@@ -8,29 +9,89 @@ class WarehouseReport::RrhReport
     @end_date = end_date
   end
 
+  # newly enrolled during date range
   def entering_pre_placement
     pre_placement_project.entering_clients(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:client_id)
   end
 
+  # exited pre-placement during date range if two projects
+  # received move-in-date if one project
   def exiting_pre_placement
-    pre_placement_project.exiting_clients(start_date: start_date, end_date: end_date).
+    exiting_scope = if two_project_setup?
+      pre_placement_project.
+        exiting_clients(start_date: start_date, end_date: end_date)
+    else
+      pre_placement_project.
+        housed_between(start_date: start_date, end_date: end_date)
+    end
+    exiting_scope.
       distinct.
       pluck(:client_id)
   end
 
+  # entered stabilization during date range if two projects
+  # received move-in-date if one project
   def entering_stabilization
-    stabilization_project.entering_clients(start_date: start_date, end_date: end_date).
-      distinct.
+    entering_scope = if two_project_setup?
+      stabilization_project.
+        entering_clients(start_date: start_date, end_date: end_date)
+    else
+      stabilization_project.
+        housed_between(start_date: start_date, end_date: end_date)
+    end
+    entering_scope.distinct.
       pluck(:client_id)
   end
 
   def exiting_stabilization
-    stabilization_project.exiting_clients(start_date: start_date, end_date: end_date).
+    stabilization_project.
+      exiting_clients(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:client_id)
   end
+
+  def days_in_pre_placement
+    @days_in_pre_placement ||= if two_project_setup?
+      pre_placement_project.
+        exiting_clients(start_date: start_date, end_date: end_date).
+        pluck(she_t[:first_date_in_program].to_sql, she_t[:last_date_in_program].to_sql)
+    else
+      pre_placement_project.
+        housed_between(start_date: start_date, end_date: end_date).
+        pluck(she_t[:first_date_in_program].to_sql, e_t[:MoveInDate].to_sql)
+    end
+  end
+
+  def average_days_in_pre_placement
+    days = days_in_pre_placement.map do |entry_date, exit_date| 
+      (exit_date - entry_date).to_i
+    end.sum
+    (days.to_f / days_in_pre_placement.count).round
+  end
+
+  def days_in_stabilization
+    @days_in_stabilization ||= if two_project_setup?
+      stabilization_project.
+        exiting_clients(start_date: start_date, end_date: end_date).
+        pluck(she_t[:first_date_in_program].to_sql, she_t[:last_date_in_program].to_sql)
+    else
+      stabilization_project.
+        exiting_clients(start_date: start_date, end_date: end_date).
+        joins(:enrollment).
+        merge(GrdaWarehouse::Hud::Enrollment.where.not(MoveInDate: nil)).
+        pluck(e_t[:MoveInDate].to_sql, she_t[:last_date_in_program].to_sql)
+    end
+  end
+
+  def average_days_in_stabilization
+    days = days_in_stabilization.map do |entry_date, exit_date| 
+      (exit_date - entry_date).to_i
+    end.sum
+    (days.to_f / days_in_stabilization.count).round
+  end
+
 
   def enrolled_client_ids
     client_ids = Set.new
@@ -66,6 +127,10 @@ class WarehouseReport::RrhReport
     else
       project
     end
+  end
+
+  def two_project_setup?
+    @two_project_setup ||= stabilization_project.id != pre_placement_project.id
   end
 
   # selected project
