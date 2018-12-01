@@ -1,1 +1,11 @@
-= debug params
+- title = "Remove Clients from #{@cohort.name}"
+- content_for :title, title
+%h1= content_for :title
+
+= simple_form_for :cc, url: bulk_destroy_cohort_cohort_clients_path(@cohort), method: :delete do |f|
+  = f.input :reason, collection: GrdaWarehouse::CohortClient.available_removal_reasons, include_blank: false
+  = f.input :cohort_client_ids, as: :hidden, input_html: { value: @cohort_client_ids.join(',') }
+  .text-right
+    = f.submit "Remove #{@cohort_client_ids.count} #{'client'.pluralize(@cohort_client_ids.count)} from #{@cohort.name}", class: 'btn btn-danger'
+    
+

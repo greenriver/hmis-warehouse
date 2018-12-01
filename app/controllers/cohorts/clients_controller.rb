@@ -278,7 +278,21 @@ module Cohorts
     end
 
     def pre_bulk_destroy
-     
+      @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',')
+    end
+
+    def bulk_destroy
+      @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
+      @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
+      removed = 0
+      @cohort_clients.each do |client|
+        log_removal(client.cohort_id, client.id, params[:cc].try(:[], :reason))
+        if client.destroy
+          removed += 1
+        end
+      end
+      flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
+      redirect_to cohort_path(@cohort)
     end
 
     def re_rank

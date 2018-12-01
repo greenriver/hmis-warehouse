@@ -167,15 +167,15 @@ class App.Cohorts.Cohort
 
   enable_bulk_delete: () =>
     form = $(@wrapper_selector).find('.jBulkDelete')
-    button = $(form).find('.jBulkDelete button')
+    button = $(form).find('button')
     cc_id_field = $(form).find('input.cohort_client_ids')
-    
     $(button).on 'click', (e) =>
       e.preventDefault()
       cohort_client_ids = $.map @grid_options.api.getSelectedRows(), (column, index) =>
         column.meta.cohort_client_id
-      # if cohort_client_ids.length > 0
-      #   cc_id_field.attr 'value', cohort_client_ids  
+      if cohort_client_ids.length > 0
+        cc_id_field.attr 'value', cohort_client_ids
+      $(form).submit()
         
       
 
