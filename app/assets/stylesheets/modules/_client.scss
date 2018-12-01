@@ -157,12 +157,13 @@
 
 .merge-cards {
   display: flex;
+  overflow: scroll;
 }
 
 .merge-card {
   margin-right: space(4);
   position: relative;
-  min-width: 35%;
+  min-width: 500px;
 }
 
 .merge-card.slab {

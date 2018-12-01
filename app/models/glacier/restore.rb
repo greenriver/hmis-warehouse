@@ -18,8 +18,10 @@ module Glacier
       self.processing_cmd = processing_cmd
       self._client        = Aws::Glacier::Client.new({
         region: 'us-east-1',
-        access_key_id: ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-        secret_access_key: ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+        credentials: Aws::Credentials.new(
+          ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+          ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+        )
       })
 
       no_output   = self.download_path.blank? && self.processing_cmd.blank?

@@ -4,9 +4,9 @@ module Admin
 
     def show
       @user = User.find params[:user_id]
-      @activity_log = ActivityLog.where(user_id: @user.id)
-        .order(created_at: :desc)
-        .page(params[:page]).per(50)
+      @activity_log = ActivityLog.where(user_id: @user.id).
+        order(created_at: :desc).
+        page(params[:page]).per(50)
     end
 
   end

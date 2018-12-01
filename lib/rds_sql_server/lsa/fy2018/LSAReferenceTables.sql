@@ -1,13 +1,13 @@
 /**********************************************************
 This script drops (if tables exist), creates, and populates the following LSA
 reference tables required to run GenerateLSA.sql:
-	ref_Calendar 
-		-Table of dates between 10/1/2012 and 9/20/2020
-	
-	ref_Populations 
-		-Table of LSA household types/household populations/person-level populations
-		 with columns that can be used to match population identifiers in LSAPerson,
-		 LSAHousehold, and LSAExit with population IDs used in LSACalculated.
+  ref_Calendar 
+    -Table of dates between 10/1/2012 and 9/20/2020
+  
+  ref_Populations 
+    -Table of LSA household types/household populations/person-level populations
+     with columns that can be used to match population identifiers in LSAPerson,
+     LSAHousehold, and LSAExit with population IDs used in LSACalculated.
 
 9/20/2018  - Corrections to ref_Populations
 10/11/2018 - Uploaded to github
@@ -16,48 +16,48 @@ reference tables required to run GenerateLSA.sql:
 
 if object_id ('ref_Calendar') is not null drop table ref_Calendar
 create table ref_Calendar (
-	theDate date not null 
-	, yyyy smallint
-	, mm tinyint 
-	, dd tinyint
-	, month_name varchar(10)
-	, day_name varchar(10) 
-	, fy smallint
-	, PRIMARY KEY (theDate) 
+  theDate date not null 
+  , yyyy smallint
+  , mm tinyint 
+  , dd tinyint
+  , month_name varchar(10)
+  , day_name varchar(10) 
+  , fy smallint
+  , PRIMARY KEY (theDate) 
 )
 ;
 if object_id ('ref_Populations') is not null drop table ref_Populations
 create table ref_Populations (
-	id int identity (1,1) not null
-	, PopID int not null
-	, PopName varchar(255) not null
-	, PopType int not null
-	, HHType int 
-	, HHAdultAge int 
-	, HHVet int 
-	, HHDisability int 
-	, HHChronic int 
-	, HHFleeingDV int 
-	, HHParent int 
-	, HHChild int 
-	, AC3Plus int 
-	, Stat int 
-	, PSHMoveIn int 
-	, HoHRace int 
-	, HoHEthnicity int 
-	, SystemPath int 
-	, Race int 
-	, Ethnicity int 
-	, Age int 
-	, Gender int 
-	, VetStatus int 
-	, CHTime int 
-	, CHTimeStatus int 
-	, DisabilityStatus int 
-	, Core int 
-	, LOTH int 
-	, ReturnSummary int 
-	, ProjectLevelCount int 
+  id int identity (1,1) not null
+  , PopID int not null
+  , PopName varchar(255) not null
+  , PopType int not null
+  , HHType int 
+  , HHAdultAge int 
+  , HHVet int 
+  , HHDisability int 
+  , HHChronic int 
+  , HHFleeingDV int 
+  , HHParent int 
+  , HHChild int 
+  , AC3Plus int 
+  , Stat int 
+  , PSHMoveIn int 
+  , HoHRace int 
+  , HoHEthnicity int 
+  , SystemPath int 
+  , Race int 
+  , Ethnicity int 
+  , Age int 
+  , Gender int 
+  , VetStatus int 
+  , CHTime int 
+  , CHTimeStatus int 
+  , DisabilityStatus int 
+  , Core int 
+  , LOTH int 
+  , ReturnSummary int 
+  , ProjectLevelCount int 
 )
 ;
 
@@ -69,19 +69,19 @@ declare @total_days int = DATEDIFF(d, @start, @end)
 
 while @i <= @total_days
 begin
-		insert into ref_Calendar (theDate) 
-		select cast(dateadd(d, @i, @start) as date) 
-		set @i = @i + 1
+    insert into ref_Calendar (theDate) 
+    select cast(dateadd(d, @i, @start) as date) 
+    set @i = @i + 1
 end
 
 update ref_Calendar
-set	month_name = datename(month, theDate),
-	day_name = datename(weekday, theDate),
-	yyyy = datepart(yyyy, theDate),
-	mm = datepart(mm, theDate),
-	dd = datepart(dd, theDate),
-	fy = case when datepart(mm, theDate) between 10 and 12 then datepart(yyyy, theDate) + 1 
-		else datepart(yyyy, theDate) end
+set month_name = datename(month, theDate),
+  day_name = datename(weekday, theDate),
+  yyyy = datepart(yyyy, theDate),
+  mm = datepart(mm, theDate),
+  dd = datepart(dd, theDate),
+  fy = case when datepart(mm, theDate) between 10 and 12 then datepart(yyyy, theDate) + 1 
+    else datepart(yyyy, theDate) end
 
 --Populate ref_Populations
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (0, 'All', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, 1, NULL)
@@ -330,16 +330,16 @@ insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet,
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (3, 'Veteran', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, 1)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, 1)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, 1)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, NULL)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, 1)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, 1)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, 1)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, NULL)
-insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, NULL)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 1, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 365, 2, 1, NULL, NULL, NULL, 1)
+insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (6, 'Chronically Homeless Adult/HoH', 3, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 400, 2, 1, NULL, NULL, NULL, 1)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (15, 'White, non-Hispanic/Latino', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (15, 'White, non-Hispanic/Latino', 3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 insert into ref_Populations (PopID, PopName, PopType, HHType, HHAdultAge, HHVet, HHDisability, HHChronic, HHFleeingDV, HHParent, HHChild, AC3Plus, Stat, PSHMoveIn, HoHRace, HoHEthnicity, SystemPath, Race, Ethnicity, Age, Gender, VetStatus, CHTime, CHTimeStatus, DisabilityStatus, Core, LOTH, ReturnSummary, ProjectLevelCount) values (15, 'White, non-Hispanic/Latino', 3, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)

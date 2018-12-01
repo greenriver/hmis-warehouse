@@ -466,7 +466,7 @@ module Health
 
     # This does not return a scope
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select(&:procedure_valid?)
+      qualified_activities_since(date: date).to_a.select{|qa| qa.procedure_valid? && ! qa.valid_unpayable? }
     end
 
     def import_epic_team_members

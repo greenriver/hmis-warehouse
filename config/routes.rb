@@ -519,6 +519,7 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
     end
     resources :roles
+    resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]

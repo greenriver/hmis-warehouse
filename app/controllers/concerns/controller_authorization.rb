@@ -48,7 +48,7 @@ module ControllerAuthorization
   end
 
   def require_can_view_any_reports!
-    return true if current_user.can_view_all_reports? || current_user.can_view_assigned_reports?
+    return true if current_user.present? && (current_user.can_view_all_reports? || current_user.can_view_assigned_reports?)
     not_authorized!
   end
 

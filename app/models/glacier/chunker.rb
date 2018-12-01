@@ -1,7 +1,7 @@
 # https://docs.aws.amazon.com/amazonglacier/latest/dev/checksum-calculations.html
 #
-# Large backups get broken into individual files and uploaded indivdually.
-# During this process, we use a specified algorithm, implemented below, to caclulate
+# Large backups get broken into individual files and uploaded individually.
+# During this process, we use a specified algorithm, implemented below, to calculate
 # hashes/fingerprints/digests of each piece and the entire upload. I think "checksum"
 # isn't the right term, but ignore that.
 
@@ -35,22 +35,24 @@ module Glacier
       self.archive_size = 0
 
       beginning_byte = 0
-
+      start_time = Time.now
       while chunk = file_stream.read(part_size)
+        Rails.logger.info "Processing chunk; elapsed time: #{(Time.now - start_time)} seconds"
         chunk_shas = _get_chunk_shas(chunk)
-
+        # Rails.logger.info "SHAing chunk; elapsed time: #{(Time.now - start_time)} seconds"
         self.archive_size += chunk.length
 
         tree_hash = _get_treehash(chunk_shas)
-
+        # Rails.logger.info "Tree Hash chunk; elapsed time: #{(Time.now - start_time)} seconds"
         shas << tree_hash
 
         ending_byte = beginning_byte+chunk.length-1
         range = "bytes #{beginning_byte}-#{ending_byte}/*"
 
         yield(Chunk.new(chunk, _sha_as_string(tree_hash), range))
-
+        # Rails.logger.info "Chunk yielded; elapsed time: #{(Time.now - start_time)} seconds"
         beginning_byte += chunk.length
+        start_time = Time.now
       end
 
       # Entire multi-part digest

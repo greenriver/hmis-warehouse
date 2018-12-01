@@ -24,7 +24,7 @@ module Glacier
       _create_records!
       _stream_to_glacier!
       _save_results!
-      _remove_incomplete_uploads!
+      # _remove_incomplete_uploads!
     end
 
     private
@@ -68,6 +68,7 @@ module Glacier
         self.archive.update_attributes({
           upload_id: self.uploader.upload_id,
           upload_started_at: Time.now,
+          archive_name: self.archive_name,
           status: "uploading",
           notes: self.notes
         })
@@ -80,6 +81,7 @@ module Glacier
       if self.uploader.successful?
         self.archive.update_attributes({
           archive_id: self.uploader.archive_id,
+          archive_name: self.archive_name,
           checksum: self.uploader.checksum,
           size_in_bytes: self.uploader.archive_size,
           location: self.uploader.location,
