@@ -153,6 +153,7 @@ module Censuses
           'ProjectName' => she_t[:project_name].to_sql,
           'short_name' => ds_t[:short_name].to_sql,
           'client_id' => she_t[:client_id].to_sql,
+          'project_id' => p_t[:id].to_sql,
       }
 
       local_census_scope = census_client_ids_scope.for_date_range(date, date)
@@ -163,16 +164,18 @@ module Censuses
       end
       if organization && organization != 'all'
         local_census_scope = local_census_scope.by_organization_id(organization.to_i)
-        local_enrollment_scope = local_enrollment_scope.where(organization_id: organization.to_i)
+        local_enrollment_scope = local_enrollment_scope.
+          joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i))
       end
       if project && project != 'all'
         local_census_scope = local_census_scope.by_project_id(project.to_i)
-        local_enrollment_scope = local_enrollment_scope.where(project_id: project.to_i)
+        local_enrollment_scope = local_enrollment_scope.
+        joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
       end
 
       local_enrollment_scope.
           where(client_id: local_census_scope.pluck(:all_clients).flatten).
-          joins(:client, :data_source).
+          joins(:client, :data_source, :project).
           pluck(*columns.values).
           #order(:LastName, :FirstName).
           map do | row |

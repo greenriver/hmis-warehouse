@@ -13,7 +13,7 @@ module GrdaWarehouse::Census
     end
 
     scope :by_organization_id, -> (organization_id) do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.where(OrganizationID: organization_id))
+      joins(project: :organization).merge(GrdaWarehouse::Hud::Organization.where(id: organization_id))
     end
 
     scope :for_date_range, -> (start_date, end_date) do

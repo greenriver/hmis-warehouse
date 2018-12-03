@@ -107,8 +107,6 @@ module Importing
 
         GrdaWarehouse::Tasks::CensusImport.new.run!
         @notifier.ping('Census imported') if @send_notifications
-        GrdaWarehouse::Tasks::CensusAverages.new.run!
-        @notifier.ping('Census averaged') if @send_notifications
 
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
