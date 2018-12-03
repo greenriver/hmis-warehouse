@@ -7,22 +7,21 @@ module GrdaWarehouse::Census
 
     def initialize(start_date, end_date)
       @by_count = {}
-      @by_client = {}
       @start_date = start_date
       @end_date = end_date
     end
 
     def build_census_batch
-      add_clients_to_census_buckets(get_veteran_client_ids, :veterans)
-      add_clients_to_census_buckets(get_non_veteran_client_ids, :non_veterans)
-      add_clients_to_census_buckets(get_child_client_ids, :children)
-      add_clients_to_census_buckets(get_adult_client_ids, :adults)
-      add_clients_to_census_buckets(get_youth_client_ids, :youth)
-      add_clients_to_census_buckets(get_family_client_ids, :families)
-      add_clients_to_census_buckets(get_individual_client_ids, :individuals)
-      add_clients_to_census_buckets(get_parenting_youth_client_ids, :parenting_youth)
-      add_clients_to_census_buckets(get_parenting_juvenile_client_ids, :parenting_juveniles)
-      add_clients_to_census_buckets(get_all_client_ids, :all_clients)
+      add_clients_to_census_buckets(get_veteran_client_counts, :veterans)
+      add_clients_to_census_buckets(get_non_veteran_client_counts, :non_veterans)
+      add_clients_to_census_buckets(get_child_client_counts, :children)
+      add_clients_to_census_buckets(get_adult_client_counts, :adults)
+      add_clients_to_census_buckets(get_youth_client_counts, :youth)
+      add_clients_to_census_buckets(get_family_client_counts, :families)
+      add_clients_to_census_buckets(get_individual_client_counts, :individuals)
+      add_clients_to_census_buckets(get_parenting_youth_client_counts, :parenting_youth)
+      add_clients_to_census_buckets(get_parenting_juvenile_client_counts, :parenting_juveniles)
+      add_clients_to_census_buckets(get_all_client_counts, :all_clients)
 
       @by_count.each do | project_id, census_collection |
         inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(@start_date..@end_date)
@@ -44,70 +43,62 @@ module GrdaWarehouse::Census
     end
 
     def add_clients_to_census_buckets (collection, column_name)
-      collection.each do | project_id, census_collection |
-        census_collection.each do | date, client_ids |
-          @by_count[project_id] ||= {}
-          @by_count[project_id][date] ||= ByProject.new(project_id: project_id, date: date)
-          @by_count[project_id][date].write_attribute(column_name, client_ids.size)
-
-          @by_client[project_id] ||= {}
-          @by_client[project_id][date] ||= ByProjectClient.new(project_id: project_id, date: date)
-          @by_client[project_id][date].write_attribute(column_name, client_ids)
-        end
+      collection.each do | (date, project_id), count |
+        @by_count[project_id] ||= {}
+        @by_count[project_id][date] ||= ByProject.new(project_id: project_id, date: date)
+        @by_count[project_id][date].write_attribute(column_name, count)
       end
     end
 
-    def get_veteran_client_ids
-      get_client_and_project_ids(GrdaWarehouse::Hud::Client.veteran)
+    def get_veteran_client_counts
+      get_client_and_project_counts(GrdaWarehouse::Hud::Client.veteran)
     end
 
-    def get_non_veteran_client_ids
-      get_client_and_project_ids(GrdaWarehouse::Hud::Client.non_veteran)
+    def get_non_veteran_client_counts
+      get_client_and_project_counts(GrdaWarehouse::Hud::Client.non_veteran)
     end
 
-    def get_child_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.children)
+    def get_child_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.children)
     end
 
-    def get_adult_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.adult)
+    def get_adult_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.adult)
     end
 
-    def get_youth_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.youth)
+    def get_youth_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.youth)
     end
 
-    def get_family_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.family)
+    def get_family_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.family)
     end
 
-    def get_individual_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.individual)
+    def get_individual_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.individual)
     end
 
-    def get_parenting_youth_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
+    def get_parenting_youth_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
     end
 
-    def get_parenting_juvenile_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
+    def get_parenting_juvenile_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
     end
 
-    def get_all_client_ids
-      get_client_and_project_ids(GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
+    def get_all_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
     end
 
     #
 
-    def get_client_and_project_ids (client_scope)
+    def get_client_and_project_counts (client_scope)
       ids = {}
       GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).joins(:client).service_within_date_range(start_date: @start_date, end_date: @end_date).
-          merge(client_scope).distinct.pluck(:date, :client_id, p_t[:id].to_sql).map do | date, id, project_id |
-        ids[project_id] ||= {}
-        ids[project_id][date] ||= []
-        ids[project_id][date] << id
-      end
-      ids
+          merge(client_scope).
+          distinct.
+          group(:date, p_t[:id].to_sql).
+          count(:client_id)
     end
   end
 end

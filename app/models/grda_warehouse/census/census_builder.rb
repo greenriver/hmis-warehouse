@@ -19,11 +19,9 @@ module GrdaWarehouse::Census
         GrdaWarehouseBase.transaction do
           # Remove any existing census data for the batch range
           ByProjectType.delete_all(date: batch_start_date..batch_end_date)
-          ByProjectTypeClient.delete_all(date: batch_start_date..batch_end_date)
 
           # Save the new batch
           batch_by_project_type.by_count.values.each(&:save)
-          batch_by_project_type.by_client.values.each(&:save)
         
 
           # By Project
@@ -32,13 +30,9 @@ module GrdaWarehouse::Census
 
           # Remove any existing census data for the batch range
           ByProject.delete_all(date: batch_start_date..batch_end_date)
-          ByProjectClient.delete_all(date: batch_start_date..batch_end_date)
 
           # Save the new batch
           batch_by_project.by_count.values.flat_map do | project |
-            project.values.each(&:save)
-          end
-          batch_by_project.by_client.values.flat_map do | project |
             project.values.each(&:save)
           end
         end

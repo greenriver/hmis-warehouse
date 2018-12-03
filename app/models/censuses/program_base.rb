@@ -156,31 +156,25 @@ module Censuses
           'project_id' => p_t[:id].to_sql,
       }
 
-      local_census_scope = census_client_ids_scope.for_date_range(date, date)
-      local_enrollment_scope = enrollment_details_scope.service_within_date_range(start_date: date, end_date: date)
+      base_scope = GrdaWarehouse::ServiceHistoryService.where(date: date)
       if data_source && data_source != 'all'
-        local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
-        local_enrollment_scope = local_enrollment_scope.where(data_source_id: data_source.to_i)
+        base_scope = base_scope.joins(:service_history_enrollment).
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.where(data_source_id: data_source.to_i))
       end
       if organization && organization != 'all'
-        local_census_scope = local_census_scope.by_organization_id(organization.to_i)
-        local_enrollment_scope = local_enrollment_scope.
-          joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i))
+        base_scope = base_scope.joins(service_history_enrollment: :organization).
+          merge(GrdaWarehouse::Hud::Organization.where(id: organization.to_i))
       end
       if project && project != 'all'
-        local_census_scope = local_census_scope.by_project_id(project.to_i)
-        local_enrollment_scope = local_enrollment_scope.
-        joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
+        base_scope = base_scope.joins(service_history_enrollment: :project).
+          merge(GrdaWarehouse::Hud::Project.where(id: project.to_i))
       end
 
-      local_enrollment_scope.
-          where(client_id: local_census_scope.pluck(:all_clients).flatten).
-          joins(:client, :data_source, :project).
-          pluck(*columns.values).
-          #order(:LastName, :FirstName).
-          map do | row |
-        Hash[columns.keys.zip( row )]
-      end
+      base_scope.joins(:client, service_history_enrollment: [:data_source, :project]).
+        pluck(*columns.values).
+        map do | row |
+          Hash[columns.keys.zip( row )]
+        end
     end
 
     def prior_year_averages (year, data_source = nil, organization = nil, project = nil)
