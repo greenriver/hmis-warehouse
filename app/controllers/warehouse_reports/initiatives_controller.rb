@@ -2,13 +2,13 @@ module WarehouseReports
   class InitiativesController < ApplicationController
     include PjaxModalController
     include WarehouseReportAuthorization
+    
     # Authorize by either access to report OR access by token
     skip_before_action :authenticate_user!
     skip_before_action :require_can_view_any_reports!
     before_action :set_report, only: [:show, :destroy]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_reports, only: [:index, :running, :create]
-
     def index
       @filter = ::Filters::Initiative.new({user: current_user})
       @users = User.where(id: @reports.pluck(:user_id)).index_by(&:id)
@@ -58,11 +58,21 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_scope.find(params[:id].to_i)
+      @report = report_source.find(params[:id].to_i)
+      if report_visible?
+        # if the report is visible but not because of the token
+        # make sure we scope it to a report the user can see
+        if ! access_by_token?
+           @report = report_scope.find(params[:id].to_i)
+        end
+      else
+        # if it's not visible, remove it
+        @report = nil
+      end
     end
 
     def report_scope
-      if current_user.can_edit_anything_super_user?
+      if current_user.present? && current_user.can_edit_anything_super_user?
         report_source.all
       else
         report_source.where(user_id: current_user.id)
@@ -93,12 +103,14 @@ module WarehouseReports
     end
 
     def access_by_token?
-      return false if current_user
+      return false if current_user.present?
+      # need to fetch the token and updated_at to check access
+      @report = report_source.select(:updated_at, :token, :id).find(params[:id].to_i)
       if params[:token].blank?
         raise ActionController::RoutingError.new('Not Found') and return
       end
-      set_report
       if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
+        @report = report_source.find(params[:id].to_i)
         return true
       else
         raise ActionController::RoutingError.new('Not Found')

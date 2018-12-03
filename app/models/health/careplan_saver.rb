@@ -19,15 +19,16 @@ module Health
 
     def update
       success = true
+      just_signed = @careplan.just_signed?
       begin
-        @careplan.class.transaction do
-          if @careplan.just_signed? && @create_qa
+        @careplan.class.transaction do          
+          if just_signed && @create_qa
+            just_signed = true
             @qualifying_activity.activity = :pctp_signed
           end
-          
           @careplan.save!
-
-          if @create_qa
+          # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
+          if just_signed && @create_qa
             @qualifying_activity.source_id = @careplan.id
             @qualifying_activity.save
           end

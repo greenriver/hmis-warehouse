@@ -2,6 +2,8 @@
 
 module Glacier
   class Uploader < AwsService
+    include ActionView::Helpers::DateHelper
+    
     attr_accessor :archive_name
     attr_accessor :file_stream
     attr_accessor :vault_name
@@ -17,17 +19,20 @@ module Glacier
 
     # Must be a power of two.
     # We break the upload into parts this big.
-    MEGS_PER_PART = 32
+    MEGS_PER_PART = 256
     #MEGS_PER_PART = 2
 
     def initialize(vault_name:, file_stream:, archive_name:, start_at_chunk: 0, upload_id: nil)
       self.vault_name = vault_name
       self.file_stream = file_stream
       self.archive_name = archive_name
+
       self._client = Aws::Glacier::Client.new({
         region: 'us-east-1',
-        access_key_id: ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-        secret_access_key: ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+        credentials: Aws::Credentials.new(
+          ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+          ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+        )
       })
       self.start_at_chunk = start_at_chunk
       self.upload_id = upload_id
@@ -82,15 +87,28 @@ module Glacier
         else
           Rails.logger.info { "Uploading chunk #{chunk_count}: #{chunk.range}" }
         end
-
-        _client.upload_multipart_part({
-          account_id: "-",
-          body: chunk.body,
-          checksum: chunk.digest,
-          range: chunk.range,
-          upload_id: self.upload_id,
-          vault_name: vault_name
-        })
+        max_attempts = 3
+        attempt = 0
+        start_time = Time.now
+        while attempt <= max_attempts
+          attempt += 1
+          begin
+            _client.upload_multipart_part({
+              account_id: "-",
+              body: chunk.body,
+              checksum: chunk.digest,
+              range: chunk.range,
+              upload_id: self.upload_id,
+              vault_name: vault_name
+            })
+            end_time = Time.now
+            Rails.logger.info "Uploaded chunk #{chunk_count} in #{distance_of_time_in_words(end_time - start_time)}"
+            break
+          rescue Aws::Glacier::Errors::RequestTimeoutException => e
+            Rails.logger.info { "FAILED Uploading chunk #{chunk_count}: #{chunk.range} attempt #{attempt} of #{max_attempts}. #{e.message}" }
+            raise e if attempt > max_attempts
+          end
+        end
       end
 
       Rails.logger.info("Finishing #{self.archive_name}: #{self.chunker.digest}")

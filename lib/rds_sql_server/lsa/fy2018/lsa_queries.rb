@@ -117,6 +117,7 @@ module LsaSqlServer
       # grab the section up until the next comment, removing the comment
       query = ss.scan_until(/#{Regexp.escape(stop_sequence)}/).gsub(stop_sequence, '')
       query = "/** #{key} **/" + query
+      query.gsub('GO', '')
     end
 
     def start_regex key
@@ -381,9 +382,7 @@ module LsaSqlServer
     end
 
     def four_forty_six
-      '4.46 Get Other Enrollments Relevant to Exit Cohort System Path'
-
-      '4.46 Set SystemPath for Exit Cohort Households'
+      '4.46 Set System Path for Exit Cohort Households'
     end
 
     def four_forty_seven_to_fifty_one

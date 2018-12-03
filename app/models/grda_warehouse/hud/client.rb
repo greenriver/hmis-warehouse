@@ -1863,12 +1863,26 @@ module GrdaWarehouse::Hud
       self.class.days_homeless_in_last_three_years(client_id: id, on_date: on_date)
     end
 
+    def max_days_homeless_in_last_three_years(on_date: Date.today)
+      days = [days_homeless_in_last_three_years(on_date: Date.today)]
+      days += cohort_clients.where(cohort_id: active_cohort_ids).where.not(adjusted_days_homeless_last_three_years: nil).
+        pluck(:adjusted_days_homeless_last_three_years)
+      days.compact.max
+    end
+
     def self.literally_homeless_last_three_years(client_id:, on_date: Date.today)
       dates_literally_homeless_in_last_three_years_scope(client_id: client_id, on_date: on_date).count
     end
 
     def literally_homeless_last_three_years(on_date: Date.today)
       self.class.literally_homeless_last_three_years(client_id: id, on_date: on_date)
+    end
+
+    def max_literally_homeless_last_three_years(on_date: Date.today)
+      days = [literally_homeless_last_three_years(on_date: Date.today)]
+      days += cohort_clients.where(cohort_id: active_cohort_ids).where.not(adjusted_days_literally_homeless_last_three_years: nil).
+        pluck(:adjusted_days_literally_homeless_last_three_years)
+      days.compact.max
     end
 
 
@@ -2024,6 +2038,13 @@ module GrdaWarehouse::Hud
     def days_homeless(on_date: Date.today)
       # attempt to pull this from previously calculated data
       processed_service_history&.homeless_days&.presence || self.class.days_homeless(client_id: id, on_date: on_date)
+    end
+
+    def max_days_homeless(on_date: Date.today)
+      days = [days_homeless(on_date: Date.today)]
+      days += cohort_clients.where(cohort_id: active_cohort_ids).where.not(adjusted_days_homeless: nil).
+        pluck(:adjusted_days_homeless)
+      days.compact.max
     end
 
     # Pull the maximum total monthly income from any open enrollments, looking
