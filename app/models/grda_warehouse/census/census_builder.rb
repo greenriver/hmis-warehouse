@@ -29,7 +29,7 @@ module GrdaWarehouse::Census
             m['updated_at'] = Time.now
             m.values
           end
-          ByProjectType.new.insert_batch(ByProjectType, headers, values, transaction: false)
+          ByProjectType.new.insert_batch(ByProjectType, headers, values, transaction: false, batch_size: 500)
         
 
           # By Project
@@ -52,7 +52,7 @@ module GrdaWarehouse::Census
             end
             # project.values.each(&:save)
           end
-          ByProject.new.insert_batch(ByProject, headers, values, transaction: false)
+          ByProject.new.insert_batch(ByProject, headers, values, transaction: false, batch_size: 500)
 
         end
 
