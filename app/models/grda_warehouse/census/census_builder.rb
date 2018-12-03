@@ -1,6 +1,5 @@
 module GrdaWarehouse::Census
   class CensusBuilder
-
     def create_census (start_date, end_date)
       batch_start_date = start_date.to_date
       while batch_start_date <= end_date.to_date
@@ -21,7 +20,16 @@ module GrdaWarehouse::Census
           ByProjectType.delete_all(date: batch_start_date..batch_end_date)
 
           # Save the new batch
-          batch_by_project_type.by_count.values.each(&:save)
+          # batch_by_project_type.by_count.values.each(&:save)
+          
+          headers = batch_by_project_type.by_count.values.first.attributes.except('id').keys
+
+          values = batch_by_project_type.by_count.values.map{|m| m.attributes.except('id')}.map do |m| 
+            m['created_at'] = Time.now
+            m['updated_at'] = Time.now
+            m.values
+          end
+          ByProjectType.new.insert_batch(ByProjectType, headers, values, transaction: false)
         
 
           # By Project
@@ -32,9 +40,20 @@ module GrdaWarehouse::Census
           ByProject.delete_all(date: batch_start_date..batch_end_date)
 
           # Save the new batch
+          headers = nil
+          values = []
           batch_by_project.by_count.values.flat_map do | project |
-            project.values.each(&:save)
+            headers = project.values.first.attributes.except('id').keys if headers.blank?
+            project.values.each do |day|
+              row = day.attributes.except('id')
+              row['created_at'] = Time.now
+              row['updated_at'] = Time.now
+              values << row.values
+            end
+            # project.values.each(&:save)
           end
+          ByProject.new.insert_batch(ByProject, headers, values, transaction: false)
+
         end
 
         # Move batch forward
