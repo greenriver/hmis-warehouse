@@ -1,4 +1,4 @@
-# dev projects -- with affiliation: 11; single RRH: 2
+# dev projects -- with affiliation: 61; single RRH: 44
 class WarehouseReport::RrhReport
   include ArelHelper
 
@@ -92,6 +92,41 @@ class WarehouseReport::RrhReport
     (days.to_f / days_in_stabilization.count).round
   end
 
+  def destinations
+    @destinations ||= stabilization_project.
+      exiting_clients(start_date: start_date, end_date: end_date).
+      where(she_t[:destination].not_eq(nil)).
+      group(she_t[:destination].to_sql).
+      count(she_t[:destination].to_sql).map do |id, count|
+        [ 
+          id,
+          {
+            destination_id: id,
+            destination: HUD.destination(id),
+            count: count,
+          },
+        ]
+      end.to_h
+  end
+
+  def returns_to_shelter
+    max_exits = stabilization_project.
+      exiting_clients(start_date: start_date, end_date: end_date).
+      group(:client_id).
+      maximum(:last_date_in_program)
+    min_entries = {}
+    max_exits.each do |id, date|
+      min_entries[id] = GrdaWarehouse::ServiceHistoryEnrollment.
+        homeless.
+        where(client_id: id).
+        where(she_t[:first_date_in_program].gt(date)).
+        minimum(:first_date_in_program)
+    end
+    min_entries.reject{|_,v| v.blank?}
+  end
+
+
+  # Supporting methods
 
   def enrolled_client_ids
     client_ids = Set.new
