@@ -37,7 +37,7 @@ module GrdaWarehouse::Census
                 (inventory.InventoryEndDate.blank?)) ||
             ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
                 (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
-          end.sum(&:beds)
+          end.sum(&:beds) rescue 0
         end
       end
     end
