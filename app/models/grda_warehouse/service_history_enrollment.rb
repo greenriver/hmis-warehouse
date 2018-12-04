@@ -254,9 +254,15 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     scope :veteran, -> do
       joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
     end
+    scope :veterans, -> do
+      veteran
+    end
 
     scope :non_veteran, -> do
       joins(:client).merge(GrdaWarehouse::Hud::Client.non_veteran)
+    end
+    scope :non_veterans, -> do
+      veteran
     end
 
     scope :family, -> do

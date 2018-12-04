@@ -21,9 +21,6 @@
       - if @prior_year_averages[:ave_seasonal_inventory]
         %br
         = "Average Seasonal Inventory from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_seasonal_inventory]}"
-      - if @prior_year_averages[:ave_overflow_inventory]
-        %br
-        = "Average Overflow Inventory from #{@prior_year_averages[:year]}: #{@prior_year_averages[:ave_overflow_inventory]}"
   .col-sm-4
     .weather
 .row
@@ -56,9 +53,9 @@
     .census__involved-projects
       %h4 Involved Projects
       %ul
-        - @involved_projects.each do |p|
+        - @involved_projects.each do |id, name|
           %li
-            = link_to p.name, project_path(p)
+            = link_to name, project_path(id)
     .download
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
         Download Excel

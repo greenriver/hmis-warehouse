@@ -1,86 +1,100 @@
 module Censuses
-  class CensusVeteran < Base
-    def for_date_range start_date, end_date, scope: nil
-      load_associated_records()
-      service_days = fetch_service_days(start_date.to_date - 1.day, end_date, scope)
-      
-      {}.tap do |item|
-        service_days_by_project_type = service_days.group_by do |s|
-          [s['date'], @project_types.select{ |k,v| v.include? s['project_type'] }.keys.first]
-        end
-        service_days_by_project_type.each do |k,entries|
-          date, project_type = k
-          if date == start_date.to_date - 1.day
-            next
-          end
-          veteran_count = entries.map do |m|
-            if m['veteran_status']
-              m['count_all']
-            end
-          end.compact.reduce( :+ ) || 0
-          non_veteran_count = entries.map do |m| 
-            if ! m['veteran_status']
-              m['count_all']
-            end
-          end.compact.reduce( :+ ) || 0
+  class CensusVeteran < ProjectTypeBase
+    # JSON shape
+    # {
+    #   project_type: {
+    #     "datasets": [
+    #       {
+    #         "label": "Veteran Count",
+    #         "data": [
+    #           { "x": date,
+    #             "y": value,
+    #             "yesterday": value
+    #           }
+    #         ]
+    #       },
+    #       {
+    #         "label": "Non-Veteran Count",
+    #         "data": [
+    #           { "x": date,
+    #             "y": value,
+    #             "yesterday": value
+    #           }
+    #         ]
+    #       }
+    #     ]
+    #     "title": {
+    #       "display": true,
+    #       "text": "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}"
+    #      }
+    #   }
+    # }
 
-          veteran_yesterday_count = if service_days_by_project_type[[date - 1.day, project_type]].present?
-            service_days_by_project_type[[date - 1.day, project_type]].map do |m|
-              if m['veteran_status']
-                m['count_all']
-              end
-            end.compact.reduce( :+ ) || 0
+    def for_date_range (start_date, end_date)
+      # Move the start of the range to include "yesterday"
+      yesterday = nil
+      adjusted_start_date = start_date.to_date - 1.day
+
+      @shape ||= {}
+      project_scope = GrdaWarehouse::Census::ByProjectType.for_date_range(adjusted_start_date, end_date)
+
+      veterans = {}
+      non_veterans = {}
+      yesterday = nil
+
+      project_scope.each do | census_record |
+        if yesterday.nil?
+          yesterday = census_record
+          # if the day we added to the start of the range exists, just skip it, otherwise synthesize one
+          if (yesterday.date == adjusted_start_date)
+            next
           else
-            nil
+            yesterday = GrdaWarehouse::Census::ByProjectType.new
           end
-          non_veteran_yesterday_count = if service_days_by_project_type[[date - 1.day, project_type]].present?
-            service_days_by_project_type[[date - 1.day, project_type]].map do |m|
-              if ! m['veteran_status']
-                m['count_all']
-              end
-            end.compact.reduce( :+ ) || 0
-          else
-            nil
-          end
-          item[project_type] ||= {}
-          item[project_type][:datasets] ||= []
-          item[project_type][:datasets][0] ||= {
-            label: 'Veteran Count'
-          }
-          item[project_type][:datasets][1] ||= {
-            label: 'Non-Veteran Count'
-          }
-          item[project_type][:title] ||= {}
-          item[project_type][:title][:display] ||= true
-          item[project_type][:title][:text] ||= "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}" 
-          item[project_type][:datasets][0][:data] ||= []
-          item[project_type][:datasets][0][:data] << {x: date, y: veteran_count, yesterday: veteran_yesterday_count}
-          item[project_type][:datasets][1][:data] ||= []
-          item[project_type][:datasets][1][:data] << {x: date, y: non_veteran_count, yesterday: non_veteran_yesterday_count}
         end
+
+        GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+          veterans[project_type] ||= []
+          non_veterans[project_type] ||= []
+
+          veterans[project_type] << { x: census_record.date, y: census_record["#{project_type}_veterans"], yesterday: yesterday["#{project_type}_veterans"] }
+          non_veterans[project_type] << { x: census_record.date, y: census_record["#{project_type}_non_veterans"], yesterday: yesterday["#{project_type}_non_veterans"]  }
+        end
+
+        yesterday = census_record
+      end
+
+      # Only include dimensions that contain data
+      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
+        if veterans[project_type].present? && veterans[project_type].size > 0
+          add_dimension(project_type, veterans[project_type], non_veterans[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
+        end
+      end
+      @shape
+    end
+
+    private def add_dimension (project_type, veterans, non_veterans, title)
+      @shape[project_type] ||= {}
+      @shape[project_type][:datasets] ||= []
+      @shape[project_type][:datasets][0] ||= { label: "Veteran Count", data: veterans }
+      @shape[project_type][:datasets][1] ||= { label: "Non-Veteran Count", data: non_veterans }
+      @shape[project_type][:title] ||= {}
+      @shape[project_type][:title][:display] ||= true
+      @shape[project_type][:title][:text] ||= title
+      @shape
+    end
+
+    # Detail view
+
+    def enrollment_details_scope (date, project_type, population)
+      enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
+          in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
+      if population == :veterans
+        enrollment_scope.veteran
+      else
+        enrollment_scope.non_veteran
       end
     end
 
-    def detail_name project_type
-      "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
-    end
-
-    private def fetch_service_days start_date, end_date, scope
-      scope ||= GrdaWarehouse::CensusByProjectType
-      at      = scope.arel_table
-
-      relation = scope.
-        where(ProjectType: @project_types.values.flatten.uniq).
-        where( at[:date].between start_date.to_date..end_date.to_date ).
-        group(:date, :ProjectType, :veteran).
-        select(
-          at[:date],
-          at[:ProjectType].as('project_type'),
-          at[:veteran].as('veteran_status'),
-          at[:client_count].sum.as('count_all')
-        ).
-        order(date: :desc)
-      service_days = relation_as_report relation
-    end
   end
 end
