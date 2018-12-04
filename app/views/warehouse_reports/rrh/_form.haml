@@ -1,0 +1,10 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_rrh_index_path, method: :get do |f|
+  .row
+    .col-sm-4
+      = f.input :project_id, collection: @available_projects, input_html: {class: :select2}, include_blank: 'All'
+    .col-sm-4
+      = f.input :start_date, as: :date_picker
+    .col-sm-4
+      = f.input :end_date, as: :date_picker
+  .text-right 
+    = f.submit 'Update', class: ['btn', 'btn-primary']

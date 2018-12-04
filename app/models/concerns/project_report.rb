@@ -20,8 +20,13 @@ module ProjectReport
       entering_scope(start_date: start_date, end_date: end_date).distinct
     end
 
-    def exiting_clients(start_date:, end_date:)
+    def leavers(start_date:, end_date:)
       exiting_scope(start_date: start_date, end_date: end_date).distinct
+    end
+
+    def stayers(start_date:, end_date:)
+      enrolled_scope(start_date: start_date, end_date: end_date).
+        where.not(client_id: leavers(start_date: start_date, end_date: end_date).select(:client_id))
     end
 
     def housed_between(start_date:, end_date:)

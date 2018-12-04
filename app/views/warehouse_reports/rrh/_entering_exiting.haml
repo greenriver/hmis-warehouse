@@ -1,0 +1,41 @@
+.d-flex.text-center
+  .rrh__entered-pre-placement.mr-4.mb-4
+    .title
+      Clients Entering Pre-Placement
+    %i.icon-arrow-right
+    %i.icon-file-text
+    .metric
+      - client_count = @report.entering_pre_placement.count
+      = pluralize(client_count, 'client')
+    .description
+      entered Pre-Placement during the reporting period.
+  .rrh__exited-pre-placement.mr-4.mb-4
+    .title
+      Clients Exiting Pre-Placement
+    %i.icon-file-text
+    %i.icon-arrow-right
+    .metric
+      - client_count = @report.exiting_pre_placement.count
+      = pluralize(client_count, 'client')
+    .description
+      exited Pre-Placement during the reporting period.
+  .rrh__entered-stabilization.mr-4.mb-4
+    .title
+      Clients Entering Stabilization
+    %i.icon-arrow-right
+    %i.icon-house
+    .metric
+      - client_count = @report.entering_stabilization.count
+      = pluralize(client_count, 'client')
+    .description
+      entered Stabilization during the reporting period.
+  .rrh__exited-stabilization.mb-4
+    .title
+      Clients Exited Stabilization
+    %i.icon-house
+    %i.icon-arrow-right
+    .metric
+      - client_count = @report.exiting_stabilization.count
+      = pluralize(client_count, 'client')
+    .description
+      exited Stabilization during the reporting period.

@@ -1,0 +1,52 @@
+.d-flex.text-center
+  .rrh__enrolled.mr-4.mb-4
+    .title
+      Enrolled Clients
+    %i.icon-group
+    .metric
+      - client_count = @report.enrolled_client_ids.count
+      = pluralize(client_count, 'client')
+    .description
+      - if client_count != 1
+        were enrolled in the
+      - else
+        was enrolled in the
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.
+  .rrh__enrolled-pre-placement.mr-4.mb-4
+    .title
+      Clients Enrolled in Pre-Placement
+    %i.icon-file-text
+    .metric
+      - client_count = @report.pre_placement_client_ids.count
+      = pluralize(client_count, 'client')
+    .description
+      - if client_count != 1
+        were enrolled in the pre-placement
+      - else
+        was enrolled in the pre-placement
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.
+  .rrh__enrolled-stabilization.mb-4
+    .title
+      Clients Enrolled in Stabilization
+    %i.icon-house
+    .metric
+      - client_count = @report.stabilization_client_ids.count
+      = pluralize(client_count, 'client')
+    .description
+      - if client_count != 1
+        were enrolled in the stabilization
+      - else
+        was enrolled in the stabilization
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.

@@ -9,6 +9,145 @@ module Reporting
       where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id))
     end
 
+    scope :youth, -> do
+      where(dob: 24.years.ago..18.years.ago)
+    end
+
+    scope :veteran, -> do
+      where(veteran_status: 1)
+    end
+
+    scope :individual, -> do
+      where(presented_as_individual: true)
+    end
+
+    scope :family, -> do
+      where(presented_as_individual: false)
+    end
+
+    scope :children_only, -> do
+      where(children_only: true)
+    end
+
+    scope :stayers_pre_placement, -> (start_date:, end_date:) do
+      where(
+        arel_table[:search_start].lt(end_date).
+        and(
+          arel_table[:search_end].gt(start_date).
+          or(arel_table[:search_end].eq(nil))
+        )
+      )
+    end
+
+    scope :enrolled, -> (start_date:, end_date:) do
+      where(
+        arel_table[:search_start].lt(end_date).
+        and(
+          arel_table[:housing_exit].gt(start_date).
+          or(arel_table[:housing_exit].eq(nil))
+        )
+      )
+    end
+
+    scope :enrolled_pre_placement, ->(start_date:, end_date:) do
+      enrolled(start_date: start_date, end_date: end_date).
+      where(
+        arel_table[:search_end].gt(start_date).
+        or(arel_table[:search_end].eq(nil))
+      )
+    end
+
+    scope :enrolled_stabilization, ->(start_date:, end_date:) do
+      enrolled(start_date: start_date, end_date: end_date).
+      where(arel_table[:housed_date].gt(start_date))
+    end
+
+    scope :stayers, -> (start_date:, end_date:) do
+      enrolled(start_date: start_date, end_date: end_date).
+      where(
+        arel_table[:housing_exit].gt(end_date).
+          or(arel_table[:housing_exit].eq(nil))
+      )
+    end
+
+    scope :stayers_pre_placement, -> (start_date:, end_date:) do
+      where(client_id: enrolled_pre_placement(start_date: start_date, end_date: end_date).select(:client_id)).
+      where.not(client_id: exiting_pre_placement(start_date: start_date, end_date: end_date).select(:client_id))
+    end
+
+    scope :stayers_stabilization, -> (start_date:, end_date:) do
+      where(client_id: enrolled_stabilization(start_date: start_date, end_date: end_date).select(:client_id)).
+      where.not(client_id: exiting_stabilization(start_date: start_date, end_date: end_date).select(:client_id))
+    end
+
+    scope :leavers, -> (start_date:, end_date:) do
+      enrolled(start_date: start_date, end_date: end_date).
+      where(arel_table[:housing_exit].lteq(end_date))
+    end
+
+    scope :leavers_pre_placement, -> (start_date:, end_date:) do
+      enrolled_pre_placement(start_date: start_date, end_date: end_date).
+      exiting_pre_placement(start_date: start_date, end_date: end_date)
+    end
+
+    scope :leavers_stabilization, -> (start_date:, end_date:) do
+      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      exiting_stabilization(start_date: start_date, end_date: end_date)
+    end
+
+    scope :ph_destinations, -> do
+      where(destination: HUD.permanent_destinations)
+    end
+
+    scope :entering_pre_placement, -> (start_date:, end_date:) do
+      where(search_start: start_date..end_date)
+    end
+
+    scope :entering_stabilization, -> (start_date:, end_date:) do
+      where(housed_date: start_date..end_date)
+    end
+
+    scope :exiting_pre_placement, -> (start_date:, end_date:) do
+      where(search_end: start_date..end_date)
+    end
+
+    scope :exiting_stabilization, -> (start_date:, end_date:) do
+      where(housing_exit: start_date..end_date)
+    end
+
+    
+
+    def self.available_subpopulations
+      {
+        youth: 'Youth',
+        veteran: 'Veteran',
+      }
+    end
+
+    def self.available_household_types
+      {
+        individual: 'Individuals',
+        family: 'Families',
+        children_only: 'Children only',
+      }
+    end
+
+    def self.subpopulation(key)
+      if available_subpopulations[key].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
+    def self.household_type(key)
+      if available_household_types[key].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
     def populate!
       return unless source_data.present?
       headers = source_data.first.keys
@@ -66,6 +205,9 @@ module Reporting
             she_residential[:destination],
             she_service[:project_name].as('service_project'),
             she_residential[:project_name].as('residential_project'),
+            she_service[:presented_as_individual].as('presented_as_individual'),
+            she_service[:children_only].as('children_only'),
+            she_service[:individual_adult].as('individual_adult'),
             she_residential[:client_id],
             p_t[:id].as('project_id'),
             "'enrollment_based' as source"
@@ -94,6 +236,9 @@ module Reporting
             she_t[:destination],
             she_t[:project_name].as('service_project'),
             she_t[:project_name].as('residential_project'),
+            she_t[:presented_as_individual].as('presented_as_individual'),
+            she_t[:children_only].as('children_only'),
+            she_t[:individual_adult].as('individual_adult'),
             she_t[:client_id],
             p_t[:id].as('project_id'),
             "'move-in-date' as source"
@@ -122,6 +267,9 @@ module Reporting
             she_t[:destination],
             she_t[:project_name].as('service_project'),
             she_t[:project_name].as('residential_project'),
+            she_t[:presented_as_individual].as('presented_as_individual'),
+            she_t[:children_only].as('children_only'),
+            she_t[:individual_adult].as('individual_adult'),
             she_t[:client_id],
             p_t[:id].as('project_id'),
             "'ph-or-psh' as source"
