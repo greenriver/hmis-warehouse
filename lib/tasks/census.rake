@@ -4,15 +4,4 @@ namespace :census do
   task :import, [:replace_all] => [:environment, "log:info_to_stdout"] do |task, args|
     GrdaWarehouse::Tasks::CensusImport.new(args.replace_all).run!
   end
-
-  desc "Save census averages; optionally replace all values"
-  task :average, [:replace_all] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Tasks::CensusAverages.new(args.replace_all).run!
-  end
-
-  desc "Import and save averages, optionally replace all values"
-  task :import_and_average, [:replace_all] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Tasks::CensusImport.new(args.replace_all).run!
-    GrdaWarehouse::Tasks::CensusAverages.new(args.replace_all).run!
-  end
 end
