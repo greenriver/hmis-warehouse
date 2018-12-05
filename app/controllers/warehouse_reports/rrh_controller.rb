@@ -2,13 +2,22 @@ module WarehouseReports
   class RrhController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+    include PjaxModalController
     before_action :available_projects
     before_action :set_filter
+    before_action :set_report
     
-
     respond_to :html, :js
 
     def index
+      
+    end
+
+    def clients
+      @clients = @report.support_for(params[:metric]&.to_sym)
+    end
+
+    private def set_report
       @report = WarehouseReport::RrhReport.new(
         project_id: @filter.project_id, 
         start_date: @filter.start_date, 
@@ -16,10 +25,6 @@ module WarehouseReports
         subpopulation: @filter.subpopulation,
         household_type: @filter.household_type,
       )
-    end
-
-    def program_data
-      
     end
 
     private def set_filter

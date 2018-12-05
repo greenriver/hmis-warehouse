@@ -6,7 +6,7 @@
     %i.icon-file-text.metric
     .metric
       - client_count = @report.entering_pre_placement.count
-      = pluralize(client_count, 'client')
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :entering_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       entered Pre-Placement during the reporting period.
   .rrh__exited-pre-placement.chunk.pr-4.mr-4
@@ -16,7 +16,7 @@
     %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_pre_placement.count
-      = pluralize(client_count, 'client')
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :exiting_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       exited Pre-Placement during the reporting period.
   .rrh__entered-stabilization.chunk.pr-4.mr-4
@@ -26,7 +26,7 @@
     %i.icon-house.metric
     .metric
       - client_count = @report.entering_stabilization.count
-      = pluralize(client_count, 'client')
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :entering_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       entered Stabilization during the reporting period.
   .rrh__exited-stabilization.chunk
@@ -36,6 +36,6 @@
     %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_stabilization.count
-      = pluralize(client_count, 'client')
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :exiting_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       exited Stabilization during the reporting period.

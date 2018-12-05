@@ -4,7 +4,6 @@ class App.WarehouseReports.Rrh.Returns
     @plot()
 
   plot: =>
-    console.log @data
     tt = bb.generate
       data: {
         columns: @data,

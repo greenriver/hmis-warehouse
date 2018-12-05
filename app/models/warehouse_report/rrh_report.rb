@@ -142,11 +142,16 @@ class WarehouseReport::RrhReport
       housed_scope.
         leavers(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
+        distinct.
         pluck(:client_id, :destination).map do |client_id, dest_id|
-          @destinations[dest_id] ||= {}
-          @destinations[dest_id][:destination] ||= destination_bucket(client_id, dest_id)
-          @destinations[dest_id][:count] ||= 0
-          @destinations[dest_id][:count] += 1
+          destination = destination_bucket(client_id, dest_id)
+          @destinations[destination] ||= {}
+          @destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
+          @destinations[destination][:count] ||= 0
+          @destinations[destination][:client_ids] ||= Set.new
+          # Only count each client once per bucket
+          @destinations[destination][:count] += 1 unless @destinations[destination][:client_ids].include?(client_id)
+          @destinations[destination][:client_ids] << client_id
         end
       @destinations
     end
@@ -198,7 +203,7 @@ class WarehouseReport::RrhReport
 
   def percent_returns_to_shelter
     return 0 unless ph_leavers.exists?
-    (returns_to_shelter.count.to_f/ph_leavers.select(:client_id).count).round(2) * 100
+    (returns_to_shelter.uniq.count.to_f/ph_leavers.select(:client_id).count * 100).round(2)
   end
 
   def bucketed_returns
@@ -251,6 +256,29 @@ class WarehouseReport::RrhReport
     }
   end
 
+  # returns array of clients with id, first name, last name who match the metric
+  def support_for metric
+    case metric
+    when :enrolled_clients
+      client_ids = enrolled_client_ids
+    when :enrolled_in_pre_placement
+      client_ids = pre_placement_client_ids
+    when :enrolled_in_stabilization
+      client_ids = stabilization_client_ids
+    when :entering_pre_placement
+      client_ids = entering_pre_placement
+    when :exiting_pre_placement
+      client_ids = exiting_pre_placement
+    when :entering_stabilization
+      client_ids = entering_stabilization
+    when :exiting_stabilization
+      client_ids = exiting_stabilization
+    end
+    client_source.where(id: client_ids).
+      order(:LastName, :FirstName).
+      pluck(:id, :FirstName, :LastName)
+  end
+
   # See if this project has a residential_project, if it does, use that ID
   # NOTE: the spec supports the possibility of more than one affiliation
   # we're assuming one for now 
@@ -281,6 +309,10 @@ class WarehouseReport::RrhReport
 
   def project_source
     GrdaWarehouse::Hud::Project
+  end
+
+  def client_source
+    GrdaWarehouse::Hud::Client
   end
 
   def housed_source
