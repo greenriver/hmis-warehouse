@@ -91,6 +91,10 @@ class User < ActiveRecord::Base
     can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
   end
 
+  def can_access_some_version_of_clients?
+    can_view_client_window? || can_view_clients? || can_edit_clients?
+  end
+
 
   # def role_keys
   #   [:admin, :dnd_staff, :housing_subsidy_admin]

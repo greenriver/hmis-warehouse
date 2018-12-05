@@ -1,12 +1,6 @@
 .ho-container.rrh
-  .ho-container__header 
+  .ho-container__header  
     %h3 Overview
-  .row.rrh-row
-    .col-xs-12.col-md-6
-      = content_for :program_1_title
-      %p.ho-cart__title.text-center= "<strong>#{@charts.report.num_housed_1}</strong> participated in the reference program".html_safe
-      .d3-chart#d3-overview-1
-    .col-xs-12.col-md-6
-      = content_for :program_2_title
-      %p.text-center= "<strong>#{@charts.report.num_housed_2}</strong> participated in the comparison program".html_safe
-      .d3-chart#d3-overview-2
+  = render 'enrolled'
+  = render 'entering_exiting'
+     

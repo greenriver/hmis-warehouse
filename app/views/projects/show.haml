@@ -1,4 +1,3 @@
-= stylesheet_link_tag 'billboard/billboard.min.css'
 = render 'breadcrumbs'
 - content_for :title, "#{@project.name} at #{@project.organization.name}"
 .row
@@ -119,8 +118,6 @@
 = render 'clients'
 
 - content_for :page_js do
-  #{javascript_include_tag 'billboard/billboard.min.js'}
-  #{javascript_include_tag 'moment.min.js'}
   :javascript
     (function($) {
       census = new App.Census.CensusByProgram('#{date_range_censuses_path(project_id: @project.id, data_source_id: @project.data_source_id)}', 'Censuses::CensusByProgram', '#{Date.today - 3.years}', '#{Date.today - 1.day}');

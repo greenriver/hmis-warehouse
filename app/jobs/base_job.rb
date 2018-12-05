@@ -4,7 +4,7 @@ class BaseJob < ActiveJob::Base
 
   # When called through Active::Job, uses this hook
   before_perform do |job|
-    if STARTING_PATH != expected_path
+    if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
       msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)
       if job.respond_to? :job_id
@@ -23,7 +23,7 @@ class BaseJob < ActiveJob::Base
 
   # When called through Delayed::Job, uses this hook
   def before job
-    if STARTING_PATH != expected_path
+    if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
       job = self unless job.respond_to? :locked_by
       msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)

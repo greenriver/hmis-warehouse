@@ -158,7 +158,7 @@ Rails.application.routes.draw do
     resources :expiring_consent, only: [:index]
     resources :rrh, only: [:index] do
       collection do
-        get :program_data
+        get :clients
       end
     end
     resources :consent, only: [:index] do

@@ -1,0 +1,52 @@
+.d-flex.text-center.justify-content-center.mt-4.mb-6
+  .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    %h4.title
+      Enrolled Clients
+    %i.icon-group.metric
+    .metric
+      - client_count = @report.enrolled_client_ids.count
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_clients)), data: { loads_in_pjax_modal: true }
+    .description
+      - if client_count != 1
+        were enrolled in the
+      - else
+        was enrolled in the
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.
+  .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
+    %h4.title
+      Clients Enrolled in Pre-Placement
+    %i.icon-file-text.metric
+    .metric
+      - client_count = @report.pre_placement_client_ids.count
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
+    .description
+      - if client_count != 1
+        were enrolled in the pre-placement
+      - else
+        was enrolled in the pre-placement
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.
+  .rrh__enrolled.chunk.-stabilization
+    %h4.title
+      Clients Enrolled in Stabilization
+    %i.icon-house.metric
+    .metric
+      - client_count = @report.stabilization_client_ids.count
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
+    .description
+      - if client_count != 1
+        were enrolled in the stabilization
+      - else
+        was enrolled in the stabilization
+      - if @filter.project_id.present?
+        project
+      - else
+        projects
+      during the reporting period.

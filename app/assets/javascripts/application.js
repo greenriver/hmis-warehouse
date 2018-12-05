@@ -36,6 +36,8 @@
 //= require topojson.min.js
 //= require inputmask/jquery.inputmask.bundle.min
 //= require inputmask/inputmask/bindings/inputmask.binding.min
+//= require billboard/billboard.min
+//= require moment.min.js
 
 
 //////////////////////////
@@ -62,6 +64,7 @@
 //= require_directory ./dashboards
 //= require_directory ./dashboards/clients
 //= require_directory ./warehouse_reports/cas
+//= require_directory ./warehouse_reports/rrh
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts
 //= require_directory ./clients
