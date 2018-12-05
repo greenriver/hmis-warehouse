@@ -1,7 +1,19 @@
 .ho-container.rrh
   .ho-container__header 
     %h3 Returns to Shelter from Permanent Housing
-  .description  
-    %p Clients that returned to shelter some point after successfully exiting Rapid Rehousing to a permanent housing destination.
-  .metric
-    = debug @report.returns_to_shelter
+  .rrh__returned.mb-6
+    .description  
+      %p Clients that returned to shelter some point after successfully exiting Rapid Rehousing to a permanent housing destination.
+  .d-flex.justify-content-center.mb-6
+    .rrh__returned.chunk.mr-4.mb-4
+      .metric
+        #{pluralize(@report.returns_to_shelter.count, 'client')} (#{@report.percent_returns_to_shelter}%)
+        returned to shelter
+      .description
+        of the #{@report.ph_leavers.select(:client_id).count} who exited to permanent housing from the reference program
+  .rrh__returned.mr-4.mb-4
+    %h4.title.text-center
+      Length of Return to Homelessness
+    .metric
+      #jReturnsChart.rrh__returns-chart
+      =# debug @report.bucketed_returns.to_json

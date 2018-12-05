@@ -1,39 +1,39 @@
-.d-flex.text-center
-  .rrh__entered-pre-placement.mr-4.mb-4
-    .title
+.d-flex.text-center.justify-content-center.mb-6
+  .rrh__entered-pre-placement.chunk.pr-4.mr-4
+    %h4.title
       Clients Entering Pre-Placement
-    %i.icon-arrow-right
-    %i.icon-file-text
+    %i.icon-arrow-right.metric
+    %i.icon-file-text.metric
     .metric
       - client_count = @report.entering_pre_placement.count
       = pluralize(client_count, 'client')
     .description
       entered Pre-Placement during the reporting period.
-  .rrh__exited-pre-placement.mr-4.mb-4
-    .title
+  .rrh__exited-pre-placement.chunk.pr-4.mr-4
+    %h4.title
       Clients Exiting Pre-Placement
-    %i.icon-file-text
-    %i.icon-arrow-right
+    %i.icon-file-text.metric
+    %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_pre_placement.count
       = pluralize(client_count, 'client')
     .description
       exited Pre-Placement during the reporting period.
-  .rrh__entered-stabilization.mr-4.mb-4
-    .title
+  .rrh__entered-stabilization.chunk.pr-4.mr-4
+    %h4.title
       Clients Entering Stabilization
-    %i.icon-arrow-right
-    %i.icon-house
+    %i.icon-arrow-right.metric
+    %i.icon-house.metric
     .metric
       - client_count = @report.entering_stabilization.count
       = pluralize(client_count, 'client')
     .description
       entered Stabilization during the reporting period.
-  .rrh__exited-stabilization.mb-4
-    .title
+  .rrh__exited-stabilization.chunk
+    %h4.title
       Clients Exited Stabilization
-    %i.icon-house
-    %i.icon-arrow-right
+    %i.icon-house.metric
+    %i.icon-arrow-right.metric
     .metric
       - client_count = @report.exiting_stabilization.count
       = pluralize(client_count, 'client')

@@ -26,8 +26,8 @@ module WarehouseReports
       @filter = OpenStruct.new()
       @filter.start_date = report_params[:start_date]&.to_date rescue 1.months.ago.beginning_of_month
       @filter.end_date = report_params[:end_date]&.to_date rescue @filter.start_date.end_of_month
-      @filter.subpopulation = report_params[:subpopulation]&.to_date rescue :all
-      @filter.houshold_type = report_params[:household_type]&.to_date rescue :all
+      @filter.subpopulation = report_params[:subpopulation]&.to_sym || :all rescue :all
+      @filter.household_type = report_params[:household_type]&.to_sym || :all rescue :all
       p_id = report_params[:project_id] rescue nil
       @filter.project_id = project_id(p_id)
     end

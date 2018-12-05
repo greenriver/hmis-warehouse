@@ -1,8 +1,8 @@
-.d-flex.text-center
-  .rrh__enrolled.mr-4.mb-4
-    .title
+.d-flex.text-center.justify-content-center.mt-4.mb-6
+  .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    %h4.title
       Enrolled Clients
-    %i.icon-group
+    %i.icon-group.metric
     .metric
       - client_count = @report.enrolled_client_ids.count
       = pluralize(client_count, 'client')
@@ -16,10 +16,10 @@
       - else
         projects
       during the reporting period.
-  .rrh__enrolled-pre-placement.mr-4.mb-4
-    .title
+  .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
+    %h4.title
       Clients Enrolled in Pre-Placement
-    %i.icon-file-text
+    %i.icon-file-text.metric
     .metric
       - client_count = @report.pre_placement_client_ids.count
       = pluralize(client_count, 'client')
@@ -33,10 +33,10 @@
       - else
         projects
       during the reporting period.
-  .rrh__enrolled-stabilization.mb-4
-    .title
+  .rrh__enrolled.chunk.-stabilization
+    %h4.title
       Clients Enrolled in Stabilization
-    %i.icon-house
+    %i.icon-house.metric
     .metric
       - client_count = @report.stabilization_client_ids.count
       = pluralize(client_count, 'client')

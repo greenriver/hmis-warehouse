@@ -137,51 +137,79 @@ class WarehouseReport::RrhReport
 
 
   def destinations
-    @destinations ||= housed_scope.
+    @destinations ||= begin
+      @destinations = {}
+      housed_scope.
+        leavers(start_date: start_date, end_date: end_date).
+        where(ho_t[:destination].not_eq(nil)).
+        pluck(:client_id, :destination).map do |client_id, dest_id|
+          @destinations[dest_id] ||= {}
+          @destinations[dest_id][:destination] ||= destination_bucket(client_id, dest_id)
+          @destinations[dest_id][:count] ||= 0
+          @destinations[dest_id][:count] += 1
+        end
+      @destinations
+    end
+  end
+
+  def destination_bucket client_id, dest_id
+    return 'returned to shelter' if returns_to_shelter.keys.include?(client_id)
+    return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
+    return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
+    return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
+    return 'unknown outcome'
+  end
+
+  def ph_leavers
+    housed_scope.
       leavers(start_date: start_date, end_date: end_date).
-      where(ho_t[:destination].not_eq(nil)).
-      group(ho_t[:destination].to_sql).
-      count(ho_t[:destination].to_sql).map do |id, count|
-        [ 
-          id,
-          {
-            destination_id: id,
-            destination: HUD.destination(id),
-            count: count,
-          },
-        ]
-      end.to_h
+      ph_destinations.
+      distinct
   end
 
   # returns to shelter after exiting to permanent housing
   def returns_to_shelter
-    leavers_with_date = housed_scope.
-      leavers(start_date: start_date, end_date: end_date).
-      ph_destinations.
-      distinct.
-      pluck(:client_id, :housing_exit).to_h
-    return {} unless leavers_with_date.present?
-    returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).distinct.pluck(:client_id)
-    rr_t = Reporting::Return.arel_table
-    returns = {}
-    returner_ids.each do |id|
-      # find the first start date after the exit to PH
-      first_return = Reporting::Return.where(client_id: id).
-        where(rr_t[:first_date_in_program].gt(leavers_with_date[id])).
-        minimum(:first_date_in_program)
-      if first_return.present?
-        exit_date = leavers_with_date[id]
-        days_to_return = (first_return - exit_date).to_i.abs
-        returns[id] = {
-          entry_date: first_return,
-          exit_date: leavers_with_date[id],
-          days_to_return: days_to_return,
-          bucket: bucket(days_to_return),
-          client_id: id,
-        }
+    @returns_to_shelter ||= begin
+      leavers_with_date = ph_leavers.pluck(:client_id, :housing_exit).to_h
+      return {} unless leavers_with_date.present?
+      returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).distinct.pluck(:client_id)
+      rr_t = Reporting::Return.arel_table
+      returns = {}
+      returner_ids.each do |id|
+        # find the first start date after the exit to PH
+        first_return = Reporting::Return.where(client_id: id).
+          where(rr_t[:first_date_in_program].gt(leavers_with_date[id])).
+          minimum(:first_date_in_program)
+        if first_return.present?
+          exit_date = leavers_with_date[id]
+          days_to_return = (first_return - exit_date).to_i.abs
+          returns[id] = {
+            entry_date: first_return,
+            exit_date: leavers_with_date[id],
+            days_to_return: days_to_return,
+            bucket: bucket(days_to_return),
+            client_id: id,
+          }
+        end
+      end
+      returns
+    end
+  end
+
+  def percent_returns_to_shelter
+    return 0 unless ph_leavers.exists?
+    (returns_to_shelter.count.to_f/ph_leavers.select(:client_id).count).round(2) * 100
+  end
+
+  def bucketed_returns
+    @bucketed_returns ||= {}
+    grouped_returns = returns_to_shelter.values.group_by{|m| m[:bucket]}
+    length_of_time_buckets.each do |_, bucket_text|
+      if grouped_returns[bucket_text].present?
+        @bucketed_returns[bucket_text] = grouped_returns[bucket_text].count
       end
     end
-    returns
+    return @bucketed_returns.to_a
   end
 
   # Supporting methods
