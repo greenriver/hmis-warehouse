@@ -873,7 +873,8 @@ insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 12,1, 'Hispanic/Latino')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 12,98, 'Client doesn''t know/refused')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 12,99, 'Missing/invalid')
-insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 12,-1, 'Not applicable')
+--CHANGE 12/4/2018 -- correct column number for n/a (-1) value from 12 to 13 -- it is for HHAdultAge and not HoHEthnicity
+insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 13,-1, 'Not applicable')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 13,18, 'The oldest adult in AO or AC household is between 18 and 21')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 13,24, 'The oldest adult in AO or AC household is between 22 and 24')
 insert into ref_lsaValues (FileNumber, ColumnNumber, intValue, textValue) values (4, 13,25, 'At least one adult in AO household is 25 or older; at least one is under 55')
