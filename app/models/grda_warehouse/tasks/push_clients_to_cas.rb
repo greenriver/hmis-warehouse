@@ -40,7 +40,7 @@ module GrdaWarehouse::Tasks
     #   add a new record
     def maintain_cas_availability_table client_ids
       GrdaWarehouse::CasAvailability.already_available.where.not(client_id: client_ids).
-        update_all(unavailble_at: Time.now)
+        update_all(unavailable_at: Time.now)
       already_available = GrdaWarehouse::CasAvailability.already_available.pluck(:client_id)
       available_at = Time.now
       (client_ids - already_available).each do |id|
