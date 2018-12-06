@@ -10,5 +10,17 @@ module GrdaWarehouse
         )
       )
     end
+
+    scope :family, -> do
+      where(part_of_a_family: true)
+    end
+
+    scope :individuals, -> do
+      where(part_of_a_family: false)
+    end
+
+    scope :youth, -> do
+      where(age_at_available_on: (18..24))
+    end
   end
 end

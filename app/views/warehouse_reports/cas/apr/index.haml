@@ -1,4 +1,4 @@
-- title = 'CAS Match Process'
+- title = 'CAS APR'
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
@@ -6,5 +6,35 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_cas_apr_index_path, html: { method: :get } do |f|
   = render 'filter', f: f
   
-= debug @range
-= debug @report
+%p 
+  The following counts are for CAS clients active between
+  %strong #{@report[:start_date]}
+  and
+  %strong #{@report[:end_date]}.
+
+%h3 Available Households
+%p= @report.total_households
+
+%h3 Available Individuals
+%p= @report.total_individuals
+
+%h3 Available Families
+%p= @report.total_families
+
+%h3 Available Youth
+%p= @report.total_youth
+
+%h3 Referred to RRH
+%p= @report.referred_to_rrh.count
+
+%h3 Referred to PSH
+%p= @report.referred_to_psh.count
+
+%h3 Declined
+%p= @report.declined.count
+
+%h3 Ineligible
+%p= @report.ineligible.count
+
+
+

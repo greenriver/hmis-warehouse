@@ -5,15 +5,68 @@ class WarehouseReport::CasApr < OpenStruct
   attr_accessor :end_date
 
   def total_households
-    unique_households.count
+    unique_households.count + unique_non_hmis_households.count
   end
 
   def total_families
-    unique_households.family
+    unique_households.family.count + unique_non_hmis_households.family.count
+  end
+
+  def total_individuals
+    unique_households.individuals.count + unique_non_hmis_households.individuals.count
+  end
+
+  def total_youth
+    unique_households.individuals.youth.count + unique_non_hmis_households.individuals.youth.count
   end
 
   def unique_households
-    GrdaWarehouse::CasAvailablity.available_between(start_date: self.start_date, end_date: self.end_date).distinct.select(:client_id)
+    GrdaWarehouse::CasAvailability.
+      available_between(start_date: self[:start_date], end_date: self[:end_date]).
+      distinct.
+      select(:client_id)
   end
 
+  def unique_non_hmis_households
+    GrdaWarehouse::CasNonHmisClientHistory.
+      available_between(start_date: self[:start_date], end_date: self[:end_date]).
+      distinct.
+      select(:cas_client_id)
+  end
+
+  # unique clients on ProviderOnly route
+  def referred_to_rrh
+    GrdaWarehouse::CasReport.where(match_route: 'Provider Only Route').
+      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+      distinct.
+      select(:client_id)
+  end
+
+  # matches that have progressed past the initial DND review phase
+  def referred_to_psh
+    GrdaWarehouse::CasReport.where(match_route: 'Default Match Route').
+      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+      distinct.
+      select(:client_id)
+  end
+
+  def declined
+    cr_t = GrdaWarehouse::CasReport.arel_table
+    GrdaWarehouse::CasReport.
+      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+      where(terminal_status: 'Rejected').
+      where.not(cr_t[:decline_reason].matches('%eligible%')).
+      distinct.
+      select(:client_id)
+  end
+
+  def ineligible
+    cr_t = GrdaWarehouse::CasReport.arel_table
+    GrdaWarehouse::CasReport.
+      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+      where(terminal_status: 'Rejected').
+      where(cr_t[:decline_reason].matches('%eligible%')).
+      distinct.
+      select(:client_id)
+  end
 end
