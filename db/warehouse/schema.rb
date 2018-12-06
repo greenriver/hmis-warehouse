@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181206135841) do
+ActiveRecord::Schema.define(version: 20181206195139) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -824,9 +824,11 @@ ActiveRecord::Schema.define(version: 20181206135841) do
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
-    t.integer  "client_id",      null: false
-    t.datetime "available_at",   null: false
+    t.integer  "client_id",                           null: false
+    t.datetime "available_at",                        null: false
     t.datetime "unavailable_at"
+    t.boolean  "part_of_a_family",    default: false, null: false
+    t.integer  "age_at_available_at"
   end
 
   add_index "cas_availabilities", ["available_at"], name: "index_cas_availabilities_on_available_at", using: :btree

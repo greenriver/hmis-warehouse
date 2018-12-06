@@ -44,7 +44,13 @@ module GrdaWarehouse::Tasks
       already_available = GrdaWarehouse::CasAvailability.already_available.pluck(:client_id)
       available_at = Time.now
       (client_ids - already_available).each do |id|
-        GrdaWarehouse::CasAvailability.create(client_id: id, available_at: available_at)
+        client = GrdaWarehouse::Hud::Client.find id
+        GrdaWarehouse::CasAvailability.create(
+          client_id: id, 
+          available_at: available_at,
+          part_of_a_family: client.family_member,
+          age_at_available_at: client.age,
+        )
       end
     end
 

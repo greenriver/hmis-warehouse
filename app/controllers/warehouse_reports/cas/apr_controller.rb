@@ -5,7 +5,7 @@ module WarehouseReports::Cas
     before_action :set_range
 
     def index
-      
+      @report = WarehouseReport::CasApr.new(start_date: @range.start, end_date: @range.end)
       respond_to do |format|
         format.html {}
         format.xlsx do
