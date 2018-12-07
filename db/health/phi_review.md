@@ -11,7 +11,7 @@
 - [x] user_care_coordinators
 - [x] epic_qualifying_activities
 - [x] signable_documents
-- [x] member_status_reports - there may be only small number of member_status_report_patients with the same member_status_reports.id
+- [x] member_status_reports via member_status_report_patients
 
 # PHI bulks transfers - model documents a bulk echange of PHI with a authorized agency
 - [x] claims
@@ -45,16 +45,17 @@
 - [x] equipment (belong_to patient)
 - [x] signature_requests (belong_to patient team member -- which might be the patiant)
 - [x] sdh_case_management_notes (belong_to patient)
+
 - [x] member_status_report_patients (medicare_id)
+- [x] claims_roster (medicare_id)
+- [x] claims_ed_nyu_severity (medicare_id)
+- [x] claims_top_providers (medicare_id)
+- [x] claims_top_conditions (medicare_id)
+- [x] claims_top_ip_conditions (medicare_id)
+- [x] claims_amount_paid_location_month (medicare_id)
 
 # Sensitive logs
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
 
 # TODO
-- [ ] claims_amount_paid_location_month
 - [ ] claims_claim_volume_location_month
-- [ ] claims_ed_nyu_severity
-- [ ] claims_roster
-- [ ] claims_top_conditions
-- [ ] claims_top_ip_conditions
-- [ ] claims_top_providers

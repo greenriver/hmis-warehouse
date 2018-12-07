@@ -15,12 +15,12 @@ module Health
     phi_attr :allergy_list, Phi::NeedsReview
     phi_attr :primary_care_physician, Phi::SmallPopulation
     phi_attr :transgender, Phi::SmallPopulation
-    phi_attr :race, Phi::SmallPopulation
-    phi_attr :ethnicity, Phi::SmallPopulation
+    # phi_attr :race, Phi::SmallPopulation
+    # phi_attr :ethnicity, Phi::SmallPopulation
     phi_attr :veteran_status, Phi::SmallPopulation
     phi_attr :ssn, Phi::Ssn
     phi_attr :client_id, Phi::OtherIdentifier
-    phi_attr :gender, Phi::SmallPopulation
+    # phi_attr :gender, Phi::SmallPopulation
     phi_attr :consent_revoked, Phi::Date
     phi_attr :medicaid_id, Phi::HealthPlan
     phi_attr :housing_status, Phi::NeedsReview

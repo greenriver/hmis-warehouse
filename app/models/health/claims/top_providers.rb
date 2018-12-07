@@ -1,8 +1,13 @@
+# Risk: Describes a patient and contains PHI
+# Control: PHI attributes documented
 module Health::Claims
   class TopProviders < Base
     self.table_name = :claims_top_providers
 
-    def column_headers 
+    phi_patient :medicaid_id
+    phi_attr :provider_name, Phi::SmallPopulation
+
+    def column_headers
       {
         medicaid_id: "ID_MEDICAID",
         rank: "Rank",
