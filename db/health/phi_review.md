@@ -3,15 +3,14 @@
 - [x] agencies
 - [x] agency_users
 - [x] data_sources
-- [x] equipment
-- [x] services
 
-# PHI referred to - patient not IDed directly
+# PHI referred to ??? - patient not IDed directly
 - [x] agency_patient_referrals
 - [x] user_care_coordinators
 - [x] epic_qualifying_activities
+- [x] signable_documents
 
-# PHI annotated
+# PHI related models - annotated
 - [x] patients
 - [x] appointments (belong_to patient)
 - [x] careplans (belong_to patient)
@@ -33,10 +32,11 @@
 - [x] release_forms (belong_to patient)
 - [x] self_sufficiency_matrix_forms (belong_to patient)
 - [x] patient_referrals (belong_to patient)
+- [x] services (belong_to patient)
+- [x] equipment (belong_to patient)
 
 # Sensitive logs
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
-
 
 # TODO
 - [ ] claims
@@ -48,18 +48,12 @@
 - [ ] claims_top_ip_conditions
 - [ ] claims_top_providers
 - [ ] cps
-
 - [ ] epic_case_note_qualifying_activities
 - [ ] epic_chas
 - [ ] epic_ssms
-
 - [ ] member_status_report_patients
 - [ ] member_status_reports
-
 - [ ] patient_referral_imports
-
-
 - [ ] sdh_case_management_notes
 
-- [ ] signable_documents
 - [ ] signature_requests

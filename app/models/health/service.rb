@@ -1,9 +1,17 @@
 # ### HIPPA Risk Assessment
-# Risk: None - contains no PHI
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Service < HealthBase
-
     acts_as_paranoid
+
+    phi_patient :patient_id
+
+    phi_attr :effective_date, Phi::Date
+    phi_attr :date_requested, Phi::Date
+    phi_attr :end_date, Phi::Date
+    phi_attr :item, Phi::FreeText
+    phi_attr :comments, Phi::FreeText
 
     has_many :careplans
     belongs_to :patient, required: true

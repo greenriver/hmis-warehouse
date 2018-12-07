@@ -7,6 +7,7 @@ module Health
     include ArelHelper
 
     phi_patient :patient_id
+
     phi_attr :first_name, Phi::Name
     phi_attr :last_name, Phi::Name
     phi_attr :birthdate, Phi::Date

@@ -1,6 +1,27 @@
 # https://app.hellosign.com/api/reference
+#
+# ### HIPPA Risk Assessment
+# Risk: Indirectly relates to a patient
+# Control: PHI attributes documented
 module Health
   class SignableDocument < HealthBase
+    # phi_attr :signable_id
+    # phi_attr :signable_type
+    # phi_attr :primary
+    # phi_attr :user_id
+    # phi_attr :hs_initial_request
+    # phi_attr :hs_initial_response
+    phi_attr :hs_initial_response_at, Phi::Date
+    # phi_attr :hs_last_response
+    phi_attr :hs_last_response_at, Phi::Date
+    # phi_attr :hs_subject
+    # phi_attr :hs_title
+    phi_attr :hs_message, Phi::FreeText
+    phi_attr :signers, Phi::FreeText
+    phi_attr :signed_by, Phi::FreeText
+    phi_attr :expires_at, Phi::Date
+    phi_attr :health_file_id, Phi::OtherIdentifier
+
     attr_accessor :pdf_content_to_upload
 
     validates :signable_id, presence: true
