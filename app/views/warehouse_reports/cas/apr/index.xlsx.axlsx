@@ -1,31 +1,23 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "CAS Match Process") do |sheet|
+wb.add_worksheet(name: "CAS Matches") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  warning = "The following matches started between #{@range.start} and #{@range.end}.  Looking at the time between #{@step_range.first} and #{@step_range.second}."
-  sheet.add_row([warning])
-  sheet.merge_cells("A1:F1")
   columns = [
-    'Program',
-    'Sub-Program',
-    'Days Between Steps',
-    'Terminal Step',
-    'Terminal Date',
-    "Result",
-    'Link',
+    'Match Route',
+    'Match Initiated',
+    'Move-in Date',
+    'Match Completed',
+    'Terminal Status',
   ]
   sheet.add_row(columns, :style => title)
-  @matches.each do |_,match|
-    terminal_step = @all_steps[match.id.to_i]&.last
-    row = [
-      match.program_name,
-      match.sub_program_name,
-      match.days,
-      terminal_step&.match_step,
-      terminal_step&.updated_at&.to_date,
-      terminal_step&.terminal_status,
-      "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}",
-    ]
-  sheet.add_row(row)
-
+  @report.match_dates.each do |row|
+    sheet.add_row(
+      [
+        row[:match_route],
+        row[:match_started_at],
+        row[:housed_on], 
+        row[:updated_at], 
+        row[:terminal_status],
+      ]
+    )
   end
 end
