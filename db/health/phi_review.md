@@ -15,18 +15,21 @@
 - [x] patients
 - [x] appointments (belong_to patient)
 - [x] careplans (belong_to patient)
+- [x] comprehensive_health_assessments (belong_to patient)
 - [x] epic_careplans (belong_to patient)
+- [x] epic_case_notes
 - [x] epic_goals (belong_to patient)
 - [x] epic_patients (belong_to patient)
-- [x] epic_case_notes
+- [x] health_files (belong_to patient indirectly)
 - [x] health_goals (belong_to patient) - STI modal
 - [x] medications (belong_to patient)
 - [x] problems (belong_to patient)
-- [x] teams (belong_to patient)
+- [x] qualifying_activities (belong_to patient)
 - [x] team_members (belong_to patient)
+- [x] teams (belong_to patient)
 - [x] visits (belong_to patient)
-- [x] comprehensive_health_assessments
-- [x] health_files
+
+# Sensitive logs
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
 
 
@@ -51,7 +54,7 @@
 - [ ] participation_forms
 - [ ] patient_referral_imports
 - [ ] patient_referrals
-- [ ] qualifying_activities
+
 - [ ] release_forms
 - [ ] sdh_case_management_notes
 - [ ] self_sufficiency_matrix_forms
