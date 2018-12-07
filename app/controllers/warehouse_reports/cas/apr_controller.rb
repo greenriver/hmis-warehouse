@@ -19,11 +19,24 @@ module WarehouseReports::Cas
       date_range_options = params.permit(range: [:start, :end])[:range]
       unless date_range_options.present?
         date_range_options = {
-          start: 13.month.ago.to_date,
-          end: 1.months.ago.to_date,
+          start: default_start_date,
+          end: default_end_date,
         }
       end
       @range = ::Filters::DateRange.new(date_range_options)
+    end
+
+    def default_start_date
+      default_end_date - 1.years + 1.days
+    end
+
+    def default_end_date
+      if Date.today.month > 6
+        year = Date.today.year
+      else
+        year = Date.today.year - 1.years
+      end
+      Date.new(year, 6, 30)
     end
 
     def report_source
