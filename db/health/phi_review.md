@@ -4,7 +4,7 @@
 - [x] agency_users
 - [x] data_sources
 - [x] patient_referral_imports (file_name but not contents?)
-- [x] cps
+- [x] cps "Community Partners"
 
 # PHI referred to ??? - patient not IDed directly
 - [x] agency_patient_referrals
@@ -12,6 +12,9 @@
 - [x] epic_qualifying_activities
 - [x] signable_documents
 - [x] member_status_reports - there may be only small number of member_status_report_patients with the same member_status_reports.id
+
+# PHI bulks transfers - model documents a bulk echange of PHI with a authorized agency
+- [x] claims
 
 # PHI related models - annotated
 - [x] patients
@@ -48,7 +51,6 @@
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
 
 # TODO
-- [ ] claims
 - [ ] claims_amount_paid_location_month
 - [ ] claims_claim_volume_location_month
 - [ ] claims_ed_nyu_severity

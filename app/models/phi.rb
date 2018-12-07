@@ -1,5 +1,14 @@
 module Phi
-  class Category; end;
+  class Category
+    def self.as_json
+      name
+    end
+  end
+
+  # blog or attachment contains serialzied bulk PHI
+  class Bulk < Category;
+  end
+
   # Safe Harbor Identifiers
   class Name < Category; end
   class Location < Category; end

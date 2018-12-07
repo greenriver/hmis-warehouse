@@ -19,7 +19,7 @@ module Health
     phi_attr :user_id, Phi::OtherIdentifier
     phi_attr :user_full_name, Phi::NeedsReview
     phi_attr :follow_up, Phi::FreeText
-    phi_attr :claim_id, Phi::OtherIdentifier
+    phi_attr :claim_id, Phi::SmallPopulation # belongs_to Health::Claim
     # phi_attr :force_payable
     # phi_attr :naturally_payable
     phi_attr :sent_at, Phi::Date
