@@ -1,0 +1,20 @@
+- [x] patients
+- [x] appointments (belong_to patient)
+- [x] careplans (belong_to patient)
+- [x] epic_goals (belong_to patient)
+- [ ] health_goals (belong_to patient) - STI modal
+- [x] medications (belong_to patient)
+- [x] problems (belong_to patient)
+- [x] visits (belong_to patient)
+- [ ] teams (belong_to patient)
+  - [ ] team_members (belong_to team) - No direct PHI but see notes
+- [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
+
+- [ ] claims_amount_paid_location_month
+- [ ] claims_claim_volume_location_month
+- [ ] claims_ed_nyu_severity
+- [ ] claims_roster
+- [ ] claims_top_conditions
+- [ ] claims_top_ip_conditions
+- [ ] claims_top_providers
+- [ ] ...

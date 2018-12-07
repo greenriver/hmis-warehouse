@@ -1,7 +1,17 @@
 module Health
   class Careplan < HealthBase
-
     acts_as_paranoid
+
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :sdh_enroll_date, Phi::SmallPopulation
+    phi_attr :first_meeting_with_case_manager_date, Phi::Date
+    phi_attr :self_sufficiency_baseline_due_date, Phi::Date
+    phi_attr :self_sufficiency_final_due_date, Phi::Date
+    phi_attr :self_sufficiency_baseline_completed_date, Phi::Date
+    phi_attr :self_sufficiency_final_completed_date, Phi::Date
+
     # has_many :goals, class_name: Health::Goal::Base.name
     # has_many :hpc_goals, class_name: Health::Goal::Hpc.name
     has_one :team, class_name: Health::Team.name, dependent: :destroy

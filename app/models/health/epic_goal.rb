@@ -1,5 +1,16 @@
 module Health
   class EpicGoal < EpicBase
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :entered_by, Phi::NeedsReview
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :entered_by, Phi::NeedsReview
+    phi_attr :ordered_date, Phi::Date
+    phi_attr :goal_created_at, Phi::Date
+    phi_attr :title, Phi::FreeText
+    phi_attr :contents, Phi::FreeText
+    phi_attr :received_valid_complaint, Phi::NeedsReview
+
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals
 
     scope :visible, -> do

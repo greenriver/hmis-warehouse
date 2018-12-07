@@ -1,8 +1,10 @@
 module Health
   class Team < HealthBase
-    # TODO remove me
-    has_paper_trail
     acts_as_paranoid
+
+    phi_patient :patient_id
+    phi_attr :id, ::Phi::OtherIdentifier
+
     has_many :members, class_name: Health::Team::Member.name
     # has_one :pcp_designee, class_name: Health::Team::PcpDesignee.name
     belongs_to :patient

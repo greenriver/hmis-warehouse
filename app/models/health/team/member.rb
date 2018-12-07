@@ -1,3 +1,5 @@
+# ### HIPPA Risk Assessment
+
 module Health
   class Team::Member < HealthBase
     include ArelHelper

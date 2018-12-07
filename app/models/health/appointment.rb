@@ -1,5 +1,13 @@
 module Health
   class Appointment < EpicBase
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :date_of_service, Phi::Date
+    phi_attr :appointment_time, Phi::Date
+    phi_attr :notes, Phi::FreeText
+    phi_attr :doctor, Phi::SmallPopulation
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :sa, Phi::NeedsReview
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
     scope :limited, -> do

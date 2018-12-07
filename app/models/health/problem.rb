@@ -1,5 +1,12 @@
 module Health
   class Problem < EpicBase
+    phi_patient :patient_id
+    phi_attr :onset_date, Phi::Date
+    phi_attr :last_assessed, Phi::Date
+    phi_attr :name, Phi::FreeText
+    phi_attr :comment, Phi::FreeText
+    phi_attr :icd10_list, Phi::SmallPopulation
+    phi_attr :id_in_source, Phi::OtherIdentifier
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :problems
 
