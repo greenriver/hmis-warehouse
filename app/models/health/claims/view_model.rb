@@ -1,3 +1,6 @@
+# ### HIPPA Risk Assessment
+# Risk: View model. Refers to PHI related models thru their documents public interfaces.
+# Controls should be implemented there
 module Health::Claims
   class ViewModel
 

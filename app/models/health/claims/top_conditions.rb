@@ -1,3 +1,4 @@
+# ### HIPPA Risk Assessment
 # Risk: Describes a patient and contains PHI
 # Control: PHI attributes documented
 module Health::Claims

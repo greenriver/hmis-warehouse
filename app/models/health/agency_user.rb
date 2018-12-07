@@ -1,3 +1,5 @@
+# ### HIPPA Risk Assessment
+# Risk: None - contains no PHI
 module Health
   class AgencyUser < HealthBase
 
@@ -6,6 +8,6 @@ module Health
 
     belongs_to :agency, class_name: 'Health::Agency', foreign_key: 'agency_id'
     belongs_to :user
-    
+
   end
 end

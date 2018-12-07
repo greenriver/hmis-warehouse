@@ -1,3 +1,6 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicGoal < EpicBase
     phi_patient :patient_id
