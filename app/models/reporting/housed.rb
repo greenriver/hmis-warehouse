@@ -402,6 +402,13 @@ module Reporting
         pluck(*one_project_columns.values).
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]
+          # Force some dates, if we've been exited but are missing move-in and search end.
+          if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
+            residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
+          end
+          if residential_enrollment[:housing_exit].present? && residential_enrollment[:housed_date].blank?
+            residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
+          end
           residential_enrollment[:source] = 'move-in-date'
           en = default_row.merge(residential_enrollment)
           en
