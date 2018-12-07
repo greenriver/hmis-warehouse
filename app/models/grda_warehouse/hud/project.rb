@@ -418,10 +418,15 @@ module GrdaWarehouse::Hud
 
     # make a scope for every project type and a type? method for instances
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
-      scope k, -> { where ProjectType: v }
+      scope k, -> { where(self.project_type_column => v) }
       define_method "#{k}?" do
-        v.include? self.ProjectType
+        v.include? self[self.class.project_type_column]
       end
+    end
+
+    scope :rrh, -> { where(self.project_type_column => 13) }
+    def rrh?
+      self[self.class.project_type_column].to_i == 13
     end
 
     alias_attribute :name, :ProjectName

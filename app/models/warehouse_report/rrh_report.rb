@@ -12,6 +12,38 @@ class WarehouseReport::RrhReport
     @household_type = Reporting::Housed.household_type(household_type)
   end
 
+  def pre_placement_project_name
+    @pre_placement_project_name ||= unless all_projects
+      housed_scope.where.not(service_project: nil).
+        where.not(service_project: 'No Service Enrollment').
+        distinct.
+        pluck(:service_project).
+        join(', ')
+    else
+      ''
+    end
+  end
+
+  def stabilization_project_name
+    @stabilization_project_name ||= unless all_projects
+      housed_scope.where.not(residential_project: nil).
+        distinct.
+        pluck(:residential_project).
+        join(', ')
+    else
+      ''
+    end
+  end
+
+  def project_names
+    @project_names ||= 
+    (
+      pre_placement_project_name.split(', ') + 
+      stabilization_project_name.split(', ')
+    ).uniq.
+      join(', ')
+  end
+
   # newly enrolled during date range
   def entering_pre_placement
     housed_scope.entering_pre_placement(start_date: start_date, end_date: end_date).
@@ -59,7 +91,7 @@ class WarehouseReport::RrhReport
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:search_start).map do |entry_date| 
-        [entry_date, Date.today] 
+        [entry_date, end_date] 
       end
   end
 
@@ -91,7 +123,7 @@ class WarehouseReport::RrhReport
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:housed_date).map do |entry_date| 
-        [entry_date, Date.today] 
+        [entry_date, end_date] 
       end
   end
 
@@ -123,7 +155,7 @@ class WarehouseReport::RrhReport
       stayers(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:search_start).map do |entry_date| 
-        [entry_date, Date.today] 
+        [entry_date, end_date] 
       end
   end
 
@@ -215,6 +247,13 @@ class WarehouseReport::RrhReport
       end
     end
     return @bucketed_returns.to_a
+  end
+
+  def returns_for_chart
+    {
+      labels: bucketed_returns.map(&:first),
+      data: [['Client count'] + bucketed_returns.map(&:last)],
+    }
   end
 
   # Supporting methods
@@ -320,11 +359,15 @@ class WarehouseReport::RrhReport
   end
 
   def housed_scope
-    if @project_id != :all
+    if ! all_projects
       housed_source.where(project_id: @project_id).send(@subpopulation).send(@household_type)
     else
       housed_source.all.send(@subpopulation).send(@household_type)
     end
+  end
+
+  def all_projects
+    @project_id == :all
   end
 
   def ho_t

@@ -16,6 +16,8 @@
       - else
         projects
       during the reporting period.
+      .project-name.text-small.mt-2
+        %em= @report.project_names
   .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
     %h4.title
       Clients Enrolled in Pre-Placement
@@ -33,6 +35,8 @@
       - else
         projects
       during the reporting period.
+      .project-name.text-small.mt-2
+        %em= @report.pre_placement_project_name
   .rrh__enrolled.chunk.-stabilization
     %h4.title
       Clients Enrolled in Stabilization
@@ -50,3 +54,5 @@
       - else
         projects
       during the reporting period.
+      .project-name.text-small.mt-2
+        %em= @report.stabilization_project_name
