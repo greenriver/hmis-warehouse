@@ -9,42 +9,37 @@ class AccountsController < ApplicationController
     if @user.first_name != account_params[:first_name] || @user.last_name != account_params[:last_name]
       changed_notes << "Account name was updated."
     end
-    if @user.email != account_params[:email]
-      changed_notes << "Account email was updated, check your inbox for a confirmation link."
+    if @user.email_schedule != account_params[:email_schedule]
+      changed_notes << "Email schedule was updated."
     end
-    if account_params[:password_confirmation].present? && (account_params[:password] == account_params[:password_confirmation])
-      changed_notes << "Password was changed. "
+    if @user.phone != account_params[:phone]
+      changed_notes << "Phone number was updated."
     end
-    changed_notes << "Account updated." if changed_notes.empty?
-    if @user.update_with_password(account_params)
+    if @user.agency != account_params[:agency]
+      changed_notes << "Agency name was updated."
+    end
+
+    if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')
-
+      @user.update(account_params)
       bypass_sign_in(@user)
-      redirect_to edit_account_path
-    else
-      render 'edit'
     end
-
+    redirect_to edit_account_path
   end
 
-  private
-    def account_params
-      params.require(:user).
-        permit(
-          :first_name,
-          :last_name,
-          :email,
-          :phone,
-          :agency,
-          :current_password,
-          :password,
-          :password_confirmation,
-          :email_schedule,
-        )
-    end
+  private def account_params
+    params.require(:user).
+      permit(
+        :first_name,
+        :last_name,
+        :phone,
+        :agency,
+        :email_schedule,
+      )
+  end
 
-    def set_user
-      @user = current_user
-    end
+  private def set_user
+    @user = current_user
+  end
 
 end
