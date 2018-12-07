@@ -53,9 +53,7 @@
 - [x] claims_top_conditions (medicare_id)
 - [x] claims_top_ip_conditions (medicare_id)
 - [x] claims_amount_paid_location_month (medicare_id)
+- [x] claims_claim_volume_location_month (medicare_id)
 
 # Sensitive logs
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
-
-# TODO
-- [ ] claims_claim_volume_location_month
