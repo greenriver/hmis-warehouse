@@ -1,3 +1,5 @@
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Team < HealthBase
     acts_as_paranoid
