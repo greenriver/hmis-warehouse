@@ -1,6 +1,10 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Problem < EpicBase
     phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
     phi_attr :onset_date, Phi::Date
     phi_attr :last_assessed, Phi::Date
     phi_attr :name, Phi::FreeText

@@ -1,12 +1,14 @@
 # PHI-fere
 - [x] accountable_care_organizations
 - [x] agencies
-- [ ] AgencyPatientReferral
 - [x] agency_users
 - [x] data_sources
+- [x] equipment
+- [x] services
 
-
-
+# PHI referred to - patient not IDed directly
+- [x] agency_patient_referrals
+- [x] user_care_coordinators
 
 # PHI annotated
 - [x] patients
@@ -14,14 +16,15 @@
 - [x] careplans (belong_to patient)
 - [x] epic_goals (belong_to patient)
 - [x] epic_patients (belong_to patient)
-- [-] health_goals (belong_to patient) - STI modal
-- [-] medications (belong_to patient)
-- [-] problems (belong_to patient)
-- [-] teams (belong_to patient)
-  - [-] team_members (belong_to team) - No direct PHI but see notes
-- [-] visits (belong_to patient)
-- [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
+- [x] health_goals (belong_to patient) - STI modal
+- [x] medications (belong_to patient)
+- [x] problems (belong_to patient)
+- [x] teams (belong_to patient)
+- [x] team_members (belong_to patient)
+- [x] visits (belong_to patient)
 - [x] comprehensive_health_assessments
+- [x] health_files
+- [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
 
 # TODO
 - [ ] claims
@@ -33,6 +36,7 @@
 - [ ] claims_top_ip_conditions
 - [ ] claims_top_providers
 - [ ] cps
+
 - [ ] epic_careplans
 - [ ] epic_case_note_qualifying_activities
 - [ ] epic_case_notes
@@ -42,8 +46,7 @@
 - [ ] epic_qualifying_activities
 - [ ] epic_ssms
 - [ ] epic_team_members
-- [ ] equipment
-- [ ] health_files
+
 - [ ] member_status_report_patients
 - [ ] member_status_reports
 - [ ] participation_forms
@@ -53,7 +56,6 @@
 - [ ] release_forms
 - [ ] sdh_case_management_notes
 - [ ] self_sufficiency_matrix_forms
-- [ ] services
+
 - [ ] signable_documents
 - [ ] signature_requests
-- [ ] user_care_coordinators

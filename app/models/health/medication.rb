@@ -1,11 +1,15 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Medication < EpicBase
     phi_patient :patient_id
-    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :id, Phi::OtherIdentifier
     phi_attr :start_date, Phi::Date
     phi_attr :ordered_date, Phi::Date
-    phi_attr :instructions, Phi::FreeText
     phi_attr :name, Phi::NeedsReview
+    phi_attr :instructions, Phi::FreeText
+    phi_attr :id_in_source, Phi::OtherIdentifier
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :medications
 

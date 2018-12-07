@@ -1,6 +1,8 @@
+# ### HIPPA Risk Assessment
+# Risk: None - contains no PHI
 module Health
   class Service < HealthBase
-    
+
     acts_as_paranoid
 
     has_many :careplans
@@ -9,7 +11,7 @@ module Health
     validates_presence_of :service_type
 
     def self.available_types
-      [ 
+      [
         'Primary Care Physician (PCP)',
         'Home Health',
         'Psychiatrist',

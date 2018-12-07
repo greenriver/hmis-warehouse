@@ -31,7 +31,7 @@ module Health
     phi_attr :team_members_archive, Phi::FreeText
     phi_attr :patient_signature_requested_at, Phi::Date
     phi_attr :provider_signature_requested_at, Phi::Date
-    phr_attr :health_file_id, Phi::OtherIdentifier
+    phi_attr :health_file_id, Phi::OtherIdentifier
 
     # has_many :goals, class_name: Health::Goal::Base.name
     # has_many :hpc_goals, class_name: Health::Goal::Hpc.name
