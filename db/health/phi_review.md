@@ -32,6 +32,7 @@
 - [x] participation_forms (belong_to patient)
 - [x] release_forms (belong_to patient)
 - [x] self_sufficiency_matrix_forms (belong_to patient)
+- [x] patient_referrals (belong_to patient)
 
 # Sensitive logs
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
@@ -56,7 +57,7 @@
 - [ ] member_status_reports
 
 - [ ] patient_referral_imports
-- [ ] patient_referrals
+
 
 - [ ] sdh_case_management_notes
 

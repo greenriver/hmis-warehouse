@@ -1,7 +1,71 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class PatientReferral < HealthBase
     include PatientReferralImporter
     include ArelHelper
+
+    phi_patient :patient_id
+    phi_attr :first_name, Phi::Name
+    phi_attr :last_name, Phi::Name
+    phi_attr :birthdate, Phi::Date
+    phi_attr :ssn, Phi::Ssn
+    phi_attr :medicaid_id, Phi::HealthPlan
+    # phi_attr  :agency_id
+    # phi_attr  :rejected
+    # phi_attr :rejected_reason
+    phi_attr :accountable_care_organization_id, Phi::OtherIdentifier
+    phi_attr :effective_date, Phi::Date
+    phi_attr :middle_initial, Phi::Name
+    phi_attr :suffix, Phi::Name
+    # phi_attr :gender
+    phi_attr :aco_name, Phi::NeedsReview
+    phi_attr :aco_mco_pid, Phi::HealthPlan
+    phi_attr :aco_mco_sl, Phi::NeedsReview
+    phi_attr :health_plan_id, Phi::OtherIdentifier
+    phi_attr :cp_assignment_plan, Phi::NeedsReview
+    phi_attr :cp_name_dsrip, Phi::NeedsReview
+    phi_attr :cp_name_official, Phi::NeedsReview
+    phi_attr :cp_pid, Phi::OtherIdentifier
+    phi_attr :cp_sl, Phi::NeedsReview
+    phi_attr :enrollment_start_date, Phi::Date
+    phi_attr :start_reason_description, Phi::FreeText
+    phi_attr :address_line_1, Phi::Location
+    phi_attr :address_line_2, Phi::Location
+    phi_attr :address_city, Phi::Location
+    phi_attr :address_zip, Phi::Location
+    phi_attr :address_zip_plus_4, Phi::Location
+    # phi_attr :address_state, Phi::Location # this is OK on its own
+    phi_attr :email, Phi::Email
+    phi_attr :phone_cell, Phi::Telephone
+    phi_attr :phone_day, Phi::Telephone
+    phi_attr :phone_night, Phi::Telephone
+    # phi_attr :primary_language
+    phi_attr :primary_diagnosis, Phi::SmallPopulation
+    phi_attr :secondary_diagnosis, Phi::SmallPopulation
+    phi_attr :pcp_last_name, Phi::SmallPopulation
+    phi_attr :pcp_first_name, Phi::SmallPopulation
+    phi_attr :pcp_npi, Phi::SmallPopulation
+    phi_attr :pcp_address_line_1, Phi::Location
+    phi_attr :pcp_address_line_2, Phi::Location
+    phi_attr :pcp_address_city, Phi::Location
+    # phi_attr :pcp_address_state
+    phi_attr :pcp_address_zip, Phi::Location
+    phi_attr :pcp_address_phone, Phi::SmallPopulation
+    phi_attr :dmh, Phi::NeedsReview
+    phi_attr :dds, Phi::NeedsReview
+    phi_attr :eoea, Phi::NeedsReview
+    phi_attr :ed_visits, Phi::NeedsReview
+    phi_attr :snf_discharge, Phi::NeedsReview
+    phi_attr :identification, Phi::LicenceNumber #Phi::NeedsReview ??
+    # phi_attr :record_status
+    phi_attr :updated_on, Phi::Date
+    phi_attr :exported_on, Phi::Date
+    # phi_attr :removal_acknowledge
+    phi_attr :disenrollment_date, Phi::Date
+    phi_attr :stop_reason_description, Phi::FreeText
+
     before_validation :update_rejected_from_reason
 
     # rejected_reason_none: 0 always needs to be there
@@ -135,7 +199,7 @@ module Health
     end
 
     def record_status
-      # patient has an inactive status, or has been rejected 
+      # patient has an inactive status, or has been rejected
       if inactive_outreach_stati.include?(outreach_status) || rejected?
         'I'
       else
