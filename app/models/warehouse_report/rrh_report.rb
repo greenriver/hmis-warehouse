@@ -90,7 +90,7 @@ class WarehouseReport::RrhReport
     @stayers_days_in_pre_placement ||= housed_scope.
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).map do |entry_date| 
+      pluck(:search_start).compact.map do |entry_date| 
         [entry_date, end_date] 
       end
   end
@@ -122,8 +122,9 @@ class WarehouseReport::RrhReport
     @stayers_days_in_stabilization ||= housed_scope.
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:housed_date).map do |entry_date| 
-        [entry_date, end_date] 
+      where.not(housed_date: nil).
+      pluck(:housed_date).compact.map do |entry_date| 
+        [entry_date, end_date]
       end
   end
 
@@ -154,7 +155,7 @@ class WarehouseReport::RrhReport
     @stayers_days ||= housed_scope.
       stayers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).map do |entry_date| 
+      pluck(:search_start).compact.map do |entry_date| 
         [entry_date, end_date] 
       end
   end
