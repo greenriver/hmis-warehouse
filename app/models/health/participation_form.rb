@@ -1,6 +1,19 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class ParticipationForm < HealthBase
     include ArelHelper
+    phi_patient :patient_id
+
+    phi_attr :signature_on, Phi::Date
+    phi_attr :case_manager_id, Phi::SmallPopulation
+    phi_attr :reviewed_by_id, Phi::SmallPopulation
+    phi_attr :location, Phi::SmallPopulation
+    phi_attr :health_file_id, Phi::SmallPopulation
+    phi_attr :reviewed_at, Phi::Date
+    phi_attr :reviewer, Phi::SmallPopulation
+
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'
 

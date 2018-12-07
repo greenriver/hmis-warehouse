@@ -26,8 +26,8 @@ class HealthBase < ActiveRecord::Base
 
     def phi_patient(attribute)
       raise ArgumentError, "attr (#{attr})  must method name as a symbol" unless attribute.is_a?(::Symbol)
-      if (existing = phi_dictionary_entry[:patient_id])
-        raise ArgumentError, "Cannot set more then one phi_patient per class: class:#{self} existing: #{existing}, new: #{attr}"
+      if (existing = phi_dictionary_entry[:patient_id]) && existing != attribute
+        raise ArgumentError, "Cannot set more then one phi_patient per class: class:#{self} existing: #{existing}, new: #{attribute}"
       end
       self.phi_dictionary_entry[:table_name] = table_name
       self.phi_dictionary_entry[:patient_id] = attribute
