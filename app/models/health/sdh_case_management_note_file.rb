@@ -1,3 +1,6 @@
+# ### HIPPA Risk Assessment
+# Risk: Indirectly relates to a patient. Binary data may contain PHI
+# Control: PHI attributes documented in base class
 module Health
   class SdhCaseManagementNoteFile < Health::HealthFile
 

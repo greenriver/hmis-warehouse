@@ -54,7 +54,6 @@
 - [ ] participation_forms
 - [ ] patient_referral_imports
 - [ ] patient_referrals
-
 - [ ] release_forms
 - [ ] sdh_case_management_notes
 - [ ] self_sufficiency_matrix_forms

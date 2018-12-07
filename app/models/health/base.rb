@@ -1,3 +1,5 @@
+# ### HIPPA Risk Assessment
+# Risk: None - contains no PHI
 module Health
   class Base < HealthBase
     self.abstract_class = true
