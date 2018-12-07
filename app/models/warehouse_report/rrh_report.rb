@@ -97,7 +97,7 @@ class WarehouseReport::RrhReport
 
   def stayers_average_days_in_pre_placement
     days = stayers_days_in_pre_placement.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days_in_pre_placement.count).round
@@ -112,7 +112,7 @@ class WarehouseReport::RrhReport
 
   def leavers_average_days_in_stabilization
     days = leavers_days_in_stabilization.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / leavers_days_in_stabilization.count).round
@@ -129,7 +129,7 @@ class WarehouseReport::RrhReport
 
   def stayers_average_days_in_stabilization
     days = stayers_days_in_stabilization.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days_in_stabilization.count).round
@@ -161,7 +161,7 @@ class WarehouseReport::RrhReport
 
   def stayers_average_days
     days = stayers_days.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days.count).round
