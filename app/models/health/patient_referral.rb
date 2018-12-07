@@ -21,15 +21,15 @@ module Health
     phi_attr :middle_initial, Phi::Name
     phi_attr :suffix, Phi::Name
     # phi_attr :gender
-    phi_attr :aco_name, Phi::NeedsReview
-    phi_attr :aco_mco_pid, Phi::HealthPlan
-    phi_attr :aco_mco_sl, Phi::NeedsReview
+    # phi_attr :aco_name, Phi::NeedsReview
+    # phi_attr :aco_mco_pid, Phi::NeedsReview
+    # phi_attr :aco_mco_sl, Phi::NeedsReview
     phi_attr :health_plan_id, Phi::OtherIdentifier
     phi_attr :cp_assignment_plan, Phi::NeedsReview
     phi_attr :cp_name_dsrip, Phi::NeedsReview
     phi_attr :cp_name_official, Phi::NeedsReview
-    phi_attr :cp_pid, Phi::OtherIdentifier
-    phi_attr :cp_sl, Phi::NeedsReview
+    # phi_attr :cp_pid, Phi::NeedsReview
+    # phi_attr :cp_sl, Phi::NeedsReview
     phi_attr :enrollment_start_date, Phi::Date
     phi_attr :start_reason_description, Phi::FreeText
     phi_attr :address_line_1, Phi::Location
