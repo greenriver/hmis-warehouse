@@ -1,4 +1,4 @@
-# PHI-fere
+# PHI-free
 - [x] accountable_care_organizations
 - [x] agencies
 - [x] agency_users
