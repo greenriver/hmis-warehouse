@@ -9,7 +9,7 @@ module Health
     phi_attr :reviewer, Phi::SmallPopulation
     phi_attr :completed_at, Phi::Date
     phi_attr :reviewed_at, Phi::Date
-    phi_attr :health_file_id, Phi::SmallPopulation
+    phi_attr :health_file_id, Phi::OtherIdentifier
     phi_attr :answers, Phi::FreeText
 
     # Generates translation keys of the form "CHA A_Q5_A6"

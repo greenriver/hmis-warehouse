@@ -10,7 +10,7 @@ module Health
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :signature_on, Phi::Date
     # phi_attr :file_location, Phi::SmallPopulation
-    phi_attr :health_file_id, Phi::SmallPopulation
+    phi_attr :health_file_id, Phi::OtherIdentifier
     phi_attr :reviewed_by_id, Phi::SmallPopulation
     phi_attr :reviewed_at, Phi::Date
     phi_attr :reviewer, Phi::SmallPopulation
