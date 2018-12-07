@@ -4,7 +4,6 @@ module Health
     phi_attr :id, Phi::OtherIdentifier
     phi_attr :entered_by, Phi::NeedsReview
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :entered_by, Phi::NeedsReview
     phi_attr :ordered_date, Phi::Date
     phi_attr :goal_created_at, Phi::Date
     phi_attr :title, Phi::FreeText

@@ -9,13 +9,16 @@
 # PHI referred to - patient not IDed directly
 - [x] agency_patient_referrals
 - [x] user_care_coordinators
+- [x] epic_qualifying_activities
 
 # PHI annotated
 - [x] patients
 - [x] appointments (belong_to patient)
 - [x] careplans (belong_to patient)
+- [x] epic_careplans (belong_to patient)
 - [x] epic_goals (belong_to patient)
 - [x] epic_patients (belong_to patient)
+- [x] epic_case_notes
 - [x] health_goals (belong_to patient) - STI modal
 - [x] medications (belong_to patient)
 - [x] problems (belong_to patient)
@@ -25,6 +28,7 @@
 - [x] comprehensive_health_assessments
 - [x] health_files
 - [x] versions - PaperTrail audit log. May contain PHIs from any other Health model!
+
 
 # TODO
 - [ ] claims
@@ -37,13 +41,8 @@
 - [ ] claims_top_providers
 - [ ] cps
 
-- [ ] epic_careplans
 - [ ] epic_case_note_qualifying_activities
-- [ ] epic_case_notes
 - [ ] epic_chas
-- [ ] epic_goals
-- [ ] epic_patients
-- [ ] epic_qualifying_activities
 - [ ] epic_ssms
 - [ ] epic_team_members
 
