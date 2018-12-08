@@ -171,14 +171,19 @@ class WarehouseReport::RrhReport
 
   def destinations
     @destinations ||= begin
-      @destinations = {}
+      @destinations = {
+        'returned to shelter' => {},
+        'exited to other institution' => {},
+        'successful exit to PH' => {},
+        'exited to temporary destination' => {},
+        'unknown outcome' => {},
+      }
       housed_scope.
         leavers(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
         distinct.
         pluck(:client_id, :destination).map do |client_id, dest_id|
           destination = destination_bucket(client_id, dest_id)
-          @destinations[destination] ||= {}
           @destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
           @destinations[destination][:count] ||= 0
           @destinations[destination][:client_ids] ||= Set.new
@@ -186,7 +191,7 @@ class WarehouseReport::RrhReport
           @destinations[destination][:count] += 1 unless @destinations[destination][:client_ids].include?(client_id)
           @destinations[destination][:client_ids] << client_id
         end
-      @destinations
+      @destinations.delete_if{|_,v| v == {} }
     end
   end
 
