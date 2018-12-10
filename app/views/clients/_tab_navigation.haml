@@ -2,6 +2,10 @@
   :ruby
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
+    @note_count = 0
+    if can_edit_client_notes?
+      @note_count = @client.notes.count
+    end
     always_visible = {
       client_path(@client) => {
         title: 'Dashboard',
@@ -90,4 +94,4 @@
         permission: show_health_hpc,
       },
     }
-  = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
+  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
