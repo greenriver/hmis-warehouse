@@ -5,10 +5,12 @@ class BaseJob < ActiveJob::Base
   # When called through Active::Job, uses this hook
   before_perform do |job|
     if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
-      msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
-      notify_on_restart(msg)
-      if job.respond_to? :job_id
-        unlock_job!(job.job_id)
+      if File.exists?('config/exception_notifier.yml')
+        msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
+        notify_on_restart(msg)
+        if job.respond_to? :job_id
+          unlock_job!(job.job_id)
+        end
       end
       
       # Exit, ignoring signal handlers which would prevent the process from dying
@@ -25,9 +27,11 @@ class BaseJob < ActiveJob::Base
   def before job
     if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
       job = self unless job.respond_to? :locked_by
-      msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
-      notify_on_restart(msg)
-      unlock_job!(job.id)
+      File.exists?('config/exception_notifier.yml')
+        msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
+        notify_on_restart(msg)
+        unlock_job!(job.id)
+      end
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
