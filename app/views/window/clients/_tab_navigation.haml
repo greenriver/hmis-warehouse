@@ -3,6 +3,11 @@
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
     show_demographic = @client.show_window_demographic_to?(current_user) rescue false
+    @note_count = 0
+    show_notes = can_edit_window_client_notes? || can_see_own_window_client_notes?
+    if show_notes
+      @note_count = @client.window_notes.visible_by(current_user, @client).count
+    end
     always_visible = {
       polymorphic_path(client_path_generator, id: @client.id) => {
         title: 'Basic Info & Programs',
@@ -16,7 +21,7 @@
       },
       polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
         title: 'Notes',
-        permission: can_edit_window_client_notes? || can_see_own_window_client_notes?
+        permission: show_notes
       },
       polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
         title: 'VI-SPDAT',
@@ -75,4 +80,4 @@
 
     }
 
-  = render 'window/clients/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
+  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

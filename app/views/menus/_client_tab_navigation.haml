@@ -51,4 +51,11 @@
       - else
         - if details[:permission]
           - item_classes << 'active' if current_tab
-          %li{class: item_classes}= link_to details[:title], action
+          %li{class: item_classes}
+            = link_to action do
+              = details[:title]
+              - if details[:title] == 'Notes'
+                - if @note_count > 0
+                  .label.label-info
+                    = @note_count
+

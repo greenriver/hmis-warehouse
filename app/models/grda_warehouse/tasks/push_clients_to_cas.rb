@@ -26,12 +26,33 @@ module GrdaWarehouse::Tasks
           project_client.save!
         end
       end
+      maintain_cas_availability_table(@client_ids)
+
       if updated_clients.size > 0
         msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
         @notifier.ping msg if @send_notifications
       end
     end
 
+    # if the client was available and isn't included in this set
+    #   close the record
+    # if the client isn't already available
+    #   add a new record
+    def maintain_cas_availability_table client_ids
+      GrdaWarehouse::CasAvailability.already_available.where.not(client_id: client_ids).
+        update_all(unavailable_at: Time.now)
+      already_available = GrdaWarehouse::CasAvailability.already_available.pluck(:client_id)
+      available_at = Time.now
+      (client_ids - already_available).each do |id|
+        client = GrdaWarehouse::Hud::Client.find id
+        GrdaWarehouse::CasAvailability.create(
+          client_id: id, 
+          available_at: available_at,
+          part_of_a_family: client.family_member,
+          age_at_available_at: client.age,
+        )
+      end
+    end
 
     def data_source
       @data_source ||= Cas::DataSource.where(name: 'DND Warehouse').first_or_create
@@ -43,6 +64,7 @@ module GrdaWarehouse::Tasks
 
     def project_client_columns
       {
+        client_identifier: :id,
         first_name: :FirstName,
         last_name: :LastName,
         middle_name: :MiddleName,

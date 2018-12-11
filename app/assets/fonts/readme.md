@@ -12,7 +12,7 @@ To recreate the icon font and add to it (recommended method):
 6. From the zip file's style.css, in the font-face declaration at the top of the file, copy the url variable from one of the font file paths, e.g. 'emfcbl' 
 7. In the stylesheet (/app/assets/stylesheets/vendor/icomoon.scss) font-face declaration, paste in the new url variable in each font file path
 8. From the zip file's style.css, copy all of the css declarations
-9. In the stylesheet (/app/assets/stylesheets/vendor/icomoon.scss), paste over all of the css declarations. The icons are listed in the scss file in the order they appear in icomoon, so it's helpful for future generation to keep them in the same order.
+9. In the stylesheet (/app/assets/stylesheets/settings/_icons.scss), paste over all of the css declarations. The icons are listed in the scss file in the order they appear in icomoon, so it's helpful for future generation to keep them in the same order.
 10. Make sure you update app/views/style_guide/icon_font.haml with any icons you add
 
 To view all of the icons currently in use in the app, in development or on staging, view /style_guide/icon_font

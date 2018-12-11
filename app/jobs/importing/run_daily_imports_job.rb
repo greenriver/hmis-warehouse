@@ -144,9 +144,8 @@ module Importing
         # @notifier.ping('Data source date spans set') if @send_notifications
 
         Rails.cache.clear
-        # re-set cache key for delayed job
-        Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
-
+        warm_cache
+        
         # take snapshots of client enrollments 
         GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
@@ -201,6 +200,13 @@ module Importing
       @notifier.ping('Updating reporting database') if @send_notifications
       Reporting::Housed.new.populate!
       Reporting::Return.new.populate!
+    end
+
+    def warm_cache
+      # re-set cache key for delayed job
+      Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
+      GrdaWarehouse::DataSource.data_spans_by_id
+
     end
   end
 end

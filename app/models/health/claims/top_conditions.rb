@@ -1,8 +1,14 @@
+# ### HIPPA Risk Assessment
+# Risk: Describes a patient and contains PHI
+# Control: PHI attributes documented
 module Health::Claims
   class TopConditions < Base
     self.table_name = :claims_top_conditions
 
-    def column_headers 
+    phi_patient :medicaid_id
+    phi_attr :description, Phi::SmallPopulation
+
+    def column_headers
       {
         medicaid_id: "ID_MEDICAID",
         rank: "Rank",

@@ -1810,6 +1810,10 @@ module GrdaWarehouse::Hud
       # Enrollment Histories
       GrdaWarehouse::EnrollmentChangeHistory.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # CAS activity
+      GrdaWarehouse::CasAvailability.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild

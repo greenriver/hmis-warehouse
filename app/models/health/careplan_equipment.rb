@@ -1,6 +1,8 @@
+# ### HIPPA Risk Assessment
+# Risk: None - contains no PHI
 module Health
   class CareplanEquipment < HealthBase
-    
+
     acts_as_paranoid
 
     belongs_to :careplans, class_name: Health::Careplan.name

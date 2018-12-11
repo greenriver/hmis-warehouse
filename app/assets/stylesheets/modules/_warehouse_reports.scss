@@ -127,3 +127,28 @@
 {
   box-shadow: inset 0px 2px 0px -1px $brand-success;
 }
+
+[class^=rrh__] 
+{
+  .title
+  {
+
+  }
+  .metric
+  {
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+  .metric a
+  {
+    color: $cob-sg-charles-blue;
+  }
+  .description
+  {
+    font-size: 1rem;
+  }
+  &.chunk:not(:last-child)
+  {
+    border-right: 1px solid $gray-034;
+  }
+}

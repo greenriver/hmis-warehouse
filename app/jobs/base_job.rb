@@ -4,12 +4,14 @@ class BaseJob < ActiveJob::Base
 
   # When called through Active::Job, uses this hook
   before_perform do |job|
-    if STARTING_PATH != expected_path
+    if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
+
       msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)
       if job.respond_to? :job_id
         unlock_job!(job.job_id)
       end
+
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
@@ -23,11 +25,13 @@ class BaseJob < ActiveJob::Base
 
   # When called through Delayed::Job, uses this hook
   def before job
-    if STARTING_PATH != expected_path
+    if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
       job = self unless job.respond_to? :locked_by
+
       msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
       notify_on_restart(msg)
       unlock_job!(job.id)
+
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
@@ -43,14 +47,18 @@ class BaseJob < ActiveJob::Base
 
   def notify_on_restart msg
     Rails.logger.info msg
-    setup_notifier('DelayedJobRestarter')
-    @notifier.ping(msg) if @send_notifications
+    if File.exists?('config/exception_notifier.yml')
+      setup_notifier('DelayedJobRestarter')
+      @notifier.ping(msg) if @send_notifications
+    end
   end
 
   def notify_on_exception exception
-    setup_notifier('DelayedJobFailure')
-    msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
-    @notifier.ping(msg) if @send_notifications
+    if File.exists?('config/exception_notifier.yml')
+      setup_notifier('DelayedJobFailure')
+      msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
+      @notifier.ping(msg) if @send_notifications
+    end
   end
 
   def expected_path

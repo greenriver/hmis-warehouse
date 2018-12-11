@@ -116,35 +116,35 @@ module Importers::HMISSixOneOne
     end
 
     def import_enrollments()
-      import_enrollment_based_class(enrollment_source)
+      import_class(enrollment_source)
     end
 
     def import_exits()
-      import_enrollment_based_class(exit_source)
+      import_class(exit_source)
     end
 
     def import_services()
-      import_enrollment_based_class(service_source)
+      import_class(service_source)
     end
 
     def import_enrollment_cocs()
-      import_enrollment_based_class(enrollment_coc_source)
+      import_class(enrollment_coc_source)
     end
 
     def import_disabilities()
-      import_enrollment_based_class(disability_source)
+      import_class(disability_source)
     end
 
     def import_employment_educations()
-      import_enrollment_based_class(employment_education_source)
+      import_class(employment_education_source)
     end
 
     def import_health_and_dvs()
-      import_enrollment_based_class(health_and_dv_source)
+      import_class(health_and_dv_source)
     end
 
     def import_income_benefits()
-      import_enrollment_based_class(income_benefits_source)
+      import_class(income_benefits_source)
     end
 
     def self.pre_calculate_source_hashes!
@@ -217,12 +217,12 @@ module Importers::HMISSixOneOne
       end
     end
 
-    def import_enrollment_based_class klass
+    def import_class klass
       log("Importing #{klass.name}")
       begin
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
-        stats = klass.import_enrollment_related!(
+        stats = klass.import_related!(
           data_source_id: @data_source.id,
           file_path: @file_path,
           stats: @import.summary[file],
@@ -242,56 +242,32 @@ module Importers::HMISSixOneOne
       end
     end
 
-    def import_project_based_class klass
-      log("Importing #{klass.name}")
-      begin
-        file = importable_files.key(klass)
-        return unless @import.summary[file].present?
-        stats = klass.import_project_related!(
-          data_source_id: @data_source.id,
-          file_path: @file_path,
-          stats: @import.summary[file]
-        )
-        errors = stats.delete(:errors)
-        setup_summary(klass.file_name)
-        @import.summary[klass.file_name].merge!(stats)
-        if errors.present?
-          errors.each do |error|
-            add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
-          end
-        end
-      rescue ActiveRecord::ActiveRecordError => exception
-        message = "Unable to import #{klass.name}: #{exception.message}"
-        add_error(file_path: klass.file_name, message: message, line: '')
-      end
-    end
-
     def import_clients
-      import_project_based_class(client_source)
+      import_class(client_source)
     end
 
     def import_organizations
-      import_project_based_class(organization_source)
+      import_class(organization_source)
     end
 
     def import_inventories
-      import_enrollment_based_class(inventory_source)
+      import_class(inventory_source)
     end
 
     def import_project_cocs
-      import_enrollment_based_class(project_coc_source)
+      import_class(project_coc_source)
     end
 
     def import_geographies
-      import_enrollment_based_class(geography_source)
+      import_class(geography_source)
     end
 
     def import_funders
-      import_project_based_class(funder_source)
+      import_class(funder_source)
     end
 
     def import_affiliations
-      import_project_based_class(affiliation_source)
+      import_class(affiliation_source)
     end
 
     def set_involved_projects

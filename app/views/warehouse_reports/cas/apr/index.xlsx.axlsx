@@ -1,0 +1,25 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "CAS Matches") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  columns = [
+    'Match Route',
+    'Match Initiated',
+    'Move-in Date',
+    'Match Completed',
+    'Decline Reason',
+    'Terminal Status',
+  ]
+  sheet.add_row(columns, :style => title)
+  @report.match_dates.each do |row|
+    sheet.add_row(
+      [
+        row[:match_route],
+        row[:match_started_at],
+        row[:housed_on], 
+        row[:updated_at], 
+        row[:decline_reason],
+        row[:terminal_status],
+      ]
+    )
+  end
+end

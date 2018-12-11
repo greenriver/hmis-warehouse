@@ -1,8 +1,16 @@
+# ### HIPPA Risk Assessment
+# Risk: Attached claims_file contains EDI serialized PHI
+# Control: PHI attributes documented
+
 require "stupidedi"
 module Health
   class Claim < HealthBase
     include ArelHelper
     acts_as_paranoid
+
+    phi_attr :id, Phi::SmallPopulation
+    phi_attr :claims_file, Phi::Bulk # contains EDI serialized PHI
+
     has_many :qualifying_activities
     validates_presence_of :max_date
 
@@ -234,7 +242,7 @@ module Health
         "Running since #{started_at}"
       end
     end
-    
+
     def implementation_convention_reference_number
       '005010X222A1'
     end

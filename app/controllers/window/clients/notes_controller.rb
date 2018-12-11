@@ -25,7 +25,23 @@ module Window::Clients
             type: type
           }
         ))
-        flash[:notice] = "Added new note" 
+        notice = "Added new note"
+        # send notifications 
+        if note_params[:send_notification].present? && note_params[:recipients].present?
+          sent = []
+          token = Token.tokenize(window_client_notes_path(client_id: @client.id))
+          note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
+            user = User.find(id)
+            if user.present?
+              TokenMailer.note_added(user, token).deliver_later
+              sent << user.name
+            end
+          end
+          if sent.any?
+            notice += "; sent to: " + sent.join(', ') + '.'
+          end
+        end
+        flash[:notice] = notice
       rescue Exception => e
         @note.validate
         flash[:error] = "Failed to add note: #{e}"
@@ -71,6 +87,8 @@ module Window::Clients
         permit(
           :note,
           :type,
+          :send_notification,
+          recipients: [],
         )
     end
 

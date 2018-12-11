@@ -55,7 +55,7 @@ module Glacier
 
     def files!(path)
       _safely do
-        cmd = "tar -zcf - #{path} | gpg -e -r #{recipient}"
+        cmd = "sudo tar -zcf - #{path} | gpg -e -r #{recipient}"
         norm_path = path.gsub(/[^\d\w]/, '_')
 
         Backup.new({

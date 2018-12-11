@@ -1,7 +1,38 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Careplan < HealthBase
-
     acts_as_paranoid
+
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :sdh_enroll_date, Phi::SmallPopulation
+    phi_attr :first_meeting_with_case_manager_date, Phi::Date
+    phi_attr :self_sufficiency_baseline_due_date, Phi::Date
+    phi_attr :self_sufficiency_final_due_date, Phi::Date
+    phi_attr :self_sufficiency_baseline_completed_date, Phi::Date
+    phi_attr :self_sufficiency_final_completed_date, Phi::Date
+    phi_attr :patient_signed_on, Phi::Date
+    phi_attr :provider_signed_on, Phi::Date
+    phi_attr :initial_date, Phi::Date
+    phi_attr :patient_health_problems, Phi::FreeText
+    phi_attr :patient_strengths, Phi::FreeText
+    phi_attr :patient_goals, Phi::FreeText
+    phi_attr :patient_barriers, Phi::FreeText
+    phi_attr :responsible_team_member_id, Phi::SmallPopulation
+    phi_attr :provider_id, Phi::SmallPopulation
+    phi_attr :representative_id, Phi::SmallPopulation
+    phi_attr :responsible_team_member_signed_on, Phi::Date
+    phi_attr :representative_signed_on, Phi::Date
+    phi_attr :service_archive, Phi::FreeText
+    phi_attr :equipment_archive, Phi::FreeText
+    phi_attr :team_members_archive, Phi::FreeText
+    phi_attr :patient_signature_requested_at, Phi::Date
+    phi_attr :provider_signature_requested_at, Phi::Date
+    phi_attr :health_file_id, Phi::OtherIdentifier
+
     # has_many :goals, class_name: Health::Goal::Base.name
     # has_many :hpc_goals, class_name: Health::Goal::Hpc.name
     has_one :team, class_name: Health::Team.name, dependent: :destroy

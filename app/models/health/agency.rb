@@ -1,3 +1,5 @@
+# ### HIPPA Risk Assessment
+# Risk: None - contains no PHI
 module Health
   class Agency < HealthBase
     acts_as_paranoid

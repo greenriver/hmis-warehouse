@@ -11,10 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180925175825) do
+ActiveRecord::Schema.define(version: 20181204193329) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+  enable_extension "hstore"
+  enable_extension "fuzzystrmatch"
+  enable_extension "pgcrypto"
 
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
@@ -25,7 +28,7 @@ ActiveRecord::Schema.define(version: 20180925175825) do
     t.integer "destination"
     t.string  "service_project"
     t.string  "residential_project"
-    t.integer "client_id",           null: false
+    t.integer "client_id",                               null: false
     t.string  "source"
     t.date    "dob"
     t.string  "race"
@@ -35,6 +38,9 @@ ActiveRecord::Schema.define(version: 20180925175825) do
     t.date    "month_year"
     t.string  "ph_destination"
     t.integer "project_id"
+    t.boolean "presented_as_individual", default: false
+    t.boolean "children_only",           default: false
+    t.boolean "individual_adult",        default: false
   end
 
   add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree

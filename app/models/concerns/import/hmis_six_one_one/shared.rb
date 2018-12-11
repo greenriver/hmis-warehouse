@@ -114,7 +114,7 @@ module Import::HMISSixOneOne::Shared
       end
     end
 
-    def fetch_existing_for_project_batch data_source_id:, keys:
+    def fetch_existing_for_batch data_source_id:, keys:
       self.with_deleted.where(data_source_id: data_source_id).
         where(self.hud_key => keys).
         pluck(self.hud_key, :DateUpdated, :DateDeleted, :id, :source_hash).map do |key, updated_at, deleted_at, id, source_hash|
@@ -122,60 +122,7 @@ module Import::HMISSixOneOne::Shared
         end.to_h
     end
 
-    def fetch_existing_for_enrollment_batch data_source_id:, keys:
-      self.with_deleted.where(data_source_id: data_source_id).
-        where(self.hud_key => keys).
-        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id, :source_hash).map do |key, updated_at, deleted_at, id, source_hash|
-          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id, source_hash: source_hash})]
-        end.to_h
-    end
-
-    # Load up HUD Key and DateUpdated for existing in same data source
-    # Loop over incoming, see if the key is there with a newer DateUpdated
-    # Update if newer, create if it isn't there, otherwise do nothing
-    def import_project_related!(data_source_id:, file_path:, stats:)
-      import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
-      return stats unless File.exists?(import_file_path)
-      stats[:errors] = []
-      headers = nil
-      File.open(import_file_path) do |file|
-        header_row = file.first
-        file.lazy.each_slice(10_000) do |lines|
-          to_add = []
-          csv_rows = CSV.parse(lines.join, headers: header_row, header_converters: -> (h){h.to_sym})
-          csv_rows = csv_rows.map do |row|
-            clean_row_for_import(row)
-          end
-          existing_items = fetch_existing_for_project_batch(
-            data_source_id: data_source_id,
-            keys: hud_keys_for_batch(csv_rows)
-          )
-          csv_rows.each do |row|
-            export_id ||= row[:ExportID]
-            row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
-            # in some cases this replaces the renamed hud key,
-            # so it has to happen before checking for the existing
-            existing = existing_items[row[self.hud_key]]
-            if should_add?(existing)
-              clean_row = row.merge({data_source_id: data_source_id})
-              headers ||= clean_row.keys
-              to_add << clean_row
-            elsif needs_update?(row: row, existing: existing)
-              self.with_deleted.where(id: existing.id).update_all(row)
-              stats[:lines_updated] += 1
-            end
-          end
-          if to_add.any?
-            to_add = clean_to_add(to_add)
-            stats = process_to_add(headers: headers, to_add: to_add, stats: stats)
-          end
-
-        end
-      end
-      stats
-    end
-
-    def import_enrollment_related!(data_source_id:, file_path:, stats:, soft_delete_time:)
+    def import_related!(data_source_id:, file_path:, stats:, soft_delete_time:)
       import_file_path = "#{file_path}/#{data_source_id}/#{file_name}"
       return stats unless File.exists?(import_file_path)
       stats[:errors] = []
@@ -190,7 +137,7 @@ module Import::HMISSixOneOne::Shared
           csv_rows = csv_rows.map do |row|
             clean_row_for_import(row)
           end
-          existing_items = fetch_existing_for_enrollment_batch(
+          existing_items = fetch_existing_for_batch(
             data_source_id: data_source_id,
             keys: hud_keys_for_batch(csv_rows)
           )

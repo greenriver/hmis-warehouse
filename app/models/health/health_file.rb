@@ -1,6 +1,14 @@
+# ### HIPPA Risk Assessment
+# Risk: Indirectly relates to a patient. Binary data may contain PHI
+# Control: PHI attributes documented
 module Health
   class HealthFile < HealthBase
     acts_as_paranoid
+
+    phi_attr :file, Phi::FreeText
+    phi_attr :content, Phi::FreeText
+    phi_attr :note, Phi::FreeText
+
     belongs_to :user, required: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 

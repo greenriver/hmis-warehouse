@@ -116,6 +116,9 @@ Rails.application.routes.draw do
     ].freeze
   end
 
+  # obfuscation of links sent out via email
+  resources :tokens, only: [:show]
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       resources :support, only: [:index], controller: 'report_results/support'
@@ -158,7 +161,7 @@ Rails.application.routes.draw do
     resources :expiring_consent, only: [:index]
     resources :rrh, only: [:index] do
       collection do
-        get :program_data
+        get :clients
       end
     end
     resources :consent, only: [:index] do
@@ -257,6 +260,7 @@ Rails.application.routes.draw do
       resources :decline_reason, only: [:index]
       resources :canceled_matches, only: [:index]
       resources :process, only: [:index]
+      resources :apr, only: [:index]
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update
