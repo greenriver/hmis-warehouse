@@ -1,10 +1,12 @@
+# ### HIPPA Risk Assessment
+# Risk: None - abstract_class contains no PHI
 require 'roo'
 module Health::Claims
   class Base < HealthBase
     self.abstract_class = true
     include TsqlImport
     attr_accessor :sheet
-    
+
     def initialize(sheet)
       @sheet = sheet
     end
@@ -32,7 +34,7 @@ module Health::Claims
             value
           end
         end
-      end 
+      end
     end
 
     def validate_headers

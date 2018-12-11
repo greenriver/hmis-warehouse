@@ -1,5 +1,16 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class ComprehensiveHealthAssessment < HealthBase
+    phi_patient :patient_id
+    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :reviewed_by_id, Phi::SmallPopulation
+    phi_attr :reviewer, Phi::SmallPopulation
+    phi_attr :completed_at, Phi::Date
+    phi_attr :reviewed_at, Phi::Date
+    phi_attr :health_file_id, Phi::OtherIdentifier
+    phi_attr :answers, Phi::FreeText
 
     # Generates translation keys of the form "CHA A_Q5_A6"
     def self.answers_for section: nil, question: nil, number: 0

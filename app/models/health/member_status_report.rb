@@ -1,8 +1,14 @@
+# ### HIPPA Risk Assessment
+# Risk: Indirectly relates to a patient
+# Control: PHI attributes documented
 module Health
   class MemberStatusReport < HealthBase
     include ArelHelper
 
     acts_as_paranoid
+
+    phi_attr :id, Phi::SmallPopulation
+
     has_many :member_status_report_patients
     belongs_to :user, required: true
 
@@ -33,7 +39,7 @@ module Health
         # We will only know the date requested for hello-sign signatures, default to the signed date
         pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
         aco_mco_name = pr.aco&.name || pr.aco_name
-        aco_mco_pid = pr.aco&.mco_pid || pr.aco_mco_pid 
+        aco_mco_pid = pr.aco&.mco_pid || pr.aco_mco_pid
         aco_mco_sl = pr.aco&.mco_sl || pr.aco_mco_sl
         attributes = {
           medicaid_id: pr.medicaid_id,
@@ -73,7 +79,7 @@ module Health
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver
         report_patient = member_status_report_patients.create!(attributes)
-        
+
       end
       complete_report
     end

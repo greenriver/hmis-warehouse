@@ -1,5 +1,26 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicCaseNote < EpicBase
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :contact_date, Phi::Date
+    # phi_attr :closed
+    # phi_attr :encounter_type
+    phi_attr :provider_name, Phi::SmallPopulation
+    phi_attr :location, Phi::Location
+    phi_attr :chief_complaint_1, Phi::FreeText
+    phi_attr :chief_complaint_1_comment, Phi::FreeText
+    phi_attr :chief_complaint_2, Phi::FreeText
+    phi_attr :chief_complaint_2_comment, Phi::FreeText
+    phi_attr :dx_1_icd10, Phi::SmallPopulation
+    phi_attr :dx_1_name, Phi::FreeText
+    phi_attr :dx_2_icd10, Phi::SmallPopulation
+    phi_attr :dx_2_name, Phi::FreeText
+    #phi_attr :homeless_status
+
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_case_notes
     has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note
 

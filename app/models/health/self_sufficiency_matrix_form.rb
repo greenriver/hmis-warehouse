@@ -1,8 +1,60 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class SelfSufficiencyMatrixForm < HealthBase
+    phi_patient :patient_id
+
+    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :point_completed, Phi::FreeText
+    # phi_attr :housing_score,
+    phi_attr :housing_notes, Phi::FreeText
+    # phi_attr :income_score,
+    phi_attr :income_notes, Phi::FreeText
+    # phi_attr :benefits_score,
+    phi_attr :benefits_notes, Phi::FreeText
+    # phi_attr :disabilities_score,
+    phi_attr :disabilities_notes, Phi::FreeText
+    # phi_attr :food_score,
+    phi_attr :food_notes, Phi::FreeText
+    # phi_attr :employment_score,
+    phi_attr :employment_notes, Phi::FreeText
+    # phi_attr :education_score,
+    phi_attr :education_notes, Phi::FreeText
+    # phi_attr :mobility_score,
+    phi_attr :mobility_notes, Phi::FreeText
+    # phi_attr :life_score,
+    phi_attr :life_notes, Phi::FreeText
+    # phi_attr :healthcare_score,
+    phi_attr :healthcare_notes, Phi::FreeText
+    # phi_attr :physical_health_score,
+    phi_attr :physical_health_notes, Phi::FreeText
+    # phi_attr :mental_health_score,
+    phi_attr :mental_health_notes, Phi::FreeText
+    # phi_attr :substance_abuse_score,
+    phi_attr :substance_abuse_notes, Phi::FreeText
+    # phi_attr :criminal_score,
+    phi_attr :criminal_notes, Phi::FreeText
+    # phi_attr :legal_score,
+    phi_attr :legal_notes, Phi::FreeText
+    # phi_attr :safety_score,
+    phi_attr :safety_notes, Phi::FreeText
+    # phi_attr :risk_score,
+    phi_attr :risk_notes, Phi::FreeText
+    # phi_attr :family_score,
+    phi_attr :family_notes, Phi::FreeText
+    # phi_attr :community_score,
+    phi_attr :community_notes, Phi::FreeText
+    # phi_attr :time_score,
+    phi_attr :time_notes, Phi::FreeText
+    phi_attr :completed_at, Phi::Date
+    phi_attr :collection_location, Phi::SmallPopulation
+    phi_attr :health_file_id, Phi::OtherIdentifier
+
+
     belongs_to :patient
     belongs_to :user
-    
+
     has_one :health_file, class_name: 'Health::SsmFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 

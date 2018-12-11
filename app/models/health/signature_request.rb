@@ -1,6 +1,20 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class SignatureRequest < HealthBase
     acts_as_paranoid
+
+    phi_patient :patient_id
+
+    phi_attr :to_email, Phi::Email
+    phi_attr :to_name, Phi::Name
+    phi_attr :requestor_email, Phi::Email
+    phi_attr :requestor_name, Phi::Name
+    phi_attr :expires_at, Phi::Date
+    phi_attr :sent_at, Phi::Date
+    phi_attr :completed_at, Phi::Date
+    phi_attr :signable_document_id, Phi::OtherIdentifier
 
     belongs_to :signable_document, required: false
     belongs_to :careplan

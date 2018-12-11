@@ -1,5 +1,33 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicCha < EpicBase
+    phi_patient :patient_id
+
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :encounter_id, Phi::OtherIdentifier
+    # phi_attr :encounter_type
+    phi_attr :cha_updated_at, Phi::Date
+    phi_attr :staff, Phi::SmallPopulation
+    # phi_attr :provider_type
+    phi_attr :reviewer_name, Phi::SmallPopulation
+    # phi_attr :reviewer_provider_type
+    phi_attr :part_1, Phi::FreeText
+    phi_attr :part_2, Phi::FreeText
+    phi_attr :part_3, Phi::FreeText
+    phi_attr :part_4, Phi::FreeText
+    phi_attr :part_5, Phi::FreeText
+    phi_attr :part_6, Phi::FreeText
+    phi_attr :part_7, Phi::FreeText
+    phi_attr :part_8, Phi::FreeText
+    phi_attr :part_9, Phi::FreeText
+    phi_attr :part_10, Phi::FreeText
+    phi_attr :part_11, Phi::FreeText
+    phi_attr :part_12, Phi::FreeText
+    phi_attr :part_13, Phi::FreeText
+    phi_attr :part_14, Phi::FreeText
+    phi_attr :part_15, Phi::FreeText\
 
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms
     has_one :patient, through: :epic_patient
