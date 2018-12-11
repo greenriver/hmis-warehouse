@@ -579,6 +579,9 @@ Rails.application.routes.draw do
 
   end
   resource :account, only: [:edit, :update]
+  resource :account_email, only: [:edit, :update]
+  resource :account_password, only: [:edit, :update]
+
   resources :public_files, only: [:show]
 
   post 'hello-sign' => 'hello_sign#callback'

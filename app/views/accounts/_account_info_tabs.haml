@@ -1,0 +1,7 @@
+%ul.nav.nav-tabs
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_path))}
+    = link_to 'Accounts Details', edit_account_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_email_path))}
+    = link_to 'Email', edit_account_email_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_password_path))}
+    = link_to 'Change Password', edit_account_password_path, class: 'nav-link'
