@@ -30,20 +30,46 @@ module Reporting
       where(children_only: true)
     end
 
-    scope :stayers_pre_placement, -> (start_date:, end_date:) do
+    scope :ph_destinations, -> do
+      where(destination: HUD.permanent_destinations)
+    end   
+
+    # Pre-placement
+    scope :enrolled_pre_placement, ->(start_date:, end_date:) do
+      where.not(service_project: 'No Service Enrollment').
       where(
         arel_table[:search_start].lt(end_date).
         and(
           arel_table[:search_end].gt(start_date).
           or(arel_table[:search_end].eq(nil))
         )
-      ).
+      )
+    end
+
+    scope :exiting_pre_placement, -> (start_date:, end_date:) do
+      where(search_end: start_date..end_date).
       where.not(service_project: 'No Service Enrollment')
     end
 
-    scope :enrolled, -> (start_date:, end_date:) do
+    scope :entering_pre_placement, -> (start_date:, end_date:) do
+      where(search_start: start_date..end_date).
+      where.not(service_project: 'No Service Enrollment')
+    end
+
+    scope :stayers_pre_placement, -> (start_date:, end_date:) do
+      where(client_id: enrolled_pre_placement(start_date: start_date, end_date: end_date).select(:client_id)).
+      where.not(client_id: exiting_pre_placement(start_date: start_date, end_date: end_date).select(:client_id))
+    end
+
+    scope :leavers_pre_placement, -> (start_date:, end_date:) do
+      enrolled_pre_placement(start_date: start_date, end_date: end_date).
+      exiting_pre_placement(start_date: start_date, end_date: end_date)
+    end
+
+    # Stabilization
+    scope :enrolled_stabilization, ->(start_date:, end_date:) do
       where(
-        arel_table[:search_start].lt(end_date).
+        arel_table[:housed_date].lt(end_date).
         and(
           arel_table[:housing_exit].gt(start_date).
           or(arel_table[:housing_exit].eq(nil))
@@ -51,18 +77,40 @@ module Reporting
       )
     end
 
-    scope :enrolled_pre_placement, ->(start_date:, end_date:) do
-      enrolled(start_date: start_date, end_date: end_date).
-      where.not(service_project: 'No Service Enrollment').
-      where(
-        arel_table[:search_end].gt(start_date).
-        or(arel_table[:search_end].eq(nil))
-      )
+    scope :exiting_stabilization, -> (start_date:, end_date:) do
+      where(housing_exit: start_date..end_date)
     end
 
-    scope :enrolled_stabilization, ->(start_date:, end_date:) do
-      enrolled(start_date: start_date, end_date: end_date).
-      where(arel_table[:housed_date].gt(start_date))
+    scope :entering_stabilization, -> (start_date:, end_date:) do
+      where(housed_date: start_date..end_date)
+    end
+
+    scope :stayers_stabilization, -> (start_date:, end_date:) do
+      where(client_id: enrolled_stabilization(start_date: start_date, end_date: end_date).select(:client_id)).
+      where.not(client_id: exiting_stabilization(start_date: start_date, end_date: end_date).select(:client_id))
+    end
+
+    scope :leavers_stabilization, -> (start_date:, end_date:) do
+      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      exiting_stabilization(start_date: start_date, end_date: end_date)
+    end
+
+    # Combined
+    scope :enrolled, -> (start_date:, end_date:) do
+      where(
+        arel_table[:client_id].in(
+          Arel::Nodes::SqlLiteral.new(enrolled_pre_placement(start_date: start_date, end_date: end_date).
+          distinct.
+          select(:client_id).to_sql)
+        ).
+        or(
+          arel_table[:client_id].in(
+            Arel::Nodes::SqlLiteral.new(enrolled_stabilization(start_date: start_date, end_date: end_date).
+            distinct.
+            select(:client_id).to_sql)
+          )
+        )
+      )
     end
 
     scope :stayers, -> (start_date:, end_date:) do
@@ -73,53 +121,11 @@ module Reporting
       )
     end
 
-    scope :stayers_pre_placement, -> (start_date:, end_date:) do
-      where(client_id: enrolled_pre_placement(start_date: start_date, end_date: end_date).select(:client_id)).
-      where.not(client_id: exiting_pre_placement(start_date: start_date, end_date: end_date).select(:client_id))
-    end
-
-    scope :stayers_stabilization, -> (start_date:, end_date:) do
-      where(client_id: enrolled_stabilization(start_date: start_date, end_date: end_date).select(:client_id)).
-      where.not(client_id: exiting_stabilization(start_date: start_date, end_date: end_date).select(:client_id))
-    end
-
     scope :leavers, -> (start_date:, end_date:) do
       enrolled(start_date: start_date, end_date: end_date).
       where(arel_table[:housing_exit].lteq(end_date))
     end
 
-    scope :leavers_pre_placement, -> (start_date:, end_date:) do
-      enrolled_pre_placement(start_date: start_date, end_date: end_date).
-      exiting_pre_placement(start_date: start_date, end_date: end_date)
-    end
-
-    scope :leavers_stabilization, -> (start_date:, end_date:) do
-      enrolled_stabilization(start_date: start_date, end_date: end_date).
-      exiting_stabilization(start_date: start_date, end_date: end_date)
-    end
-
-    scope :ph_destinations, -> do
-      where(destination: HUD.permanent_destinations)
-    end
-
-    scope :entering_pre_placement, -> (start_date:, end_date:) do
-      where(search_start: start_date..end_date).
-      where.not(service_project: 'No Service Enrollment')
-    end
-
-    scope :entering_stabilization, -> (start_date:, end_date:) do
-      where(housed_date: start_date..end_date)
-    end
-
-    scope :exiting_pre_placement, -> (start_date:, end_date:) do
-      where(search_end: start_date..end_date).
-      where.not(service_project: 'No Service Enrollment')
-    end
-
-    scope :exiting_stabilization, -> (start_date:, end_date:) do
-      where(housing_exit: start_date..end_date)
-    end
-    
 
     def self.available_subpopulations
       {
