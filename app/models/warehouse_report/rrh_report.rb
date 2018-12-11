@@ -12,6 +12,38 @@ class WarehouseReport::RrhReport
     @household_type = Reporting::Housed.household_type(household_type)
   end
 
+  def pre_placement_project_name
+    @pre_placement_project_name ||= unless all_projects
+      housed_scope.where.not(service_project: nil).
+        where.not(service_project: 'No Service Enrollment').
+        distinct.
+        pluck(:service_project).
+        join(', ')
+    else
+      ''
+    end
+  end
+
+  def stabilization_project_name
+    @stabilization_project_name ||= unless all_projects
+      housed_scope.where.not(residential_project: nil).
+        distinct.
+        pluck(:residential_project).
+        join(', ')
+    else
+      ''
+    end
+  end
+
+  def project_names
+    @project_names ||= 
+    (
+      pre_placement_project_name.split(', ') + 
+      stabilization_project_name.split(', ')
+    ).uniq.
+      join(', ')
+  end
+
   # newly enrolled during date range
   def entering_pre_placement
     housed_scope.entering_pre_placement(start_date: start_date, end_date: end_date).
@@ -58,14 +90,14 @@ class WarehouseReport::RrhReport
     @stayers_days_in_pre_placement ||= housed_scope.
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).map do |entry_date| 
-        [entry_date, Date.today] 
+      pluck(:search_start).compact.map do |entry_date| 
+        [entry_date, end_date] 
       end
   end
 
   def stayers_average_days_in_pre_placement
     days = stayers_days_in_pre_placement.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days_in_pre_placement.count).round
@@ -80,7 +112,7 @@ class WarehouseReport::RrhReport
 
   def leavers_average_days_in_stabilization
     days = leavers_days_in_stabilization.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / leavers_days_in_stabilization.count).round
@@ -90,14 +122,15 @@ class WarehouseReport::RrhReport
     @stayers_days_in_stabilization ||= housed_scope.
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:housed_date).map do |entry_date| 
-        [entry_date, Date.today] 
+      where.not(housed_date: nil).
+      pluck(:housed_date).compact.map do |entry_date| 
+        [entry_date, end_date]
       end
   end
 
   def stayers_average_days_in_stabilization
     days = stayers_days_in_stabilization.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days_in_stabilization.count).round
@@ -122,14 +155,14 @@ class WarehouseReport::RrhReport
     @stayers_days ||= housed_scope.
       stayers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).map do |entry_date| 
-        [entry_date, Date.today] 
+      pluck(:search_start).compact.map do |entry_date| 
+        [entry_date, end_date] 
       end
   end
 
   def stayers_average_days
     days = stayers_days.map do |entry_date, exit_date| 
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days.count).round
@@ -138,14 +171,19 @@ class WarehouseReport::RrhReport
 
   def destinations
     @destinations ||= begin
-      @destinations = {}
+      @destinations = {
+        'returned to shelter' => {},
+        'exited to other institution' => {},
+        'successful exit to PH' => {},
+        'exited to temporary destination' => {},
+        'unknown outcome' => {},
+      }
       housed_scope.
         leavers(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
         distinct.
         pluck(:client_id, :destination).map do |client_id, dest_id|
           destination = destination_bucket(client_id, dest_id)
-          @destinations[destination] ||= {}
           @destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
           @destinations[destination][:count] ||= 0
           @destinations[destination][:client_ids] ||= Set.new
@@ -153,7 +191,7 @@ class WarehouseReport::RrhReport
           @destinations[destination][:count] += 1 unless @destinations[destination][:client_ids].include?(client_id)
           @destinations[destination][:client_ids] << client_id
         end
-      @destinations
+      @destinations.delete_if{|_,v| v == {} }
     end
   end
 
@@ -215,6 +253,13 @@ class WarehouseReport::RrhReport
       end
     end
     return @bucketed_returns.to_a
+  end
+
+  def returns_for_chart
+    {
+      labels: bucketed_returns.map(&:first),
+      data: [['Client count'] + bucketed_returns.map(&:last)],
+    }
   end
 
   # Supporting methods
@@ -320,11 +365,15 @@ class WarehouseReport::RrhReport
   end
 
   def housed_scope
-    if @project_id != :all
+    if ! all_projects
       housed_source.where(project_id: @project_id).send(@subpopulation).send(@household_type)
     else
       housed_source.all.send(@subpopulation).send(@household_type)
     end
+  end
+
+  def all_projects
+    @project_id == :all
   end
 
   def ho_t

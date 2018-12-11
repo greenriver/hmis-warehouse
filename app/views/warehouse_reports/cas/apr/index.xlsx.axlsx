@@ -6,6 +6,7 @@ wb.add_worksheet(name: "CAS Matches") do |sheet|
     'Match Initiated',
     'Move-in Date',
     'Match Completed',
+    'Decline Reason',
     'Terminal Status',
   ]
   sheet.add_row(columns, :style => title)
@@ -16,6 +17,7 @@ wb.add_worksheet(name: "CAS Matches") do |sheet|
         row[:match_started_at],
         row[:housed_on], 
         row[:updated_at], 
+        row[:decline_reason],
         row[:terminal_status],
       ]
     )

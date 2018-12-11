@@ -6,18 +6,19 @@ class App.WarehouseReports.Rrh.Returns
   plot: =>
     tt = bb.generate
       data: {
-        columns: @data,
+        columns: @data.data,
         type: "bar",
       },
-      tooltip:
-        format:
-          title: (x) ->
-            'Time to Return'
       axis:
         x:
-          tick: 
-            format: (x) ->
-              ''
+          tick:
+            format: (i, category_name) =>
+              @data.labels[i]
+      tooltip:
+        format:
+          title: (i) =>
+            'Time to Return ' + @data.labels[i]
+      
       color:
-        pattern: ["#288be4", "#091f2f", "#fb4d42", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
+        pattern: ["#fb4d42", "#288be4", "#091f2f", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
       bindto: @wrapper

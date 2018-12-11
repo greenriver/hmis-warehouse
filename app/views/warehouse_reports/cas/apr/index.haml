@@ -15,22 +15,22 @@
   .col-sm-6
     %h3 Available Households
     %p.description
-      Clients who were activated in CAS.
+      Clients who were in CAS and potentially eligible for matches.
     %p= @report.total_households
 
     %h3 Available Individuals
     %p.description
-      Clients who were not part of a family when activated in CAS.
+      Clients who were not part of a family when in CAS.
     %p= @report.total_individuals
 
     %h3 Available Families
     %p.description
-      Clients who were part of a family when activated in CAS.
+      Clients who were part of a family when in CAS.
     %p= @report.total_families
 
     %h3 Available Youth
     %p.description
-      Clients who were between 18 and 24 when activated in CAS.
+      Clients who were between 18 and 24 when in CAS.
     %p= @report.total_youth
 
     %h3 Referred to RRH
@@ -43,20 +43,24 @@
       Clients who started a match on the default route.
     %p= @report.referred_to_psh.count
 
-    %h3 Declined
+    %h3 Decline Reasons
     %p.description
-      Clients who started a match and were declined for any reason other than being ineligible.
-    %p= @report.declined.count
-
-    %h3 Ineligible
-    %p.description
-      Clients who started a match and were declined with an ineligible decline reason.
-    %p= @report.ineligible.count
+      Clients who started a match and were declined, declined for the following reasons.
+    %table.table
+      %thead
+        %tr
+          %th Reason
+          %th Count
+      %tbody
+        - @report.decline_reasons.each do |label, v|
+          %tr
+            %td= label
+            %td= v
 
     %h3 Unable to refer
     %p.description
       The count of available households minus those who were referred at least once during the selected range.
-    %p= @report.ineligible.count
+    %p= @report.unable_to_refer
   .col-sm-6.mt-6
     %p The following file contains dates that can be useful in calculating average lengths of time between match initiation and completion.
     = link_to({action: :index, params: params, format: :xlsx}, {class: 'btn btn-primary'}) do
