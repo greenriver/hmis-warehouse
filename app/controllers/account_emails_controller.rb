@@ -15,6 +15,8 @@ class AccountEmailsController < ApplicationController
     if @user.update_with_password(account_params)
       flash[:notice] = changed_notes.join(' ')
       bypass_sign_in(@user)
+    else
+      flash[:alert] = 'Unable to change email address'
     end
     redirect_to edit_account_email_path
   end
