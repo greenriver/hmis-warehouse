@@ -3,6 +3,9 @@ module GrdaWarehouse::ClientNotes
     self.table_name = :client_notes
     acts_as_paranoid
     validates_presence_of :note, :type
+
+    attr_accessor :send_notification
+
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
     
