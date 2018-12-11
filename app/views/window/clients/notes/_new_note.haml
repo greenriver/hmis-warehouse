@@ -2,6 +2,21 @@
 = simple_form_for @note, as: :note, url: window_client_notes_path(@client) do |f|
   -# = f.input :type, label: 'Note type', collection: GrdaWarehouse::ClientNotes::Base.available_types(), label_method: :type_name
   = f.input :note, label: 'Note', input_html: {rows: 10}
-  = f.input :send_notification, as: :boolean, label: 'Send notifications?'
-  = f.input :recipients, collection: User.all, input_html: {multiple: true, class: :select2}
+  = f.input :send_notification, as: :boolean, label: 'Send notifications?', input_html: { class: :jNotifications }
+  = f.input :recipients, collection: User.can_view_client_window, input_html: {multiple: true, class: :select2}, wrapper_html: { class: :jRecipients }
   = f.submit value: 'Add Note', class: 'btn btn-secondary'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jNotifications').on('change', function(e) {
+        if($(this).is(':checked')){
+          $('.jRecipients').show();
+        } else {
+          $('.jRecipients option:selected').prop('selected', false);
+          $('.jRecipients').hide();
+          $('.jRecipients select').trigger('change');
+        }
+      });
+      $('.jNotifications').trigger('change');
+    });

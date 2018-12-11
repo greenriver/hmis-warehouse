@@ -116,6 +116,9 @@ Rails.application.routes.draw do
     ].freeze
   end
 
+  # obfuscation of links sent out via email
+  resources :tokens, only: [:show]
+
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       resources :support, only: [:index], controller: 'report_results/support'
