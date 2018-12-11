@@ -27,7 +27,7 @@ class BaseJob < ActiveJob::Base
   def before job
     if STARTING_PATH != expected_path || ! File.exists?('config/exception_notifier.yml')
       job = self unless job.respond_to? :locked_by
-      File.exists?('config/exception_notifier.yml')
+      if File.exists?('config/exception_notifier.yml')
         msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory."
         notify_on_restart(msg)
         unlock_job!(job.id)
