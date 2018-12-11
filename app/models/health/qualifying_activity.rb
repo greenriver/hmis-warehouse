@@ -1,6 +1,31 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class QualifyingActivity < HealthBase
     include ArelHelper
+
+    phi_patient :patient_id
+
+    phi_attr :mode_of_contact, Phi::FreeText
+    phi_attr :mode_of_contact_other, Phi::FreeText
+    phi_attr :reached_client, Phi::FreeText
+    phi_attr :reached_client_collateral_contact, Phi::FreeText
+    phi_attr :activity, Phi::FreeText
+    # phi_attr :source_type
+    # phi_attr :source_id
+    phi_attr :claim_submitted_on, Phi::Date
+    phi_attr :date_of_activity, Phi::Date
+    phi_attr :user_id, Phi::OtherIdentifier
+    phi_attr :user_full_name, Phi::NeedsReview
+    phi_attr :follow_up, Phi::FreeText
+    phi_attr :claim_id, Phi::SmallPopulation # belongs_to Health::Claim
+    # phi_attr :force_payable
+    # phi_attr :naturally_payable
+    phi_attr :sent_at, Phi::Date
+    phi_attr :duplicate_id, Phi::OtherIdentifier
+    phi_attr :epic_source_id, Phi::OtherIdentifier
+
 
     MODE_OF_CONTACT_OTHER = 'other'
     REACHED_CLIENT_OTHER = 'collateral'

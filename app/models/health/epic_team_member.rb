@@ -1,5 +1,18 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicTeamMember < EpicBase
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :name, Phi::SmallPopulation
+    # phi_attr :pcp_type
+    # phi_attr :relationship
+    phi_attr :email, Phi::SmallPopulation
+    phi_attr :phone, Phi::SmallPopulation
+    # phi_attr :processed
+
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_team_members
 
     scope :unprocessed, -> do

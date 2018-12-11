@@ -1,8 +1,13 @@
+# ### HIPPA Risk Assessment
+# Risk: Describes a patient and contains PHI
+# Control: PHI attributes documented
 module Health::Claims
   class EdNyuSeverity < Base
     self.table_name = :claims_ed_nyu_severity
 
-    def column_headers 
+    phi_patient :medicaid_id
+
+    def column_headers
       {
         medicaid_id: "ID_MEDICAID",
         category: "Category",
@@ -22,7 +27,7 @@ module Health::Claims
             value
           end
         end
-      end 
+      end
     end
 
   end

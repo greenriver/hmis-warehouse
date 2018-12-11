@@ -1,5 +1,19 @@
+# ### HIPPA Risk Assessment
+# Risk: Indirectly relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicQualifyingActivity < EpicBase
+    phi_patient :patient_id
+    phi_attr :epic_patient_id, Phi::OtherIdentifier
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :id_in_source, Phi::OtherIdentifier
+    phi_attr :entered_by, Phi::SmallPopulation
+    # phi_attr :role
+    phi_attr :date_of_activity, Phi::Date
+    # phi_attr :activity
+    # phi_attr :mode
+    # phi_attr :reached
+
     include NotifierConfig
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_qualifying_activities
     has_one :patient, through: :epic_patient

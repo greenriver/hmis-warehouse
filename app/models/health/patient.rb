@@ -1,7 +1,35 @@
+# Risk: Describes a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Patient < Base
     include ArelHelper
     acts_as_paranoid
+
+    phi_patient :id
+    phi_attr :id_in_source, Phi::MedicalRecordNumber
+    phi_attr :first_name, Phi::Name
+    phi_attr :middle_name, Phi::Name
+    phi_attr :last_name, Phi::Name
+    phi_attr :aliases, Phi::Name
+    phi_attr :birthdate, Phi::Date
+    phi_attr :allergy_list, Phi::NeedsReview
+    phi_attr :primary_care_physician, Phi::SmallPopulation
+    phi_attr :transgender, Phi::SmallPopulation
+    # phi_attr :race, Phi::SmallPopulation
+    # phi_attr :ethnicity, Phi::SmallPopulation
+    phi_attr :veteran_status, Phi::SmallPopulation
+    phi_attr :ssn, Phi::Ssn
+    phi_attr :client_id, Phi::OtherIdentifier
+    # phi_attr :gender, Phi::SmallPopulation
+    phi_attr :consent_revoked, Phi::Date
+    phi_attr :medicaid_id, Phi::HealthPlan
+    phi_attr :housing_status, Phi::NeedsReview
+    phi_attr :housing_status_timestamp, Phi::Date
+    phi_attr :pilot, Phi::SmallPopulation
+    phi_attr :engagement_date, Phi::Date
+    phi_attr :death_date, Phi::Date
+    phi_attr :care_coordinator_id, Phi::SmallPopulation
+
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
     has_many :medications, through: :epic_patients

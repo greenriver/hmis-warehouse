@@ -1,5 +1,26 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class SdhCaseManagementNote < HealthBase
+    phi_patient :patient_id
+
+    phi_attr :user_id, Phi::SmallPopulation
+    # phi_attr :topics
+    phi_attr :title, Phi::FreeText
+    # phi_attr :total_time_spent_in_minutes
+    phi_attr :date_of_contact, Phi::Date
+    phi_attr :place_of_contact, Phi::Location
+    # phi_attr :housing_status
+    phi_attr :place_of_contact_other, Phi::FreeText
+    phi_attr :housing_status_other, Phi::FreeText
+    phi_attr :housing_placement_date, Phi::Date
+    # phi_attr :client_action
+    phi_attr :notes_from_encounter, Phi::FreeText
+    phi_attr :client_phone_number, Phi::Telephone
+    phi_attr :completed_on, Phi::Date
+    phi_attr :health_file_id, Phi::OtherIdentifier
+    phi_attr :client_action_medication_reconciliation_clinician, Phi::OtherIdentifier
 
     US_PHONE_NUMBERS = /\A(\+1)?\(?(\d{3})\)?\s*-?\s*(\d{3})\s*-?\s*(\d{4})\s*-?\s*\z/
 
@@ -53,7 +74,7 @@ module Health
 
     belongs_to :patient
     belongs_to :user
-    
+
     has_one :health_file, class_name: 'Health::SdhCaseManagementNoteFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
 

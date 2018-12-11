@@ -1,7 +1,30 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class EpicPatient < EpicBase
-
     acts_as_paranoid
+
+    phi_patient :medicaid_id
+    phi_attr :id_in_source, Phi::MedicalRecordNumber
+    phi_attr :first_name, Phi::Name
+    phi_attr :middle_name, Phi::Name
+    phi_attr :last_name, Phi::Name
+    phi_attr :aliases, Phi::Name
+    phi_attr :birthdate, Phi::Date
+    phi_attr :allergy_list, Phi::NeedsReview
+    phi_attr :primary_care_physician, Phi::SmallPopulation
+    phi_attr :transgender, Phi::SmallPopulation
+    phi_attr :race, Phi::SmallPopulation
+    phi_attr :ethnicity, Phi::SmallPopulation
+    phi_attr :veteran_status, Phi::SmallPopulation
+    phi_attr :ssn, Phi::Ssn
+    phi_attr :gender, Phi::SmallPopulation
+    phi_attr :consent_revoked, Phi::Date
+    phi_attr :medicaid_id, Phi::HealthPlan
+    phi_attr :housing_status_timestamp, Phi::Date
+    phi_attr :death_date, Phi::Date
+
     has_one :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :appointments, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient
     has_many :medications, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :patient

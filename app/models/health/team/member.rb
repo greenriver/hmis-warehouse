@@ -1,9 +1,18 @@
+# ### HIPPA Risk Assessment
+# Risk: Relates to a patient and contains PHI
+# Control: PHI attributes documented
 module Health
   class Team::Member < HealthBase
     include ArelHelper
     self.table_name = 'team_members'
     has_paper_trail class_name: Health::HealthVersion.name
     acts_as_paranoid
+
+    phi_patient :patient_id
+    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :last_contact, Phi::Date
+
 
     # belongs_to :team, class_name: Health::Team.name
     belongs_to :patient
