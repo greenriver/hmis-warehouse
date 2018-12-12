@@ -413,6 +413,12 @@ module Reporting
             residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
             residential_enrollment[:housing_exit] = nil
           end
+          # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
+          if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
+            if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
+              residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
+            end
+          end
           residential_enrollment[:source] = 'move-in-date'
           en = default_row.merge(residential_enrollment)
           en
