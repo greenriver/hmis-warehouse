@@ -396,7 +396,7 @@ module Reporting
 
     def one_project_data
       @one_project_data ||= begin
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project, :enrollment, :client).
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
         where(
           she_t[:first_date_in_program].lt(Date.today).
