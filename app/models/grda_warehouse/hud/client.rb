@@ -703,7 +703,8 @@ module GrdaWarehouse::Hud
     def scope_for_ongoing_residential_enrollments
       service_history_enrollments.
       entry.
-      residential
+      residential.
+      ongoing
     end
 
     def scope_for_other_enrollments
@@ -2141,6 +2142,7 @@ module GrdaWarehouse::Hud
             living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
+            move_in_date: entry.enrollment.MoveInDate,
             days: dates_served.count,
             homeless: entry.computed_project_type.in?(Project::HOMELESS_PROJECT_TYPES),
             homeless_days: homeless_dates_for_enrollment.count,

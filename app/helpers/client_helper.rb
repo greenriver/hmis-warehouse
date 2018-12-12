@@ -1,6 +1,6 @@
 module ClientHelper
   def enrolled client, window_only:true
-    enrollments = client.service_history_enrollments.ongoing.residential
+    enrollments = client.scope_for_ongoing_residential_enrollments
     if window_only
       enrollments = enrollments.visible_in_window_to(current_user)
     end

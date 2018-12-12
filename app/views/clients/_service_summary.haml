@@ -24,7 +24,7 @@
           = "#{@client.processed_service_history&.literally_homeless_last_three_years || 0} literally homeless"
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH'}}
           
-      - if @client.service_history_enrollments.ongoing.residential.any?
+      - if @client.scope_for_ongoing_residential_enrollments.any?
         %li
           %h4 Enrolled in
           = enrolled(@client)
