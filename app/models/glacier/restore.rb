@@ -10,7 +10,7 @@ module Glacier
 
     SPIN_TIME_S = 5.minutes.to_i
 
-    TIER = "Expedited"
+    TIER = ENV.fetch('GLACIER_JOB_TIER') { "Expedited" }
     #TIER = "Standard" # much slower but cheaper
 
     def initialize(archive_id:, download_path: nil, processing_cmd: nil)

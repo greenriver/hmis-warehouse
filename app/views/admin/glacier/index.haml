@@ -79,6 +79,13 @@
         %tt bundle exec rake glacier:backup:restore_database[123,restore_some_warehouse_app,endpoint.rds.amazonaws.com]
 
       %li
+        If you get an Aws::Glacier::Errors::InsufficientCapacityException
+        mentioning insufficient capacity to process this Expedited request, do
+        this:
+        %tt export GLACIER_JOB_TIER=Standard
+        and retry
+
+      %li
         When the process gets to the decryption part, you'll have to paste the gpg key password (found in the ansible vault file).
 
       %li
