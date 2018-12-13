@@ -70,7 +70,9 @@ module Censuses
 
     private def for_project_id (start_date, end_date, data_source_id, project_id)
       project = GrdaWarehouse::Hud::Project.find(project_id)
-      project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select{|k, v| v.include?(project[:ProjectType])}.keys.first.upcase
+      project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select{|k, v| v.include?(project[:ProjectType])}.keys.first&.upcase
+      return if project_type.blank?
+
       dimension_scope = census_data_scope.by_project_id(project_id)
       organization_id = project.organization.id
       dimension_label = "#{project.name} (#{project_type}) < #{project.organization.name} < #{project.data_source.short_name}"
