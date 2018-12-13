@@ -42,8 +42,8 @@ namespace :glacier do
     end
 
     desc "Restore archive to database"
-    task :restore_database, [:archive_id, :database_name] => [:environment] do |t, args|
-      Glacier::Runner.new.restore!(archive_id: args[:archive_id], database_name: args[:database_name])
+    task :restore_database, [:archive_id, :database_name, :provided_db_host] => [:environment] do |t, args|
+      Glacier::Runner.new.restore_database!(archive_id: args[:archive_id], database_name: args[:database_name], provided_db_host: args[:provided_db_host])
     end
   end
 end

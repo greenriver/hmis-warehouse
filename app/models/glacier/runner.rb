@@ -8,15 +8,18 @@ module Glacier
       setup_notifier("Glacier Backups")
     end
 
-    def restore!(archive_id:, database_name: )
-      unless database_name.match?(/_restore/)
-        raise "database name must have restore in it for safety. Remove this line if you know what you're doing." 
+    def restore_database!(archive_id:, database_name:, provided_db_host: nil)
+      different_host = provided_db_host.present? && provided_db_host != db_host
+      safe_db_name = database_name.match?(/restore/i)
+
+      if !(different_host || safe_db_name)
+        raise "Database name must have restore in it for safety or you must be restoring to a new host. Remove this line if you know what you're doing."
       end
 
-      processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{db_host}"
+      processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{provided_db_host||db_host}"
 
       Restore.new({
-        archive_id: archive_id, 
+        archive_id: archive_id,
         processing_cmd: processing_cmd
       }).run!
     end

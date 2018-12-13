@@ -2,12 +2,70 @@
 - content_for :title, title
 %h1= content_for(:title)
 = render :partial => 'menus/admin_tabs'
+
+.row
+  .col-sm-12
+    %strong DB Restoration Notes
+    %br
+    %ol
+      %li
+        If doing a test restore, it makes sense to first restore a snapshot
+        so you get the proper roles and permissions.
+      %li
+        ssh to the server
+      %li
+        Run
+        %tt gpg --list-secret-keys
+        You need the private openpath.host key which is not kept on the server
+        under normal circumstances.
+      %li
+        From the ansible git repository, find the private key. You'll need
+        github access, the git-crypt key, and the Open Path vault key to
+        execute this command successfully.
+        %tt ansible-vault edit --vault-id=openpath.vpass inventory/group_vars/openpath/vault.yml
+      %li
+        %tt cat > openpath.asc
+        Then paste in the private key.
+        %tt vim openpath.asc
+        Remove leading spaces, which is an artifact of the value having been in a yaml file.
+        %tt :%s/^  //g
+        %tt :wq
+        %tt gpg --import openpath.asc
+      %li
+        Verify you imported it. Ignore the signing key that might have been
+        there already. "Open Path Encryptor" is the correct key.
+        %tt gpg --list-secret-keys
+
+      %li
+        Update your ~/.pgpass file so you don't need a password to connect to the database.
+        It will look similar to this:
+        %tt host.rds.com:*:*:username:password
+
+      %li
+        Change directories to rails root. Find The archive ID you want to restore
+        %tt export RAILS_ENV=production
+        %tt bundle exec rails runner 'ap Glacier::Archive.order(:created_at).all'
+
+        You must provide the archive ID and database name. The archive ID can
+        be the primary key from the glacier_archives table or the really long
+        archive ID passed to us from Amazon. Both are in the glacier_archives
+        table.
+        Add the third argument if you have a different host. the
+        %tt bundle exec rake glacier:restore_database[:archive_id, :database_name, :provided_db_host]
+        e.g.
+        %tt bundle exec rake glacier:backup:restore_database[123,restore_some_warehouse_app,endpoint.rds.amazonaws.com]
+
+      %li Delete the private key when you're done.
+
+
+
 .row
   .col-sm-6= page_entries_info @archives, entry_name: 'Archive'
-  .col-sm-6.text-right 
+  .col-sm-6.text-right
     Total size stored in Glacier
     %strong
       = number_to_human_size @total_size
+
 %p= paginate @archives
 
 .table-responsive
@@ -30,7 +88,7 @@
               = archive.upload_started_at
               - if archive.upload_finished_at
                 - run_time = distance_of_time_in_words(archive.upload_finished_at - archive.upload_started_at)
-                = " - #{archive.upload_finished_at}" 
+                = " - #{archive.upload_finished_at}"
                 %br
                 (#{run_time})
               - else
