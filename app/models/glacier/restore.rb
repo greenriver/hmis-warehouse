@@ -10,6 +10,9 @@ module Glacier
 
     SPIN_TIME_S = 5.minutes.to_i
 
+    TIER = "Expedited"
+    #TIER = "Standard" # much slower but cheaper
+
     def initialize(archive_id:, download_path: nil, processing_cmd: nil)
       # Find by either our primary key or the ID Amazon knows it by.
       self.archive        = Archive.where(id: archive_id).first || Archive.find_by(archive_id: archive_id)
@@ -57,6 +60,7 @@ module Glacier
         job_parameters: {
           description: "Archive retreival from #{vault_name} for ID #{archive.id}",
           archive_id: archive.archive_id,
+          tier: TIER,
           type: "archive-retrieval",
         },
         vault_name: vault_name,

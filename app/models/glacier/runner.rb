@@ -16,12 +16,29 @@ module Glacier
         raise "Database name must have restore in it for safety or you must be restoring to a new host. Remove this line if you know what you're doing."
       end
 
-      processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{provided_db_host||db_host}"
+      host_to_use = provided_db_host || db_host
 
-      Restore.new({
-        archive_id: archive_id,
-        processing_cmd: processing_cmd
-      }).run!
+      if ENV['ADDED_EXTENSIONS'].present?
+        processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{host_to_use}"
+
+        Restore.new({
+          archive_id: archive_id,
+          processing_cmd: processing_cmd
+        }).run!
+      else
+        Rails.logger.info "Creating #{database_name} if it doesn't exist"
+        system("psql -d postgres --username=#{db_user} --no-password --host=#{host_to_use} -c 'create database #{database_name}'")
+
+        puts(<<~EOS)
+          Connect to #{database_name} as the RDS superuser and run these commands:
+
+          CREATE EXTENSION hstore;
+          CREATE EXTENSION fuzzystrmatch;
+          CREATE EXTENSION pg_stat_statements;
+
+          When complete, rerun this rake task prefixed with ADDED_EXTENSIONS=true
+        EOS
+      end
     end
 
     def database!

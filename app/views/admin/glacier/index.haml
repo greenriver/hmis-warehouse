@@ -22,7 +22,7 @@
         From the ansible git repository, find the private key. You'll need
         github access, the git-crypt key, and the Open Path vault key to
         execute this command successfully.
-        %tt ansible-vault edit --vault-id=openpath.vpass inventory/group_vars/openpath/vault.yml
+        %tt ansible-vault view --vault-id=openpath.vpass inventory/group_vars/openpath/vault.yml
       %li
         %tt cat > openpath.asc
         Then paste in the private key.
@@ -42,20 +42,48 @@
         %tt host.rds.com:*:*:username:password
 
       %li
-        Change directories to rails root. Find The archive ID you want to restore
+        Open a tmux session to run the restore
+
+      %li
+        Change directories to rails root.
+
+      %li
+        Find The archive ID you want to restore
         %tt export RAILS_ENV=production
         %tt bundle exec rails runner 'ap Glacier::Archive.order(:created_at).all'
 
+      %li
         You must provide the archive ID and database name. The archive ID can
         be the primary key from the glacier_archives table or the really long
         archive ID passed to us from Amazon. Both are in the glacier_archives
         table.
-        Add the third argument if you have a different host. the
+        Add the third argument if you have a different host.
         %tt bundle exec rake glacier:restore_database[:archive_id, :database_name, :provided_db_host]
         e.g.
         %tt bundle exec rake glacier:backup:restore_database[123,restore_some_warehouse_app,endpoint.rds.amazonaws.com]
 
-      %li Delete the private key when you're done.
+      %li
+        On first running, it will create the database, but you'll need to
+        connect as the RDS superuser to add database extensions. Get the credentials from the ansible vault
+        %tt ansible-vault view --vault-id=openpath.vpass inventory/group_vars/containers/vault.yml
+        %br
+        CREATE EXTENSION hstore;
+        %br
+        CREATE EXTENSION fuzzystrmatch;
+        %br
+        CREATE EXTENSION pg_stat_statements;
+
+      %li Following adding these extensions, rerun the original rake task but flag that you've added the extensions:
+        e.g.
+        %tt export ADDED_EXTENSIONS=true
+        %tt bundle exec rake glacier:backup:restore_database[123,restore_some_warehouse_app,endpoint.rds.amazonaws.com]
+
+      %li
+        When the process gets to the decryption part, you'll have to paste the gpg key password (found in the ansible vault file).
+
+      %li
+        Delete the private key when you're done.
+        gpg --delete-private-key
 
 
 
