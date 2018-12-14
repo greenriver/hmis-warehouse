@@ -109,7 +109,10 @@ module Health
       patients.each do |patient|
         # skip the patient if there are no QA that can be sent
         patient_qa = patient.qualifying_activities.unsubmitted.payable.
-          where(hqa_t[:date_of_activity].lteq(max_date))
+          where(
+            hqa_t[:date_of_activity].lteq(max_date).
+            and(hqa_t[:date_of_activity].gteq(start_date))
+          )
         next unless patient_qa.map(&:procedure_code).map(&:present?).any?
 
 
@@ -218,7 +221,7 @@ module Health
     end
 
     def start_date
-      max_date - 6.months
+      max_date.beginning_of_month
     end
 
     def attach_quailifying_activities_to_report
