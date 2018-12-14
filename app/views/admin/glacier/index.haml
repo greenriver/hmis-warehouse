@@ -73,7 +73,8 @@
         %br
         CREATE EXTENSION pg_stat_statements;
 
-      %li Following adding these extensions, rerun the original rake task but flag that you've added the extensions:
+      %li 
+        Following adding these extensions, rerun the original rake task but flag that you've added the extensions:
         e.g.
         %tt export ADDED_EXTENSIONS=true
         %tt bundle exec rake glacier:backup:restore_database[123,restore_some_warehouse_app,endpoint.rds.amazonaws.com]
