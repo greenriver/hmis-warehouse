@@ -25,6 +25,7 @@ module Health
           if just_signed && @create_qa
             just_signed = true
             @qualifying_activity.activity = :pctp_signed
+
           end
           @careplan.save!
           # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
@@ -48,8 +49,8 @@ module Health
         date_of_activity: Date.today,
         activity: :care_planning,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: :yes,
-        mode_of_contact: :in_person,
+        reached_client: :collateral,
+        mode_of_contact: :other,
         patient_id: @careplan.patient_id
       )
     end
