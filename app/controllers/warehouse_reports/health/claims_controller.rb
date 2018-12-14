@@ -47,7 +47,9 @@ module WarehouseReports::Health
       else
         @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
         @completed_reports = Health::Claim.submitted.order(submitted_at: :desc).select(:id, :submitted_at, :max_date)
-        @months_unsubmitted = Health::QualifyingActivity.submittable.unsubmitted.distinct.
+        @months_unsubmitted = Health::QualifyingActivity.submittable.unsubmitted.
+          where.not(date_of_activity: nil).
+          distinct.
           order(date_of_activity: :desc).
           pluck(:date_of_activity).map do |date|
             "#{date.strftime("%B")} - #{date.year}"
