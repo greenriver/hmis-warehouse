@@ -74,7 +74,7 @@ module Window::Health
         @careplan = @patient.careplans.editable.first
       else
         @careplan = @patient.careplans.new(user: current_user)
-        Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).create
+        Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: false).create
       end
 
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: @careplan)
@@ -107,7 +107,7 @@ module Window::Health
       if @careplan.health_file&.new_record?
         @careplan.health_file.set_calculated!(current_user.id, @client.id)
       end
-      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).update
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: false).update
       @form_button = 'Save Care Plan'
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end

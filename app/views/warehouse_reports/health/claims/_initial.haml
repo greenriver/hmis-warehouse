@@ -1,11 +1,21 @@
 %p Before qualifying activities can be converted to claims, they must be evaluated for payability.  Click the button below to begin this process.
 %p This initial step will limit the qualifying activities included for the claims submission.  After clicking the button below, new qualifying activities arriving in the warehouse will not be included in this submission.  It will not limit changes to qualifying activities at this time.
+%p Claims files only cover one month, generally, you'll want to select the last date of the month below.
+%p
+  - if @months_unsubmitted.any?
+    The following months contain un-submitted Qualifying Activities:
+    %ul
+      - @months_unsubmitted.each do |month|
+        %li= month
+  - else
+    All Qualifying Activities have been submitted.
+
 - if @recent_report
   %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
 = simple_form_for :report, url: precalculate_warehouse_reports_health_claims_path do |f|
   .row
-    .col-sm-4
-      = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities on or before'
+    .col-sm-6
+      = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities within the month specified on or before'
       = f.submit 'Calculate Payability', class: "btn btn-primary"
 
 - if @completed_reports.any?
@@ -14,7 +24,11 @@
     %thead
       %tr
         %th Submitted On
+        %th Date Chosen
+        %th Qualifying Activities Included
     %tbody
       - @completed_reports.each do |report|
         %tr
           %td= link_to report.submitted_at.to_date, "#{warehouse_reports_health_claim_url(report)}.txt"
+          %td= report.max_date
+          %td= report.qualifying_activities.count

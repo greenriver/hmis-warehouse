@@ -66,7 +66,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/censuses/index.haml",
-      "line": 18,
+      "line": 14,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(Censuses::Base.available_census_types.detect do\n (m.to_s == params[:type])\n end or Censuses::CensusBedNightProgram).new.class.name.split(\"::\").last",
       "render_path": [{"type":"controller","class":"CensusesController","method":"index","line":12,"file":"app/controllers/censuses_controller.rb"}],
@@ -163,6 +163,26 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/window/clients_controller.rb",
+      "line": 79,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Window::ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/window/clients_controller.rb",
       "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
@@ -217,26 +237,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/window/clients_controller.rb",
-      "line": 79,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Window::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5ba96031ca661709aeb963da5bac9041de9ec50a0dbbe0495500dad0d3318d4d",
@@ -253,6 +253,26 @@
         "method": "force_standard_zip"
       },
       "user_input": "@local_path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/glacier/runner.rb",
+      "line": 30,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"psql -d postgres --username=#{db_user} --no-password --host=#{(provided_db_host or db_host)} -c 'create database #{database_name}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Glacier::Runner",
+        "method": "restore_database!"
+      },
+      "user_input": "db_user",
       "confidence": "Medium",
       "note": ""
     },
@@ -502,7 +522,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 299,
+      "line": 300,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -522,7 +542,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method constantize called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 293,
+      "line": 311,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -640,7 +660,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/census/project_types/index.haml",
-      "line": 14,
+      "line": 11,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(::Filters::DateRange.new(params.permit(:range => ([:start, :end]))[:range]) or ::Filters::DateRange.new(:start => 3.years.ago.to_date, :end => 1.day.ago.to_date)).start",
       "render_path": [{"type":"controller","class":"Census::ProjectTypesController","method":"index","line":10,"file":"app/controllers/census/project_types_controller.rb"}],
@@ -772,6 +792,6 @@
       "note": ""
     }
   ],
-  "updated": "2018-11-13 18:16:08 -0500",
+  "updated": "2018-12-14 11:56:15 -0500",
   "brakeman_version": "4.3.1"
 }

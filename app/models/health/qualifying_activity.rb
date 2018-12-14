@@ -280,17 +280,25 @@ module Health
     end
 
     def self.mode_of_contact_collection
-      self.load_string_collection(modes_of_contact.select{ |k,_| k != :other }.map{|k, mode| [k, mode[:title]] })
+      self.load_string_collection(
+        modes_of_contact.
+        # select{ |k,_| k != :other }.
+        map{|k, mode| [k, mode[:title]] }
+      )
     end
 
     def self.reached_client_collection
-      self.load_string_collection(client_reached.map{|k, mode| [k, mode[:title]] })
+      self.load_string_collection(
+        client_reached.
+        map{|k, mode| [k, mode[:title]] }
+      )
     end
 
     def self.activity_collection
-      suppress_from_view = [:pctp_signed]
+      # suppress_from_view = [:pctp_signed]
       self.load_string_collection(
-        activities.reject{|k| suppress_from_view.include?(k)}.
+        activities.
+        # reject{|k| suppress_from_view.include?(k)}.
         map{|k, mode| [k, mode[:title]] }
       )
     end

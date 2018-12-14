@@ -19,17 +19,22 @@ module Health
 
     def update
       success = true
-      just_signed = @careplan.just_signed?
+      should_really_create_qa = @careplan.just_signed? && @create_qa
+
       begin
         @careplan.class.transaction do          
-          if just_signed && @create_qa
-            just_signed = true
+          if should_really_create_qa
             @qualifying_activity.activity = :pctp_signed
+            @qualifying_activity.mode_of_contact = :other
+            @qualifying_activity.reached_client = :collateral
+            @qualifying_activity.mode_of_contact_other = 'On-line'
+            @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
           end
-          @careplan.save!
+          @careplan.save
           # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
-          if just_signed && @create_qa
+          if should_really_create_qa
             @qualifying_activity.source_id = @careplan.id
+
             @qualifying_activity.save
           end
           @careplan.set_lock
@@ -48,9 +53,8 @@ module Health
         date_of_activity: Date.today,
         activity: :care_planning,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: :yes,
-        mode_of_contact: :in_person,
-        patient_id: @careplan.patient_id
+        reached_client: :in_person,        
+        patient_id: @careplan.patient_id,
       )
     end
 
