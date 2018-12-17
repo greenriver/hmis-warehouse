@@ -48,7 +48,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
     belongs_to :export, **hud_belongs(Export), inverse_of: :geographies
-    has_one :project, through: :project_coc, source: :project
+    has_one :project, **hud_belongs(Project), inverse_of: :geographies
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
