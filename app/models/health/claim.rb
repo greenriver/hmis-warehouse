@@ -115,8 +115,6 @@ module Health
           )
         next unless patient_qa.map(&:procedure_code).map(&:present?).any?
 
-
-        @lx = 0
         @hl += 1
         pr = patient.patient_referral
 
@@ -139,6 +137,7 @@ module Health
 
             # never put more than 20 services in any given claim
             qas.each_slice(20) do |qa_batch|
+              @lx = 0 # Reset LX for batch
               b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
               b.HI b.composite('ABK', 'Z029')
                 qa_batch.each do |qa|
