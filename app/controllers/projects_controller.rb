@@ -24,19 +24,19 @@ class ProjectsController < ApplicationController
     if params[:project].present?
       @projects = @projects.filter(filter_columns)
     end
-    @projects = @projects
-      .includes(:organization)
-      .preload(:geographies)
-      .preload(:inventories)
-      .order(sort)
-      .page(params[:page]).per(50)
+    @projects = @projects.
+      includes(:organization).
+      preload(:geographies).
+      preload(:inventories).
+      order(sort).
+      page(params[:page]).per(50)
   end
 
   def show
-    @clients = @project.service_history_enrollments.entry
-      .preload(:client)
-      .order(she_t[:first_date_in_program].desc(), she_t[:last_date_in_program].desc())
-      .page(params[:page]).per(25)
+    @clients = @project.service_history_enrollments.entry.
+      preload(:client).
+      order(she_t[:first_date_in_program].desc(), she_t[:last_date_in_program].desc()).
+      page(params[:page]).per(25)
   end
 
   def edit
@@ -68,7 +68,9 @@ class ProjectsController < ApplicationController
   end
 
   private def set_project
-    @project = project_source.find(params[:id].to_i)
+    @project = project_source.
+      includes(:organization, :geographies, :inventories, :funders).
+      find(params[:id].to_i)
   end
 
   # whitelist filter-able columns
