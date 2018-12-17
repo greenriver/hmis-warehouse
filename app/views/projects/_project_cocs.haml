@@ -10,7 +10,7 @@
     %tbody
       - project_cocs.all.each do |p_coc|
         %tr
-          %th= p_coc.ProjectCoCID
+          %td= p_coc.ProjectCoCID
           %td
             = p_coc.CoCCode
             - if p_coc.hud_coc_code.present?
