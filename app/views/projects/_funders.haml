@@ -3,11 +3,13 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th FunderID
         %th Source
         %th Grant ID
     %tbody
       - funders.each do |f|
         %tr
+          %td= f.FunderID
           %td
             = HUD.funding_source f.Funder.to_i
           %td
