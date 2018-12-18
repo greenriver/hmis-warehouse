@@ -155,7 +155,8 @@ module Health
         st = st.parent.fetch
       end
 
-      b.SE m.distance(st).fetch, id.to_s.rjust(4, '0')
+      # ST line should be the second line in the file
+      b.SE 2 + m.distance(st).fetch, id.to_s.rjust(4, '0')
       b.GE '1', @group_control_number
       b.IEA '1', @isa_control_number.to_s.rjust(9, '0')
 
