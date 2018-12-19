@@ -35,6 +35,8 @@ module Importers::HMISSixOneOne
       @deidentified = deidentified
       @project_whitelist = project_whitelist
       setup_import(data_source: @data_source)
+      log("De-identifying clients") if @deidentified
+      log("Limiting to whitelisted projects") if @project_whitelist
     end
 
     def import!
