@@ -102,6 +102,8 @@
       %th
         Program type
       %th
+        Match route
+      %th
         First matched at
     %tbody
       - @report.vacancies.each do | vacancy |
@@ -116,5 +118,7 @@
             = vacancy.sub_program_name
           %td
             = vacancy.program_type
+          %td
+            = vacancy.route_name
           %td
             = vacancy.first_matched_at&.to_date
