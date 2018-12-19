@@ -1,0 +1,11 @@
+= content_for :modal_title do
+  = "Patients with Unsubmitted QA in #{@month}"
+
+- if @clients.any?
+  %ul
+    - @clients.each do |client|
+      %li= link_to client.name, window_client_health_qualifying_activities_path(client), target: '_blank'
+
+- else
+  %p
+    None found.

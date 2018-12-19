@@ -3,6 +3,7 @@ module WarehouseReports::Health
     include ArelHelper
     include WindowClientPathGenerator
     include WarehouseReportAuthorization
+    include PjaxModalController
     before_action :require_can_administer_health!
     before_action :set_report, only: [:show, :destroy, :revise, :submit, :generate_claims_file]
     before_action :set_sender
@@ -56,6 +57,25 @@ module WarehouseReports::Health
           end.uniq
         @state = :initial
       end
+    end
+
+    def patients
+      date = params[:date]&.to_date
+      if date.present?
+        @month = "#{date.strftime("%B")} - #{date.year}"
+        @client_ids = Health::Patient.
+          joins(:qualifying_activities).
+          merge(Health::QualifyingActivity.where(date_of_activity: (date.beginning_of_month..date.end_of_month))).
+          distinct.
+          pluck(:client_id)
+        @clients = GrdaWarehouse::Hud::Client.where(id: @client_ids).select(:id, :FirstName, :LastName).
+          order(LastName: :asc, FirstName: :asc)
+      else
+        @month = "Unknown"
+        @client_ids = []
+        @clients = []
+      end
+
     end
 
     def precalculated
