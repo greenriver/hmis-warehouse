@@ -261,6 +261,7 @@ Rails.application.routes.draw do
       resources :canceled_matches, only: [:index]
       resources :process, only: [:index]
       resources :apr, only: [:index]
+      resources :vacancies, only: [:index]
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update

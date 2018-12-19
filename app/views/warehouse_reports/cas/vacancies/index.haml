@@ -1,0 +1,7 @@
+- title = 'CAS Vacancies'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
+
+= simple_form_for @range, as: :range, url: warehouse_reports_cas_vacancies_path, html: { method: :get } do |f|
+  = render 'filter', f: f
