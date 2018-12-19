@@ -1,16 +1,16 @@
 - enrollments = @client.service_history_entries.visible_in_window_to(current_user).joins(:project).residential.ongoing
-- if enrollments.any?
-  %table.table
-    %thead
-      %tr
-        %th Entry
-        %th Program Name
-    %tbody
-      - enrollments.each do |e|
+.rollup-container.c-card.c-card--flush
+  - if enrollments.any?
+    %table.table
+      %thead
         %tr
-          %td= e.first_date_in_program
-          %td= e.project.safe_project_name
-- else
-  .rollup-container.c-card.c-card--flush
+          %th Entry
+          %th Program Name
+      %tbody
+        - enrollments.each do |e|
+          %tr
+            %td= e.first_date_in_program
+            %td= e.project.safe_project_name
+  - else
     .no-data
       No current enrollments
