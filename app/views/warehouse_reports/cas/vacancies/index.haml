@@ -6,12 +6,17 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_cas_vacancies_path, html: { method: :get } do |f|
   = render 'filter', f: f
 
-.row
-  %p
-    The following counts are for CAS vacancies created between
-    %strong #{@report[:start_date]}
-    and
-    %strong #{@report[:end_date]}.
+.row.margin-bottom-02
+  .col-sm-10
+    %p
+      The following counts are for CAS vacancies created between
+      %strong #{@report[:start_date]}
+      and
+      %strong #{@report[:end_date]}.
+  .col-sm-2
+    .pull-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
 
 .row.bg-info
   .col-sm-3

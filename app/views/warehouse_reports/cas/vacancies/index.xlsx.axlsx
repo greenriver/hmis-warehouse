@@ -1,0 +1,26 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "CAS Vacancies") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  columns = [
+    'Created on',
+    'Available at',
+    'Program',
+    'Sub-program',
+    'Program type',
+    'First matched at',
+   ]
+
+  sheet.add_row(columns, :style => title)
+  @report.vacancies.each do |row|
+    sheet.add_row(
+      [
+        row[:vacancy_created_at]&.to_date,
+        row[:vacancy_made_available_at]&.to_date,
+        row[:program_name],
+        row[:sub_program_name],
+        row[:program_type],
+        row[:first_matched_at]&.to_date,
+      ]
+    )
+  end
+end
