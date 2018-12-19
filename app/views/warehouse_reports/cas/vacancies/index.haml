@@ -5,3 +5,111 @@
 
 = simple_form_for @range, as: :range, url: warehouse_reports_cas_vacancies_path, html: { method: :get } do |f|
   = render 'filter', f: f
+
+.row
+  %p
+    The following counts are for CAS vacancies created between
+    %strong #{@report[:start_date]}
+    and
+    %strong #{@report[:end_date]}.
+
+.row.bg-info
+  .col-sm-3
+    %h3 Vacancies by Route
+    %p.description
+      The number of vacancies associated with each match route.
+    %table.table.table-condensed
+      %thead
+        %th
+          Route Name
+        %th
+          Count
+      %tbody
+        - @report.vacancies_by_route.each do | key, value |
+          %tr
+            %td
+              = key
+            %td
+              = value
+  .col-sm-3
+    %h3 Vacancies by Program
+    %p.description
+      The number of vacancies associated with each program.
+    %table.table.table-condensed
+      %thead
+        %th
+          Program Name
+        %th
+          Count
+      %tbody
+        - @report.vacancies_by_program.each do | key, value |
+          %tr
+            %td
+              = key
+            %td
+              = value
+  .col-sm-3
+    %h3 Vacancies by Sub-program
+    %p.description
+      The number of vacancies associated with each sub-program.
+    %table.table.table-condensed
+      %thead
+        %th
+          Sub-program Name
+        %th
+          Count
+      %tbody
+        - @report.vacancies_by_sub_program.each do | key, value |
+          %tr
+            %td
+              = key
+            %td
+              = value
+  .col-sm-3
+    %h3 Vacancies by Program Type
+    %p.description
+      The number of vacancies associated with each program type.
+    %table.table.table-condensed
+      %thead
+        %th
+          Program Type
+        %th
+          Count
+      %tbody
+        - @report.vacancies_by_program_type.each do | key, value |
+          %tr
+            %td
+              = key
+            %td
+              = value
+.row
+  %h2 Vacancies
+  %table.table.table-condensed
+    %thead
+      %th
+        Created on
+      %th
+        Available at
+      %th
+        Program
+      %th
+        Sub-program
+      %th
+        Program type
+      %th
+        First matched at
+    %tbody
+      - @report.vacancies.each do | vacancy |
+        %tr
+          %td
+            = vacancy.vacancy_created_at&.to_date
+          %td
+            = vacancy.vacancy_made_available_at&.to_date
+          %td
+            = vacancy.program_name
+          %td
+            = vacancy.sub_program_name
+          %td
+            = vacancy.program_type
+          %td
+            = vacancy.first_matched_at&.to_date
