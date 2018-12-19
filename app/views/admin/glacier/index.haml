@@ -72,6 +72,13 @@
         CREATE EXTENSION fuzzystrmatch;
         %br
         CREATE EXTENSION pg_stat_statements;
+        %br
+        CREATE EXTENSION pgcrypto;
+
+      %li
+        Double check disk space. If you're restoring something big, consider
+        removing databases first from the newly restored snapshot.
+
 
       %li 
         Following adding these extensions, rerun the original rake task but flag that you've added the extensions:
