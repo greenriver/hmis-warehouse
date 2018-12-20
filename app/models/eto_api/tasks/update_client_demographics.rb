@@ -214,6 +214,13 @@ module EtoApi::Tasks
                 }
               end
             end
+          elsif element_type == 'Address'
+            value = address_from_response(element_id: element['ElementID'], response: api_response)
+            section[:questions] << {
+              question: element['Stimulus'],
+              answer: value,
+              type: element_type,
+            }
           else
             value = response_element(element_id: element['ElementID'], response: api_response).try(:[], 'Value')
             section[:questions] << {
@@ -269,14 +276,33 @@ module EtoApi::Tasks
         9 => 'Date',
         5 => 'Textfield',
         2 => 'Textarea',
+        15 => 'Address',
         24 => 'Textfield',
         1 => 'Section header', # this appears to be a TH element, but it's unclear
       }
       types.try(:[], element_type)
     end
 
-    private def response_element(element_id: , response:)
+    private def response_element(element_id:, response:)
       response['ResponseElements'].select{|m| m['ElementID'] == element_id}.first
+    end
+
+    private def address_from_response(element_id:, response:)
+      address_hash = response_element(element_id: element_id, response: response)['ResponseAddressField']
+      address = []
+      [
+        'Name',
+        'Company',
+        'AddressLine1',
+        'AddressLine2',
+        'City',
+        'State',
+        'PostalCode',
+        'Country',
+      ].each do |k|
+        address << "#{k}: #{address_hash[k]}" if address_hash[k].present?
+      end
+      address.join(";\n")
     end
 
     private def entity client:, response:, entity_label:
