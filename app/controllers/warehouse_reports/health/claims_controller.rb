@@ -65,7 +65,9 @@ module WarehouseReports::Health
         @month = "#{date.strftime("%B")} - #{date.year}"
         @client_ids = Health::Patient.
           joins(:qualifying_activities).
-          merge(Health::QualifyingActivity.where(date_of_activity: (date.beginning_of_month..date.end_of_month))).
+          merge(Health::QualifyingActivity.submittable.unsubmitted.
+            where(date_of_activity: (date.beginning_of_month..date.end_of_month))
+          ).
           distinct.
           pluck(:client_id)
         @clients = GrdaWarehouse::Hud::Client.where(id: @client_ids).select(:id, :FirstName, :LastName).
