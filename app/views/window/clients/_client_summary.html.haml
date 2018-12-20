@@ -13,6 +13,8 @@
         = render 'window/clients/consent_form_flags'
       .mr-8.mb-3.d-none--empty<
         = render 'clients/chronic_flags', client: @client
+        - if @client.consent_form_valid?
+          = render 'clients/cas_housed'
       .d-none--empty.mr-8.mb-6<
         = render 'clients/vispdat'
 

@@ -4,11 +4,13 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th ProjectCoCID
         %th CoC Code
         %th
     %tbody
       - project_cocs.all.each do |p_coc|
         %tr
+          %td= p_coc.ProjectCoCID
           %td
             = p_coc.CoCCode
             - if p_coc.hud_coc_code.present?

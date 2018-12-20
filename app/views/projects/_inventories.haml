@@ -3,6 +3,7 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th InventoryID
         %th Availability
         %th Dates
         %th Unit Inventory
@@ -16,6 +17,7 @@
     %tbody
       - inventories.all.each do |inventory|
         %tr
+          %td= inventory.InventoryID
           %td= HUD.availability inventory.Availability
           %td
             - if inventory.InformationDate.present?

@@ -6,7 +6,7 @@
     The following months contain un-submitted Qualifying Activities:
     %ul
       - @months_unsubmitted.each do |month|
-        %li= month
+        %li= link_to month, patients_warehouse_reports_health_claims_path(date: month.to_date), data: { loads_in_pjax_modal: true }
   - else
     All Qualifying Activities have been submitted.
 

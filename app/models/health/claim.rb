@@ -115,8 +115,6 @@ module Health
           )
         next unless patient_qa.map(&:procedure_code).map(&:present?).any?
 
-
-        @lx = 0
         @hl += 1
         pr = patient.patient_referral
 
@@ -139,6 +137,7 @@ module Health
 
             # never put more than 20 services in any given claim
             qas.each_slice(20) do |qa_batch|
+              @lx = 0 # Reset LX for batch
               b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
               b.HI b.composite('ABK', 'Z029')
                 qa_batch.each do |qa|
@@ -156,7 +155,8 @@ module Health
         st = st.parent.fetch
       end
 
-      b.SE 1 + m.distance(st).fetch, id.to_s.rjust(4, '0')
+      # ST line should be the second line in the file
+      b.SE 2 + m.distance(st).fetch, id.to_s.rjust(4, '0')
       b.GE '1', @group_control_number
       b.IEA '1', @isa_control_number.to_s.rjust(9, '0')
 

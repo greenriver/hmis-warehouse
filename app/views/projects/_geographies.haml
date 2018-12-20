@@ -4,6 +4,7 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th GeographyID
         %th Information Date
         %th Geocode
         %th Geography Type
@@ -16,6 +17,7 @@
     %tbody
       - geographies.all.each do |geography|
         %tr
+          %td= geography.GeographyID
           %td
             = geography.InformationDate
             - if geography.information_date_override.present?

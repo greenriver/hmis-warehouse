@@ -35,11 +35,11 @@
         %td.d-flex
           .project__continuum-project
             = checkmark(@project.ContinuumProject == 1)
-          - if @project.hud_continuum_funded
+          - if ! @project.hud_continuum_funded.nil?
             .ml-2
               %em
                 Overridden
-                = checkmark @project.hud_continuum_funded
+                = checkmark_or_x @project.hud_continuum_funded
       %tr
         %th Housing Type
         %td.d-flex

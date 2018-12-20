@@ -8,23 +8,23 @@ module ApplicationHelper
   end
   # END Permissions
 
-  def yes_no boolean
+  def yes_no boolean, include_icon: true
     case boolean
     when nil
       "Not Specified"
     when true, "Yes"
       capture do
-        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
+        concat content_tag :span, nil, class: 'icon-checkmark o-color--positive' if include_icon
         concat " Yes"
       end
     when false, "No"
       capture do
-        concat content_tag :span, nil, class: 'icon-cross o-color--danger'
+        concat content_tag :span, nil, class: 'icon-cross o-color--danger' if include_icon
         concat " No"
       end
     when "Refused"
       capture do
-        concat content_tag :span, nil, class: 'icon-warning o-color--warning'
+        concat content_tag :span, nil, class: 'icon-warning o-color--warning' if include_icon
         concat " Refused/Unsure"
       end
     end

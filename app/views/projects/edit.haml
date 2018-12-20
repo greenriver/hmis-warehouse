@@ -8,7 +8,7 @@
       = f.input :operating_start_date_override, as: :date_picker, label: "Override the operating start date, currently: #{@project.OperatingStartDate&.to_date || 'unset'}"
       = f.input :confidential, label: 'Confidential?'
       = f.input :uses_move_in_date, label: 'Uses move-in-date?'
-      = f.input :hud_continuum_funded, label: 'Continuum funded?'
+      = f.input :hud_continuum_funded, collection: {'Yes'=>true, 'No'=>false}, label: 'Continuum project?', include_blank: "Use actual ContinuumProject: #{yes_no(@project.ContinuumProject == 1, include_icon: false)}", input_html: {class: :select2}
       = f.input :housing_type_override, label: 'Housing Type Override', input_html: { value: @project.housing_type_override}, collection: HUD.housing_types.invert, include_blank: "Use actual Housing Type: #{HUD.housing_type(@project.HousingType) || 'unset'}", input_html: {class: :select2}
       .form-actions
         = f.submit 'Save', class: ['btn', 'btn-primary', 'ml-auto']

@@ -35,6 +35,8 @@ module Importers::HMISSixOneOne
       @deidentified = deidentified
       @project_whitelist = project_whitelist
       setup_import(data_source: @data_source)
+      log("De-identifying clients") if @deidentified
+      log("Limiting to whitelisted projects") if @project_whitelist
     end
 
     def import!
@@ -337,7 +339,11 @@ module Importers::HMISSixOneOne
       headers = csv.headers
       csv.rewind # go back to the start for processing
       
-      if header_valid?(headers, klass)
+      if headers.blank?
+        msg = "Unable to import #{File.basename(read_from.path)}, no data"
+        add_error(file_path: read_from.path, message: msg, line: '')
+        return
+      elsif header_valid?(headers, klass)
         # we need to accept different cased headers, but we need our
         # case for import, so we'll fix that up here and use ours going forward
         header = clean_header_row(headers, klass)
