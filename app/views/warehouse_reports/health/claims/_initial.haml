@@ -26,9 +26,11 @@
         %th Submitted On
         %th Date Chosen
         %th Qualifying Activities Included
+        %th Patients Included
     %tbody
       - @completed_reports.each do |report|
         %tr
           %td= link_to report.submitted_at.to_date, "#{warehouse_reports_health_claim_url(report)}.txt"
           %td= report.max_date
           %td= report.qualifying_activities.count
+          %td= report.qualifying_activities.select(:patient_id).distinct.count
