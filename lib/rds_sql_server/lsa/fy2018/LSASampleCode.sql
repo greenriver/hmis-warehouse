@@ -1268,12 +1268,14 @@ set CHTime = case
     when ep.episodeDays between 270 and 364 then 270
     else 0 end
   , CHTimeStatus = case
+    --UPDATE 12/19/2018 CHTimeStatus shd be -1 when CHTime <> 365
+    when ep.episodeDays < 365 then -1 
     when ep.episodes >= 4 then 2
     else 3 end
 from tmp_Person lp
 inner join (select chep.PersonalID
   , sum(chep.episodeDays) as episodeDays, count(distinct chep.episodeStart) as episodes
-  from ch_Episodes chep 
+  from ch_Episodes chep
   group by chep.PersonalID) ep on ep.PersonalID = lp.PersonalID
 where HoHAdult > 0 and CHTime is null
 /*************************************************************************
@@ -2556,7 +2558,9 @@ inner join ref_Calendar cal on cal.theDate = bn.DateProvided
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
 --CHANGE 12/4/2018 verify that bed night is valid for the enrollment/not on or after exit
-where (cal.theDate > lhh.LastInactive) and cal.theDate < coalesce (hx.ExitDate, rpt.ReportEnd)
+where (cal.theDate > lhh.LastInactive) 
+  --CHANGE 12/19/2018 - the date must be before ExitDate but may = ReportEnd
+  and (cal.theDate < hx.ExitDate or (hx.ExitDate is null and cal.theDate <= rpt.ReportEnd))
   and other.sysDate is null and sn.ProjectType = 1
 
 --Homeless (Time prior to Move-In) in PSH or RRH (sys_Time.sysStatus = 5 or 6)
@@ -3228,7 +3232,9 @@ where ex.HHAdultAge is null
 update ex
 set ex.HHParent = 0 
 from tmp_Exit ex
-where ex.HHParent = 1 and ex.HHAdultAge not in (18,24)
+--CHANGE 12/19/2018 HHAdultAge should be 18 or 24 IF HHType = AC (2)
+-- it is irrelevant for HHType = CO (3)
+where ex.HHParent = 1 and ex.HHType = 2 and ex.HHAdultAge not in (18,24)
 
 /*****************************************************************
 4.45 Set Stat for Exit Cohort Households
@@ -3292,6 +3298,9 @@ set ex.StatEnrollmentID = (select top 1 previous.EnrollmentID
     and hx.ExitDate > previous.EntryDate 
     and dateadd(dd,730,hx.ExitDate) >= ex.EntryDate
     and hx.ExitDate < ex.ExitDate
+  --CHANGE 12/19/2018 previous EntryDate must be prior to the EntryDate
+  -- for the qualifying exit (or it isn't previous)
+  and previous.EntryDate < ex.EntryDate 
   inner join 
     --HouseholdIDs with LSA household types
      #hhxstat on #hhxstat.HouseholdID = previous.HouseholdID
@@ -3439,9 +3448,10 @@ inner join (select ex.Cohort, ex.HoHID, ex.HHType, max(cal.theDate) as inactive
       , dateadd(dd,6,bn.DateProvided) as EndDate
     from sys_Enrollment sn
     inner join tmp_Exit x on x.HHType = sn.HHType and x.HoHID = sn.HoHID
-      and x.ExitDate >= sn.ExitDate
+    --CHANGE 12/19/2018 remove x to sn join criteria for ExitDate (which is null in sn for 
+    -- night-by-night) and add requirement for bn.DateProvided <= qualifying exit
     inner join hmis_Services bn on bn.EnrollmentID = sn.EnrollmentID
-      and bn.RecordType = 200
+      and bn.RecordType = 200 and bn.DateProvided <= x.ExitDate
     where sn.EntryDate is null
     union 
     --time in ES/SH/TH or in RRH/PSH but not housed
@@ -3457,6 +3467,9 @@ inner join (select ex.Cohort, ex.HoHID, ex.HHType, max(cal.theDate) as inactive
   group by ex.HoHID, ex.HHType, ex.Cohort
   ) lastDay on lastDay.HoHID = ex.HoHID and lastDay.HHType = ex.HHType
     and lastDay.Cohort = ex.Cohort
+--CHANGE 12/19/2018 - add WHERE clause (no change to output, but no need to set 
+--  LastInactive unless SystemPath is null).
+where ex.SystemPath is null
 
 update ex
 set ex.SystemPath = case ptype.summary
