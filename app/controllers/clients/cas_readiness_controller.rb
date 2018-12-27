@@ -7,7 +7,9 @@ module Clients
     after_action :log_client
 
     def edit
-
+      if Cas::Neighborhood.db_exists?
+        @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name)
+      end
     end
     
     def update
