@@ -22,6 +22,7 @@ module GrdaWarehouse::Tasks
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
+          project_client.date_days_homeless_verified = Date.today
           project_client.needs_update = true
           project_client.save!
         end
