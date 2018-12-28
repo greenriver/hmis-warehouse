@@ -48,7 +48,7 @@ module PatientReferralImporter
         eoea: 'EOEA_FLAG',
         ed_visits: 'ED_Visits',
         snf_discharge: 'SNF_Discharge',
-        identification: 'Identification_flag',
+        identification: 'Identification_Flag',
         record_status: 'Record_Status',
         updated_on: 'Record_Update_Date',
         exported_on: 'Export_Date',
