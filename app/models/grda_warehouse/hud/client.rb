@@ -184,6 +184,10 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
     end
 
+    def neighborhood_ids_for_cas
+      neighborhood_interests.map(&:to_i)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard

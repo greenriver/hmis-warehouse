@@ -136,7 +136,7 @@ module GrdaWarehouse::Tasks
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
         requires_elevator_access: :requires_elevator_access,
-        neighborhood_interests: :neighborhood_interests,
+        neighborhood_interests: :neighborhood_ids_for_cas,
       }
     end
   end
