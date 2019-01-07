@@ -1,0 +1,37 @@
+- title = "Youth Export"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+%h1= title
+
+= render 'filter'
+- if @enrollments.any?
+  .mb-4.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      %i.icon-download2
+      Download Excel
+  = render 'pagination'
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Entry Date
+        %th Exit Date
+        %th Project
+        %th Project Type
+        %th Group
+    %tbody
+      - @enrollments.each do |en|
+        - client = en.client
+        %tr
+          %td= link_to client.LastName, client_path(id: en.client_id)
+          %td= link_to client.FirstName, client_path(id: en.client_id)
+          %td= en.first_date_in_program
+          %td= en.last_date_in_program
+          %td= en.project_name
+          %td= HUD.project_type(en.project_type)
+          %td= @report.group(en.client_id)
+
+  = render 'pagination'
+- else
+  %p None Found.

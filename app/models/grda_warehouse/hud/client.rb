@@ -1828,6 +1828,10 @@ module GrdaWarehouse::Hud
       Rails.cache.delete_matched("*clients/#{id}/*")
     end
 
+    def most_recent_vispdat
+      vispdats.completed.first
+    end
+
     def most_recent_vispdat_score
       vispdats.completed.scores.first&.score || 0
     end
