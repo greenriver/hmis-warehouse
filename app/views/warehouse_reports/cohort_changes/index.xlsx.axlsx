@@ -26,11 +26,11 @@ wb.add_worksheet(name: "Youth #{@report.start_date}-#{@report.end_date}"[0,30]) 
     vispdat = client.most_recent_vispdat
     associated_exit = c_en.associated_exit
     time_to_housed = nil
-    if vispdat && associated_exit && associated_exit.reason == 'Housed'
+    if vispdat.present? && associated_exit.present? && associated_exit.reason == 'Housed'
       (associated_exit.changed_at.to_date - time_to_housed.submitted_at.to_date).to_i
     end
     vispdat_within_90_days = nil
-    if vispdat
+    if vispdat.present? && vispdat.submitted_at.present?
       vispdat_within_90_days = (@report.end_date - vispdat.submitted_at.to_date) < 90
     end
 
