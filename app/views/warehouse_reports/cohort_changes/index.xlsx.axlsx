@@ -26,8 +26,8 @@ wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
     vispdat = client.most_recent_vispdat
     associated_exit = c_en.associated_exit
     time_to_housed = nil
-    if vispdat.present? && vispdat.submitted_at.present? && associated_exit.present? && associated_exit.reason == 'Housed'
-      (associated_exit.changed_at.to_date - vispdat.submitted_at.to_date).to_i
+    if vispdat.present? && vispdat.submitted_at.present? && associated_exit.present? && associated_exit.reason&.downcase == 'housed'
+      time_to_housed = (associated_exit.changed_at.to_date - vispdat.submitted_at.to_date).to_i
     end
     vispdat_within_90_days = nil
     if vispdat.present? && vispdat.submitted_at.present?
