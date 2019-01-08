@@ -5,6 +5,19 @@ class WarehouseReport::CohortChanges < OpenStruct
   attr_accessor :end_date
   attr_accessor :cohort_id
 
+  def start_date
+    self[:start_date]
+  end
+
+  def end_date
+    self[:end_date]
+  end
+  
+  def cohort_id
+    self[:cohort_id]
+  end
+  
+
   def group client_id
     case client_id
     when *new_ids
