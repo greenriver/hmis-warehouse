@@ -149,6 +149,9 @@ module ArelHelper
   def hmis_form_t
     GrdaWarehouse::HmisForm.arel_table
   end
+  def c_client_t
+    GrdaWarehouse::CohortClient.arel_table
+  end
   def hp_t
     Health::Patient.arel_table
   end
@@ -378,6 +381,9 @@ module ArelHelper
     end
     def hmis_form_t
       GrdaWarehouse::HmisForm.arel_table
+    end
+    def c_client_t
+      GrdaWarehouse::CohortClient.arel_table
     end
     def hp_t
       Health::Patient.arel_table

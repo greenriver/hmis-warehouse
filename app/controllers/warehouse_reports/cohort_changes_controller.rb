@@ -1,15 +1,14 @@
 module WarehouseReports
-  class YouthExportController < ApplicationController
+  class CohortChangesController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
     before_action :set_filter
     before_action :set_report
 
     def index
-
-      @enrollments = @report.enrollments.
+      @enrollments = @report.cohort_enrollments.
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
-        preload(client: [:source_clients, :vispdats])
+        preload(cohort_client: [client: [:source_clients, :vispdats]])
       respond_to do |format|
         format.html {
           @enrollments = @enrollments.page(params[:page]).per(25)
@@ -19,20 +18,21 @@ module WarehouseReports
     end
 
     def set_filter
-      @filter = ::Filters::DateRange.new(date_filter_options)
+      @filter = ::Filters::DateRangeAndCohort.new(filter_options)
     end
 
     def set_report
-      @report = WarehouseReport::Youth.new(
+      @report = WarehouseReport::CohortChanges.new(
         start_date: @filter.start, 
-        end_date: @filter.end
+        end_date: @filter.end,
+        cohort_id: @filter.cohort_id,
       )
 
     end
 
-    def date_filter_options
+    def filter_options
       if params[:filter].present?
-        opts = params.require(:filter).permit(:start, :end)
+        opts = params.require(:filter).permit(:start, :end, :cohort_id)
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
           opts[:end] = opts[:start]
@@ -43,6 +43,7 @@ module WarehouseReports
         {
           start: default_start.to_date, 
           end: default_end.to_date,
+          cohort_id: GrdaWarehouse::Cohort.active.viewable_by(current_user).first&.id,
         }
       end
     end

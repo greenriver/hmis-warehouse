@@ -1,0 +1,12 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_cohort_changes_path, html: { method: :get, class: 'jFilter' } do |f|
+  = f.error_notification
+  .row
+    .col-sm-3
+      = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, as: :date_picker
+    .col-sm-3
+      = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker
+    .col-sm-3
+      = f.input :cohort_id, collection: @filter.available_cohorts_for(current_user), input_html: { class: :select2}
+    .col-sm-3.text-right.pt-no-label
+      = f.button :submit, value: 'Update Range'
+%hr

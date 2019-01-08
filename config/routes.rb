@@ -246,7 +246,7 @@ Rails.application.routes.draw do
     resources :find_by_id, only: [:index] do
       post :search, on: :collection
     end
-    resources :youth_export, only: [:index]
+    resources :cohort_changes, only: [:index]
     namespace :project do
       resource :data_quality do
         get :download, on: :member
