@@ -5,16 +5,16 @@
       %table.table.table-condensed
         %thead
           %tr
-            %th Match Status
+            %th.nobr Match Status
             %th Step
             %th Decision Status
             %th Date
         %tbody
           - decisions.each do |decision|
             %tr
-              %td= decision.terminal_status
+              %td.nobr= decision.terminal_status
               %td
                 = link_to GrdaWarehouse::Config.get(:cas_url) + "/matches/#{decision.match_id}", target: '_blank' do
                   #{decision.match_step} 
               %td= decision.decision_status.sub('Dnd', 'DND')
-              %td= decision.updated_at.to_date
+              %td.nobr= decision.updated_at.to_date
