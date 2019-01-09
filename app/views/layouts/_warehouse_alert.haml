@@ -4,3 +4,7 @@
     = link_to admin_warehouse_alert_path(WarehouseAlert.ordered&.first), class: 'btn btn-warning o-header__nav' do
       %i.icon-warning
       Alert!
+  - if stalled_imports?
+    = link_to data_sources_path, class: 'btn btn-warning o-header__nav' do
+      %i.icon-clock
+      Stalled Import!
