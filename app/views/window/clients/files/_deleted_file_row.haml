@@ -16,4 +16,4 @@
       = "#{file.created_at} by "
       = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
   %td= file.deleted_at
-  %td= delete_reasons[file.delete_reason]
+  %td= delete_reasons[file.delete_reason] if file.delete_reason != 0

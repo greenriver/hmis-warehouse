@@ -95,7 +95,10 @@ module Window::Clients
       @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
 
-      @file.update(delete_reason: params[:delete_reason].to_i)
+      delete_reason = params[:delete_reason]
+      if delete_reason.present?
+        @file.update(delete_reason: delete_reason.to_i)
+      end
 
       begin
         @file.destroy!
