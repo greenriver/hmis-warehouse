@@ -1,0 +1,71 @@
+- title = "Cohort Changes Report"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+%h1= title
+
+= render 'filter'
+- if @enrollments.any?
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Active Clients
+      %i.icon-group.metric
+      .metric
+        = @report.client_ids.count
+      .description
+        Clients who were on the cohort during the date range
+    .rrh__enrolled.chunk.pr-4.mr-4
+      %h4.title
+        New Clients
+      %i.icon-enter.metric
+      .metric
+        = @report.new_ids.count
+      .description
+        Clients entered the cohort during the date range
+    .rrh__enrolled.chunk.pr-4.mr-4
+      %h4.title
+        Continuing Clients
+      %i.icon-group.metric
+      .metric
+        = @report.prior_month_ids.count
+      .description
+        Clients who were also active in the month prior to #{@filter.start}
+    .rrh__enrolled.chunk.-stabilization
+      %h4.title
+        Returning Clients
+      %i.icon-step-back.metric
+      .metric
+        = @report.returning_ids.count
+      .description
+        Clients inactive in the month prior, but previously active
+
+  .mb-4.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      %i.icon-download2
+      Download Excel
+  = render 'pagination'
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Entry Date
+        %th Exit Date
+        %th Exit Reason
+        %th Group
+    %tbody
+      - @enrollments.each do |c_en|
+        - client = c_en.cohort_client.client
+        - associated_exit = c_en.associated_exit
+        %tr
+          %td= link_to client.LastName, client_path(client)
+          %td= link_to client.FirstName, client_path(client)
+          %td= c_en.changed_at&.to_date
+          %td= associated_exit&.changed_at&.to_date
+          %td= associated_exit&.change_reason
+          %td
+          %td= @report.group(client.id)
+
+  = render 'pagination'
+- else
+  %p None Found.
