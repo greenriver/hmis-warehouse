@@ -157,17 +157,4 @@ class ApplicationController < ActionController::Base
   def set_hostname
     @op_hostname ||= `hostname` rescue 'test-server'
   end
-
-  def stalled_imports?
-    if can_edit_data_sources?
-      GrdaWarehouse::DataSource.all.each do |data_source|
-        most_recently_completed = data_source.import_logs.maximum(:completed_at)
-        if most_recently_completed.present?
-          return true if data_source.stalled_since?(most_recently_completed)
-        end
-      end
-    end
-    return false
-  end
-  helper_method :stalled_imports?
 end

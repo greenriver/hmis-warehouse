@@ -1,10 +1,10 @@
 - if current_user
-  - alert = WarehouseAlert.ordered&.first
-  - if alert.present? && alert.html.present?
-    = link_to admin_warehouse_alert_path(WarehouseAlert.ordered&.first), class: 'btn btn-warning o-header__nav' do
-      %i.icon-warning
-      Alert!
-  - if stalled_imports?
-    = link_to data_sources_path, class: 'btn btn-warning o-header__nav' do
-      %i.icon-clock
-      Stalled Import!
+  .warehouse-alerts.ml-auto
+    - alert = WarehouseAlert.ordered&.first
+    - if alert.present? && alert.html.present?
+      = link_to admin_warehouse_alert_path(WarehouseAlert.ordered&.first), class: 'btn btn-warning btn-icon-only o-header__nav' do
+        %i.icon-warning{ data: {toggle: :tooltip, title: 'Warehouse Alert!', placement: :bottom}}
+    - if current_user.can_edit_data_sources? && GrdaWarehouse::DataSource.stalled_imports?(current_user)
+      = link_to data_sources_path, class: 'btn btn-warning btn-icon-only o-header__nav' do
+        %i.icon-clock{ data: {toggle: :tooltip, title: 'Stalled Import!', placement: :bottom}}
+  
