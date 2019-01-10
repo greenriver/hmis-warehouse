@@ -53,7 +53,8 @@
       %td.text-center= file.consent_type
       %td.text-center= checkmark file.consent_form_confirmed
 
-  %td.text-right.table__actions
+  %td.text-right
     - if file.editable_by?(current_user)
-      = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-link btn-link--danger') do
-        %span.icon-cross
+      %ul{style: 'list-style-type: none'}
+        - delete_reasons.each do | code, label |
+          %li= link_to(label, polymorphic_path(file_path_generator, id: file.id, delete_reason: code), method: :delete, data: {confirm: "Would you really like to delete this file?"})

@@ -28,5 +28,11 @@
           = render 'window/clients/files/batch_download'
       .c-card.c-card--flush.c-card--block
         = render 'window/clients/files/file_list', files: @files, paginate: true, consent: false
+  - if can_manage_client_files? && @deleted_files.any?
+    %section.o-section-card
+    %header.o-section-card__header
+      %h3 Deleted Files
+    .c-card.c-card--flush.c-card--block
+      = render 'window/clients/files/deleted_file_list', files: @deleted_files
 - else
   No file uploads

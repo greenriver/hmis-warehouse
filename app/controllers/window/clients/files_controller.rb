@@ -18,6 +18,8 @@ module Window::Clients
 
       @consent_files = consent_scope
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
+      @deleted_files = all_file_scope.only_deleted
+
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
       if params[:file_ids].present?
         @pre_checked = params[:file_ids].split(',').map(&:to_i)
@@ -93,6 +95,8 @@ module Window::Clients
       @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
 
+      @file.update(delete_reason: params[:delete_reason].to_i)
+
       begin
         @file.destroy!
         flash[:notice] = "File was successfully deleted."
@@ -107,6 +111,16 @@ module Window::Clients
       end
       redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
     end
+
+    def delete_reasons
+      {
+          0 => 'Incomplete Form',
+          1 => 'Incorrect Client',
+          2 => 'Incorrectly Categorized',
+          99 => 'Other',
+      }
+    end
+    helper_method :delete_reasons
 
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
