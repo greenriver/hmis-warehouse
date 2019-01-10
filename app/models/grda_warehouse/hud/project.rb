@@ -632,10 +632,12 @@ module GrdaWarehouse::Hud
       @options = begin
         options = {}
         self.viewable_by(user).
-        joins(:organization).order(o_t[:OrganizationName]).order(:ProjectName).pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
-          options[org] ||= []
-          options[org] << [project_name, id]
-        end
+          joins(:organization).
+          order(o_t[:OrganizationName].asc, ProjectName: :asc).
+            pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
+            options[org] ||= []
+            options[org] << [project_name, id]
+          end
         options
       end
     end
