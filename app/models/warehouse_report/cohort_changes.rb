@@ -55,9 +55,9 @@ class WarehouseReport::CohortChanges < OpenStruct
   def returning_scope
     prev_start = (self[:start_date] - 5.years).beginning_of_month
     prev_end = self[:start_date] - 1.day
-    enrollment_scope.on_cohort_between(start_date: prev_start, end_date: prev_end).
-      where(c_client_t[:client_id].in(enrollment_scope.distinct.select(c_client_t[:client_id].to_sql))).
-      where.not(c_client_t[:client_id].in(prior_month_scope.distinct.select(c_client_t[:client_id].to_sql)))
+    cohort_scope.on_cohort_between(start_date: prev_start, end_date: prev_end).
+      where(c_client_t[:client_id].in(client_ids)).
+      where.not(c_client_t[:client_id].in(prior_month_ids))
   end
 
   # continuing enrollments
@@ -68,8 +68,8 @@ class WarehouseReport::CohortChanges < OpenStruct
   def prior_month_scope
     prev_start = (self[:start_date] - 1.months).beginning_of_month
     prev_end = prev_start.end_of_month
-    enrollment_scope.on_cohort_between(start_date: prev_start, end_date: prev_end).
-      where(c_client_t[:client_id].in(enrollment_scope.distinct.select(c_client_t[:client_id].to_sql)))
+    cohort_scope.on_cohort_between(start_date: prev_start, end_date: prev_end).
+      where(c_client_t[:client_id].in(client_ids))
   end
 
   def client_ids
@@ -81,7 +81,7 @@ class WarehouseReport::CohortChanges < OpenStruct
   end
 
   def cohort_scope
-    GrdaWarehouse::CohortClientChange.on_cohort(self[:cohort_id]).joins(:cohort_client)
+    GrdaWarehouse::CombinedCohortClientChange.on_cohort(self[:cohort_id]).joins(:cohort_client)
   end
 
 end

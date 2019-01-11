@@ -7,26 +7,6 @@ module GrdaWarehouse
 
     validates_presence_of :cohort_client, :cohort, :user, :change
 
-    scope :on_cohort_between, -> (start_date:, end_date:) do
-      where("cohort_client_changes.id in (SELECT cc.id
-        FROM
-        (SELECT *
-            FROM cohort_client_changes
-            WHERE change IN ('create', 'activate')
-        ) cc
-        LEFT JOIN LATERAL
-        (SELECT *
-        FROM cohort_client_changes
-        WHERE change IN ('destroy', 'deactivate')
-        AND cc.cohort_client_id = cohort_client_id
-        AND cc.cohort_id = cohort_id
-        AND cc.changed_at < changed_at
-        ORDER BY changed_at ASC 
-        LIMIT 1) cc_ex ON TRUE
-        WHERE (cc_ex.changed_at >= ? OR cc_ex IS NULL) AND cc.changed_at <= ?
-        AND (cc_ex.reason IS NULL OR cc_ex.reason != 'Mistake'))", start_date, end_date)
-    end
-
     scope :on_cohort, -> (cohort_id) do
       where(cohort_id: cohort_id)
     end
