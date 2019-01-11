@@ -59,6 +59,5 @@
         = link_to(polymorphic_path(file_path_generator, id: file.id), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-link btn-link--danger') do
           %span.icon-cross
       - else
-        %ul{style: 'list-style-type: none'}
-          - delete_reasons.each do | code, label |
-            %li= link_to(label, polymorphic_path(file_path_generator, id: file.id, delete_reason: code), method: :delete, data: {confirm: "Would you really like to delete this file?"})
+        = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-link btn-link--danger') do
+          %span.icon-cross

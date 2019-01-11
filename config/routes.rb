@@ -342,6 +342,7 @@ Rails.application.routes.draw do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
+      get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'

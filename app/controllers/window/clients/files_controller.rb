@@ -1,9 +1,10 @@
 module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
+    include PjaxModalController
 
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :destroy]
+    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :show_delete_modal, :destroy]
     before_action :set_files, only: [:index]
     before_action :set_window
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
@@ -91,13 +92,22 @@ module Window::Clients
       redirect_to action: :index
     end
 
+    def show_delete_modal
+      @file = editable_scope.find(params[:id].to_i)
+      @client = @file.client
+    end
+
     def destroy
       @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
 
-      delete_reason = params[:delete_reason]
-      if delete_reason.present?
-        @file.update(delete_reason: delete_reason.to_i)
+      delete_params = params[:grda_warehouse_client_file]
+      if delete_params
+        delete_reason = delete_params[:delete_reason]
+        if delete_reason.present?
+          delete_detail = delete_params[:delete_detail]
+          @file.update(delete_reason: delete_reason.to_i, delete_detail: delete_detail)
+        end
       end
 
       begin
