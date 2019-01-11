@@ -56,13 +56,13 @@
     %tbody
       - @enrollments.each do |c_en|
         - client = c_en.cohort_client.client
-        - associated_exit = c_en.associated_exit
+        -# - associated_exit = c_en.associated_exit
         %tr
           %td= link_to client.LastName, client_path(client)
           %td= link_to client.FirstName, client_path(client)
-          %td= c_en.changed_at&.to_date
-          %td= associated_exit&.changed_at&.to_date
-          %td= associated_exit&.change_reason
+          %td= c_en.entry_date&.to_date
+          %td= c_en&.exit_date&.to_date
+          %td= c_en&.change_reason
           %td
           %td= @report.group(client.id)
 
