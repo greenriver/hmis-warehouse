@@ -57,7 +57,7 @@ class WarehouseReport::CohortChanges < OpenStruct
         vispdat = vispdat_for(client_id)
         c_en = cohort_change_for(client_id)
         # Sleeping questions
-        sleeping_key = cc.sleeping_location || 'Unknown'
+        sleeping_key = cc.sleeping_location&.strip.presence || 'Unknown'
         sleeping_locations[sleeping_key] ||= {
           count: 0, 
           of_color: 0, 
@@ -73,7 +73,7 @@ class WarehouseReport::CohortChanges < OpenStruct
         sleeping_locations[sleeping_key][lgbtq_bucket(cc.lgbtq)] += 1
 
         # Exit destination questions
-        destination_key = cc.exit_destination || 'No Destination'
+        destination_key = cc.exit_destination&.strip.presence || 'No Destination'
         exit_destinations[destination_key] ||= {
           count: 0, 
           of_color: 0, 
