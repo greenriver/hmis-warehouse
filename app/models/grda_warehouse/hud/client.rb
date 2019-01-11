@@ -1532,7 +1532,7 @@ module GrdaWarehouse::Hud
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
-    # call this on GrdaWarehouse::Hud::new() instead of self, to take
+    # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
     def race_string scope_limit: self.class.destination, destination_id:
       limited_scope = self.class.destination.merge(scope_limit)

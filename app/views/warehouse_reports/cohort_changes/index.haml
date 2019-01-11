@@ -30,7 +30,7 @@
         = @report.prior_month_ids.count
       .description
         Clients who were also active in the month prior to #{@filter.start}
-    .rrh__enrolled.chunk.-stabilization
+    .rrh__enrolled.chunk.pr-4.mr-4
       %h4.title
         Returning Clients
       %i.icon-step-back.metric
@@ -38,6 +38,91 @@
         = @report.returning_ids.count
       .description
         Clients inactive in the month prior, but previously active
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        VI-SPDAT Score 0-3 
+      .metric
+        = @report.details[:vispdat_scores]["0-3"]
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        VI-SPDAT Score 4-7 
+      .metric
+        = @report.details[:vispdat_scores]["4-7"]
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        VI-SPDAT Score 8-17 
+      .metric
+        = @report.details[:vispdat_scores]["8-17"]
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        VI-SPDAT Score Unknown 
+      .metric
+        = @report.details[:vispdat_scores]["unknown"]
+
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Average Time to Housing 
+      .metric
+        = @report.average_time_to_housing
+      .description
+        Average days to find housing
+    .rrh__enrolled.chunk.pr-4.mr-4
+      %h4.title
+        Not Recently Assessed
+      .metric
+        = @report.more_than_90_days_since_vispdat
+      .description
+        Clients for whom it has been more than 90 days since the last VI-SPDAT
+
+  %h3 Sleeping Locations
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Location
+        %th Count
+        %th Clients of color
+        %th White/Caucasian clients
+        %th LGGQ+
+        %th Heterosexual
+        %th Gender-diverse
+        %th Cisgender
+    %tbody
+      - @report.details[:sleeping_locations].each do |location, details|
+        %tr
+          %td= location
+          %td= details[:count]
+          %td= details[:of_color]
+          %td= details[:white]
+          %td= details[:lgbtq]
+          %td= details[:heterosexual]
+          %td= details[:gender_diverse]
+          %td= details[:cisgender]
+
+  %h3 Exit Destinations
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Destination
+        %th Count
+        %th Clients of color
+        %th White/Caucasian clients
+        %th LGGQ+
+        %th Heterosexual
+        %th Gender-diverse
+        %th Cisgender
+    %tbody
+      - @report.details[:exit_destinations].each do |destination, details|
+        %tr
+          %td= destination
+          %td= details[:count]
+          %td= details[:of_color]
+          %td= details[:white]
+          %td= details[:lgbtq]
+          %td= details[:heterosexual]
+          %td= details[:gender_diverse]
+          %td= details[:cisgender]
 
   .mb-4.text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
