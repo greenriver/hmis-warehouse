@@ -11,7 +11,7 @@
   .col-sm-4
     = render 'blank_file_list', file_list_title: 'Blank Files'
 
-- if @client.client_files.any?
+- if @client.client_files.any? || @deleted_files.any?
   - if @consent_files.any?
     %section
       %header.o-section-card__header
