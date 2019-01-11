@@ -183,7 +183,7 @@ class WarehouseReport::CohortChanges < OpenStruct
   end
 
   def cohort_enrollments
-    enrollment_scope.joins(cohort_client: :client)
+    enrollment_scope.joins(:client).includes(:cohort_client)
 
   end
 
