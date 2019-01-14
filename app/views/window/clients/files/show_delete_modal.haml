@@ -1,7 +1,12 @@
 = content_for :modal_title do
   Reason for Deletion
 
-= simple_form_for @file, url: polymorphic_path(file_path_generator, id: @file.id), method: :delete do | f |
+- if @file.consent_type
+  - anchor = 'consent'
+- else
+  - anchor = 'other'
+
+= simple_form_for @file, url: polymorphic_path(file_path_generator, id: @file.id, anchor: anchor), method: :delete do | f |
   .reason-type
     = f.input :delete_reason, as: :radio_buttons, collection: delete_reasons.map { |k, v| [v, k] }, checked: 99
   = f.input :delete_detail, label: 'Reason for deletion (when Other):'
