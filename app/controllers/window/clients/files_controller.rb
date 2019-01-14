@@ -111,7 +111,10 @@ module Window::Clients
       end
 
       begin
-        @file.destroy!
+        # Mark file as deleted using the acts_as_paranoid field instead of calling @file.destroy! to prevent hooks from
+        # firing which would cause acts_as_taggable to remove the associated tags
+        @file.update(deleted_at: Time.now)
+
         flash[:notice] = "File was successfully deleted."
         # Keep various client fields in sync with files if appropriate
         if @client.consent_form_id == @file.id
