@@ -34,7 +34,7 @@ module WarehouseReports::Cas
       if Date.today.month > 6
         year = Date.today.year
       else
-        year = Date.today.year - 1.years
+        year = Date.today.year - 1
       end
       Date.new(year, 6, 30)
     end
