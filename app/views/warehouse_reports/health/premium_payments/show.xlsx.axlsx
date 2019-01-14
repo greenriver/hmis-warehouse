@@ -1,0 +1,17 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Overview') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'CP_Abbreviation', 
+      'CP_PID', 
+      'CP_SIL', 
+      'CP_Name_DSRIP', 
+      'Number Members', 
+      'Total Amount Paid', 
+      'Total Adjustment Amount', 
+      'Grand Total',
+    ], :style => title
+  )
+  sheet.add_row(@file.summary)
+end
