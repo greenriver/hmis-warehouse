@@ -179,7 +179,7 @@ class WarehouseReport::RrhReport
         'unknown outcome' => {},
       }
       housed_scope.
-        leavers(start_date: start_date, end_date: end_date).
+        exiting_stabilization(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
         distinct.
         pluck(:client_id, :destination).map do |client_id, dest_id|
@@ -205,7 +205,7 @@ class WarehouseReport::RrhReport
 
   def ph_leavers
     housed_scope.
-      leavers(start_date: start_date, end_date: end_date).
+      exiting_stabilization(start_date: start_date, end_date: end_date).
       ph_destinations.
       distinct
   end
