@@ -1,0 +1,8 @@
+.c-card
+  .c-card__header
+    %h3 Upload 820 File
+  .c-card__content
+    = simple_form_for @file, url: warehouse_reports_health_premium_payments_path do |f|
+      = f.input :content, as: :file, label: false
+      .text-right
+        = f.submit 'Upload', class: 'btn btn-primary'

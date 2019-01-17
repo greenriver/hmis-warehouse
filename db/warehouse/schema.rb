@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190111162407) do
+ActiveRecord::Schema.define(version: 20190114175107) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1310,6 +1310,8 @@ ActiveRecord::Schema.define(version: 20190111162407) do
     t.float    "size"
     t.date     "effective_date"
     t.date     "expiration_date"
+    t.integer  "delete_reason"
+    t.string   "delete_detail"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
