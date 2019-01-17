@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190114174045) do
+ActiveRecord::Schema.define(version: 20190117150120) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -738,6 +738,9 @@ ActiveRecord::Schema.define(version: 20190114174045) do
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
     t.datetime "deleted_at"
+    t.jsonb    "converted_content"
+    t.datetime "started_at"
+    t.datetime "completed_at"
   end
 
   add_index "premium_payments", ["deleted_at"], name: "index_premium_payments_on_deleted_at", using: :btree

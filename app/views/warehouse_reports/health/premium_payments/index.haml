@@ -3,8 +3,8 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
 
-.row
-  .col-sm-8
-    = render 'table'
-  .col-sm-4
-    = render 'form'
+= render 'form'
+
+= render 'table'
+
+    

@@ -1,17 +1,31 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: 'Overview') do |sheet|
+wb.add_worksheet(name: 'SUMMARY') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
-      'CP_Abbreviation', 
-      'CP_PID', 
+      'CP Name',
+      'CP_PID',
       'CP_SIL', 
-      'CP_Name_DSRIP', 
-      'Number Members', 
-      'Total Amount Paid', 
-      'Total Adjustment Amount', 
-      'Grand Total',
+      'Number Members',
+      'Total Amount Paid',
     ], :style => title
   )
-  sheet.add_row(@file.summary)
+  summary = @file.converted_content['summary']
+  sheet.add_row(
+    [
+      summary['name'],
+      summary['pid'],
+      summary['sl'],
+      summary['member_count'],
+      summary['total_amount_paid'],
+    ]
+  )
+end
+wb.add_worksheet(name: 'DETAIL') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(@file.detail_headers, :style => title)
+  details = @file.converted_content['details']
+  details.each do |row|
+    sheet.add_row(row)
+  end
 end

@@ -13,14 +13,11 @@ module WarehouseReports::Health
     def show
       @file = premium_source.find(params[:id].to_i)
       respond_to do |format|
-
         format.text do
-
-          # response.headers['Content-Disposition'] = "attachment; filename=\"#{@file.original_filename}.txt\""
           send_data @file.content, filename: "#{@file.original_filename}.txt", type: 'text/plain', disposition: :attachment
         end
         format.xlsx do
-          
+          response.headers['Content-Disposition'] = "attachment; filename=\"#{@file.original_filename}.xlsx\""
         end
       end
     end
@@ -30,6 +27,7 @@ module WarehouseReports::Health
         user_id: current_user.id, 
         content: premium_params[:content].read,
         original_filename: premium_params[:content].original_filename)
+      Health::ConvertPaymentPremiumFileJob.perform_later
       respond_with(@file, location: warehouse_reports_health_premium_payments_path)
     end
 
