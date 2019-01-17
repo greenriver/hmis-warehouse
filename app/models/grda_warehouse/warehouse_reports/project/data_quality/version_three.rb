@@ -596,7 +596,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         race: ['Client ID', 'First Name', 'Last Name', 'Race None', 'AmIndAKNative', 'Asian', 'Black or African American', 'Native HI Other Pacific', 'White'],
         gender: ['Client ID', 'First Name', 'Last Name', 'Gender'],
         disabling_condition: ['Client ID', 'First Name', 'Last Name', 'Disability Type', 'Disability Response'],
-        residence_prior: ['Client ID', 'First Name', 'Last Name', 'Prior Residence'],
+        prior_living_situation: ['Client ID', 'First Name', 'Last Name', 'Prior Living Situation'],
         destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
         # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
       }
@@ -747,7 +747,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts['missing_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 99)
       end
       if missing?(enrollment[:residence_prior]) && adult?(enrollment[:age])  && enrollment[:head_of_household]
-        counts['missing_residence_prior'] << columns_for_residence_prior_support(enrollment)
+        counts['missing_prior_living_situation'] << columns_for_residence_prior_support(enrollment)
       end
       # if missing?(enrollment[:last_permanent_zip])
       #   counts['missing_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
@@ -761,7 +761,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts['refused_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 9)
       end
       if refused?(enrollment[:residence_prior]) && adult?(enrollment[:age]) && enrollment[:head_of_household]
-        counts['refused_residence_prior'] << columns_for_residence_prior_support(enrollment)
+        counts['refused_prior_living_situation'] << columns_for_residence_prior_support(enrollment)
       end
       # if refused?(enrollment[:last_permanent_zip])
       #   counts['refused_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
@@ -775,7 +775,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts['unknown_disabling_condition'] += columns_for_disabling_condition_support(enrollment, disabilities, 8)
       end
       if unknown?(enrollment[:residence_prior]) && adult?(enrollment[:age]) && enrollment[:head_of_household]
-        counts['unknown_residence_prior'] << columns_for_residence_prior_support(enrollment)
+        counts['unknown_prior_living_situation'] << columns_for_residence_prior_support(enrollment)
       end
       # if unknown?(enrollment[:last_permanent_zip])
       #   counts['unknown_last_permanent_zip'] << columns_for_last_permanent_zip_support(enrollment)
@@ -1204,7 +1204,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :missing_race_percent,
         :missing_gender_percent,
         :missing_disabling_condition_percentage,
-        :missing_prior_living_percentage,
+        :missing_prior_living_situation_percentage,
         :missing_destination_percentage,
         :refused_name_percent,
         :refused_ssn_percent,
@@ -1214,7 +1214,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :refused_race_percent,
         :refused_gender_percent,
         :refused_disabling_condition_percentage,
-        :refused_prior_living_percentage,
+        :refused_prior_living_situation_percentage,
         :refused_destination_percentage,
       ]
       meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < MISSING_THRESHOLD rescue false
@@ -1263,14 +1263,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers = {
         missing_disabling_condition: missing_disabling_condition.size,
         missing_disabling_condition_percentage: missing_disabling_condition_percentage,
-        missing_prior_living: missing_prior_living.size,
-        missing_prior_living_percentage: missing_prior_living_percentage,
+        missing_prior_living_situation: missing_prior_living.size,
+        missing_prior_living_situation_percentage: missing_prior_living_percentage,
         missing_destination: missing_destination.size,
         missing_destination_percentage: missing_destination_percentage,
         refused_disabling_condition: refused_disabling_condition.size,
         refused_disabling_condition_percentage: refused_disabling_condition_percentage,
-        refused_prior_living: refused_prior_living.size,
-        refused_prior_living_percentage: refused_prior_living_percentage,
+        refused_prior_living_situation: refused_prior_living.size,
+        refused_prior_living_situation_percentage: refused_prior_living_percentage,
         refused_destination: refused_destination.size,
         refused_destination_percentage: refused_destination_percentage,
       }
@@ -1280,7 +1280,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: ['Client ID'],
           counts: missing_disabling_condition.map{|m| Array.wrap(m)}
         },
-        missing_prior_living: {
+        missing_prior_living_situation: {
           headers: ['Client ID'],
           counts: missing_prior_living.map{|m| Array.wrap(m)}
         },
@@ -1292,7 +1292,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: ['Client ID'],
           counts: refused_disabling_condition.map{|m| Array.wrap(m)}
         },
-        refused_prior_living: {
+        refused_prior_living_situation: {
           headers: ['Client ID'],
           counts: refused_prior_living.map{|m| Array.wrap(m)}
         },
