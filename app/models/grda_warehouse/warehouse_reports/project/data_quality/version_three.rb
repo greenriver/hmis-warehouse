@@ -53,6 +53,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def set_project_metadata
       agency_names = projects.map(&:organization).map(&:OrganizationName).compact
       project_names = projects.map(&:ProjectName)
+      coc_codes = projects.flat_map do |project|
+        project.project_cocs.map(&:CoCCode)
+      end.uniq
+      geocodes = projects.flat_map do |project|
+        project.geographies.map(&:Geocode)
+      end.uniq
+      geography_types = projects.flat_map do |project|
+        project.geographies.map do |geography|
+          ::HUD.geography_type(geography.GeographyType)
+        end
+      end.uniq
+      housing_types = projects.flat_map do |project|
+        ::HUD.housing_type(project.HousingType)
+      end.uniq
+      information_dates = projects.flat_map do |project|
+        project.inventories.map(&:InformationDate)
+      end.uniq
       monitoring_ranges = []
       monitoring_date_range_present = false
       grant_ids = []
@@ -72,6 +89,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       add_answers({
         agency_name: agency_names.join(', '),
         project_name: project_names.join(', '),
+        coc_code: coc_codes.join(', '),
+        geocode: geocodes.join(', '),
+        geography_type: geography_types.join(', '),
+        housing_type: housing_types.join(', '),
+        information_date: information_dates.join(', '),
         monitoring_date_range: monitoring_ranges.join(', '),
         monitoring_date_range_present: monitoring_date_range_present,
         # funding_year: funder.operating_year,
