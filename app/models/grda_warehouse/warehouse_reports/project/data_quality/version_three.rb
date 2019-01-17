@@ -887,25 +887,40 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       projects.each do |project|
         counts = {}
         data = {}
+
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
         total_count = project.service_history.service.
-        joins(:client, :project).
-        where(Project: {id: project.id}).
-        where(date: filter.range).count
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          where(date: filter.range).count
+
         data[:average_daily] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
           where(date: filter.range).
           distinct.
           pluck(*client_columns)
-          counts[:average_daily] = total_count / filter.range.count rescue 0
+        counts[:average_daily] = total_count / filter.range.count rescue 0
+
+        filter.range.each do |date|
+          key = date.to_formatted_s(:iso8601)
+          data[key] = project.service_history.service.
+            joins(:client, :project).
+            where(Project: {id: project.id}).
+            where(date: date).
+            distinct.
+            pluck(*client_columns)
+          counts[key] = data[key].count
+        end
+
         data[:first_of_month] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
           where(date: filter.first).
           distinct.
           pluck(*client_columns)
-          counts[:first_of_month] = data[:first_of_month].count
+        counts[:first_of_month] = data[:first_of_month].count
+
         data[:fifteenth_of_month] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
@@ -913,6 +928,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           distinct.
           pluck(*client_columns)
         counts[:fifteenth_of_month] = data[:fifteenth_of_month].count
+
         data[:last_of_month] = project.service_history.service.
           joins(:client, :project).
           where(Project: {id: project.id}).
@@ -920,11 +936,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           distinct.
           pluck(*client_columns)
         counts[:last_of_month] = data[:last_of_month].count
+
         project_counts = {
           id: project.id,
           name: project.name,
           project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
+
         totals[:counts][:capacity] += counts[:capacity]
         self.class.bed_utilization_attributes.each do |attr|
           project_counts["#{attr}_percentage"] = in_percentage(counts[attr], counts[:capacity])
