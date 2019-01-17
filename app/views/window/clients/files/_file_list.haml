@@ -22,5 +22,9 @@
         - files.each do |file|
           = render 'file_row', file: file, consent: consent
 - if paginate
+  - if consent
+    - anchor = 'consent'
+  - else
+    - anchor = 'other'
   .o-pagination.o-pagination--centered.mt-5
-    = paginate(files)
+    = paginate files, params: { anchor: anchor }
