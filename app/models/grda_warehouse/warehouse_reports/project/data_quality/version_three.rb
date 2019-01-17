@@ -15,6 +15,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :add_capacity_answers,
         :meets_data_quality_benchmark,
         :add_bed_utilization,
+        :add_unit_utilization,
         :add_missing_values,
         :add_enrolled_length_of_stay,
         :add_clients_dob_enrollment_date,
@@ -995,6 +996,38 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         bed_coverage: bed_coverage,
         bed_coverage_percent: bed_coverage_percent,
       })
+    end
+
+
+    def add_unit_utilization
+      unit_utilization = []
+      support = {}
+      totals = {counts: Hash.new(0), data: Hash.new(Set.new)}
+
+      client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
+      filter = ::Filters::DateRange.new(start: self.start, end: self.end)
+      projects.each do |project|
+        counts = {}
+        data = {}
+
+        counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:UnitInventory] || 0}.sum
+
+        project_counts = {
+            id: project.id,
+            name: project.name,
+            project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
+        }.merge(counts)
+
+        unit_utilization << project_counts
+      end
+
+      add_answers(
+        {
+          unit_utilization: unit_utilization,
+          unit_utilization_totals: totals,
+        },
+        support
+      )
     end
 
     def add_agency_entering_data
