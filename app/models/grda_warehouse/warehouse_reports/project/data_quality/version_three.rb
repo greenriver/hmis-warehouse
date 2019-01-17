@@ -1085,6 +1085,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       answers = {
         total_clients: clients.size,
+        total_enterers: enterers.size,
         total_leavers: leavers.size,
         missing_first_name: missing_first_name.size,
         missing_last_name: missing_last_name.size,
@@ -1124,8 +1125,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: ['Client ID', 'First Name', 'Last Name'],
           counts: clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
         },
+        total_enterers: {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: clients.select{|m| enterers.include?(m[:id])}.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+        },
         total_leavers: {
-          headers: ['Client ID'],
+          headers: ['Client ID', 'First Name', 'Last Name'],
           counts: clients.select{|m| leavers.include?(m[:id])}.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
         },
         missing_first_name: {
@@ -1633,6 +1638,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     end
 
+    def enterers
+      @enterers ||= begin
+        enterers = Set.new
+        enrollments.each do |client_id, enrollments|
+          enterer = true
+          enrollments.each do |enrollment|
+            enterer = false if enrollment[:first_date_in_program].blank? || enrollment[:first_date_in_program] < self.start
+          end
+          enterers << client_id if enterer
+        end
+        enterers
+      end
+      @enterers
+    end
 
   end
 end
