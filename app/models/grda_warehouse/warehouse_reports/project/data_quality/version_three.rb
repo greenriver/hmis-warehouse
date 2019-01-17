@@ -36,17 +36,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def self.length_of_stay_buckets
       {
-        '0 days' => (0..0),
-        '1 week or less' => (1..6),
-        '1 month or less' => (7..30),
-        '1 to 3 months'  => (31..90),
-        '3 to 6 months' => (91..180),
-        '6 to 9 months' => (181..271),
-        '9 to 12 months' => (272..364),
-        '1 year to 18 months' => (365..545),
-        '18 months - 2 years' => (546..729),
-        '2 - 5 years' => (730..1825),
-        '5 years or more' => (1826..1.0/0),
+          # '0 days' => (0..0),
+          # '1 week or less' => (1..6),
+          # '1 month or less' => (7..30),
+          '1 month or less' => (0..30),
+          #'1 to 3 months'  => (31..90),
+          #'3 to 6 months' => (91..180),
+          '1 to 6 months' => (31..180),
+          #'6 to 9 months' => (181..271),
+          #'9 to 12 months' => (272..364),
+          '6 to 12 months' => (181..364),
+          #'1 year to 18 months' => (365..545),
+          #'18 months - 2 years' => (546..729),
+          #'2 - 5 years' => (730..1825),
+          #'5 years or more' => (1826..1.0/0),
+          '12 months or greater' => (365..Float::INFINITY),
       }
     end
 
