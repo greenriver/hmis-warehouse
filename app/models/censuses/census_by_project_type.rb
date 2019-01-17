@@ -100,11 +100,13 @@ module Censuses
       total = {}
 
       project_scope.each do | census_record |
-        GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do | project_type |
-          clients[project_type] ||= []
-          clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"] }
-          total[census_record.date] ||= 0
-          total[census_record.date] += census_record["#{project_type}_all_clients"]
+        if include_date?(census_record.date)
+          GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do | project_type |
+            clients[project_type] ||= []
+            clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"] }
+            total[census_record.date] ||= 0
+            total[census_record.date] += census_record["#{project_type}_all_clients"]
+          end
         end
       end
 
@@ -121,6 +123,10 @@ module Censuses
       add_combined_dimension(totals, 'Total', 'rgba(35, 173, 211, 0.5)')
       add_trend_dimension(compute_trend(totals), "Total trend", 'rgba(35, 173, 211, 0.5)')
       @shape
+    end
+
+    private def include_date?(date, interval = 7)
+      return (date.yday % interval) == 0
     end
 
     private def add_dimension (project_type, clients, title)
