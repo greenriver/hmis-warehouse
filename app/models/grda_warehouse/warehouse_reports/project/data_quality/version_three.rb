@@ -24,6 +24,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :add_individuals_at_family_projects,
         :add_families_at_individual_projects,
         :add_enrollments_with_no_service,
+        :add_data_timeliness,
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
@@ -1053,6 +1054,39 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
+    def add_data_timeliness
+      entry_timeliness = []
+      entry_timeliness_support = []
+      entries.each do |client_id, enrollments|
+        enrollments.each do |enrollment|
+            service_date = enrollment[:first_date_in_program]
+            record_date = enrollment[:creation_date].to_date
+            entry_timeliness << (record_date - service_date).to_i
+            entry_timeliness_support << [client_id, service_date, record_date]
+        end
+      end
+      exit_timeliness = []
+      exit_timeliness_support = []
+      exits.each do |client_id, enrollments|
+        enrollments.each do |enrollment|
+          service_date = enrollment[:last_date_in_program]
+          record_date = enrollment[:creation_date].to_date
+          exit_timeliness << (record_date - service_date).to_i
+          exit_timeliness_support << [client_id, service_date, record_date]
+        end
+      end
+      average_timeliness_of_entry = entry_timeliness.sum / entry_timeliness.size rescue 0
+      average_timeliness_of_exit = exit_timeliness.sum / exit_timeliness.size rescue 0
+      add_answers({
+          average_timeliness_of_entry: average_timeliness_of_entry,
+          average_timeliness_of_exit: average_timeliness_of_exit,
+        },
+        {
+          timeliness_of_entry: entry_timeliness_support,
+          timeliness_of_exit: exit_timeliness_support,
+        }
+      )
+    end
 
     def calculate_missing_universal_elements
       missing_first_name = Set.new

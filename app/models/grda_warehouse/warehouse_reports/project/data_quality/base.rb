@@ -259,6 +259,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         destination_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
+        creation_date: e_t[:DateCreated].to_sql,
       }
     end
 
