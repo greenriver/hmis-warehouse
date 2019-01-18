@@ -604,6 +604,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         prior_living_situation: ['Client ID', 'First Name', 'Last Name', 'Prior Living Situation'],
         destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
         # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
+        income_at_entry: ['Client ID', 'First Name', 'Last Name'],
+        income_at_exit: ['Client ID', 'First Name', 'Last Name'],
       }
     end
 
@@ -613,6 +615,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollment[:first_name],
         enrollment[:last_name],
       ]
+    end
+
+    def columns_for_income_at_entry enrollment
+      base_colums_for_support(entrollment)
+    end
+
+    def columns_for_income_at_exit enrollment
+      base_colums_for_support(entrollment)
     end
 
     def columns_for_missing_support enrollment
@@ -998,7 +1008,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
-
     def add_unit_utilization
       unit_utilization = []
       support = {}
@@ -1266,6 +1275,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :missing_disabling_condition_percentage,
         :missing_prior_living_situation_percentage,
         :missing_destination_percentage,
+        :missing_income_at_entry_percentage,
+        :missing_income_at_exit_percentage,
         :refused_name_percent,
         :refused_ssn_percent,
         :refused_dob_percent,
@@ -1276,6 +1287,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :refused_disabling_condition_percentage,
         :refused_prior_living_situation_percentage,
         :refused_destination_percentage,
+        :refused_income_at_entry_percentage,
+        :refused_income_at_exit_percentage,
       ]
       meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < MISSING_THRESHOLD rescue false
       add_answers({
@@ -1289,9 +1302,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       missing_disabling_condition = Set.new
       missing_prior_living = Set.new
       missing_destination = Set.new
+      missing_income_at_entry = Set.new
+      missing_income_at_exit = Set.new
       refused_disabling_condition = Set.new
       refused_prior_living = Set.new
       refused_destination = Set.new
+      refused_income_at_entry = Set.new
+      refused_income_at_exit = Set.new
+
       enrollments.each do |client_id, enrollments|
         enrollments.each do |enrollment|
           missing_disabling_condition << enrollment[:destination_id] if missing?(enrollment[:disabling_condition])
@@ -1307,10 +1325,40 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
+      entries.each do |client_id, enrollments|
+        enrollments.each do |enrollment|
+          missing_income_at_entry << client_id if missing_income(enrollment, 1)
+        end
+      end
+      exits.each do |client_id, enrollments|
+        enrollments.each do |enrollment|
+          missing_income_at_exit << client_id if missing_income(enrollment, 3)
+        end
+      end
+
       missing_disabling_condition_percentage = (missing_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
       missing_prior_living_percentage = (missing_prior_living.size.to_f/client_count*100).round(2) rescue 0
       refused_disabling_condition_percentage = (refused_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
       refused_prior_living_percentage = (refused_prior_living.size.to_f/client_count*100).round(2) rescue 0
+
+      enter_event_count = entries.values.flatten.count
+      if enter_event_count == 0
+        missing_income_at_entry_percentage = 0
+        refused_income_at_entry_percentage = 0
+      else
+        missing_income_at_entry_percentage = (missing_income_at_entry.size.to_f/enter_event_count*100).round(2) rescue 0
+        refused_income_at_entry_percentage = 0 # (refused_income_at_entry.size.to_f/enter_event_count*100).round(2) rescue 0
+      end
+
+
+      exit_event_count = exits.values.flatten.count
+      if exit_event_count == 0
+        missing_income_at_exit_percentage = 0
+        refused_income_at_exit_percentage = 0
+      else
+        missing_income_at_exit_percentage = (missing_income_at_exit.size.to_f/exit_event_count*100).round(2) rescue 0
+        refused_income_at_exit_percentage = 0 # (refused_income_at_exit.size.to_f/exit_event_count*100).round(2) rescue 0
+      end
 
       # missing and refused destinations will be NaN if there are no leavers
       if leavers.count == 0
@@ -1333,6 +1381,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         refused_prior_living_situation_percentage: refused_prior_living_percentage,
         refused_destination: refused_destination.size,
         refused_destination_percentage: refused_destination_percentage,
+        missing_income_at_entry: missing_income_at_entry.size,
+        refused_income_at_entry: refused_income_at_entry.size,
+        missing_income_at_exit: missing_income_at_exit.size,
+        refused_income_at_exit: refused_income_at_exit.size,
+        missing_income_at_entry_percentage: missing_income_at_entry_percentage,
+        refused_income_at_entry_percentage: refused_income_at_entry_percentage,
+        missing_income_at_exit_percentage: missing_income_at_exit_percentage,
+        refused_income_at_exit_percentage: refused_income_at_exit_percentage,
       }
 
       support = {
@@ -1360,7 +1416,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: ['Client ID'],
           counts: refused_destination.map{|m| Array.wrap(m)}
         },
-      }
+        missing_income_at_entry: {
+          headers: ['Client ID'],
+          counts: missing_income_at_entry.map{|m| Array.wrap(m)}
+        },
+        refused_income_at_entry: {
+          headers: ['Client ID'],
+          counts: refused_income_at_entry.map{|m| Array.wrap(m)}
+        },
+        missing_income_at_exit: {
+          headers: ['Client ID'],
+          counts: missing_income_at_exit.map{|m| Array.wrap(m)}
+        },
+        refused_income_at_exit: {
+          headers: ['Client ID'],
+          counts: refused_income_at_exit.map{|m| Array.wrap(m)}
+        }
+    }
 
       add_answers(answers, support)
     end
@@ -1702,6 +1774,45 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enterers
       end
       @enterers
+    end
+
+    def entries
+      @entries ||= begin
+        entries = {}
+        enrollments.each do |client_id, client_enrollments|
+          client_enrollments.each do |enrollment|
+            if enrollment[:first_date_in_program].present? && enrollment[:first_date_in_program] >= self.start
+              entries[client_id] ||= []
+              entries[client_id] << enrollment
+            end
+          end
+        end
+        entries
+      end
+      @entries
+    end
+
+    def exits
+      @exits ||= begin
+        exits = {}
+        enrollments.each do |client_id, client_enrollments|
+          client_enrollments.each do |enrollment|
+            if enrollment[:last_date_in_program].present? && enrollment[:last_date_in_program] <= self.end
+              exits[client_id] ||= []
+              exits[client_id] << enrollment
+            end
+          end
+        end
+        exits
+      end
+      @exits
+    end
+
+    def missing_income(enrollment, data_collection_stage)
+      return ! income_source.where(data_source_id: enrollment[:data_source_id]).
+          where(PersonalID: enrollment[:personal_id]).
+          where(EnrollmentID: enrollment[:enrollment_group_id]).
+          where(DataCollectionStage: data_collection_stage).exists?
     end
 
   end
