@@ -1,0 +1,10 @@
+.table-responsive
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Document
+        %th Deletion Date
+        %th Deletion Reason
+      %tbody
+        - files.each do |file|
+          = render 'deleted_file_row', file: file

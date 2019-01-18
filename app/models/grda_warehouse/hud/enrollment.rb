@@ -6,6 +6,7 @@ module GrdaWarehouse::Hud
     self.table_name = 'Enrollment'
     self.hud_key = :EnrollmentID
     acts_as_paranoid column: :DateDeleted
+    include NotifierConfig
 
     def self.hud_csv_headers(version: nil)
       case version
@@ -356,12 +357,16 @@ module GrdaWarehouse::Hud
     end
 
     def address_lat_lon
-      result = Nominatim.search(address).country_codes('us').first
-      if result.present?
-        {address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
-      else
-        nil
+      begin
+        result = Nominatim.search(address).country_codes('us').first
+        if result.present?
+          return {address: address, lat: result.lat, lon: result.lon, boundingbox: result.boundingbox}
+        end
+      rescue
+        setup_notifier('NominatimWarning')
+        @notifier.ping("Error contacting the OSM Nominatim API") if @send_notifications
       end
+      return nil
     end
 
     def days_served
