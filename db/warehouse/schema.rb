@@ -1310,6 +1310,8 @@ ActiveRecord::Schema.define(version: 20190111162407) do
     t.float    "size"
     t.date     "effective_date"
     t.date     "expiration_date"
+    t.integer  "delete_reason"
+    t.string   "delete_detail"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
