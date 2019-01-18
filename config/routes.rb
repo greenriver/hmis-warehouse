@@ -300,6 +300,7 @@ Rails.application.routes.draw do
           patch :update
         end
       end
+      resources :premium_payments, only: [:index, :show, :create, :destroy]
     end
   end
 

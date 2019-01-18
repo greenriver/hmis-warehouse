@@ -144,4 +144,10 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: "Your HUD Report has finished")
   end
 
+  def health_premium_payments_finished user_id
+    @user = User.find(user_id)
+    @report_url = warehouse_reports_health_premium_payments_url
+    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: @user.email, subject: "Premium Payment File Processed")
+  end
+
 end
