@@ -1022,18 +1022,67 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:UnitInventory] || 0}.sum
 
+        household_ids = project.service_history.service.
+            joins(:client, :project).
+            where(Project: {id: project.id}).
+            group(:household_id).
+            where(date: filter.range).
+            pluck(:household_id)
+
+        total_count = household_ids.count
+        counts[:average_daily] = total_count / filter.range.count rescue 0
+
+        data[:average_daily] = project.service_history.service.
+            joins(:client, :project, :enrollment).
+            where(Project: {id: project.id}).
+            where(Enrollment: {RelationshipToHoH: 1}).
+            where(date: filter.range).
+            distinct.
+            pluck(*client_columns)
+
+        filter.range.each do |date|
+          key = date.to_formatted_s(:iso8601)
+          data[key] = project.service_history.service.
+              joins(:client, :project, :enrollment).
+              where(Project: {id: project.id}).
+              where(Enrollment: {RelationshipToHoH: 1}).
+              where(date: date).
+              distinct.
+              pluck(*client_columns)
+          counts[key] = data[key].count
+        end
+
         project_counts = {
             id: project.id,
             name: project.name,
             project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
 
+        totals[:counts][:capacity] += counts[:capacity]
+        [:average_daily].each do |attr|
+          project_counts["#{attr}_percentage"] = in_percentage(counts[attr], counts[:capacity])
+          totals[:counts][attr] += counts[attr]
+          totals[:data][attr] += data[attr]
+          support["unit_utilization_#{project.id}_#{attr}"] = {
+              headers: ['Client ID', 'First Name', 'Last Name'],
+              counts: data[attr]
+          }
+        end
+
         unit_utilization << project_counts
+      end
+
+      [:average_daily].each do |attr|
+        totals[:counts]["#{attr}_percentage"] = in_percentage(totals[:counts][attr], totals[:counts][:capacity])
+        support["unit_utilization_totals_#{attr}"] = {
+            headers: ['Client ID', 'First Name', 'Last Name'],
+            counts: totals[:data][attr]
+        }
       end
 
       add_answers(
         {
-          unit_utilization: unit_utilization,
+          uni_utilization: unit_utilization,
           unit_utilization_totals: totals,
         },
         support

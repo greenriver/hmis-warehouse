@@ -12,6 +12,9 @@ class DataQualityReportsController < ApplicationController
 
     @missing_grades = missing_grade_scope.
       order(percentage_low: :asc)
+
+    # The view is versioned using the model name
+    render @report.model_name.element.to_sym
   end
 
   def index
