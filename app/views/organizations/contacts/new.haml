@@ -1,9 +1,41 @@
-- title = "New Organization Contact for #{@entity.OrganizationName}"
-- content_for :title, title
-%h1= title
-.row
-  .col-sm-4
-    = simple_form_for(@contact, as: :contact, url: organization_contacts_path(@entity)) do |f|
-      = render 'form', f: f
-      .form-actions
-        = f.button :submit, value: 'Add Contact'
+- title = "Manage Organization Contacts"
+- organization_name = @entity.OrganizationName
+- content_for :modal_title, title
+- content_for :modal_title_secondary, organization_name
+
+%section.mb-4
+  %h4 Current Contacts
+  %table.table
+    %tbody
+      - @entity.contacts.each do |contact|
+        %tr
+          %td= "#{contact.first_name} #{contact.last_name}"
+          %td= mail_to contact.email
+          %td.text-right= link_to 'Remove', project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-danger'
+      - if @entity.contacts.empty?
+        %tr
+          %td
+            %em= "#{organization_name} currently has no contact"
+
+  .row.modal-container--full-bleed
+    .col-sm-8
+      = simple_form_for(@contact, as: :contact, url: organization_contacts_path(@entity)) do |f|
+        = render 'form', f: f
+        .form-actions
+          = f.button :submit, value: "Add Contact to #{organization_name}"
+
+%section
+  %h4 Projects
+  %table.table
+    %tbody
+      - @entity.projects.each do |p|
+        %tr
+          %td= p.safe_project_name
+          %td.text-right=link_to 'Manage contacts', new_project_contact_path(p), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
+      - if @entity.projects.empty?
+        %tr
+          %td
+            %em= "#{organization_name} currently has no projects"
+- content_for :modal_footer do
+  .form__actions.form__actions--right
+    %button.btn.btn-secondary(aria-label="Close" pjax-modal-close type="button") Exit

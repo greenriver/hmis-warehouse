@@ -10,11 +10,13 @@
   %td= check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'jSelectAll', data: {organization_id: id}})
   %td
   %td{colspan: 2}
-    - if organization.contacts.present?
-      = organization.contacts.map(&:full_name_with_email).join('<br />').html_safe
-    - else
-      = link_to organization_contacts_path(organization) do
-        Add organization contacts
+    %ul.list-unstyled
+      - if organization.contacts.present?
+        = organization.contacts.each do |contact|
+          %li= contact.full_name_with_email
+      %li
+        = link_to new_organization_contact_path(organization), data: {loads_in_pjax_modal: true} do
+          + Add
 %tr.jProject.hidden{data: {organization_id: id}}
   %th
   %th
@@ -43,8 +45,8 @@
       = check_box_tag("project[#{project.id}]", 1, false, {class: 'jProjectSelect'})
     %td
       - if last_status = last_report&.status
-        = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id) 
-      -else 
+        = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id)
+      -else
         = content_tag( :em, 'not available')
     %td
       = last_report&.completed_at
