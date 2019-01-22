@@ -1875,8 +1875,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def households
-      @households ||= household_ids = project.service_history_enrollments.
+      @households ||= service_history_enrollment_scope.
         open_between(start_date: self.start, end_date: self.end).
+        joins(:project).
+        where(Project: {id: projects.map(&:id)}).
         group(:household_id).
         distinct.
         pluck(:household_id)
@@ -1919,6 +1921,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           where(PersonalID: enrollment[:personal_id]).
           where(EnrollmentID: enrollment[:enrollment_group_id]).
           where(DataCollectionStage: data_collection_stage).exists?
+    end
+
+    def service_history_enrollment_scope
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
 
   end
