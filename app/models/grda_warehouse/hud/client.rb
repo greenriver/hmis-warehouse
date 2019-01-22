@@ -1079,8 +1079,11 @@ module GrdaWarehouse::Hud
           # Use the uploaded client image if available, otherwise use the API, if we have access
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+            api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
             source_api_ids.detect do |api_id|
-              api ||= EtoApi::Base.new.tap{|api| api.connect} rescue nil
+              api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+              return nil unless api_key.present?
+              api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
               image_data = api.client_image(
                 client_id: api_id.id_in_data_source,
                 site_id: api_id.site_id_in_data_source
@@ -1114,7 +1117,11 @@ module GrdaWarehouse::Hud
         logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
         image_data = nil
         if Rails.env.production?
-          api ||= EtoApi::Base.new.tap{|api| api.connect}
+          return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+          api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+          api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+          return nil unless api_key.present?
+          api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
           image_data = api.client_image(
             client_id: api_id.id_in_data_source,
             site_id: api_id.site_id_in_data_source
@@ -1536,7 +1543,7 @@ module GrdaWarehouse::Hud
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
-    # call this on GrdaWarehouse::Hud::new() instead of self, to take
+    # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
     def race_string scope_limit: self.class.destination, destination_id:
       limited_scope = self.class.destination.merge(scope_limit)
@@ -1830,6 +1837,10 @@ module GrdaWarehouse::Hud
     def self.clear_view_cache(id)
       return if Rails.env.test?
       Rails.cache.delete_matched("*clients/#{id}/*")
+    end
+
+    def most_recent_vispdat
+      vispdats.completed.first
     end
 
     def most_recent_vispdat_score

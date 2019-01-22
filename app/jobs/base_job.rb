@@ -11,7 +11,6 @@ class BaseJob < ActiveJob::Base
       if job.respond_to? :job_id
         unlock_job!(job.job_id)
       end
-
       
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)

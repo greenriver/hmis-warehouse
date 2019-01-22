@@ -246,6 +246,7 @@ Rails.application.routes.draw do
     resources :find_by_id, only: [:index] do
       post :search, on: :collection
     end
+    resources :cohort_changes, only: [:index]
     namespace :project do
       resource :data_quality do
         get :download, on: :member
@@ -299,6 +300,7 @@ Rails.application.routes.draw do
           patch :update
         end
       end
+      resources :premium_payments, only: [:index, :show, :create, :destroy]
     end
   end
 
@@ -341,6 +343,7 @@ Rails.application.routes.draw do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
+      get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
@@ -379,6 +382,7 @@ Rails.application.routes.draw do
         get :preview, on: :member
         get :thumb, on: :member
         get :has_thumb, on: :member
+        get :show_delete_modal, on: :member
         post :batch_download, on: :collection
       end
       resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'

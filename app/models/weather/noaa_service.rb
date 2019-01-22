@@ -1,7 +1,10 @@
 class Weather::NoaaService
+  include NotifierConfig
+
   def initialize(token=nil)
     api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/weather.yml")).result)[Rails.env]
     @token = token || api_config['token']
+    @stationid = api_config['stationid'] || 'GHCND:USW00014739' # default to Boston to preserve current behavior
     @endpoint = 'http://www.ncdc.noaa.gov/cdo-web/api/v2/'
   end
 
@@ -24,7 +27,7 @@ class Weather::NoaaService
   def ghcnd(query_args={})
     query_args = {
       datasetid: 'GHCND',
-      stationid: 'GHCND:USW00014739',
+      stationid: @stationid,
       units: 'standard',
     }.merge(query_args)
 
@@ -35,13 +38,13 @@ class Weather::NoaaService
     query_args = {
       units: 'standard',
       datasetid: 'GHCND',
-      stationid: 'GHCND:USW00014739',
+      stationid: @stationid,
       datatypeid: 'TMIN,TMAX,SNOW,PRCP',
       startdate: date.to_time.strftime('%Y-%m-%d'),
       enddate: date.to_time.strftime('%Y-%m-%d'),
     }.merge(query_args)
 
-    results = get_json('data', query_args)['results']
+    results = get_json('data', query_args)&.[]('results')
     if results.present?
       results.map do |r|
         r.merge(datatypes[r['datatype'].to_sym]).with_indifferent_access
@@ -62,10 +65,15 @@ class Weather::NoaaService
 
   private def get_json(path, query_args={})
     url = "#{@endpoint}#{path}?#{query_args.to_param}"
-    JSON::parse(
-      RestClient.get(url,
-        token: @token
-      ).body
-    )
+    begin
+      JSON::parse(
+        RestClient.get(url,
+          token: @token
+        ).body
+      )
+    rescue
+      setup_notifier('WeatherWarning')
+      @notifier.ping("Error contacting the weather API at #{url}") if @send_notifications
+    end
   end
 end

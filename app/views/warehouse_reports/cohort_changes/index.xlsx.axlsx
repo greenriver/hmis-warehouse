@@ -1,0 +1,63 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Youth #{@filter.start}-#{@filter.end}"[0,30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Warehouse Client ID',
+    'First Name', 
+    'Last Name', 
+    'Age', 
+    'Gender',
+    'Race',
+    'Ethnicity',
+    'LGBTQ',
+    'Sleeping Location',
+    'Entry Date',
+    'Exit Date',
+    'Exit Reason',
+    'Exit Destination',
+    'Group',
+    'VI-SPDAT Submitted On',
+    'VI-SPDAT Score',
+    'VI-SPDAT to Housed days',
+    'VI-SPDAT within last 90 days',
+  ], :style => title)
+  @enrollments.each do |c_en|
+    client = c_en.cohort_client.client
+    cohort_client = c_en.cohort_client
+    vispdat = client.most_recent_vispdat
+
+    time_to_housed = nil
+    if vispdat.present? && vispdat.submitted_at.present? && c_en.exit_date.present? && c_en.change_reason&.downcase == 'housed'
+      time_to_housed = (c_en.exit_date.to_date - vispdat.submitted_at.to_date).to_i
+    end
+    vispdat_within_90_days = nil
+    vispdat_within_90_days = if vispdat.present? && vispdat.submitted_at.present?
+      (@filter.end - vispdat.submitted_at.to_date) < 90
+    else
+      false
+    end
+
+    sheet.add_row(
+      [
+        client.id, 
+        client.FirstName, 
+        client.LastName, 
+        client.age_on(c_en.entry_date.to_date),
+        ::HUD.gender(client.Gender),
+        client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join(' '),
+        client.source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map{ |v| ::HUD.ethnicity(v) }.uniq&.sort&.join(' '),
+        cohort_client.lgbtq,
+        cohort_client.sleeping_location,
+        c_en.entry_date.to_date,
+        c_en.exit_date&.to_date,
+        c_en.change_reason,
+        cohort_client.exit_destination,
+        @report.group(client.id),
+        vispdat&.submitted_at&.to_date,
+        vispdat&.score,
+        time_to_housed,
+        vispdat_within_90_days,
+      ]
+    )
+  end
+end

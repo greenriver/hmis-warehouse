@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181227145018) do
+ActiveRecord::Schema.define(version: 20190114175107) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1310,6 +1310,8 @@ ActiveRecord::Schema.define(version: 20181227145018) do
     t.float    "size"
     t.date     "effective_date"
     t.date     "expiration_date"
+    t.integer  "delete_reason"
+    t.string   "delete_detail"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
@@ -3918,6 +3920,43 @@ ActiveRecord::Schema.define(version: 20181227145018) do
       "Geography"."GeographyType",
       "Geography".source_hash
      FROM "Geography";
+  SQL
+
+  create_view "combined_cohort_client_changes",  sql_definition: <<-SQL
+      SELECT cc.id,
+      cohort_clients.client_id,
+      cc.cohort_client_id,
+      cc.cohort_id,
+      cc.user_id,
+      cc.change AS entry_action,
+      cc.changed_at AS entry_date,
+      cc_ex.change AS exit_action,
+      cc_ex.changed_at AS exit_date,
+      cc_ex.reason
+     FROM (((( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE ((cohort_client_changes.change)::text = ANY ((ARRAY['create'::character varying, 'activate'::character varying])::text[]))) cc
+       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE (((cohort_client_changes.change)::text = ANY ((ARRAY['destroy'::character varying, 'deactivate'::character varying])::text[])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
+            ORDER BY cohort_client_changes.changed_at
+           LIMIT 1) cc_ex ON (true))
+       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
+       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
+    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
+    ORDER BY cc.id;
   SQL
 
 end

@@ -5,6 +5,7 @@ class AddCasVacanciesReport < ActiveRecord::Migration
               url: 'warehouse_reports/cas/vacancies',
               name: 'CAS Vacancies',
               description: 'CAS vacancies for a given date range',
+              limitable: false,
           },
       ],
   }

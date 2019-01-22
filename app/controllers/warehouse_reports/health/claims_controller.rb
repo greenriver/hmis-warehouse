@@ -53,8 +53,8 @@ module WarehouseReports::Health
           distinct.
           order(date_of_activity: :desc).
           pluck(:date_of_activity).map do |date|
-            "#{date.strftime("%B")} - #{date.year}"
-          end.uniq
+            ["#{date.strftime("%B")} - #{date.year}", date.beginning_of_month]
+          end.uniq.to_h
         @state = :initial
       end
     end

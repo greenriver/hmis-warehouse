@@ -5,8 +5,8 @@
   - if @months_unsubmitted.any?
     The following months contain un-submitted Qualifying Activities:
     %ul
-      - @months_unsubmitted.each do |month|
-        %li= link_to month, patients_warehouse_reports_health_claims_path(date: month.to_date), data: { loads_in_pjax_modal: true }
+      - @months_unsubmitted.each do |month, first_of_month|
+        %li= link_to month, patients_warehouse_reports_health_claims_path(date: first_of_month.to_date), data: { loads_in_pjax_modal: true }
   - else
     All Qualifying Activities have been submitted.
 

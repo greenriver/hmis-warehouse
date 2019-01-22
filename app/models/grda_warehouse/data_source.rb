@@ -258,6 +258,21 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def self.stalled_imports?(user)
+    Rails.cache.fetch(['data_source_stalled_imports', user], expires_in: 1.hours) do
+      stalled = false
+      viewable_by(user).each do |data_source|
+        next if stalled
+        most_recently_completed = data_source.import_logs.maximum(:completed_at)
+        if most_recently_completed.present?
+          stalled = true if data_source.stalled_since?(most_recently_completed)
+        end
+      end
+
+      stalled
+    end
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end
