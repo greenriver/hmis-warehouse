@@ -1022,19 +1022,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:UnitInventory] || 0}.sum
 
-        household_ids = project.service_history.service.
-            joins(:client, :project).
-            where(Project: {id: project.id}).
-            group(:household_id).
-            where(date: filter.range).
-            pluck(:household_id)
+        household_ids = households
 
         total_count = household_ids.count
         counts[:average_daily] = total_count / filter.range.count rescue 0
 
-        data[:average_daily] = project.service_history.service.
-            joins(:client, :project, :enrollment).
-            where(Project: {id: project.id}).
+        data[:average_daily] = project.service_history_enrollments.
+            joins(:client, :enrollment).
             where(Enrollment: {RelationshipToHoH: 1}).
             where(date: filter.range).
             distinct.
@@ -1042,9 +1036,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
-          data[key] = project.service_history.service.
-              joins(:client, :project, :enrollment).
-              where(Project: {id: project.id}).
+          data[key] = project.service_history_enrollments.
+              joins(:client, :enrollment).
               where(Enrollment: {RelationshipToHoH: 1}).
               where(date: date).
               distinct.
@@ -1882,7 +1875,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def households
-      household_ids = project.service_history_enrollments.
+      @households ||= household_ids = project.service_history_enrollments.
         open_between(start_date: self.start, end_date: self.end).
         group(:household_id).
         distinct.
