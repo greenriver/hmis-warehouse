@@ -1230,6 +1230,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         total_clients: clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
+        total_households: households.size,
+        total_entering_households: entering_households.size,
+        total_exiting_households: exiting_households.size,
         missing_first_name: missing_first_name.size,
         missing_last_name: missing_last_name.size,
         missing_name: missing_name.size,
@@ -1845,18 +1848,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def enterers
-      @enterers ||= begin
-        enterers = Set.new
-        enrollments.each do |client_id, enrollments|
-          enterer = true
-          enrollments.each do |enrollment|
-            enterer = false if enrollment[:first_date_in_program].blank? || enrollment[:first_date_in_program] < self.start
-          end
-          enterers << client_id if enterer
-        end
-        enterers
-      end
-      @enterers
+      entries.keys
     end
 
     def entries
@@ -1872,7 +1864,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
         entries
       end
-      @entries
     end
 
     def exits
@@ -1888,7 +1879,46 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
         exits
       end
-      @exits
+    end
+
+    def households
+      household_ids = project.service_history_enrollments.
+        open_between(start_date: self.start, end_date: self.end).
+        group(:household_id).
+        distinct.
+        pluck(:household_id)
+    end
+
+    def entering_households
+      @entering_households ||= begin
+        entries = {}
+        enrollments.each do |client_id, client_enrollments|
+          client_enrollments.each do |enrollment|
+            if enrollment[:first_date_in_program].present? && enrollment[:first_date_in_program] >= self.start
+              household = enrollment[:household_id]
+              entries[household] ||= []
+              entries[household] << enrollment
+            end
+          end
+        end
+        entries
+      end
+    end
+
+    def exiting_households
+      @exiting_households ||= begin
+        exits = {}
+        enrollments.each do |client_id, client_enrollments|
+          client_enrollments.each do |enrollment|
+            if enrollment[:last_date_in_program].present? && enrollment[:last_date_in_program] <= self.end
+              household = enrollment[:household_id]
+              exits[household] ||= []
+              exits[household] << enrollment
+            end
+          end
+        end
+        exits
+      end
     end
 
     def missing_income(enrollment, data_collection_stage)
