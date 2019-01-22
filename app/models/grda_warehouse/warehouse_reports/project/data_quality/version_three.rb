@@ -25,6 +25,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :add_families_at_individual_projects,
         :add_enrollments_with_no_service,
         :add_data_timeliness,
+        :add_households,
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
@@ -588,6 +589,62 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       add_answers(answers, support)
+    end
+
+    def add_households
+      answers = { households: {} }
+      support = {}
+      total_enrolled_households = 0
+      total_active_households = 0
+
+      projects.each do |project|
+        enrolled_households = service_history_enrollment_scope.
+            open_between(start_date: self.start, end_date: self.end).
+            joins(:project).
+            where(Project: {id: project.id}).
+            group(:household_id).
+            distinct.
+            pluck(:household_id)
+        active_households = service_history_enrollment_scope.
+            service_within_date_range(start_date: self.start, end_date: self.end).
+            joins(:project).
+            where(Project: {id: project.id}).
+            group(:household_id).
+            distinct.
+            pluck(:household_id)
+
+        answers[:households][project.id] ||= {}
+
+        answers[:households][project.id][:enrolled_households] = enrolled_households.size
+        total_enrolled_households += enrolled_households.size
+        support["enrolled_households_#{project.id}"] = household_support(enrolled_households)
+
+        answers[:households][project.id][:active_households] = active_households.size
+        total_active_households += active_households.size
+        support["active_households_#{project.id}"] = household_support(active_households)
+      end
+      answers[:households][:total_enrolled_households] = total_enrolled_households
+      answers[:households][:total_active_households] = total_active_households
+
+      add_answers(answers, support)
+    end
+
+    def household_support(household_ids)
+      hoh_columns = {
+        client_id: c_t[:id].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+      }
+      hohs = service_history_enrollment_scope.
+        where(household_id: household_ids).
+        joins(:client).
+        distinct.
+        pluck(*hoh_columns.values).each do |row|
+          hoh_columns.keys.zip(row)
+        end
+      { headers: ['Client ID', 'First Name', 'Last Name'],
+        counts: hohs,
+        }
     end
 
     def self.missing_refused_names
