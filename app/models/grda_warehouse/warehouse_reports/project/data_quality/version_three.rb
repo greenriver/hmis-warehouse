@@ -77,9 +77,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       information_dates = projects.flat_map do |project|
         project.inventories.map(&:InformationDate)
       end.uniq
-      monitoring_ranges = []
-      monitoring_date_range_present = false
-      grant_ids = []
       coc_program_components = projects.map do |project|
         ::HUD.project_type(project.ProjectType)
       end
@@ -87,6 +84,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         ::HUD.target_population(project.TargetPopulation) || nil
       end.compact
 
+      monitoring_ranges = []
+      monitoring_date_range_present = false
+      grant_ids = []
       projects.flat_map(&:funders).each do |funder|
         monitoring_ranges << "#{funder&.StartDate} - #{funder&.EndDate}" if funder.StartDate.present? || funder.EndDate.present?
         monitoring_date_range_present = true if funder&.StartDate.present? && funder&.EndDate.present?
