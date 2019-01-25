@@ -279,6 +279,10 @@ module GrdaWarehouse::Hud
       open_during_range(range)
     end
 
+    scope :heads_of_households, -> {
+      where(RelationshipToHoH: 1)
+    }
+
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 
     scope :any_address, -> {

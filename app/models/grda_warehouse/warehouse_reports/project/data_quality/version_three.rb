@@ -110,24 +110,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       })
     end
 
+    def enrollment_data_for_project(project)
+      data = service_history_enrollment_scope.
+          open_between(start_date: self.start, end_date: self.end).
+          in_project(project).
+          joins(:project, :client, :enrollment).
+          pluck(*enrollment_columns.values)
+      data.map do |row|
+        Hash[enrollment_columns.keys.zip(row)]
+      end
+    end
+
     def add_enrollments_with_no_service
       empty_enrollments = {}
       projects.each do |project|
         if project.TrackingMethod == 3
-          enrollments_in_project = enrollments_for_project(
-            project.ProjectID, project.data_source_id
-          )&.values&.flatten(1)
-          if enrollments_in_project.present? && enrollments_in_project.any?
-            enrollments_in_project = enrollments_in_project.group_by do |row|
-              [row[:data_source_id], row[:enrollment_group_id]]
-            end
-            enrollment_groups = enrollments_in_project.keys.map(&:last)
-            services = GrdaWarehouse::Hud::Service.where(EnrollmentID: enrollment_groups).distinct.pluck(:data_source_id, :EnrollmentID)
-            empties = enrollments_in_project.keys - services
-            empty_enrollments[project.id] = enrollments_in_project.values_at(*empties)
-          else
-            empty_enrollments[project.id] = []
-          end
+          enrollments_in_project = enrollment_data_for_project(project)
+          enrollments_with_service = service_history_enrollment_scope.
+              service_within_date_range(start_date: self.start, end_date: self.end).
+              in_project(project).
+              distinct.
+              joins(:project, :client, :enrollment).
+              pluck(*enrollment_columns.values).
+              map do |row|
+                Hash[enrollment_columns.keys.zip(row)]
+              end
+          empty_enrollments[project.id] = enrollments_in_project - enrollments_with_service
         else
           empty_enrollments[project.id] = []
         end
@@ -163,9 +171,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       individuals = {}
       projects.each do |project|
         if project.serves_families?
-          enrollments_in_project = enrollments_for_project(
-            project.ProjectID, project.data_source_id
-          )&.values&.flatten(1)
+          enrollments_in_project = enrollment_data_for_project(project)
           if enrollments_in_project.present? && enrollments_in_project.any?
             family_enrollments = enrollments_in_project.
               group_by do |m|
@@ -209,7 +215,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       families = {}
       projects.each do |project|
         if project.serves_only_individuals?
-          enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
+          enrollments_in_project = enrollment_data_for_project(project)
           if enrollments_in_project.present? && enrollments_in_project.any?
             family_enrollments = enrollments_in_project.
               group_by do |m|
@@ -361,7 +367,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       dob_entry = {}
       projects.each do |project|
         dob_entry[project.id] ||= Set.new
-        enrollments_in_project = enrollments_for_project(project.ProjectID, project.data_source_id)&.values&.flatten(1)
+        enrollments_in_project = enrollment_data_for_project(project)
         if enrollments_in_project.present? && enrollments_in_project.any?
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
@@ -642,9 +648,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         pluck(*hoh_columns.values).each do |row|
           hoh_columns.keys.zip(row)
         end
-      { headers: ['Client ID', 'First Name', 'Last Name'],
+      {
+        headers: ['Client ID', 'First Name', 'Last Name'],
         counts: hohs,
-        }
+      }
     end
 
     def self.missing_refused_names
@@ -733,13 +740,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def columns_for_first_name_support enrollment
       base_colums_for_support(enrollment) + [
-          99
+          99 # Data Quality Code "Data Not Collected", There is no DQ for first name, field added to keep shape consistent
       ]
     end
 
     def columns_for_last_name_support enrollment
       base_colums_for_support(enrollment) + [
-          99
+          99 # Data Quality Code "Data Not Collected", There is no DQ for last name, field added to keep shape consistent
       ]
     end
 
@@ -951,59 +958,51 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       support = {}
       totals = {counts: Hash.new(0), data: Hash.new(Set.new)}
 
-      client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
-      filter = ::Filters::DateRange.new(start: self.start, end: self.end)
       projects.each do |project|
         counts = {}
         data = {}
 
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:BedInventory] || 0}.sum
-        total_count = project.service_history.service.
-          joins(:client, :project).
-          where(Project: {id: project.id}).
-          where(date: filter.range).count
+        total_count = project.service_history_enrollments.
+            service_within_date_range(start_date: self.start, end_date: self.end).
+            count
 
-        data[:average_daily] = project.service_history.service.
-          joins(:client, :project).
-          where(Project: {id: project.id}).
-          where(date: filter.range).
+        data[:average_daily] = project.service_history_enrollments.
+          service_within_date_range(start_date: self.start, end_date: self.end).
+          joins(:client).
           distinct.
-          pluck(*client_columns)
+          pluck(*utilization_client_columns)
         counts[:average_daily] = total_count / filter.range.count rescue 0
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
-          data[key] = project.service_history.service.
-            joins(:client, :project).
-            where(Project: {id: project.id}).
-            where(date: date).
+          data[key] = project.service_history_enrollments.
+            service_on_date(date).
+            joins(:client).
             distinct.
-            pluck(*client_columns)
+            pluck(*utilization_client_columns)
           counts[key] = data[key].count
         end
 
-        data[:first_of_month] = project.service_history.service.
-          joins(:client, :project).
-          where(Project: {id: project.id}).
-          where(date: filter.first).
+        data[:first_of_month] = project.service_history_enrollments.
+          service_on_date(filter.first).
+          joins(:client).
           distinct.
-          pluck(*client_columns)
+          pluck(*utilization_client_columns)
         counts[:first_of_month] = data[:first_of_month].count
 
-        data[:fifteenth_of_month] = project.service_history.service.
-          joins(:client, :project).
-          where(Project: {id: project.id}).
-          where(date: filter.ides).
+        data[:fifteenth_of_month] = project.service_history_enrollments.
+          service_on_date(filter.ides).
+          joins(:client).
           distinct.
-          pluck(*client_columns)
+          pluck(*utilization_client_columns)
         counts[:fifteenth_of_month] = data[:fifteenth_of_month].count
 
-        data[:last_of_month] = project.service_history.service.
-          joins(:client, :project).
-          where(Project: {id: project.id}).
-          where(date: filter.last).
+        data[:last_of_month] = project.service_history_enrollments.
+          service_on_date(filter.last).
+          joins(:client).
           distinct.
-          pluck(*client_columns)
+          pluck(*utilization_client_columns)
         counts[:last_of_month] = data[:last_of_month].count
 
         project_counts = {
@@ -1053,6 +1052,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       ]
     end
 
+    def utilization_client_columns
+      [
+          :client_id,
+          c_t[:FirstName].as('first_name').to_sql,
+          c_t[:LastName].as('last_name').to_sql,
+      ]
+    end
+
     def set_bed_coverage_data
       bed_coverage = 0
       bed_coverage_percent = 0
@@ -1071,34 +1078,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       support = {}
       totals = {counts: Hash.new(0), data: Hash.new(Set.new)}
 
-      client_columns = [:client_id, c_t[:FirstName].as('first_name').to_sql, c_t[:LastName].as('last_name').to_sql]
-      filter = ::Filters::DateRange.new(start: self.start, end: self.end)
       projects.each do |project|
         counts = {}
         data = {}
 
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:UnitInventory] || 0}.sum
 
-        household_ids = households
-
-        total_count = household_ids.count
-        counts[:average_daily] = total_count / filter.range.count rescue 0
+        counts[:average_daily] = households.count / filter.range.count rescue 0
 
         data[:average_daily] = project.service_history_enrollments.
             joins(:client, :enrollment).
-            where(Enrollment: {RelationshipToHoH: 1}).
+            merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
             where(date: filter.range).
             distinct.
-            pluck(*client_columns)
+            pluck(*utilization_client_columns)
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
           data[key] = project.service_history_enrollments.
               joins(:client, :enrollment).
-              where(Enrollment: {RelationshipToHoH: 1}).
+              merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
               where(date: date).
               distinct.
-              pluck(*client_columns)
+              pluck(*utilization_client_columns)
           counts[key] = data[key].count
         end
 
@@ -1109,9 +1111,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         }.merge(counts)
 
         totals[:counts][:capacity] += counts[:capacity]
-        [:average_daily].each do |attr|
-          project_counts["#{attr}_percentage"] = in_percentage(counts[attr], counts[:capacity])
+        self.class.unit_utilization_attributes.each do |attr|
+          percentage = in_percentage(counts[attr], counts[:capacity])
+          percentage = 0 if percentage.infinite?
           totals[:counts][attr] += counts[attr]
+          project_counts["#{attr}_percentage"] = percentage
           totals[:data][attr] += data[attr]
           support["unit_utilization_#{project.id}_#{attr}"] = {
               headers: ['Client ID', 'First Name', 'Last Name'],
@@ -1122,8 +1126,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         unit_utilization << project_counts
       end
 
-      [:average_daily].each do |attr|
-        totals[:counts]["#{attr}_percentage"] = in_percentage(totals[:counts][attr], totals[:counts][:capacity])
+      self.class.unit_utilization_attributes.each do |attr|
+        percentage = in_percentage(totals[:counts][attr], totals[:counts][:capacity])
+        percentage = 0 if percentage.infinite?
+        totals[:counts]["#{attr}_percentage"] = percentage
         support["unit_utilization_totals_#{attr}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
             counts: totals[:data][attr]
@@ -1132,11 +1138,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       add_answers(
         {
-          uni_utilization: unit_utilization,
+          unit_utilization: unit_utilization,
           unit_utilization_totals: totals,
         },
         support
       )
+    end
+
+    def self.unit_utilization_attributes
+      [
+          :average_daily,
+      ]
     end
 
     def add_agency_entering_data
@@ -1463,12 +1475,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       entries.each do |client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_entry << client_id if missing_income(enrollment, 1)
+          missing_income_at_entry << client_id if missing_income(enrollment, data_collection_stage: 1)
         end
       end
       exits.each do |client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_exit << client_id if missing_income(enrollment, 3)
+          missing_income_at_exit << client_id if missing_income(enrollment, data_collection_stage: 3)
         end
       end
 
@@ -1897,6 +1909,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     end
 
+    def filter
+      @filter ||= ::Filters::DateRange.new(start: self.start, end: self.end)
+    end
+
     def enterers
       entries.keys
     end
@@ -1921,6 +1937,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         exits = {}
         enrollments.each do |client_id, client_enrollments|
           client_enrollments.each do |enrollment|
+            # we don't need to verify that exit is after report start since the enrollment must overlap the report range
             if enrollment[:last_date_in_program].present? && enrollment[:last_date_in_program] <= self.end
               exits[client_id] ||= []
               exits[client_id] << enrollment
@@ -1934,9 +1951,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def households
       @households ||= service_history_enrollment_scope.
         open_between(start_date: self.start, end_date: self.end).
-        joins(:project).
-        where(Project: {id: projects.map(&:id)}).
-        group(:household_id).
+        in_project(projects.map(&:id)).
         distinct.
         pluck(:household_id)
     end
@@ -1973,16 +1988,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    def missing_income(enrollment, data_collection_stage)
-      return ! income_source.where(data_source_id: enrollment[:data_source_id]).
+    # At entry: data_collection_stage = 1
+    # At exit: data_collection_stage = 3
+    def missing_income(enrollment, data_collection_stage:)
+      incomes = income_source.where(data_source_id: enrollment[:data_source_id]).
           where(PersonalID: enrollment[:personal_id]).
           where(EnrollmentID: enrollment[:enrollment_group_id]).
-          where(DataCollectionStage: data_collection_stage).exists?
+          where(DataCollectionStage: data_collection_stage)
+
+      if incomes.present?
+        incomes.each do |income|
+          return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
+            income[:TotalMonthlyIncome] == null
+        end
+        return false
+      else
+        return true
+      end
     end
 
-    def service_history_enrollment_scope
-      GrdaWarehouse::ServiceHistoryEnrollment
-    end
-
+    alias_method :service_history_enrollment_scope, :service_scope
   end
 end
