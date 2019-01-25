@@ -404,6 +404,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           }
         ]
       end.to_h
+      project_support = projects.map do |project|
+        [
+            project.id,
+            {
+                buckets: {}
+            }
+        ]
+      end.to_h
       totals = {
         buckets: self.class.length_of_stay_buckets.map do |title, range|
           [range, Set.new]
@@ -440,8 +448,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             end
           end
         end
-        project_counts[project.id][:counts] = counts.map{|range,services| [range, services.count]}.to_h
-        project_counts[project.id][:buckets] = counts
+        project_counts[project.id][:buckets] = counts.map{|range,services| [range, services.count]}.to_h
+        project_support[project.id][:buckets] = counts
       end
       totals[:counts][:average] = (totals[:counts][:total_days].to_f / (self.end - self.start).to_i).round
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
@@ -452,7 +460,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         }
       }
       support = {}
-      project_counts.each do |project_id, buckets|
+      project_support.each do |project_id, buckets|
         buckets[:buckets].each do |range, services|
           support["enrolled_length_of_stay_#{project_id}_#{range}"] = {
             headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Days Served'],
@@ -1015,7 +1023,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         self.class.bed_utilization_attributes.each do |attr|
           project_counts["#{attr}_percentage"] = in_percentage(counts[attr], counts[:capacity])
           totals[:counts][attr] += counts[attr]
-          totals[:data][attr] += data[attr]
+          # totals[:data][attr] += data[attr]
           support["bed_utilization_#{project.id}_#{attr}"] = {
             headers: ['Client ID', 'First Name', 'Last Name'],
             counts: data[attr]
@@ -1116,7 +1124,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           percentage = 0 if percentage.infinite?
           totals[:counts][attr] += counts[attr]
           project_counts["#{attr}_percentage"] = percentage
-          totals[:data][attr] += data[attr]
+          # totals[:data][attr] += data[attr]
           support["unit_utilization_#{project.id}_#{attr}"] = {
               headers: ['Client ID', 'First Name', 'Last Name'],
               counts: data[attr]
@@ -1999,7 +2007,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if incomes.present?
         incomes.each do |income|
           return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
-            income[:TotalMonthlyIncome] == null
+            income[:TotalMonthlyIncome] == nil
         end
         return false
       else
@@ -2007,6 +2015,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    alias_method :service_history_enrollment_scope, :service_scope
+    alias_method :service_history_enrollment_scope, :service_source
   end
 end
