@@ -136,12 +136,12 @@ class Role < ActiveRecord::Base
         administrative: true,
       },
       can_manage_client_files: {
-        description: 'Ability to delete client files',
+        description: 'Ability to view, upload, and delete client files, and control which files are visible in the window',
         administrative: true,
       },
       can_manage_window_client_files: {
-        description: 'Ability to delete client files in the window',
-        administrative: true,
+        description: 'Ability to view, upload, and delete files in the window for clients with active confirmed consent or files uploaded by this user',
+        administrative: false,
       },
       can_see_own_file_uploads: {
         description: 'Access to files this user has uploaded, no access to others.  Usually used for community members who might be collecting files, but shouldn\'t see files provided by others',
