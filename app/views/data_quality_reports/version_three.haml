@@ -1,0 +1,18 @@
+- content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
+%h1= content_for :title
+%h3 Time in Program
+= render 'data_quality_reports/version_three/time_in_program'
+
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      let all_data = {}
+      let url = '#{answers_project_data_quality_report_path(@project, @report)}'
+      $.get(url, function(data){
+        all_data = data
+      });
+
+      let time_in_program = new App.DataQualityReports.TimeInProgram(all_data['enrolled_length_of_stay'], '.time-in-program-chart', '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
+      time_in_program.build_chart();
+    })(jQuery);

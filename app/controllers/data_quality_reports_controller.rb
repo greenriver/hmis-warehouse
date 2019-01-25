@@ -23,7 +23,20 @@ class DataQualityReportsController < ApplicationController
   end
 
   def answers
-    render json: @report.report
+    @key = params[:key].to_s
+    @data = @report.report&.[](@key)
+    if @key.blank? || @data.blank?
+      render json: @report.report
+    else
+      respond_to do |format|
+        format.html do
+          render json: @data
+        end
+        format.js do
+          render json: @data
+        end
+      end
+    end
   end
 
   def support
@@ -38,6 +51,7 @@ class DataQualityReportsController < ApplicationController
           render xlsx: :index, filename: "support-#{@key}.xlsx"
         end
         format.html {}
+        format.js {}
       end
     end
   end
