@@ -27,7 +27,7 @@
       .metric
         - days = @report.leavers_average_days_in_stabilization
         = pluralize(days, 'day')
-        to find housing
+        in housing
       .description
         average days in Stabilization
     .rrh__time-in-stabilization.chunk.w-50
@@ -36,7 +36,7 @@
       .metric
         - days = @report.stayers_average_days_in_stabilization
         = pluralize(days, 'day')
-        to find housing
+        in housing
       .description
         average days in Stabilization.
   .d-flex.text-center.justify-content-center.mb-6
@@ -46,7 +46,7 @@
       .metric
         - days = @report.leavers_average_days
         = pluralize(days, 'day')
-        to find housing
+        in housing
       .description
         average days in program
     .rrh__time-in-program.chunk.w-50
@@ -55,6 +55,6 @@
       .metric
         - days = @report.stayers_average_days
         = pluralize(days, 'day')
-        to find housing
+        in housing
       .description
         average days in program.

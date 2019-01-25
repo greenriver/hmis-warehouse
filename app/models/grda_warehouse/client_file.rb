@@ -112,6 +112,10 @@ module GrdaWarehouse
       false
     end
 
+    def uploaded_by?(user)
+      user_id == user.id
+    end
+
     def active_consent_form?
       client.consent_form_id == id
     end

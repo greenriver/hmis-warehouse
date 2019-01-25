@@ -3,3 +3,4 @@
   email: <%= ENV['WEATHER_EMAIL'] %>
   token: <%= ENV['WEATHER_TOKEN'] %>
   darksky: <%= ENV['WEATHER_DARKSKY'] %>
+  stationid: <%= ENV['WEATHER_STATIONID'] %>

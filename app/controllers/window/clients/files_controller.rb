@@ -1,9 +1,10 @@
 module Window::Clients
   class FilesController < ApplicationController
     include WindowClientPathGenerator
+    include PjaxModalController
 
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :destroy]
+    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :show_delete_modal, :destroy]
     before_action :set_files, only: [:index]
     before_action :set_window
     before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
@@ -18,6 +19,8 @@ module Window::Clients
 
       @consent_files = consent_scope
       @files = file_scope.page(params[:page].to_i).per(20).order(created_at: :desc)
+      @deleted_files = all_file_scope.only_deleted
+
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
       if params[:file_ids].present?
         @pre_checked = params[:file_ids].split(',').map(&:to_i)
@@ -89,12 +92,29 @@ module Window::Clients
       redirect_to action: :index
     end
 
+    def show_delete_modal
+      @file = editable_scope.find(params[:id].to_i)
+      @client = @file.client
+    end
+
     def destroy
       @file = editable_scope.find(params[:id].to_i)
       @client = @file.client
 
+      delete_params = params[:grda_warehouse_client_file]
+      if delete_params
+        delete_reason = delete_params[:delete_reason]
+        if delete_reason.present?
+          delete_detail = delete_params[:delete_detail]
+          @file.update(delete_reason: delete_reason.to_i, delete_detail: delete_detail)
+        end
+      end
+
       begin
-        @file.destroy!
+        # Mark file as deleted using the acts_as_paranoid field instead of calling @file.destroy! to prevent hooks from
+        # firing which would cause acts_as_taggable to remove the associated tags
+        @file.update(deleted_at: Time.now)
+
         flash[:notice] = "File was successfully deleted."
         # Keep various client fields in sync with files if appropriate
         if @client.consent_form_id == @file.id
@@ -107,6 +127,16 @@ module Window::Clients
       end
       redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
     end
+
+    def delete_reasons
+      {
+          0 => 'Incomplete Form',
+          1 => 'Incorrect Client',
+          2 => 'Incorrectly Categorized',
+          99 => 'Other',
+      }
+    end
+    helper_method :delete_reasons
 
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
