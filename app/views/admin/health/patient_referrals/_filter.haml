@@ -27,7 +27,7 @@
             - if @active_patient_referral_tab == 'rejected'
               .o-filtration__option.row
                 .col-sm-12
-                  = label_tag "Removal Acknowledged?"
+                  = label_tag :removal_acknowleged, "Removal acknowledged by #{@sender.receiver_name}?"
                   .radio-button-buttons__container.mb-0
                     - [['All', :all], ['Un-Acknowledged', :false], ['Acknowledged', :true]].each do |btn|
                       = f.label :acknowledged_by_mass_health, value: btn.last do
