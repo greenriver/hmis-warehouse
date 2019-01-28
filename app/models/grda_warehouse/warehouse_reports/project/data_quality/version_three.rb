@@ -453,11 +453,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       totals[:counts][:average] = (totals[:counts][:total_days].to_f / (self.end - self.start).to_i).round
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
+
+      json_shape = {
+          labels: self.class.length_of_stay_buckets.keys,
+          data: begin
+            data_map = {}
+            project_counts.keys.each do |project_id|
+              name = projects.find { |project| project.id == project_id }[:ProjectName]
+              data_map[name] = []
+              self.class.length_of_stay_buckets.values.each do |range|
+                data_map[name] << project_counts[project_id][:buckets][range]
+              end
+            end
+            data_map['Total'] = []
+            self.class.length_of_stay_buckets.values.each do |range|
+              data_map['Total'] << totals[:counts][:buckets][range]
+            end
+            data_map
+          end
+      }
+
       answers = {
-        enrolled_length_of_stay: {
-          projects: project_counts,
-          totals: totals[:counts],
-        }
+        enrolled_length_of_stay: json_shape
       }
       support = {}
       project_support.each do |project_id, buckets|
