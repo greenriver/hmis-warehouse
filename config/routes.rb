@@ -458,6 +458,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 

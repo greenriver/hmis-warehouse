@@ -3,7 +3,7 @@ class DataQualityReportsController < ApplicationController
   # Authorize by either access to projects OR access by token
   skip_before_action :authenticate_user!
   before_action :require_valid_token_or_project_access!
-  before_action :set_report, only: [:show, :support]
+  before_action :set_report, only: [:show, :answers, :support]
   before_action :set_project, only: [:show, :support]
 
   def show
@@ -12,6 +12,9 @@ class DataQualityReportsController < ApplicationController
 
     @missing_grades = missing_grade_scope.
       order(percentage_low: :asc)
+
+    # The view is versioned using the model name
+    render @report.model_name.element.to_sym
   end
 
   def index
@@ -19,16 +22,37 @@ class DataQualityReportsController < ApplicationController
     @reports = @project.data_quality_reports.order(started_at: :desc)
   end
 
-  def support
-    raise 'Key required' if params[:key].blank?
+  def answers
     @key = params[:key].to_s
-    support = @report.support
-    @data = support[@key].with_indifferent_access
-    respond_to do |format|
-      format.xlsx do
-        render xlsx: :index, filename: "support-#{@key}.xlsx"
+    @data = @report.report&.[](@key)
+    if @key.blank? || @data.blank?
+      render json: @report.report
+    else
+      respond_to do |format|
+        format.html do
+          render json: @data
+        end
+        format.js do
+          render json: @data
+        end
       end
-      format.html {}
+    end
+  end
+
+  def support
+    @key = params[:key].to_s
+    if @key.blank?
+      render json: @report.support
+    else
+      support = @report.support
+      @data = support[@key].with_indifferent_access
+      respond_to do |format|
+        format.xlsx do
+          render xlsx: :index, filename: "support-#{@key}.xlsx"
+        end
+        format.html {}
+        format.js {}
+      end
     end
   end
 
