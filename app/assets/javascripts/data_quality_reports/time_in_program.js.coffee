@@ -2,7 +2,7 @@
 
 class App.DataQualityReports.TimeInProgram extends App.DataQualityReports.Base
   _format_data: (data) ->
-    # fake data for now
+    # fake data
     {
       labels: ["1 month or less", "1 to 6 months", "1 to 12 months", "12 months or greater"],
       data: {
@@ -11,6 +11,8 @@ class App.DataQualityReports.TimeInProgram extends App.DataQualityReports.Base
         'Total': [1, 5, 9, 15],
       },
     }
+    # live data
+#    data
 
 
   _build_chart: ->
