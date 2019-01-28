@@ -4,11 +4,11 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
   _format_data: (data) ->
     # fake data
     {
-      labels: ["1 month or less", "1 to 6 months", "1 to 12 months", "12 months or greater"],
+      labels: ["Goal", "This Program"],
       data: {
-        'Project Name 1': [0, 2, 4, 8],
-        'Project Name 2': [1, 3, 5, 7],
-        'Total': [1, 5, 9, 15],
+        'Project Name 1': [14, 4],
+        'Project Name 2': [14, 2],
+        'Total': [14, 3],
       },
     }
     # live data
