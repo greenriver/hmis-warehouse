@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190114175107) do
+ActiveRecord::Schema.define(version: 20190129175440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -3231,6 +3231,51 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "youth_intakes", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.string   "type"
+    t.boolean  "other_staff_completed_intake",             default: false, null: false
+    t.date     "client_dob"
+    t.string   "staff_name"
+    t.string   "staff_email"
+    t.date     "engagement_date",                                          null: false
+    t.string   "unaccompanied",                                            null: false
+    t.string   "street_outreach_contact",                                  null: false
+    t.string   "housing_status",                                           null: false
+    t.string   "other_agency_involvement",                                 null: false
+    t.string   "owns_cell_phone",                                          null: false
+    t.string   "secondary_education",                                      null: false
+    t.string   "attending_college",                                        null: false
+    t.string   "health_insurance",                                         null: false
+    t.boolean  "requesting_financial_assistance",                          null: false
+    t.boolean  "staff_believes_youth_under_24",                            null: false
+    t.integer  "client_gender",                                            null: false
+    t.string   "client_lbgtq",                                             null: false
+    t.jsonb    "client_race",                                              null: false
+    t.integer  "client_ethnicity",                                         null: false
+    t.string   "client_primary_language",                                  null: false
+    t.string   "pregnant_or_parenting",                                    null: false
+    t.jsonb    "disabilities",                                             null: false
+    t.string   "how_hear"
+    t.string   "direct_financial_assistance",                              null: false
+    t.jsonb    "financial_assistance_types"
+    t.string   "needs_shelter",                                            null: false
+    t.boolean  "referred_to_shelter",                      default: false, null: false
+    t.string   "in_stable_housing",                                        null: false
+    t.string   "stable_housing_zipcode"
+    t.jsonb    "referrals_to_other_providers"
+    t.string   "youth_attended_case_management_meeting",                   null: false
+    t.string   "youth_experiencing_homelessness_at_start"
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
+  add_index "youth_intakes", ["deleted_at"], name: "index_youth_intakes_on_deleted_at", using: :btree
+  add_index "youth_intakes", ["updated_at"], name: "index_youth_intakes_on_updated_at", using: :btree
 
   add_foreign_key "Affiliation", "data_sources"
   add_foreign_key "Client", "data_sources"
