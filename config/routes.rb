@@ -339,6 +339,11 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
+    resources :youth_intakes, controller: 'clients/youth/intakes'
+    # resources :direct_financial_assistances, except: [:index], contoller: 'youth/direct_financial_assistances'
+    # resources :youth_referrals, except: [:index], contoller: 'youth/referrals'
+    # resources :youth_case_managements, except: [:index], contoller: 'youth/case_managements'
+
     resources :files, controller: 'clients/files' do
       get :preview, on: :member
       get :thumb, on: :member
@@ -378,6 +383,10 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
+      resources :youth_intakes, controller: 'clients/youth/intakes'
+      resources :direct_financial_assistances, except: [:index], contoller: 'clients/youth/direct_financial_assistances'
+      resources :youth_referrals, except: [:index], contoller: 'clients/youth/referrals'
+      resources :youth_case_managements, except: [:index], contoller: 'clients/youth/case_managements'
       resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member

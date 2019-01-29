@@ -91,6 +91,11 @@ module CombinedClientPathsGenerator
     end
     helper_method :vispdats_path_generator
 
+    def youth_intakes_path_generator
+      client_path_generator + [:youth_intakes]
+    end
+    helper_method :youth_intakes_path_generator
+
     def self_sufficiency_matrix_forms_path_generator
       health_path_generator + [:self_sufficiency_matrix_forms]
     end

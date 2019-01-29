@@ -10,6 +10,7 @@ class CreateYouthIntake < ActiveRecord::Migration
       t.string :staff_name
       t.string :staff_email
       t.date :engagement_date, null: false
+      t.date :exit_date
       t.string :unaccompanied, null: false
       t.string :street_outreach_contact, null: false
       t.string :housing_status, null: false
@@ -28,14 +29,10 @@ class CreateYouthIntake < ActiveRecord::Migration
       t.string :pregnant_or_parenting, null: false
       t.jsonb :disabilities, null: false
       t.string :how_hear
-      t.string :direct_financial_assistance, null: false
-      t.jsonb :financial_assistance_types
       t.string :needs_shelter, null: false
       t.boolean :referred_to_shelter, null: false, default: false
       t.string :in_stable_housing, null: false
       t.string :stable_housing_zipcode
-      t.jsonb :referrals_to_other_providers
-      t.string :youth_attended_case_management_meeting, null: false
       t.string :youth_experiencing_homelessness_at_start
 
       t.timestamps null: false, index: true

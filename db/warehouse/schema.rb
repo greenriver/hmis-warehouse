@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190129175440) do
+ActiveRecord::Schema.define(version: 20190129193734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1234,6 +1234,18 @@ ActiveRecord::Schema.define(version: 20190129175440) do
     t.boolean  "visible_in_window",  default: false, null: false
     t.boolean  "authoritative",      default: false
   end
+
+  create_table "direct_financial_assistances", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "provided_on"
+    t.string   "type_provided"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "direct_financial_assistances", ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at", using: :btree
 
   create_table "enrollment_change_histories", force: :cascade do |t|
     t.integer  "client_id",                 null: false
@@ -3232,6 +3244,18 @@ ActiveRecord::Schema.define(version: 20190129175440) do
     t.datetime "updated_at"
   end
 
+  create_table "youth_case_managements", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "engaged_on"
+    t.string   "activity"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
   create_table "youth_intakes", force: :cascade do |t|
     t.integer  "client_id"
     t.integer  "user_id"
@@ -3276,6 +3300,18 @@ ActiveRecord::Schema.define(version: 20190129175440) do
   add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
   add_index "youth_intakes", ["deleted_at"], name: "index_youth_intakes_on_deleted_at", using: :btree
   add_index "youth_intakes", ["updated_at"], name: "index_youth_intakes_on_updated_at", using: :btree
+
+  create_table "youth_referrals", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "referred_on"
+    t.string   "referred_to"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_referrals", ["deleted_at"], name: "index_youth_referrals_on_deleted_at", using: :btree
 
   add_foreign_key "Affiliation", "data_sources"
   add_foreign_key "Client", "data_sources"

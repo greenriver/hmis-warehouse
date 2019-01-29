@@ -1,0 +1,5 @@
+- content_for :title, "Youth Intakes"
+= render 'window/clients/breadcrumbs'
+
+= render 'window/clients/aliases'
+= render 'window/clients/tab_navigation', current: client_youth_intakes_path(client_id: @client.id)
