@@ -1,7 +1,7 @@
 - if project_groups.any?
   - select_scope = 'projectGroups'
   .d-flex.mb-5.ml-4
-    %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all Project Groups & Projects'}
+    %button.c-btn-select.c-btn-select--light.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all Project Groups & Projects'}
     %h2.mb-0.mt-0 Project Groups
   %div{id: select_scope}
     %table.table.c-table.j-parent

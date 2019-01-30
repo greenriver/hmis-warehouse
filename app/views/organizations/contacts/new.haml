@@ -31,7 +31,7 @@
       - @entity.projects.each do |p|
         %tr
           %td= p.safe_project_name
-          %td.text-right=link_to 'Manage contacts', new_project_contact_path(p), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
+          %td.text-right=link_to "Manage contacts (#{p.contacts.count})", new_project_contact_path(p), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}
       - if @entity.projects.empty?
         %tr
           %td
