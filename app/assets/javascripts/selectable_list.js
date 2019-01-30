@@ -34,7 +34,7 @@ class SelectableList {
     var elements = ['INPUT', 'LABEL', 'BUTTON', 'A']
     if (elements.includes(nodeName)) {
       // Take no action for links or buttons
-      if (nodeName !== 'A' || nodeName !== 'BUTTON') return
+      if (nodeName === 'A' || nodeName === 'BUTTON') return
       // Open children if children are not visible
       if (!$el.hasClass('children-visible')) {
         this.updateState($el)
@@ -73,10 +73,10 @@ class SelectableList {
     $('.j-parent .j-select-children').on('change', this.checkParentAndChildren)
     $('.j-select-all').on('click', function() {
       var state = $(this).data('state')
-      var btnText = 'Select all ' + self.title
+      var btnClass = 'not-checked checked'
       $(this).data('state', !state)
-      if (!state) { btnText = 'Deselect all ' + self.title }
-      $(this).html(btnText)
+      if (!state) { btnClass = 'checked not-checked'}
+      $(this).toggleClass(btnClass)
       $('.j-parent')
         .find('.j-select-children')
         .prop('checked', !state)

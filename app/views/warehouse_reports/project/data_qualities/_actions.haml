@@ -31,3 +31,13 @@
         %td
           = link_to download_warehouse_reports_project_data_quality_path(format: :xlsx), class: 'btn btn-secondary' do
             Download most-recent reports
+
+%section
+  .mb-2
+    %h4 Generate
+    %p Generate new versions of selected reports
+    = f.input :generate, as: :boolean, label: false, input_html: {checked: @generate}
+  .mb-2
+    %h4 Email
+    %p Email selected reports, new versions will be generated first if generate is selected
+    = f.input :start, as: :date_picker, label: false, input_html: {class: 'form-control', value: @range.start}

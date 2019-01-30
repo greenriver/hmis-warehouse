@@ -3,7 +3,7 @@
 
 = render 'breadcrumbs'
 
-%section.o-container--restrained.mb-6
+%section.o-container--constrained.mb-6
   %p
     The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the
     %strong Select
@@ -25,12 +25,18 @@
     %strong Can view projects
     permission.
 
-%button.btn.btn-secondary.j-select-all.mb-5{data: {state: true}} Select all Organizations & Projects
-
 = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
-  - @projects.each do |(data_source, organization), projects|
-    .mb-5
-      = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+  %section.mb-6
+    .d-flex.mb-5.ml-4
+      %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip'}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+      %h2.mb-0.mt-0 Organizations and Projects
+    - @projects.each do |(data_source, organization), projects|
+      .mb-5
+        = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+
+  %section.mb-6
+    = render 'project_groups', f: f, project_groups: @project_groups
+
   = render 'actions', f: f
 
 = content_for :page_js do
@@ -38,72 +44,3 @@
     new App.SelectableList({
       title: 'Organizations & Projects'
     })
-
-
-
-
--# - if @project_groups.any?
-  %table.table.c-table
-    %tr.jOrganization{data: {organization_id: :project_groups}}
-      %td{style: 'width: 4em;'}
-      %td{style: 'width: 16em;'}
-        Project Groups
-      %td= check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'jSelectAll', data: {organization_id: :project_groups}})
-      %td
-      %td{colspan: 2}
-    %tr.jProject.hidden{data: {organization_id: :project_groups}}
-      %th
-      %th
-      %th
-        Group
-      %th
-        Select
-      %th
-        Report
-      %th
-        Last Run
-      %th
-        Contacts
-      %th
-        Last Sent On
-    - @project_groups.each do |group|
-      = render 'project_group', f: f, group: group, projects: group.projects
--# %table.table.table-condensed
--# %thead
-  %tr
-    %th{style: 'width: 2em;'}
-    %th{style: 'width: 20em;', colspan: 2}
-      Organization
-    %th{colspan: 2}
-      Select
-    %th{colspan: 3}
-      Contacts
-    - @projects.each do |(data_source, organization), projects|
-      = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
-    - if @project_groups.any?
-      %tr.jOrganization{data: {organization_id: :project_groups}}
-        %td.jToggle.closed
-          ▶︎
-        %td{style: 'width: 4em;'}
-        %td{style: 'width: 16em;'}
-          Project Groups
-        %td= check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'jSelectAll', data: {organization_id: :project_groups}})
-        %td
-        %td{colspan: 2}
-      %tr.jProject.hidden{data: {organization_id: :project_groups}}
-        %th
-        %th
-        %th
-          Group
-        %th
-          Select
-        %th
-          Report
-        %th
-          Last Run
-        %th
-          Contacts
-        %th
-          Last Sent On
-      - @project_groups.each do |group|
-        = render 'project_group', f: f, group: group, projects: group.projects

@@ -307,3 +307,70 @@
     background: $gray-060;
   }
 }
+
+@mixin checkbox-round-default($size: 30px) {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  cursor: pointer;
+  height: rem($size);
+  width: rem($size);
+  margin-bottom: 0;
+  transition: .15s ease-in-out;
+  &::before {
+    content: '';
+    display: block;
+    flex: 0 0 auto;
+    background: $gray-015;
+    border: 1px solid $gray-025;
+    transition: .15s ease-in-out;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    color: $gray-025;
+  }
+  &::after {
+    font-family: 'FontAwesome';
+    content: '\f00c';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: $gray-025;
+  }
+}
+
+@mixin checkbox-round-checked() {
+  &::before {
+    background: $brand-success-l;
+    border: 1px solid $brand-success;
+  }
+  &::after {
+    color: $brand-success;
+  }
+  &:hover,
+  &:focus {
+    transform: scale(.95);
+    &::before {
+      background: rgba($brand-success-l, .5);
+    }
+    &::after {
+      color: lighten(desaturate($brand-success, 35%), 10%);
+    }
+  }
+}
+
+@mixin checkbox-round-not-checked() {
+  &:hover,
+  &:focus {
+    transform: scale(.95);
+    &::before {
+      background: $gray-025;
+      border-color: $gray-050;
+    }
+    &::after {
+      color: $gray-050;
+    }
+  }
+}
