@@ -1,5 +1,5 @@
 - title = "Project Contacts for #{@entity.ProjectName}"
-- content_for :title, title
+- content_for :modal_title, title
 %h1= title
 = render 'breadcrumbs'
 .row
@@ -33,5 +33,3 @@
     - else
       %p
         No project contacts on file.
-              
-              

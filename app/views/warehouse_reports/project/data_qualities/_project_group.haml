@@ -1,6 +1,6 @@
 - id = group.id
 - last_report = @project_group_report_shells[id]
-%tr.jProject.jProject.hidden{data: {organization_id: :project_groups}}
+%tr.jProject.jProject{data: {organization_id: :project_groups}}
   %td
   %td
   %td.padding-left-02
@@ -9,8 +9,8 @@
     = check_box_tag("project_group[#{group.id}]", 1, false, {class: 'jProjectSelect'})
   %td
     - if last_status = last_report&.status
-      = link_to last_status, project_group_data_quality_report_path(project_group_id: group.id, id: last_report.id) 
-    -else 
+      = link_to last_status, project_group_data_quality_report_path(project_group_id: group.id, id: last_report.id)
+    -else
       = content_tag( :em, 'not available')
   %td
     = last_report&.completed_at

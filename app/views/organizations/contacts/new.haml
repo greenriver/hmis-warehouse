@@ -11,11 +11,11 @@
         %tr
           %td= "#{contact.first_name} #{contact.last_name}"
           %td= mail_to contact.email
-          %td.text-right= link_to 'Remove', project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-danger'
+          %td.text-right= link_to 'Remove', organization_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-danger', data: {confirm: "Do you really want to delete contact #{contact.full_name}"}
       - if @entity.contacts.empty?
         %tr
           %td
-            %em= "#{organization_name} currently has no contact"
+            %em= "#{organization_name} currently has no contacts"
 
   .row.modal-container--full-bleed
     .col-sm-8
@@ -37,5 +37,5 @@
           %td
             %em= "#{organization_name} currently has no projects"
 - content_for :modal_footer do
-  .form__actions.form__actions--right
-    %button.btn.btn-secondary(aria-label="Close" pjax-modal-close type="button") Exit
+  .form__actions.form__actions--right.mt-2
+    %button.btn.btn-secondary(aria-label="Close" pjax-modal-close type="button") Done
