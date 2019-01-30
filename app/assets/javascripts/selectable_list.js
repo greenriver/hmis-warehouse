@@ -26,12 +26,12 @@ class SelectableList {
    * @return
    */
   toggleElements(el, event, getParent) {
-    var $el = $(el)
+    let $el = $(el)
     if (getParent) {
       $el = $(el).closest('.j-parent')
     }
-    var nodeName = event ? event.target.nodeName : null
-    var elements = ['INPUT', 'LABEL', 'BUTTON', 'A']
+    const nodeName = event ? event.target.nodeName : null
+    const elements = ['INPUT', 'LABEL', 'BUTTON', 'A']
     if (elements.includes(nodeName)) {
       // Take no action for links or buttons
       if (nodeName === 'A' || nodeName === 'BUTTON') return
@@ -53,13 +53,31 @@ class SelectableList {
    * @return
    */
   checkParentAndChildren(event) {
-    var $el = $(event.currentTarget)
-    var isChecked = $el.is(':checked')
+    const $el = $(event.currentTarget)
+    const isChecked = $el.is(':checked')
     $el
       .closest('.j-parent')
       .next('.j-children')
       .find('.j-child-select')
       .prop('checked', isChecked)
+  }
+
+  /**
+   * selectAllWithinScope - Select/deselect everything within DOM element
+   *                        *Context of 'this' is clicked element
+   *
+   * @return {type}  description
+   */
+  selectAllWithinScope() {
+    const { state, scope } = $(this).data()
+    let btnClass = 'not-checked checked'
+    $(this).data('state', !state)
+    if (!state) { btnClass = 'checked not-checked'}
+    $(this).toggleClass(btnClass)
+    $(`${scope} .j-parent`)
+      .find('.j-select-children')
+      .prop('checked', !state)
+      .trigger('change')
   }
 
   /**
@@ -71,17 +89,7 @@ class SelectableList {
     const self = this
     $('.j-parent').on('click', function(event) { self.toggleElements(this, event, false) })
     $('.j-parent .j-select-children').on('change', this.checkParentAndChildren)
-    $('.j-select-all').on('click', function() {
-      var state = $(this).data('state')
-      var btnClass = 'not-checked checked'
-      $(this).data('state', !state)
-      if (!state) { btnClass = 'checked not-checked'}
-      $(this).toggleClass(btnClass)
-      $('.j-parent')
-        .find('.j-select-children')
-        .prop('checked', !state)
-        .trigger('change')
-    })
+    $('.j-select-all').on('click', this.selectAllWithinScope)
   }
 }
 

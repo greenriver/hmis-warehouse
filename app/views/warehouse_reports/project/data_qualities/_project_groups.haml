@@ -1,42 +1,44 @@
 - if project_groups.any?
+  - select_scope = 'projectGroups'
   .d-flex.mb-5.ml-4
-    %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip'}, type: 'button', title: 'Select/Deselect all Project Groups & Projects'}
+    %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all Project Groups & Projects'}
     %h2.mb-0.mt-0 Project Groups
-  %table.table.c-table
-    %thead
-      %tr
-        %th
-        %th
-          Group
-        %th
-          Report
-        %th
-          Last Run
-        %th
-          Last Sent On
-    %tbody
-      - project_groups.each do |group|
-        - id = group.id
-        - last_report = @project_group_report_shells[id]
-        %tr.jProject.jProject{data: {organization_id: :project_groups}}
-          %td
-            .c-checkbox.c-checkbox--round
-              = check_box_tag("project_group[#{group.id}]", 1, false, {class: 'j-child-select'})
-              %label(for="project_#{group.id}")
-          %td
-            = link_to group.name, project_group_data_quality_reports_path(group)
-          %td
-            - if last_status = last_report&.status
-              = link_to last_status, project_group_data_quality_report_path(project_group_id: group.id, id: last_report.id)
-            -else
-              = content_tag( :em, 'not available')
-          %td
-            = last_report&.completed_at
-          -# %td
-            - if group.contacts.any? || group.organization_contacts.any?
-              = (group.contacts + group.organization_contacts).map(&:full_name_with_email).uniq.join('<br />').html_safe
-            - else
-              = link_to edit_project_group_path(group) do
-                Project group contacts are inherited from the projects involved.
-          %td
-            = last_report&.sent_at&.to_date
+  %div{id: select_scope}
+    %table.table.c-table.j-parent
+      %thead
+        %tr
+          %th
+          %th
+            Project Group
+          %th
+            Report
+          %th
+            Last Run
+          %th
+            Last Sent On
+      %tbody
+        - project_groups.each do |group|
+          - id = group.id
+          - last_report = @project_group_report_shells[id]
+          %tr.jProject.jProject{data: {organization_id: :project_groups}}
+            %td
+              .c-checkbox.c-checkbox--round
+                = check_box_tag("project_group[#{group.id}]", 1, false, {class: 'j-select-children'})
+                %label{ for:"project_group_#{group.id}", tabindex:'1' }
+            %td
+              = link_to group.name, project_group_data_quality_reports_path(group)
+            %td
+              - if last_status = last_report&.status
+                = link_to last_status, project_group_data_quality_report_path(project_group_id: group.id, id: last_report.id)
+              -else
+                = content_tag( :em, 'not available')
+            %td
+              = last_report&.completed_at
+            -# %td
+              - if group.contacts.any? || group.organization_contacts.any?
+                = (group.contacts + group.organization_contacts).map(&:full_name_with_email).uniq.join('<br />').html_safe
+              - else
+                = link_to edit_project_group_path(group) do
+                  Project group contacts are inherited from the projects involved.
+            %td
+              = last_report&.sent_at&.to_date

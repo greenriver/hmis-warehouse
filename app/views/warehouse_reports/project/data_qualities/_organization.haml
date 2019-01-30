@@ -1,57 +1,58 @@
 - id = organization.id
-.c-card.c-card--linked.c-card--row.j-parent
-  .c-card__content.d-flex.align-items-center
-    .c-checkbox.c-checkbox--round.mr-4
-      = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children', data: {organization_id: id}})
-      %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
-    .data-source
-      %em.mr-4{class: "ds-#{data_source.downcase}"}= data_source
-    %h3.mb-0.mt-0= organization.OrganizationName
-    %div.ml-auto.d-flex.align-items-center
-      = link_to new_organization_contact_path(organization), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary mr-2 c-card__primary-action mr-0' do
-        Manage Contacts
-      .jToggle.closed.c-card__toggle
+.mb-5
+  .c-card.c-card--linked.c-card--row.j-parent
+    .c-card__content.d-flex.align-items-center
+      .c-checkbox.c-checkbox--round.mr-4
+        = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children', data: {organization_id: id}})
+        %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
+      .data-source
+        %em.mr-4{class: "ds-#{data_source.downcase}"}= data_source
+      %h3.mb-0.mt-0= organization.OrganizationName
+      %div.ml-auto.d-flex.align-items-center
+        = link_to new_organization_contact_path(organization), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary mr-2 c-card__primary-action mr-0' do
+          Manage Contacts
+        .jToggle.closed.c-card__toggle
 
-%table.c-table.j-children.d-none
-  %thead
-    %tr.c-table__header.c-table__header--all-caps{data: {organization_id: id}}
-      %th{colspan: 7} Projects
-    %tr.c-table__header.c-table__header--secondary{data: {organization_id: id}}
-      %th
-      %th Project
-      %th Type
-      %th Report
-      %th Last Run
-      %th Last Sent On
-      %th
-  %tbody
-    - projects.each do |project|
-      - last_report = @project_report_shells[project.id]
-      %tr
-        %td<
-          .c-checkbox.c-checkbox--round
-            = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
-            %label(for="project_#{project.id}")
-        %td<
-          = link_to project.ProjectName, project_data_quality_reports_path(project)
-        %td<
-          = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
-        %td<
-          - if last_status = last_report&.status
-            = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id)
-          -else
-            = content_tag( :em, 'not available')
-        %td<
-          = last_report&.completed_at
-        %td<
-          = last_report&.sent_at&.to_date
-        %td.text-right<
-          = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
-            Manage contacts
-          -# %ul.list-unstyled
-            - if project.contacts.any?
-              = project.contacts.each do |contact|
-                %li= contact.full_name_with_email
-            %li
-              = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true} do
-                Manage contacts
+  %table.c-table.j-children.d-none
+    %thead
+      %tr.c-table__header.c-table__header--all-caps{data: {organization_id: id}}
+        %th{colspan: 7} Projects
+      %tr.c-table__header.c-table__header--secondary{data: {organization_id: id}}
+        %th
+        %th Project
+        %th Type
+        %th Report
+        %th Last Run
+        %th Last Sent On
+        %th
+    %tbody
+      - projects.each do |project|
+        - last_report = @project_report_shells[project.id]
+        %tr
+          %td<
+            .c-checkbox.c-checkbox--round
+              = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
+              %label{for:"project_#{project.id}", tabindex:'1' }
+          %td<
+            = link_to project.ProjectName, project_data_quality_reports_path(project)
+          %td<
+            = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
+          %td<
+            - if last_status = last_report&.status
+              = link_to last_status, project_data_quality_report_path(project_id: project.id, id: last_report.id)
+            -else
+              = content_tag( :em, 'not available')
+          %td<
+            = last_report&.completed_at
+          %td<
+            = last_report&.sent_at&.to_date
+          %td.text-right<
+            = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm' do
+              Manage contacts
+            -# %ul.list-unstyled
+              - if project.contacts.any?
+                = project.contacts.each do |contact|
+                  %li= contact.full_name_with_email
+              %li
+                = link_to new_project_contact_path(project), data: {loads_in_pjax_modal: true} do
+                  Manage contacts

@@ -18,3 +18,15 @@
     @include checkbox-round-not-checked;
   }
 }
+
+.c-btn-select--light {
+  &.not-checked {
+    &::before {
+      background: $white;
+      border-color: $gray-060;
+    }
+    &::after {
+      color: $gray-040;
+    }
+  }
+}
