@@ -359,6 +359,11 @@
       color: lighten(desaturate($brand-success, 35%), 10%);
     }
   }
+  &:active {
+    outline: 0;
+    box-shadow: none;
+    transform: scale(.75);
+  }
 }
 
 @mixin checkbox-round-not-checked() {
@@ -372,5 +377,10 @@
     &::after {
       color: $gray-050;
     }
+  }
+  &:active {
+    outline: 0;
+    box-shadow: none;
+    transform: scale(.75);
   }
 }
