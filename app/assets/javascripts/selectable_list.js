@@ -89,6 +89,7 @@ class SelectableList {
     const self = this
     $('.j-parent').on('click', function(event) { self.toggleElements(this, event, false) })
     $('.j-parent .j-select-children').on('change', this.checkParentAndChildren)
+    $('.j-parent .j-select-children-btn').on('click', this.checkParentAndChildren)
     $('.j-select-all').on('click', this.selectAllWithinScope)
   }
 }

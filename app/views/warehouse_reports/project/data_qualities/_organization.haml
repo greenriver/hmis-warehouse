@@ -3,7 +3,7 @@
   .c-card.c-card--linked.c-card--row.j-parent
     .c-card__content.d-flex.align-items-center
       .c-checkbox.c-checkbox--round.mr-4
-        = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children', data: {organization_id: id}})
+        = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children'})
         %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
       .data-source
         %em.mr-4{class: "ds-#{data_source.downcase}"}= data_source

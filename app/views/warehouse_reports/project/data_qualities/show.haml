@@ -26,17 +26,17 @@
     permission.
 
 = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
-  - select_scope = 'organizations'
-  %section.mb-6
-    .d-flex.mb-5.ml-4
-      %button.c-btn-select.c-btn-select--light.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
-      %h2.mb-0.mt-0 Organizations and Projects
-    %div{id: select_scope}
+  - select_scope = 'allOrgsProjects'
+  %div{id: select_scope}
+    %section.mb-6
+      .d-flex.mb-5.ml-4
+        %button.c-btn-select.c-btn-select--light.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+        %h2.mb-0.mt-0 Organizations and Projects
       - @projects.each do |(data_source, organization), projects|
         = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 
-  %section.mb-6
-    = render 'project_groups', f: f, project_groups: @project_groups
+    %section.mb-6
+      = render 'project_groups', f: f, project_groups: @project_groups
 
   = render 'actions', f: f
 
