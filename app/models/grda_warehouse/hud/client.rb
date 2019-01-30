@@ -12,7 +12,8 @@ module GrdaWarehouse::Hud
 
     has_many :client_files
     has_many :health_files
-    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
+    has_many :vispdats, class_name: GrdaWarehouse::Vispdat::Base.name
+    has_many :youth_intakes, class_name: GrdaWarehouse::YouthIntake::Base.name
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 

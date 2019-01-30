@@ -8,6 +8,7 @@ module Window::Clients::Youth
     after_action :log_client
 
     def index
+      # @intakes = @client.youth_intakes.merge(GrdaWarehouse::YouthIntake::Base.visible_by?(current_user))
     end
 
     def set_client
