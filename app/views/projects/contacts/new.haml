@@ -1,29 +1,32 @@
+- remote_submit = params[:remote_submit] == 'true'
+
 - title = "Manage Project Contacts"
 - project_name = @entity.ProjectName
 - content_for :modal_title, title
 - content_for :modal_title_secondary, project_name
-%section.mb-4
-  %h4 Current Contacts
-  %table.table
-    %tbody
-      - @entity.contacts.each do |contact|
-        %tr
-          %td= "#{contact.first_name} #{contact.last_name}"
-          %td= mail_to contact.email
-          %td.text-right= link_to 'Remove', project_contact_path(@entity, contact), method: :delete, class: 'btn btn-sm btn-danger', data: {confirm: "Do you really want to delete contact #{contact.full_name}"}
-      - if @entity.contacts.empty?
-        %tr
-          %td
-            %em= "#{project_name} currently has no contacts on file"
+.jModalReplaceMe
+  %section.mb-4
+    %h4 Current Contacts
+    %table.table
+      %tbody
+        - @entity.contacts.each do |contact|
+          %tr
+            %td= "#{contact.first_name} #{contact.last_name}"
+            %td= mail_to contact.email
+            %td.text-right= link_to 'Remove', project_contact_path(@entity, contact), method: :delete, remote: remote_submit, class: 'btn btn-sm btn-danger', data: {confirm: "Do you really want to delete contact #{contact.full_name}"}
+        - if @entity.contacts.empty?
+          %tr
+            %td
+              %em= "#{project_name} currently has no contacts on file"
 
-  .row.modal-container--full-bleed
-    .col-sm-8
-      = simple_form_for(@contact, as: :contact, url: project_contacts_path(@entity)) do |f|
-        = render 'form', f: f
-        .form-actions
-          = f.button :submit, value: 'Add Contact'
+    .row.modal-container--full-bleed
+      .col-sm-8
+        = simple_form_for(@contact, as: :contact, url: project_contacts_path(@entity), remote: remote_submit) do |f|
+          = render 'form', f: f
+          .form-actions
+            = f.button :submit, value: 'Add Contact'
 
 - content_for :modal_footer do
   .form__actions.form__actions--right.mt-2
-    = link_to "Manage Orgnaization Contacts (#{@entity.organization.OrganizationName})", new_organization_contact_path(@entity.organization), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary'
+    = link_to "Manage Orgnaization Contacts (#{@entity.organization.OrganizationName})", new_organization_contact_path(@entity.organization, remote_submit: remote_submit), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary'
     %button.btn.btn-primary(aria-label="Close" pjax-modal-close type="button") Done
