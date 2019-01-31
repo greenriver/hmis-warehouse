@@ -1,0 +1,7 @@
+- content_for :title, "Youth Intake for #{@client.full_name}"
+
+%h1.page-title= content_for :title
+
+= link_to polymorphic_path([:edit] + youth_intake_path_generator, id: @intake.id), class: 'btn btn-primary' do
+  %i.icon-pencil
+  Edit

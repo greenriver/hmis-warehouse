@@ -4,7 +4,7 @@ class CreateYouthCaseManagement < ActiveRecord::Migration
       t.references :client
       t.references :user
       t.date :engaged_on
-      t.string :activity
+      t.text :activity
       
       t.timestamps null: false
       t.datetime :deleted_at, index: true

@@ -22,7 +22,7 @@ class CreateYouthIntake < ActiveRecord::Migration
       t.boolean :requesting_financial_assistance, null: false
       t.boolean :staff_believes_youth_under_24, null: false
       t.integer :client_gender, null: false
-      t.string :client_lbgtq, null: false
+      t.string :client_lgbtq, null: false
       t.jsonb :client_race, null: false
       t.integer :client_ethnicity, null: false
       t.string :client_primary_language, null: false

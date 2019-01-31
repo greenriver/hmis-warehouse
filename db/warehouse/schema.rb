@@ -3248,7 +3248,7 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.integer  "client_id"
     t.integer  "user_id"
     t.date     "engaged_on"
-    t.string   "activity"
+    t.text     "activity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
@@ -3265,6 +3265,7 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.string   "staff_name"
     t.string   "staff_email"
     t.date     "engagement_date",                                          null: false
+    t.date     "exit_date"
     t.string   "unaccompanied",                                            null: false
     t.string   "street_outreach_contact",                                  null: false
     t.string   "housing_status",                                           null: false
@@ -3276,21 +3277,17 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.boolean  "requesting_financial_assistance",                          null: false
     t.boolean  "staff_believes_youth_under_24",                            null: false
     t.integer  "client_gender",                                            null: false
-    t.string   "client_lbgtq",                                             null: false
+    t.string   "client_lgbtq",                                             null: false
     t.jsonb    "client_race",                                              null: false
     t.integer  "client_ethnicity",                                         null: false
     t.string   "client_primary_language",                                  null: false
     t.string   "pregnant_or_parenting",                                    null: false
     t.jsonb    "disabilities",                                             null: false
     t.string   "how_hear"
-    t.string   "direct_financial_assistance",                              null: false
-    t.jsonb    "financial_assistance_types"
     t.string   "needs_shelter",                                            null: false
     t.boolean  "referred_to_shelter",                      default: false, null: false
     t.string   "in_stable_housing",                                        null: false
     t.string   "stable_housing_zipcode"
-    t.jsonb    "referrals_to_other_providers"
-    t.string   "youth_attended_case_management_meeting",                   null: false
     t.string   "youth_experiencing_homelessness_at_start"
     t.datetime "created_at",                                               null: false
     t.datetime "updated_at",                                               null: false
