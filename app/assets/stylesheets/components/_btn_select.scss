@@ -1,21 +1,24 @@
 .c-btn-select {
-  @include checkbox-round-default;
+  @include checkbox-default;
   border: 0;
   background: none;
   padding: 0;
-  &::before {
-    border-radius: 50%;
-  }
   &:focus {
     outline: 0;
     box-shadow: none;
   }
   &.checked {
-    @include checkbox-round-checked;
+    @include checkbox-checked;
   }
 
   &.not-checked {
-    @include checkbox-round-not-checked;
+    @include checkbox-not-checked;
+  }
+}
+
+.c-btn-select--round {
+  &::before {
+    border-radius: 50%;
   }
 }
 

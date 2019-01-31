@@ -8,18 +8,18 @@
 
 .c-checkbox input:checked + label,
 .c-checkbox input:not(:checked) + label {
-  @include checkbox-round-default;
+  @include checkbox-default;
 }
 
 .c-checkbox input:not(:checked) + label {
-  @include checkbox-round-not-checked;
+  @include checkbox-not-checked;
 }
 
 .c-checkbox input:checked + label {
-  @include checkbox-round-checked;
+  @include checkbox-checked;
 }
 
-.c-checkbox--round input + label {
+.c-checkbox--round {
   &::before {
     border-radius: 50%;
   }
