@@ -2,12 +2,20 @@
   display: block !important;
 }
 
+.d-none {
+  display: none !important;
+}
+
 .d-flex {
   display: flex !important;
 }
 
 .d-inline-block {
   display: inline-block !important;
+}
+
+.d-table {
+  display: table !important;
 }
 
 .align-items-center {

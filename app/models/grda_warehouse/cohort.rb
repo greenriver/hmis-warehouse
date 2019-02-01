@@ -256,6 +256,22 @@ module GrdaWarehouse
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
         ::CohortColumns::SchoolDistrict.new(),
+        ::CohortColumns::UserString1.new(),
+        ::CohortColumns::UserString2.new(),
+        ::CohortColumns::UserString3.new(),
+        ::CohortColumns::UserString4.new(),
+        ::CohortColumns::UserBoolean1.new(),
+        ::CohortColumns::UserBoolean2.new(),
+        ::CohortColumns::UserBoolean3.new(),
+        ::CohortColumns::UserBoolean4.new(),
+        ::CohortColumns::UserSelect1.new(),
+        ::CohortColumns::UserSelect2.new(),
+        ::CohortColumns::UserSelect3.new(),
+        ::CohortColumns::UserSelect4.new(),
+        ::CohortColumns::UserDate1.new(),
+        ::CohortColumns::UserDate2.new(),
+        ::CohortColumns::UserDate3.new(),
+        ::CohortColumns::UserDate4.new(),
       ]
     end
 

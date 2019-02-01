@@ -1,9 +1,9 @@
-- title = "Edit Organization Contact for #{@entity.OrganizationName}"
-- content_for :title, title
-%h1= title
+- remote_submit = params[:remote_submit] == 'true'
+- title = "Manage Organization Contacts for #{@entity.OrganizationName}"
+- content_for :modal_title, title
 .row
   .col-sm-4
-    = simple_form_for(@contact, as: :contact, url: organization_contact_path(@entity, @contact)) do |f|
+    = simple_form_for(@contact, as: :contact, url: organization_contact_path(@entity, @contact), remote: remote_submit) do |f|
       = render 'form', f: f
       .form-actions
         = f.button :submit, value: 'Update Contact'
