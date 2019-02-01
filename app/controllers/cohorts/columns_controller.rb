@@ -27,7 +27,25 @@ module Cohorts
         end
       end
       @cohort.update(column_state: columns)
+      if params.include? :translation
+        translate_columns(params[:translation])
+      end
       respond_with(@cohort, location: cohort_path(@cohort))
+    end
+
+    def translate_columns(translations)
+      columns = cohort_source.available_columns
+      columns.each do |column|
+        if column.attributes.include?(:translation_key)
+          translation = translations[column.column]
+          key = column.translation_key
+          locale = 'en'
+          translation_key = TranslationKey.find_or_create_by(key: key)
+          translation_text = translation_key.translations.find_by(locale: locale)
+          return TranslationText.create(:translation_key_id => translation_key.id, :locale => locale, :text => translation) if translation_text.nil?
+          translation_text.update_attribute(:text, translation)
+        end
+      end
     end
 
     def cohort_params
