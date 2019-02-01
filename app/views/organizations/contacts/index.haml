@@ -5,7 +5,7 @@
 
 .row
   .col-sm-12
-    = link_to new_organization_contact_path(@entity), class: 'btn btn-primary pull-right margin-bottom-02' do
+    = link_to new_organization_contact_path(@entity), class: 'btn btn-primary pull-right margin-bottom-02', data: {loads_in_pjax_modal: true} do
       %span.icon-plus
       Add a Contact
 .row
