@@ -59,7 +59,7 @@ module ReportGenerators::Pit::Fy2018
       @pit_date = options[:pit_date]
       @chronic_date = options[:chronic_date]
       @coc_codes = options.try(:[], :coc_codes)
-      if @coc_codes.empty?
+      if @coc_codes.blank?
         @coc_codes = GrdaWarehouse::Hud::ProjectCoc.all.
           distinct.pluck(:CoCCode)
       end
@@ -68,7 +68,7 @@ module ReportGenerators::Pit::Fy2018
     def run!
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0).first
-      return unless report.present? 
+      raise "Report not found #{report_class.first.name}" unless report.present? 
       Rails.logger.info "Starting report #{report.report.name}"
       report.update(percent_complete: 0.01)
       @answers = setup_answers
