@@ -19,8 +19,8 @@ class CreateYouthIntake < ActiveRecord::Migration
       t.string :secondary_education, null: false
       t.string :attending_college, null: false
       t.string :health_insurance, null: false
-      t.boolean :requesting_financial_assistance, null: false
-      t.boolean :staff_believes_youth_under_24, null: false
+      t.string :requesting_financial_assistance, null: false
+      t.string :staff_believes_youth_under_24, null: false
       t.integer :client_gender, null: false
       t.string :client_lgbtq, null: false
       t.jsonb :client_race, null: false
@@ -30,7 +30,7 @@ class CreateYouthIntake < ActiveRecord::Migration
       t.jsonb :disabilities, null: false
       t.string :how_hear
       t.string :needs_shelter, null: false
-      t.boolean :referred_to_shelter, null: false, default: false
+      t.string :referred_to_shelter, null: false, default: false
       t.string :in_stable_housing, null: false
       t.string :stable_housing_zipcode
       t.string :youth_experiencing_homelessness_at_start

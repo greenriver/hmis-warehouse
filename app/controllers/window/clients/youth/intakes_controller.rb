@@ -3,10 +3,12 @@ module Window::Clients::Youth
     include WindowClientPathGenerator
     include PjaxModalController
 
-    before_action :require_can_access_youth_intake_list!, only: [:index, :show]
+    before_action :require_can_access_youth_intake_list!
+    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :udate, :new, :create, :destroy]
 
     before_action :set_client
     before_action :set_intake, only: [:show, :edit, :update, :destroy]
+
     after_action :log_client
 
 
@@ -29,8 +31,6 @@ module Window::Clients::Youth
       @intake.staff_email ||= current_user.email
       @intake.engagement_date ||= Date.today
       @intake.client_dob ||= @client.DOB
-      @intake.other_language = @intake.client_primary_language unless @intake.languages.include?(@intake.client_primary_language)
-      @intake.other_how_hear = @intake.how_hear unless @intake.how_hear_options.include?(@intake.how_hear)
     end
 
     def create
@@ -39,8 +39,7 @@ module Window::Clients::Youth
       @intake.client_race = intake_params[:client_race].select(&:present?).to_json
       @intake.disabilities = intake_params[:disabilities].select(&:present?).to_json
 
-      @intake.client_primary_language = @intake.other_language if @intake.other_language.present?
-      @intake.how_hear = @intake.other_how_hear if @intake.other_how_hear.present?
+      set_other_options
       @intake.save
       if @intake.errors.any?
         flash[:error] = 'Please correct errors in the intake form.'
@@ -52,10 +51,14 @@ module Window::Clients::Youth
     end
 
     def edit
+      use_other_options
     end
 
     def update
-      @intake.update(intake_params)
+      @intake.assign_attributes(intake_params)
+      set_other_options
+
+      @intake.save
       respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
     end
 
@@ -73,6 +76,22 @@ module Window::Clients::Youth
 
     private def set_intake
       @intake = intake_scope.find(params[:id].to_i)
+    end
+
+    private def use_other_options
+      unless @intake.languages.include?(@intake.client_primary_language)
+        @intake.other_language = @intake.client_primary_language
+        @intake.client_primary_language = 'Other...'
+      end
+      unless @intake.how_hear_options.include?(@intake.how_hear)
+        @intake.other_how_hear = @intake.how_hear
+        @intake.how_hear = 'Other...'
+      end
+    end
+
+    private def set_other_options
+      @intake.client_primary_language = @intake.other_language if @intake.client_primary_language == 'Other...'
+      @intake.how_hear = @intake.other_how_hear if @intake.how_hear == 'Other'
     end
 
     private def intake_params

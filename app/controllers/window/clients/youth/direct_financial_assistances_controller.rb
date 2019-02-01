@@ -3,6 +3,9 @@ module Window::Clients::Youth
     include WindowClientPathGenerator
     include PjaxModalController
 
+    before_action :require_can_access_youth_intake_list!
+    before_action :require_can_edit_some_youth_intakes!, only: [:create, :destroy]
+
     before_action :set_client
     before_action :set_entity, only: [:destroy]
     after_action :log_client

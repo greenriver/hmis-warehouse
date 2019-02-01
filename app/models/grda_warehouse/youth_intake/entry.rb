@@ -23,7 +23,9 @@ module GrdaWarehouse::YouthIntake
       :in_stable_housing,
       :youth_experiencing_homelessness_at_start,
       :client_race,
-      :disabilities
+      :disabilities,
+      :requesting_financial_assistance,
+      :referred_to_shelter
   
   end
 end

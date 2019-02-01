@@ -3274,8 +3274,8 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.string   "secondary_education",                                      null: false
     t.string   "attending_college",                                        null: false
     t.string   "health_insurance",                                         null: false
-    t.boolean  "requesting_financial_assistance",                          null: false
-    t.boolean  "staff_believes_youth_under_24",                            null: false
+    t.string   "requesting_financial_assistance",                          null: false
+    t.string   "staff_believes_youth_under_24",                            null: false
     t.integer  "client_gender",                                            null: false
     t.string   "client_lgbtq",                                             null: false
     t.jsonb    "client_race",                                              null: false
@@ -3285,7 +3285,7 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.jsonb    "disabilities",                                             null: false
     t.string   "how_hear"
     t.string   "needs_shelter",                                            null: false
-    t.boolean  "referred_to_shelter",                      default: false, null: false
+    t.string   "referred_to_shelter",                      default: "f",   null: false
     t.string   "in_stable_housing",                                        null: false
     t.string   "stable_housing_zipcode"
     t.string   "youth_experiencing_homelessness_at_start"

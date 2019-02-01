@@ -53,8 +53,12 @@ module GrdaWarehouse::YouthIntake
       user.can_view_youth_intake? || user.can_edit_youth_intake?
     end
 
-    def self.any_modifiable_by(user)
+    def self.any_modifiable_by?(user)
       user.can_edit_youth_intake?
+    end
+
+    def ongoing?
+      exit_date.blank?
     end
 
     def yes_no_unknown_refused
@@ -71,7 +75,7 @@ module GrdaWarehouse::YouthIntake
     end
 
     def yes_no
-      @yes_no ||= [['Yes', true], ['No', false]]
+      @yes_no ||= [['Yes', 'Yes'], ['No', 'No']]
     end
 
     def available_housing_stati
@@ -97,12 +101,12 @@ module GrdaWarehouse::YouthIntake
     end
 
     def languages
-      @languages ||= [
+      @languages ||= ([
         'English',
         'Spanish',
         'Unknown',
         'Other...'
-      ]
+      ] + [client_primary_language&.strip]).compact.uniq
     end
 
     def parenting_options
@@ -126,14 +130,14 @@ module GrdaWarehouse::YouthIntake
     end
 
     def how_hear_options
-      @how_hear_options ||= [
+      @how_hear_options ||= ([
         'Friend of family',
         'Other community agency / organization',
         'Social media / agency website',
         'Referred from Street Outreach',
         'Walk-in / self-referral',
         'Other...',
-      ]
+      ] + [other_how_hear&.strip]).compact.uniq
     end
 
     def stable_housing_options

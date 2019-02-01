@@ -24,8 +24,10 @@
       = f.input :client_lgbtq, as: :radio_buttons, collection: @intake.yes_no_unknown_refused, label: 'Is the youth LGBTQ+?'
       = f.input :client_race, as: :check_boxes, collection: HUD.races.invert
       = f.input :client_ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert, label: 'Ethnicity'
-      = f.input :client_primary_language, as: :radio_buttons, collection: @intake.languages, class: 'jLanguage', label: 'Primary language'
-      = f.input :other_language, class: 'jOtherLanguage'
+      = f.input :client_primary_language, as: :radio_buttons, collection: @intake.languages, input_html: { class: 'jLanguage' }, label: 'Primary language'
+      .jOtherLanguage
+        - if ! readonly
+          = f.input :other_language
       = f.input :pregnant_or_parenting, as: :radio_buttons, collection: @intake.parenting_options, label: 'Is this youth parenting or pregnant?'
       = f.input :disabilities, as: :check_boxes, collection: @intake.available_disabilities, hint: 'Check all that apply'
     .youth-intake__financial-assistance
@@ -39,10 +41,13 @@
       = f.input :stable_housing_zipcode, label: 'If stably housed, what is the zipcode of the stable housing?', hint: 'Please enter the 5 digit zipcode with no spaces or hyphens. e.g. 01339'
 
     .youth-intake__source
-      = f.input :how_hear, as: :radio_buttons, collection: @intake.how_hear_options, label: 'How did this youth hear about us?', class: 'jHowHear'
-      = f.input :other_how_hear, class: 'jOtherHowHear', label: 'Other'
-    .youth-intake__financial-assistance
-      =# f.input :requesting 
+      = f.input :how_hear, as: :radio_buttons, collection: @intake.how_hear_options, label: 'How did this youth hear about us?', input_html: { class: 'jHowHear' }
+      .jOtherHowHear
+        - if ! readonly
+          = f.input :other_how_hear, label: 'Other'      
+    
+    .youth-intake__exit-info
+      = f.input :exit_date, as: :date_picker, label: 'Date for which you are no longer working with this youth (Exit Date)'
 
 = content_for :page_js do
   :javascript
@@ -54,4 +59,20 @@
         $('.jOtherStaff').hide();
       }
     });
-    $('.jOtherStaffTrigger').trigger('change')
+    $('.jOtherStaffTrigger').trigger('change');
+    $('.jLanguage').on('change', function(e){
+      if($('.jLanguage:checked').val() == 'Other...'){
+        $('.jOtherLanguage').show();
+      } else {
+        $('.jOtherLanguage').hide();
+      }
+    });
+    $('.jLanguage:first()').trigger('change');
+    $('.jHowHear').on('change', function(e){
+      if($('.jHowHear:checked').val() == 'Other...'){
+        $('.jOtherHowHear').show();
+      } else {
+        $('.jOtherHowHear').hide();
+      }
+    });
+    $('.jHowHear:first()').trigger('change');
