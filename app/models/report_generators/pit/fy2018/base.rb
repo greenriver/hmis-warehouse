@@ -59,7 +59,7 @@ module ReportGenerators::Pit::Fy2018
       @pit_date = options[:pit_date]
       @chronic_date = options[:chronic_date]
       @coc_codes = options.try(:[], :coc_codes)
-      if @coc_codes.empty?
+      if @coc_codes.blank?
         @coc_codes = GrdaWarehouse::Hud::ProjectCoc.all.
           distinct.pluck(:CoCCode)
       end
