@@ -1,0 +1,35 @@
+.c-btn-select {
+  @include checkbox-default;
+  border: 0;
+  background: none;
+  padding: 0;
+  &:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+  &.checked {
+    @include checkbox-checked;
+  }
+
+  &.not-checked {
+    @include checkbox-not-checked;
+  }
+}
+
+.c-btn-select--round {
+  &::before {
+    border-radius: 50%;
+  }
+}
+
+.c-btn-select--light {
+  &.not-checked {
+    &::before {
+      background: $white;
+      border-color: $gray-060;
+    }
+    &::after {
+      color: $gray-040;
+    }
+  }
+}

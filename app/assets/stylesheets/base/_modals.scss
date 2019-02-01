@@ -1,9 +1,17 @@
 .modal-title {
-  font-size: rem(20);
+  font-size: rem(24);
+  color: $brand-primary;
+  text-transform: uppercase;
+}
+
+.modal-title--secondary {
+  font-size: rem(18);
+  color: $gray-060;
+  margin: 0;
 }
 
 .modal-header {
-  border-bottom: 2px solid $gray-040;
+  border-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -11,6 +19,15 @@
 
 .modal-header .close {
   margin-left: auto;
+}
+
+.modal-header,
+.modal-footer {
+  background: $modal-header-bg;
+}
+
+.modal-footer {
+  border: 0;
 }
 
 .modal-icon-close {
@@ -21,6 +38,10 @@
     font-size: rem(18);
     color: $gray-070;
   }
+}
+
+.modal-content {
+  background: $white;
 }
 
 .modal-dialog {
@@ -48,6 +69,28 @@
   overflow: scroll;
 }
 
+.modal-container--full-bleed {
+  margin: 25px -15px;
+  padding: 15px 0;
+  background: $modal-content-bg;
+  border-top: 1px solid $modal-header-bg;
+  border-bottom: 1px solid $modal-header-bg;
+}
+
+.modal-container--full-bleed .form-group {
+  margin-bottom: 15px;
+}
+
 [data-pjax-modal-loading] {
   min-height: 300px;
+}
+
+.modal table tbody tr {
+  td {
+    border-top: 0;
+    border-bottom: 1px solid $modal-border;
+  }
+  &:last-of-type td {
+    border: 0;
+  }
 }

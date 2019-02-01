@@ -1,6 +1,9 @@
 .modal-header
-  %h4.modal-title(data-pjax-modal-title)
-    = yield :modal_title
+  .modal-header__titles
+    %h4.modal-title(data-pjax-modal-title)
+      = yield :modal_title
+    %h5.modal-title--secondary(data-pjax-modal-title-secondary)
+      = yield :modal_title_secondary
   %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
     %i.modal-icon-close
 .modal-body.clearfix

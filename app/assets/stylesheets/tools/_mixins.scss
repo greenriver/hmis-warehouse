@@ -307,3 +307,84 @@
     background: $gray-060;
   }
 }
+
+@mixin checkbox-default($size: 30px, $round: false) {
+  $border-radius: 5px;
+  @if ($round == true) { $border-radius: 50%; }
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  cursor: pointer;
+  height: rem($size);
+  width: rem($size);
+  margin-bottom: 0;
+  transition: .15s ease-in-out;
+  &::before {
+    content: '';
+    display: block;
+    flex: 0 0 auto;
+    background: $white;
+    border: 2px solid $gray-040;
+    transition: .15s ease-in-out;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    color: $gray-025;
+    border-radius: $border-radius;
+  }
+  &::after {
+    $icon: map-get($icons, checkmark);
+    font-family: 'icomoon';
+    content: $icon;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: $gray-020;
+  }
+}
+
+@mixin checkbox-checked() {
+  &::before {
+    background: $brand-success-l;
+    border-color: $brand-success;
+  }
+  &::after {
+    color: darken($brand-success, 10%);
+  }
+  &:hover,
+  &:focus {
+    transform: scale(.95);
+    &::before {
+      background: rgba($brand-success-l, .5);
+    }
+    &::after {
+      color: lighten(desaturate($brand-success, 35%), 10%);
+    }
+  }
+  &:active {
+    outline: 0;
+    box-shadow: none;
+    transform: scale(.75);
+  }
+}
+
+@mixin checkbox-not-checked() {
+  &:hover,
+  &:focus {
+    transform: scale(.95);
+    &::before {
+      background: rgba($brand-success-l, .5);
+      border-color: $brand-success;
+    }
+    &::after {
+      color: lighten(desaturate($brand-success, 35%), 10%);
+    }
+  }
+  &:active {
+    outline: 0;
+    box-shadow: none;
+    transform: scale(.75);
+  }
+}
