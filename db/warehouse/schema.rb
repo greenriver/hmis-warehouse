@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190129193734) do
+ActiveRecord::Schema.define(version: 20190201172226) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1233,6 +1233,7 @@ ActiveRecord::Schema.define(version: 20190129193734) do
     t.string   "short_name"
     t.boolean  "visible_in_window",  default: false, null: false
     t.boolean  "authoritative",      default: false
+    t.string   "after_create_path"
   end
 
   create_table "direct_financial_assistances", force: :cascade do |t|
