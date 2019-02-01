@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-10-05 13:34-0400\n"
-"PO-Revision-Date: 2018-10-05 13:34-0400\n"
+"POT-Creation-Date: 2019-02-01 11:36-0500\n"
+"PO-Revision-Date: 2019-02-01 11:36-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3642,6 +3642,9 @@ msgstr ""
 msgid "SIF/PACE Eligible"
 msgstr ""
 
+msgid "School District"
+msgstr ""
+
 msgid "Shelter Agency Contacts"
 msgstr ""
 
@@ -3672,10 +3675,61 @@ msgstr ""
 msgid "Unable to create new Data Source"
 msgstr ""
 
+msgid "Unable to find link"
+msgstr ""
+
 msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
 msgid "Upload queued to start."
+msgstr ""
+
+msgid "User Boolean 1"
+msgstr ""
+
+msgid "User Boolean 2"
+msgstr ""
+
+msgid "User Boolean 3"
+msgstr ""
+
+msgid "User Boolean 4"
+msgstr ""
+
+msgid "User Date 1"
+msgstr ""
+
+msgid "User Date 2"
+msgstr ""
+
+msgid "User Date 3"
+msgstr ""
+
+msgid "User Date 4"
+msgstr ""
+
+msgid "User Select 1"
+msgstr ""
+
+msgid "User Select 2"
+msgstr ""
+
+msgid "User Select 3"
+msgstr ""
+
+msgid "User Select 4"
+msgstr ""
+
+msgid "User String 1"
+msgstr ""
+
+msgid "User String 2"
+msgstr ""
+
+msgid "User String 3"
+msgstr ""
+
+msgid "User String 4"
 msgstr ""
 
 msgid "VA Eligible"
@@ -3712,6 +3766,9 @@ msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"
+msgstr ""
+
+msgid "cohort enrollment"
 msgstr ""
 
 msgid "patient"
