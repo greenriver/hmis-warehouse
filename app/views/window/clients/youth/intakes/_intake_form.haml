@@ -1,7 +1,8 @@
 .row
   .col-sm-6
     .youth-intake__metadata
-      = f.input :other_staff_completed_intake, label: 'Are you completing this intake for another staff member?', class: 'jOtherStaffTrigger'
+      - unless readonly
+        = f.input :other_staff_completed_intake, label: 'Are you completing this intake for another staff member?', input_html: { class: 'jOtherStaffTrigger' }
       .jOtherStaff
         = f.input :staff_name, label: 'Name of staff working with the youth'
         = f.input :staff_email, label: 'Email of staff working with the youth'
@@ -42,3 +43,15 @@
       = f.input :other_how_hear, class: 'jOtherHowHear', label: 'Other'
     .youth-intake__financial-assistance
       =# f.input :requesting 
+
+= content_for :page_js do
+  :javascript
+    $('.jOtherStaffTrigger').on('change', function(e){
+      if($(this).is(":checked")){
+        $('.jOtherStaff').show();
+      }
+      else {
+        $('.jOtherStaff').hide();
+      }
+    });
+    $('.jOtherStaffTrigger').trigger('change')

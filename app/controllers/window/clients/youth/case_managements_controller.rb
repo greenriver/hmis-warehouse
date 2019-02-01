@@ -25,9 +25,14 @@ module Window::Clients::Youth
     end
 
     def update
+      @entity.assign_attributes(entity_params)
+      @entity.save!
+      respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 
     def destroy
+      @entity.destroy
+      respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 
     private def entity_params

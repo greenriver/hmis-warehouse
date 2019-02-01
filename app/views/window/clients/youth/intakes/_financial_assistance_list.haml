@@ -4,25 +4,27 @@
 
   .c-card__content.c-card__content--flush
     = simple_form_for @assistance, as: :entity, url: polymorphic_path(direct_financial_assistances_path_generator) do |f|
+      - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
+        .youth-intake__add-dfa.ma-3
+          = f.input :type_provided, collection: @referral.available_referrals, input_html: {class: :select2}
+          .d-flex
+            = f.input :provided_on, as: :date_picker, label: 'On'
+            %button.btn.btn-primary.ml-2.mt-no-label.mb-auto
+              %i.icon-plus
+              Add
       %table.table.table-condensed
         %thead
           %tr
             %th Date
             %th Type
             %th
-        %tbody
-          - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
-            %tr
-              %td= f.input :provided_on, as: :date_picker
-              %td= f.input :type_provided, collection: @assistance.available_types, input_html: {class: :select2}
-              %td
-                %button.btn.btn-sm.btn-icon-only.btn-primary
-                  %i.icon-plus 
+        %tbody                
           - @direct_financial_assistances.ordered.each do |dfa|
             %tr
-              %td
-                = dfa.provided_on
+              %td.nobr= dfa.provided_on
               %td= dfa.type_provided
               %td
+                = link_to polymorphic_path(direct_financial_assistance_path_generator, id: dfa.id), method: :delete, data: {confirm: 'Deleting this financial assistance will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                  %i.icon-cross
 
 

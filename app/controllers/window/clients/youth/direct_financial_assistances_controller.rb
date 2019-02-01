@@ -4,12 +4,18 @@ module Window::Clients::Youth
     include PjaxModalController
 
     before_action :set_client
+    before_action :set_entity, only: [:destroy]
     after_action :log_client
 
     def create
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
       @entity.assign_attributes(entity_params)
       @entity.save!
+      respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
+    end
+
+    def destroy
+      @entity.destroy
       respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 

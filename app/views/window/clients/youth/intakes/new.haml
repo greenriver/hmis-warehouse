@@ -3,7 +3,7 @@
 %h1.page-title= content_for :title
 
 = simple_form_for @intake, url: polymorphic_path(youth_intakes_path_generator) do |f|
-  = render 'intake_form', f: f
+  = render 'intake_form', f: f, readonly: false
   .form-action.d-flex
     = link_to polymorphic_path(youth_intakes_path_generator), class: 'btn btn-secondary' do
       %i.icon-cross

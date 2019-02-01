@@ -12,12 +12,16 @@
           %tr
             %th Date
             %th Activity
+            %th
         %tbody
           - @case_managements.each do |cm|
             %tr
-              %td
-                = link_to polymorphic_path(youth_case_management_path_generator, id: cm.id) do
+              %td.nobr
+                = link_to polymorphic_path([:edit] + youth_case_management_path_generator, id: cm.id), data: {loads_in_pjax_modal: true} do
                   = cm.engaged_on
               %td= simple_format cm.activity
+              %td
+                = link_to polymorphic_path(youth_case_management_path_generator, id: cm.id), method: :delete, data: {confirm: 'Deleting this note will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                  %i.icon-cross
     - else
       %p.pt-2.text-center None on file

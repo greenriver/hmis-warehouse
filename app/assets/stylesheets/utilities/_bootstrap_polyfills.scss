@@ -98,6 +98,17 @@
     margin-#{$directionName}: auto;
   }
 }
+// Provide margin and padding for all 4 sides
+// .ma-1, .ma-2 <- for margin all 1
+// .pa-1, .pa-2 <- for padding all 1
+@each $num, $space in $spacers {
+  .ma-#{$num} {
+    margin: $space;
+  }
+  .pa-#{$num} {
+    padding: $space;
+  }
+}
 
 .pagination .page-item { }
 

@@ -15,7 +15,7 @@
         %tbody
           - @intakes.ordered.each do |intake|
             %tr
-              %td
+              %td.nobr
                 = link_to polymorphic_path(youth_intake_path_generator, id: intake.id) do
                   = intake.engagement_date
               %td= intake.exit_date
