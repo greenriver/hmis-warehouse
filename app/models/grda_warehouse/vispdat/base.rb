@@ -135,6 +135,7 @@ module GrdaWarehouse::Vispdat
     ####################
     before_save :calculate_score, :calculate_priority_score, :set_client_housing_release_status
     after_update :notify_users
+    after_update :add_to_cohorts
 
     ####################
     # Access
@@ -171,6 +172,13 @@ module GrdaWarehouse::Vispdat
       before, after = changes[:submitted_at]
       if before.nil? && after.present?
         NotifyUser.vispdat_completed( id ).deliver_later
+      end
+    end
+
+    def add_to_cohorts
+      return if changes.empty?
+      GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
+        AddCohortClientsJob.perform_later(cohort.id, "#{client_id}", user_id)
       end
     end
 
