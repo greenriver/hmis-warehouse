@@ -1,4 +1,4 @@
-class SelectableList {
+window.App.SelectableList = class SelectableList {
   constructor(options) {
     this.title = options.title
     this.registerEvents()
@@ -93,5 +93,3 @@ class SelectableList {
     $('.j-select-all').on('click', this.selectAllWithinScope)
   }
 }
-
-App.SelectableList = SelectableList
