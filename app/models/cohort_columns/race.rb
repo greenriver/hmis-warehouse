@@ -1,8 +1,8 @@
 module CohortColumns
   class Race < ReadOnly
     attribute :column, String, lazy: true, default: :race
-    attribute :title, String, lazy: true, default: 'Race'
-
+    attribute :translation_key, String, lazy: true, default: 'Race'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def value(cohort_client)
       cohort_client.client.source_clients.map(&:race_fields)&.flatten&.uniq&.sort
