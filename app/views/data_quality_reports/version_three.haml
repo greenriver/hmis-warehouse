@@ -1,6 +1,12 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
 = link_to "answers", answers_project_data_quality_report_path(@project, @report)
+%h3 Bed Census
+= render 'data_quality_reports/version_three/bed_census'
+%h3 Unit Census
+= render 'data_quality_reports/version_three/unit_census'
+%h3 Completeness
+= render 'data_quality_reports/version_three/completeness'
 %h3 Time in Program
 = render 'data_quality_reports/version_three/time_in_program'
 %h3 Time to Enter
@@ -12,12 +18,24 @@
     (function($) {
       let url = '#{answers_project_data_quality_report_path(@project, @report)}'
       $.get(url, function(data){
+        let bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "bed_utilization")}');
+        bed_census.build_chart();
+
+        let unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "unit_utilization")}');
+        unit_census.build_chart();
+
+        let completeness = new App.DataQualityReports.Completeness(data['project_missing'], '.completeness-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
+        completeness.build_chart();
+
         let time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
         time_in_program.build_chart();
 
-        let time_to_enter = new App.DataQualityReports.TimeToEnter(data['enrolled_length_of_stay'], '.time-to-enter-chart', 
-        '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
+        let time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_entry")}');
         time_to_enter.build_chart();
       });
     })(jQuery);
