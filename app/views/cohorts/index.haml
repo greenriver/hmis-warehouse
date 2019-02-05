@@ -18,6 +18,12 @@
     %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab} Inactive Cohorts
 .tab-content
   #active-cohorts.tab-pane.active{role: :tabpanel}
+    .o-page
+      .o-page__controls
+        = render 'search'
+        = render 'filter_actives'
+        = render 'sort'
+
     = simple_form_for @cohort, url: cohorts_path do |f|
       %table.table.table-condensed
         %thead
@@ -52,6 +58,10 @@
               %td.text-center
                 = cohort.cohort_clients.count
   #inactive-cohorts.tab-pane{role: :tabpanel}
+    .o-page
+      .o-page__controls
+        = render 'search'
+        = render 'sort'
     %table.table.table-condensed
       %thead
         %tr
