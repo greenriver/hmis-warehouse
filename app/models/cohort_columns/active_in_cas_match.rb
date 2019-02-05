@@ -1,7 +1,8 @@
 module CohortColumns
   class ActiveInCasMatch < ReadOnly
     attribute :column, String, lazy: true, default: :active_in_cas_match
-    attribute :title, String, lazy: true, default: 'Active CAS Match'
+    attribute :translation_key, String, lazy: true, default: 'Active CAS Match'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def renderer
       'html'

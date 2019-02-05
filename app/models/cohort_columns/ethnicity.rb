@@ -1,8 +1,8 @@
 module CohortColumns
   class Ethnicity < ReadOnly
     attribute :column, String, lazy: true, default: :ethnicity
-    attribute :title, String, lazy: true, default: 'Ethnicity'
-
+    attribute :translation_key, String, lazy: true, default: 'Ethnicity'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def value(cohort_client)
       cohort_client.client.source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map do |v|

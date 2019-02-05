@@ -2,7 +2,7 @@ module CohortColumns
   class Meta < Base
     include ArelHelper
     attribute :column, String, lazy: true, default: :meta
-    attribute :title, String, lazy: true, default: 'Alerts'
+    attribute :title, String, lazy: true, default: _('Alerts')
 
     def column_editable?
       false

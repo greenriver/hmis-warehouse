@@ -33,11 +33,22 @@
   @include card;
   padding: space(4);
   width: 100%;
-  .form-control,
-  textarea,
-  input:not([type="submit"]) {
-    background-color: $body-bg;
+  &.open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
+}
+
+.c-card__content .form-control,
+.c-card__content textarea,
+.c-card__content input:not([type="submit"]) {
+  background-color: $body-bg;
+}
+
+.c-card__content--content-under {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+
 }
 
 .c-card__content--flush {
@@ -148,4 +159,22 @@
 .well {
   @extend .c-card__content;
   box-shadow: none;
+}
+
+.c-card--row {
+  &.children-visible {
+    &,
+    + table {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .c-card__content {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+}
+
+.c-card__toggle {
+  color: red;
+  &.open { }
 }

@@ -156,6 +156,8 @@ module Health
       case activity
       when 'Comprehensive assessment'
         'Comprehensive Health Assessment'
+      when 'Person-Centered Treatment Plan Signed'
+        'Person-Centered Treatment Plan signed'
       else
         activity
       end

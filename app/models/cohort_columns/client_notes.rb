@@ -1,7 +1,8 @@
 module CohortColumns
   class ClientNotes < Base
     attribute :column, String, lazy: true, default: :client_notes
-    attribute :title, String, lazy: true, default: 'Client Notes'
+    attribute :translation_key, String, lazy: true, default: 'Client Notes'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def column_editable?
       false

@@ -93,7 +93,7 @@ class ReportResultsController < ApplicationController
       report_end = @result.options['report_end'].to_date
       options.merge!({report_start: report_start, report_end: report_end})
     end
-    if @report.has_coc_codes_option?
+    if @report.has_coc_codes_option? && @result.options['coc_codes'].present?
       coc_codes = @result.options['coc_codes'].select(&:present?)
       options.merge!({coc_codes: coc_codes})
     end

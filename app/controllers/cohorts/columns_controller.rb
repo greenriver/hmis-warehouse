@@ -11,7 +11,8 @@ module Cohorts
     def update
       columns = cohort_source.available_columns.deep_dup
       if params.include? :order
-        columns = columns.sort_by{|x| params[:order].index x.column.to_s}
+        order = params[:order].split(',')
+        columns = columns.sort_by{ |col| order.index(col.column.to_s)}
       end
       columns.each do |column|
         visibility_state = cohort_params[:visible][column.column]
@@ -27,6 +28,7 @@ module Cohorts
         end
       end
       @cohort.update(column_state: columns)
+
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 

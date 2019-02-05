@@ -1,7 +1,8 @@
 module CohortColumns
   class Sober < ReadOnly
     attribute :column, String, lazy: true, default: :sober
-    attribute :title, String, lazy: true, default: 'Appropriate for Sober Supportive Housing'
+    attribute :translation_key, String, lazy: true, default: 'Appropriate for Sober Supportive Housing'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def renderer
       'html'
