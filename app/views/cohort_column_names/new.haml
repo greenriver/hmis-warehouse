@@ -1,14 +1,12 @@
-- title = 'Edit Cohort Columns'
-- content_for :title, title
-
-= content_for :crumbs do
-  = link_to cohorts_path do
-    &laquo; Return to Cohorts
+= render 'cohort_columns/page_header'
 
 .row
   .col-sm-8
     %h1= content_for :title
 
+= render 'cohort_columns/tab_bar'
+
+.row
   = simple_form_for :translation, url: cohort_column_names_path do |f|
     %table.table.table-striped
       %thead

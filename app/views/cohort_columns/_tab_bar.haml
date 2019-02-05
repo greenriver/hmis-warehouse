@@ -1,0 +1,5 @@
+%ul.nav.nav-tabs.mb-2
+  %li.nav-item{role: "presentation", class:  ('active' if current_page?(cohort_column_options_path))}
+    = link_to 'Column Options', cohort_column_options_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class:  ('active' if current_page?(new_cohort_column_name_path))}
+    = link_to 'Column Names', new_cohort_column_name_path, class: 'nav-link'
