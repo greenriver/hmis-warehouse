@@ -31,10 +31,7 @@
             - unless column.input_type == 'read_only'
               %input{type: 'checkbox', value: '1', checked: editable, name: "column_state[editable][#{column.column}]", id: "column_state_editable_#{column.column}"}
           %td
-            - if can_edit_translations? && column.attributes.include?(:translation_key)
-              %input{type: 'text', value: column.title, name: "translation[#{column.column}", id: "translation_#{column.column}"}
-            - else
-              = column.title
+            = column.title
           %td
             = column.description
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
