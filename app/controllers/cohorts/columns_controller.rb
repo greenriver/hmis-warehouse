@@ -28,6 +28,7 @@ module Cohorts
         end
       end
       @cohort.update(column_state: columns)
+
       respond_with(@cohort, location: cohort_path(@cohort))
     end
 

@@ -2,7 +2,7 @@ module CohortColumns
   class Delete < Base
     include ArelHelper
     attribute :column, String, lazy: true, default: :delete
-    attribute :title, String, lazy: true, default: 'Delete'
+    attribute :title, String, lazy: true, default: _('Delete')
 
     def column_editable?
       false

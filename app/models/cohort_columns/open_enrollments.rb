@@ -2,7 +2,8 @@ module CohortColumns
   class OpenEnrollments < ReadOnly
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
-    attribute :title, String, lazy: true, default: 'Open Residential Enrollments'
+    attribute :translation_key, String, lazy: true, default: 'Open Residential Enrollments'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def column_editable?
       false
