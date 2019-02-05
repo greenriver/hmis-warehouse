@@ -14,7 +14,7 @@
   - hint = "The cohort will be sorted by the first column".html_safe
   - if @cohort.column_state.present?
     - hint += ", currently: <strong>#{@cohort.column_state&.first&.title}</strong>".html_safe
-    = f.input :assessment_trigger, collection: @assessment_types, label: 'Clients automatically added to cohort by assessment:'
+    = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:'
   = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint
   = f.input :user_ids, collection: User.all, selected: @cohort.user_viewable_entities.pluck(:user_id), input_html: {multiple: :multiple, class: 'select2', style: 'width: 100%;'}, label: 'Grant access to specific users', hint: 'Users specified below who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
   .row

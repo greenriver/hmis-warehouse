@@ -169,16 +169,25 @@ module GrdaWarehouse::Vispdat
     end
 
     def notify_vispdat_completed
-      before, after = changes[:submitted_at]
-      if before.nil? && after.present?
+      if vispdat_completed?
         NotifyUser.vispdat_completed( id ).deliver_later
       end
     end
 
+    def vispdat_completed?
+      if changes.any?
+        before, after = changes[:submitted_at]
+        return before.nil? && after.present?
+      else
+        return false
+      end
+    end
+
     def add_to_cohorts
-      return if changes.empty?
-      GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
-        AddCohortClientsJob.perform_later(cohort.id, "#{client_id}", user_id)
+      if vispdat_completed?
+        GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
+          AddCohortClientsJob.perform_later(cohort.id, "#{client_id}", user_id)
+        end
       end
     end
 
