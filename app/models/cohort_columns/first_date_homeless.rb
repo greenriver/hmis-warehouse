@@ -1,7 +1,8 @@
 module CohortColumns
   class FirstDateHomeless < ReadOnly
     attribute :column, String, lazy: true, default: :first_date_homeless
-    attribute :title, String, lazy: true, default: 'First Date Homeless'
+    attribute :translation_key, String, lazy: true, default: 'First Date Homeless'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def date_format
       'll'

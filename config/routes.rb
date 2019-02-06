@@ -423,6 +423,8 @@ Rails.application.routes.draw do
 
   resources :cohort_column_options, except: [:destroy]
 
+  resources :cohort_column_names, only: [:new, :create]
+
   resources :cohorts, except: [:new] do
     resource :columns, only: [:edit, :update], controller: 'cohorts/columns'
     resources :cohort_clients, controller: 'cohorts/clients' do

@@ -1,7 +1,8 @@
 module CohortColumns
   class EnrolledHomelessShelter < ReadOnly
     attribute :column, String, lazy: true, default: :enrolled_homeless_shelter
-    attribute :title, String, lazy: true, default: 'Enrolled in sheltered homeless project (ES, TH, SH)'
+    attribute :translation_key, String, lazy: true, default: 'Enrolled in sheltered homeless project (ES, TH, SH)'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def renderer
       'html'

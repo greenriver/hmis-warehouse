@@ -63,25 +63,29 @@ module EtoApi::Tasks
         @clients = load_candidates(type: :demographic)
         @clients.find_in_batches(batch_size: 10) do |clients|
           clients.each do |client|
-            found = fetch_demographics(client)
-            if found.present?
-              fetch_assessments(client)
-            end
-            if Time.now > @restart
-              Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
-              @api = nil
-              sleep(5)
-              @api = EtoApi::Detail.new(trace: @trace)
-              @api.connect
-              @restart = Time.now + @batch_time
-            end
-            if Time.now > @stop_time
-              current_hmis_clients = GrdaWarehouse::HmisClient.count
-              current_hmis_forms = GrdaWarehouse::HmisForm.count
-              msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
-              Rails.logger.info msg
-              notifier.ping msg if send_notifications
-              return
+            begin
+              found = fetch_demographics(client)
+              if found.present?
+                fetch_assessments(client)
+              end
+              if Time.now > @restart
+                Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
+                @api = nil
+                sleep(5)
+                @api = EtoApi::Detail.new(trace: @trace)
+                @api.connect
+                @restart = Time.now + @batch_time
+              end
+              if Time.now > @stop_time
+                current_hmis_clients = GrdaWarehouse::HmisClient.count
+                current_hmis_forms = GrdaWarehouse::HmisForm.count
+                msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
+                Rails.logger.info msg
+                notifier.ping msg if send_notifications
+                return
+              end
+            rescue Exception => e
+              raise "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
             end
           end
         end

@@ -1,0 +1,28 @@
+= render 'cohort_columns/page_header'
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+
+= render 'cohort_columns/tab_bar'
+
+.row
+  = simple_form_for :translation, url: cohort_column_names_path do |f|
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Original Name
+          %th Current Name
+          %th Type
+      %tbody
+        - @columns.each do |column|
+          - unless column.input_type == 'read_only'
+            %tr
+              %td.col-sm-3
+                = column.translation_key
+              %td.col-sm-6
+                = f.input "#{column.column}", label: false, input_html: { value: column.title }
+              %td.col-sm-3
+                = column_type(column)
+    .text-right
+      = f.submit value: 'Update Column Names', class: 'btn btn-primary'
