@@ -158,8 +158,8 @@ class CohortsController < ApplicationController
     [
         { title: 'Cohort Names A-Z', column: 'name', direction: 'asc', order: 'LOWER(name) ASC' },
         { title: 'Cohort Names Z-A', column: 'name', direction: 'desc', order: 'LOWER(name) DESC' },
-        { title: 'Effective Date Ascending', column: 'name', direction: 'desc', order: 'effective_date ASC' },
-        { title: 'Effective Date Decending', column: 'name', direction: 'desc', order: 'effective_date DESC' },
+        { title: 'Effective Date Ascending', column: 'effective_date', direction: 'asc', order: 'effective_date ASC' },
+        { title: 'Effective Date Decending', column: 'effective_date', direction: 'desc', order: 'effective_date DESC' },
     ]
   end
   helper_method :sort_options
