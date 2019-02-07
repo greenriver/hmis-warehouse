@@ -23,7 +23,7 @@ module GrdaWarehouse::Youth
 
 
     def available_types
-      [
+      @available_types ||= [
         'Move-in costs',
         'Rent',
         'Rent arrears',
@@ -36,8 +36,7 @@ module GrdaWarehouse::Youth
         'Medical costs',
         'Cell phone costs',
         'Food / Groceries (including our drop-in food pantries)',
-        'Other',
-      ]
+      ].sort + ['Other']
     end
   end
 end

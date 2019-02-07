@@ -137,7 +137,7 @@ module GrdaWarehouse::YouthIntake
         'Referred from Street Outreach',
         'Walk-in / self-referral',
         'Other...',
-      ] + [other_how_hear&.strip]).compact.uniq
+      ] + [other_how_hear&.strip]).reject(&:blank?).compact.uniq
     end
 
     def stable_housing_options

@@ -18,7 +18,6 @@ module GrdaWarehouse::YouthIntake
       :client_ethnicity,
       :client_primary_language,
       :pregnant_or_parenting,
-      :how_hear,
       :needs_shelter,
       :in_stable_housing,
       :youth_experiencing_homelessness_at_start,

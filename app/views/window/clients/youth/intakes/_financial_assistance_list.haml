@@ -6,7 +6,7 @@
     = simple_form_for @assistance, as: :entity, url: polymorphic_path(direct_financial_assistances_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
         .youth-intake__add-dfa.ma-3
-          = f.input :type_provided, collection: @referral.available_referrals, input_html: {class: :select2}
+          = f.input :type_provided, collection: @assistance.available_types, input_html: {class: :select2}
           .d-flex
             = f.input :provided_on, as: :date_picker, label: 'On'
             %button.btn.btn-primary.ml-2.mt-no-label.mb-auto

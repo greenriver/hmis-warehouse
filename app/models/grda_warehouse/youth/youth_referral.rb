@@ -23,7 +23,7 @@ module GrdaWarehouse::Youth
 
 
     def available_referrals
-      [
+      @available_referrals ||= [
         'Referred for health services',
         'Referred for mental health services',
         'Referred for substance use services',
@@ -40,7 +40,7 @@ module GrdaWarehouse::Youth
         'Referred to other state agencies (DMH, DDS, etc.)',
         'Referred to cultural / recreational activities',
         'Referred to other services / activities not listed above',
-      ]
+      ].sort.freeze
     end
   end
 end
