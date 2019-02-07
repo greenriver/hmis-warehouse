@@ -5,8 +5,9 @@
 = simple_form_for @intake, url: polymorphic_path(youth_intakes_path_generator) do |f|
   = render 'intake_form', f: f, readonly: false
   .form-action.d-flex
-    = link_to polymorphic_path(youth_intakes_path_generator), class: 'btn btn-secondary' do
-      %i.icon-cross
-      Cancel
     .ml-auto
+      = link_to polymorphic_path(youth_intakes_path_generator), class: 'btn btn-secondary' do
+        %i.icon-cross
+        Cancel
+    .ml-2
       = f.submit 'Save', class: 'btn btn-primary'

@@ -4,6 +4,8 @@ module GrdaWarehouse::Youth
     has_paper_trail
     acts_as_paranoid
 
+    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+
     scope :ordered, -> do
       order(provided_on: :desc)
     end

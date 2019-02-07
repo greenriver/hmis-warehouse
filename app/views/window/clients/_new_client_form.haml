@@ -24,7 +24,11 @@
               %span{class: "ds-#{sn.downcase}"}
                 = sn
             %td
-              = link_to polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id) do
+              - if current_user.can_edit_clients?
+                - link = polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id)
+              - else 
+                - link = client.window_link_for?(current_user)
+              = link_to link do
                 = client.full_name
             %td
               = client.DOB
