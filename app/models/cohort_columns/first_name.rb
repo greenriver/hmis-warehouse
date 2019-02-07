@@ -1,7 +1,8 @@
 module CohortColumns
   class FirstName < ReadOnly
     attribute :column, String, lazy: true, default: :first_name
-    attribute :title, String, lazy: true, default: 'First Name'
+    attribute :translation_key, String, lazy: true, default: 'First Name'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def column_editable?
       false

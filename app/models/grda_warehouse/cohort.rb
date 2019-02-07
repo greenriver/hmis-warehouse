@@ -25,6 +25,9 @@ module GrdaWarehouse
     scope :visible_in_cas, -> do
       where(visible_in_cas: true)
     end
+    scope :show_on_client_dashboard, -> do
+      where(show_on_client_dashboard: true)
+    end
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
