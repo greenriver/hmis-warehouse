@@ -95,7 +95,11 @@ class CohortsController < ApplicationController
   end
 
   def edit
-
+    @assessment_types = [
+      [ "Youth VI-SPDAT", GrdaWarehouse::Vispdat::Youth ],
+      [ "Individual VI-SPDAT", GrdaWarehouse::Vispdat::Individual ],
+      [ "Family VI-SPDAT", GrdaWarehouse::Vispdat::Family ],
+    ]
   end
 
   def destroy
@@ -134,6 +138,7 @@ class CohortsController < ApplicationController
       :static_column_count,
       :show_on_client_dashboard,
       :visible_in_cas,
+      :assessment_trigger,
       user_ids: []
     )
   end
