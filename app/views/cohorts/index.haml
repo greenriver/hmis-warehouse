@@ -46,6 +46,7 @@
             %th{style: 'min-width: 20em;'} Name
             %th{style: 'width: 12em;'} Effective Date
             %th Visible on Client Dashboard?
+            %th Visible in CAS?
             %th.text-center Clients
           - @cohorts.each do |cohort|
             %tr
@@ -55,6 +56,8 @@
                 = cohort.effective_date
               %td
                 = checkmark cohort.show_on_client_dashboard?
+              %td
+                = checkmark cohort.visible_in_cas?
               %td.text-center
                 = cohort.cohort_clients.count
   #inactive-cohorts.tab-pane{role: :tabpanel}
