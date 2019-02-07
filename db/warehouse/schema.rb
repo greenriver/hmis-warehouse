@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190130141818) do
+ActiveRecord::Schema.define(version: 20190204194825) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1140,6 +1140,7 @@ ActiveRecord::Schema.define(version: 20190130141818) do
     t.integer  "days_of_inactivity",       default: 90
     t.boolean  "show_on_client_dashboard", default: true,   null: false
     t.boolean  "visible_in_cas",           default: true,   null: false
+    t.string   "assessment_trigger"
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree
