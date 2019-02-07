@@ -27,7 +27,7 @@
               - if current_user.can_edit_clients?
                 - link = polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id)
               - else 
-                - link = client.window_link_for?(current_user)
+                - link = client.destination_client.window_link_for?(current_user)
               = link_to link do
                 = client.full_name
             %td
