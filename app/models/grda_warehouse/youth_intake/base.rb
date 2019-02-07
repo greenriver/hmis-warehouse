@@ -1,5 +1,6 @@
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
+    include ArelHelper
     self.table_name = :youth_intakes
     has_paper_trail
     acts_as_paranoid

@@ -1,5 +1,6 @@
 module GrdaWarehouse::Youth
   class YouthCaseManagement < GrdaWarehouseBase
+    include ArelHelper
     has_paper_trail
     acts_as_paranoid
 
