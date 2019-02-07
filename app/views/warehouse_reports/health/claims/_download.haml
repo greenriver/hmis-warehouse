@@ -3,12 +3,22 @@
   %strong #{@report.completed_at.strftime('%b %e, %Y at %I:%M%P')} 
   for PID/SL
   %strong #{@report.pid_sl_from_claims_file}.
-= link_to "#{warehouse_reports_health_claim_url(@report)}.txt", class: 'btn btn-secondary btn-sm', target: '_blank' do
-  %i.icon-download2
-  Download Claims File
-= link_to submit_warehouse_reports_health_claim_path(@report), method: :post, class: 'btn btn-secondary btn-sm ml-2' do
-  %i.checkmark
-  Mark as Submitted to #{@sender.receiver_name}
-= link_to warehouse_reports_health_claim_path(@report), method: :delete, class: 'btn btn-danger btn-sm ml-2', data: {confirm: 'Deleting this claims file will unlock all related qualifying activities.  Are you sure you want to delete this claims file?'} do
-  %i.icon-cross
-  Delete this File
+= simple_form_for @ta, url: acknowledge_warehouse_reports_health_claim_path(@report), method: :post do |f|
+  .row
+    .col-sm-3
+      = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", class: 'btn btn-secondary btn-sm', target: '_blank' do
+        %i.icon-download2
+        Download Claims File
+    .col-sm-6
+      = f.submit "Upload Transaction Confirmation from #{@sender.receiver_name}", disabled: true, class: 'btn btn-secondary btn-sm ml-2'
+      = f.input :content, as: :file, label: false
+    .col-sm-3
+      = link_to warehouse_reports_health_claim_path(@report), method: :delete, class: 'btn btn-danger btn-sm ml-2', data: {confirm: 'Deleting this claims file will unlock all related qualifying activities.  Are you sure you want to delete this claims file?'} do
+        %i.icon-cross
+        Delete this File
+
+- content_for :page_js do
+  :javascript
+    $(':file').on('change', function() {
+      $(':submit').prop('disabled', !$(this).val());
+    });

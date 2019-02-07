@@ -5,7 +5,7 @@ module WarehouseReports::Health
     include WarehouseReportAuthorization
     include PjaxModalController
     before_action :require_can_administer_health!
-    before_action :set_report, only: [:show, :destroy, :revise, :submit, :generate_claims_file]
+    before_action :set_report, only: [:show, :destroy, :revise, :acknowledge, :generate_claims_file]
     before_action :set_sender
 
     def index
@@ -43,11 +43,12 @@ module WarehouseReports::Health
         @state = :running
         @report = Health::Claim.incomplete.last || Health::Claim.queued.last
       elsif Health::Claim.completed.unsubmitted.exists?
+        @ta = Health::TransactionAcknowledgement.new
         @state = :unsubmitted
         @report = Health::Claim.completed.unsubmitted.last
       else
         @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
-        @completed_reports = Health::Claim.submitted.order(submitted_at: :desc).select(:id, :submitted_at, :max_date)
+        @completed_reports = Health::Claim.submitted.order(submitted_at: :desc).select(:id, :submitted_at, :max_date, :result)
         @months_unsubmitted = Health::QualifyingActivity.submittable.unsubmitted.
           where.not(date_of_activity: nil).
           distinct.
@@ -214,14 +215,33 @@ module WarehouseReports::Health
       respond_with @report, location: warehouse_reports_health_claims_path
     end
 
-    def submit
+    # def submit
+    #   sent_at = Time.now
+    #   Health::Claim.transaction do
+    #     @report.qualifying_activities.payable.update_all(sent_at: sent_at)
+    #     @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
+    #     @report.update(submitted_at: sent_at)
+    #   end
+    #   redirect_to action: :index
+    # end
+
+    def acknowledge
+      ta = Health::TransactionAcknowledgement.create(
+          user: current_user,
+          content: ta_params[:content].read,
+          original_filename: ta_params[:content].original_filename)
       sent_at = Time.now
+      claim_result = ta.transaction_result
       Health::Claim.transaction do
         @report.qualifying_activities.payable.update_all(sent_at: sent_at)
         @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
-        @report.update(submitted_at: sent_at)
+        @report.update(submitted_at: sent_at, result: claim_result, transaction_acknowledgement_id: ta.id)
       end
       redirect_to action: :index
+    end
+
+    def ta_params
+      params.require(:health_transaction_acknowledgement).permit(:content)
     end
 
     def default_options

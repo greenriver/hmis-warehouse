@@ -97,3 +97,11 @@ $theme-colors: (
   "light":      $white,
   "dark":       $gray-080
 );
+
+.health_claims__success {
+  color: #00008b
+}
+
+.health_claims__rejection {
+  color: #8b0000
+}

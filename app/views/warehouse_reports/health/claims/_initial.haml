@@ -27,6 +27,7 @@
         %th Date Chosen
         %th Qualifying Activities Included
         %th Patients Included
+        %th Result
     %tbody
       - @completed_reports.each do |report|
         %tr
@@ -34,3 +35,13 @@
           %td= report.max_date
           %td= report.qualifying_activities.count
           %td= report.qualifying_activities.select(:patient_id).distinct.count
+          %td
+            - case report.result
+            - when 'accepted'
+              .health_claims__success
+                accepted
+            - when 'rejected'
+              .health_claims__rejection
+                REJECTED
+            - else
+              = report.result

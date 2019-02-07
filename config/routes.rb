@@ -293,6 +293,7 @@ Rails.application.routes.draw do
           post :generate_claims_file
           post :revise
           post :submit
+          post :acknowledge
         end
       end
       resources :patient_referrals, only: [:index] do
