@@ -8,9 +8,22 @@ class CohortsController < ApplicationController
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
 
   def index
+    scope = cohort_scope
+    if params[:visible_on_dashboard].present?
+      scope = scope.show_on_client_dashboard
+      @visible_on_dashboard = true
+      @active_filter = true
+    end
+    if params[:visible_in_cas].present?
+      scope = scope.visible_in_cas
+      @visible_in_cas = true
+      @active_filter = true
+    end
+    @search = scope.ransack(params[:q])
+
     @cohort = cohort_source.new
-    @cohorts = active_cohort_scope
-    @inactive_cohorts = inactive_cohort_scope
+    @cohorts = @search.result.active.reorder(sort_string)
+    @inactive_cohorts = @search.result.inactive.reorder(sort_string)
   end
 
   def show
@@ -139,6 +152,30 @@ class CohortsController < ApplicationController
 
   def flash_interpolation_options
     { resource_name: @cohort&.name }
+  end
+
+  def sort_options
+    [
+        { title: 'Cohort Names A-Z', column: 'name', direction: 'asc', order: 'LOWER(name) ASC' },
+        { title: 'Cohort Names Z-A', column: 'name', direction: 'desc', order: 'LOWER(name) DESC' },
+        { title: 'Effective Date Ascending', column: 'effective_date', direction: 'asc', order: 'effective_date ASC' },
+        { title: 'Effective Date Decending', column: 'effective_date', direction: 'desc', order: 'effective_date DESC' },
+    ]
+  end
+  helper_method :sort_options
+
+  def sort_string
+    @column = params[:sort] || 'name'
+    @direction = params[:direction] || 'asc'
+
+    result = sort_options.select do |m|
+      m[:column] == @column && m[:direction] == @direction
+    end.first[:order]
+
+    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      result += ' NULLS LAST'
+    end
+    return result
   end
 
 end
