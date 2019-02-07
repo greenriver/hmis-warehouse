@@ -232,12 +232,17 @@ module WarehouseReports::Health
           original_filename: ta_params[:content].original_filename)
       sent_at = Time.now
       claim_result = ta.transaction_result
-      Health::Claim.transaction do
-        @report.qualifying_activities.payable.update_all(sent_at: sent_at)
-        @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
-        @report.update(submitted_at: sent_at, result: claim_result, transaction_acknowledgement_id: ta.id)
+      if claim_result == 'error'
+        flash[:error] = "Error reading file"
+        respond_with @report, location: warehouse_reports_health_claims_path
+      else
+        Health::Claim.transaction do
+          @report.qualifying_activities.payable.update_all(sent_at: sent_at)
+          @report.qualifying_activities.unpayable.update_all(claim_submitted_on: nil, claim_id: nil)
+          @report.update(submitted_at: sent_at, result: claim_result, transaction_acknowledgement_id: ta.id)
+        end
+        redirect_to action: :index
       end
-      redirect_to action: :index
     end
 
     def ta_params
