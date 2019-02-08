@@ -5,7 +5,9 @@
     = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
         .youth-intake__add-referral.ma-3
-          = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: :select2}
+          = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:select2, :jOtherTrigger] }
+          .jOther.hidden
+            = f.input :other
           .d-flex
             = f.input :referred_on, as: :date_picker, label: 'On'
             %button.btn.btn-primary.ml-2.mt-no-label.mb-auto

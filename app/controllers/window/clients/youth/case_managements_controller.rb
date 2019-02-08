@@ -14,13 +14,13 @@ module Window::Clients::Youth
     end
 
     def new
-      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
+      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.today)
     end
 
     def create
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
       @entity.assign_attributes(entity_params)
-      @entity.save!
+      @entity.save
       respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 
@@ -29,7 +29,7 @@ module Window::Clients::Youth
 
     def update
       @entity.assign_attributes(entity_params)
-      @entity.save!
+      @entity.save
       respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 

@@ -14,9 +14,9 @@ module Window::Clients::Youth
 
     def index
       @intakes = @client.youth_intakes.merge(intake_scope)
-      @case_managements = @client.case_managements
-      @direct_financial_assistances = @client.direct_financial_assistances
-      @youth_referrals = @client.youth_referrals
+      @case_managements = @client.case_managements.order(engaged_on: :desc, created_at: :desc)
+      @direct_financial_assistances = @client.direct_financial_assistances.order(provided_on: :desc, created_at: :desc)
+      @youth_referrals = @client.youth_referrals.order(referred_on: :desc, created_at: :desc)
 
       @referral = @client.youth_referrals.build(referred_on: Date.today)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.today)
@@ -26,10 +26,15 @@ module Window::Clients::Youth
     end
 
     def new
-      @intake = intake_source.new
-      @intake.staff_name ||= current_user.name
-      @intake.staff_email ||= current_user.email
-      @intake.engagement_date ||= Date.today
+      new_source = if @client.youth_intakes.merge(intake_scope).exists?
+        @client.youth_intakes.merge(intake_scope).order(updated_at: :desc).first
+      else
+        intake_source.new
+      end
+      @intake = new_source
+      @intake.staff_name = current_user.name
+      @intake.staff_email = current_user.email
+      @intake.engagement_date = Date.today
       @intake.client_dob ||= @client.DOB
     end
 

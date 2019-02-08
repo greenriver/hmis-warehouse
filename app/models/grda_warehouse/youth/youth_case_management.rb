@@ -6,6 +6,8 @@ module GrdaWarehouse::Youth
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
+    validates_presence_of :engaged_on, :activity
+
     scope :ordered, -> do
       order(engaged_on: :desc)
     end

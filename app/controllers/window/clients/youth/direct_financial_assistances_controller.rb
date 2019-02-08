@@ -13,8 +13,17 @@ module Window::Clients::Youth
     def create
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
       @entity.assign_attributes(entity_params)
-      @entity.save!
-      respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
+      if entity_params[:other].present? && entity_params[:type_provided] == 'Other'
+        @entity.type_provided = entity_params[:other]
+      end
+
+      @entity.save
+      if @entity.valid?
+        respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
+      else
+        flash[:error] = "Unable to save #{flash_interpolation_options[:resource_name]}"
+        redirect_to polymorphic_path(youth_intakes_path_generator)
+      end
     end
 
     def destroy
@@ -26,6 +35,7 @@ module Window::Clients::Youth
       params.require(:entity).permit(
         :provided_on,
         :type_provided,
+        :other,
       )
     end
 

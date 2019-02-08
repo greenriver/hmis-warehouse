@@ -6,6 +6,10 @@ module GrdaWarehouse::Youth
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
+    validates_presence_of :referred_on, :referred_to
+
+    attr_accessor :other
+
     scope :ordered, -> do
       order(referred_on: :desc)
     end
@@ -43,7 +47,7 @@ module GrdaWarehouse::Youth
         'Referred to other state agencies (DMH, DDS, etc.)',
         'Referred to cultural / recreational activities',
         'Referred to other services / activities not listed above',
-      ].sort.freeze
+      ].sort.freeze + ['Other']
     end
   end
 end

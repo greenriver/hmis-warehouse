@@ -6,6 +6,10 @@ module GrdaWarehouse::Youth
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
 
+    validates_presence_of :provided_on, :type_provided
+
+    attr_accessor :other
+
     scope :ordered, -> do
       order(provided_on: :desc)
     end
