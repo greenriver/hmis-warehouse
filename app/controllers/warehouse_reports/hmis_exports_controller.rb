@@ -34,6 +34,11 @@ module WarehouseReports
     def create
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
+        frequency = recurrence_params[:every_n_days].to_i || 0
+        if frequency > 0
+          recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
+          @filter.recurring_hmis_export_id = recurring_export.id
+        end
         WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
         redirect_to warehouse_reports_hmis_exports_path
       else
@@ -79,6 +84,24 @@ module WarehouseReports
         project_group_ids: [],
         organization_ids: [],
         data_source_ids: []
+      )
+    end
+
+    def recurrence_params
+      params.require(:filter).permit(
+          :start_date,
+          :end_date,
+          :hash_status,
+          :period_type,
+          :include_deleted,
+          :faked_pii,
+          :every_n_days,
+          :reporting_range,
+          :reporting_range_days,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: []
       )
     end
 

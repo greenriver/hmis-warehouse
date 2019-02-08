@@ -2,6 +2,7 @@ module GrdaWarehouse
   class HmisExport < GrdaWarehouseBase
     self.table_name = :exports
     attr_accessor :fake_data
+    attr_accessor :recurring_hmis_export_id
 
     mount_uploader :file, HmisExportUploader
 

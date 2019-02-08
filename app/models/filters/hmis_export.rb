@@ -14,6 +14,12 @@ module Filters
     attribute :user_id, Integer, default: nil
     attribute :faked_pii, Boolean, default: false
 
+    attribute :every_n_days, Integer, default: 0
+    attribute :reporting_range, Integer, default: 0
+    attribute :reporting_range_days, Integer, default: 0
+
+    attribute :recurring_hmis_export_id, Integer, default: 0
+
     validates_presence_of :start_date, :end_date
 
     validate do
@@ -37,6 +43,8 @@ module Filters
           include_deleted: include_deleted,
           faked_pii: faked_pii,
           user_id: user_id,
+
+          recurring_hmis_export_id: recurring_hmis_export_id,
         }
       end
     end

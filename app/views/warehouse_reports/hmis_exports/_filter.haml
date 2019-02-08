@@ -44,6 +44,9 @@
           %strong Reporting period
           and additionally includes any records associated with enrollments that changed during the selected time range.
 
-
     .text-right
+      %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse'}, href: '#recurrence_options'}
+        Recurring Export Options...
       = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
+    #recurrence_options.collapse
+      = render 'recurrence_options', f: f
