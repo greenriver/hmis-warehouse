@@ -1,5 +1,3 @@
-include Rails.application.routes.url_helpers
-
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
     serialize :project_ids, Array
