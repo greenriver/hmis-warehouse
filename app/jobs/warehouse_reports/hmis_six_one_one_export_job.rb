@@ -20,7 +20,9 @@ module WarehouseReports
       if recurring_hmis_export = recurring_hmis_export(options)
         recurring_hmis_export.update(hmis_export_id: report.id)
       end
-      NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
+      if report_url.present?
+        NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
+      end
     end
 
     def log msg, underline: false
