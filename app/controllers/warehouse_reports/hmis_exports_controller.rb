@@ -56,12 +56,27 @@ module WarehouseReports
       send_data @export.content, filename: "HMIS_export_#{Time.now.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
+    def cancel
+      report_id = params[:id].to_i
+      recurring_export_source.where(hmis_export_id: report_id).delete_all
+      redirect_to :index
+    end
+
+    def recurring?(report)
+      recurring_export_source.where(hmis_export_id: report.id).exists?
+    end
+    helper_method :recurring?
+
     def set_export
       @export = export_source.find(params[:id].to_i)
     end
 
     def export_source
       GrdaWarehouse::HmisExport
+    end
+
+    def recurring_export_source
+      GrdaWarehouse::RecurringHmisExport
     end
 
     def export_scope
