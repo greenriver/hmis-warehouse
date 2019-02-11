@@ -24,6 +24,10 @@ module GrdaWarehouse
         report_url: nil)
     end
 
+    def self.available_reporting_ranges
+      { 'Dates specified above': 1, '(n) days before run date': 2, 'Month prior to run date': 3, 'Year prior to run date': 4 }
+    end
+
     def filter_hash
       hash = self.slice(
         :start_date,

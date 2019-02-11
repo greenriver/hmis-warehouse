@@ -9,7 +9,7 @@
   .col-sm-2
     = f.input :every_n_days, as: :numeric, label: 'Run every (n) days:'
   .col-sm-4
-    = f.input :reporting_range, collection: { 'Dates specified above': 1, '(n) days before run date': 2, 'Month prior to run date': 3, 'Year prior to run date': 4 }, label: 'For period:', selected: 1
+    = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period:', selected: 1
   .col-sm-2
     = f.input :reporting_range_days, as: :numeric, disabled: true, label: '&nbsp;'.html_safe
   .col-sm-4
