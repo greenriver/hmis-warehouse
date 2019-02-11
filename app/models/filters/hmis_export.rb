@@ -15,7 +15,7 @@ module Filters
     attribute :faked_pii, Boolean, default: false
 
     attribute :every_n_days, Integer, default: 0
-    attribute :reporting_range, Integer, default: 0
+    attribute :reporting_range, String, default: 'fixed'
     attribute :reporting_range_days, Integer, default: 0
 
     attribute :recurring_hmis_export_id, Integer, default: 0
@@ -85,24 +85,18 @@ module Filters
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
-
-    FIXED_DATES = 1
-    N_DAYS_BEFORE = 2
-    MONTH_PRIOR = 3
-    YEAR_PRIOR = 4
-
     def adjust_reporting_period
       case reporting_range
-        when FIXED_DATES
+        when :fixed
           return
-        when N_DAYS_BEFORE
+        when :n_days
           @end_date = Date.today
           @start_date = end_date - reporting_range_days.days
-        when MONTH_PRIOR
+        when :month
           last_month = Date.today.last_month
           @end_date = last_month.end_of_month
           @start_date = last_month.beginning_of_month
-        when YEAR_PRIOR
+        when :year
           last_year = Date.today.last_year
           @end_date = last_year.end_of_year
           @start_date = last_year.beginning_of_year

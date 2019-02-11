@@ -25,8 +25,10 @@ module GrdaWarehouse
     end
 
     def self.available_reporting_ranges
-      { 'Dates specified above': 1, '(n) days before run date': 2, 'Month prior to run date': 3, 'Year prior to run date': 4 }
+      { 'Dates specified above': 'fixed', '(n) days before run date': 'n_days', 'Month prior to run date': 'month', 'Year prior to run date': 'year' }
     end
+
+    validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
 
     def filter_hash
       hash = self.slice(

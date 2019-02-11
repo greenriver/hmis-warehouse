@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190208173854) do
+ActiveRecord::Schema.define(version: 20190211182446) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1954,7 +1954,7 @@ ActiveRecord::Schema.define(version: 20190208173854) do
 
   create_table "recurring_hmis_exports", force: :cascade do |t|
     t.integer  "every_n_days"
-    t.integer  "reporting_range"
+    t.string   "reporting_range"
     t.integer  "reporting_range_days"
     t.integer  "hmis_export_id"
     t.date     "start_date"
