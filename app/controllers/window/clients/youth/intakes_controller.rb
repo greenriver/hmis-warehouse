@@ -27,11 +27,13 @@ module Window::Clients::Youth
 
     def new
       new_source = if @client.youth_intakes.merge(intake_scope).exists?
-        @client.youth_intakes.merge(intake_scope).order(updated_at: :desc).first
+        @client.youth_intakes.merge(intake_scope).order(updated_at: :desc).first.dup
       else
         intake_source.new
       end
       @intake = new_source
+      @intake.id = nil
+      @intake.exit_date = nil
       @intake.staff_name = current_user.name
       @intake.staff_email = current_user.email
       @intake.engagement_date = Date.today

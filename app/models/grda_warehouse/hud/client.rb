@@ -1827,6 +1827,16 @@ module GrdaWarehouse::Hud
       # CAS activity
       GrdaWarehouse::CasAvailability.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # Youth Intakes
+      GrdaWarehouse::YouthIntake::Base.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::DirectFinancialAssistance.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::YouthCaseManagement.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
