@@ -1,12 +1,9 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
 = link_to "answers", answers_project_data_quality_report_path(@project, @report)
-.row
-  .col-sm-3
-    %p a column
-  .col-sm-3
-    %p a second column
 
+%h3 Overview
+= render 'data_quality_reports/version_three/overview'
 
 %h3 Bed Utilization
 = render 'data_quality_reports/version_three/bed_utilization_description'
