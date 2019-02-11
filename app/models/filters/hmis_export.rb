@@ -87,16 +87,16 @@ module Filters
 
     def adjust_reporting_period
       case reporting_range
-        when :fixed
+        when 'fixed'
           return
-        when :n_days
+        when 'n_days'
           @end_date = Date.today
           @start_date = end_date - reporting_range_days.days
-        when :month
+        when 'month'
           last_month = Date.today.last_month
           @end_date = last_month.end_of_month
           @start_date = last_month.beginning_of_month
-        when :year
+        when 'year'
           last_year = Date.today.last_year
           @end_date = last_year.end_of_year
           @start_date = last_year.beginning_of_year
