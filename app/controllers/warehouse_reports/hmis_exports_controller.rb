@@ -2,7 +2,7 @@ module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
-    before_action :set_export, only: [:show, :destroy]
+    before_action :set_export, only: [:show, :destroy, :cancel]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_exports, only: [:index, :running, :create]
 
@@ -57,15 +57,21 @@ module WarehouseReports
     end
 
     def cancel
-      report_id = params[:id].to_i
-      recurring_export_source.find_by(hmis_export_id: report_id).destroy
-      redirect_to :index
+      if can_cancel? @export
+        recurring_export_source.find_by(hmis_export_id: @export.id).destroy
+      end
+      redirect_to warehouse_reports_hmis_exports_path
     end
 
     def recurring?(report)
       recurring_export_source.where(hmis_export_id: report.id).exists?
     end
     helper_method :recurring?
+
+    def can_cancel?(report)
+      report.user_id == current_user.id || can_view_all_reports?
+    end
+    helper_method :can_cancel?
 
     def set_export
       @export = export_source.find(params[:id].to_i)
