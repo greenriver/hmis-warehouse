@@ -111,6 +111,7 @@ class DataSourcesController < ApplicationController
           :geocode_override,
           :geography_type_override,
           :confidential,
+          :after_create_path,
         ]
       )
   end
@@ -124,6 +125,7 @@ class DataSourcesController < ApplicationController
         :source_type,
         :visible_in_window,
         :authoritative,
+        :after_create_path,
       )
   end
 

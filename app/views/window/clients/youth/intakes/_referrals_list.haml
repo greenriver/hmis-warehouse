@@ -1,0 +1,29 @@
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header Referrals
+  .c-card__content.c-card__content--flush
+    = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
+      - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
+        .youth-intake__add-referral.ma-3
+          = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:select2, :jOtherTrigger] }
+          .jOther.hidden
+            = f.input :other
+          .d-flex
+            = f.input :referred_on, as: :date_picker, label: 'On'
+            %button.btn.btn-primary.ml-2.mt-no-label.mb-auto
+              %i.icon-plus
+              Add
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Date
+            %th Referral
+            %th
+        %tbody
+          - @youth_referrals.ordered.each do |referral|
+            %tr
+              %td.nobr= referral.referred_on
+              %td= referral.referred_to
+              %td
+                = link_to polymorphic_path(youth_referral_path_generator, id: referral.id), method: :delete, data: {confirm: 'Deleting this referral will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                  %i.icon-cross
