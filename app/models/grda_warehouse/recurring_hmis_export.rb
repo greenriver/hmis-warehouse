@@ -19,6 +19,7 @@ module GrdaWarehouse
 
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
+      adjust_reporting_period(filter)
       ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json,
         report_url: nil)
     end

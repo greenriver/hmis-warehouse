@@ -85,6 +85,30 @@ module Filters
         pluck(p_t[:id].as('project_id').to_sql)
     end
 
+
+    FIXED_DATES = 1
+    N_DAYS_BEFORE = 2
+    MONTH_PRIOR = 3
+    YEAR_PRIOR = 4
+
+    def adjust_reporting_period
+      case reporting_range
+        when FIXED_DATES
+          return
+        when N_DAYS_BEFORE
+          @end_date = Date.today
+          @start_date = end_date - reporting_range_days.days
+        when MONTH_PRIOR
+          last_month = Date.today.last_month
+          @end_date = last_month.end_of_month
+          @start_date = last_month.beginning_of_month
+        when YEAR_PRIOR
+          last_year = Date.today.last_year
+          @end_date = last_year.end_of_year
+          @start_date = last_year.beginning_of_year
+      end
+    end
+
     def all_project_ids
       GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
     end
