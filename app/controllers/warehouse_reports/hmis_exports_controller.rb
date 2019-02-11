@@ -58,7 +58,7 @@ module WarehouseReports
 
     def cancel
       report_id = params[:id].to_i
-      recurring_export_source.where(hmis_export_id: report_id).delete_all
+      recurring_export_source.find_by(hmis_export_id: report_id).destroy
       redirect_to :index
     end
 
