@@ -23,3 +23,5 @@ class App.DataQualityReports.UnitCensus extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+          tick:
+            rotate: 90

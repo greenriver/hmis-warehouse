@@ -1,16 +1,31 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
 = link_to "answers", answers_project_data_quality_report_path(@project, @report)
-%h3 Bed Census
-= render 'data_quality_reports/version_three/bed_census'
-%h3 Unit Census
-= render 'data_quality_reports/version_three/unit_census'
+.row
+  .col-sm-3
+    %p a column
+  .col-sm-3
+    %p a second column
+
+
+%h3 Bed Utilization
+= render 'data_quality_reports/version_three/bed_utilization_description'
+= render 'data_quality_reports/version_three/bed_utilization'
+
+%h3 Unit Utilization
+= render 'data_quality_reports/version_three/unit_utilization_description'
+= render 'data_quality_reports/version_three/unit_utilization'
+
 %h3 Completeness
+= render 'data_quality_reports/version_three/project_descriptor_completeness'
 = render 'data_quality_reports/version_three/completeness'
-%h3 Time in Program
-= render 'data_quality_reports/version_three/time_in_program'
-%h3 Time to Enter
-= render 'data_quality_reports/version_three/time_to_enter'
+
+
+%h3 Timelineness
+= render 'data_quality_reports/version_three/timeliness'
+
+%h3 Outcomes
+= render 'data_quality_reports/version_three/outcomes'
 
 
 = content_for :page_js do
@@ -30,12 +45,16 @@
         '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
         completeness.build_chart();
 
-        let time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
-        '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
-        time_in_program.build_chart();
-
         let time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_entry")}');
         time_to_enter.build_chart();
+
+        let time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_exit")}');
+        time_to_exit.build_chart();
+
+        let time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
+        time_in_program.build_chart();
       });
     })(jQuery);

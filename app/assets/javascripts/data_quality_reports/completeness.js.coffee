@@ -4,7 +4,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   _format_data: (data) ->
     # fake data
     {
-      labels: ["FirstName", "LastName", "DOB", "SSN", "Race", "Ethnicity", "Gender", "VeteranStatus", "DisablingCondition", "Living Situation", "Income At Entry", "Income At Exit", "Destination"],
+      labels: ["First Name", "Last Name", "DOB", "SSN", "Race", "Ethnicity", "Gender", "Veteran Status", "Disabling Condition", "Living Situation", "Income At Entry", "Income At Exit", "Destination"],
       data: {
         "Complete": [100, 100, 100, 85.72, 94.29, 100, 100, 100, 97.14, 100, 100, 100, 100],
         "Anonymous": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -35,6 +35,8 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+          tick:
+            rotate: 60
       grid:
         y:
           lines:

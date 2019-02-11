@@ -1,13 +1,13 @@
 #= require ./namespace
 
-class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
+class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
   _format_data: (data) ->
     # fake data
     {
       labels: ["Goal", "This Program"],
       data: {
-        'Project Name 1': [14, 4],
-        'Project Name 2': [14, 2],
+        'Project Name 1': [14, 5],
+        'Project Name 2': [14, 1],
         'Average': [0, 3],
       },
     }

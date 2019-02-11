@@ -23,3 +23,5 @@ class App.DataQualityReports.BedCensus extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+          tick:
+            rotate: 90
