@@ -182,6 +182,9 @@ Rails.application.routes.draw do
       collection do
         get :running
       end
+      member do
+        delete :cancel
+      end
     end
     resources :hashed_only_hmis_exports, except: [:edit, :update, :new] do
       collection do

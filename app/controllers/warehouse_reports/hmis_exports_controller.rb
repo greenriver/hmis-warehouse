@@ -2,7 +2,7 @@ module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
-    before_action :set_export, only: [:show, :destroy]
+    before_action :set_export, only: [:show, :destroy, :cancel]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_exports, only: [:index, :running, :create]
 
@@ -34,6 +34,11 @@ module WarehouseReports
     def create
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
+        frequency = recurrence_params[:every_n_days].to_i || 0
+        if frequency > 0
+          recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
+          @filter.recurring_hmis_export_id = recurring_export.id
+        end
         WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
         redirect_to warehouse_reports_hmis_exports_path
       else
@@ -51,12 +56,33 @@ module WarehouseReports
       send_data @export.content, filename: "HMIS_export_#{Time.now.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
+    def cancel
+      if can_cancel? @export
+        recurring_export_source.find_by(hmis_export_id: @export.id).destroy
+      end
+      redirect_to warehouse_reports_hmis_exports_path
+    end
+
+    def recurring?(report)
+      recurring_export_source.where(hmis_export_id: report.id).exists?
+    end
+    helper_method :recurring?
+
+    def can_cancel?(report)
+      report.user_id == current_user.id || can_view_all_reports?
+    end
+    helper_method :can_cancel?
+
     def set_export
       @export = export_source.find(params[:id].to_i)
     end
 
     def export_source
       GrdaWarehouse::HmisExport
+    end
+
+    def recurring_export_source
+      GrdaWarehouse::RecurringHmisExport
     end
 
     def export_scope
@@ -79,6 +105,24 @@ module WarehouseReports
         project_group_ids: [],
         organization_ids: [],
         data_source_ids: []
+      )
+    end
+
+    def recurrence_params
+      params.require(:filter).permit(
+          :start_date,
+          :end_date,
+          :hash_status,
+          :period_type,
+          :include_deleted,
+          :faked_pii,
+          :every_n_days,
+          :reporting_range,
+          :reporting_range_days,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: []
       )
     end
 

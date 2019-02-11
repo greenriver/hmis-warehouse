@@ -17,7 +17,12 @@ module WarehouseReports
         faked_pii: options[:faked_pii],
         user_id: options[:user_id]
       ).export!
-      NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
+      if recurring_hmis_export = recurring_hmis_export(options)
+        recurring_hmis_export.update(hmis_export_id: report.id)
+      end
+      if report_url.present?
+        NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
+      end
     end
 
     def log msg, underline: false
@@ -26,6 +31,10 @@ module WarehouseReports
       Rails.logger.info "="*msg.length if underline
     end
 
-
+    def recurring_hmis_export(options)
+      recurring_hmis_export = options[:recurring_hmis_export_id]
+      return nil if  recurring_hmis_export == 0
+      GrdaWarehouse::RecurringHmisExport.find(recurring_hmis_export)
+    end
   end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190204194825) do
+ActiveRecord::Schema.define(version: 20190211182446) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1976,6 +1976,27 @@ ActiveRecord::Schema.define(version: 20190204194825) do
   add_index "recent_service_history", ["id"], name: "id_rsh_index", unique: true, using: :btree
   add_index "recent_service_history", ["project_tracking_method"], name: "project_tracking_method_rsh_index", using: :btree
   add_index "recent_service_history", ["project_type"], name: "project_type_rsh_index", using: :btree
+
+  create_table "recurring_hmis_exports", force: :cascade do |t|
+    t.integer  "every_n_days"
+    t.string   "reporting_range"
+    t.integer  "reporting_range_days"
+    t.integer  "hmis_export_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "hash_status"
+    t.integer  "period_type"
+    t.integer  "directive"
+    t.boolean  "include_deleted"
+    t.integer  "user_id"
+    t.boolean  "faked_pii"
+    t.string   "project_ids"
+    t.string   "project_group_ids"
+    t.string   "organization_ids"
+    t.string   "data_source_ids"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "report_definitions", force: :cascade do |t|
     t.string  "report_group"
