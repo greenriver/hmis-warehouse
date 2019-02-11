@@ -10,7 +10,7 @@
         %i.icon-download2
         Download Claims File
     .col-sm-6
-      = f.submit "Upload Transaction Confirmation from #{@sender.receiver_name}", disabled: true, class: 'btn btn-secondary btn-sm ml-2'
+      = f.button :submit, "Upload Transaction Confirmation from #{@sender.receiver_name}", disabled: true, id: 'upload_button', class: 'btn btn-secondary btn-sm ml-2'
       .mt-2
         = f.input :content, as: :file, label: false
     .col-sm-3.text-right
@@ -20,6 +20,6 @@
 
 - content_for :page_js do
   :javascript
-    $(':file').on('change', function() {
-      $(':submit').prop('disabled', !$(this).val());
+    $('#health_transaction_acknowledgement_content').on('change', function() {
+      $('#upload_button').prop('disabled', !$(this).val());
     });
