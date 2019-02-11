@@ -1,0 +1,13 @@
+= render 'breadcrumbs'
+- content_for :title, "Youth Intake for #{@client.full_name}"
+
+.d-flex
+  %h1.page-title= content_for :title
+  .ml-auto
+    - if current_user.can_edit_youth_intake?
+      = link_to polymorphic_path([:edit] + youth_intake_path_generator, id: @intake.id), class: 'btn btn-primary' do
+        %i.icon-pencil
+        Edit
+
+= simple_form_for @intake, url: polymorphic_path(youth_intake_path_generator, id: @intake.id), wrapper: :readonly do |f|
+  = render 'intake_form', f: f, readonly: true
