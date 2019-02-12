@@ -5,6 +5,9 @@ module GrdaWarehouse
     serialize :organization_ids, Array
     serialize :data_source_ids, Array
 
+    attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'], attribute: 'encrypted_s3_secret'
+
     belongs_to :hmis_export
 
     def should_run?
