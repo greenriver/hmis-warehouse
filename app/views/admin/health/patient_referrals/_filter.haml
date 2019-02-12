@@ -24,14 +24,24 @@
             .o-filtration__option.row
               .col-sm-8
                 = f.input :added_before, as: :date_picker, required: false, wrapper_html: {class: 'mb-0'}
-            .o-filtration__option.row
-              .col-sm-12
-                = label_tag 'Known?'
-                .radio-button-buttons__container.mb-0
-                  - [['All', :all], ['Known', :claimed], ['Not known', :unclaimed]].each do |btn|
-                    = f.label :relationship, value: btn.last do
-                      = f.radio_button :relationship, btn.last
-                      %span= btn.first
+            - if @active_patient_referral_tab == 'rejected'
+              .o-filtration__option.row
+                .col-sm-12
+                  = label_tag :removal_acknowleged, "Removal acknowledged by #{@sender.receiver_name}?"
+                  .radio-button-buttons__container.mb-0
+                    - [['All', :all], ['Un-Acknowledged', :false], ['Acknowledged', :true]].each do |btn|
+                      = f.label :acknowledged_by_mass_health, value: btn.last do
+                        = f.radio_button :acknowledged_by_mass_health, btn.last
+                        %span= btn.first
+            - else
+              .o-filtration__option.row
+                .col-sm-12
+                  = label_tag 'Known?'
+                  .radio-button-buttons__container.mb-0
+                    - [['All', :all], ['Known', :claimed], ['Not known', :unclaimed]].each do |btn|
+                      = f.label :relationship, value: btn.last do
+                        = f.radio_button :relationship, btn.last
+                        %span= btn.first
             .o-filtration__option.row
               .col-sm-10
                 .form-group.mb-0
