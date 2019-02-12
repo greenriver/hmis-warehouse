@@ -38,10 +38,12 @@
           %td
             - case report.result
             - when 'accepted'
-              .health_claims__success
-                accepted
+              = link_to warehouse_reports_health_claim_url(report) do
+                .health_claims__success
+                  accepted
             - when 'rejected'
-              .health_claims__rejection
-                REJECTED
+              = link_to warehouse_reports_health_claim_url(report) do
+                .health_claims__rejection
+                  REJECTED
             - else
               = report.result

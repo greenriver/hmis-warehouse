@@ -294,6 +294,7 @@ Rails.application.routes.draw do
           post :revise
           post :submit
           post :acknowledge
+          get :details
         end
       end
       resources :patient_referrals, only: [:index] do

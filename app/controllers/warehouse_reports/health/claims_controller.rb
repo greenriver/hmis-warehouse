@@ -181,7 +181,6 @@ module WarehouseReports::Health
     # end
 
     def show
-
       respond_to do |format|
         format.text do
           date = @report.submitted_at || Date.today
