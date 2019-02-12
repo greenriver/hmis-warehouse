@@ -38,12 +38,10 @@
           %td
             - case report.result
             - when 'accepted'
-              = link_to warehouse_reports_health_claim_url(report) do
-                .health_claims__success
-                  accepted
+              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-success', data: { loads_in_pjax_modal: true } do
+                Accepted
             - when 'rejected'
-              = link_to warehouse_reports_health_claim_url(report) do
-                .health_claims__rejection
-                  REJECTED
+              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-danger', data: { loads_in_pjax_modal: true } do
+                REJECTED
             - else
               = report.result
