@@ -25,6 +25,10 @@ class AwsS3
       credentials: cred
     })
   end
+
+  def exists?
+    return @bucket.exists? rescue false
+  end
   
   def list(prefix: '')
     return @bucket.objects(prefix: prefix).limit(500).each do |obj|

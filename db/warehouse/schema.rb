@@ -1986,6 +1986,7 @@ ActiveRecord::Schema.define(version: 20190211212757) do
     t.datetime "updated_at"
     t.string   "s3_region"
     t.string   "s3_bucket"
+    t.string   "s3_prefix"
     t.string   "encrypted_s3_access_key_id"
     t.string   "encrypted_s3_access_key_id_iv"
     t.string   "encrypted_s3_secret"

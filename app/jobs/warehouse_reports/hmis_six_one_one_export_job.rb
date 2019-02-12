@@ -17,9 +17,14 @@ module WarehouseReports
         faked_pii: options[:faked_pii],
         user_id: options[:user_id]
       ).export!
+
       if recurring_hmis_export = recurring_hmis_export(options)
         recurring_hmis_export.update(hmis_export_id: report.id)
+        if recurring_hmis_export.s3_valid?
+          recurring_hmis_export.store(@report)
+        end
       end
+
       if report_url.present?
         NotifyUser.hmis_export_finished(options[:user_id], report.id, report_url: report_url).deliver_later
       end

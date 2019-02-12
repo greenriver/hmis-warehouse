@@ -20,6 +20,12 @@ module Filters
 
     attribute :recurring_hmis_export_id, Integer, default: 0
 
+    attribute :s3_access_key_id, String
+    attribute :s3_secret_access_key, String
+    attribute :s3_region, String
+    attribute :s3_bucket, String
+    attribute :s3_prefix, String
+
     validates_presence_of :start_date, :end_date
 
     validate do

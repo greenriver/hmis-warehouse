@@ -14,6 +14,23 @@
     = f.input :reporting_range_days, as: :numeric, disabled: true, label: '&nbsp;'.html_safe
   .col-sm-4
 
+.row
+  .col-sm-12
+    %h5 Storage
+    %p
+      If these fields are completed, the report will be written to the specified Amazon S3 bucket.
+.row
+  .col-sm-2
+    = f.input :s3_access_key_id, as: :password, label: 'S3 Access Key:'
+  .col-sm-2
+    = f.input :s3_secret_access_key, as: :password, label: 'S3 Secret Key:'
+  .col-sm-2
+    = f.input :s3_region, label: 'Region:'
+  .col-sm-2
+    = f.input :s3_bucket, label: "Bucket:"
+  .col-sm-4
+    = f.input :s3_prefix, label: "Object Name Prefix (may be blank);"
+
 = content_for :page_js do
   :javascript
     $('#filter_reporting_range').change(function () {

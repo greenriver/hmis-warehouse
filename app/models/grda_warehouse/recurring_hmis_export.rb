@@ -27,11 +27,37 @@ module GrdaWarehouse
         report_url: nil)
     end
 
+    def s3_valid?
+      return aws_S3.exists?
+    end
+
+    def store(report)
+      if s3_valid?
+        aws_s3.put(file_name: report.zip_path, prefix: file_prefix)
+      end
+    end
+
+    def file_prefix
+      prefix = ''
+      if s3_prefix.present?
+        prefix = "#{s3_prefix}-"
+      end
+      date = Date.today.strftime('%Y%m%d')
+      "#{date}-"
+    end
+
     def self.available_reporting_ranges
       { 'Dates specified above': 'fixed', '(n) days before run date': 'n_days', 'Month prior to run date': 'month', 'Year prior to run date': 'year' }
     end
 
     validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
+
+    def aws_s3
+      @awsS3 ||= AwsS3.new(region: s3_region,
+          bucket_name: s3_bucket,
+          access_key_id: s3_access_key_id,
+          secret_access_key: s3_secret_access_key )
+    end
 
     def filter_hash
       hash = self.slice(
