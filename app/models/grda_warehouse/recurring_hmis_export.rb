@@ -28,7 +28,7 @@ module GrdaWarehouse
     end
 
     def s3_valid?
-      return aws_S3.exists?
+      return aws_s3.exists?
     end
 
     def store(report)
@@ -40,7 +40,7 @@ module GrdaWarehouse
     def file_prefix
       prefix = ''
       if s3_prefix.present?
-        prefix = "#{s3_prefix}-"
+        prefix = "#{s3_prefix.strip}-"
       end
       date = Date.today.strftime('%Y%m%d')
       "#{date}-"
@@ -53,10 +53,11 @@ module GrdaWarehouse
     validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
 
     def aws_s3
-      @awsS3 ||= AwsS3.new(region: s3_region,
-          bucket_name: s3_bucket,
-          access_key_id: s3_access_key_id,
-          secret_access_key: s3_secret_access_key )
+      @awsS3 ||= AwsS3.new(region: s3_region.strip,
+          bucket_name: s3_bucket.strip,
+          access_key_id: s3_access_key_id.strip,
+          secret_access_key: s3_secret_access_key.strip )
+      @awsS3
     end
 
     def filter_hash
