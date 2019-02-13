@@ -10,6 +10,14 @@ class TransactionAcknowledgementFileUploader < CarrierWave::Uploader::Base
   # Choose what kind of storage to use for this uploader:
   storage :file
 
+  # Override the directory where uploaded files will be stored.
+  def store_dir
+    "#{Rails.root}/tmp/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
+  end
+  def cache_dir
+    "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
+  end
+
   process :extract_file_metadata!
 
 
