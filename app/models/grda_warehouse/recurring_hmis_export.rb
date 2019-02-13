@@ -22,7 +22,7 @@ module GrdaWarehouse
 
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
-      adjust_reporting_period(filter)
+      filter.adjust_reporting_period
       ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json,
         report_url: nil)
     end
@@ -33,17 +33,17 @@ module GrdaWarehouse
 
     def store(report)
       if s3_valid?
-        aws_s3.put(file_name: report.zip_path, prefix: file_prefix)
+        aws_s3.store(content: report.content, name: object_name(report))
       end
     end
 
-    def file_prefix
+    def object_name(report)
       prefix = ''
       if s3_prefix.present?
         prefix = "#{s3_prefix.strip}-"
       end
       date = Date.today.strftime('%Y%m%d')
-      "#{date}-"
+      "#{prefix}#{date}-#{report.export_id}.zip"
     end
 
     def self.available_reporting_ranges
@@ -74,6 +74,9 @@ module GrdaWarehouse
         :data_source_ids,
         :user_id,
         :faked_pii,
+
+        :reporting_range,
+        :reporting_range_days,
       )
       hash[:recurring_hmis_export_id] = self.id
       return hash

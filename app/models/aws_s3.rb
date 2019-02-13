@@ -56,5 +56,10 @@ class AwsS3
     name = "#{prefix}/#{File.basename(file_name)}"
     obj = @bucket.object(name)
     obj.upload_file(file_name, server_side_encryption: 'AES256')
-  end 
+  end
+
+  def store(content:, name:)
+    obj = @bucket.object(name)
+    obj.put(body: content, server_side_encryption: 'AES256')
+  end
 end

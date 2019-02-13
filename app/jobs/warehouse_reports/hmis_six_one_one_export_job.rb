@@ -21,7 +21,7 @@ module WarehouseReports
       if recurring_hmis_export = recurring_hmis_export(options)
         recurring_hmis_export.update(hmis_export_id: report.id)
         if recurring_hmis_export.s3_valid?
-          recurring_hmis_export.store(@report)
+          recurring_hmis_export.store(report)
         end
       end
 
