@@ -619,7 +619,65 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
+      json_shape = {}
+      projects.each do |project|
+        name = project.name
+        data = answers[:project_missing][project.id]
+        json_shape[name] = {
+            labels: self.class.completeness_field_names.values,
+            data: {
+                "Complete": completeness_percentages(data),
+                "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
+                "No Exit Interview Completed": Array.new(self.class.completeness_field_names.values.size, 0),
+                "Don't Know / Refused": missing_or_dont_know_percentages(data),
+                "Missing / Null": incompleteness_percentages('missing', data),
+            }
+        }
+      end
+
+      answers = { project_missing: json_shape }
+
       add_answers(answers, support)
+    end
+
+    def self.completeness_field_names
+      {
+          first_name: "First Name",
+          last_name: "Last Name",
+          dob: "DOB",
+          ssn: "SSN",
+          race: "Race",
+          ethnicity: "Ethnicity",
+          gender: "Gender",
+          veteran: "Veteran Status",
+          disabling_condition: "Disabling Condition",
+          prior_living_situation: "Living Situation",
+          income_at_entry: "Income At Entry",
+          income_at_exit: "Income At Exit",
+          destination: "Destination",
+      }
+    end
+
+    def completeness_percentages(data)
+      result = Vector::elements(Array.new(self.class.completeness_field_names.values.size, 100))
+      result -= Vector::elements(incompleteness_percentages('missing', data))
+      result -= Vector::elements(incompleteness_percentages('refused', data))
+      result -= Vector::elements(incompleteness_percentages('unknown', data))
+      return result.to_a
+    end
+
+    def missing_or_dont_know_percentages(data)
+      result = Vector::elements(incompleteness_percentages('refused', data))
+      result += Vector::elements(incompleteness_percentages('unknown', data))
+      return result.to_a
+    end
+
+    def incompleteness_percentages(prefix, data)
+      result = []
+      self.class.completeness_field_names.keys.each do |key|
+        result << data["#{prefix}_#{key}_percentage"]
+      end
+      return result
     end
 
     def add_households

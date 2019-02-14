@@ -2,16 +2,9 @@
 
 class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   _format_data: (data) ->
-    # fake data
     {
-      labels: ["First Name", "Last Name", "DOB", "SSN", "Race", "Ethnicity", "Gender", "Veteran Status", "Disabling Condition", "Living Situation", "Income At Entry", "Income At Exit", "Destination"],
-      data: {
-        "Complete": [100, 100, 100, 85.72, 94.29, 100, 100, 100, 97.14, 100, 100, 100, 100],
-        "Anonymous": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "No Exit Interview Completed": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "Don't Know / Refused": [0, 0, 0, 5.71, 5.71, 0, 0, 0, 2.86, 0, 0, 0, 0],
-        'Missing / Null': [0, 0, 0, 8.57, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      },
+      labels: data.labels,
+      data: data.data,
       order: "asc",
       groups: [
         [
@@ -23,8 +16,6 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         ]
       ]
     }
-    # live data
-#    data
 
 
   _build_chart: ->

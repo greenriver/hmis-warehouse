@@ -26,6 +26,16 @@
 
 
 = content_for :page_js do
+  - @report.report['project_missing'].keys.each_with_index do |project, index|
+    :javascript
+      (function($) {
+        let url = '#{answers_project_data_quality_report_path(@project, @report)}'
+        $.get(url, function(data){
+          let completeness_#{index} = new App.DataQualityReports.Completeness(data['project_missing']['#{project}'], '.completeness-chart-#{index}',
+          '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
+          completeness_#{index}.build_chart();
+        });
+      })(jQuery);
   :javascript
     (function($) {
       let url = '#{answers_project_data_quality_report_path(@project, @report)}'
@@ -37,10 +47,6 @@
         let unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "unit_utilization")}');
         unit_census.build_chart();
-
-        let completeness = new App.DataQualityReports.Completeness(data['project_missing'], '.completeness-chart', 
-        '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
-        completeness.build_chart();
 
         let time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_entry")}');
