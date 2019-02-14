@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190211182446) do
+ActiveRecord::Schema.define(version: 20190211212757) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2004,7 +2004,17 @@ ActiveRecord::Schema.define(version: 20190211182446) do
     t.string   "data_source_ids"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "s3_region"
+    t.string   "s3_bucket"
+    t.string   "s3_prefix"
+    t.string   "encrypted_s3_access_key_id"
+    t.string   "encrypted_s3_access_key_id_iv"
+    t.string   "encrypted_s3_secret"
+    t.string   "encrypted_s3_secret_iv"
   end
+
+  add_index "recurring_hmis_exports", ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true, using: :btree
+  add_index "recurring_hmis_exports", ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true, using: :btree
 
   create_table "report_definitions", force: :cascade do |t|
     t.string  "report_group"
