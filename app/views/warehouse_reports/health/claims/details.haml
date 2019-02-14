@@ -1,0 +1,24 @@
+= content_for :modal_title do
+  = "#{@ta.transaction_result} Claim Details"
+
+%table.compact
+  %tr
+    - @ta.transaction_counts.keys.each do |k|
+      %th.text-center
+        = k
+  %tr
+    - @ta.transaction_counts.values.each do |v|
+      %td.text-center
+        = v
+
+
+- errors = @ta.error_messages
+  - if errors.present?
+  %h4
+    Error Reasons
+
+  - errors.each do |m|
+    %p
+      = m
+
+%button.btn.btn-secondary.pull-right(aria-label="Close" pjax-modal-close type="button") Close

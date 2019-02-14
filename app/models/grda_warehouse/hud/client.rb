@@ -1603,7 +1603,7 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      source_enrollments.
+      addresses_from_enrollments = source_enrollments.
         any_address.
         order(EntryDate: :desc).
         preload(:client).
@@ -1615,13 +1615,29 @@ module GrdaWarehouse::Hud
             label: seen_addresses[enrollment.address] ||= labels.shift,
             city: enrollment.LastPermanentCity,
             state: enrollment.LastPermanentState,
-            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0'),
           }
           if lat_lon.present?
             address.merge!(lat_lon)
           end
           address
       end
+
+      addresses_from_hmis_clients = source_hmis_clients.map do |hmis_client|
+        lat_lon = hmis_client.address_lat_lon
+        next unless lat_lon.present?
+        address = {
+          year: 'Unknown',
+          client_id: hmis_client.client_id,
+          label: seen_addresses[hmis_client.last_permanent_zip] ||= labels.shift,
+          city: '',
+          state: '',
+          zip: hmis_client.last_permanent_zip.try(:rjust, 5, '0'),
+        }
+        address.merge!(lat_lon)
+        address
+      end.compact
+      Array.wrap(addresses_from_enrollments) + Array.wrap(addresses_from_hmis_clients)
     end
 
     # takes an array of tags representing the types of documents needed to be document ready
