@@ -39,7 +39,8 @@ module WarehouseReports
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
           @filter.recurring_hmis_export_id = recurring_export.id
         end
-        if recurring_export && ! recurring_export.s3_valid?
+        @filter.adjust_reporting_period
+        if recurring_export && recurring_export.s3_present? && ! recurring_export.s3_valid?
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
@@ -105,7 +106,12 @@ module WarehouseReports
         :hash_status,
         :period_type,
         :include_deleted,
+        :directive,
         :faked_pii,
+        :reporting_range,
+        :reporting_range_days,
+        :reporting_range,
+        :reporting_range_days,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],

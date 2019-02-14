@@ -27,8 +27,12 @@ module GrdaWarehouse
         report_url: nil)
     end
 
+    def s3_present?
+      s3_region.present? && s3_bucket.present? && s3_access_key_id.present? && s3_secret_access_key.present?
+    end
+
     def s3_valid?
-      return aws_s3.exists?
+      return aws_s3.present?
     end
 
     def store(report)
@@ -53,12 +57,33 @@ module GrdaWarehouse
     validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
 
     def aws_s3
+      return nil unless s3_present?
       @awsS3 ||= AwsS3.new(region: s3_region.strip,
           bucket_name: s3_bucket.strip,
           access_key_id: s3_access_key_id.strip,
           secret_access_key: s3_secret_access_key.strip )
-      @awsS3
     end
+
+    def self.available_s3_regions
+      [
+        'us-east-1',
+        'us-east-2',
+        'us-west-1',
+        'us-west-2',
+        'ap-northeast-1',
+        'ap-northeast-2',
+        'ap-south-1',
+        'ap-southeast-1',
+        'ap-southeast-2',
+        'ca-central-1',
+        'eu-central-1',
+        'eu-west-1',
+        'eu-west-2',
+        'eu-west-3',
+        'sa-east-1',
+      ]
+    end
+        
 
     def filter_hash
       hash = self.slice(
@@ -81,5 +106,6 @@ module GrdaWarehouse
       hash[:recurring_hmis_export_id] = self.id
       return hash
     end
+
   end
 end
