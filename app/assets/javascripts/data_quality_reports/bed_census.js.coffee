@@ -1,9 +1,6 @@
 #= require ./namespace
 
 class App.DataQualityReports.BedCensus extends App.DataQualityReports.Base
-
-
-
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
