@@ -1046,6 +1046,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             counts: data[attr]
           }
         end
+        counts.select do |key, value|
+          if key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+            totals[:counts][key] += value
+          end
+        end
 
         bed_utilization << project_counts
 
@@ -1058,9 +1063,30 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         }
       end
 
+      json_shape = {
+          labels: bed_utilization.first.select do |key, _|
+            key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+          end.keys,
+          data: begin
+            data_map = {}
+            bed_utilization.each do |project|
+              project_name = project[:name]
+              data_map[project_name] = project.select do |key, _|
+                key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+              end.values
+            end
+            if data_map.size > 1
+              data_map['Total'] = totals[:counts].select do |key, _|
+                 key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+              end.values
+            end
+            data_map
+          end
+      }
+
       add_answers(
         {
-          bed_utilization: bed_utilization,
+          bed_utilization: json_shape,
           bed_utilization_totals: totals,
         },
         support
