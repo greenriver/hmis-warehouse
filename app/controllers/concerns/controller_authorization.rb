@@ -42,6 +42,16 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_access_youth_intake_list!
+    return true if GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
+    not_authorized!
+  end
+
+  def require_can_edit_some_youth_intakes!
+    return true if GrdaWarehouse::YouthIntake::Base.any_modifiable_by?(current_user)
+    not_authorized!
+  end
+
   def require_can_edit_window_client_notes_or_own_window_client_notes!
     return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes?
     not_authorized!

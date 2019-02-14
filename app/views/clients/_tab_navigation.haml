@@ -33,6 +33,10 @@
         title: 'VI-SPDAT',
         permission: can_view_vspdat?
       },
+      polymorphic_path(youth_intakes_path_generator, client_id: @client.id) => {
+        title: 'Youth Intakes',
+        permission: GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
+      },
       polymorphic_path(files_path_generator, client_id: @client.id) => {
         title: 'Files',
         permission: can_manage_client_files?,

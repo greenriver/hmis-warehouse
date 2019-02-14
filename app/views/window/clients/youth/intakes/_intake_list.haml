@@ -1,0 +1,23 @@
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header Youth Intakes
+    - if current_user.can_edit_youth_intake? && ! @intakes.ongoing.exists?
+      = link_to polymorphic_path([:new] + youth_intake_path_generator), class: 'btn btn-secondary btn-sm ml-auto' do
+        %i.icon-plus
+        Start Intake
+  .c-card__content.c-card__content--flush
+    - if @intakes.present?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Engagement Date
+            %th Exit Date
+        %tbody
+          - @intakes.ordered.each do |intake|
+            %tr
+              %td.nobr
+                = link_to polymorphic_path(youth_intake_path_generator, id: intake.id) do
+                  = intake.engagement_date
+              %td= intake.exit_date
+    - else
+      %p.pt-2.text-center None on file

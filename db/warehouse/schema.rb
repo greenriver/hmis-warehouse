@@ -17,7 +17,6 @@ ActiveRecord::Schema.define(version: 20190204194825) do
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
   enable_extension "pgcrypto"
-  enable_extension "pg_stat_statements"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -117,7 +116,6 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.integer  "required_number_of_bedrooms",                        default: 1
     t.integer  "required_minimum_occupancy",                         default: 1
     t.boolean  "requires_elevator_access",                           default: false
-    t.jsonb    "neighborhood_interests",                             default: [],    null: false
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -836,19 +834,6 @@ ActiveRecord::Schema.define(version: 20190204194825) do
   add_index "cas_availabilities", ["client_id"], name: "index_cas_availabilities_on_client_id", using: :btree
   add_index "cas_availabilities", ["unavailable_at"], name: "index_cas_availabilities_on_unavailable_at", using: :btree
 
-  create_table "cas_enrollments", force: :cascade do |t|
-    t.integer  "client_id"
-    t.integer  "enrollment_id"
-    t.date     "entry_date"
-    t.date     "exit_date"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
-    t.json     "history"
-  end
-
-  add_index "cas_enrollments", ["client_id"], name: "index_cas_enrollments_on_client_id", using: :btree
-  add_index "cas_enrollments", ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id", using: :btree
-
   create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id",                     null: false
     t.integer "cas_client_id",                 null: false
@@ -1069,7 +1054,7 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.boolean  "sif_eligible",                                               default: false
+    t.string   "sif_eligible"
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -1079,7 +1064,7 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.boolean  "vash_eligible",                                              default: false
+    t.string   "vash_eligible"
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
@@ -1569,6 +1554,15 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.boolean "head_of_household",                           default: false, null: false
   end
 
+  add_index "new_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
+  add_index "new_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
+  add_index "new_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
+  add_index "new_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
+  add_index "new_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
+  add_index "new_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
+  add_index "new_service_history", ["first_date_in_program"], name: "index_new_service_history_on_first_date_in_program", using: :brin
+  add_index "new_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
+
   create_table "nightly_census_by_project_clients", force: :cascade do |t|
     t.date     "date",                             null: false
     t.integer  "project_id",                       null: false
@@ -1829,15 +1823,15 @@ ActiveRecord::Schema.define(version: 20190204194825) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.string   "EnrollmentID",                                 limit: 50
+    t.string   "ProjectEntryID",                               limit: 50
     t.string   "PersonalID"
     t.string   "ProjectID",                                    limit: 50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
-    t.integer  "LivingSituation"
+    t.integer  "ResidencePrior"
     t.string   "OtherResidencePrior"
-    t.integer  "LengthOfStay"
+    t.integer  "ResidencePriorLengthOfStay"
     t.integer  "DisablingCondition"
     t.integer  "EntryFromStreetESSH"
     t.date     "DateToStreetESSH"
@@ -1849,7 +1843,7 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.integer  "HousingStatus"
     t.date     "DateOfEngagement"
     t.integer  "InPermanentHousing"
-    t.date     "MoveInDate"
+    t.date     "ResidentialMoveInDate"
     t.date     "DateOfPATHStatus"
     t.integer  "ClientEnrolledInPATH"
     t.integer  "ReasonNotEnrolled"
@@ -1861,7 +1855,7 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.string   "LastPermanentZIP",                             limit: 10
     t.integer  "AddressDataQuality"
     t.date     "DateOfBCPStatus"
-    t.integer  "EligibleForRHY"
+    t.integer  "FYSBYouth"
     t.integer  "ReasonNoServices"
     t.integer  "SexualOrientation"
     t.integer  "FormerWardChildWelfare"
@@ -1944,7 +1938,6 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.boolean  "roi_permission"
     t.string   "last_locality"
     t.string   "last_zipcode"
-    t.string   "source_hash"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -3143,6 +3136,7 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.integer "destination"
     t.string  "head_of_household_id",            limit: 50
     t.string  "household_id",                    limit: 50
+    t.string  "project_id",                      limit: 50
     t.string  "project_name",                    limit: 150
     t.integer "project_type"
     t.integer "project_tracking_method"
@@ -3163,18 +3157,20 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.boolean "individual_adult",                            default: false, null: false
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
-    t.string  "project_id",                      limit: 50
   end
 
-  add_index "warehouse_client_service_history", ["client_id", "record_type"], name: "index_sh_on_client_id", using: :btree
-  add_index "warehouse_client_service_history", ["computed_project_type", "record_type", "client_id"], name: "index_sh_on_computed_project_type", using: :btree
-  add_index "warehouse_client_service_history", ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_sh_ds_proj_org_r_type", using: :btree
-  add_index "warehouse_client_service_history", ["date", "household_id", "record_type"], name: "index_sh_on_household_id", using: :btree
-  add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
-  add_index "warehouse_client_service_history", ["enrollment_group_id", "project_tracking_method"], name: "index_sh__enrollment_id_track_meth", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program", "last_date_in_program", "record_type", "date"], name: "index_wsh_on_last_date_in_program", using: :btree
-  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :brin
-  add_index "warehouse_client_service_history", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_sh_date_ds_org_proj_proj_type", using: :btree
+  add_index "warehouse_client_service_history", ["client_id"], name: "index_service_history_on_client_id", using: :btree
+  add_index "warehouse_client_service_history", ["computed_project_type"], name: "index_warehouse_client_service_history_on_computed_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
+  add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
+  add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type", using: :btree
+  add_index "warehouse_client_service_history", ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id", using: :btree
+  add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["household_id"], name: "index_warehouse_client_service_history_on_household_id", using: :btree
+  add_index "warehouse_client_service_history", ["last_date_in_program"], name: "index_warehouse_client_service_history_on_last_date_in_program", using: :btree
+  add_index "warehouse_client_service_history", ["project_tracking_method"], name: "index_sh_tracking_method", using: :btree
+  add_index "warehouse_client_service_history", ["project_type"], name: "index_warehouse_client_service_history_on_project_type", using: :btree
+  add_index "warehouse_client_service_history", ["record_type"], name: "index_warehouse_client_service_history_on_record_type", using: :btree
 
   create_table "warehouse_clients", force: :cascade do |t|
     t.string   "id_in_source",    null: false
@@ -3217,13 +3213,13 @@ ActiveRecord::Schema.define(version: 20190204194825) do
     t.boolean  "enrolled_homeless_shelter"
     t.boolean  "enrolled_homeless_unsheltered"
     t.boolean  "enrolled_permanent_housing"
-    t.decimal  "eto_coordinated_entry_assessment_score"
+    t.integer  "eto_coordinated_entry_assessment_score"
     t.string   "household_members"
     t.string   "last_homeless_visit"
     t.jsonb    "open_enrollments"
     t.boolean  "rrh_desired"
-    t.decimal  "vispdat_priority_score"
-    t.decimal  "vispdat_score"
+    t.integer  "vispdat_priority_score"
+    t.integer  "vispdat_score"
     t.boolean  "active_in_cas_match",                    default: false
   end
 

@@ -1,0 +1,42 @@
+- if @active_filter
+  - filter_class = 'client__filter-active'
+- else
+  - filter_class = 'client__filter'
+
+.o-page__sort.sort-filter
+  .dropdown.o-filtration{class: filter_class}
+    %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
+      Filter
+      %span.caret
+    .o-filtration__container.dropdown-menu.dropdown-menu.options
+      .o-filtration__header
+        %h3.client__filter-header Filter Cohorts
+
+      = form_tag(nil, method: "get") do
+        -# preserve sort and search for filtering
+        - if params[:sort]
+          = hidden_field_tag :sort, params[:sort]
+        - if params[:direction]
+          = hidden_field_tag :direction, params[:direction]
+        - if params[:q]
+          = hidden_field_tag :q, params[:q]
+
+        .o-filtration__option
+          .checkbox
+            %label{for: :visible_on_dashboard}
+              %input#visible_on_dashboard.boolean.optional{name: :visible_on_dashboard, type: :checkbox, value: 1, checked: @visible_on_dashboard}
+              = _('Cohort is visible on Client dashboard')
+
+        .o-filtration__option
+          .checkbox
+            %label{for: :visible_in_cas}
+              %input#visible_in_cas.boolean.optional{name: :visible_in_cas, type: :checkbox, value: 1, checked: @visible_in_cas}
+              = _('Cohort is visible in CAS')
+
+        .o-filtration__actions.form__actions
+          = link_to cohorts_path, class:'btn btn-secondary' do
+            %span.icon-cross.icon-inline
+            Clear Filters
+          %button.btn.btn-primary.ml-auto{type: :submit}
+            %span.icon--filter.icon-inline.mr-1
+            Filter

@@ -40,6 +40,9 @@ module EtoApi::Tasks
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
+       
+      # 422 Zip Code of Last Permanant Address (HUD) - BPHC only
+      # 423 Zip Code Type (HUD) - BPHC only 
 
       # Loop over all items in the config
       api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
@@ -63,25 +66,29 @@ module EtoApi::Tasks
         @clients = load_candidates(type: :demographic)
         @clients.find_in_batches(batch_size: 10) do |clients|
           clients.each do |client|
-            found = fetch_demographics(client)
-            if found.present?
-              fetch_assessments(client)
-            end
-            if Time.now > @restart
-              Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
-              @api = nil
-              sleep(5)
-              @api = EtoApi::Detail.new(trace: @trace)
-              @api.connect
-              @restart = Time.now + @batch_time
-            end
-            if Time.now > @stop_time
-              current_hmis_clients = GrdaWarehouse::HmisClient.count
-              current_hmis_forms = GrdaWarehouse::HmisForm.count
-              msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
-              Rails.logger.info msg
-              notifier.ping msg if send_notifications
-              return
+            begin
+              found = fetch_demographics(client)
+              if found.present?
+                fetch_assessments(client)
+              end
+              if Time.now > @restart
+                Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
+                @api = nil
+                sleep(5)
+                @api = EtoApi::Detail.new(trace: @trace)
+                @api.connect
+                @restart = Time.now + @batch_time
+              end
+              if Time.now > @stop_time
+                current_hmis_clients = GrdaWarehouse::HmisClient.count
+                current_hmis_forms = GrdaWarehouse::HmisForm.count
+                msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
+                Rails.logger.info msg
+                notifier.ping msg if send_notifications
+                return
+              end
+            rescue Exception => e
+              raise "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
             end
           end
         end
@@ -128,7 +135,7 @@ module EtoApi::Tasks
 
         hmis_client.subject_id = api_response['SubjectID']
         hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
-        hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Conselor')
+        hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
 
         cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
         hmis_client.case_manager_name = cm.try(:[], 'EntityName')
@@ -141,6 +148,28 @@ module EtoApi::Tasks
         counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
         hmis_client.counselor_name = staff.try(:[], 'EntityName')
         hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
+
+        # This is only valid for Boston...
+        if @data_source_id == 3
+          hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
+          hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
+        else
+          hud_last_permanent_zip = nil
+          hud_last_permanent_zip_quality = nil
+        end
+        
+        hmis_client.processed_fields = {
+          consent_form_status: hmis_client.consent_form_status,
+          outreach_counselor_name: hmis_client.outreach_counselor_name,
+          case_manager_name: hmis_client.case_manager_name,
+          case_manager_attributes: hmis_client.case_manager_attributes,
+          assigned_staff_name: hmis_client.assigned_staff_name,
+          assigned_staff_attributes: hmis_client.assigned_staff_attributes,
+          counselor_name: hmis_client.counselor_name,
+          counselor_attributes: hmis_client.counselor_attributes,
+          hud_last_permanent_zip: hud_last_permanent_zip,
+          hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
+        }
 
         if hmis_client.changed?
           hmis_client.save
