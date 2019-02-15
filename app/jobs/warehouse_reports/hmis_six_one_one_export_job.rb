@@ -19,7 +19,7 @@ module WarehouseReports
       ).export!
 
       if recurring_hmis_export = recurring_hmis_export(options)
-        recurring_hmis_export.update(hmis_export_id: report.id)
+        GrdaWarehouse::RecurringHmisExportLink.create(hmis_export_id: report.id, recurring_hmis_export_id: recurring_hmis_export.id, exported_at: Date.today)
         if recurring_hmis_export.s3_valid?
           recurring_hmis_export.store(report)
         end

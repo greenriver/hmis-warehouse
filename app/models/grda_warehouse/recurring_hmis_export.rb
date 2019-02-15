@@ -8,12 +8,13 @@ module GrdaWarehouse
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY']
     attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'], attribute: 'encrypted_s3_secret'
 
-    belongs_to :hmis_export
+    has_many :recurring_hmis_export_links
+    has_many :hmis_exports, through: :recurring_hmis_export_links
 
     def should_run?
-      if hmis_export.present?
-        export_finished_on = hmis_export.updated_at.to_date
-        return Date.today - export_finished_on >= every_n_days
+      if hmis_exports.present?
+        last_export_finished_on = recurring_hmis_export_links.last.exported_at
+        return Date.today - last_export_finished_on >= every_n_days
       else
         # Don't re-run the export on the day it was requested
         return ! updated_at.today?

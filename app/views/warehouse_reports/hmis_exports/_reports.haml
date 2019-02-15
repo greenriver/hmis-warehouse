@@ -19,6 +19,6 @@
       = link_to warehouse_reports_hmis_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
         %i.icon-cross
     %td
-      - if recurring?(report) && can_cancel?(report)
+      - if report.recurring_hmis_export.present? && can_cancel?(report)
         = link_to cancel_warehouse_reports_hmis_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
           %i.icon-clock

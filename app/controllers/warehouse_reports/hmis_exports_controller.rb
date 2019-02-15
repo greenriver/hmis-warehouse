@@ -64,15 +64,10 @@ module WarehouseReports
 
     def cancel
       if can_cancel? @export
-        recurring_export_source.find_by(hmis_export_id: @export.id).destroy
+        @export.recurring_hmis_export.destroy
       end
       redirect_to warehouse_reports_hmis_exports_path
     end
-
-    def recurring?(report)
-      recurring_export_source.where(hmis_export_id: report.id).exists?
-    end
-    helper_method :recurring?
 
     def can_cancel?(report)
       report.user_id == current_user.id || can_view_all_reports?
@@ -89,6 +84,10 @@ module WarehouseReports
 
     def recurring_export_source
       GrdaWarehouse::RecurringHmisExport
+    end
+
+    def recurring_export_link_source
+      GrdaWarehouse::RecurringHmisExportLink
     end
 
     def export_scope

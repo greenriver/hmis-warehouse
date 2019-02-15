@@ -8,6 +8,9 @@ module GrdaWarehouse
 
     belongs_to :user, class_name: User.name
 
+    has_one :recurring_hmis_export_link
+    has_one :recurring_hmis_export, through: :recurring_hmis_export_link
+
     scope :ordered, -> do
       order(created_at: :desc)
     end
