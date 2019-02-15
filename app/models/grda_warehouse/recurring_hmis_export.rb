@@ -8,6 +8,8 @@ module GrdaWarehouse
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY']
     attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'], attribute: 'encrypted_s3_secret'
 
+    acts_as_paranoid
+
     has_many :recurring_hmis_export_links
     has_many :hmis_exports, through: :recurring_hmis_export_links
 

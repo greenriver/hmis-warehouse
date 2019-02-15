@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190215151428) do
+ActiveRecord::Schema.define(version: 20190215174811) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1997,6 +1997,7 @@ ActiveRecord::Schema.define(version: 20190215151428) do
     t.string   "encrypted_s3_access_key_id_iv"
     t.string   "encrypted_s3_secret"
     t.string   "encrypted_s3_secret_iv"
+    t.datetime "deleted_at"
   end
 
   add_index "recurring_hmis_exports", ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true, using: :btree
