@@ -178,12 +178,17 @@ module GrdaWarehouse::Tasks
 
     def choose_best_veteran_status dest_attr, source_clients
       # Get the best Veteran status (has 0/1, newest breaks the tie)
-      no_yes = [0, 1]
-      yes_no_vet_status_clients = source_clients.select{|sc| no_yes.include?(sc[:VeteranStatus])}
-      if !no_yes.include?(dest_attr[:VeteranStatus]) or yes_no_vet_status_clients.any?
-        yes_no_vet_status_clients = source_clients if yes_no_vet_status_clients.none? #if none have yes/no we consider them all in the sort test
-        dest_attr[:VeteranStatus] = yes_no_vet_status_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:VeteranStatus]
+      # As of 2/16/2019 calculate using if ever yes, override with verified_veteran_status == non_veteran
+      if dest_attr[:verified_veteran_status] == 'non_veteran'
+        dest_attr[:VeteranStatus] = 0
+      elsif source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
+        dest_attr[:VeteranStatus] = 1
+      else
+        dest_attr[:VeteranStatus] = source_clients.sort do |a, b| 
+          a[:DateUpdated] <=> b[:DateUpdated]
+        end.last[:VeteranStatus]
       end
+
       dest_attr
     end
 
