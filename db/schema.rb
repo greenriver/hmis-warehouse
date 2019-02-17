@@ -293,6 +293,8 @@ ActiveRecord::Schema.define(version: 20190129210815) do
     t.boolean  "can_view_youth_intake",                               default: false
     t.boolean  "can_edit_youth_intake",                               default: false
     t.boolean  "can_export_anonymous_hmis_data",                      default: false
+    t.boolean  "can_view_youth_intake",                               default: false
+    t.boolean  "can_edit_youth_intake",                               default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
