@@ -522,6 +522,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         totals["refused_#{word}"] = Set.new
         totals["unknown_#{word}"] = Set.new
       end
+      totals["no_interview_destination"] = Set.new
 
       projects.each do |project|
         counts = {}
@@ -530,6 +531,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           counts["refused_#{word}"] = Set.new
           counts["unknown_#{word}"] = Set.new
         end
+        counts["no_interview_destination"] = Set.new
+
         clients_in_project = clients_for_project(project.id)
         clients_in_project.each do |client|
           counts = add_missing_demo(client: client, counts: counts)
@@ -553,6 +556,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                   counts = add_missing_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                   counts = add_refused_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                   counts = add_unknown_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
+                  counts = add_no_interview_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                 end
               end
             end
@@ -627,8 +631,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             labels: self.class.completeness_field_names.values,
             data: {
                 "Complete": completeness_percentages(data),
-                "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
-                "No Exit Interview Completed": Array.new(self.class.completeness_field_names.values.size, 0),
+                # "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
+                "No Exit Interview Completed": no_interview_percentages(data),
                 "Don't Know / Refused": missing_or_dont_know_percentages(data),
                 "Missing / Null": incompleteness_percentages('missing', data),
             }
@@ -663,6 +667,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       result -= Vector::elements(incompleteness_percentages('missing', data))
       result -= Vector::elements(incompleteness_percentages('refused', data))
       result -= Vector::elements(incompleteness_percentages('unknown', data))
+      result -= Vector::elements(no_interview_percentages(data))
       return result.to_a
     end
 
@@ -676,6 +681,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       result = []
       self.class.completeness_field_names.keys.each do |key|
         result << data["#{prefix}_#{key}_percentage"]
+      end
+      return result
+    end
+
+    def no_interview_percentages(data)
+      result = []
+      self.class.completeness_field_names.keys.each do |key|
+        if key == :destination
+          result << data["no_interview_destination_percentage"]
+        else
+          result << 0
+        end
       end
       return result
     end
@@ -903,6 +920,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       return counts
     end
+
+    def add_no_interview_destinations client_id:, enrollment:, counts:
+      if no_exit_interview?(enrollment[:destination])
+        counts['no_interview_destination'] << columns_for_destination_support(enrollment)
+      end
+      return counts
+    end
+
+    def no_exit_interview?(value)
+      value.to_i == 30
+    end
+
 
     def add_missing_enrollment client_id:, enrollment:, counts:
       disabilities = disabilities_for_enrollment(enrollment)
