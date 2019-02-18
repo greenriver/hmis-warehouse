@@ -1474,6 +1474,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       answers = {
         total_clients: clients.size,
+        total_active_clients: active_clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
         total_households: households.size,
@@ -1516,6 +1517,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         total_clients: {
           headers: ['Client ID', 'First Name', 'Last Name'],
           counts: clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+        },
+        total_active_clients: {
+              headers: ['Client ID', 'First Name', 'Last Name'],
+              counts: active_clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
         },
         total_enterers: {
             headers: ['Client ID', 'First Name', 'Last Name'],
@@ -2095,6 +2100,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def filter
       @filter ||= ::Filters::DateRange.new(start: self.start, end: self.end)
+    end
+
+    def active_clients
+      @active_client ||= begin
+        service_history_enrollment_scope.
+          service_within_date_range(start_date: self.start, end_date: self.end).
+          joins(:client, :project).
+          where(Project: {id: project.id}).
+          distinct.
+          pluck(*client_columns.values).
+          map do |row|
+            Hash[client_columns.keys.zip(row)]
+        end
+      end
     end
 
     def enterers
