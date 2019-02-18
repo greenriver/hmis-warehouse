@@ -476,7 +476,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
 
       answers = {
-        enrolled_length_of_stay: json_shape
+        enrolled_length_of_stay: json_shape,
+        length_of_stay_totals: totals[:counts],
       }
       support = {}
       project_support.each do |project_id, buckets|
