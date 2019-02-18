@@ -9,7 +9,8 @@
 			.col-sm-6
 				%h4.title This Program
 				%hr
-				%h3 3 days
+				%h3
+					= "#{@report.report['average_timeliness_of_entry']['Average']} days"
 			.time-to-enter-chart.jChart
 				%p.jLoading Loading
 		.col-sm-6
@@ -21,6 +22,7 @@
 			.col-sm-6
 				%h4.title This Program
 				%hr
-				%h3  days
+				%h3
+					= "#{@report.report['average_timeliness_of_exit']['Average']} days"
 			.time-to-exit-chart.jChart
 				%p.jLoading Loading
