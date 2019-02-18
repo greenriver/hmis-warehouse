@@ -1296,31 +1296,56 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def add_data_timeliness
-      entry_timeliness = []
-      entry_timeliness_support = []
+      entry_timeliness = {}
+      entry_timeliness_support = {}
+      entry_total = 0
+      entry_count = 0
       entries.each do |client_id, enrollments|
         enrollments.each do |enrollment|
             service_date = enrollment[:first_date_in_program]
             record_date = enrollment[:creation_date].to_date
-            entry_timeliness << (record_date - service_date).to_i
-            entry_timeliness_support << [client_id, service_date, record_date]
+            timeliness = (record_date - service_date).to_i
+            entry_timeliness[enrollment[:project_name]] ||= []
+            entry_timeliness[enrollment[:project_name]] << timeliness
+            entry_total += timeliness
+            entry_count += 1
+            entry_timeliness_support[enrollment[:project_name]] ||= []
+            entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
         end
       end
-      exit_timeliness = []
-      exit_timeliness_support = []
+      exit_timeliness = {}
+      exit_timeliness_support = {}
+      exit_total = 0
+      exit_count = 0
       exits.each do |client_id, enrollments|
         enrollments.each do |enrollment|
           service_date = enrollment[:last_date_in_program]
           record_date = enrollment[:creation_date].to_date
-          exit_timeliness << (record_date - service_date).to_i
-          exit_timeliness_support << [client_id, service_date, record_date]
+          timeliness = (record_date - service_date).to_i
+          exit_timeliness[enrollment[:project_name]] ||= []
+          exit_timeliness[enrollment[:project_name]] << timeliness
+          exit_total += timeliness
+          exit_count += 1
+          exit_timeliness_support[enrollment[:project_name]] ||= []
+          exit_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
         end
       end
-      average_timeliness_of_entry = entry_timeliness.sum / entry_timeliness.size rescue 0
-      average_timeliness_of_exit = exit_timeliness.sum / exit_timeliness.size rescue 0
+
+      json_entry_shape = {}
+      entry_timeliness.keys.each do |project_name|
+        json_entry_shape[project_name] = entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0
+      end
+      json_entry_shape['Average'] = entry_total / entry_count rescue 0
+
+      json_exit_shape = {}
+      exit_timeliness.keys.each do |project_name|
+        json_exit_shape[project_name] = exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0
+      end
+      json_exit_shape['Average'] = exit_total / exit_count rescue 0
+
       add_answers({
-          average_timeliness_of_entry: average_timeliness_of_entry,
-          average_timeliness_of_exit: average_timeliness_of_exit,
+          average_timeliness_of_entry: json_entry_shape,
+          average_timeliness_of_exit: json_exit_shape,
         },
         {
           timeliness_of_entry: entry_timeliness_support,
