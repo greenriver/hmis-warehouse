@@ -8,16 +8,6 @@ class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
     return hash
 
   _format_data: (data) ->
-# fake data
-#    {
-#      labels: ["Goal", "This Program"],
-#      data: {
-#        'Project Name 1': [14, 4],
-#        'Project Name 2': [14, 2],
-#        'Average': [0, 3],
-#      },
-#    }
-# live data
     {
       labels: ["Goal", "This Program"],
       data: this._data_object(data)
