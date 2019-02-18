@@ -77,6 +77,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       information_dates = projects.flat_map do |project|
         project.inventories.map(&:InformationDate)
       end.uniq
+      start_dates = projects.map(&:OperatingStartDate).uniq
       coc_program_components = projects.map do |project|
         ::HUD.project_type(project.ProjectType)
       end
@@ -101,6 +102,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         geography_type: geography_types.join(', '),
         housing_type: housing_types.join(', '),
         information_date: information_dates.join(', '),
+        operating_start_date: start_dates.join(', '),
         monitoring_date_range: monitoring_ranges.join(', '),
         monitoring_date_range_present: monitoring_date_range_present,
         # funding_year: funder.operating_year,
