@@ -277,6 +277,10 @@ module GrdaWarehouse::Hud
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
     end
 
+    scope :verified_non_veteran, -> do
+      where verified_veteran_status: :non_veteran
+    end
+
     # Some aliases for our inconsistencies
     class << self
       alias_method :individual_adults, :individual_adult
@@ -1278,7 +1282,11 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      cas_columns.keys + [:housing_assistance_network_released_on, :vispdat_prioritization_days_homeless]
+      cas_columns.keys + [
+        :housing_assistance_network_released_on, 
+        :vispdat_prioritization_days_homeless, 
+        :verified_veteran_status
+      ]
     end
 
     def invalidate_service_history
@@ -1523,6 +1531,21 @@ module GrdaWarehouse::Hud
 
     def veteran?
       self.VeteranStatus == 1
+    end
+
+    def ever_veteran?
+      source_clients.map(&:veteran?).include?(true)
+    end
+
+    def adjust_veteran_status
+      self.VeteranStatus = if verified_veteran_status == 'non_veteran'
+        0
+      elsif ever_veteran?
+        1
+      else
+        source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
+      end
+      save()
     end
 
     # those columns that relate to race

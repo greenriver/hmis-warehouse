@@ -282,7 +282,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(destination_client.VeteranStatus).to eq(99)
     end
 
-    it 'only updates veteran status yes/no if some client is yes/no' do
+    it 'maintains the newest veteran status if there is no yes' do
       destination_client.update(VeteranStatus: @veteran)
       source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
       source_2.update({VeteranStatus: 8, DateUpdated: 2.days.ago})
@@ -292,10 +292,23 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
-      expect(destination_client.VeteranStatus).to eq(@veteran)
+      expect(destination_client.VeteranStatus).to eq(8)
     end
 
-    it "overwrites veteran status with the newest yes/no value" do
+    it 'sets to no when override is set, even if newer answer is yes' do
+      destination_client.update(VeteranStatus: @veteran, verified_veteran_status: :non_veteran)
+      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
+      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
+      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+      @cleanup.update_client_demographics_based_on_sources
+      destination_client.reload
+      expect(destination_client.VeteranStatus).to eq(@civilian)
+    end
+
+    it "maintains veteran status of yes, even when no is newer" do
       destination_client.update(VeteranStatus: @veteran)
       source_1.update({VeteranStatus: @civilian, DateUpdated: 1.day.ago})
       source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
@@ -305,7 +318,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
-      expect(destination_client.VeteranStatus).to eq(@civilian)
+      expect(destination_client.VeteranStatus).to eq(@veteran)
     end
 
     it "updates veteran status with the newest yes/no value" do
@@ -574,7 +587,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         map do |row|
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
-
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
@@ -615,7 +627,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       expect(99).to eq(@dest_attr[:VeteranStatus])
     end
 
-    it 'only updates veteran status yes/no if some client is yes/no' do
+    it 'maintains the newest veteran status if there is no yes' do
       @dest_attr[:VeteranStatus] = @veteran
       source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
       source_2.update({VeteranStatus: 8, DateUpdated: 2.days.ago})
@@ -625,10 +637,10 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@dest_attr[:VeteranStatus]).to eq(@veteran)
+      expect(@dest_attr[:VeteranStatus]).to eq(8)
     end
 
-    it "overwrites veteran status with the newest yes/no value" do
+    it "maintains veteran status of yes, even when no is newer" do
       @dest_attr[:VeteranStatus] = @veteran
       source_1.update({VeteranStatus: @civilian, DateUpdated: 1.day.ago})
       source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
@@ -638,7 +650,21 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
-      expect(@civilian).to eq(@dest_attr[:VeteranStatus])
+      expect(@veteran).to eq(@dest_attr[:VeteranStatus])
+    end
+
+    it 'sets to no when override is set, even if newer answer is yes' do
+      @dest_attr[:VeteranStatus] = @veteran
+      @dest_attr[:verified_veteran_status] = 'non_veteran'
+      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
+      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
+      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
+        map do |row|
+          Hash[@cleanup.client_columns.keys.zip(row)]
+        end
+
+      @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
+      expect(@dest_attr[:VeteranStatus]).to eq(@civilian)
     end
 
     it "updates veteran status with the newest yes/no value" do

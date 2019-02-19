@@ -23,6 +23,8 @@ module Clients
       if @client.update(update_params)
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
+        # Maintain the veteran status
+        @client.adjust_veteran_status
         
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later

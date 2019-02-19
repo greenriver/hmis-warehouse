@@ -1,0 +1,6 @@
+%section.o-section-card
+  %header
+    %h3 Veteran Status
+  .c-card.c-card--flush.c-card--padded.c-card--block
+    - ever_vet = if @client.ever_veteran? then 'Yes' else 'No' end
+    = f.input :verified_veteran_status, collection: [['Verified non-veteran', :non_veteran]], include_blank: "Use if ever responded yes. Currently: #{ ever_vet }", input_html: {class: :select2}

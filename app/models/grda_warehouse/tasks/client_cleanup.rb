@@ -178,12 +178,17 @@ module GrdaWarehouse::Tasks
 
     def choose_best_veteran_status dest_attr, source_clients
       # Get the best Veteran status (has 0/1, newest breaks the tie)
-      no_yes = [0, 1]
-      yes_no_vet_status_clients = source_clients.select{|sc| no_yes.include?(sc[:VeteranStatus])}
-      if !no_yes.include?(dest_attr[:VeteranStatus]) or yes_no_vet_status_clients.any?
-        yes_no_vet_status_clients = source_clients if yes_no_vet_status_clients.none? #if none have yes/no we consider them all in the sort test
-        dest_attr[:VeteranStatus] = yes_no_vet_status_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:VeteranStatus]
+      # As of 2/16/2019 calculate using if ever yes, override with verified_veteran_status == non_veteran
+      if dest_attr[:verified_veteran_status] == 'non_veteran'
+        dest_attr[:VeteranStatus] = 0
+      elsif source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
+        dest_attr[:VeteranStatus] = 1
+      else
+        dest_attr[:VeteranStatus] = source_clients.sort do |a, b| 
+          a[:DateUpdated] <=> b[:DateUpdated]
+        end.last[:VeteranStatus]
       end
+
       dest_attr
     end
 
@@ -285,17 +290,18 @@ module GrdaWarehouse::Tasks
 
     def client_columns 
       @client_columns ||= {
-        FirstName: c_t[:FirstName].as('FirstName').to_sql, 
-        LastName: c_t[:LastName].as('LastName').to_sql, 
-        SSN: c_t[:SSN].as('SSN').to_sql, 
-        DOB: c_t[:DOB].as('DOB').to_sql,
-        Gender: c_t[:Gender].as('Gender').to_sql,
-        VeteranStatus: c_t[:VeteranStatus].as('VeteranStatus').to_sql, 
-        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql, 
-        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql, 
-        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql, 
-        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
-        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
+        FirstName: c_t[:FirstName].to_sql, 
+        LastName: c_t[:LastName].to_sql, 
+        SSN: c_t[:SSN].to_sql, 
+        DOB: c_t[:DOB].to_sql,
+        Gender: c_t[:Gender].to_sql,
+        VeteranStatus: c_t[:VeteranStatus].to_sql,
+        verified_veteran_status: c_t[:verified_veteran_status].to_sql,
+        NameDataQuality: cl(c_t[:NameDataQuality], 99).to_sql, 
+        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).to_sql, 
+        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).to_sql, 
+        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).to_sql,
+        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).to_sql,
       }
     end
 
