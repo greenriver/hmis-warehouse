@@ -33,7 +33,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       # This shows up in ProgramParticipation.  No one has HousingStatusAtEntry = 5.  Only at exit
       
       # NOTE: Dependents do get flagged correctly as Category 3 if attached to a Head of Household
-      if start_report(Reports::SystemPerformance::Fy2017::MeasureSix.first)
+      if start_report(Reports::SystemPerformance::Fy2018::MeasureSix.first)
         set_report_start_and_end()
         # Overview: Returns to homelessness after exit to PH of clients defined by Category 3 (similar to Measure 2 with a smaller sub-set of clients)
         @answers = setup_questions()

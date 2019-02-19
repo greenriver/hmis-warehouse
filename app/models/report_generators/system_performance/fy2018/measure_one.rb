@@ -22,7 +22,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     end
 
     def calculate
-      if start_report(Reports::SystemPerformance::Fy2017::MeasureOne.first)
+      if start_report(Reports::SystemPerformance::Fy2018::MeasureOne.first)
         set_report_start_and_end()
         # Overview: Calculate the length of time each client has been homeless within a window
         # Column B is the distinct clients homeless

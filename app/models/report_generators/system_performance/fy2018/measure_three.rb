@@ -22,7 +22,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     private
    
     def calculate
-      if start_report(Reports::SystemPerformance::Fy2017::MeasureThree.first)
+      if start_report(Reports::SystemPerformance::Fy2018::MeasureThree.first)
         set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
         update_report_progress(percent: 0.01)

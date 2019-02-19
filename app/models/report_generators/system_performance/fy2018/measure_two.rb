@@ -23,7 +23,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     end
 
     def calculate
-      if start_report(Reports::SystemPerformance::Fy2017::MeasureTwo.first)
+      if start_report(Reports::SystemPerformance::Fy2018::MeasureTwo.first)
         set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
 
