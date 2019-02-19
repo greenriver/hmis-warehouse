@@ -57,7 +57,7 @@ namespace :reports do
       # r = Reports::SystemPerformance::Fy2017::MeasureSeven.where(name: 'HUD System Performance FY 2017 - Measure 7').first_or_create
       # r.update(weight: 7, report_results_summary: rs)
 
-      rs = ReportResultsSummaries::SystemPerformance::Fy2018.where(name: 'HUD System Performance FY 2017').first_or_create
+      rs = ReportResultsSummaries::SystemPerformance::Fy2018.where(name: 'HUD System Performance FY 2018').first_or_create
       rs.update(weight: 0)
 
       r = Reports::SystemPerformance::Fy2018::MeasureOne.where(name: 'HUD System Performance FY 2018 - Measure 1').first_or_create
