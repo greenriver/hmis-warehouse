@@ -3,17 +3,17 @@
 		.col-sm-4
 			%h4.title Bed Inventory
 			%hr
-			%h3
+			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
 			%p
 			%h4.title Average Daily Clients
 			%hr
-			%h3
+			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily']} beds"
 			%p
 			%h4.title Average Bed Utilization
 			%hr
-			%h3
+			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily_percentage']}%"
 
 		.col-sm-8
