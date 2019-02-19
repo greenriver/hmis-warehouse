@@ -587,7 +587,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         map do |row|
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
-
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
