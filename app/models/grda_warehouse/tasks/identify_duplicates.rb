@@ -143,7 +143,9 @@ module GrdaWarehouse::Tasks
       @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.
         pluck(:FirstName, :LastName, :SSN, :DOB, wc_t[:destination_id].to_sql).
         map do |first_name, last_name, ssn, dob, id|
-          [first_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), last_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), ssn, dob, id]
+          clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
+          clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
+          [clean_first_name, clean_last_name, ssn, dob, id]
         end
 
     end
