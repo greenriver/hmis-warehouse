@@ -6,7 +6,7 @@
       generated on the specified schedule. A recurring report can be configured to always cover the same date range,
       or a sliding range based on the date the report is run.
 .d-flex
-  = f.input :every_n_days, collection: (0..7), label: 'Run every (n) days', input_html: { class: 'jRecurringDays select2' }
+  = f.input :every_n_days, collection: (0..31), label: 'Run every (n) days', input_html: { class: 'jRecurringDays select2' }
   .jDependentRecurringFields.ml-4
     = f.input :reporting_range, collection: GrdaWarehouse::RecurringHmisExport.available_reporting_ranges, label: 'For period', selected: 'fixed', input_html: {class: 'jReportingRange select2', style: 'width: 250px;'}
   .jDependentRecurringFields.ml-4
