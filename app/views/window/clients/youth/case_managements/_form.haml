@@ -1,18 +1,20 @@
 
 = f.input :engaged_on, as: :date_picker, label: 'Engagement Date'
 = f.input :activity, label: 'Case Management Notes', as: :text, input_html: {rows: 10}
-= f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up"
-= f.input :other_housing_status, label: false, hidden: true
+= f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up", input_html: { class: [:select2, 'jHousingStatus'] }
+.jOtherHousingStatus
+  = f.input :other_housing_status, hidden: true
 
 - content_for :page_js do
   :javascript
     $(function() {
-      $('#entity_housing_status').change(function() {
-        if ($('#entity_housing_status').val() == "Other:") {
-          $('#entity_other_housing_status').show()
+      $('.select2').select2();
+      $('.jHousingStatus').change(function() {
+        if ($('.jHousingStatus').val() == "Other:") {
+          $('.jOtherHousingStatus').show()
         } else {
-          $('#entity_other_housing_status').hide()
+          $('.jOtherHousingStatus').hide()
         }
       });
-      $('#entity_housing_status').trigger('change')
+      $('.jHousingStatus').trigger('change')
     })
