@@ -35,7 +35,9 @@ module Importers::HMISSixOneOne
 
     def self.available_connections
       connections = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_s3.yml"))).result)[Rails.env]
-      connections.select{|_,conn| conn['access_key_id'].present?}
+      connections.select do |_,conn| 
+        conn['access_key_id'].present? && GrdaWarehouse::DataSource.where(id: conn['data_source_id'], import_paused: false).exists?
+      end
     end
 
     def import!

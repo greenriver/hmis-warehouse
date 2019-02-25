@@ -16,6 +16,8 @@
 
     = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually'
 
+    = f.input :import_paused, label: 'Pause imports for this data source?'
+
 
   .form-actions
     = f.button :submit, value: 'Create Data Source', class: 'btn btn-primary'

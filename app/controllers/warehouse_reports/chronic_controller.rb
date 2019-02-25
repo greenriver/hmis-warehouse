@@ -60,7 +60,7 @@ module WarehouseReports
         @counts = @counts.where(dmh: true)
       end
       if @filter.veteran
-        @counts = @counts.joins(:client).where(Client: {VeteranStatus: true})
+        @counts = @counts.joins(:client).where(Client: {VeteranStatus: 1})
       end
       @counts = @counts.group(:date).
         order(date: :asc).
