@@ -1987,11 +1987,16 @@ ActiveRecord::Schema.define(version: 20190225173734) do
   add_index "recent_service_history", ["project_tracking_method"], name: "project_tracking_method_rsh_index", using: :btree
   add_index "recent_service_history", ["project_type"], name: "project_type_rsh_index", using: :btree
 
+  create_table "recurring_hmis_export_links", force: :cascade do |t|
+    t.integer "hmis_export_id"
+    t.integer "recurring_hmis_export_id"
+    t.date    "exported_at"
+  end
+
   create_table "recurring_hmis_exports", force: :cascade do |t|
     t.integer  "every_n_days"
     t.string   "reporting_range"
     t.integer  "reporting_range_days"
-    t.integer  "hmis_export_id"
     t.date     "start_date"
     t.date     "end_date"
     t.integer  "hash_status"
@@ -2013,6 +2018,7 @@ ActiveRecord::Schema.define(version: 20190225173734) do
     t.string   "encrypted_s3_access_key_id_iv"
     t.string   "encrypted_s3_secret"
     t.string   "encrypted_s3_secret_iv"
+    t.datetime "deleted_at"
   end
 
   add_index "recurring_hmis_exports", ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true, using: :btree

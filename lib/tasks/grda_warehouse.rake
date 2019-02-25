@@ -304,4 +304,9 @@ namespace :grda_warehouse do
     GrdaWarehouse::Cohort.prepare_active_cohorts
   end
 
+  desc "Process Recurring HMIS Exports"
+  task process_recurring_hmis_exports: [:environment] do
+    GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
+  end
+
 end

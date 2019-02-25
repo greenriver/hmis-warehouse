@@ -85,6 +85,8 @@ GEM
       sshkit (>= 1.6.1, != 1.7.0)
     ansi (1.5.0)
     arel (6.0.4)
+    attr_encrypted (3.1.0)
+      encryptor (~> 3.0.0)
     attribute_normalizer (1.2.0)
     auto-session-timeout (0.9.5)
     autoprefixer-rails (9.4.9)
@@ -200,6 +202,7 @@ GEM
       dotenv (= 2.2.1)
       railties (>= 3.2, < 5.2)
     email_check (1.0.1)
+    encryptor (3.0.0)
     equalizer (0.0.11)
     erubis (2.7.0)
     exception_notification (4.2.1)
@@ -595,6 +598,7 @@ DEPENDENCIES
   activerecord-sqlserver-adapter
   acts-as-taggable-on (~> 4.0)
   after_commit_exception_notification
+  attr_encrypted (~> 3.1.0)
   attribute_normalizer
   auto-session-timeout
   autoprefixer-rails
@@ -718,4 +722,4 @@ DEPENDENCIES
   wkhtmltopdf-binary
 
 BUNDLED WITH
-   1.16.6
+   1.17.2
