@@ -15,6 +15,13 @@ class Role < ActiveRecord::Base
     where(health_role: false)
   end
 
+  def administrative?
+    Role.permissions_with_descriptions.each do |permission, description|
+      return true if description[:administrative] && self[permission]
+    end
+    false
+  end
+
   def self.permissions(exclude_health: false)
     perms = permissions_with_descriptions.keys
     perms += self.health_permissions unless exclude_health

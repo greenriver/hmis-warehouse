@@ -1,0 +1,25 @@
+= render 'breadcrumbs'
+%h1
+  Edit User Account:
+  = @user.name
+.well
+  %p
+    By adding the role
+    = @admin_role_name
+    to this account, you are granting the user administrative privileges. To confirm this change, please
+    enter your password below.
+
+  = simple_form_for [:admin, @user] do |f|
+    = f.error_notification
+
+    - request.POST[:user].each do | key, value |
+      - if value.is_a? Array
+        - value.each do |item|
+          = f.hidden_field key, multiple: true, value: item
+      - else
+        = f.hidden_field key, value: true
+
+    = f.input "password", as: :password
+
+    .form-actions.mt-4
+      = f.button :submit, class: 'btn btn-primary'

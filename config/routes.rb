@@ -543,6 +543,9 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      member do
+        post :confirm
+      end
     end
     resources :roles
     resources :glacier, only: [:index]

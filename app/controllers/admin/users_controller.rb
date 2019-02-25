@@ -29,8 +29,22 @@ module Admin
       @user = user_scope.find(params[:id].to_i)
     end
 
+    def confirm
+      @user = user_scope.find(params[:id].to_i)
+      if ! adding_admin?
+        update
+      end
+    end
+
     def update
       @user = user_scope.find(params[:id].to_i)
+      if adding_admin?
+        if ! current_user.valid_password?(user_params[:password])
+          flash[:error] = "User not updated. Incorrect password"
+          render :confirm
+          return
+        end
+      end
       existing_health_roles = @user.roles.health.to_a
       begin
         User.transaction do
@@ -68,6 +82,26 @@ module Admin
       'User List'
     end
 
+    private def adding_admin?
+      existing_roles = @user.user_roles
+      existing_roles.each do |role|
+        # User is already an admin, so we aren't adding anything
+        return false if role.administrative?
+      end
+
+      assigned_roles = user_params[:role_ids] || []
+      added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
+      added_role_ids.reject { |id| id.empty? }.each do |id|
+        role = Role.find(id.to_i)
+        if role.administrative?
+          @admin_role_name = role.role_name
+          return true
+        end
+      end
+      false
+    end
+    helper_method :adding_admin?
+
     private def user_scope
       User.active
     end
@@ -84,6 +118,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :password,
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
