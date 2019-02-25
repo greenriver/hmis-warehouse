@@ -27,6 +27,15 @@ module GrdaWarehouse::Youth
     end
 
 
+    def self.youth_housing_status_options
+      [
+          "This youth is currently in stable housing",
+          "This youth is not currently in stable housing",
+          "Unknown",
+          "Other:",
+      ]
+    end
+
     def self.available_activities
       [
         'Prevention ',

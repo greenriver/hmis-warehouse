@@ -42,6 +42,8 @@ module Window::Clients::Youth
       params.require(:entity).permit(
         :engaged_on,
         :activity,
+        :housing_status,
+        :other_housing_status,
       )
     end
 
