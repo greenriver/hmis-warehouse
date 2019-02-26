@@ -406,31 +406,33 @@ module ReportGenerators::SystemPerformance::Fy2018
       # Children may inherit living the living situation from their HoH
       hoh_client = children_without_living_situation(PH + TH)[client_id]
 
-      ph_th_hoh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          hud_project_type(PH + TH).
-          open_between(start_date: @report_start - 1.day, end_date: @report_end).
-          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-          where(she_t[:client_id].eq(hoh_client.first).and(she_t[:id].eq(hoh_client.last))).
-          joins(:enrollment).
-          where(
-              e_t[:LivingSituation].in(homeless_living_situations).
-                  or(
-                      e_t[:LivingSituation].in(institutional_living_situations).
-                          and(e_t[:LOSUnderThreshold].eq(1)).
-                          and(e_t[:PreviousStreetESSH].eq(1))
-                  ).
-                  or(
-                      e_t[:LivingSituation].in(housed_living_situations).
-                          and(e_t[:LOSUnderThreshold].eq(1)).
-                          and(e_t[:PreviousStreetESSH].eq(1))
-                  )
-          ).
-          distinct.
-          select(:client_id)
+      if hoh_client.present?
+        ph_th_hoh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            hud_project_type(PH + TH).
+            open_between(start_date: @report_start - 1.day, end_date: @report_end).
+            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+            where(she_t[:client_id].eq(hoh_client.first).and(she_t[:id].eq(hoh_client.last))).
+            joins(:enrollment).
+            where(
+                e_t[:LivingSituation].in(homeless_living_situations).
+                    or(
+                        e_t[:LivingSituation].in(institutional_living_situations).
+                            and(e_t[:LOSUnderThreshold].eq(1)).
+                            and(e_t[:PreviousStreetESSH].eq(1))
+                    ).
+                    or(
+                        e_t[:LivingSituation].in(housed_living_situations).
+                            and(e_t[:LOSUnderThreshold].eq(1)).
+                            and(e_t[:PreviousStreetESSH].eq(1))
+                    )
+            ).
+            distinct.
+            select(:client_id)
 
-      ph_th_hoh_client_ids = add_filters(scope: ph_th_hoh_scope).distinct.pluck(:client_id)
+        ph_th_hoh_client_ids = add_filters(scope: ph_th_hoh_scope).distinct.pluck(:client_id)
 
-      literally_homeless += client_id if ph_th_hoh_client_ids.present?
+        literally_homeless += client_id if ph_th_hoh_client_ids.present?
+      end
 
       literally_homeless.include?(client_id)
     end
@@ -470,7 +472,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
     end
 
-    def children_without_living_situation(project_types: )
+    def children_without_living_situation(project_types)
       # 99 = Not collected
       living_situation_not_collected = [99]
       # 1 = Full DOB, 2 = Approximate or partial DOB
@@ -488,12 +490,12 @@ module ReportGenerators::SystemPerformance::Fy2018
                 c_t[:DOBDataQuality].in(usable_dob),
             ).
             distinct.
-            pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
+            select(:client_id)
 
-        ph_th_child_candidates_scope = add_filters(scope: ph_th_child_candidates_scope)
+        ph_th_child_candidates = add_filters(scope: ph_th_child_candidates_scope).pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
 
         child_id_to_hoh = {}
-        ph_th_child_candidates_scope.each do |candidate|
+        ph_th_child_candidates.each do |candidate|
           age = age_for_report dob: candidate[1], entry_date: candidate[2], age: candidate[3]
           if age <= 17
             child_id_to_hoh[candidate[0]] = hoh_client_ids(project_types)[ candidate[4] ]
@@ -503,10 +505,10 @@ module ReportGenerators::SystemPerformance::Fy2018
       end
     end
 
-    def hoh_client_ids(project_types:)
+    def hoh_client_ids(project_types)
       @hoh_to_client_id ||= {}
       @hoh_to_client_id[project_types] ||= begin
-        hoh_scope =  GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        hohs =  GrdaWarehouse::ServiceHistoryEnrollment.exit.
             hud_project_type(project_types).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
@@ -516,7 +518,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             pluck(:head_of_household_id, :client_id, :enrollment_group_id)
 
         h = {}
-        hoh_scope.each do | hoh |
+        hohs.each do | hoh |
           h[hoh.first] = hoh[1..-1]
         end
         h
