@@ -21,7 +21,6 @@ module ReportGenerators::SystemPerformance::Fy2018
 
 
     def calculate
-      # TODO: Because we don't push head of household Housing Status onto dependents, we may need to lookup Housing Status if we aren't the head of household
       if start_report(Reports::SystemPerformance::Fy2018::MeasureFour.first)
         set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
