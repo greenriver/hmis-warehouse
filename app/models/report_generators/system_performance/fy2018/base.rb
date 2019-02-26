@@ -75,10 +75,9 @@ module ReportGenerators::SystemPerformance::Fy2018
 
 
     # Age should be calculated at report start or enrollment start, whichever is greater
-    def age_for_report(dob:, enrollment:)
+    def age_for_report(dob:, entry_date:, age:)
       @report_start ||= @report.options['report_start'].to_date
-      entry_date = enrollment[:first_date_in_program]
-      return enrollment[:age] if dob.blank? || entry_date > @report_start
+      return age if dob.blank? || entry_date > @report_start
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 

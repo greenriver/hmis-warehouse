@@ -196,7 +196,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
         end.map do |enrollment|
-          enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+          enrollment[:age] = age_for_report(dob: enrollment[:DOB], entry_date: enrollment[:first_date_in_program], age: enrollment[:age])
           enrollment
         end.group_by do |row|
           row[:client_id]
@@ -289,7 +289,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = v.last
-          final_enrollment[:age] = age_for_report(dob: final_enrollment[:DOB], enrollment: final_enrollment)
+          final_enrollment[:age] = age_for_report(dob: final_enrollment[:DOB], entry_date: final_enrollment[:first_date_in_program], age: final_enrollment[:age])
           final_enrollment
         end.select do |row|
           # We only look at adults
