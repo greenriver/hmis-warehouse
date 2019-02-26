@@ -330,7 +330,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         end
         # If we have more than one 5, use the first as the earliest, otherwise if we have a 1 group use that, if not, we won't calculate
         if income_map[5].present? && income_map[5].size > 1
-          earliest_group = income_map[5].values[-2].first # next to last
+          earliest_group = income_map[5].values.first.first
         elsif income_map[1].present?
           earliest_group = income_map[1].values.first.first
         end
@@ -346,7 +346,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             universe_of_stayers[index][:latest_income] = amounts.sum
             universe_of_stayers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
             universe_of_stayers[index][:latest_non_earned_income] = universe_of_stayers[index][:latest_income] - universe_of_stayers[index][:latest_earned_income]
-          elsif latest_group[:IncomeFromAnySource] == 99
+          elsif latest_group[:IncomeFromAnySource] == 99 || latest_group[:IncomeFromAnySource] = 8 || latest_group[:IncomeFromAnySource] = 9
             universe_of_stayers[index][:latest_income] = nil
             universe_of_stayers[index][:latest_earned_income] = nil
             universe_of_stayers[index][:latest_non_earned_income] = nil
@@ -364,7 +364,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             universe_of_stayers[index][:earliest_income] = amounts.sum
             universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
             universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-          elsif earliest_group[:IncomeFromAnySource] == 99
+          elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
             universe_of_stayers[index][:earliest_income] = nil
             universe_of_stayers[index][:earliest_earned_income] = nil
             universe_of_stayers[index][:earliest_non_earned_income] = nil
