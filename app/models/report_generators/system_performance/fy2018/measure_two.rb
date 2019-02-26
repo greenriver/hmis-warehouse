@@ -86,6 +86,11 @@ module ReportGenerators::SystemPerformance::Fy2018
         # If we find an exit with a destination in (3, 10, 11, 19, 20, 21, 22, 23, 26, 28)
         # log the earliest instance of each client (first exit to PH)
         project_exits_universe.each do |p_exit|
+          # inherit destination from HoH if age <= 17 and destination not collected
+          if children_without_destination(project_types)[p_exit[:client_id]]
+            p_exit[:destination] = children_without_destination(project_types)[p_exit[:client_id]]
+          end
+
           if PERMANENT_DESTINATIONS.include? p_exit[:destination]
             unless project_exits_to_ph[p_exit[:client_id]].present?
               project_exits_to_ph[p_exit[:client_id]] = p_exit
@@ -498,6 +503,56 @@ module ReportGenerators::SystemPerformance::Fy2018
           headers: ['Client ID', 'Days'],
           data: data,
         )
+      end
+    end
+
+    def children_without_destination(project_types)
+      # 99 = Not collected
+      destination_not_collected = [99]
+      # 1 = Full DOB, 2 = Approximate or partial DOB
+      usable_dob = [1, 2]
+
+      @child_ids ||= {}
+      @child_ids[project_types] ||= begin
+        ph_th_child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            hud_project_type(project_types).
+            open_between(start_date: @report_start - 1.day, end_date: @report_end).
+            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+            joins(:enrollment, :client).
+            where(
+                she_t[:destination].in(destination_not_collected),
+                c_t[:DOBDataQuality].in(usable_dob),
+            ).
+            distinct.
+            select(:client_id)
+
+        ph_th_child_candidates = add_filters(scope: ph_th_child_candidates_scope).
+            pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
+
+
+        child_id_to_hoh = {}
+        ph_th_child_candidates.each do |candidate|
+          age = age_for_report dob: candidate[1], entry_date: candidate[2], age: candidate[3]
+          if age <= 17
+            child_id_to_hoh[candidate[0]] = hoh_destinations(project_types)[ candidate[4] ]
+          end
+        end
+        child_id_to_hoh
+      end
+    end
+
+    def hoh_destinations(project_types)
+      @hoh_destinations ||= {}
+      @hoh_destinations[project_types] ||= begin
+        hoh_destination_scope =  GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            hud_project_type(project_types).
+            open_between(start_date: @report_start - 1.day, end_date: @report_end).
+            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+            joins(:client).
+            where(she_t[:head_of_household].eq(true)).
+            distinct.
+            pluck(:head_of_household_id, :destination)
+        Hash[hoh_destination_scope]
       end
     end
 
