@@ -39,7 +39,7 @@ module Admin
     def update
       @user = user_scope.find(params[:id].to_i)
       if adding_admin?
-        if ! current_user.valid_password?(user_params[:password])
+        if ! current_user.valid_password?(confirmation_params[:confirmation_password])
           flash[:error] = "User not updated. Incorrect password"
           render :confirm
           return
@@ -100,7 +100,6 @@ module Admin
       end
       false
     end
-    helper_method :adding_admin?
 
     private def user_scope
       User.active
@@ -118,13 +117,18 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
-        :password,
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
       ).tap do |result|
         result[:coc_codes] ||= []
       end
+    end
+
+    private def confirmation_params
+      params.require(:user).permit(
+        :confirmation_password,
+      )
     end
 
     private def viewable_params
