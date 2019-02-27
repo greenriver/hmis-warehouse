@@ -12,6 +12,8 @@
   = simple_form_for [:admin, @user] do |f|
     = f.error_notification
 
+    = f.hidden_field "safari_username", value: "nil"
+
     - request.POST[:user].each do | key, value |
       - if value.is_a? Array
         - value.each do |item|
