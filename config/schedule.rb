@@ -59,7 +59,7 @@ if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
   end
 end
 
-if ENV['HEALTH_SFTP_HOST'] != 'hostname'
+if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
   every 1.day, at: '10:00 am' do
     rake "health:daily"
   end
