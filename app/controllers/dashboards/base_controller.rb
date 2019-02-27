@@ -82,9 +82,12 @@ module Dashboards
 
     def selected_report_for (report_class)
        selected_report = active_report_class.find(selected_report_id)
-      report_class.where(
-          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]).
-          limit(1).first
+      report_class.
+        where(
+          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]
+        ).
+        order(created_at: :desc).
+        limit(1).first
     end
   end
 end
