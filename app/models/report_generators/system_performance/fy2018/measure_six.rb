@@ -114,8 +114,9 @@ module ReportGenerators::SystemPerformance::Fy2018
       # log the earliest instance of each client (first exit to PH)
       project_exits_universe.each do |p_exit|
         # inherit destination from HoH if age <= 17 and destination not collected
-        if children_without_destination(project_types)[p_exit[:client_id]]
-          p_exit[:destination] = children_without_destination(project_types)[p_exit[:client_id]]
+        destination = destination_for(project_types, p_exit[:client_id])
+        if destination.present?
+          p_exit[:destination] = destination
         end
 
         if PERMANENT_DESTINATIONS.include?(p_exit[:destination])
@@ -685,36 +686,34 @@ module ReportGenerators::SystemPerformance::Fy2018
     def children_without_destination(project_types)
       # 99 = Not collected
       destination_not_collected = [99]
-      # 1 = Full DOB, 2 = Approximate or partial DOB
-      usable_dob = [1, 2]
 
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
-        ph_th_child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
             category3.
             hud_project_type(project_types).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
             joins(:enrollment, :client).
             where(
-                she_t[:destination].in(destination_not_collected),
-                c_t[:DOBDataQuality].in(usable_dob),
+                she_t[:destination].in(destination_not_collected).or(she_t[:destination].eq(nil)),
+                c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report_start - 17.years)),
             ).
             distinct.
             select(:client_id)
 
-        ph_th_child_candidates = add_filters(scope: ph_th_child_candidates_scope).
+        child_candidates = add_filters(scope: child_candidates_scope).
             pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
 
 
-        child_id_to_hoh = {}
-        ph_th_child_candidates.each do |candidate|
-          age = age_for_report dob: candidate[1], entry_date: candidate[2], age: candidate[3]
+        child_id_to_destination = {}
+        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
+          age = age_for_report dob: dob, entry_date: entry_date, age: age
           if age <= 17
-            child_id_to_hoh[candidate[0]] = hoh_destinations(project_types)[ candidate[4] ]
+            child_id_to_destination[client_id] = hoh_destinations(project_types)[hoh_id]
           end
         end
-        child_id_to_hoh
+        child_id_to_destination
       end
     end
 
@@ -732,6 +731,10 @@ module ReportGenerators::SystemPerformance::Fy2018
             pluck(:head_of_household_id, :destination)
         Hash[hoh_destination_scope]
       end
+    end
+
+    def destination_for(project_types, client_id)
+      children_without_destination(project_types)[client_id]
     end
 
     def setup_questions
