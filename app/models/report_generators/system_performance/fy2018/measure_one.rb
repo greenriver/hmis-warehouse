@@ -478,7 +478,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
-        ph_th_child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
             hud_project_type(project_types).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
@@ -490,10 +490,10 @@ module ReportGenerators::SystemPerformance::Fy2018
             distinct.
             select(:client_id)
 
-        ph_th_child_candidates = add_filters(scope: ph_th_child_candidates_scope).pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
+        child_candidates = add_filters(scope: child_candidates_scope).pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
 
         child_id_to_hoh = {}
-        ph_th_child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
+        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
           if age <= 17
             child_id_to_hoh[client_id] = hoh_client_ids(project_types)[hoh_id]
