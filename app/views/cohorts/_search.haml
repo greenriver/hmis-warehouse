@@ -1,0 +1,6 @@
+.o-page__search
+  = search_form_for @search, url: cohorts_path, method: :get do |f|
+    .input-group
+      = f.search_field :name_cont, label: false, placeholder: 'Search by cohort name...', class: 'form-control'
+      %span.input-group-btn
+        %button.btn.btn-secondary{type: :submit} Search

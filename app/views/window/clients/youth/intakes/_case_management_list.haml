@@ -1,0 +1,27 @@
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header Case Management
+    - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
+      = link_to polymorphic_path([:new] + youth_case_management_path_generator), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm ml-auto' do
+        %i.icon-plus
+        Add Case Management
+  .c-card__content.c-card__content--flush
+    - if @case_managements.present?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Date
+            %th Activity
+            %th
+        %tbody
+          - @case_managements.each do |cm|
+            %tr
+              %td.nobr
+                = link_to polymorphic_path([:edit] + youth_case_management_path_generator, id: cm.id), data: {loads_in_pjax_modal: true} do
+                  = cm.engaged_on
+              %td= simple_format cm.activity
+              %td
+                = link_to polymorphic_path(youth_case_management_path_generator, id: cm.id), method: :delete, data: {confirm: 'Deleting this note will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                  %i.icon-cross
+    - else
+      %p.pt-2.text-center None on file

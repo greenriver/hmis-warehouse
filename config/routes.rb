@@ -182,6 +182,9 @@ Rails.application.routes.draw do
       collection do
         get :running
       end
+      member do
+        delete :cancel
+      end
     end
     resources :hashed_only_hmis_exports, except: [:edit, :update, :new] do
       collection do
@@ -293,6 +296,8 @@ Rails.application.routes.draw do
           post :generate_claims_file
           post :revise
           post :submit
+          post :acknowledge
+          get :details
         end
       end
       resources :patient_referrals, only: [:index] do
@@ -339,6 +344,11 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
+    resources :youth_intakes, controller: 'clients/youth/intakes'
+    resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
+    resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
+    resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
+
     resources :files, controller: 'clients/files' do
       get :preview, on: :member
       get :thumb, on: :member
@@ -378,6 +388,11 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
+      resources :youth_intakes, controller: 'clients/youth/intakes'
+      resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
+      resources :direct_financial_assistances, except: [:index], controller: 'clients/youth/direct_financial_assistances'
+      resources :youth_referrals, except: [:index], controller: 'clients/youth/referrals'
+      
       resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member

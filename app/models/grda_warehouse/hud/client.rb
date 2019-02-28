@@ -12,7 +12,12 @@ module GrdaWarehouse::Hud
 
     has_many :client_files
     has_many :health_files
-    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base'
+    has_many :vispdats, class_name: GrdaWarehouse::Vispdat::Base.name
+    has_many :youth_intakes, class_name: GrdaWarehouse::YouthIntake::Base.name
+    has_many :case_managements, class_name: GrdaWarehouse::Youth::YouthCaseManagement.name
+    has_many :direct_financial_assistances, class_name: GrdaWarehouse::Youth::DirectFinancialAssistance.name
+    has_many :youth_referrals, class_name: GrdaWarehouse::Youth::YouthReferral.name
+
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
@@ -274,6 +279,10 @@ module GrdaWarehouse::Hud
 
     scope :non_veteran, -> do
       where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+    end
+
+    scope :verified_non_veteran, -> do
+      where verified_veteran_status: :non_veteran
     end
 
     # Some aliases for our inconsistencies
@@ -1277,7 +1286,12 @@ module GrdaWarehouse::Hud
     end
 
     def self.cas_readiness_parameters
-      cas_columns.keys + [:housing_assistance_network_released_on, :vispdat_prioritization_days_homeless, :neighborhood_interests => []]
+      cas_columns.keys + [
+        :housing_assistance_network_released_on, 
+        :vispdat_prioritization_days_homeless, 
+        :verified_veteran_status,
+        :neighborhood_interests => [],
+      ]
     end
 
     def invalidate_service_history
@@ -1524,6 +1538,21 @@ module GrdaWarehouse::Hud
       self.VeteranStatus == 1
     end
 
+    def ever_veteran?
+      source_clients.map(&:veteran?).include?(true)
+    end
+
+    def adjust_veteran_status
+      self.VeteranStatus = if verified_veteran_status == 'non_veteran'
+        0
+      elsif ever_veteran?
+        1
+      else
+        source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
+      end
+      save()
+    end
+
     # those columns that relate to race
     def self.race_fields
       %w( AmIndAKNative Asian BlackAfAmerican NativeHIOtherPacific White RaceNone )
@@ -1602,7 +1631,7 @@ module GrdaWarehouse::Hud
     def previous_permanent_locations_for_display
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      source_enrollments.
+      addresses_from_enrollments = source_enrollments.
         any_address.
         order(EntryDate: :desc).
         preload(:client).
@@ -1614,13 +1643,29 @@ module GrdaWarehouse::Hud
             label: seen_addresses[enrollment.address] ||= labels.shift,
             city: enrollment.LastPermanentCity,
             state: enrollment.LastPermanentState,
-            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0')
+            zip: enrollment.LastPermanentZIP.try(:rjust, 5, '0'),
           }
           if lat_lon.present?
             address.merge!(lat_lon)
           end
           address
       end
+
+      addresses_from_hmis_clients = source_hmis_clients.map do |hmis_client|
+        lat_lon = hmis_client.address_lat_lon
+        next unless lat_lon.present?
+        address = {
+          year: 'Unknown',
+          client_id: hmis_client.client_id,
+          label: seen_addresses[hmis_client.last_permanent_zip] ||= labels.shift,
+          city: '',
+          state: '',
+          zip: hmis_client.last_permanent_zip.try(:rjust, 5, '0'),
+        }
+        address.merge!(lat_lon)
+        address
+      end.compact
+      Array.wrap(addresses_from_enrollments) + Array.wrap(addresses_from_hmis_clients)
     end
 
     # takes an array of tags representing the types of documents needed to be document ready
@@ -1825,6 +1870,16 @@ module GrdaWarehouse::Hud
 
       # CAS activity
       GrdaWarehouse::CasAvailability.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # Youth Intakes
+      GrdaWarehouse::YouthIntake::Base.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::DirectFinancialAssistance.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::YouthCaseManagement.where(client_id: previous_id).
+        update_all(client_id: new_id)
+      GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
         update_all(client_id: new_id)
     end
 

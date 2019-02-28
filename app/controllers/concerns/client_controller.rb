@@ -158,12 +158,12 @@ module ClientController
           )
           if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
             flash[:notice] = "Client #{@client.full_name} created."
-
-            if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
-              redirect_to polymorphic_path(client_path_generator + [:vispdats], {client_id: destination_client.id})
-            else
-              redirect_to polymorphic_path(client_path_generator, {id: destination_client.id})
+            after_create_path = client_path_generator
+            if @client.data_source.after_create_path.present?
+              after_create_path = after_create_path + [@client.data_source.after_create_path]
             end
+            # this is a bit ugly, but some pages are looking for id, others client_id
+            redirect_to polymorphic_path(after_create_path, {id: destination_client.id, client_id: destination_client.id,})
           else
             flash[:error] = "Unable to create client"
             render action: :new

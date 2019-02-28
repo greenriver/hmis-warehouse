@@ -50,7 +50,9 @@ class DataSourcesController < ApplicationController
     error = false
     begin
       GrdaWarehouse::Hud::Project.transaction do
-        @data_source.update!(visible_in_window: data_source_params[:visible_in_window] || false)
+        visible_in_window = data_source_params[:visible_in_window] || false
+        import_paused = data_source_params[:import_paused] || false
+        @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused)
         data_source_params.try(:[], :projects_attributes)&.each do |_, project_attributes|
           id = project_attributes[:id]
           if project_attributes[:act_as_project_type].present?
@@ -100,6 +102,7 @@ class DataSourcesController < ApplicationController
     params.require(:grda_warehouse_data_source).
       permit(
         :visible_in_window,
+        :import_paused,
         projects_attributes:
         [
           :id,
@@ -111,6 +114,7 @@ class DataSourcesController < ApplicationController
           :geocode_override,
           :geography_type_override,
           :confidential,
+          :after_create_path,
         ]
       )
   end
@@ -124,6 +128,8 @@ class DataSourcesController < ApplicationController
         :source_type,
         :visible_in_window,
         :authoritative,
+        :after_create_path,
+        :import_paused,
       )
   end
 

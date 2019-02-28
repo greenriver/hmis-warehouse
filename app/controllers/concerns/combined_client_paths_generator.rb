@@ -91,6 +91,46 @@ module CombinedClientPathsGenerator
     end
     helper_method :vispdats_path_generator
 
+    def youth_intake_path_generator
+      client_path_generator + [:youth_intake]
+    end
+    helper_method :youth_intake_path_generator
+
+    def youth_intakes_path_generator
+      client_path_generator + [:youth_intakes]
+    end
+    helper_method :youth_intakes_path_generator
+
+    def youth_referral_path_generator
+      client_path_generator + [:youth_referral]
+    end
+    helper_method :youth_referral_path_generator
+
+    def youth_referrals_path_generator
+      client_path_generator + [:youth_referrals]
+    end
+    helper_method :youth_referrals_path_generator
+
+    def youth_case_management_path_generator
+      client_path_generator + [:youth_case_management]
+    end
+    helper_method :youth_case_management_path_generator
+
+    def youth_case_managements_path_generator
+      client_path_generator + [:youth_case_managements]
+    end
+    helper_method :youth_case_managements_path_generator
+
+    def direct_financial_assistance_path_generator
+      client_path_generator + [:direct_financial_assistance]
+    end
+    helper_method :direct_financial_assistance_path_generator
+
+    def direct_financial_assistances_path_generator
+      client_path_generator + [:direct_financial_assistances]
+    end
+    helper_method :direct_financial_assistances_path_generator
+
     def self_sufficiency_matrix_forms_path_generator
       health_path_generator + [:self_sufficiency_matrix_forms]
     end

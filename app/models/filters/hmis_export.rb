@@ -14,6 +14,18 @@ module Filters
     attribute :user_id, Integer, default: nil
     attribute :faked_pii, Boolean, default: false
 
+    attribute :every_n_days, Integer, default: 0
+    attribute :reporting_range, String, default: 'fixed'
+    attribute :reporting_range_days, Integer, default: 0
+
+    attribute :recurring_hmis_export_id, Integer, default: 0
+
+    attribute :s3_access_key_id, String
+    attribute :s3_secret_access_key, String
+    attribute :s3_region, String
+    attribute :s3_bucket, String
+    attribute :s3_prefix, String
+
     validates_presence_of :start_date, :end_date
 
     validate do
@@ -37,6 +49,8 @@ module Filters
           include_deleted: include_deleted,
           faked_pii: faked_pii,
           user_id: user_id,
+
+          recurring_hmis_export_id: recurring_hmis_export_id,
         }
       end
     end
@@ -75,6 +89,24 @@ module Filters
         merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
         where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
+    end
+
+    def adjust_reporting_period
+      case reporting_range
+        when 'fixed'
+          return
+        when 'n_days'
+          @end_date = Date.today
+          @start_date = end_date - reporting_range_days.days
+        when 'month'
+          last_month = Date.today.last_month
+          @end_date = last_month.end_of_month
+          @start_date = last_month.beginning_of_month
+        when 'year'
+          last_year = Date.today.last_year
+          @end_date = last_year.end_of_year
+          @start_date = last_year.beginning_of_year
+      end
     end
 
     def all_project_ids
