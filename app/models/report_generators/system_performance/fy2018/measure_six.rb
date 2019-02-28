@@ -710,7 +710,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         child_id_to_destination = {}
         child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
-          if age <= 17
+          if age.present? && age <= 17
             child_id_to_destination[[client_id, household_id]] = hoh_destination_for(project_types, hoh_id, household_id)
           end
         end
