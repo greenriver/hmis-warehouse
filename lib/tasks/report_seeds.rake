@@ -39,22 +39,40 @@ namespace :reports do
       # r = Reports::SystemPerformance::Fy2016::MeasureSeven.where(name: 'HUD System Performance FY 2016 - Measure 7').first_or_create
       # r.update(weight: 7, report_results_summary: rs)
       #
-      rs = ReportResultsSummaries::SystemPerformance::Fy2017.where(name: 'HUD System Performance FY 2017').first_or_create
+      # rs = ReportResultsSummaries::SystemPerformance::Fy2017.where(name: 'HUD System Performance FY 2017').first_or_create
+      # rs.update(weight: 0)
+      #
+      # r = Reports::SystemPerformance::Fy2017::MeasureOne.where(name: 'HUD System Performance FY 2017 - Measure 1').first_or_create
+      # r.update(weight: 1, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureTwo.where(name: 'HUD System Performance FY 2017 - Measure 2').first_or_create
+      # r.update(weight: 2, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureThree.where(name: 'HUD System Performance FY 2017 - Measure 3').first_or_create
+      # r.update(weight: 3, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureFour.where(name: 'HUD System Performance FY 2017 - Measure 4').first_or_create
+      # r.update(weight: 4, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureFive.where(name: 'HUD System Performance FY 2017 - Measure 5').first_or_create
+      # r.update(weight: 5, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureSix.where(name: 'HUD System Performance FY 2017 - Measure 6').first_or_create
+      # r.update(weight: 6, report_results_summary: rs)
+      # r = Reports::SystemPerformance::Fy2017::MeasureSeven.where(name: 'HUD System Performance FY 2017 - Measure 7').first_or_create
+      # r.update(weight: 7, report_results_summary: rs)
+
+      rs = ReportResultsSummaries::SystemPerformance::Fy2018.where(name: 'HUD System Performance FY 2018').first_or_create
       rs.update(weight: 0)
 
-      r = Reports::SystemPerformance::Fy2017::MeasureOne.where(name: 'HUD System Performance FY 2017 - Measure 1').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureOne.where(name: 'HUD System Performance FY 2018 - Measure 1').first_or_create
       r.update(weight: 1, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureTwo.where(name: 'HUD System Performance FY 2017 - Measure 2').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureTwo.where(name: 'HUD System Performance FY 2018 - Measure 2').first_or_create
       r.update(weight: 2, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureThree.where(name: 'HUD System Performance FY 2017 - Measure 3').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureThree.where(name: 'HUD System Performance FY 2018 - Measure 3').first_or_create
       r.update(weight: 3, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureFour.where(name: 'HUD System Performance FY 2017 - Measure 4').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureFour.where(name: 'HUD System Performance FY 2018 - Measure 4').first_or_create
       r.update(weight: 4, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureFive.where(name: 'HUD System Performance FY 2017 - Measure 5').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureFive.where(name: 'HUD System Performance FY 2018 - Measure 5').first_or_create
       r.update(weight: 5, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureSix.where(name: 'HUD System Performance FY 2017 - Measure 6').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureSix.where(name: 'HUD System Performance FY 2018 - Measure 6').first_or_create
       r.update(weight: 6, report_results_summary: rs)
-      r = Reports::SystemPerformance::Fy2017::MeasureSeven.where(name: 'HUD System Performance FY 2017 - Measure 7').first_or_create
+      r = Reports::SystemPerformance::Fy2018::MeasureSeven.where(name: 'HUD System Performance FY 2018 - Measure 7').first_or_create
       r.update(weight: 7, report_results_summary: rs)
 
       rs = ReportResultsSummaries::Ahar::Fy2016.where(name: 'Annual Homeless Assessment Report - FY 2016').first_or_create
