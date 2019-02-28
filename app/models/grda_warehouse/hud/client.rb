@@ -1290,6 +1290,7 @@ module GrdaWarehouse::Hud
         :housing_assistance_network_released_on, 
         :vispdat_prioritization_days_homeless, 
         :verified_veteran_status,
+        :interested_in_set_asides,
         :neighborhood_interests => [],
       ]
     end
