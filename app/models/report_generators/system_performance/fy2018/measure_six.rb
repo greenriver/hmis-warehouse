@@ -691,7 +691,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
         child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            category3. # this differentiates this from the version in Measure 2
+            category_3. # this differentiates this from the version in Measure 2
             hud_project_type(project_types).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
@@ -722,7 +722,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       @hoh_destinations ||= {}
       @hoh_destinations[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          category3. # this differentiates this from the version in Measure 2
+          category_3. # this differentiates this from the version in Measure 2
           hud_project_type(project_types).
           open_between(start_date: @report_start - 1.day, end_date: @report_end).
           with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
