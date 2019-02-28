@@ -80,14 +80,15 @@ module GrdaWarehouse::YouthIntake
     end
 
     def available_housing_stati
-      @available_housing_stati ||= [
-        'Stably housed',
-        'Unstably housed',
-        'Experiencing homelessness: couch surfing',
-        'Experiencing homelessness: street',
-        'Experiencing homelessness: in shelter',
-        'Unknown',
-      ]
+      @available_housing_stati ||= {
+        'Stably housed' => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
+        'At risk of homelessness' => 'At risk of homelessness <em>(About to lose primary nighttime residence within 14 days, no subsequent residence identified, and the individual lacks the resources or support networks needed to obtain other permanent housing.)</em>'.html_safe,
+        'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness',
+        'Experiencing homelessness: couch surfing' => 'Experiencing homelessness: couch surfing',
+        'Experiencing homelessness: street' => 'Experiencing homelessness: street',
+        'Experiencing homelessness: in shelter' => 'Experiencing homelessness: in shelter',
+        'Unknown' => 'Unknown',
+      }
     end
 
     def available_secondary_education
@@ -139,6 +140,10 @@ module GrdaWarehouse::YouthIntake
         'Walk-in / self-referral',
         'Other...',
       ] + [other_how_hear&.strip]).reject(&:blank?).compact.uniq
+    end
+
+    def other_referral?
+      how_hear.include? 'Other'
     end
 
     def stable_housing_options
