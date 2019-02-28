@@ -83,6 +83,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         project_id: :project_id,
         data_source_id: :data_source_id,
         project_name: :project_name,
+        household_id: :household_id,
       }
 
       project_types = TH + SH + PH 
@@ -114,7 +115,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       # log the earliest instance of each client (first exit to PH)
       project_exits_universe.each do |p_exit|
         # inherit destination from HoH if age <= 17 and destination not collected
-        destination = destination_for(project_types, p_exit[:client_id])
+        destination = destination_for(project_types, p_exit[:client_id], p_exit[:household_id])
         if destination.present?
           p_exit[:destination] = destination
         end
@@ -690,14 +691,14 @@ module ReportGenerators::SystemPerformance::Fy2018
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
         child_candidates_scope =  GrdaWarehouse::ServiceHistoryEnrollment.entry.
-            category3.
+            category3. # this differentiates this from the version in Measure 2
             hud_project_type(project_types).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
             joins(:enrollment, :client).
             where(
-                she_t[:destination].in(destination_not_collected).or(she_t[:destination].eq(nil)),
-                c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report_start - 17.years)),
+              she_t[:destination].in(destination_not_collected).or(she_t[:destination].eq(nil)),
+              c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report_start - 17.years)),
             ).
             distinct.
             select(:client_id)
@@ -710,7 +711,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
           if age <= 17
-            child_id_to_destination[client_id] = hoh_destinations(project_types)[hoh_id]
+            child_id_to_destination[[client_id, household_id]] = hoh_destination_for(project_types, hoh_id, household_id)
           end
         end
         child_id_to_destination
@@ -720,21 +721,27 @@ module ReportGenerators::SystemPerformance::Fy2018
     def hoh_destinations(project_types)
       @hoh_destinations ||= {}
       @hoh_destinations[project_types] ||= begin
-        hoh_destination_scope =  GrdaWarehouse::ServiceHistoryEnrollment.exit.
-            category3.
-            hud_project_type(project_types).
-            open_between(start_date: @report_start - 1.day, end_date: @report_end).
-            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-            joins(:client).
-            where(she_t[:head_of_household].eq(true)).
-            distinct.
-            pluck(:head_of_household_id, :destination)
-        Hash[hoh_destination_scope]
+        GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          category3. # this differentiates this from the version in Measure 2
+          hud_project_type(project_types).
+          open_between(start_date: @report_start - 1.day, end_date: @report_end).
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+          joins(:client).
+          where(she_t[:head_of_household].eq(true)).
+          distinct.
+          pluck(:head_of_household_id, :destination, :household_id).
+          map do |(hoh_id, destination, household_id)|
+            [[hoh_id, household_id], destination]
+          end.to_h
       end
     end
 
-    def destination_for(project_types, client_id)
-      children_without_destination(project_types)[client_id]
+    def hoh_destination_for(project_types, client_id, household_id)
+      hoh_destinations(project_types)[[client_id, household_id]]
+    end
+
+    def destination_for(project_types, client_id, household_id)
+      children_without_destination(project_types)[[client_id, household_id]] 
     end
 
     def setup_questions

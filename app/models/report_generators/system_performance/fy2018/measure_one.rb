@@ -404,14 +404,14 @@ module ReportGenerators::SystemPerformance::Fy2018
       literally_homeless = es_so_sh_client_ids + ph_th_client_ids
 
       # Children may inherit living the living situation from their HoH
-      hoh_client = head_of_household_for(PH + TH, client_id)
+      hoh_client = hoh_for_children_without_living_situation(PH + TH, client_id, enrollment_id)
 
       if hoh_client.present?
         ph_th_hoh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
             hud_project_type(PH + TH).
             open_between(start_date: @report_start - 1.day, end_date: @report_end).
             with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-            where(she_t[:client_id].eq(hoh_client[:client_id]).and(she_t[:id].eq(hoh_client[:enrollment_id]))).
+            where(she_t[:client_id].eq(hoh_client[:client_id]).and(she_t[:enrollment_group_id].eq(hoh_client[:enrollment_id]))).
             joins(:enrollment).
             where(
                 e_t[:LivingSituation].in(homeless_living_situations).
@@ -490,13 +490,22 @@ module ReportGenerators::SystemPerformance::Fy2018
             distinct.
             select(:client_id)
 
-        child_candidates = add_filters(scope: child_candidates_scope).pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
+        child_candidates = add_filters(scope: child_candidates_scope).
+          pluck(
+            :client_id, 
+            c_t[:DOB].to_sql, 
+            e_t[:EntryDate].to_sql, 
+            :age, 
+            :head_of_household_id,
+            :household_id,
+            :enrollment_group_id,
+          )
 
         child_id_to_hoh = {}
-        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
+        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id, enrollment_group_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
           if age <= 17
-            child_id_to_hoh[client_id] = hoh_client_ids(project_types)[hoh_id]
+            child_id_to_hoh[[client_id, enrollment_group_id]] = head_of_household_for(project_types, hoh_id, household_id)
           end
         end
         child_id_to_hoh
@@ -506,26 +515,32 @@ module ReportGenerators::SystemPerformance::Fy2018
     def hoh_client_ids(project_types)
       @hoh_to_client_id ||= {}
       @hoh_to_client_id[project_types] ||= begin
-        hohs =  GrdaWarehouse::ServiceHistoryEnrollment.exit.
-            hud_project_type(project_types).
-            open_between(start_date: @report_start - 1.day, end_date: @report_end).
-            with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
-            joins(:client).
-            where(she_t[:head_of_household].eq(true)).
-            distinct.
-            pluck(:head_of_household_id, :client_id, :enrollment_group_id)
-
-        h = {}
-        hohs.each do |(hoh_id, client_id, enrollment_id)|
-          h[hoh_id] = { client_id: client_id, enrollment_id: enrollment_id }
-        end
-        h
+        GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          hud_project_type(project_types).
+          open_between(start_date: @report_start - 1.day, end_date: @report_end).
+          with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
+          joins(:client).
+          where(she_t[:head_of_household].eq(true)).
+          distinct.
+          pluck(
+            :head_of_household_id, 
+            :client_id, 
+            :enrollment_group_id, 
+            :household_id
+          ).map do |(hoh_id, client_id, enrollment_id, household_id)|
+            [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
+          end.to_h
       end
     end
 
-    def head_of_household_for(project_types, client_id)
-      hoh_client_ids(project_types)[client_id]
+    def head_of_household_for(project_types, client_id, household_id)
+      hoh_client_ids(project_types)[[client_id, household_id]]
     end
+
+    def hoh_for_children_without_living_situation(project_types, client_id, enrollment_id)
+      children_without_living_situation(project_types)[[client_id, enrollment_id]]
+    end
+
 
     def setup_questions
       {
