@@ -1,0 +1,24 @@
+#bed-utilization-accordion.panel-group.panel-collapsible
+  .panel.panel-default
+    .panel-heading
+      .row
+        .col-xs-8
+          %h4.panel-title
+            %a.toggle.collapsed{data: {parent: '#bed-utilization-accordion', toggle: 'collapse'}, href: '#bed-utilization-info'}
+              Information
+        .col-xs-4.text-right
+          %a.toggle.collapsed{data: {parent: '#bed-utilization-accordion', toggle: 'collapse'}, href: '#bed-utilization-info'}
+            %i.icon-arrow-circled-right
+            %i.icon-arrow-circled-down.hide
+    #bed-utilization-info.panel-collapse.collapse
+      .panel-body
+        %p
+          = "Bed utilization percentages are based upon the bed capacities your agency reported for its individual programs in the most recent Point-in-Time Survey (Annual Homeless Census) conducted by #{_('the Boston Emergency Shelter Commission')}. The aggregate number of client-nights over the entire reporting period, divided by the product of bed capacity and nights in the reporting period, gives the percentage utilization for each program for the reporting period. Also, counts of persons for each individual program are computed on each night and displayed in the chart below."
+        %p
+          ="Bed capacity figures are taken from the numbers your agency reported during the last Annual Homeless Census. Please notify #{_('Boston HMIS staff at DND')} if any program bed capacity numbers below are incorrect."  
+        %p
+          The percent utilization rates reported are intended to identify programs which may or may not be using the HMIS correctly by failing to enter or exit clients from the system. Very low utilization may indicate clients missing from the HMIS, while very high utilization may indicate inactive clients who have not been exited from the HMIS. This report, along with the Active Client Length of Stay Report, should be used to identify clients who may need to be entered into or exited from a program. All programs are expected to maintin bed utilization rates between 85% and 105%, as outlined in the Boston HMIS Data Standards and Improvement Plan.
+        %p
+          If an individual active client has bed register records in the HMIS associated with a current enrollment in a program, his or her length of stay will be calculated from bed register records; otherwise, the client's length of stay will be computed from his or her active program enrollment.
+        %p                
+          The report uses your agency's client code to de-duplicate client records; periodically running a Duplicate Client report and merging duplicate records is recommended.

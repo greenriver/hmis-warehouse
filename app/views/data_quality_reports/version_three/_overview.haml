@@ -1,0 +1,34 @@
+.well.overflow-scroll
+  .row
+    .col-sm-3
+      %h4.title
+        Enrolled Clients
+      %hr
+      .h1.text-center.icon-group
+      %h3
+        = "#{@report.report['total_clients']} clients / #{@report.report['total_households']} households"
+      %p were enrolled in the project during the reporting period.
+    .col-sm-3
+      %h4.title
+        Active Clients
+      %hr
+      .h1.text-center.icon-individual
+      %h3
+        = "#{@report.report['total_active_clients']} clients / #{@report.report['households']['total_active_households']} households"
+      %p were active in the project during the reporting period.
+    .col-sm-3
+      %h4.title
+        Enterers
+      %hr
+      .h1.text-center.icon-enter
+      %h3
+        = "#{@report.report['total_enterers']} clients / #{@report.report['total_entering_households']} households"
+      %p entered the project during the reporting period.
+    .col-sm-3
+      %h4.title
+        Exiters
+      %hr
+      .h1.text-center.icon-exit
+      %h3
+        = "#{@report.report['total_leavers']} clients / #{@report.report['total_exiting_households']} households"
+      %p exited the project during the reporting period.

@@ -1,0 +1,8 @@
+.well.overflow-scroll
+  %h3 Data Completeness
+  - @report.report['project_missing'].keys.each_with_index do |project, index|
+    - if @report.report['project_missing'].size > 1
+      %h4
+        = project
+    .completeness-chart.jChart{class: "completeness-chart-#{index}"}
+      %p.jLoading Loading

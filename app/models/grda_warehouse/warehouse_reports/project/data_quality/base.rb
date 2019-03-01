@@ -397,7 +397,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def in_percentage numerator, denominator
-      ((numerator.to_f/denominator) * 100).round(2) rescue 0
+      percentage = ((numerator.to_f/denominator) * 100)
+      if percentage.finite?
+        percentage.round(2)
+      else
+        0
+      end
     end
 
     # Display methods

@@ -1,0 +1,64 @@
+.well.overflow-scroll
+  %h3 Project Descriptor Completeness
+  .row
+    .col-sm-1
+      %h4.title
+        Bed Inventory
+      %hr
+      %p
+        = "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
+    .col-sm-1
+      %h4.title
+        CoC Code
+      %hr
+      %p
+        = @report.report['coc_code']
+    .col-sm-1
+      %h4.title
+        Funder
+      %hr
+      %p
+        = @report.report['grant_id']
+    .col-sm-1
+      %h4.title
+        Geocode
+      %hr
+      %p
+        = @report.report['geocode']
+    .col-sm-1
+      %h4.title
+        Geography Type
+      %hr
+      %p
+        = @report.report['geography_type']
+    .col-sm-1
+      %h4.title
+        Housing Type
+      %hr
+      %p
+        = @report.report['housing_type']
+    .col-sm-1
+      %h4.title
+        Information Date
+      %hr
+      %p
+        = @report.report['information_date']
+    .col-sm-1
+      %h4.title
+        Operating Start Date
+      %hr
+      %p
+        = @report.report['operating_start_date']
+    .col-sm-1
+      %h4.title
+        Project Type
+      %hr
+      %p
+        = @report.report['coc_program_component']
+    .col-sm-1
+      %h4.title
+        Unit Inventory
+      %hr
+      %p
+        = "#{@report.report['unit_utilization_totals']['counts']['capacity']} units"
+

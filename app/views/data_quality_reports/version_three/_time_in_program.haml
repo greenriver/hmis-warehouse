@@ -1,3 +1,17 @@
-.time-in-program-chart.jChart
-  %p.jLoading Loading
-
+.row
+	.col-sm-4
+		%h3 Time in Program
+		%h4.title Average Time in Program
+		%hr
+		%h3.text-center
+			= "#{@report.report['length_of_stay_totals']['average']} days"
+		%h4.title Percent in Program Over One Year
+		%hr
+		%h3.text-center
+			- stays =  @report.report['length_of_stay_totals']['buckets'].values.sum
+			- year_plus = @report.report['length_of_stay_totals']['buckets'].values.last
+			- percent_year_plus = (year_plus.to_f / stays * 100).round
+			= "#{percent_year_plus}%"
+	.col-sm-8
+		.time-in-program-chart.jChart
+			%p.jLoading Loading
