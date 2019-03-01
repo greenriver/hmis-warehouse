@@ -1537,6 +1537,7 @@ module GrdaWarehouse::Hud
         source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
       end
       save()
+      self.class.clear_view_cache(self.id)
     end
 
     # those columns that relate to race
