@@ -1,7 +1,8 @@
 module CohortColumns
   class AvailableForMatchingInCas < ReadOnly
     attribute :column, String, lazy: true, default: :available_for_matching_in_cas
-    attribute :title, String, lazy: true, default: 'Available in CAS'
+    attribute :translation_key, String, lazy: true, default: 'Available in CAS'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def renderer
       'html'

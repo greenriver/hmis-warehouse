@@ -1,7 +1,8 @@
 module CohortColumns
   class YouthRrhDesired < ReadOnly
     attribute :column, String, lazy: true, default: :youth_rrh_desired
-    attribute :title, String, lazy: true, default: 'Interested in Youth RRH'
+    attribute :translation_key, String, lazy: true, default: 'Interested in Youth RRH'
+    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def renderer
       'html'

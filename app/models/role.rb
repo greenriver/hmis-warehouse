@@ -167,6 +167,14 @@ class Role < ActiveRecord::Base
         description: 'Ability to add VI-SPDAT records',
         administrative: false,
       },
+      can_view_youth_intake: {
+        description: 'Access to existing Youth Intake records',
+        administrative: false,
+      },
+      can_edit_youth_intake: {
+        description: 'Ability to add or edit Youth Intake records',
+        administrative: false,
+      },
       can_create_clients: {
         description: 'Given an authoritative data source, users can add clients that don\'t exist in HMIS',
         administrative: false,

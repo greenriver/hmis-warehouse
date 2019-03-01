@@ -53,6 +53,7 @@
 //= require vispdats
 //= require files
 //= require table_search
+//= require selectable_list
 //= require viewable_entities
 //= require_directory ./census
 //= require_directory ./filter

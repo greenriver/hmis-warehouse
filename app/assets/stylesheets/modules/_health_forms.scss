@@ -165,3 +165,11 @@
 {
   border-left: 4px solid $brand-warning;
 }
+
+.health_claims__success {
+  color: $cob-sg-optimistic-blue;
+}
+
+.health_claims__rejection {
+  color: $brand-danger;
+}

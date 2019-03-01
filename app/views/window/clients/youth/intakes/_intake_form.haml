@@ -1,0 +1,81 @@
+.row
+  .col-sm-6
+    .youth-intake__metadata
+      - unless readonly
+        = f.input :other_staff_completed_intake, label: 'Are you completing this intake for another staff member?', input_html: { class: 'jOtherStaffTrigger' }
+      .jOtherStaff
+        = f.input :staff_name, label: 'Name of staff working with the youth'
+        = f.input :staff_email, label: 'Email of staff working with the youth'
+      = f.input :engagement_date, as: :date_picker, label: 'Date of engagement', hint: 'When did you first start working with the youth?'
+
+    .youth-intake__client-demographics
+      = f.input :unaccompanied, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth unaccompanied?', hint: 'An individual who is not in the physical custody or care of a parent / legal guardian'
+      = f.input :street_outreach_contact, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth a street outreach contact',  hint: 'A street outreach contact is a youth who we know from outreach, and as a result have limited information on.  Street outreach youth should be considered street outreach contacts until they are no longer living on th streets.  Note: It is possible for a youth to be working with drop-in staff and be in case management, but still be a street outreach contact.'
+      = f.input :housing_status, as: :radio_buttons, collection: @intake.available_housing_stati.invert
+      = f.input :other_agency_involvement, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth involved with any other state agencies?'
+      = f.input :owns_cell_phone, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth own a cell phone?'
+      = f.input :secondary_education, as: :radio_buttons, collection: @intake.available_secondary_education
+      = f.input :attending_college, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth attending college?'
+      = f.input :health_insurance, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth have health insurance?'
+      = f.input :client_dob, as: :date_picker, label: 'Youth Birthday'
+      = f.input :staff_believes_youth_under_24, as: :radio_buttons, collection: @intake.yes_no, label: 'Staff believes youth is 24 or under?'
+
+      = f.input :client_gender, as: :radio_buttons, collection: HUD.genders.invert
+      = f.input :client_lgbtq, as: :radio_buttons, collection: @intake.yes_no_unknown_refused, label: 'Is the youth LGBTQ+?'
+      = f.input :client_race, as: :check_boxes, collection: HUD.races.invert
+      = f.input :client_ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert, label: 'Ethnicity'
+      = f.input :client_primary_language, as: :radio_buttons, collection: @intake.languages, input_html: { class: 'jLanguage' }, label: 'Primary language'
+      .jOtherLanguage
+        - if ! readonly
+          = f.input :other_language
+      = f.input :pregnant_or_parenting, as: :radio_buttons, collection: @intake.parenting_options, label: 'Is this youth parenting or pregnant?'
+      = f.input :disabilities, as: :check_boxes, collection: @intake.available_disabilities, hint: 'Check all that apply'
+    .youth-intake__financial-assistance
+      = f.input :requesting_financial_assistance, as: :radio_buttons, collection: @intake.yes_no, label: 'Is this youth asking for or requesting financial assistance from us at the time of entering this data?'
+    .youth-intake__housing
+      %h2 Housing and Shelter Information
+      = f.input :youth_experiencing_homelessness_at_start, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Was this youth experiencing homelessness when they began case management?', hint: 'This allows us to make the distinction between prevention and rehousing efforts, both of which are data points EOHHS requires.'
+      = f.input :needs_shelter, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth in need of a shelter?'
+      = f.input :referred_to_shelter, as: :radio_buttons, collection: @intake.yes_no, label: 'Did we refer them to a shelter?'
+      = f.input :in_stable_housing, as: :radio_buttons, collection: @intake.stable_housing_options, label: 'Is this youth currently in stable housing?'
+      = f.input :stable_housing_zipcode, label: 'If stably housed, what is the zipcode of the stable housing?', hint: 'Please enter the 5 digit zipcode with no spaces or hyphens. e.g. 01339'
+
+    .youth-intake__source
+      = f.input :how_hear, as: :radio_buttons, collection: @intake.how_hear_options, label: 'How did this youth hear about us?', input_html: { class: 'jHowHear' }
+      .jOtherHowHear
+        - if ! readonly
+          = f.input :other_how_hear, label: 'Where did the referral come from?'
+        - elsif ! f.object.how_hear_options.include? f.object.how_hear
+          .mb-4
+            = f.object.how_hear
+    
+    .youth-intake__exit-info
+      = f.input :exit_date, as: :date_picker, label: 'Date for which you are no longer working with this youth (Exit Date)'
+
+= content_for :page_js do
+  :javascript
+    $('.jOtherStaffTrigger').on('change', function(e){
+      if($(this).is(":checked")){
+        $('.jOtherStaff').show();
+      }
+      else {
+        $('.jOtherStaff').hide();
+      }
+    });
+    $('.jOtherStaffTrigger').trigger('change');
+    $('.jLanguage').on('change', function(e){
+      if($('.jLanguage:checked').val().includes('Other')){
+        $('.jOtherLanguage').show();
+      } else {
+        $('.jOtherLanguage').hide();
+      }
+    });
+    $('.jLanguage:first()').trigger('change');
+    $('.jHowHear').on('change', function(e){
+      if($('.jHowHear:checked').val().includes('Other')){
+        $('.jOtherHowHear').show();
+      } else {
+        $('.jOtherHowHear').hide();
+      }
+    });
+    $('.jHowHear:first()').trigger('change');

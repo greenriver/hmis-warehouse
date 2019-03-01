@@ -134,6 +134,8 @@ gem 'grosser-pomo'
 gem 'responders'
 gem 'ransack'
 
+gem "attr_encrypted", "~> 3.1.0"
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -159,7 +161,6 @@ group :development do
   gem 'quiet_assets'
   gem 'letter_opener'
   gem 'list_matcher', require: false   # for the forms:desmush rake task
-
 
   gem 'ruby-prof'
   gem 'memory_profiler'

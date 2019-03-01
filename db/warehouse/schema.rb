@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190114175107) do
+ActiveRecord::Schema.define(version: 20190225173734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,6 +116,7 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.integer  "required_minimum_occupancy",                         default: 1
     t.boolean  "requires_elevator_access",                           default: false
     t.jsonb    "neighborhood_interests",                             default: [],    null: false
+    t.string   "verified_veteran_status"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -1094,6 +1095,22 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.string   "exit_destination"
     t.string   "lgbtq"
     t.string   "school_district"
+    t.string   "user_string_1"
+    t.string   "user_string_2"
+    t.string   "user_string_3"
+    t.string   "user_string_4"
+    t.boolean  "user_boolean_1"
+    t.boolean  "user_boolean_2"
+    t.boolean  "user_boolean_3"
+    t.boolean  "user_boolean_4"
+    t.string   "user_select_1"
+    t.string   "user_select_2"
+    t.string   "user_select_3"
+    t.string   "user_select_4"
+    t.string   "user_date_1"
+    t.string   "user_date_2"
+    t.string   "user_date_3"
+    t.string   "user_date_4"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1124,6 +1141,7 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.integer  "days_of_inactivity",       default: 90
     t.boolean  "show_on_client_dashboard", default: true,   null: false
     t.boolean  "visible_in_cas",           default: true,   null: false
+    t.string   "assessment_trigger"
   end
 
   add_index "cohorts", ["deleted_at"], name: "index_cohorts_on_deleted_at", using: :btree
@@ -1205,7 +1223,21 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.string   "short_name"
     t.boolean  "visible_in_window",  default: false, null: false
     t.boolean  "authoritative",      default: false
+    t.string   "after_create_path"
+    t.boolean  "import_paused",      default: false, null: false
   end
+
+  create_table "direct_financial_assistances", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "provided_on"
+    t.string   "type_provided"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "direct_financial_assistances", ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at", using: :btree
 
   create_table "enrollment_change_histories", force: :cascade do |t|
     t.integer  "client_id",                 null: false
@@ -1370,6 +1402,7 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.text     "counselor_attributes"
     t.string   "outreach_counselor_name"
     t.integer  "subject_id"
+    t.jsonb    "processed_fields"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree
@@ -1934,6 +1967,43 @@ ActiveRecord::Schema.define(version: 20190114175107) do
   add_index "recent_service_history", ["id"], name: "id_rsh_index", unique: true, using: :btree
   add_index "recent_service_history", ["project_tracking_method"], name: "project_tracking_method_rsh_index", using: :btree
   add_index "recent_service_history", ["project_type"], name: "project_type_rsh_index", using: :btree
+
+  create_table "recurring_hmis_export_links", force: :cascade do |t|
+    t.integer "hmis_export_id"
+    t.integer "recurring_hmis_export_id"
+    t.date    "exported_at"
+  end
+
+  create_table "recurring_hmis_exports", force: :cascade do |t|
+    t.integer  "every_n_days"
+    t.string   "reporting_range"
+    t.integer  "reporting_range_days"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "hash_status"
+    t.integer  "period_type"
+    t.integer  "directive"
+    t.boolean  "include_deleted"
+    t.integer  "user_id"
+    t.boolean  "faked_pii"
+    t.string   "project_ids"
+    t.string   "project_group_ids"
+    t.string   "organization_ids"
+    t.string   "data_source_ids"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "s3_region"
+    t.string   "s3_bucket"
+    t.string   "s3_prefix"
+    t.string   "encrypted_s3_access_key_id"
+    t.string   "encrypted_s3_access_key_id_iv"
+    t.string   "encrypted_s3_secret"
+    t.string   "encrypted_s3_secret_iv"
+    t.datetime "deleted_at"
+  end
+
+  add_index "recurring_hmis_exports", ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true, using: :btree
+  add_index "recurring_hmis_exports", ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true, using: :btree
 
   create_table "report_definitions", force: :cascade do |t|
     t.string  "report_group"
@@ -3205,6 +3275,74 @@ ActiveRecord::Schema.define(version: 20190114175107) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "youth_case_managements", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "engaged_on"
+    t.text     "activity"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+    t.datetime "deleted_at"
+    t.string   "housing_status"
+    t.string   "other_housing_status"
+  end
+
+  add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
+  create_table "youth_intakes", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.string   "type"
+    t.boolean  "other_staff_completed_intake",             default: false, null: false
+    t.date     "client_dob"
+    t.string   "staff_name"
+    t.string   "staff_email"
+    t.date     "engagement_date",                                          null: false
+    t.date     "exit_date"
+    t.string   "unaccompanied",                                            null: false
+    t.string   "street_outreach_contact",                                  null: false
+    t.string   "housing_status",                                           null: false
+    t.string   "other_agency_involvement",                                 null: false
+    t.string   "owns_cell_phone",                                          null: false
+    t.string   "secondary_education",                                      null: false
+    t.string   "attending_college",                                        null: false
+    t.string   "health_insurance",                                         null: false
+    t.string   "requesting_financial_assistance",                          null: false
+    t.string   "staff_believes_youth_under_24",                            null: false
+    t.integer  "client_gender",                                            null: false
+    t.string   "client_lgbtq",                                             null: false
+    t.jsonb    "client_race",                                              null: false
+    t.integer  "client_ethnicity",                                         null: false
+    t.string   "client_primary_language",                                  null: false
+    t.string   "pregnant_or_parenting",                                    null: false
+    t.jsonb    "disabilities",                                             null: false
+    t.string   "how_hear"
+    t.string   "needs_shelter",                                            null: false
+    t.string   "referred_to_shelter",                      default: "f",   null: false
+    t.string   "in_stable_housing",                                        null: false
+    t.string   "stable_housing_zipcode"
+    t.string   "youth_experiencing_homelessness_at_start"
+    t.datetime "created_at",                                               null: false
+    t.datetime "updated_at",                                               null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
+  add_index "youth_intakes", ["deleted_at"], name: "index_youth_intakes_on_deleted_at", using: :btree
+  add_index "youth_intakes", ["updated_at"], name: "index_youth_intakes_on_updated_at", using: :btree
+
+  create_table "youth_referrals", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "referred_on"
+    t.string   "referred_to"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_referrals", ["deleted_at"], name: "index_youth_referrals_on_deleted_at", using: :btree
 
   add_foreign_key "Affiliation", "data_sources"
   add_foreign_key "Client", "data_sources"

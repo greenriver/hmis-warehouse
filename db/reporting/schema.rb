@@ -15,9 +15,6 @@ ActiveRecord::Schema.define(version: 20181204193329) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
-  enable_extension "fuzzystrmatch"
-  enable_extension "pgcrypto"
 
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"

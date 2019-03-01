@@ -8,6 +8,7 @@ module PatientReferral
     :relationship,
     :agency_id,
     :assigned_agency_id,
+    :acknowledged_by_mass_health,
     :sort_by
   )
 
@@ -34,6 +35,7 @@ module PatientReferral
       filter_params[:relationship],
       filter_params[:agency_id],
       filter_params[:assigned_agency_id],
+      filter_params[:acknowledged_by_mass_health],
       (filter_params[:sort_by]||'created_at')
     )
     load_search
@@ -41,6 +43,7 @@ module PatientReferral
     filter_agency
     filter_assigned_agency
     filter_relationship
+    filter_acknowledged_by_mass_health
     load_sort
   end
 
@@ -85,7 +88,7 @@ module PatientReferral
   end
 
   def filter_relationship
-    if @filters.relationship.present?
+    if @filters.relationship.present? && @active_patient_referral_tab != 'rejected'
       if @filters.relationship != 'all'
         @active_filter = true
         r = @filters.relationship == 'claimed'
@@ -96,6 +99,19 @@ module PatientReferral
       end
     else
       @filters.relationship = 'all'
+    end
+  end
+
+  def filter_acknowledged_by_mass_health
+    if @filters.acknowledged_by_mass_health.present? && @active_patient_referral_tab == 'rejected'
+      @active_filter = true
+      if @filters.acknowledged_by_mass_health == 'true'
+        @patient_referrals = @patient_referrals.rejection_confirmed
+      else
+        @patient_referrals = @patient_referrals.not_confirmed_rejected
+      end
+    else
+      @filters.acknowledged_by_mass_health = 'all'
     end
   end
 

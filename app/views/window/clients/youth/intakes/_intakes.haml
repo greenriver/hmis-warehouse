@@ -1,0 +1,22 @@
+
+= render 'intake_list'
+= render 'case_management_list'
+
+.row
+  .col-sm-6
+    = render 'financial_assistance_list'
+  .col-sm-6
+    = render 'referrals_list'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function(){
+      $('.jOtherTrigger').on('change', function(e){
+        if($(this).val() == 'Other') {
+          $(this).closest('.form-group').next().removeClass('hidden');
+        }
+        else {
+          $(this).closest('.form-group').next().addClass('hidden');
+        }
+      });
+    });

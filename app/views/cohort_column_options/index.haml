@@ -1,10 +1,4 @@
-- title = 'Cohort Column Options'
-- content_for :title, title
-
-= content_for :crumbs do
-  = link_to cohorts_path do
-    &laquo; Return to Cohorts
-
+= render 'cohort_columns/page_header'
 .row
   .col-sm-8
     %h1= content_for :title
@@ -12,6 +6,8 @@
     = link_to new_cohort_column_option_path, class: 'btn btn-primary pull-right margin-bottom-02' do
       %span.icon-plus
       Add a Cohort Column Option
+
+= render 'cohort_columns/tab_bar'
 
 .row
   .col-sm-12

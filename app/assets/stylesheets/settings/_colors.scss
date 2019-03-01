@@ -82,6 +82,11 @@ $table-cell-bg-danger: lighten($brand-danger-l, 25%);
 // Tabs
 $tab-bg: #88A6C9; // Primary in HMIS
 
+// Modals
+$modal-header-bg: $gray-015;
+$modal-border: $gray-025;
+$modal-content-bg: lighten($gray-015, 3%);
+
 $theme-colors: (
   "primary":    $brand-primary,
   "secondary":  $brand-secondary,

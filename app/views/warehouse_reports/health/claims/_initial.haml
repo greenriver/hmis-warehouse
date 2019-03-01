@@ -27,6 +27,7 @@
         %th Date Chosen
         %th Qualifying Activities Included
         %th Patients Included
+        %th Result
     %tbody
       - @completed_reports.each do |report|
         %tr
@@ -34,3 +35,13 @@
           %td= report.max_date
           %td= report.qualifying_activities.count
           %td= report.qualifying_activities.select(:patient_id).distinct.count
+          %td
+            - case report.result
+            - when 'accepted'
+              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-success', data: { loads_in_pjax_modal: true } do
+                Accepted
+            - when 'rejected'
+              = link_to details_warehouse_reports_health_claim_url(report), class: 'btn btn-danger', data: { loads_in_pjax_modal: true } do
+                REJECTED
+            - else
+              = report.result

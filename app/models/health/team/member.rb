@@ -88,8 +88,26 @@ module Health
         where('responsible_team_member_id = ? OR provider_id = ? OR representative_id = ?', id, id, id)
     end
 
+    def remove_from_careplans
+      Health::Careplan.where(responsible_team_member_id: id).each do |cp|
+        cp.update(responsible_team_member_id: nil)
+      end
+      Health::Careplan.where(provider_id: id).each do |cp|
+        cp.update(provider_id: nil)
+      end
+      Health::Careplan.where(representative_id: id).each do |cp|
+        cp.update(representative_id: nil)
+      end
+    end
+
+    def remove_from_goals
+      Health::Goal::Base.where(responsible_team_member_id: id).each do |goal|
+        goal.update(responsible_team_member_id: nil)
+      end
+    end
+
     def goals
-      Health::Goal::Base.where('responsible_team_member_id = ?', id)
+      Health::Goal::Base.where(responsible_team_member_id: id)
     end
 
     def in_use?

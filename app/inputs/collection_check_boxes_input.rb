@@ -6,7 +6,10 @@ class CollectionCheckBoxesInput < SimpleForm::Inputs::CollectionCheckBoxesInput
       selected_value = object.send(attribute_name)
       selected_object = collection.select{|m| m.send(value_method).to_s == selected_value.to_s}
       value = selected_object.map{|m| m.send(label_method)}.first
-      template.label_tag(nil, value, label_html_options)
+      existing_classes = label_html_options.try(:[], :class)
+      existing_classes << 'd-block'
+      existing_classes << 'readonly-value'
+      template.label_tag(nil, value, label_html_options.merge({class: existing_classes}))
     else
       super(wrapper_options)
     end

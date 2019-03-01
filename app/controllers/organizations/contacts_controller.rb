@@ -1,8 +1,9 @@
 module Organizations
   class ContactsController < ApplicationController
     include Contacts
-    
-    
+    include PjaxModalController
+
+
     def contact_source
       GrdaWarehouse::Contact::Organization
     end

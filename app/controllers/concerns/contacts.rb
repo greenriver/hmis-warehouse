@@ -12,6 +12,7 @@ module Contacts
 
     def new
       @contact = contact_source.new
+      render layout: false if params[:layout] == 'false'
     end
     
     def edit
@@ -24,11 +25,25 @@ module Contacts
       begin
         @contact.save!(contact_params)
       rescue Exception => e
+        @error = e
         flash[:error] = e
         render action: :new
         return
       end
-      redirect_to action: :index
+      respond_to do |format|
+        format.html do
+          if @error.present?
+            flash[:error] = e
+            render action: :new
+            return
+          end
+          redirect_to action: :index
+        end
+        format.js do
+
+        end
+      end
+      
     end
 
     def update
@@ -48,9 +63,20 @@ module Contacts
       begin
         @contact.destroy!
       rescue Exception => e
+        @error = e
         flash[:error] = e
       end
-      redirect_to action: :index
+      respond_to do |format|
+        format.html do
+          if @error.present?
+            flash[:error] = e
+          end
+          redirect_to action: :index
+        end
+        format.js do
+
+        end
+      end
     end
 
     def contact_params

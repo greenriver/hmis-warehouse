@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190117150120) do
+ActiveRecord::Schema.define(version: 20190206194409) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -119,11 +119,13 @@ ActiveRecord::Schema.define(version: 20190117150120) do
     t.datetime "started_at"
     t.datetime "completed_at"
     t.string   "error"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
     t.datetime "deleted_at"
     t.datetime "submitted_at"
     t.datetime "precalculated_at"
+    t.string   "result"
+    t.integer  "transaction_acknowledgement_id"
   end
 
   add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
@@ -968,6 +970,17 @@ ActiveRecord::Schema.define(version: 20190117150120) do
   end
 
   add_index "teams", ["careplan_id"], name: "index_teams_on_careplan_id", using: :btree
+
+  create_table "transaction_acknowledgements", force: :cascade do |t|
+    t.integer  "user_id"
+    t.text     "content"
+    t.string   "original_filename"
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "transaction_acknowledgements", ["deleted_at"], name: "index_transaction_acknowledgements_on_deleted_at", using: :btree
 
   create_table "user_care_coordinators", force: :cascade do |t|
     t.integer  "user_id"

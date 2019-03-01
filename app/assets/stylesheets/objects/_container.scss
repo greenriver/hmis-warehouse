@@ -1,3 +1,7 @@
 .o-container--body {
   max-width: $container-max-width;
 }
+
+.o-container--constrained {
+  max-width: rem(1000px);
+}

@@ -9,7 +9,7 @@
         - if can_manage_cohorts?
           = link_to cohort_column_options_path, class: 'btn btn-primary pull-right margin-bottom-02' do
             %span.icon-pencil
-            Edit Cohort Column Options
+            Edit Cohort Columns
 
 %ul.nav.nav-tabs{role: :tablist}
   %li.active{role: :presentation}
@@ -18,6 +18,12 @@
     %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab} Inactive Cohorts
 .tab-content
   #active-cohorts.tab-pane.active{role: :tabpanel}
+    .o-page
+      .o-page__controls
+        = render 'search'
+        = render 'filter_actives'
+        = render 'sort'
+
     = simple_form_for @cohort, url: cohorts_path do |f|
       %table.table.table-condensed
         %thead
@@ -40,6 +46,7 @@
             %th{style: 'min-width: 20em;'} Name
             %th{style: 'width: 12em;'} Effective Date
             %th Visible on Client Dashboard?
+            %th Visible in CAS?
             %th.text-center Clients
           - @cohorts.each do |cohort|
             %tr
@@ -49,9 +56,15 @@
                 = cohort.effective_date
               %td
                 = checkmark cohort.show_on_client_dashboard?
+              %td
+                = checkmark cohort.visible_in_cas?
               %td.text-center
                 = cohort.cohort_clients.count
   #inactive-cohorts.tab-pane{role: :tabpanel}
+    .o-page
+      .o-page__controls
+        = render 'search'
+        = render 'sort'
     %table.table.table-condensed
       %thead
         %tr

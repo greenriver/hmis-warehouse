@@ -25,6 +25,9 @@ module GrdaWarehouse
     scope :visible_in_cas, -> do
       where(visible_in_cas: true)
     end
+    scope :show_on_client_dashboard, -> do
+      where(show_on_client_dashboard: true)
+    end
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
@@ -256,6 +259,22 @@ module GrdaWarehouse
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
         ::CohortColumns::SchoolDistrict.new(),
+        ::CohortColumns::UserString1.new(),
+        ::CohortColumns::UserString2.new(),
+        ::CohortColumns::UserString3.new(),
+        ::CohortColumns::UserString4.new(),
+        ::CohortColumns::UserBoolean1.new(),
+        ::CohortColumns::UserBoolean2.new(),
+        ::CohortColumns::UserBoolean3.new(),
+        ::CohortColumns::UserBoolean4.new(),
+        ::CohortColumns::UserSelect1.new(),
+        ::CohortColumns::UserSelect2.new(),
+        ::CohortColumns::UserSelect3.new(),
+        ::CohortColumns::UserSelect4.new(),
+        ::CohortColumns::UserDate1.new(),
+        ::CohortColumns::UserDate2.new(),
+        ::CohortColumns::UserDate3.new(),
+        ::CohortColumns::UserDate4.new(),
       ]
     end
 

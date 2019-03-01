@@ -2,100 +2,46 @@
 %h1= content_for :title
 
 = render 'breadcrumbs'
-%p
-  The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the 
-  %strong Select
-  checkbox next to the particular project, or organization.  Then select the
-  %strong Generate
-  option at the bottom of the page.  If you would like the generated reports sent immediately to the contacts associated with the organizations or projects, select the 
-  %strong Email
-  option as well.
-%p
-  Organization contacts will receive an email for each project report generated within that organization.  Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the 
-  %strong Email
-  checkbox is checked.
-%p
-  Contacts will not have access to the client-level details of the report, 
-  %strong unless
-  they are logged-in with a user account that has either the 
-  %strong Can view project data quality client details
-  or the
-  %strong Can view projects
-  permission.
+
+%section.o-container--constrained.mb-6
+  %p
+    The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the
+    %strong Select
+    checkbox next to the particular project, or organization.  Then select the
+    %strong Generate
+    option at the bottom of the page.  If you would like the generated reports sent immediately to the contacts associated with the organizations or projects, select the
+    %strong Email
+    option as well.
+  %p
+    Organization contacts will receive an email for each project report generated within that organization.  Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the
+    %strong Email
+    checkbox is checked.
+  %p
+    Contacts will not have access to the client-level details of the report,
+    %strong unless
+    they are logged-in with a user account that has either the
+    %strong Can view project data quality client details
+    or the
+    %strong Can view projects
+    permission.
 
 = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
-  %table.table.table-condensed
-    %thead
-      %tr
-        %th{style: 'width: 2em;'}
-        %th{style: 'width: 20em;', colspan: 2}
-          Organization
-        %th{colspan: 2}
-          Select
-        %th{colspan: 2}
-          Contacts
-        - @projects.each do |(data_source, organization), projects|
-          = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
-        - if @project_groups.any?
-          %tr.jOrganization{data: {organization_id: :project_groups}}
-            %td.jToggle.closed
-              ▶︎
-            %td{style: 'width: 4em;'}
-            %td{style: 'width: 16em;'}
-              Project Groups
-            %td= check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'jSelectAll', data: {organization_id: :project_groups}})
-            %td
-            %td{colspan: 2}
-          %tr.jProject.hidden{data: {organization_id: :project_groups}}
-            %th
-            %th
-            %th
-              Group
-            %th
-              Select
-            %th
-              Report
-            %th
-              Last Run
-            %th
-              Contacts
-            %th
-              Last Sent On
-          - @project_groups.each do |group|
-            = render 'project_group', f: f, group: group, projects: group.projects
+  - select_scope = 'allOrgsProjects'
+  %div{id: select_scope}
+    %section.mb-6
+      .d-flex.mb-5.ml-4
+        %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+        %h2.mb-0.mt-0 Organizations and Projects
+      - @projects.each do |(data_source, organization), projects|
+        = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 
-        
+    %section.mb-6
+      = render 'project_groups', f: f, project_groups: @project_groups
+
   = render 'actions', f: f
 
 = content_for :page_js do
   :javascript
-    (function($) {
-      var updateToggles = function() {
-        $('.jToggle').html('▼');
-        $('.jToggle.closed').html('▶︎');
-      }
-      updateToggles();
-      
-      $('.jToggle').on('click', function(e){
-        $(this).toggleClass('closed');
-        org_id = $(this).closest('.jOrganization').data('organizationId');
-        $(".jProject[data-organization-id='" + org_id + "']").toggleClass('hidden');
-
-        updateToggles();
-      });
-
-      $('.jSelectAll').on('click', function(e){
-        checked = $(this).is(':checked');
-        org_id = $(this).closest('.jOrganization').data('organization-id');
-
-        $(".jProject[data-organization-id='" + org_id + "'] .jProjectSelect").prop('checked', checked);
-        if (checked) {
-          $(this).closest('.jOrganization').children('.closed').removeClass('closed');
-          $(".jProject[data-organization-id='" + org_id + "']").removeClass('hidden');
-          updateToggles();
-
-        }
-      });
-
-      
-    })(jQuery);
+    new App.SelectableList({
+      title: 'Organizations & Projects'
+    })

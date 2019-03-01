@@ -2,7 +2,7 @@
 .row
   .col-sm-8
     %h1= content_for :title
-  .col-sm-4
+  .col-sm-4.text-right
     = link_to new_data_source_path, class: 'btn btn-primary' do
       %span.icon-plus
       Add Data Source
@@ -36,6 +36,9 @@
                   - if stall_date
                     .label.label-warning
                       same file since: #{stall_date}
+                - if data_source.import_paused
+                  .label.label-info
+                    import paused
               %td
                 = checkmark(data_source.visible_in_window)
               %td
