@@ -1,4 +1,4 @@
-require 'aws-sdk-rails'
+require 'aws-sdk'
 class AwsS3  
   def initialize(
     region:, 
