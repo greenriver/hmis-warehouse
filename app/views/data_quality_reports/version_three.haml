@@ -29,34 +29,34 @@
   - @report.report['project_missing'].keys.each_with_index do |project, index|
     :javascript
       (function($) {
-        let url = '#{answers_project_data_quality_report_path(@project, @report)}'
+        var url = '#{answers_project_data_quality_report_path(@project, @report)}'
         $.get(url, function(data){
-          let completeness_#{index} = new App.DataQualityReports.Completeness(data['project_missing']['#{project}'], '.completeness-chart-#{index}',
+          var completeness_#{index} = new App.DataQualityReports.Completeness(data['project_missing']['#{project}'], '.completeness-chart-#{index}',
           '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
           completeness_#{index}.build_chart();
         });
       })(jQuery);
   :javascript
     (function($) {
-      let url = '#{answers_project_data_quality_report_path(@project, @report)}'
+      var url = '#{answers_project_data_quality_report_path(@project, @report)}'
       $.get(url, function(data){
-        let bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart', 
+        var bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "bed_utilization")}');
         bed_census.build_chart();
 
-        let unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart', 
+        var unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "unit_utilization")}');
         unit_census.build_chart();
 
-        let time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
+        var time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_entry")}');
         time_to_enter.build_chart();
 
-        let time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart', 
+        var time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_exit")}');
         time_to_exit.build_chart();
 
-        let time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
+        var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
         time_in_program.build_chart();
       });
