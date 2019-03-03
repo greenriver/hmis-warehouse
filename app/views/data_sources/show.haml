@@ -41,6 +41,11 @@
               Visible in the Window into the Warehouse?
             %td
               = f.input :visible_in_window, label: false
+          %tr
+            %th
+              Import Paused?
+            %td
+              = f.input :import_paused, label: false
         %tr
           %th Viewable by the following users, regardless of visibility in window
           %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')

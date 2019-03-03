@@ -36,6 +36,9 @@
                   - if stall_date
                     .label.label-warning
                       same file since: #{stall_date}
+                - if data_source.import_paused
+                  .label.label-info
+                    import paused
               %td
                 = checkmark(data_source.visible_in_window)
               %td

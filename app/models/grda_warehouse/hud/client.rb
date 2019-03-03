@@ -1099,18 +1099,8 @@ module GrdaWarehouse::Hud
         else
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            if [0,1].include?(self[:Gender])
-              num = id % 99
-              gender = if self[:Gender] == 1
-                'men'
-              else
-                'women'
-              end
-              response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-              image_data = response.body
-            end
+            image_data = fake_client_image_data
           end
-          image_data || self.class.no_image_on_file_image
         end
         image_data
       end
@@ -1133,19 +1123,20 @@ module GrdaWarehouse::Hud
           ) rescue nil
           return image_data
         else
-          if [0,1].include?(self[:Gender])
-            num = id % 99
-            gender = if self[:Gender] == 1
-              'men'
-            else
-              'women'
-            end
-            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            image_data = response.body
-          end
+          image_data = fake_client_image_data
         end
         image_data || self.class.no_image_on_file_image
       end
+    end
+
+    def fake_client_image_data
+      gender = if self[:Gender].in?([1,3]) then 'male' else 'female' end
+      age_group = if age > 18 then 'adults' else 'children' end
+      image_directory = File.join('public', 'fake_photos', age_group, gender)
+      available = Dir[File.join(image_directory, '*.jpg')]
+      image_id = self.PersonalID.sum % available.count
+      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}"
+      image_data = File.read(available[image_id])
     end
 
     # These need to be flagged as available in the Window. Since we cache these
@@ -1546,6 +1537,7 @@ module GrdaWarehouse::Hud
         source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
       end
       save()
+      self.class.clear_view_cache(self.id)
     end
 
     # those columns that relate to race

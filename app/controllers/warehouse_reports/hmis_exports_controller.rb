@@ -2,7 +2,7 @@ module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_export_hmis_data!
-    before_action :set_export, only: [:show, :destroy]
+    before_action :set_export, only: [:show, :destroy, :cancel]
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_exports, only: [:index, :running, :create]
 
@@ -34,8 +34,19 @@ module WarehouseReports
     def create
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
-        WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
-        redirect_to warehouse_reports_hmis_exports_path
+        frequency = recurrence_params[:every_n_days].to_i || 0
+        if frequency > 0
+          recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
+          @filter.recurring_hmis_export_id = recurring_export.id
+        end
+        @filter.adjust_reporting_period
+        if recurring_export && recurring_export.s3_present? && ! recurring_export.s3_valid?
+          flash[:error] = 'Invalid S3 Configuration'
+          render :index
+        else
+          WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
+          redirect_to warehouse_reports_hmis_exports_path
+        end
       else
         render :index
       end
@@ -51,12 +62,32 @@ module WarehouseReports
       send_data @export.content, filename: "HMIS_export_#{Time.now.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
+    def cancel
+      if can_cancel? @export
+        @export.recurring_hmis_export.destroy
+      end
+      redirect_to warehouse_reports_hmis_exports_path
+    end
+
+    def can_cancel?(report)
+      report.user_id == current_user.id || can_view_all_reports?
+    end
+    helper_method :can_cancel?
+
     def set_export
       @export = export_source.find(params[:id].to_i)
     end
 
     def export_source
       GrdaWarehouse::HmisExport
+    end
+
+    def recurring_export_source
+      GrdaWarehouse::RecurringHmisExport
+    end
+
+    def recurring_export_link_source
+      GrdaWarehouse::RecurringHmisExportLink
     end
 
     def export_scope
@@ -74,11 +105,39 @@ module WarehouseReports
         :hash_status,
         :period_type,
         :include_deleted,
+        :directive,
         :faked_pii,
+        :reporting_range,
+        :reporting_range_days,
+        :reporting_range,
+        :reporting_range_days,
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],
         data_source_ids: []
+      )
+    end
+
+    def recurrence_params
+      params.require(:filter).permit(
+          :start_date,
+          :end_date,
+          :hash_status,
+          :period_type,
+          :include_deleted,
+          :faked_pii,
+          :every_n_days,
+          :reporting_range,
+          :reporting_range_days,
+          :s3_access_key_id,
+          :s3_secret_access_key,
+          :s3_region,
+          :s3_bucket,
+          :s3_prefix,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: []
       )
     end
 

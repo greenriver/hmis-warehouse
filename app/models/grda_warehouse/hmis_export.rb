@@ -2,10 +2,14 @@ module GrdaWarehouse
   class HmisExport < GrdaWarehouseBase
     self.table_name = :exports
     attr_accessor :fake_data
+    attr_accessor :recurring_hmis_export_id
 
     mount_uploader :file, HmisExportUploader
 
     belongs_to :user, class_name: User.name
+
+    has_one :recurring_hmis_export_link
+    has_one :recurring_hmis_export, through: :recurring_hmis_export_link
 
     scope :ordered, -> do
       order(created_at: :desc)

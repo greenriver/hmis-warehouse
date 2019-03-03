@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190216193115) do
+ActiveRecord::Schema.define(version: 20190225173734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1252,6 +1252,7 @@ ActiveRecord::Schema.define(version: 20190216193115) do
     t.boolean  "visible_in_window",  default: false, null: false
     t.boolean  "authoritative",      default: false
     t.string   "after_create_path"
+    t.boolean  "import_paused",      default: false, null: false
   end
 
   create_table "direct_financial_assistances", force: :cascade do |t|
@@ -1986,11 +1987,16 @@ ActiveRecord::Schema.define(version: 20190216193115) do
   add_index "recent_service_history", ["project_tracking_method"], name: "project_tracking_method_rsh_index", using: :btree
   add_index "recent_service_history", ["project_type"], name: "project_type_rsh_index", using: :btree
 
+  create_table "recurring_hmis_export_links", force: :cascade do |t|
+    t.integer "hmis_export_id"
+    t.integer "recurring_hmis_export_id"
+    t.date    "exported_at"
+  end
+
   create_table "recurring_hmis_exports", force: :cascade do |t|
     t.integer  "every_n_days"
     t.string   "reporting_range"
     t.integer  "reporting_range_days"
-    t.integer  "hmis_export_id"
     t.date     "start_date"
     t.date     "end_date"
     t.integer  "hash_status"
@@ -2012,6 +2018,7 @@ ActiveRecord::Schema.define(version: 20190216193115) do
     t.string   "encrypted_s3_access_key_id_iv"
     t.string   "encrypted_s3_secret"
     t.string   "encrypted_s3_secret_iv"
+    t.datetime "deleted_at"
   end
 
   add_index "recurring_hmis_exports", ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true, using: :btree
@@ -3300,9 +3307,11 @@ ActiveRecord::Schema.define(version: 20190216193115) do
     t.integer  "user_id"
     t.date     "engaged_on"
     t.text     "activity"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
     t.datetime "deleted_at"
+    t.string   "housing_status"
+    t.string   "other_housing_status"
   end
 
   add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
