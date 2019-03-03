@@ -418,6 +418,7 @@ GEM
     rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
+    rb-readline (0.5.4)
     rdoc (4.3.0)
     redcarpet (3.3.4)
     redis (4.0.1)
@@ -673,6 +674,7 @@ DEPENDENCIES
   rails (~> 4.2.11)
   rails-erd
   ransack
+  rb-readline
   redcarpet
   redis-rails
   responders
@@ -718,4 +720,4 @@ DEPENDENCIES
   wkhtmltopdf-binary
 
 BUNDLED WITH
-   1.16.6
+   1.17.2

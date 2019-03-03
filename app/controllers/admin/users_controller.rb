@@ -4,6 +4,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
+    before_action :set_user, only: [:edit, :confirm, :update, :destroy]
     after_action :log_user, only: [:show, :edit, :update, :destroy]
     helper_method :sort_column, :sort_direction
 
@@ -26,18 +27,13 @@ module Admin
     end
 
     def edit
-      @user = user_scope.find(params[:id].to_i)
     end
 
     def confirm
-      @user = user_scope.find(params[:id].to_i)
-      if ! adding_admin?
-        update
-      end
+      update unless adding_admin?
     end
 
     def update
-      @user = user_scope.find(params[:id].to_i)
       if adding_admin?
         if ! current_user.valid_password?(confirmation_params[:confirmation_password])
           flash[:error] = "User not updated. Incorrect password"
@@ -66,7 +62,6 @@ module Admin
     end
 
     def destroy
-      @user = user_scope.find params[:id]
       @user.update(active: false)
       redirect_to({action: :index}, notice: 'User deactivated')
     end
@@ -84,14 +79,11 @@ module Admin
 
     private def adding_admin?
       existing_roles = @user.user_roles
-      existing_roles.each do |role|
-        # User is already an admin, so we aren't adding anything
-        return false if role.administrative?
-      end
+      return false if existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
 
-      assigned_roles = user_params[:role_ids] || []
+      assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
       added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-      added_role_ids.reject { |id| id.empty? }.each do |id|
+      added_role_ids.select { |id| id.present? }.each do |id|
         role = Role.find(id.to_i)
         if role.administrative?
           @admin_role_name = role.role_name
@@ -149,5 +141,8 @@ module Admin
       %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
     end
 
+    private def set_user
+      @user = user_scope.find(params[:id].to_i)
+    end
   end
 end
