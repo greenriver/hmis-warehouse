@@ -65,7 +65,7 @@ module GrdaWarehouse::HMIS
         assessment = self.where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: key[:assessment_id]
+          assessment_id: (key[:assessment_id] || ENV['HUD_ASSESSMENT_ID'] || 75)
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]

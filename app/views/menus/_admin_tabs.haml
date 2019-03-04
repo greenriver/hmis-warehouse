@@ -1,29 +1,32 @@
 - if current_user.can_see_admin_menu?
   %ul.nav.nav-tabs.mb-2
-    -if can_edit_users?
+    - if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_users_path))}
         = link_to 'Users', admin_users_path, class: 'nav-link'
-    -if can_manage_config?
+    - if can_manage_config?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
         = link_to 'Site Config', admin_configs_path, class: 'nav-link'
-    -if can_manage_config?
+    - if can_manage_config?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_public_files_path))}
         = link_to 'Public Files', admin_public_files_path, class: 'nav-link'
-    -if can_edit_translations?
+    - if can_edit_translations?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_translation_keys_path))}
         = link_to 'Translations', admin_translation_keys_path, class: 'nav-link'
-    -if can_view_imports?
+    - if can_view_imports?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_dashboard_imports_path))}
         = link_to 'Imports', admin_dashboard_imports_path, class: 'nav-link'
-    -if can_edit_dq_grades?
+    - if can_edit_dq_grades?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_data_quality_grades_path))}
         = link_to 'Grade Scale', admin_data_quality_grades_path, class: 'nav-link'
-    -if can_add_administrative_event?
+    - if can_add_administrative_event?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_administrative_events_path))}
         = link_to 'Administrative Events', admin_administrative_events_path, class: 'nav-link'
-    -if can_edit_warehouse_alerts?
+    - if can_edit_warehouse_alerts?
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "warehouse_alerts")}
         = link_to 'Warehouse Alerts', admin_warehouse_alerts_path, class: 'nav-link'
-    -if can_add_administrative_event?
+    - if can_add_administrative_event?
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "glacier")}
         = link_to 'Backups', admin_glacier_index_path, class: 'nav-link'
+    - if can_manage_assessments?
+      %li.nav-item{role: "presentation", class: ('active' if controller_name == "assessments")}
+        = link_to 'TouchPoints', admin_eto_api_assessments_path, class: 'nav-link'
