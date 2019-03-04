@@ -65,7 +65,7 @@ module GrdaWarehouse::HMIS
         assessment = self.where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: key[:assessment_id]
+          assessment_id: (key[:assessment_id] || ENV['HUD_ASSESSMENT_ID'] || 75)
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]
@@ -124,7 +124,7 @@ module GrdaWarehouse::HMIS
     end
 
     def self.fetch_touch_points
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+      api_config = EtoApi::Base.api_configs
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']

@@ -1084,7 +1084,7 @@ module GrdaWarehouse::Hud
           # Use the uploaded client image if available, otherwise use the API, if we have access
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+            api_configs = EtoApi::Base.api_configs
             source_api_ids.detect do |api_id|
               api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
               return nil unless api_key.present?
@@ -1113,7 +1113,7 @@ module GrdaWarehouse::Hud
         image_data = nil
         if Rails.env.production?
           return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-          api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+          api_configs = EtoApi::Base.api_configs
           api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
           return nil unless api_key.present?
           api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
