@@ -20,7 +20,7 @@ module EtoApi
         activity: 'https://services.etosoftware.com/API/Activity.svc',
       }
       begin
-        api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+        api_config = self.class.api_configs
       rescue
         return false
       end
@@ -31,6 +31,10 @@ module EtoApi
         }
       }
       @enterprise = api_config[api_connection]['enterprise']
+    end
+
+    def self.api_configs
+      YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]&.select{ |k, conf| conf['data_source_id'].present? && conf['data_source_id'] != 'unknown' }
     end
 
     def endpoint(service)
