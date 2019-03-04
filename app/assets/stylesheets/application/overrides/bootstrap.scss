@@ -1,0 +1,83 @@
+@import '../helpers';
+
+.container-fluid {
+  padding-right: 30px;
+  padding-left: 30px;
+}
+
+th .fa {
+  padding-left: 4px;
+  color: $cas-blue;
+}
+
+.info a {
+  color: white;
+}
+
+.info {
+  color: black;
+}
+
+.popover {
+  max-width: 80%; /* Max Width of the popover (depending on the container!) */
+  white-space: pre-wrap;
+}
+
+.popover ol {
+  padding-left: 0 !important;
+  -webkit-padding-start: 10px !important;
+}
+
+.alert {
+  z-index: $zIndex-3--notice;
+  @include open-sans-medium;
+  color: rgba($black, .75);
+}
+
+.alert a {
+  color: rgba($black, .75);
+}
+
+.alert a:link {
+  text-decoration: underline;
+}
+
+.alert a:hover,
+.alert a:focus {
+  text-decoration: none;
+}
+
+a.icon-cross:link {
+  text-decoration: none;
+}
+
+.active-tab a {
+  font-weight: 800;
+}
+
+.control-label.required {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  abbr {
+    color: $brand-danger;
+    text-decoration: none;
+    margin-left: space(1);
+    border-bottom: 0;
+  }
+}
+
+.btn-link--danger {
+  color: $brand-danger-d;
+  &:hover {
+    color: darken($brand-danger-d, 10%);
+  }
+}
+
+.label {
+  @extend .c-tag-pill;
+}
+
+.dropdown-menu
+{
+  z-index: 1500;
+}

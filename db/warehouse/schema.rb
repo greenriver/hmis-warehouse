@@ -117,7 +117,6 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "required_number_of_bedrooms",                        default: 1
     t.integer  "required_minimum_occupancy",                         default: 1
     t.boolean  "requires_elevator_access",                           default: false
-    t.jsonb    "neighborhood_interests",                             default: [],    null: false
     t.string   "verified_veteran_status"
     t.boolean  "interested_in_set_asides",                           default: false
     t.date     "consent_expires_on"
@@ -1883,15 +1882,15 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.string   "EnrollmentID",                                 limit: 50
+    t.string   "ProjectEntryID",                               limit: 50
     t.string   "PersonalID"
     t.string   "ProjectID",                                    limit: 50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
-    t.integer  "LivingSituation"
+    t.integer  "ResidencePrior"
     t.string   "OtherResidencePrior"
-    t.integer  "LengthOfStay"
+    t.integer  "ResidencePriorLengthOfStay"
     t.integer  "DisablingCondition"
     t.integer  "EntryFromStreetESSH"
     t.date     "DateToStreetESSH"
@@ -1903,7 +1902,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "HousingStatus"
     t.date     "DateOfEngagement"
     t.integer  "InPermanentHousing"
-    t.date     "MoveInDate"
+    t.date     "ResidentialMoveInDate"
     t.date     "DateOfPATHStatus"
     t.integer  "ClientEnrolledInPATH"
     t.integer  "ReasonNotEnrolled"
@@ -1915,7 +1914,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "LastPermanentZIP",                             limit: 10
     t.integer  "AddressDataQuality"
     t.date     "DateOfBCPStatus"
-    t.integer  "EligibleForRHY"
+    t.integer  "FYSBYouth"
     t.integer  "ReasonNoServices"
     t.integer  "SexualOrientation"
     t.integer  "FormerWardChildWelfare"
@@ -1995,10 +1994,6 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
     t.string   "processed_as"
-    t.boolean  "roi_permission"
-    t.string   "last_locality"
-    t.string   "last_zipcode"
-    t.string   "source_hash"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
