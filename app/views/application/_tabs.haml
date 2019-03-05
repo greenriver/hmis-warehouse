@@ -4,7 +4,7 @@
     - can_see_tabs = true
 
 - if can_see_tabs
-  %ul.nav.nav-tabs.margin-bottom-02
+  %ul.nav.nav-tabs.mb-2
     - tabs.each do |action, details|
       - item_class = details[:item_class] || ''
       - if action == current

@@ -2,7 +2,7 @@
   %h3 Queue Report
   .slab
     = f.error_notification
-    .row.margin-bottom-02
+    .row.mb-2
       .col-sm-4
         = f.input :pit_date, input_html: {name: 'report_result[options][pit_date]', value: default_pit_date}, as: :date_picker, label: 'PIT date'
       .col-sm-4
@@ -10,7 +10,7 @@
       .col-sm-4
         = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.all.pluck(:CoCCode).uniq, include_blank: 'All', input_html: {name: 'report_result[options][coc_codes][]', multiple: :multiple, class: 'select2'}
     .row
-      .col-sm-12.margin-bottom-02
+      .col-sm-12.mb-2
         = f.button :button, class: 'btn btn-primary pull-right' do
           %span.icon-plus
           Queue Report Run

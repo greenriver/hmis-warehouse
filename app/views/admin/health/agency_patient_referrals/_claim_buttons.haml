@@ -12,7 +12,7 @@
       - collection = relationship.claimed? ? [['Not Our Patient', false]] : [['Our Patient', true]]
   - collection = [['Our Patient', true], ['Not Our Patient', false]]
   - collection.each do |c|
-    - btn_classes = ['padding-right-02', 'btn', 'btn-sm', 'mb-2']
+    - btn_classes = ['pr-2', 'btn', 'btn-sm', 'mb-2']
     - if relationship.claimed? && c[0] == 'Our Patient'
       - btn_classes.push('btn-primary')
     - elsif !relationship.claimed? && relationship.claimed != nil && c[0] == 'Not Our Patient'

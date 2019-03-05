@@ -25,7 +25,7 @@
             %td
               = link_to polymorphic_path(health_path_generator + [:epic_cha], id: form.id), data: { loads_in_pjax_modal: true } do
                 %h4 CHA
-                .padding-left-02 From Epic
+                .pl-2 From Epic
             %td
               - if form.reviewer_name.present?
                 = "Reviewed by #{form.reviewer_name}"

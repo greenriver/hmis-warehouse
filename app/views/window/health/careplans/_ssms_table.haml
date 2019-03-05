@@ -18,12 +18,12 @@
             %td
               = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
                 %h4=form.assessment_type
-                .padding-left-02 From Eto
+                .pl-2 From Eto
           - if form.is_a? Health::EpicSsm
             %td
               = link_to polymorphic_path(health_path_generator + [:epic_ssm], id: form.id), data: { loads_in_pjax_modal: true } do
                 %h4 SSM
-                .padding-left-02 From Epic
+                .pl-2 From Epic
             %td= form.ssm_updated_at&.to_date
             %td= form.staff
 

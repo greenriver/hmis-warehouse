@@ -1,4 +1,4 @@
-.row.margin-bottom-02
+.row.mb-2
   .col-sm-12
     = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
       = f.error_notification

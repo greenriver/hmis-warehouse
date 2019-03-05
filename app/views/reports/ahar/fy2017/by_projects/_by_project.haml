@@ -8,7 +8,7 @@
       .col-sm-4
         = f.input :project_id, input_html: {class: 'select2'}, collection: Reports::Ahar::Fy2017::ByProject.available_projects_for_filtering
     .row
-      .col-sm-12.margin-bottom-02
+      .col-sm-12.mb-2
         = f.button :button, class: 'btn btn-primary pull-right' do
           %span.icon-plus
           Queue Report Run

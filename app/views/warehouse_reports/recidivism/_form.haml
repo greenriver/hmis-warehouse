@@ -1,6 +1,6 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_recidivism_index_path, html: { method: :get } do |f|
   = f.error_notification
-  .row.margin-bottom-02
+  .row.mb-2
     .col-sm-3
       = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
     .col-sm-3
