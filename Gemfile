@@ -56,13 +56,13 @@ gem "simple_form"
 gem 'virtus'
 
 # Asset related
-gem 'bootstrap-sass'
+gem 'bootstrap', '~> 4.3.1'
 gem "jquery-rails"
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
-gem 'select2-rails', git: 'https://github.com/greenriver/select2-rails.git'
+gem "select2-rails"
 gem 'font-awesome-sass', '~> 5.4.1'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'

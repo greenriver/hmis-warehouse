@@ -13,7 +13,9 @@
 /////////////////////
 // Vendor libs
 ////////////////////
-//= require jquery
+//= require jquery3
+//= require popper
+//= require bootstrap-sprockets
 //= require bootstrap
 //= require vis.min
 //= require jquery_ujs

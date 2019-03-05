@@ -1,3 +1,6 @@
+@import '../settings/variables';
+@import '../settings/spacing';
+
 // Remove the unit of a length
 // Source: https://css-tricks.com/snippets/sass/strip-unit-function/
 // @param {Number} $number - Number to remove unit from

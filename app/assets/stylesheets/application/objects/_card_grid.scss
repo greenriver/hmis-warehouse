@@ -11,19 +11,12 @@
 .o-card-grid article {
   flex: 0 1 100%;
   max-width: 100%;
-}
-
-
-@media (min-width: $screen-md-min) {
-  .o-card-grid article {
-      flex: 0 1 50%;
-      max-width: 50%;
+  @include media-breakpoint-up(sm) {
+    flex: 0 1 50%;
+    max-width: 50%;
   }
-}
-
-@media (min-width: $screen-lg-min) {
-  .o-card-grid article {
-      flex: 0 1 33.333333%;
-      max-width: 33.333333%;
+  @include media-breakpoint-up(lg) {
+    flex: 0 1 33.333333%;
+    max-width: 33.333333%;
   }
 }

@@ -6,6 +6,7 @@
 // Or any other static (that we don't change) CSS
 /////////////////////
 // Vendor
+//= require ./application/vendor/bootstrap/index
 //= require select2
 //= require select2-bootstrap
 //= require jquery-ui/sortable
@@ -16,7 +17,6 @@
 //= require datatables.min
 //= require ./application/vendor/font_awesome
 //= require vis
-//= require ./application/vendor/bootstrap/index
 //= require ./application/vendor/icomoon
 //= require ./application/vendor/billboard
 

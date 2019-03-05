@@ -1,19 +1,21 @@
-$font-size-default: 14px;
+$font-size-default: 14px !default;
+$font-body-size: 14px !default;
+$em-base: 1rem;
 
 // Layout
-$container-max-width: 1000px;
-$container-padding: 30px;
-$show-menu-on-left: false;
+$container-max-width: 1000px !default;
+$container-padding: 30px !default;
+$show-menu-on-left: false !default;
 
 // Header
-$header-height: 60px;
-$nav-side-width: 185px;
-$nav-side-collapsed-width: 65px;
+$header-height: 60px !default;
+$nav-side-width: 185px !default;
+$nav-side-collapsed-width: 65px !default;
 
 // Footer
-$footer-logo-height: 85px;
-$footer-logo-padding: 15px;
-$footer-height: $footer-logo-height + $footer-logo-padding;
+$footer-logo-height: 85px !default;
+$footer-logo-padding: 15px !default;
+$footer-height: $footer-logo-height + $footer-logo-padding !default;
 
 $border-radius-default: .35rem;
 
@@ -49,8 +51,8 @@ $nav-tab-active-active-bg: lighten($tab-bg, 30%);
 $nav-tab-active-color: darken($tab-bg, 40%);
 
 // Font-families
-$font-body             : 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
-$font-header           : 'Open Sans Condensed', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-body   : 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-header : 'Open Sans Condensed', Arial, 'Helvetica Neue', Helvetica, sans-serif;
 $font-weights: (
   normal   : 400,
   default  : 400,

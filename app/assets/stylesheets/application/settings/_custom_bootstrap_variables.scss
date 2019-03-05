@@ -1,24 +1,26 @@
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Custom Bootstrap Variables
+// ---------------------------------------------------------------------------
+// Available variables:
+// https://github.com/twbs/bootstrap/blob/v4.3.1/scss/_variables.scss
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 @import './colors';
 @import './spacing';
-
-// bootstrap overrides -- copy of bs3 variables
-$bootstrap-sass-asset-helper: false !default;
+@import '../tools/functions';
 
 $body-bg: #f9f9f9;
 $body-color: $gray-080;
+$text-color: $gray-070 !default;
 
 $nav-tabs-active-link-hover-bg:  $body-bg;
-$nav-link-padding: 20px 15px;
-$nav-link-padding-y: 20px;
-$nav-link-padding-x: 15px;
+/* $nav-link-padding-y: rem(20px);
+$nav-link-padding-x: rem(15px); */
 $nav-tabs-border-radius: 0;
 
 $label-color: rgba($black, .95);
 
 $alert-info-text: $white;
-
-// Links
-$link-color: $link-color;
 
 // Inputs
 $input-btn-padding-y: .6rem;
@@ -49,18 +51,6 @@ $danger:        $brand-danger;
 
 $light:         $gray-015;
 $dark:          $gray-080;
-
-$theme-colors: () !default;
-$theme-colors: map-merge((
-  "primary":    $primary,
-  "secondary":  $secondary,
-  "success":    $success,
-  "info":       $info,
-  "warning":    $warning,
-  "danger":     $danger,
-  "light":      $light,
-  "dark":       $dark
-), $theme-colors);
 
 // Tooltips
 $tooltip-font-size: 13px;
