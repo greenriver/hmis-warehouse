@@ -5,7 +5,6 @@ $table-border-color-secondary: #F0F0F0;
 
 .c-table {
   background: $white;
-  @extend .table;
   border: 1px solid $table-border-color-secondary;
 }
 

@@ -74,7 +74,7 @@ a.icon-cross:link {
 }
 
 .label {
-  @extend .c-tag-pill;
+  @include tag-pill;
 }
 
 .dropdown-menu

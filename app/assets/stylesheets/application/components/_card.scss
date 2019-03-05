@@ -32,13 +32,7 @@
 }
 
 .c-card__content {
-  @include card;
-  padding: space(4);
-  width: 100%;
-  &.open {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
+  @include card-content;
 }
 
 .c-card__content .form-control,
@@ -159,7 +153,7 @@
 
 // Align Well styles with card
 .well {
-  @extend .c-card__content;
+  @inlcude card-content;
   box-shadow: none;
 }
 

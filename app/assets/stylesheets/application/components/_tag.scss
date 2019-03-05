@@ -97,14 +97,7 @@ $tag-types: (
 
 
 .c-tag-pill {
-  border-radius: 10px;
-  padding: space(1) space(3);
-  font-size: 0.7rem;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-items: center;
+  @include tag-pill;
 }
 
 .c-tag-pill--lg {

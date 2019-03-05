@@ -38,7 +38,7 @@
 }
 .service-type__program-type {
   background-color: black;
-  @extend .c-tag-pill;
+  @include tag-pill;
   color: white;
 }
 .client__client_unique_id
@@ -395,7 +395,7 @@ $client-image-height: 200px;
 }
 
 .rollup__square {
-  @extend .c-tag-pill;
+  @include tag-pill;
   color: white;
 }
 
@@ -408,13 +408,13 @@ $client-image-height: 200px;
 }
 
 .destination-sqr {
-  @extend .c-tag-pill;
+  @include tag-pill;
   color: $white;
   background-color: $cob-sg-blue-002;
 }
 
 .confidential_project {
-  @extend .c-tag-pill;
+  @include tag-pill;
   color: white;
   background-color: orange;
 }

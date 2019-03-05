@@ -1,7 +1,7 @@
 @import '../helpers';
 
 [class^='ds'] {
-  @extend .c-tag-pill;
+  @include tag-pill;
   text-decoration: none;
   background-color: $gray-065;
   color: white;

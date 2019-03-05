@@ -5,6 +5,16 @@
   border: 1px solid $gray-025;
 }
 
+@mixin card-content {
+  @include card;
+  padding: space(4);
+  width: 100%;
+  &.open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
 @mixin internal_card_heading {
   border-top: $gray-020 1px solid;
   border-bottom: $gray-020 1px solid;
@@ -387,4 +397,64 @@
     box-shadow: none;
     transform: scale(.75);
   }
+}
+
+@mixin tag-pill {
+  border-radius: 10px;
+  padding: space(1) space(3);
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-items: center;
+}
+
+// Copied from Bootstrap source:
+// https://github.com/twbs/bootstrap-sass/blob/master/assets/stylesheets/bootstrap/_forms.scss
+@mixin form-control {
+  display: block;
+  width: 100%;
+  height: $input-height-base; // Make inputs at least the height of their button counterpart (base line-height + padding + border)
+  padding: $padding-base-vertical $padding-base-horizontal;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $input-color;
+  background-color: $input-bg;
+  background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
+  border: 1px solid $input-border;
+  border-radius: $input-border-radius; // Note: This has no effect on <select>s in some browsers, due to the limited stylability of <select>s in CSS.
+  @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075));
+  @include transition(border-color ease-in-out .15s, box-shadow ease-in-out .15s);
+
+  // Customize the `:focus` state to imitate native WebKit styles.
+  @include form-control-focus;
+
+  // Placeholder
+  @include placeholder;
+
+  // Unstyle the caret on `<select>`s in IE10+.
+  &::-ms-expand {
+    background-color: transparent;
+    border: 0;
+  }
+
+  // Disabled and read-only inputs
+  //
+  // HTML5 says that controls under a fieldset > legend:first-child won't be
+  // disabled if the fieldset is disabled. Due to implementation difficulty, we
+  // don't honor that edge case; we style them as disabled anyway.
+  &[disabled],
+  &[readonly],
+  fieldset[disabled] & {
+    background-color: $input-bg-disabled;
+    opacity: 1; // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655
+  }
+
+  &[disabled],
+  fieldset[disabled] & {
+    cursor: $cursor-disabled;
+  }
+
+  // [converter] extracted textarea& to textarea.form-control
 }
