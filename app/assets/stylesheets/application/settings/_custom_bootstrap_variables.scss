@@ -71,6 +71,8 @@ $label-primary-bg: $brand-primary-l;
 // Pagination
 $pagination-padding-y: .65rem;
 $pagination-padding-x: 1rem;
+$pagination-color: $link-color;
+$pagination-active-bg: $brand-primary-d;
 
 $font-size-base:   1rem !default;
 $font-size-large:  ceil(($font-size-base * 1.25)) !default; // ~18px
