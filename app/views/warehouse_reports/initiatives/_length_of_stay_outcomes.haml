@@ -23,13 +23,13 @@
     .ho-container__header
       %h4= title 
     .row
-      .col-xs-12
+      .col-sm-12
         .loso__legend
           .clearfix{id: legend_id}
     .row
       - empty = false
       - [chart_1, chart_2].each do |period|
-        .col-xs-12.col-md-6
+        .col-sm-12.col-md-6
           %h5{style: 'margin-left: 20px;'}= vm.chart_title(period)
           - if vm.empty?(data_type, by, period)
             - empty = true

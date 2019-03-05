@@ -3,7 +3,7 @@
     %h4= title
   - empty = buckets[:data].keys.map{|k| buckets[:data][k].values}.flatten.map{|d| d.nil? ? 0 : d}.inject(0, :+) == 0
   .row{style: 'margin-top: 40px;'}
-    .col-xs-12.col-md-7
+    .col-sm-12.col-md-7
       - if empty
         %p No Data
       - else
@@ -23,7 +23,7 @@
                 }
               });
             });
-    .col-xs-12.col-md-5
+    .col-sm-12.col-md-5
       - unless empty
         - total = buckets[:data].keys.map{|bk| buckets[:data][bk][:total] || 0}.inject(0, :+)
         %h4= "#{outer_legend} (crust)"
