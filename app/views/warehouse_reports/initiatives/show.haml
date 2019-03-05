@@ -5,14 +5,14 @@
 %h1= content_for :title
 = render 'token_access'
 %ul.nav.nav-tabs{role: :tablist}
-  %li{role: :presentation, class: 'active'}
-    %a{href: "#outcomes", role: :tab, data: {toggle: :tab}, aria: {controls: 'outcomes'}}
+  %li.nav-item{role: :presentation, class: 'active'}
+    %a{href: "#outcomes", role: :tab, data: {toggle: :tab}, aria: {controls: 'outcomes'}, class: 'nav-link'}
       Outcomes
-  %li{role: :presentation}
-    %a{href: "#details", role: :tab, data: {toggle: :tab}, aria: {controls: 'details'}}
+  %li.nav-item{role: :presentation}
+    %a{href: "#details", role: :tab, data: {toggle: :tab}, aria: {controls: 'details'}, class: 'nav-link'}
       Details
-  %li{role: :presentation}
-    %a{href: "#settings", role: :tab, data: {toggle: :tab}, aria: {controls: 'settings'}}
+  %li.nav-item{role: :presentation}
+    %a{href: "#settings", role: :tab, data: {toggle: :tab}, aria: {controls: 'settings'}, class: 'nav-link'}
       Chosen Options
 
 .tab-content

@@ -1,6 +1,6 @@
 :ruby
   dashboard_tabs = {
-    'census' => { 
+    'census' => {
       title: 'Census',
       path: censuses_path,
     },
@@ -46,6 +46,6 @@
     - active_class = ''
     - if active == key
       - active_class = 'active'
-    %li{role: :presentation, class: active_class}
+    %li.nav-item{role: :presentation, class: active_class}
       - tab_title = sub_population[:title]
-      = link_to tab_title, sub_population[:path], role: :tab, aria: {controls: tab_title}
+      = link_to tab_title, sub_population[:path], role: :tab, aria: {controls: tab_title}, class: 'nav-link'

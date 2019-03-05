@@ -5,7 +5,8 @@
     .o-filtration
       .input-group.date{data: {provide: :datepicker}}
         %input.form-control{name: :date, type: :text, value: @date}
-        %span.input-group-addon.icon-calendar
+        .input-group-append
+          %button.input-group-text.icon-calendar.btn.btn-secondary{type: 'button'}
     .o-filtration.ml-auto
       %button.btn.btn-secondary{type: :submit} Re-calculate
 

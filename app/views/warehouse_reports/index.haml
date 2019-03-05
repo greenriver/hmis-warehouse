@@ -3,8 +3,8 @@
 
 %ul.nav.nav-tabs{role: :tablist}
   - @report_definitions.each_with_index do |(group_name, reports), index|
-    %li{role: :presentation, class: (index == 0 ? 'active' : '')}
-      %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
+    %li.nav-item{role: :presentation, class: (index == 0 ? 'active' : '')}
+      %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}, class: 'nav-link'}
         #{group_name}
 
 .tab-content

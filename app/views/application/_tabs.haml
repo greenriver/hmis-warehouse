@@ -4,14 +4,15 @@
     - can_see_tabs = true
 
 - if can_see_tabs
-  %ul.nav.nav-tabs.mb-2
+  %ul.nav.nav-tabs
     - tabs.each do |action, details|
       - item_class = details[:item_class] || ''
       - if action == current
         - if details[:permission]
-          %li.active.active-tab{role: 'presentation'}
+          %li.nav-item.active.active-tab{role: 'presentation'}
             %a{href: '#'}
               = details[:title]
       - else
         - if details[:permission]
-          %li{class: item_class}= link_to details[:title], action
+          %li.nav-item{class: item_class}
+            = link_to details[:title], action, class: 'nav-link'

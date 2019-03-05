@@ -29,8 +29,8 @@
 %h1= content_for :title
 %ul.nav.nav-tabs
   - @possible_statuses.each do |label, status|
-    %li{class:('active' if status == @status)}
-      = link_to url_for(params.merge(status: status, page: nil)) do
+    %li.nav-item{class:('active' if status == @status)}
+      = link_to url_for(params.merge(status: status, page: nil)), class: 'nav-link' do
         = label
         - if (count = @counts[status].to_i) > 0
           %span.badge{data: {status: status}}= count

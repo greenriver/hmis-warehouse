@@ -8,7 +8,8 @@
     .col-sm-3
       .input-group.date{'data-provide' => 'datepicker'}
         = f.input_field :date, name: :date, class: 'form-control', value: @date
-        %span.input-group-addon.icon-calendar
+        .input-group-append
+          %button.input-group-text.icon-calendar.btn.btn-secondary{type: 'button'}
     .col-sm-3
       = f.button :submit, value: 'Update View'
 

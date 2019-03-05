@@ -53,6 +53,10 @@
   }
 }
 
+.o-page__search .form-group {
+  flex: 1 1 auto;
+}
+
 .o-page__sort {
   display: flex;
   > div {

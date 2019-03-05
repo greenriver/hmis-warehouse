@@ -14,8 +14,9 @@ $body-color: $gray-080;
 $text-color: $gray-070 !default;
 
 $nav-tabs-active-link-hover-bg:  $body-bg;
-/* $nav-link-padding-y: rem(20px);
-$nav-link-padding-x: rem(15px); */
+
+$nav-link-padding-y: 1.43rem;
+$nav-link-padding-x: 1.07rem;
 $nav-tabs-border-radius: 0;
 
 $label-color: rgba($black, .95);

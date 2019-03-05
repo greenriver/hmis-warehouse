@@ -8,7 +8,7 @@
   .o-page__controls
     .o-page__search
       .input-group
-        = f.input :search, label: false, wrapper_html: {class: 'mb-0 w-100'}
+        = f.input :search, label: false, wrapper_html: {class: 'mb-0'}
         %span.input-group-append
           %button.btn.btn-secondary{type: :submit} Search
     -# if show_filters?
@@ -18,7 +18,7 @@
           %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
             Filter
             %span.caret
-          .o-filtration__container.dropdown-menu{style: 'padding: 10px;'}
+          .o-filtration__container.dropdown-menu
             .o-filtration__header
               %h3.client__filter-header Filter patients
             .o-filtration__option.row

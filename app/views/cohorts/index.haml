@@ -12,10 +12,10 @@
             Edit Cohort Columns
 
 %ul.nav.nav-tabs{role: :tablist}
-  %li.active{role: :presentation}
-    %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab} Cohorts
-  %li{role: :presentation}
-    %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab} Inactive Cohorts
+  %li.nav-item.active{role: :presentation}
+    %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} Cohorts
+  %li.nav-item{role: :presentation}
+    %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: {toggle: :tab}, role: :tab, class: 'nav-link'} Inactive Cohorts
 .tab-content
   #active-cohorts.tab-pane.active{role: :tabpanel}
     .o-page

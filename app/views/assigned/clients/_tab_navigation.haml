@@ -1,5 +1,5 @@
 %ul.nav.nav-tabs.mb-1
-  %li{ class: (:active if current_page?(assigned_clients_path)) }
-    = link_to 'Active Relationships', assigned_clients_path
-  %li{ class: (:active if current_page?(expired_clients_path)) }
-    = link_to 'Inactive Relationships', expired_clients_path
+  %li.nav-item{ class: (:active if current_page?(assigned_clients_path)) }
+    = link_to 'Active Relationships', assigned_clients_path, class: 'nav-link'
+  %li.nav-item{ class: (:active if current_page?(expired_clients_path)) }
+    = link_to 'Inactive Relationships', expired_clients_path, class: 'nav-link'
