@@ -83,7 +83,7 @@
   font-size: 1.5rem;
   line-height: 1.0555;
   @include media-breakpoint-up(lg) {
-    font-size: $font-size-h2;
+    font-size: $h2-font-size;
   }
 }
 
@@ -100,16 +100,17 @@
 .o-header--page__sub-title {
   display: none;
   margin-left: 1rem;
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     display: block;
     color: #fff;
     @include montserrat-normal;
     text-transform: uppercase;
-    font-size: rem(14);
+    font-size: rem(14px);
     line-height: 1.1;
   }
-  @media (min-width: $screen-lg-min) {
-    font-size: rem(16);
+  @include media-breakpoint-up(lg) {
+    @debug rem(16px);
+    font-size: rem(16px);
   }
 }
 

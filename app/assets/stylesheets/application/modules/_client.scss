@@ -216,7 +216,7 @@ $client-match-action-row-height: 22px;
   > section {
     width: 100%;
   }
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     flex-wrap: nowrap;
     margin-bottom: space(6);
   }
@@ -234,7 +234,7 @@ $client-match-action-row-height: 22px;
     max-width: 100%;
     min-width: rem(175px);
   }
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     flex-direction: row;
     min-width: 100%;
     li {
@@ -261,7 +261,7 @@ $client-image-height: 200px;
   background-position: center center;
   flex: 1 1 auto;
   margin-bottom: space(4);
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     max-width: rem($client-image-height);
     min-width: rem($client-image-height);
     min-height: rem($client-image-height);
@@ -275,7 +275,7 @@ $client-image-height: 200px;
   flex: 0 0 33%;
 }
 
-@media (max-width: $screen-sm-max) {
+@include media-breakpoint-down(sm) {
   .client__details{
     flex: 0 0 100%;
     margin-bottom: space(4);

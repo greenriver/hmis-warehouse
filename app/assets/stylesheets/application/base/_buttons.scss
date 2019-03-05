@@ -116,10 +116,9 @@ button.close {
 
 }
 .btn-min-width-medium {
-  @media (min-width: $screen-xs-min) {
+  @include media-breakpoint-up(xs) {
     min-width: 165px;
   }
-
 }
 .btn [class^="icon-"],
 .btn [class*=" icon-"] {

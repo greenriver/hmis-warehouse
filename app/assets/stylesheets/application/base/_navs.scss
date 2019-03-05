@@ -1,5 +1,9 @@
 @import '../helpers';
 
+.navbar-text {
+  margin-bottom: space(2);
+}
+
 @mixin nav-tab-active {
   background: $body-bg;
   box-shadow: inset 0px 2px 0px 0px $nav-tab-active-border-color;

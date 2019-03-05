@@ -1,3 +1,6 @@
+@import '../settings/variables';
+@import 'bootstrap/mixins';
+
 @mixin card {
   background: $white;
   color: $text-color;
@@ -145,89 +148,6 @@
   box-sizing:         content-box;
 }
 
-// bourbon.io
-// Convert pixels to rems
-// eg. for a relational value of 12px write rem(12)
-// Assumes $em-base is the font-size of <html>
-@function strip-units($value) {
-  @return ($value / ($value * 0 + 1));
-}
-@function rem($pxval) {
-  @if not unitless($pxval) {
-    $pxval: strip-units($pxval);
-  }
-
-  $base: $em-base;
-  @if not unitless($base) {
-    $base: strip-units($base);
-  }
-  @return ($pxval / $base) * 1rem;
-}
-// Directional-property mixins are shorthands for writing properties shorthand but w/null values to skip a side
-@function collapse-directionals($vals) {
-  $output: null;
-
-  $a: nth($vals, 1);
-  $b: if(length($vals) < 2, $a, nth($vals, 2));
-  $c: if(length($vals) < 3, $a, nth($vals, 3));
-  $d: if(length($vals) < 2, $a, nth($vals, if(length($vals) < 4, 2, 4)));
-
-  @if $a == 0 { $a: 0; }
-  @if $b == 0 { $b: 0; }
-  @if $c == 0 { $c: 0; }
-  @if $d == 0 { $d: 0; }
-
-  @if $a == $b and $a == $c and $a == $d { $output: $a;          }
-  @else if $a == $c and $b == $d         { $output: $a $b;       }
-  @else if $b == $d                      { $output: $a $b $c;    }
-  @else                                  { $output: $a $b $c $d; }
-
-  @return $output;
-}
-
-@mixin directional-property($pre, $suf, $vals) {
-  // Property Names
-  $top:    $pre + "-top"    + if($suf, "-#{$suf}", "");
-  $bottom: $pre + "-bottom" + if($suf, "-#{$suf}", "");
-  $left:   $pre + "-left"   + if($suf, "-#{$suf}", "");
-  $right:  $pre + "-right"  + if($suf, "-#{$suf}", "");
-  $all:    $pre +             if($suf, "-#{$suf}", "");
-
-  $vals: collapse-directionals($vals);
-
-  @if contains-falsy($vals) {
-    @if nth($vals, 1) { #{$top}: nth($vals, 1); }
-
-    @if length($vals) == 1 {
-      @if nth($vals, 1) { #{$right}: nth($vals, 1); }
-    } @else {
-      @if nth($vals, 2) { #{$right}: nth($vals, 2); }
-    }
-
-    @if length($vals) == 2 {
-      @if nth($vals, 1) { #{$bottom}: nth($vals, 1); }
-      @if nth($vals, 2) { #{$left}:   nth($vals, 2); }
-    } @else if length($vals) == 3 {
-      @if nth($vals, 3) { #{$bottom}: nth($vals, 3); }
-      @if nth($vals, 2) { #{$left}:   nth($vals, 2); }
-    } @else if length($vals) == 4 {
-      @if nth($vals, 3) { #{$bottom}: nth($vals, 3); }
-      @if nth($vals, 4) { #{$left}:   nth($vals, 4); }
-    }
-  } @else {
-    #{$all}: $vals;
-  }
-}
-@mixin border-width($vals...) {
-  @include directional-property(border, width, $vals...);
-}
-@mixin padding($vals...) {
-  @include directional-property(padding, false, $vals...);
-}
-@mixin margin($vals...) {
-  @include directional-property(margin, false, $vals...);
-}
-
 // Truncates text and adds an ellipsis to represent overflow
 @mixin ellipsis($width: 100%) {
   display: inline-block;
@@ -237,6 +157,7 @@
   white-space: nowrap;
   word-wrap: normal;
 }
+
 // Gradient position is optional. Position can be a degree (90deg). Mixin supports up to 10 color-stops.
 // This mixin will output a fallback background-color: #first-color; declaration. A $fallback argument can be passed to change the fallback color.
 // examples:
@@ -411,27 +332,26 @@
 }
 
 // Copied from Bootstrap source:
-// https://github.com/twbs/bootstrap-sass/blob/master/assets/stylesheets/bootstrap/_forms.scss
+// https://github.com/twbs/bootstrap/blob/master/scss/_forms.scss
 @mixin form-control {
   display: block;
   width: 100%;
-  height: $input-height-base; // Make inputs at least the height of their button counterpart (base line-height + padding + border)
-  padding: $padding-base-vertical $padding-base-horizontal;
-  font-size: $font-size-base;
-  line-height: $line-height-base;
+  height: $input-height;
+  padding: $input-padding-y $input-padding-x;
+  font-family: $input-font-family;
+  @include font-size($input-font-size);
+  font-weight: $input-font-weight;
+  line-height: $input-line-height;
   color: $input-color;
   background-color: $input-bg;
-  background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
-  border: 1px solid $input-border;
-  border-radius: $input-border-radius; // Note: This has no effect on <select>s in some browsers, due to the limited stylability of <select>s in CSS.
-  @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075));
-  @include transition(border-color ease-in-out .15s, box-shadow ease-in-out .15s);
+  background-clip: padding-box;
+  border: $input-border-width solid $input-border-color;
 
-  // Customize the `:focus` state to imitate native WebKit styles.
-  @include form-control-focus;
+  // Note: This has no effect on <select>s in some browsers, due to the limited stylability of `<select>`s in CSS.
+  @include border-radius($input-border-radius, 0);
 
-  // Placeholder
-  @include placeholder;
+  @include box-shadow($input-box-shadow);
+  @include transition($input-transition);
 
   // Unstyle the caret on `<select>`s in IE10+.
   &::-ms-expand {
@@ -439,22 +359,25 @@
     border: 0;
   }
 
+  // Customize the `:focus` state to imitate native WebKit styles.
+  @include form-control-focus();
+
+  // Placeholder
+  &::placeholder {
+    color: $input-placeholder-color;
+    // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526.
+    opacity: 1;
+  }
+
   // Disabled and read-only inputs
   //
   // HTML5 says that controls under a fieldset > legend:first-child won't be
   // disabled if the fieldset is disabled. Due to implementation difficulty, we
   // don't honor that edge case; we style them as disabled anyway.
-  &[disabled],
-  &[readonly],
-  fieldset[disabled] & {
-    background-color: $input-bg-disabled;
-    opacity: 1; // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655
+  &:disabled,
+  &[readonly] {
+    background-color: $input-disabled-bg;
+    // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
+    opacity: 1;
   }
-
-  &[disabled],
-  fieldset[disabled] & {
-    cursor: $cursor-disabled;
-  }
-
-  // [converter] extracted textarea& to textarea.form-control
 }

@@ -6,7 +6,7 @@
   margin-bottom: 24px;
 }
 .slab__base-dates {
-  @media (max-width: $screen-sm-max) {
+  @include media-breakpoint-down(sm) {
     padding-bottom: 24px;
   }
 }

@@ -22,7 +22,7 @@
   @include poppins-normal;
   font-size: 1.2em;
   margin-bottom: 40px;
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     width: 80%;
     margin: 60px auto 0;
   }

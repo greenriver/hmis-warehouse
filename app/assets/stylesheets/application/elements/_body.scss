@@ -1,7 +1,10 @@
+@import '../helpers';
+
 body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-size: $font-size-default;
 }
 
 body.show {

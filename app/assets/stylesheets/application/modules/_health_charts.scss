@@ -210,7 +210,7 @@ h2.ho-sub__h2 {
 
 .ho-compare__fc {
   border-left: 1px solid $ho-color-2;
-  @media(max-width: $screen-sm-max) {
+  @include media-breakpoint-up(sm) {
     border-left: none;
     margin-top: 20px;
   }
@@ -323,7 +323,7 @@ h2.ho-sub__h2 {
 .ho-compare__key {
   display: inline-block;
   margin-bottom: 5px;
-  @media(max-width: $screen-xs-max) {
+  @include media-breakpoint-up(xs) {
     display: block;
     margin-bottom: 10px;
   }
@@ -331,7 +331,7 @@ h2.ho-sub__h2 {
 
 .ho-compare__key:not(:last-child) {
   margin-right: 30px;
-  @media(max-width: $screen-xs-max) {
+  @include media-breakpoint-up(xs) {
     margin-right: 0px;
   }
 }
@@ -347,7 +347,7 @@ h2.ho-sub__h2 {
   .ho-hint {
     float: right;
     margin-right: $ho-padding * 2;
-    @media(max-width: $screen-sm-max) {
+    @include media-breakpoint-up(sm) {
       float:none;
       margin-right: 0px;
     }

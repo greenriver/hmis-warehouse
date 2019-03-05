@@ -27,18 +27,12 @@ form.inline-form {
 }
 
 .help-block {
-  @include margin(0 0 8px 0);
-}
-
-.requirement-warning {
-  color: $brand-danger;
-  @include open-sans-medium;
-  @include padding($padding-base-vertical 0);
+  margin: 0 0 8px 0;
 }
 
 .form-actions {
   clear: both;
-  @include margin(10px null);
+  margin: 10px 0;
 }
 
 label {
@@ -59,11 +53,11 @@ label {
 }
 
 .form-group__indented-01 {
-  @include margin(10px null 10px 40px);
+  margin: 10px 0 10px 10px 40px;
 }
 
 .form-group__indented-02 {
-  @include margin(null null null 20px);
+  margin: 0 0 0 20px;
 }
 
 .form--checkbox-groups {
@@ -80,7 +74,7 @@ label {
 }
 
 .has-error {
-  @include form-control-validation($brand-danger, $brand-danger, $brand-danger);
+  /* @include form-control-validation($brand-danger, $brand-danger, $brand-danger); */
 }
 
 .error .form-control {
