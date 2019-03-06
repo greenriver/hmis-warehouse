@@ -60,12 +60,15 @@ module GrdaWarehouse::HMIS
     end
 
     def self.add_missing touch_points:, assessments:
+      api_configs = EtoApi::Base.api_configs.values.index_by{|m| m['data_source_id']}
       touch_points.each do |key, tp|
         next if assessments[key] == tp
+        # HUD assessments don't get ids (usually)
+        assessment_id = (key[:assessment_id] || api_configs[key[:data_source_id]]['hud_touch_point_id'])
         assessment = self.where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: (key[:assessment_id] || ENV['HUD_ASSESSMENT_ID'] || 75)
+          assessment_id: assessment_id
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]
