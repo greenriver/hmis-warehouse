@@ -46,7 +46,7 @@ module GrdaWarehouse::Report
     end
 
     def self.update_recent_history_table
-      sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).
+      sql = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment, project: :organization).
       where(date: [13.months.ago.beginning_of_month.to_date..Date.today.end_of_month.to_date]).
       select(*sh_columns).to_sql.gsub('FROM', 'INTO recent_service_history FROM')
       self.connection.execute <<-SQL
@@ -134,24 +134,24 @@ module GrdaWarehouse::Report
       [
         :id,
         :client_id,
-        :data_source_id,
+        she_t[:data_source_id].to_sql,
         :date,
-        :first_date_in_program,
-        :last_date_in_program,
-        :enrollment_group_id,
+        she_t[:first_date_in_program].to_sql,
+        she_t[:last_date_in_program].to_sql,
+        she_t[:enrollment_group_id].to_sql,
         :age,
-        :destination,
-        :head_of_household_id,
-        :household_id,
+        she_t[:destination].to_sql,
+        she_t[:head_of_household_id].to_sql,
+        she_t[:household_id].to_sql,
         p_t[:id].as('project_id').to_sql,
-        :project_type,
-        :project_tracking_method,
+        she_t[:project_type].to_sql,
+        she_t[:project_tracking_method].to_sql,
         o_t[:id].as('organization_id').to_sql,
-        :housing_status_at_entry,
-        :housing_status_at_exit,
+        she_t[:housing_status_at_entry].to_sql,
+        she_t[:housing_status_at_exit].to_sql,
         :service_type,
-        :computed_project_type,
-        :presented_as_individual,
+        she_t[:computed_project_type].to_sql,
+        she_t[:presented_as_individual].to_sql,
       ]
     end
   end

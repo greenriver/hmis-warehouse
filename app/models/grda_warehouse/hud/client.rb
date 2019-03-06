@@ -388,7 +388,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
         select(:client_id).distinct
       )
@@ -396,7 +396,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
         select(:client_id).distinct
       )
@@ -1346,7 +1346,7 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       service_history.homeless(chronic_types_only: true).
-        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
+        from(GrdaWarehouse::ServiceHistoryService.quoted_table_name).
         maximum(:date)
     end
 

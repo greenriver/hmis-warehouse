@@ -30,8 +30,7 @@ class CensusesController < ApplicationController
       @census_detail_name = census.detail_name(project_type)
 
       pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
-      sh_scope = GrdaWarehouse::ServiceHistory.service.joins(:client).where(project_type: pt_codes).
-          where(GrdaWarehouse::ServiceHistory.table_name => {date: @date})
+      sh_scope = GrdaWarehouse::ServiceHistoryService.joins(:client).where(project_type: pt_codes, date: @date)
 
       base_project_scope = project_scope.joins(:service_history).distinct
 

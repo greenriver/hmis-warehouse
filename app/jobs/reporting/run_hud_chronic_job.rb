@@ -31,7 +31,7 @@ module Reporting
 
     def any_dmh_for? client_id:, on_date:
       @dmh_ids ||= GrdaWarehouse::Hud::Organization.dmh.ids
-      GrdaWarehouse::ServiceHistory.ongoing(on_date: on_date).where(client_id: client_id, organization_id: @dmh_ids).any?
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(on_date: on_date).where(client_id: client_id, organization_id: @dmh_ids).any?
     end
 
     def log msg, underline: false

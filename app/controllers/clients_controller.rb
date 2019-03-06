@@ -175,7 +175,7 @@ class ClientsController < ApplicationController
   end
 
   private def service_history_service_scope
-    GrdaWarehouse::ServiceHistory.service
+    GrdaWarehouse::ServiceHistoryService
   end
 
   private def set_client_start_date

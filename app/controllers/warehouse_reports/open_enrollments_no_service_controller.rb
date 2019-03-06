@@ -52,7 +52,7 @@ module WarehouseReports
 
     private def sort_column
       sort_options.map{|m| m[:column]}.uniq.
-        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program"
+        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program"
     end
 
     private def sort_direction
@@ -73,17 +73,17 @@ module WarehouseReports
         # },
         {
           title: 'Project',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_name",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.project_name",
           direction: 'asc'
         },
         {
           title: 'Longest',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
           direction: 'asc'
         },
         {
           title: 'Shortest',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
           direction: 'desc'
         },
         # {

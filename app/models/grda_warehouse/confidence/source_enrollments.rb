@@ -69,7 +69,7 @@ module GrdaWarehouse::Confidence
     end
 
     def self.batch_scope
-      GrdaWarehouse::ServiceHistory.entry.homeless.ongoing
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.homeless.ongoing
     end
   end
 end
