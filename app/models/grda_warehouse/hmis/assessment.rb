@@ -112,7 +112,7 @@ module GrdaWarehouse::HMIS
         {
           data_source_id: data_source_id,
           site_id: site_id,
-          assessment_id: conf['hud_touch_point_id']
+          assessment_id: config['hud_touch_point_id']
         } => {
           name: "HUD Assessment (Entry/Update/Annual/Exit)",
           site_name: site_name,
