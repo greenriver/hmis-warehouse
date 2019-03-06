@@ -1,5 +1,5 @@
 = content_for :crumbs do
-  - if current_user.health_agencies.any? && @client.patient.present?
+  - if current_user.health_agencies.any? && @client&.patient&.present?
     = link_to health_my_patients_path do
       &laquo; My Patients
   = link_to clients_path do
