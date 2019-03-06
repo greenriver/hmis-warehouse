@@ -1,5 +1,6 @@
 .well.overflow-scroll
-  %h3 Data Completeness
+  %h3.text-center Data Completeness
+  %br
   - @report.report['project_missing'].keys.each_with_index do |project, index|
     - if @report.report['project_missing'].size > 1
       %h4

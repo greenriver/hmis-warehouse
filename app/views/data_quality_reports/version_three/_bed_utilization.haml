@@ -1,22 +1,22 @@
 .well.overflow-scroll
 	.row
-		.col-sm-4
-			%h4.title Bed Inventory
-			%hr
+		.col-sm-3
+			%br
+			%p.text-center Bed Inventory
 			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
-			%p
-			%h4.title Average Daily Clients
 			%hr
+			%p.text-center Average Daily / Nightly Clients
+			
 			%h3.text-center
-				= "#{@report.report['bed_utilization_totals']['counts']['average_daily']} beds"
-			%p
-			%h4.title Average Bed Utilization
+				= "#{@report.report['bed_utilization_totals']['counts']['average_daily']} clients"
 			%hr
+			%p.text-center Average Bed Utilization
+			
 			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily_percentage']}%"
 
-		.col-sm-8
-			%h3 Nightly Bed Census
+		.col-sm-9
+			%h3.text-center Nightly Bed Census
 			.bed-census-chart.jChart
 				%p.jLoading Loading
