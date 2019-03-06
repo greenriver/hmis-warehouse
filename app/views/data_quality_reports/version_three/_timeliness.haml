@@ -1,28 +1,28 @@
 .well.overflow-scroll
 	.row
 		.col-sm-6
-			%h3 Time to Enter
+			%h3.text-center Time to Enter
 			.col-sm-6
-				%h4.title Goal
+				%h4.text-center Goal
 				%hr
-				%h3 14 days or less
+				%h3.text-center 14 days or less
 			.col-sm-6
-				%h4.title This Program
+				%h4.text-center This Program
 				%hr
-				%h3
+				%h3.text-center
 					= "#{@report.report['average_timeliness_of_entry']['Average']} days"
 			.time-to-enter-chart.jChart
 				%p.jLoading Loading
 		.col-sm-6
-			%h3 Time to Exit
+			%h3.text-center Time to Exit
 			.col-sm-6
-				%h4.title Goal
+				%h4.text-center Goal
 				%hr
-				%h3 14 days or less
+				%h3.text-center 14 days or less
 			.col-sm-6
-				%h4.title This Program
+				%h4.text-center This Program
 				%hr
-				%h3
+				%h3.text-center
 					= "#{@report.report['average_timeliness_of_exit']['Average']} days"
 			.time-to-exit-chart.jChart
 				%p.jLoading Loading
