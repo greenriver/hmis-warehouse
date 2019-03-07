@@ -437,7 +437,7 @@ module GrdaWarehouse::Tasks
         to_fix.each do |client_id|
           client = GrdaWarehouse::Hud::Client.find(client_id)
           GrdaWarehouse::Hud::Enrollment.where(
-            id: client.service_history.
+            id: client.service_historyenrollments.
               where(age: nil).
               joins(:enrollment).
               select(e_t[:id].as('id').to_sql)

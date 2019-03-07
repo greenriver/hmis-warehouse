@@ -53,7 +53,7 @@ module Chronic
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
   end
 end

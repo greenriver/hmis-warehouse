@@ -29,10 +29,10 @@ class CensusesController < ApplicationController
 
       @census_detail_name = census.detail_name(project_type)
 
-      pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
-      sh_scope = GrdaWarehouse::ServiceHistoryService.joins(:client).where(project_type: pt_codes, date: @date)
+      # pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
+      # sh_scope = GrdaWarehouse::ServiceHistoryService.joins(:client).where(project_type: pt_codes, date: @date)
 
-      base_project_scope = project_scope.joins(:service_history).distinct
+      # base_project_scope = project_scope.joins(:service_history_enrollments).distinct
 
       if params[:veteran].present?
         if params[:veteran] == 'Veteran Count'

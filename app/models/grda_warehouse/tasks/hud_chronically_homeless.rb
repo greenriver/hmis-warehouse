@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
 
     def client_ids
       return @client_ids.sort if @client_ids&.any?
-      GrdaWarehouse::ServiceHistoryService.
+      GrdaWarehouse::ServiceHistoryEnrollment.
         hud_currently_homeless(date: @date, chronic_types_only: true).
         distinct.
         pluck(:client_id).

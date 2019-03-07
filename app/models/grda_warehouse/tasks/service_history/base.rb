@@ -120,9 +120,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       GrdaWarehouse::ServiceHistoryService
     end
 
-    def service_history_source
-      GrdaWarehouse::ServiceHistory
-    end
+    # def service_history_source
+    #   GrdaWarehouse::ServiceHistory
+    # end
 
     def warehouse_clients_processed_source
       GrdaWarehouse::WarehouseClientsProcessed
