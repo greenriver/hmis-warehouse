@@ -98,7 +98,7 @@ module Window::Clients::Youth
 
     private def set_other_options
       @intake.client_primary_language = @intake.other_language if @intake.client_primary_language == 'Other...'
-      @intake.how_hear = @intake.other_how_hear if @intake.how_hear == 'Other'
+      @intake.how_hear = @intake.other_how_hear if @intake.other_referral?
     end
 
     private def intake_params

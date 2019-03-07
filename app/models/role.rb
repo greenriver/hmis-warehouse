@@ -15,6 +15,29 @@ class Role < ActiveRecord::Base
     where(health_role: false)
   end
 
+  def has_super_admin_permissions?
+    Role.permissions.each do |permission,|
+      return true if Role.super_admin_permissions.include?(permission) && self[permission]
+    end
+    false
+  end
+
+  def self.super_admin_permissions
+    [
+      :can_edit_roles,
+      :can_edit_users,
+      :can_edit_anything_super_user,
+      :can_manage_config,
+    ]
+  end
+
+  def administrative?
+    Role.permissions_with_descriptions.each do |permission, description|
+      return true if description[:administrative] && self[permission]
+    end
+    false
+  end
+
   def self.permissions(exclude_health: false)
     perms = permissions_with_descriptions.keys
     perms += self.health_permissions unless exclude_health

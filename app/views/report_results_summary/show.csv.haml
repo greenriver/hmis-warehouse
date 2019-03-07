@@ -2,10 +2,10 @@
 CoCCode,ReportDateTime,ReportStartDate,ReportEndDate,SoftwareName,SourceType,SourceContactFirst,SourceContactLast,SourceContactEmail,ESSHUniverse_1A,ESSHAvgTime_1A,ESSHMedianTime_1A,ESSHTHUniverse_1A,ESSHTHAvgTime_1A,ESSHTHMedianTime_1A,ESSHUniverse_1B,ESSHAvgTime_1B,ESSHMedianTime_1B,ESSHTHUniverse_1B,ESSHTHAvgTime_1B,ESSHTHMedianTime_1B,SOExitPH_2,SOReturn0to180_2,SOReturn181to365_2,SOReturn366to730_2,ESExitPH_2,ESReturn0to180_2,ESReturn181to365_2,ESReturn366to730_2,THExitPH_2,THReturn0to180_2,THReturn181to365_2,THReturn366to730_2,SHExitPH_2,SHReturn0to180_2,SHReturn181to365_2,SHReturn366to730_2,PHExitPH_2,PHReturn0to180_2,PHReturn181to365_2,PHReturn366to730_2,TotalPIT_3,ESPIT_3,SHPIT_3,THPIT_3,ShelteredPIT_3,UnshelteredPIT_3,TotalAnnual_3,ESAnnual_3,SHAnnual_3,THAnnual_3,AdultStayers_4,IncreaseEarned4_1,IncreaseOther4_2,IncreaseTotal4_3,AdultLeavers_4,IncreaseEarned4_4,IncreaseOther4_5,IncreaseTotal4_6,EnterESSHTH5_1,ESSHTHWithPriorSvc5_1,EnterESSHTHPH5_2,ESSHTHPHWithPriorSvc5_2,SOExitPH_6,SOReturn0to180_6,SOReturn181to365_6,SOReturn366to730_6,ESExitPH_6,ESReturn0to180_6,ESReturn181to365_6,ESReturn366to730_6,THExitPH_6,THReturn0to180_6,THReturn181to365_6,THReturn366to730_6,SHExitPH_6,SHReturn0to180_6,SHReturn181to365_6,SHReturn366to730_6,PHExitPH_6,PHReturn0to180_6,PHReturn181to365_6,PHReturn366to730_6,SHTHRRHCat3Leavers_6,SHTHRRHCat3ExitPH_6,PSHCat3Clients_6,PSHCat3StayOrExitPH_6,SOExit_7,SOExitTempInst_7,SOExitPH_7,ESSHTHRRHExit_7,ESSHTHRRHToPH_7,PHClients_7,PHClientsStayOrExitPH_7
 :ruby
   data = [
-    'MA-500',
+    @options['coc_code'],
     "#{Time.now.strftime("%Y-%m-%d %H:%M:%S %z")}",
-    @report_results_summary.report_start,
-    @report_results_summary.report_end,
+    "#{Date.parse(@options['report_start']).strftime('%Y-%m-%d')}",
+    "#{Date.parse(@options['report_end']).strftime('%Y-%m-%d')}",
     _('Boston DND Warehouse'),
     3,
     "#{current_user.first_name}",

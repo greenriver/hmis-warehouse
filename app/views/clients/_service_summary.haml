@@ -2,7 +2,7 @@
 - unless window
   - seen_before = ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
 
-- if @client.service_history.empty?
+- if @client.service_history_enrollments.empty?
   = "There is no service record for #{@client.name}"
 - else
   - if @client.date_of_last_service.present?

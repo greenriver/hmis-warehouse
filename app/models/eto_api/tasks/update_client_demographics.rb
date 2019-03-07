@@ -45,7 +45,7 @@ module EtoApi::Tasks
       # 423 Zip Code Type (HUD) - BPHC only 
 
       # Loop over all items in the config
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+      api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
 
@@ -103,13 +103,10 @@ module EtoApi::Tasks
     def fetch_assessments client
       subject_id = client.hmis_client.subject_id
       return unless subject_id.present?
-      # hard-coding touch_point_id: 75 because that's the only one we care about at the moment
-
       site_id = client.site_id_in_data_source
 
       # See /admin/eto_api/assessments for details
-      # 75 = HUD Entry/Exit Assessment
-      # 211 = Add Triage assessment
+      # HUD assessments don't show up in the API list, ids are hard coded in ENV['ETO_API_HUD_TOUCH_POINT_ID1']
       assessment_ids = GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).pluck(:assessment_id)
 
       assessment_ids.each do |tp_id|
@@ -134,6 +131,7 @@ module EtoApi::Tasks
         hmis_client.response = api_response.to_json
 
         hmis_client.subject_id = api_response['SubjectID']
+        # FIXME: these specific label values should be moved to the DB
         hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
         hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
 
@@ -150,6 +148,7 @@ module EtoApi::Tasks
         hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
 
         # This is only valid for Boston...
+        # FIXME: these need to be moved to the DB
         if @data_source_id == 3
           hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
           hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
@@ -258,6 +257,7 @@ module EtoApi::Tasks
               type: element_type,
             }
             # Some special cases
+            # FIXME: This should be moved to the DB
             if element['Stimulus'] == 'A-1. At what point is this data being collected?'
                hmis_form.assessment_type = value
             end

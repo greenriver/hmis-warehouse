@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190228151509) do
+ActiveRecord::Schema.define(version: 20190306011413) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Affiliation", ["DateCreated"], name: "affiliation_date_created", using: :btree
   add_index "Affiliation", ["DateUpdated"], name: "affiliation_date_updated", using: :btree
   add_index "Affiliation", ["ExportID"], name: "affiliation_export_id", using: :btree
+  add_index "Affiliation", ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true, using: :btree
   add_index "Affiliation", ["data_source_id"], name: "index_Affiliation_on_data_source_id", using: :btree
 
   create_table "Client", force: :cascade do |t|
@@ -164,6 +165,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
   add_index "Disabilities", ["ExportID"], name: "disabilities_export_id", using: :btree
   add_index "Disabilities", ["PersonalID"], name: "index_Disabilities_on_PersonalID", using: :btree
+  add_index "Disabilities", ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true, using: :btree
   add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id"], name: "index_Disabilities_on_data_source_id", using: :btree
 
@@ -192,6 +194,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "EmploymentEducation", ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID", using: :btree
   add_index "EmploymentEducation", ["ExportID"], name: "employment_education_export_id", using: :btree
   add_index "EmploymentEducation", ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID", using: :btree
+  add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true, using: :btree
   add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id", using: :btree
 
@@ -321,6 +324,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Enrollment", ["ExportID"], name: "enrollment_export_id", using: :btree
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
+  add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
 
@@ -346,6 +350,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "EnrollmentCoC", ["DateUpdated"], name: "enrollment_coc_date_updated", using: :btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID", using: :btree
   add_index "EnrollmentCoC", ["ExportID"], name: "enrollment_coc_export_id", using: :btree
+  add_index "EnrollmentCoC", ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true, using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id", using: :btree
 
@@ -417,6 +422,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Exit", ["ExitDate"], name: "index_Exit_on_ExitDate", using: :btree
   add_index "Exit", ["ExportID"], name: "exit_export_id", using: :btree
   add_index "Exit", ["PersonalID"], name: "index_Exit_on_PersonalID", using: :btree
+  add_index "Exit", ["data_source_id", "ExitID"], name: "unk_Exit", unique: true, using: :btree
   add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_PersonalID", using: :btree
   add_index "Exit", ["data_source_id"], name: "index_Exit_on_data_source_id", using: :btree
 
@@ -444,6 +450,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   end
 
   add_index "Export", ["ExportID"], name: "export_export_id", using: :btree
+  add_index "Export", ["data_source_id", "ExportID"], name: "unk_Export", unique: true, using: :btree
   add_index "Export", ["data_source_id"], name: "index_Export_on_data_source_id", using: :btree
 
   create_table "Funder", force: :cascade do |t|
@@ -465,6 +472,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Funder", ["DateCreated"], name: "funder_date_created", using: :btree
   add_index "Funder", ["DateUpdated"], name: "funder_date_updated", using: :btree
   add_index "Funder", ["ExportID"], name: "funder_export_id", using: :btree
+  add_index "Funder", ["data_source_id", "FunderID"], name: "unk_Funder", unique: true, using: :btree
   add_index "Funder", ["data_source_id"], name: "index_Funder_on_data_source_id", using: :btree
 
   create_table "Geography", force: :cascade do |t|
@@ -495,6 +503,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
   add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
   add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
+  add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true, using: :btree
   add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
 
   create_table "HealthAndDV", force: :cascade do |t|
@@ -525,6 +534,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "HealthAndDV", ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID", using: :btree
   add_index "HealthAndDV", ["ExportID"], name: "health_and_dv_export_id", using: :btree
   add_index "HealthAndDV", ["PersonalID"], name: "index_HealthAndDV_on_PersonalID", using: :btree
+  add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true, using: :btree
   add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id"], name: "index_HealthAndDV_on_data_source_id", using: :btree
 
@@ -617,6 +627,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
 
@@ -650,6 +661,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Inventory", ["DateUpdated"], name: "inventory_date_updated", using: :btree
   add_index "Inventory", ["ExportID"], name: "inventory_export_id", using: :btree
   add_index "Inventory", ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id", using: :btree
+  add_index "Inventory", ["data_source_id", "InventoryID"], name: "unk_Inventory", unique: true, using: :btree
   add_index "Inventory", ["data_source_id"], name: "index_Inventory_on_data_source_id", using: :btree
 
   create_table "Organization", force: :cascade do |t|
@@ -667,6 +679,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   end
 
   add_index "Organization", ["ExportID"], name: "organization_export_id", using: :btree
+  add_index "Organization", ["data_source_id", "OrganizationID"], name: "unk_Organization", unique: true, using: :btree
   add_index "Organization", ["data_source_id"], name: "index_Organization_on_data_source_id", using: :btree
 
   create_table "Project", force: :cascade do |t|
@@ -707,6 +720,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Project", ["ProjectID", "data_source_id", "OrganizationID"], name: "index_proj_proj_id_org_id_ds_id", using: :btree
   add_index "Project", ["ProjectType"], name: "index_Project_on_ProjectType", using: :btree
   add_index "Project", ["computed_project_type"], name: "index_Project_on_computed_project_type", using: :btree
+  add_index "Project", ["data_source_id", "ProjectID"], name: "unk_Project", unique: true, using: :btree
   add_index "Project", ["data_source_id"], name: "index_Project_on_data_source_id", using: :btree
 
   create_table "ProjectCoC", force: :cascade do |t|
@@ -726,6 +740,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "ProjectCoC", ["DateCreated"], name: "project_coc_date_created", using: :btree
   add_index "ProjectCoC", ["DateUpdated"], name: "project_coc_date_updated", using: :btree
   add_index "ProjectCoC", ["ExportID"], name: "project_coc_export_id", using: :btree
+  add_index "ProjectCoC", ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true, using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode", using: :btree
 
   create_table "Services", force: :cascade do |t|
@@ -756,6 +771,7 @@ ActiveRecord::Schema.define(version: 20190228151509) do
   add_index "Services", ["ExportID"], name: "services_export_id", using: :btree
   add_index "Services", ["PersonalID"], name: "index_Services_on_PersonalID", using: :btree
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
+  add_index "Services", ["data_source_id", "ServicesID"], name: "unk_Services", unique: true, using: :btree
   add_index "Services", ["data_source_id"], name: "index_Services_on_data_source_id", using: :btree
 
   create_table "administrative_events", force: :cascade do |t|

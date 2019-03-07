@@ -11,7 +11,7 @@
     .youth-intake__client-demographics
       = f.input :unaccompanied, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth unaccompanied?', hint: 'An individual who is not in the physical custody or care of a parent / legal guardian'
       = f.input :street_outreach_contact, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth a street outreach contact',  hint: 'A street outreach contact is a youth who we know from outreach, and as a result have limited information on.  Street outreach youth should be considered street outreach contacts until they are no longer living on th streets.  Note: It is possible for a youth to be working with drop-in staff and be in case management, but still be a street outreach contact.'
-      = f.input :housing_status, as: :radio_buttons, collection: @intake.available_housing_stati
+      = f.input :housing_status, as: :radio_buttons, collection: @intake.available_housing_stati.invert
       = f.input :other_agency_involvement, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth involved with any other state agencies?'
       = f.input :owns_cell_phone, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth own a cell phone?'
       = f.input :secondary_education, as: :radio_buttons, collection: @intake.available_secondary_education
@@ -44,7 +44,10 @@
       = f.input :how_hear, as: :radio_buttons, collection: @intake.how_hear_options, label: 'How did this youth hear about us?', input_html: { class: 'jHowHear' }
       .jOtherHowHear
         - if ! readonly
-          = f.input :other_how_hear, label: 'Other'      
+          = f.input :other_how_hear, label: 'Where did the referral come from?'
+        - elsif ! f.object.how_hear_options.include? f.object.how_hear
+          .mb-4
+            = f.object.how_hear
     
     .youth-intake__exit-info
       = f.input :exit_date, as: :date_picker, label: 'Date for which you are no longer working with this youth (Exit Date)'
@@ -61,7 +64,7 @@
     });
     $('.jOtherStaffTrigger').trigger('change');
     $('.jLanguage').on('change', function(e){
-      if($('.jLanguage:checked').val() == 'Other...'){
+      if($('.jLanguage:checked').val().includes('Other')){
         $('.jOtherLanguage').show();
       } else {
         $('.jOtherLanguage').hide();
@@ -69,7 +72,7 @@
     });
     $('.jLanguage:first()').trigger('change');
     $('.jHowHear').on('change', function(e){
-      if($('.jHowHear:checked').val() == 'Other...'){
+      if($('.jHowHear:checked').val().includes('Other')){
         $('.jOtherHowHear').show();
       } else {
         $('.jOtherHowHear').hide();

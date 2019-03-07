@@ -118,7 +118,7 @@ gem 'redis-rails'
 
 #AWS SDK
 gem 'aws-sdk-rails', require: false
-gem 'aws-sdk', '~> 2', require: false
+gem 'aws-sdk', '~> 3', require: false
 gem 'json'
 gem 'awesome_print'
 
@@ -146,6 +146,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'factory_girl_rails'
   gem 'guard-rspec', require: false
+  gem 'rb-readline'
 end
 
 group :development do

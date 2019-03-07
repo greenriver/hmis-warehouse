@@ -4,7 +4,7 @@
     = client.name
     - image_exists = client.image_for_source_client.length > 100 rescue false
     - if image_exists
-      - image = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'width: 250px').html_safe
+      - image = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), width: '250').html_safe
       =# image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'opacity: 1; width: 250px', data: {toggle: :tooltip, html: :true, placement: :right, title: image}}
       = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'width: 50px', data: {toggle: :tooltip, html: :true, placement: :right, title: image})
 

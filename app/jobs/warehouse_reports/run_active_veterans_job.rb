@@ -55,7 +55,7 @@ module WarehouseReports
         client.attributes.merge(
           name: client.name,
           enrollments: enrollments[client.id],
-          first_service_history: client&.first_service_history&.date,
+          first_service_history: client.date_of_first_service,
           data_sources: data_sources.uniq.compact,
           days_served: client.processed_service_history.days_served,
           first_date_served: client.processed_service_history.first_date_served

@@ -392,7 +392,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
         select(:client_id).distinct
       )
@@ -400,7 +400,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
         select(:client_id).distinct
       )
@@ -1088,7 +1088,7 @@ module GrdaWarehouse::Hud
           # Use the uploaded client image if available, otherwise use the API, if we have access
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+            api_configs = EtoApi::Base.api_configs
             source_api_ids.detect do |api_id|
               api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
               return nil unless api_key.present?
@@ -1103,18 +1103,8 @@ module GrdaWarehouse::Hud
         else
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            if [0,1].include?(self[:Gender])
-              num = id % 99
-              gender = if self[:Gender] == 1
-                'men'
-              else
-                'women'
-              end
-              response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-              image_data = response.body
-            end
+            image_data = fake_client_image_data
           end
-          image_data || self.class.no_image_on_file_image
         end
         image_data
       end
@@ -1127,7 +1117,7 @@ module GrdaWarehouse::Hud
         image_data = nil
         if Rails.env.production?
           return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-          api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+          api_configs = EtoApi::Base.api_configs
           api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
           return nil unless api_key.present?
           api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
@@ -1137,19 +1127,20 @@ module GrdaWarehouse::Hud
           ) rescue nil
           return image_data
         else
-          if [0,1].include?(self[:Gender])
-            num = id % 99
-            gender = if self[:Gender] == 1
-              'men'
-            else
-              'women'
-            end
-            response = RestClient.get "https://randomuser.me/api/portraits/#{gender}/#{num}.jpg"
-            image_data = response.body
-          end
+          image_data = fake_client_image_data
         end
         image_data || self.class.no_image_on_file_image
       end
+    end
+
+    def fake_client_image_data
+      gender = if self[:Gender].in?([1,3]) then 'male' else 'female' end
+      age_group = if age > 18 then 'adults' else 'children' end
+      image_directory = File.join('public', 'fake_photos', age_group, gender)
+      available = Dir[File.join(image_directory, '*.jpg')]
+      image_id = self.PersonalID.sum % available.count
+      logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}"
+      image_data = File.read(available[image_id])
     end
 
     # These need to be flagged as available in the Window. Since we cache these
@@ -1343,9 +1334,8 @@ module GrdaWarehouse::Hud
 
     def service_date_range
       @service_date_range ||= begin
-        at = service_history.arel_table
-        query = service_history.service.select( at[:date].minimum, at[:date].maximum )
-        service_history.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
+        query = service_history_services.select( shs_t[:date].minimum, shs_t[:date].maximum )
+        service_history_services.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
       end
     end
 
@@ -1360,8 +1350,8 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history.homeless(chronic_types_only: true).
-        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
+      service_history_services.homeless(chronic_types_only: true).
+        from(GrdaWarehouse::ServiceHistoryService.quoted_table_name).
         maximum(:date)
     end
 
@@ -1387,8 +1377,8 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      sh = service_history.service.
-        pluck(:date, :project_name, :data_source_id, :project_id).
+      sh = service_history_services.joins(:service_history_enrollment).
+        pluck(:date, she_t[:project_name].to_sql, she_t[:data_source_id].to_sql, :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
@@ -1552,6 +1542,7 @@ module GrdaWarehouse::Hud
         source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
       end
       save()
+      self.class.clear_view_cache(self.id)
     end
 
     # those columns that relate to race

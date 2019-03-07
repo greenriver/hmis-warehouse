@@ -62,12 +62,14 @@ module Dashboards
 
     def months
       months = {}
-      active_report_class.ordered.select(:id, :parameters).where(created_at:'2018-03-01'.to_date..Date.today).
-          index_by(&:parameters).first(36).each do | key, report |
-        report.set_date_range
-        start_date = report.range.start
-        months[report.id] = "#{Date::MONTHNAMES[start_date.month]} #{start_date.year}"
-      end
+      active_report_class.ordered.select(:id, :parameters, :created_at).
+        where(created_at:'2018-03-01'.to_date..Date.today).
+        group_by(&:parameters).map{|k,reports| [k, reports.max_by(&:created_at)]}. # make sure we get the most recent
+        first(36).each do | key, report |
+          report.set_date_range
+          start_date = report.range.start
+          months[report.id] = "#{Date::MONTHNAMES[start_date.month]} #{start_date.year}"
+        end
       months
     end
 
@@ -81,10 +83,13 @@ module Dashboards
     end
 
     def selected_report_for (report_class)
-       selected_report = active_report_class.find(selected_report_id)
-      report_class.where(
-          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]).
-          limit(1).first
+      selected_report = active_report_class.find(selected_report_id)
+      report_class.
+        where(
+          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]
+        ).
+        order(created_at: :desc).
+        limit(1).first
     end
   end
 end

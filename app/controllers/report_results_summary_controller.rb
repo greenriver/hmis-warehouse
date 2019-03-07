@@ -27,6 +27,7 @@ class ReportResultsSummaryController < ApplicationController
     def set_report_results
       most_recent_results = @report_results_summary.report_results.most_recent
       @results = most_recent_results.map{|t,d| ReportResult.where(report_id: Report.where(type: t).first, updated_at: d).first}
+      @options = @report_results_summary.report_results.first&.options
     end
 
     def set_report_results_summary
