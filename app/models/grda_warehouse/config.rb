@@ -30,6 +30,13 @@ module GrdaWarehouse
       ["Indefinite", "One Year"]
     end
 
+    def self.available_chronic_definitions
+      {
+          "Potentially chronic" => :chronic,
+          "HUD definition" => :hud_chronic,
+      }
+    end
+
     def self.cache_store
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
