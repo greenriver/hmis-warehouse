@@ -544,6 +544,29 @@ module GrdaWarehouse::Hud
       )
     end
 
+    # Chronic definition wrappers
+    def site_chronics
+      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
+        when :chronic
+          chronics
+        when :hud_chronic
+          hud_chronics
+        else
+          raise NotImplementedError
+      end
+    end
+
+    def site_chronics_in_range(range)
+      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
+        when :chronic
+          chronics_in_range(range)
+        when :hud_chronic
+          hud_chronics_in_range(range)
+        else
+          raise NotImplementedError
+      end
+    end
+
 
     ####################
     # Callbacks
