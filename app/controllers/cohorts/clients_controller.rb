@@ -99,6 +99,7 @@ module Cohorts
     def new
       @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
+      @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       # whitelist for scope
       @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(params[:population]&.to_sym)
           params[:population]
@@ -117,6 +118,12 @@ module Cohorts
           preload(source_clients: :data_source).
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
+      elsif params[:hud_filter].present?
+        load_hud_filter()
+        @clients = @clients.includes(:hud_chronics).
+            preload(source_clients: :data_source).
+            merge(GrdaWarehouse::HudChronic.on_date(date: @hud_filter.date)).
+            order(LastName: :asc, FirstName: :asc)
       elsif @actives
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.where(
             she_t[:client_id].eq(wcp_t[:client_id])
@@ -194,6 +201,29 @@ module Cohorts
       end
       Rails.logger.info "CLIENTS: #{@clients.count}"
 
+    end
+
+    # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
+    def load_hud_filter
+      @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
+      filter_query = hc_t[:age].gt(@hud_filter.min_age)
+      if @hud_filter.individual
+        filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual))
+      end
+      if @hud_filter.dmh
+        filter_query = filter_query.and(hc_t[:dmh].eq(@hud_filter.dmh))
+      end
+      if @hud_filter.veteran
+        filter_query = filter_query.and(c_t[:VeteranStatus].eq(@hud_filter.veteran))
+      end
+      @clients = client_source.joins(:hud_chronics).
+          preload(:hud_chronics).
+          preload(:source_disabilities).
+          where(filter_query).
+          has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
+      if @hud_filter.name&.present?
+        @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
+      end
     end
 
     def load_cohort_names
