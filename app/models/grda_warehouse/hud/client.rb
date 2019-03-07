@@ -353,6 +353,8 @@ module GrdaWarehouse::Hud
         where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      when :hud_chronic
+        joins(:hud_chronics).where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day})
       when :release_present
         where(housing_release_status: [full_release_string, partial_release_string])
       else
