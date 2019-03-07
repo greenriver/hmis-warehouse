@@ -21,7 +21,7 @@ module Reporting
         hc.months_in_last_three_years = data[:months_in_last_three_years]
         hc.individual = !client.presented_with_family?(after: date - 3.years, before: date)
         hc.age = client.age_on(date)
-        hc.homeless_since = client.first_service_history&.first.try(:date)
+        hc.homeless_since = client.date_of_first_service
         hc.dmh = any_dmh_for?(client_id: id, on_date: date)
         hc.trigger = data[:trigger]
 
