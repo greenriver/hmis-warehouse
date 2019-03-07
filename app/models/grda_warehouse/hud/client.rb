@@ -388,7 +388,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
         select(:client_id).distinct
       )
@@ -396,7 +396,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
         select(:client_id).distinct
       )
@@ -1328,9 +1328,8 @@ module GrdaWarehouse::Hud
 
     def service_date_range
       @service_date_range ||= begin
-        at = service_history.arel_table
-        query = service_history.service.select( at[:date].minimum, at[:date].maximum )
-        service_history.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
+        query = service_history_services.select( shs_t[:date].minimum, shs_t[:date].maximum )
+        service_history_services.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
       end
     end
 
@@ -1345,8 +1344,8 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history.homeless(chronic_types_only: true).
-        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
+      service_history_services.homeless(chronic_types_only: true).
+        from(GrdaWarehouse::ServiceHistoryService.quoted_table_name).
         maximum(:date)
     end
 
@@ -1372,8 +1371,8 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      sh = service_history.service.
-        pluck(:date, :project_name, :data_source_id, :project_id).
+      sh = service_history_services.joins(:service_history_enrollment).
+        pluck(:date, she_t[:project_name].to_sql, she_t[:data_source_id].to_sql, :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?

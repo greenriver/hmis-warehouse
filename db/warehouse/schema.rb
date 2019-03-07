@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190225173734) do
+ActiveRecord::Schema.define(version: 20190306011413) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -349,6 +349,7 @@ ActiveRecord::Schema.define(version: 20190225173734) do
   add_index "EnrollmentCoC", ["DateUpdated"], name: "enrollment_coc_date_updated", using: :btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID", using: :btree
   add_index "EnrollmentCoC", ["ExportID"], name: "enrollment_coc_export_id", using: :btree
+  add_index "EnrollmentCoC", ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true, using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id", using: :btree
 
@@ -501,6 +502,7 @@ ActiveRecord::Schema.define(version: 20190225173734) do
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
   add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
   add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
+  add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true, using: :btree
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Site", unique: true, using: :btree
   add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
 

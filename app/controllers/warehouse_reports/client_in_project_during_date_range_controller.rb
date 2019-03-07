@@ -15,7 +15,6 @@ module WarehouseReports
 
       @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
 
-      st = service_history_source.arel_table
       @enrollments = service_history_source.entry.
         where( project_id: @project.ProjectID, data_source_id: @project.data_source_id ).
         open_between(start_date: @start, end_date: @end).

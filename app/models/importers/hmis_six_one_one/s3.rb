@@ -76,7 +76,7 @@ module Importers::HMISSixOneOne
 
     def warn_of_unchanged_file file
       incoming_filename = File.basename(file, File.extname(file))
-      previous_import_filename = previous_import.file.file.filename
+      previous_import_filename = previous_import&.file&.file&.filename || 'none.zip'
       previous_import_filename = File.basename(previous_import_filename, File.extname(previous_import_filename))
       if incoming_filename == previous_import_filename
         log("WARNING, filename has not changed since last import: #{incoming_filename}")
