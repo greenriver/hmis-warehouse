@@ -26,7 +26,7 @@ module WarehouseReports
       most_recent_services = GrdaWarehouse::ServiceHistoryService.service
         .where(client_id: @client_ids, project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
         .group(:client_id)
-        .pluck(:client_id, nf('MAX', [sh_t[:date]]).to_sql)
+        .pluck(:client_id, nf('MAX', [shs_t[:date]]).to_sql)
         .to_h
 
       data = @clients.map do |client|
