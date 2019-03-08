@@ -181,6 +181,8 @@ group :test do
   gem 'timecop'
   gem 'test_after_commit'
   gem 'after_commit_exception_notification'
+  gem 'simplecov'
+  gem 'simplecov-console'
 end
 
 group :development, :staging, :test do
