@@ -723,6 +723,8 @@ module GrdaWarehouse::Hud
         sync_with_cas
       when :chronic
         chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
+      when :hud_chronic
+        hud_chronics.where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day}).exists?
       when :release_present
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       else
@@ -961,19 +963,29 @@ module GrdaWarehouse::Hud
     end
 
     def chronic?(on: nil)
-      on ||= GrdaWarehouse::Chronic.most_recent_day
-      chronics.where(date: on).present?
+      on ||= site_chronic_source.most_recent_day
+      site_chronics.where(date: on).present?
     end
 
     def longterm_stayer?
-      days = chronics.order(date: :asc)&.last&.days_in_last_three_years || 0
+      days = site_chronics.order(date: :asc)&.last&.days_in_last_three_years || 0
       days >= 365
     end
 
     def ever_chronic?
-      chronics.any?
+      site_chronics.any?
     end
 
+    def site_chronic_source
+      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
+        when :chronic
+          GrdaWarehouse::Chronic
+        when :hud_chronic
+          GrdaWarehouse::HudChronic
+        else
+          raise NotImplementedError
+      end
+    end
 
     def households
       @households ||= begin
