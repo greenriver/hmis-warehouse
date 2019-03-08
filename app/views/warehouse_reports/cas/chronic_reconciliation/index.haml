@@ -60,11 +60,11 @@
                 = client[:FirstName]
                 = client[:LastName]
             %td
-              = client.chronics.find_by_date(@date)&.days_in_last_three_years
+              = client.site_chronics.find_by_date(@date)&.days_in_last_three_years
             %td
-              = client.chronics.find_by_date(@date)&.months_in_last_three_years
+              = client.site_chronics.find_by_date(@date)&.months_in_last_three_years
             %td
-              = client.chronics.find_by_date(@date)&.trigger
+              = client.site_chronics.find_by_date(@date)&.trigger
 
 = content_for :page_js do
   :javascript
