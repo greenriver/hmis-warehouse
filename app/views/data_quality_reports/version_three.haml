@@ -1,10 +1,12 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
+- support_path = [:support, :project, :data_quality_report]
 = link_to "answers", answers_project_data_quality_report_path(@project, @report)
+= link_to "support", support_project_data_quality_report_path(@project, @report)
 
 %h3 Overview
 %hr
-= render 'data_quality_reports/version_three/overview'
+= render 'data_quality_reports/version_three/overview', support_path: support_path
 
 %h3 Data Quality Summary
 %hr
