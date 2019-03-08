@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include Eto::TouchPoints
+    include SiteChronic
 
     has_many :client_files
     has_many :health_files
@@ -544,30 +545,6 @@ module GrdaWarehouse::Hud
       )
     end
 
-    # Chronic definition wrappers
-    def site_chronics
-      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
-        when :chronic
-          chronics
-        when :hud_chronic
-          hud_chronics
-        else
-          raise NotImplementedError
-      end
-    end
-
-    def site_chronics_in_range(range)
-      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
-        when :chronic
-          chronics_in_range(range)
-        when :hud_chronic
-          hud_chronics_in_range(range)
-        else
-          raise NotImplementedError
-      end
-    end
-
-
     ####################
     # Callbacks
     ####################
@@ -974,17 +951,6 @@ module GrdaWarehouse::Hud
 
     def ever_chronic?
       site_chronics.any?
-    end
-
-    def site_chronic_source
-      case GrdaWarehouse::Config.get(:chronic_definition).to_sym
-        when :chronic
-          GrdaWarehouse::Chronic
-        when :hud_chronic
-          GrdaWarehouse::HudChronic
-        else
-          raise NotImplementedError
-      end
     end
 
     def households
