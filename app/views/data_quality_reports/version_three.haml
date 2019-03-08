@@ -1,27 +1,37 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
-= # link_to "answers", answers_project_data_quality_report_path(@project, @report)
+= link_to "answers", answers_project_data_quality_report_path(@project, @report)
 
 %h3 Overview
+%hr
 = render 'data_quality_reports/version_three/overview'
 
+%h3 Data Quality Summary
+%hr
+= render 'data_quality_reports/version_three/summary'
+
 %h3 Bed Utilization
+%hr
 = render 'data_quality_reports/version_three/bed_utilization_description'
 = render 'data_quality_reports/version_three/bed_utilization'
 
 %h3 Unit Utilization
+%hr
 = render 'data_quality_reports/version_three/unit_utilization_description'
 = render 'data_quality_reports/version_three/unit_utilization'
 
 %h3 Completeness
+%hr
 = render 'data_quality_reports/version_three/project_descriptor_completeness'
 = render 'data_quality_reports/version_three/completeness'
 
 
 %h3 Timelineness
+%hr
 = render 'data_quality_reports/version_three/timeliness'
 
 %h3 Outcomes
+%hr
 = render 'data_quality_reports/version_three/outcomes'
 
 
@@ -59,5 +69,13 @@
         var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
         '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
         time_in_program.build_chart();
+
+        var income = new App.DataQualityReports.Income(data['average_timeliness_of_exit'], '.income-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_exit")}');
+        income.build_chart();
+
+        var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations_percentage'], '.ph-destination-chart', 
+        '#{support_project_data_quality_report_path(@project, @report, key: "ph_destinations_percentage")}');
+        ph_destination.build_chart();
       });
     })(jQuery);

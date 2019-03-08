@@ -1,5 +1,16 @@
 .well.overflow-scroll
-  %h3 Data Completeness
+  %h3.text-center Data Completeness
+  .col-sm-6
+    %h4.text-center Goal
+    %hr
+    %h3.text-center 90% complete
+  .col-sm-6
+    %h4.text-center This Program
+    %hr
+    %h3.text-center
+      = "#{@report.report['average_timeliness_of_exit']['Average']} days"
+
+  %br
   - @report.report['project_missing'].keys.each_with_index do |project, index|
     - if @report.report['project_missing'].size > 1
       %h4

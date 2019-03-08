@@ -1,64 +1,103 @@
 .well.overflow-scroll
-  %h3 Project Descriptor Completeness
+  %h3.text-center Project Descriptor Completeness
+  %br
   .row
     .col-sm-1
-      %h4.title
-        Bed Inventory
-      %hr
       %p
+    .col-sm-1
+      %h4.text-center
+        Bed Inventory
+    .col-sm-1
+      %h4.text-center
+        CoC Code
+    .col-sm-1
+      %h4.text-center
+        Funder
+    .col-sm-1
+      %h4.text-center
+        Geocode
+    .col-sm-1
+      %h4.text-center
+        Geography Type
+    .col-sm-1
+      %h4.text-center
+        Housing Type
+    .col-sm-1
+      %h4.text-center
+        Information Date
+    .col-sm-1
+      %h4.text-center
+        Operating Start Date
+    .col-sm-1
+      %h4.text-center
+        Project Type
+    .col-sm-1
+      %h4.text-center
+        Unit Inventory
+    .col-sm-1
+      %p
+
+  .row
+    .col-sm-1
+      %p
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %hr
+    .col-sm-1
+      %p
+
+  .row
+    .col-sm-1
+      %p.text-center
+    .col-sm-1
+      %p.text-center
         = "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
     .col-sm-1
-      %h4.title
-        CoC Code
-      %hr
-      %p
+      %p.text-center
         = @report.report['coc_code']
     .col-sm-1
-      %h4.title
-        Funder
-      %hr
-      %p
+      %p.text-center
         = @report.report['grant_id']
     .col-sm-1
-      %h4.title
-        Geocode
-      %hr
-      %p
+      %p.text-center
         = @report.report['geocode']
     .col-sm-1
-      %h4.title
-        Geography Type
-      %hr
-      %p
+      %p.text-center
         = @report.report['geography_type']
     .col-sm-1
-      %h4.title
-        Housing Type
-      %hr
-      %p
+      %p.text-center
         = @report.report['housing_type']
     .col-sm-1
-      %h4.title
-        Information Date
-      %hr
-      %p
+      %p.text-center
         = @report.report['information_date']
     .col-sm-1
-      %h4.title
-        Operating Start Date
-      %hr
-      %p
+      %p.text-center
         = @report.report['operating_start_date']
     .col-sm-1
-      %h4.title
-        Project Type
-      %hr
-      %p
+      %p.text-center
         = @report.report['coc_program_component']
     .col-sm-1
-      %h4.title
-        Unit Inventory
-      %hr
-      %p
+      %p.text-center
         = "#{@report.report['unit_utilization_totals']['counts']['capacity']} units"
+    .col-sm-1
+      %p.text-center
+
+
 
