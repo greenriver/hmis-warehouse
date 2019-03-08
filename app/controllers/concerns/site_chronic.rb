@@ -23,6 +23,28 @@ module SiteChronic
       end
     end
 
+    def site_chronics_sym
+      case site_chronic_definition
+        when :chronic
+          :chronics
+        when :hud_chronic
+          :hud_chronics
+        else
+          raise NotImplementedError
+      end
+    end
+
+    def site_chronics_where(arg)
+      case site_chronic_definition
+        when :chronic
+          {chronics: arg}
+        when :hud_chronic
+          {hud_chronics: arg}
+        else
+          raise NotImplementedError
+      end
+    end
+
     def site_chronics_in_range(range)
       case site_chronic_definition
         when :chronic
