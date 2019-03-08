@@ -20,18 +20,9 @@
         Timeliness
 
   .row
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
+    - 6.times do
+      .col-sm-2
+        %hr
 
   .row
     .col-sm-2
@@ -226,34 +217,32 @@
       %h4
 
   .row
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
-    .col-sm-2
-      %hr
+    - 5.times do
+      .col-sm-2
+        %hr
     .col-sm-2
       %h4
 
   .row
     .col-sm-2
-      - if @report.report['incorrect_dob']['4'] > 0
-        = "#{@report.report['incorrect_dob']['4']} clients"
+      - total = @report.report['incorrect_dob'].values.sum
+      - if total > 0
+        = "#{total} clients"
     .col-sm-2
-      - if @report.report['missing_nights']['4'] > 0
-        = "#{@report.report['missing_nights']['4']} clients"
+      - total = @report.report['missing_nights'].values.sum
+      - if total > 0
+        = "#{total} clients"
     .col-sm-2
-      - if @report.report['service_after_close']['4'] > 0
-        = "#{@report.report['service_after_close']['4']} clients"
+      - total = @report.report['service_after_close'].values.sum
+      - if total > 0
+        = "#{total} clients"
     .col-sm-2
-      - if @report.report['individuals_at_family_projects']['4'] > 0
-        = "#{@report.report['individuals_at_family_projects']['4']} individuals at family project"
-      - if @report.report['families_at_individual_projects']['4'] > 0
-        = "#{@report.report['families_at_individual_projects']['4']} families at individual project"
+      - total = @report.report['individuals_at_family_projects'].values.sum
+      - if total > 0
+        = "#{total} individuals at family project"
+      - total = @report.report['individuals_at_family_projects'].values.sum
+      - if total > 0
+        = "#{total} families at individual project"
     .col-sm-2
       %hr
     .col-sm-2
