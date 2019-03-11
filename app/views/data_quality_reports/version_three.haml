@@ -44,7 +44,7 @@
         var url = '#{answers_project_data_quality_report_path(@project, @report)}'
         $.get(url, function(data){
           var completeness_#{index} = new App.DataQualityReports.Completeness(data['project_missing']['#{project}'], '.completeness-chart-#{index}',
-          '#{support_project_data_quality_report_path(@project, @report, key: "project_missing")}');
+          '#{support_project_data_quality_report_path(@project, @report)}');
           completeness_#{index}.build_chart();
         });
       })(jQuery);

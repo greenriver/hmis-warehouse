@@ -31,3 +31,28 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         y:
           lines:
             value: 0,
+
+  _follow_link: (d, element) =>
+    column = [
+      "_first_name",
+      "_last_name",
+      "_dob",
+      "_ssn",
+      "_race",
+      "_ethnicity",
+      "_gender",
+      "_veteran",
+      "_disabling_condition",
+      "_prior_living_situation",
+      "_income_at_entry",
+      "_income_at_exit",
+      "_destination",
+    ][d.x]
+    switch d.id
+      when "Missing / Null" then prefix = "missing"
+      when "Don't Know / Refused" then prefix = "refused"
+      when "No Exit Interview Completed" then prefix = "no_interview"
+      else return
+
+    url = @support_url + "?key=" + prefix + column
+    window.open url
