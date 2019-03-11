@@ -5,7 +5,7 @@ class App.DataQualityReports.BedCensus extends App.DataQualityReports.Base
     labels = @data['labels']
     @chart = bb.generate
       bindto: @chart_selector
-      data: {json: @data['data'], type: "line", onclick: @_follow_link}
+      data: {json: @data['data'], type: "line", color: @_colors, onclick: @_follow_link}
       axis:
         x:
           type: "category",
