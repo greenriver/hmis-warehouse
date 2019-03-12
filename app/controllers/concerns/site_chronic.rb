@@ -9,7 +9,7 @@ module SiteChronic
 
   included do
     def site_chronic_definition
-      GrdaWarehouse::Config.get(:chronic_definition).to_sym
+      @site_chronic_definition ||= GrdaWarehouse::Config.get(:chronic_definition).to_sym
     end
 
     def site_chronics
