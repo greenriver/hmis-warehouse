@@ -11,45 +11,17 @@ module SiteChronic
     def site_chronic_definition
       @site_chronic_definition ||= GrdaWarehouse::Config.get(:chronic_definition).to_sym
     end
+    alias_method :site_chronics_table, :site_chronic_definition
 
     def site_chronics
-      case site_chronic_definition
-        when :chronic
-          chronics
-        when :hud_chronic
-          hud_chronics
-        else
-          raise NotImplementedError
-      end
-    end
-
-    def site_chronics_sym
-      case site_chronic_definition
-        when :chronic
-          :chronics
-        when :hud_chronic
-          :hud_chronics
-        else
-          raise NotImplementedError
-      end
-    end
-
-    def site_chronics_where(arg)
-      case site_chronic_definition
-        when :chronic
-          {chronics: arg}
-        when :hud_chronic
-          {hud_chronics: arg}
-        else
-          raise NotImplementedError
-      end
+      self.send(site_chronic_definition)
     end
 
     def site_chronics_in_range(range)
       case site_chronic_definition
-        when :chronic
+        when :chronics
           chronics_in_range(range)
-        when :hud_chronic
+        when :hud_chronics
           hud_chronics_in_range(range)
         else
           raise NotImplementedError
@@ -58,9 +30,9 @@ module SiteChronic
 
     def site_chronic_source
       case site_chronic_definition
-        when :chronic
+        when :chronics
           potentially_chronic_source
-        when :hud_chronic
+        when :hud_chronics
           hud_chronic_source
         else
           raise NotImplementedError
@@ -70,9 +42,9 @@ module SiteChronic
 
     def site_service_history_source
       case site_chronic_definition
-        when :chronic
+        when :chronics
           chronic_service_history_source
-        when :hud_chronic
+        when :hud_chronics
           hud_chronic_service_history_source
         else
           raise NotImplementedError
@@ -82,9 +54,9 @@ module SiteChronic
 
     def site_load_chronic_filter
       case site_chronic_definition
-        when :chronic
+        when :chronics
           load_chronic_filter
-        when :hud_chronic
+        when :hud_chronics
           load_hud_chronic_filter
         else
           raise NotImplementedError
@@ -94,9 +66,9 @@ module SiteChronic
 
     def site_set_chronic_sort
       case site_chronic_definition
-        when :chronic
+        when :chronics
           set_chronic_sort
-        when :hud_chronic
+        when :hud_chronics
           set_hud_chronic_sort
         else
           raise NotImplementedError

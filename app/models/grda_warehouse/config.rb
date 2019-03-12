@@ -33,8 +33,8 @@ module GrdaWarehouse
 
     def self.available_chronic_definitions
       {
-          "Potentially chronic" => :chronic,
-          "HUD definition" => :hud_chronic,
+          "Potentially chronic" => :chronics,
+          "HUD definition" => :hud_chronics,
       }
     end
 
