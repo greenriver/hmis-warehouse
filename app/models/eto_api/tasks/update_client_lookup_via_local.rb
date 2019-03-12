@@ -8,6 +8,7 @@ module EtoApi::Tasks
     def initialize ds_id:, file_path:
       @ds_id = ds_id
       @file_path = file_path
+      super()
     end
 
     # Fetch client mapping from Gmail and replace all records for each data source with 
