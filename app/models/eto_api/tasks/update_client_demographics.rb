@@ -35,13 +35,13 @@ module EtoApi::Tasks
       # 1062 = consent form status
 
       # 331 = Case Manager/Advocate - EntityId
-      # 439 = Assigened Staff (pine street) 597 (HomeStart)
+      # 439 = Assigned Staff (pine street) 597 (HomeStart)
       #
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
        
-      # 422 Zip Code of Last Permanant Address (HUD) - BPHC only
+      # 422 Zip Code of Last Permanent Address (HUD) - BPHC only
       # 423 Zip Code Type (HUD) - BPHC only 
 
       # Loop over all items in the config
