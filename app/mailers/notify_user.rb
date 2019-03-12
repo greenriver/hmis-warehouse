@@ -69,8 +69,9 @@ class NotifyUser < DatabaseMailer
     end
   end
 
-  def anomaly_updated client_id:, user_id:, involved_user_ids:
-    @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
+  def anomaly_updated client_id:, user_id:, involved_user_ids:, anomaly_id:
+    @client = GrdaWarehouse::Hud::Client.find(client_id.to_i)
+    @anomaly = GrdaWarehouse::Anomaly.find(anomaly_id.to_i)
     users_to_notify = User.where(id: involved_user_ids).
       where.not(id: user_id)
     users_to_notify.each do |user|
