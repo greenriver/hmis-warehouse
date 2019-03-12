@@ -217,8 +217,7 @@ module Cohorts
         filter_query = filter_query.and(c_t[:VeteranStatus].eq(@hud_filter.veteran))
       end
       @clients = client_source.joins(:hud_chronics).
-          preload(:hud_chronics).
-          preload(:source_disabilities).
+          preload(:hud_chronics, :source_disabilities).
           where(filter_query).
           has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
       if @hud_filter.name&.present?
