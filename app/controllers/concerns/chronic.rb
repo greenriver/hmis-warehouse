@@ -1,7 +1,7 @@
 module Chronic
   extend ActiveSupport::Concern
   included do
-    def load_filter
+    def load_chronic_filter
       @filter = ::Filters::Chronic.new(params[:filter])
       ct = chronic_source.arel_table
       client_table = client_source.arel_table
@@ -25,8 +25,9 @@ module Chronic
         @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
       end
     end
+    alias_method :load_filter, :load_chronic_filter
 
-    def set_sort
+    def set_chronic_sort
       chronic_at = chronic_source.arel_table
       client_at = client_source.arel_table
       @column = params[:sort] || 'homeless_since'
@@ -47,13 +48,16 @@ module Chronic
       end
       @order = table[@column].send(@direction)
     end
+    alias_method :set_sort, :set_chronic_sort
 
-    def chronic_source
+    def potentially_chronic_source
       GrdaWarehouse::Chronic
     end
+    alias_method :chronic_source, :potentially_chronic_source
 
-    def service_history_source
+    def chronic_service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment
     end
+    alias_method :service_history_source, :chronic_service_history_source
   end
 end
