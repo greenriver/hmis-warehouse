@@ -20,7 +20,7 @@ module EtoApi::Tasks
       ds = GrdaWarehouse::DataSource.importable_via_s3.find(@ds_id.to_i)
       @attachment = nil
       logger.info "Fetching client mapping for data source: #{ds.short_name}, ..."
-      @attachment = fFile.read(@file_path)
+      @attachment = File.read(@file_path)
       if @attachment.present?
         @csv = parse_csv_from_file(@attachment)
         updated_rows = update_client_lookup(ds.id)
