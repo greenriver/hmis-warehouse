@@ -54,7 +54,7 @@ module HudChronic
     alias_method :chronic_source, :hud_chronic_source
 
     def hud_chronic_service_history_source
-      GrdaWarehouse::ServiceHistory
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
     alias_method :service_history_source, :hud_chronic_service_history_source
   end

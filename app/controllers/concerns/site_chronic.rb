@@ -41,16 +41,8 @@ module SiteChronic
     # alias_method :chronic_source, :site_chronic_source
 
     def site_service_history_source
-      case site_chronic_definition
-        when :chronics
-          chronic_service_history_source
-        when :hud_chronics
-          hud_chronic_service_history_source
-        else
-          raise NotImplementedError
-      end
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
-    # alias_method :service_history_source, :site_service_history_source
 
     def site_load_chronic_filter
       case site_chronic_definition
