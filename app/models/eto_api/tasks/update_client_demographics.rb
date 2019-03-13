@@ -75,7 +75,7 @@ module EtoApi::Tasks
                 Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
                 @api = nil
                 sleep(5)
-                @api = EtoApi::Detail.new(trace: @trace)
+                @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
                 @api.connect
                 @restart = Time.now + @batch_time
               end
