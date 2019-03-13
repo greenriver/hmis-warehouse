@@ -1406,6 +1406,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_race = Set.new
       refused_gender = Set.new
 
+      no_interview_destination = Set.new
+
       clients.each do |client|
         if client[:first_name].blank?
           missing_first_name << client[:destination_id]
@@ -1456,6 +1458,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
         if client[:gender].blank? || refused?(client[:gender])
           refused_gender << client[:destination_id]
+        end
+        if no_exit_interview?(client[:destination])
+          no_interview_destination << client[:destination_id]
         end
       end
 
@@ -1597,6 +1602,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         refused_gender: {
           headers: ['Client ID'],
           counts: refused_gender.map{|m| Array.wrap(m)}
+        },
+        no_interview_destination: {
+            headers: ['Client ID'],
+            counts: no_interview_destination.map{|m| Array.wrap(m)}
         },
       }
       add_answers(answers, support)

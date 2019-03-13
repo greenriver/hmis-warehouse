@@ -284,6 +284,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         white: c_t[:White].to_sql,
         data_source_id:  c_t[:data_source_id].to_sql,
         destination_id: she_t[:client_id].to_sql,
+        destination: she_t[:destination].to_sql,
       }
     end
 
@@ -291,6 +292,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       @source_client_columns ||= begin
         columns = client_columns.deep_dup
         columns[:destination_id] = wc_t[:destination_id].to_sql
+        columns.delete(:destination)
         columns
       end
     end
