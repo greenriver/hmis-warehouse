@@ -34,8 +34,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
 
   _follow_link: (d, element) =>
     column = [
-      "_first_name",
-      "_last_name",
+      "_name",
       "_dob",
       "_ssn",
       "_race",
