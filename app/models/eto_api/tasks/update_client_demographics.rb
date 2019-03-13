@@ -1,5 +1,26 @@
 # Fetch client demographics via the ETO API for clients
 # who have a record in ApiClientDataSourceId
+
+# NB: To bring in additional data, you may need to setup some ETO configs.  Here's an example
+
+# config = GrdaWarehouse::EtoApiConfig.create(
+#   data_source_id: 3,
+#   demographic_fields: {
+#     consent_form_status: 'Consent Form:',
+#     outreach_counselor_name: 'Main Outreach Counselor',
+#   },
+#   demographic_fields_with_attributes: {
+#     case_manager_name: {entity_label: 'Case Manager/Advocate', attributes: :case_manager_attributes},
+#     assigned_staff_name: {entity_label: 'AssignedStaffID', attributes: :assigned_staff_attributes},
+#     counselor_name: {entity_label: 'Assigned Counselor', attributes: :counselor_attributes},
+#   },
+#   additional_fields: {
+#     hud_last_permanent_zip: 422,
+#     hud_last_permanent_zip_quality: 423,
+#   },
+#   touchpoint_fields: {assessment_type: 'A-1. At what point is this data being collected?'},
+# )
+
 module EtoApi::Tasks
   class UpdateClientDemographics
     include ActionView::Helpers::DateHelper
@@ -48,6 +69,7 @@ module EtoApi::Tasks
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
+        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
 
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect
@@ -131,32 +153,57 @@ module EtoApi::Tasks
         hmis_client.response = api_response.to_json
 
         hmis_client.subject_id = api_response['SubjectID']
-        # FIXME: these specific label values should be moved to the DB
-        hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
-        hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
 
-        cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
-        hmis_client.case_manager_name = cm.try(:[], 'EntityName')
-        hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
+        # Overridden with custom config
+        hud_last_permanent_zip = nil
+        hud_last_permanent_zip_quality = nil
 
-        staff = entity(client: client, response: api_response, entity_label: 'AssignedStaffID')
-        hmis_client.assigned_staff_name = staff.try(:[], 'EntityName')
-        hmis_client.assigned_staff_attributes = staff if hmis_client.assigned_staff_name.present?
+        if @custom_config.present?
+          # FIXME: these specific label values should be moved to the DB
+          # hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
+          # hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
+          @custom_config.demographic_fields.each do |key,label|
+            hmis_client[key] = defined_value(client: client, response: api_response, label: label)
+          end
 
-        counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
-        hmis_client.counselor_name = staff.try(:[], 'EntityName')
-        hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
+          # cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
+          # hmis_client.case_manager_name = cm.try(:[], 'EntityName')
+          # hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
 
-        # This is only valid for Boston...
-        # FIXME: these need to be moved to the DB
-        if @data_source_id == 3
-          hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
-          hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
-        else
-          hud_last_permanent_zip = nil
-          hud_last_permanent_zip_quality = nil
+          # staff = entity(client: client, response: api_response, entity_label: 'AssignedStaffID')
+          # hmis_client.assigned_staff_name = staff.try(:[], 'EntityName')
+          # hmis_client.assigned_staff_attributes = staff if hmis_client.assigned_staff_name.present?
+
+          # counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
+          # hmis_client.counselor_name = staff.try(:[], 'EntityName')
+          # hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
+
+          @custom_config.demographic_fields_with_attributes.each do |key,details|
+            data = entity(client: client, response: api_response, entity_label: details['entity_label'])
+            if data.present?
+              hmis_client[key] = data.try(:[], 'EntityName')
+              hmis_client[details['attributes']] = data if hmis_client[key].present?
+            end 
+          end
+
+          # This is only valid for Boston...
+          # FIXME: these need to be moved to the DB
+          # if @data_source_id == 3
+          #   hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
+          #   hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
+          # else
+            
+          # end
+          @custom_config.additional_fields.each do |key,cdid|
+            case key
+            when 'hud_last_permanent_zip'
+              hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+            when 'hud_last_permanent_zip_quality'
+              hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+            end
+          end
         end
-        
+
         hmis_client.processed_fields = {
           consent_form_status: hmis_client.consent_form_status,
           outreach_counselor_name: hmis_client.outreach_counselor_name,
@@ -256,10 +303,17 @@ module EtoApi::Tasks
               answer: value,
               type: element_type,
             }
-            # Some special cases
-            # FIXME: This should be moved to the DB
-            if element['Stimulus'] == 'A-1. At what point is this data being collected?'
-               hmis_form.assessment_type = value
+            if @custom_config.present?
+              # Some special cases
+              # FIXME: This should be moved to the DB
+              # if element['Stimulus'] == 'A-1. At what point is this data being collected?'
+              #    hmis_form.assessment_type = value
+              # end
+              @custom_config.touchpoint_fields.each do |key, stimulus|
+                if element['Stimulus'] == stimulus
+                  hmis_form[key] = value
+                end
+              end
             end
           end
         end
