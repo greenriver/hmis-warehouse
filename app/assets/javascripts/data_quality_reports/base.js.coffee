@@ -17,7 +17,7 @@ class App.DataQualityReports.Base
     key = d
     if key.id?
       key = key.id
-    colors = [ "#091f2f", "#fb4d42", "#288be4" ]
+    colors = [ "#091f2f", "#fb4d42", "#288be4", "#d2d2d2" ]
     color = @color_map[key]
     if !color?
       color = colors[@next_color++]
