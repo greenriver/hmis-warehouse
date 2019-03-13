@@ -649,8 +649,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def self.completeness_field_names
       {
-          first_name: "First Name",
-          last_name: "Last Name",
+          #first_name: "First Name",
+          #last_name: "Last Name",
+          name: "Name",
           dob: "DOB",
           ssn: "SSN",
           race: "Race",
