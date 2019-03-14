@@ -1387,6 +1387,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       )
     end
 
+    def universal_element_client_header
+      @universal_element_client_header ||= ['Client ID', 'First Name', 'Last Name', 'First Date In Program', 'Last Date In Program', 'Most Recent Service', 'Destination']
+    end
+
+    def universal_element_client_counts(clients)
+      clients.map do |m|
+        [
+          m[:destination_id],
+          m[:first_name],
+          m[:last_name],
+          m[:first_date_in_program],
+          m[:last_date_in_program],
+          m[:most_recent_service],
+          m[:destination].present? ? "#{m[:destination]}: #{HUD.destination(m[:destination].to_i)}" : ''
+        ]
+      end
+    end
+
     def calculate_missing_universal_elements
       missing_first_name = Set.new
       missing_last_name = Set.new
@@ -1524,20 +1542,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       support = {
         total_clients: {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+          headers: universal_element_client_header,
+          counts: universal_element_client_counts(clients),
         },
         total_active_clients: {
-              headers: ['Client ID', 'First Name', 'Last Name'],
-              counts: active_clients.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+            headers: universal_element_client_header,
+            counts: universal_element_client_counts(active_clients),
         },
         total_enterers: {
-            headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: clients.select{|m| enterers.include?(m[:id])}.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+            headers: universal_element_client_header,
+            counts: universal_element_client_counts(clients.select{|m| enterers.include?(m[:id])}),
         },
         total_leavers: {
-          headers: ['Client ID', 'First Name', 'Last Name'],
-          counts: clients.select{|m| leavers.include?(m[:id])}.map{|m| [m[:destination_id], m[:first_name], m[:last_name]]},
+          headers: universal_element_client_header,
+          counts: universal_element_client_counts(clients.select{|m| leavers.include?(m[:id])}),
         },
         missing_first_name: {
             headers: ['Client ID'],
