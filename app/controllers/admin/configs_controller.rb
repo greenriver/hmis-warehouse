@@ -39,6 +39,7 @@ module Admin
         :ahar_psh_includes_rrh,
         :allow_multiple_file_tags,
         :infer_family_from_household_id,
+        :chronic_definition,
         client_details: []
       )
     end

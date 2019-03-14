@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190306011413) do
+ActiveRecord::Schema.define(version: 20190313191758) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1184,6 +1184,7 @@ ActiveRecord::Schema.define(version: 20190306011413) do
     t.text    "client_details"
     t.boolean "allow_multiple_file_tags",                  default: false,                    null: false
     t.boolean "infer_family_from_household_id",            default: false,                    null: false
+    t.string  "chronic_definition",                        default: "chronic",                null: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1279,6 +1280,18 @@ ActiveRecord::Schema.define(version: 20190306011413) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "eto_api_configs", force: :cascade do |t|
+    t.integer  "data_source_id",                     null: false
+    t.jsonb    "touchpoint_fields"
+    t.jsonb    "demographic_fields"
+    t.jsonb    "demographic_fields_with_attributes"
+    t.jsonb    "additional_fields"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "eto_api_configs", ["data_source_id"], name: "index_eto_api_configs_on_data_source_id", using: :btree
 
   create_table "exports", force: :cascade do |t|
     t.string   "export_id"

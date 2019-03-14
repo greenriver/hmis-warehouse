@@ -1,25 +1,6 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "07b32bbbbad7cf86b46b7884c2eec0ff9041fa8c03cc9112ae28cca7f25252e8",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/warehouse_reports/chronic_housed/index.haml",
-      "line": 39,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
-      "render_path": [{"type":"controller","class":"WarehouseReports::ChronicHousedController","method":"index","line":10,"file":"app/controllers/warehouse_reports/chronic_housed_controller.rb"}],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/chronic_housed/index"
-      },
-      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "183d6735294c38b8c0b0611b9ad3b005663982697937cb37c89c72f00df84e1f",
@@ -69,7 +50,7 @@
       "line": 14,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(Censuses::Base.available_census_types.detect do\n (m.to_s == params[:type])\n end or Censuses::CensusBedNightProgram).new.class.name.split(\"::\").last",
-      "render_path": [{"type":"controller","class":"CensusesController","method":"index","line":12,"file":"app/controllers/censuses_controller.rb"}],
+      "render_path": [{"type":"controller","class":"CensusesController","method":"index","line":12,"file":"app/controllers/censuses_controller.rb","rendered":{"name":"censuses/index","file":"/Users/elliot/Sites/hmis-warehouse/app/views/censuses/index.haml"}}],
       "location": {
         "type": "template",
         "template": "censuses/index"
@@ -88,7 +69,7 @@
       "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(GrdaWarehouse::Hud::Client.find(params[:client_id].to_i).source_clients.size + 1)",
-      "render_path": [{"type":"controller","class":"Window::PrintController","method":"index","line":11,"file":"app/controllers/window/print_controller.rb"},{"type":"template","name":"window/print/index","line":7,"file":"app/views/window/print/index.haml"}],
+      "render_path": [{"type":"controller","class":"Window::PrintController","method":"index","line":11,"file":"app/controllers/window/print_controller.rb","rendered":{"name":"window/print/index","file":"/Users/elliot/Sites/hmis-warehouse/app/views/window/print/index.haml"}},{"type":"template","name":"window/print/index","line":7,"file":"app/views/window/print/index.haml","rendered":{"name":"window/clients/_rollups","file":"/Users/elliot/Sites/hmis-warehouse/app/views/window/clients/_rollups.haml"}}],
       "location": {
         "type": "template",
         "template": "window/clients/_rollups"
@@ -257,6 +238,25 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/warehouse_reports/chronic_housed/index.haml",
+      "line": 39,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "site_chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
+      "render_path": [{"type":"controller","class":"WarehouseReports::ChronicHousedController","method":"index","line":11,"file":"app/controllers/warehouse_reports/chronic_housed_controller.rb","rendered":{"name":"warehouse_reports/chronic_housed/index","file":"/Users/elliot/Sites/hmis-warehouse/app/views/warehouse_reports/chronic_housed/index.haml"}}],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/chronic_housed/index"
+      },
+      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
@@ -286,7 +286,7 @@
       "line": 4,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
-      "render_path": [{"type":"controller","class":"Window::Health::GoalsController","method":"edit","line":28,"file":"app/controllers/concerns/health_goal.rb"}],
+      "render_path": [{"type":"controller","class":"Window::Health::GoalsController","method":"edit","line":28,"file":"app/controllers/concerns/health_goal.rb","rendered":{"name":"window/health/goals/edit","file":"/Users/elliot/Sites/hmis-warehouse/app/views/window/health/goals/edit.haml"}}],
       "location": {
         "type": "template",
         "template": "window/health/goals/edit"
@@ -540,9 +540,9 @@
       "warning_code": 24,
       "fingerprint": "a018a2a65716f162e78639cf9ecc84440e48c1b4001c80db96d96f5ca82c11ab",
       "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method constantize called with model attribute",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 311,
+      "line": 341,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -585,7 +585,7 @@
       "line": 7,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "simple_format(current_user.messages.find(params.require(:id)).body_html).gsub(URI.regexp([\"http\", \"https\"]), \"<a href=\\\"\\\\0\\\">\\\\0</a>\")",
-      "render_path": [{"type":"controller","class":"MessagesController","method":"show","line":28,"file":"app/controllers/messages_controller.rb"}],
+      "render_path": [{"type":"controller","class":"MessagesController","method":"show","line":28,"file":"app/controllers/messages_controller.rb","rendered":{"name":"messages/show","file":"/Users/elliot/Sites/hmis-warehouse/app/views/messages/show.haml"}}],
       "location": {
         "type": "template",
         "template": "messages/show"
@@ -619,7 +619,7 @@
       "warning_code": 7,
       "fingerprint": "ce992db4f95112f496552ef023508b0c90940679ef5aa41aa122b91cd2eb0a14",
       "check_name": "ForgerySetting",
-      "message": "'protect_from_forgery' should be called in HelloSignController",
+      "message": "`protect_from_forgery` should be called in `HelloSignController`",
       "file": "app/controllers/hello_sign_controller.rb",
       "line": 1,
       "link": "https://brakemanscanner.org/docs/warning_types/cross-site_request_forgery/",
@@ -663,7 +663,7 @@
       "line": 11,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(::Filters::DateRange.new(params.permit(:range => ([:start, :end]))[:range]) or ::Filters::DateRange.new(:start => 3.years.ago.to_date, :end => 1.day.ago.to_date)).start",
-      "render_path": [{"type":"controller","class":"Census::ProjectTypesController","method":"index","line":10,"file":"app/controllers/census/project_types_controller.rb"}],
+      "render_path": [{"type":"controller","class":"Census::ProjectTypesController","method":"index","line":10,"file":"app/controllers/census/project_types_controller.rb","rendered":{"name":"census/project_types/index","file":"/Users/elliot/Sites/hmis-warehouse/app/views/census/project_types/index.haml"}}],
       "location": {
         "type": "template",
         "template": "census/project_types/index"
@@ -679,7 +679,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 175,
+      "line": 182,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "GrdaWarehouse::ServiceHistoryEnrollment.homeless.ongoing.entry.with_service_between(:start_date => 3.months.ago.to_date, :end_date => Date.today, :service_scope => ((((:current_scope or :youth) or :children) or :BRAKEMAN_SAFE_LITERAL))).where(she_t[:client_id].eq(c_t[:id])).send((params[:population] or params.keys.include?(\"population\") ? (:all_clients) : (false)))",
       "render_path": null,
@@ -792,6 +792,6 @@
       "note": ""
     }
   ],
-  "updated": "2018-12-14 11:56:15 -0500",
-  "brakeman_version": "4.3.1"
+  "updated": "2019-03-12 08:48:59 -0400",
+  "brakeman_version": "4.4.0"
 }

@@ -136,6 +136,7 @@ class ClientsController < ApplicationController
     end
   end
 
+  # This is only valid for Potentially chronic (not HUD Chronic)
   def chronic_days
     days = @client.
       chronics.

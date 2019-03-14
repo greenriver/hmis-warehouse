@@ -8,6 +8,7 @@ module GrdaWarehouse
       {
         'Use Available in CAS flag' => :cas_flag,
         'Use potentially chronic report' => :chronic,
+        'Use HUD chronic report' => :hud_chronic,
         'All clients with a release on file' => :release_present,
       }
     end
@@ -28,6 +29,13 @@ module GrdaWarehouse
 
     def self.available_release_durations
       ["Indefinite", "One Year"]
+    end
+
+    def self.available_chronic_definitions
+      {
+          "Potentially chronic" => :chronics,
+          "HUD definition" => :hud_chronics,
+      }
     end
 
     def self.cache_store
