@@ -22,6 +22,7 @@ module GrdaWarehouse::Tasks
           project_client_columns.map do |destination, source|
             project_client[destination] = client.send(source)
           end
+          project_client.date_days_homeless_verified = Date.today
           project_client.needs_update = true
           project_client.save!
         end
@@ -135,6 +136,8 @@ module GrdaWarehouse::Tasks
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
         requires_elevator_access: :requires_elevator_access,
+        neighborhood_interests: :neighborhood_ids_for_cas,
+        interested_in_set_asides: :interested_in_set_asides,
       }
     end
   end
