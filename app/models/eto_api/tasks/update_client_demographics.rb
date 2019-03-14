@@ -74,7 +74,10 @@ module EtoApi::Tasks
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect
 
+        # This number may be larger than the original client_id list since each client may be 
+        # in more than one site
         cs = load_candidates(type: :demographic)
+
         current_hmis_clients = GrdaWarehouse::HmisClient.count
         current_hmis_forms = GrdaWarehouse::HmisForm.count
         if @one_off
