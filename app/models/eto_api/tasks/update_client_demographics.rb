@@ -208,16 +208,18 @@ module EtoApi::Tasks
         end
 
         hmis_client.processed_fields = {
-          consent_form_status: hmis_client.consent_form_status,
-          outreach_counselor_name: hmis_client.outreach_counselor_name,
-          case_manager_name: hmis_client.case_manager_name,
-          case_manager_attributes: hmis_client.case_manager_attributes,
-          assigned_staff_name: hmis_client.assigned_staff_name,
-          assigned_staff_attributes: hmis_client.assigned_staff_attributes,
-          counselor_name: hmis_client.counselor_name,
-          counselor_attributes: hmis_client.counselor_attributes,
+          consent_form_status: hmis_client&.consent_form_status,
+          outreach_counselor_name: hmis_client&.outreach_counselor_name,
+          case_manager_name: hmis_client&.case_manager_name,
+          case_manager_attributes: hmis_client&.case_manager_attributes,
+          assigned_staff_name: hmis_client&.assigned_staff_name,
+          assigned_staff_attributes: hmis_client&.assigned_staff_attributes,
+          counselor_name: hmis_client&.counselor_name,
+          counselor_attributes: hmis_client&.counselor_attributes,
           hud_last_permanent_zip: hud_last_permanent_zip,
           hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
+          consent_confirmed_on: hmis_client&.consent_confirmed_on,
+          consent_expires_on: hmis_client&.consent_expires_on,
         }
 
         if hmis_client.changed?
