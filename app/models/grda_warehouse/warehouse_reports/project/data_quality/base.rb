@@ -242,6 +242,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         id: c_t[:id].to_sql,
         project_id: she_t[:project_id].to_sql,
         project_name: she_t[:project_name].to_sql,
+        enrollment_id: she_t[:id].to_sql,
         enrollment_group_id: she_t[:enrollment_group_id].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,

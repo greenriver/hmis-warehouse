@@ -705,7 +705,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers = { households: {} }
       support = {}
       total_enrolled_households = 0
+      all_enrolled_households = Set.new
       total_active_households = 0
+      all_active_households = Set.new
 
       projects.each do |project|
         enrolled_households = service_history_enrollment_scope.
@@ -715,6 +717,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             group(:household_id).
             distinct.
             pluck(:household_id)
+        all_enrolled_households.merge(enrolled_households)
         active_households = service_history_enrollment_scope.
             service_within_date_range(start_date: self.start, end_date: self.end).
             joins(:project).
@@ -722,6 +725,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             group(:household_id).
             distinct.
             pluck(:household_id)
+        all_active_households.merge(active_households)
 
         answers[:households][project.id] ||= {}
 
@@ -736,25 +740,68 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers[:households][:total_enrolled_households] = total_enrolled_households
       answers[:households][:total_active_households] = total_active_households
 
+      support[:total_active_households] = household_support(all_active_households.to_a)
+      support[:total_households] = household_support(all_enrolled_households.to_a)
+
+      support[:total_entering_households] = transitioning_household_support(entering_households)
+      support[:total_exiting_households] = transitioning_household_support(exiting_households)
       add_answers(answers, support)
     end
 
     def household_support(household_ids)
       hoh_columns = {
-        client_id: c_t[:id].to_sql,
-        first_name: c_t[:FirstName].to_sql,
-        last_name: c_t[:LastName].to_sql,
+          client_id: c_t[:id].to_sql,
+          first_name: c_t[:FirstName].to_sql,
+          last_name: c_t[:LastName].to_sql,
+          first_date_in_program: she_t[:first_date_in_program].to_sql,
+          last_date_in_program: she_t[:last_date_in_program].to_sql,
+          enrollment_id: she_t[:id].to_sql,
+          destination: she_t[:destination].to_sql,
       }
+
       hohs = service_history_enrollment_scope.
         where(household_id: household_ids).
         joins(:client).
         distinct.
-        pluck(*hoh_columns.values).each do |row|
-          hoh_columns.keys.zip(row)
+        pluck(*hoh_columns.values).map do |row|
+          Hash[hoh_columns.keys.zip(row)]
+      end
+      hohs.each do |hoh|
+        dest = hoh[:destination].to_i
+        if dest != 0
+          hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
         end
+        hoh[:most_recent_service] = GrdaWarehouse::ServiceHistoryService.
+            where(client_id: hoh[:client_id], service_history_enrollment_id: hoh[:enrollment_id]).maximum(:date)
+        hoh.delete(:enrollment_id)
+      end
       {
-        headers: ['Client ID', 'First Name', 'Last Name'],
-        counts: hohs,
+        headers: ['Client ID', 'First Name', 'Last Name', "First Date In Program", "Last Date In Program", "Most Recent Service", "Destination"],
+        counts: hohs.map do |hoh|
+          [ hoh[:client_id], hoh[:first_name], hoh[:last_name], hoh[:first_date_in_program],
+            hoh[:last_date_in_program], hoh[:most_recent_service], hoh[:destination_text] ]
+        end,
+      }
+    end
+
+    def transitioning_household_support(households)
+      hohs = households.values.deep_dup.map(&:first)
+
+      hohs.each do |hoh|
+        dest = hoh[:destination].to_i
+        if dest != 0
+          hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
+        end
+        hoh[:most_recent_service] = GrdaWarehouse::ServiceHistoryService.
+            where(client_id: hoh[:id], service_history_enrollment_id: hoh[:enrollment_id]).maximum(:date)
+        hoh.delete(:enrollment_id)
+      end
+      {
+          headers: ['Client ID', 'First Name', 'Last Name', "First Date In Program", "Last Date In Program", "Most Recent Service", "Destination"],
+          counts: hohs.map do |hoh|
+            [ hoh[:id], hoh[:first_name], hoh[:last_name], hoh[:first_date_in_program],
+                hoh[:last_date_in_program], hoh[:most_recent_service], hoh[:destination_text] ]
+          end,
       }
     end
 
