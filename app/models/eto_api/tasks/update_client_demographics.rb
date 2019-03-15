@@ -157,7 +157,7 @@ module EtoApi::Tasks
 
         hmis_client.subject_id = api_response['SubjectID']
 
-        # Overridden with custom config
+        # overridden with custom attributes
         hud_last_permanent_zip = nil
         hud_last_permanent_zip_quality = nil
 
@@ -197,12 +197,16 @@ module EtoApi::Tasks
           # else
             
           # end
+
+          # Special cases for fields that don't exist on hmis_client:wq
           @custom_config.additional_fields.each do |key,cdid|
             case key
             when 'hud_last_permanent_zip'
               hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
             when 'hud_last_permanent_zip_quality'
               hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+            else
+              hmis_client[key] = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
             end
           end
         end
