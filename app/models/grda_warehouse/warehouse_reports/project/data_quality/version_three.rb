@@ -1906,6 +1906,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       increased_earned = Set.new
       increased_non_cash = Set.new
       increased_overall = Set.new
+      increased_twenty_percent = Set.new
       earned_types = [
         :EarnedAmount,
       ]
@@ -1937,6 +1938,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         last_total_income = last_assessment.values_at(*all_income_types).compact.sum
         first_total_income = first_assessment.values_at(*all_income_types).compact.sum
         increased_earned << client_id if last_earned_income >= first_earned_income
+        increased_twenty_percent << client_id if increased_twenty_percent?(last_total_income, first_total_income)
         # you might also have an increase that doesn't contain the value details
         increased_earned << client_id if first_earned_income != 1 && last_earned_income == 1
         increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income
@@ -1946,8 +1948,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       increased_earned_percentage = (increased_earned.size.to_f/clients.size*100).round(2) rescue 0
       increased_non_cash_percentage = (increased_non_cash.size.to_f/clients.size*100).round(2) rescue 0
       increased_overall_percentage = (increased_overall.size.to_f/clients.size*100).round(2) rescue 0
+      increased_twenty_percent_percentage = (increased_twenty_percent.size.to_f/clients.size*100).round(2) rescue 0
+
+      json_shape = {
+          labels: [ "Earned Income", "Non-Cash Income", "Overall Income", "Overall Income Increased by 20%" ],
+          data: {
+            "This Program": [increased_earned_percentage, increased_non_cash_percentage,
+                increased_overall_percentage, increased_twenty_percent_percentage],
+            "Goal": [ 75, 75, 75, 75 ],
+          }
+      }
 
       answers = {
+        client_income: json_shape,
+
         increased_earned: increased_earned.size,
         increased_non_cash: increased_non_cash.size,
         increased_overall: increased_overall.size,
@@ -1971,6 +1985,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
       add_answers(answers, support)
 
+    end
+
+    def increased_twenty_percent?(last_earned_income, first_earned_income)
+      last_earned_income >= first_earned_income * 1.2
     end
 
     def add_capacity_answers

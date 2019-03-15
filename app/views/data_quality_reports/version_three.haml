@@ -72,8 +72,8 @@
         '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
         time_in_program.build_chart();
 
-        var income = new App.DataQualityReports.Income(data['average_timeliness_of_exit'], '.income-chart', 
-        '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_exit")}');
+        var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
+        '#{support_project_data_quality_report_path(@project, @report, key: "client_income")}');
         income.build_chart();
 
         var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations_percentage'], '.ph-destination-chart', 
