@@ -1,16 +1,13 @@
 #= require ./namespace
 
 class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
-  _data_object: (data) ->
-    hash = {}
-    for k,v of data
-      hash[k] = [ 100, v]
-    return hash
-
   _format_data: (data) ->
     {
-      labels: ["Goal", "This Program"],
-      data: this._data_object(data)
+      labels: [ "" ],
+      data: {
+        "This Program": [ data ],
+        "Goal": [ 100 ],
+      }
     }
 
   _build_chart: ->
