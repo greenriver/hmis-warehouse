@@ -1,0 +1,21 @@
+.well
+  = simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
+    = f.error_notification
+    .row
+      .col-sm-4
+        = f.input :start, label: false, as: :date_picker
+      .col-sm-4
+        = f.input :end, label: false, as: :date_picker
+      .col-sm-4
+        = f.button :submit, value: 'Update View'
+
+    .row
+      .col-sm-6
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+      - if can_edit_project_groups?
+        .col-sm-6
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Project Groups'
+      .col-sm-6
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+      .col-sm-6
+        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
