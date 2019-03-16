@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190313191758) do
+ActiveRecord::Schema.define(version: 20190314233300) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1447,6 +1447,8 @@ ActiveRecord::Schema.define(version: 20190313191758) do
     t.string   "outreach_counselor_name"
     t.integer  "subject_id"
     t.jsonb    "processed_fields"
+    t.date     "consent_confirmed_on"
+    t.date     "consent_expires_on"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree
