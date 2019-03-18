@@ -378,7 +378,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           enrollments_in_project.each do |enrollment|
             if enrollment[:dob].present? && enrollment[:dob].to_date >= enrollment[:first_date_in_program].to_date
               dob_entry[project.id] << [
-                destination_id_for_client(enrollment[:id]),
+                enrollment[:id],
                 enrollment[:first_name],
                 enrollment[:last_name],
                 enrollment[:dob],
@@ -390,12 +390,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
       support = {}
+      all_clients = []
       dob_entry.each do |project_id, clients|
         support["incorrect_dob_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Entry Date', 'Project'],
           counts: clients.to_a
         }
+        all_clients = all_clients + clients.to_a
       end
+      support["incorrect_dob"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'DOB', 'Entry Date', 'Project'],
+          counts: all_clients.uniq
+      }
       answers = {incorrect_dob: dob_entry.map{|project_id, clients| [project_id, clients.count]}.to_h}
       add_answers(answers, support)
     end

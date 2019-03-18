@@ -184,7 +184,8 @@
       %h4 DOB on or after entry date
       - total = @report.report['incorrect_dob'].values.sum
       - if total > 0
-        = "#{total} clients"
+        = link_to polymorphic_path(support_path, {key: 'incorrect_dob'}), data: {loads_in_pjax_modal: true} do
+          = "#{total} clients"
     .col-sm-2
       %h4 No service in the final month of enrollment
       - total = @report.report['missing_nights'].values.sum
