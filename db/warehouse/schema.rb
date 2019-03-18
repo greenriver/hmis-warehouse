@@ -1281,6 +1281,18 @@ ActiveRecord::Schema.define(version: 20190315202420) do
     t.datetime "updated_at"
   end
 
+  create_table "eto_api_configs", force: :cascade do |t|
+    t.integer  "data_source_id",                     null: false
+    t.jsonb    "touchpoint_fields"
+    t.jsonb    "demographic_fields"
+    t.jsonb    "demographic_fields_with_attributes"
+    t.jsonb    "additional_fields"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "eto_api_configs", ["data_source_id"], name: "index_eto_api_configs_on_data_source_id", using: :btree
+
   create_table "exports", force: :cascade do |t|
     t.string   "export_id"
     t.integer  "user_id"
@@ -1421,6 +1433,8 @@ ActiveRecord::Schema.define(version: 20190315202420) do
     t.string   "outreach_counselor_name"
     t.integer  "subject_id"
     t.jsonb    "processed_fields"
+    t.date     "consent_confirmed_on"
+    t.date     "consent_expires_on"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree

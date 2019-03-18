@@ -190,6 +190,10 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
     end
 
+    def neighborhood_ids_for_cas
+      neighborhood_interests.map(&:to_i)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard
@@ -1279,7 +1283,9 @@ module GrdaWarehouse::Hud
       cas_columns.keys + [
         :housing_assistance_network_released_on, 
         :vispdat_prioritization_days_homeless, 
-        :verified_veteran_status
+        :verified_veteran_status,
+        :interested_in_set_asides,
+        :neighborhood_interests => [],
       ]
     end
 
