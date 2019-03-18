@@ -4,7 +4,9 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     def index
-      @filter = ::Filters::DateRangeAndSources.new(report_params.merge(user_id: current_user.id))
+      filter_params = {user_id: current_user.id}
+      filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
+      @filter = ::Filters::DateRangeAndSources.new(filter_params)
 
       @start_date = @filter.start
       @end_date = @filter.end
@@ -19,12 +21,14 @@ module WarehouseReports
 
     def report_params
       params.permit(
-          :start,
+        filter: [
+            :start,
           :end,
           project_ids: [],
           project_group_ids: [],
           organization_ids: [],
           data_source_ids: [],
+        ]
       )
     end
   end
