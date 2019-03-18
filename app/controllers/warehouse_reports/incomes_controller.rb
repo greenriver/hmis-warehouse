@@ -11,8 +11,17 @@ module WarehouseReports
       @start_date = @filter.start
       @end_date = @filter.end
 
+      @enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
+          entry.
+          open_between(start_date: @start_date, end_date: @end_date).
+          in_project(@filter.effective_project_ids).
+          joins(:client, :enrollment).
+          order(first_date_in_program: :asc)
+
       respond_to do |format|
-        format.html {}
+        format.html {
+          @enrollments = @enrollments.page(params[:page].to_i).per(25)
+        }
         format.xlsx do
           require_can_view_clients!
         end
