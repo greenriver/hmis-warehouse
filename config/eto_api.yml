@@ -5,9 +5,11 @@
     password: <%= ENV['ETO_API_PASS1'] %>
     enterprise: <%= ENV['ETO_API_ENTERPRISE1'] %>
     data_source_id: <%= ENV['ETO_API_DATA_SOURCE1'] %>
+    hud_touch_point_id: <%= ENV['ETO_API_HUD_TOUCH_POINT_ID1'] %>
 
   <%= ENV['ETO_API_SITE2'] %>:
     email: <%= ENV['ETO_API_USER2'] %>
     password: <%= ENV['ETO_API_PASS2'] %>
     enterprise: <%= ENV['ETO_API_ENTERPRISE2'] %>
     data_source_id: <%= ENV['ETO_API_DATA_SOURCE2'] %>
+    hud_touch_point_id: <%= ENV['ETO_API_HUD_TOUCH_POINT_ID2'] %>

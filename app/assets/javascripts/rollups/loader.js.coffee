@@ -37,7 +37,7 @@ class App.Rollups.Loader
                 $org.text organization
               else
                 $org.remove()
-              $square.tooltip html: true, title: $html
+              $square.tooltip html: true, title: $html.html()
               $id.append $square
               $square.click ->
                 App.util.copyToClipboard $(@).closest('tr,body').find('div.tooltip:visible .pid')

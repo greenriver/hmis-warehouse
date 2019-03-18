@@ -1,4 +1,4 @@
-= simple_form_for [:admin, @user] do |f|
+= simple_form_for [:admin, @user], url: confirm_admin_user_path, method: :post do |f|
   = f.error_notification
 
   = render 'admin/users/form_fields', f: f

@@ -12,7 +12,7 @@ gem "pg"
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 4.2.11'
+gem "rails", '~> 4.2.11.1'
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
@@ -118,7 +118,7 @@ gem 'redis-rails'
 
 #AWS SDK
 gem 'aws-sdk-rails', require: false
-gem 'aws-sdk', '~> 2', require: false
+gem 'aws-sdk', '~> 3', require: false
 gem 'json'
 gem 'awesome_print'
 
@@ -146,6 +146,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'factory_girl_rails'
   gem 'guard-rspec', require: false
+  gem 'rb-readline'
 end
 
 group :development do
@@ -180,6 +181,8 @@ group :test do
   gem 'timecop'
   gem 'test_after_commit'
   gem 'after_commit_exception_notification'
+  gem 'simplecov'
+  gem 'simplecov-console'
 end
 
 group :development, :staging, :test do

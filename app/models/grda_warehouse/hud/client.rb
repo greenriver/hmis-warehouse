@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include Eto::TouchPoints
+    include SiteChronic
 
     has_many :client_files
     has_many :health_files
@@ -189,6 +190,10 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
     end
 
+    def neighborhood_ids_for_cas
+      neighborhood_interests.map(&:to_i)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard
@@ -353,6 +358,8 @@ module GrdaWarehouse::Hud
         where(sync_with_cas: true)
       when :chronic
         joins(:chronics).where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day})
+      when :hud_chronic
+        joins(:hud_chronics).where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day})
       when :release_present
         where(housing_release_status: [full_release_string, partial_release_string])
       else
@@ -388,7 +395,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
         select(:client_id).distinct
       )
@@ -396,7 +403,7 @@ module GrdaWarehouse::Hud
 
     scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.today) do
       where(id:
-        GrdaWarehouse::ServiceHistory.service.homeless(chronic_types_only: true).
+        GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
         select(:client_id).distinct
       )
@@ -541,7 +548,6 @@ module GrdaWarehouse::Hud
           select(:destination_id)
       )
     end
-
 
     ####################
     # Callbacks
@@ -698,6 +704,8 @@ module GrdaWarehouse::Hud
         sync_with_cas
       when :chronic
         chronics.where(chronics: {date: GrdaWarehouse::Chronic.most_recent_day}).exists?
+      when :hud_chronic
+        hud_chronics.where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day}).exists?
       when :release_present
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
       else
@@ -936,19 +944,18 @@ module GrdaWarehouse::Hud
     end
 
     def chronic?(on: nil)
-      on ||= GrdaWarehouse::Chronic.most_recent_day
-      chronics.where(date: on).present?
+      on ||= site_chronic_source.most_recent_day
+      site_chronics.where(date: on).present?
     end
 
     def longterm_stayer?
-      days = chronics.order(date: :asc)&.last&.days_in_last_three_years || 0
+      days = site_chronics.order(date: :asc)&.last&.days_in_last_three_years || 0
       days >= 365
     end
 
     def ever_chronic?
-      chronics.any?
+      site_chronics.any?
     end
-
 
     def households
       @households ||= begin
@@ -1084,7 +1091,7 @@ module GrdaWarehouse::Hud
           # Use the uploaded client image if available, otherwise use the API, if we have access
           unless image_data = local_client_image_data()
             return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+            api_configs = EtoApi::Base.api_configs
             source_api_ids.detect do |api_id|
               api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
               return nil unless api_key.present?
@@ -1113,7 +1120,7 @@ module GrdaWarehouse::Hud
         image_data = nil
         if Rails.env.production?
           return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-          api_configs = api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+          api_configs = EtoApi::Base.api_configs
           api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
           return nil unless api_key.present?
           api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
@@ -1276,7 +1283,9 @@ module GrdaWarehouse::Hud
       cas_columns.keys + [
         :housing_assistance_network_released_on, 
         :vispdat_prioritization_days_homeless, 
-        :verified_veteran_status
+        :verified_veteran_status,
+        :interested_in_set_asides,
+        :neighborhood_interests => [],
       ]
     end
 
@@ -1328,9 +1337,8 @@ module GrdaWarehouse::Hud
 
     def service_date_range
       @service_date_range ||= begin
-        at = service_history.arel_table
-        query = service_history.service.select( at[:date].minimum, at[:date].maximum )
-        service_history.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
+        query = service_history_services.select( shs_t[:date].minimum, shs_t[:date].maximum )
+        service_history_services.connection.select_rows(query.to_sql).first.map{ |m| m.try(:to_date) }
       end
     end
 
@@ -1345,8 +1353,8 @@ module GrdaWarehouse::Hud
     end
 
     def date_of_last_homeless_service
-      service_history.homeless(chronic_types_only: true).
-        from(GrdaWarehouse::ServiceHistory.quoted_table_name).
+      service_history_services.homeless(chronic_types_only: true).
+        from(GrdaWarehouse::ServiceHistoryService.quoted_table_name).
         maximum(:date)
     end
 
@@ -1372,8 +1380,8 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      sh = service_history.service.
-        pluck(:date, :project_name, :data_source_id, :project_id).
+      sh = service_history_services.joins(:service_history_enrollment).
+        pluck(:date, she_t[:project_name].to_sql, she_t[:data_source_id].to_sql, :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?

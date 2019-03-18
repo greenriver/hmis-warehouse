@@ -62,6 +62,7 @@ module ServiceHistoryServiceConcern
       if GrdaWarehouse::Config.get(:so_day_as_month)
         service_types << 'extrapolated'
       end
+      return service_types
     end
   end
 end

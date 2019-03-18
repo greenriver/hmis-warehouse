@@ -1,3 +1,6 @@
 = content_for :crumbs do
+  = link_to data_source_uploads_path(data_source_id: @import.data_source_id) do
+    = "«" +  _("Imports for #{@import.data_source.name}")
+
   = link_to imports_path do
-    = "«" +  _('View Imports')
+    = "«" +  _('View All Imports')

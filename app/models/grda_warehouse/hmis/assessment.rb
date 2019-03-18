@@ -60,12 +60,15 @@ module GrdaWarehouse::HMIS
     end
 
     def self.add_missing touch_points:, assessments:
+      api_configs = EtoApi::Base.api_configs.values.index_by{|m| m['data_source_id']}
       touch_points.each do |key, tp|
         next if assessments[key] == tp
+        # HUD assessments don't get ids (usually)
+        assessment_id = (key[:assessment_id] || api_configs[key[:data_source_id]]['hud_touch_point_id'])
         assessment = self.where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: key[:assessment_id]
+          assessment_id: assessment_id
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]
@@ -104,17 +107,12 @@ module GrdaWarehouse::HMIS
 
     # This touch point doesn't show up in the API when a list is requested
     # but can be pulled down for each client, and contains the HUD touch point data
-    def self.hud_touch_point(site_id:, data_source_id:, site_name:)
-      assessment_id = if data_source_id == 1
-        75
-      elsif data_source_id == 3
-        128
-      end
+    def self.hud_touch_point site_id:, data_source_id:, site_name:, config:
       {
         {
           data_source_id: data_source_id,
           site_id: site_id,
-          assessment_id: assessment_id
+          assessment_id: config['hud_touch_point_id']
         } => {
           name: "HUD Assessment (Entry/Update/Annual/Exit)",
           site_name: site_name,
@@ -124,14 +122,14 @@ module GrdaWarehouse::HMIS
     end
 
     def self.fetch_touch_points
-      api_config = YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]
+      api_config = EtoApi::Base.api_configs
       touch_points = {}
       api_config.each do |connection_key, config|
         data_source_id = config['data_source_id']
         api = EtoApi::Base.new(trace: false, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
-          touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name))
+          touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name, config: config))
           api.programs(site_id: site_id).each do |program_id, program_name|
             api.set_program(site_id: site_id, program_id: program_id)
             begin

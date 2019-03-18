@@ -162,7 +162,7 @@ module GrdaWarehouse::Tasks
       @client_details[client.id][:age] = client.age_on(@date)
       @client_details[client.id][:individual] = GrdaWarehouse::Hud::Client.where(id: client.id).homeless_individual(on_date: @date, chronic_types_only: true).exists?
       
-      @client_details[client.id][:homeless_since] = client.service_history.first_date&.first.try(:date)
+      @client_details[client.id][:homeless_since] = client.date_of_first_service
       @client_details[client.id][:months_in_last_three_years] = months_homeless
       @client_details[client.id][:trigger] = chronic_trigger
       @client_details[client.id][:dmh] = dmh
@@ -349,25 +349,6 @@ module GrdaWarehouse::Tasks
       end
       (@last_12_months - months).blank?
     end
-
-    # count months for which we had at least one day of service in a homeless project type
-    # that doesn't overlap other non-homeless residential project types
-    # def months_homeless(client_id, client_service_history)
-    #   months = Set[]
-    #   client_service_history.group_by{|s| s[:date]}.each do |date, services|
-    #     homeless = false
-    #     other = false
-    #     services.each do |service|
-    #       homeless = CHRONIC_PROJECT_TYPES.include?(service[:project_type])
-    #       other = RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE.include?(service[:project_type])
-    #       break if other
-    #     end
-    #     if homeless && ! other
-    #       months << date.to_time.strftime("%Y-%m")
-    #     end
-    #   end
-    #   return months
-    # end
 
     def disabled?(client_id)
       @disabled_clients ||= GrdaWarehouse::Hud::Client.disabled_client_ids

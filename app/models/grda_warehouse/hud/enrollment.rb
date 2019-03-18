@@ -374,7 +374,11 @@ module GrdaWarehouse::Hud
     end
 
     def days_served
-      client.destination_client.service_history.where(record_type: 'service', enrollment_group_id: self.EnrollmentID).select(:date).distinct
+      client.destination_client.service_history_enrollment.entry.
+        joins(:service_history_services).
+        where(enrollment_group_id: self.EnrollmentID).
+        merge(GrdaWarehouse::ServiceHistoryservice.where(record_type: 'service')).
+        select(:date).distinct
     end
     # If another enrollment with the same project type starts before this ends,
     # Only count days in this enrollment that occured before the other starts
@@ -434,23 +438,37 @@ module GrdaWarehouse::Hud
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(self.project.ProjectType)
       thirty_days_ago = self.EntryDate - 30.days
       ninety_days_ago = self.EntryDate - 90.days
-      no_other_homeless = ! client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: thirty_days_ago...self.EntryDate)
-        .where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
-        .where.not(enrollment_group_id: self.EnrollmentID)
-        .exists?
+      no_other_homeless = ! client.destination_client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service', 
+            date: thirty_days_ago...self.EntryDate
+          )
+        ).
+        where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+        where.not(enrollment_group_id: self.EnrollmentID).
+        exists?
 
       non_homeless_residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-      current_residential = client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: self.EntryDate)
-        .where(project_type: non_homeless_residential).exists?
-      residential_for_past_90_days = client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: ninety_days_ago...self.EntryDate)
-        .where(project_type: non_homeless_residential)
-        .count >= 90
+      current_residential = client.destination_client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service', date: self.EntryDate
+          )
+        ).
+        where(project_type: non_homeless_residential).exists?
+
+      residential_for_past_90_days = client.destination_client..service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service', date: (ninety_days_ago...self.EntryDate)
+          )
+        ).
+        where(project_type: non_homeless_residential).
+        count >= 90
       no_other_homeless || (! current_residential && residential_for_past_90_days)
     end
   end # End Enrollment
