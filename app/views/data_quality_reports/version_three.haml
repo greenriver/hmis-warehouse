@@ -1,6 +1,10 @@
 - content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
-- if @report.completed_at.present?
+- if @report.processing_errors.present?
+  %p.alert.alert-danger.text-center
+    Processing error:
+    = JSON.parse(@report.processing_errors).first
+- elsif @report.completed_at.present?
   - support_path = [:support, :project, :data_quality_report]
   = link_to "answers", answers_project_data_quality_report_path(@project, @report)
   = link_to "support", support_project_data_quality_report_path(@project, @report)
@@ -44,8 +48,11 @@
         (function($) {
           var url = '#{answers_project_data_quality_report_path(@project, @report)}'
           $.get(url, function(data){
-            var completeness_#{index} = new App.DataQualityReports.Completeness(data['project_missing']['#{project}'], '.completeness-chart-#{index}',
-            '#{support_project_data_quality_report_path(@project, @report)}');
+            var completeness_#{index} = new App.DataQualityReports.Completeness(
+              data['project_missing']['#{project}'], 
+              '.completeness-chart-#{index}',
+              '#{support_project_data_quality_report_path(@project, @report)}'
+            );
             completeness_#{index}.build_chart();
           });
         })(jQuery);

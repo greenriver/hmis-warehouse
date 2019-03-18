@@ -20,7 +20,25 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
-      data: {json: @data['data'], type: "bar", order: @data['order'], groups: @data['groups'], color: @_colors, onclick: @_follow_link}
+      data: 
+        json: @data['data'], 
+        type: "bar", 
+        order: @data['order'], 
+        groups: @data['groups'], 
+        color: @_colors, 
+        onclick: @_follow_link,
+        types: 
+          "Complete": "bar",
+          "No Exit Interview Completed": "bar",
+          "Don't Know / Refused": "bar",
+          "Missing / Null": "bar",
+          'Target': "line",
+      point:
+        show: false
+      line:
+        classes: [
+          'data-quality__target-line'
+        ]
       axis:
         x:
           type: "category",
@@ -53,5 +71,6 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
       when "No Exit Interview Completed" then prefix = "no_interview"
       else return
 
-    url = @support_url + "?key=" + prefix + column
-    window.open url
+    url = @support_url + ".html?layout=false&key=" + prefix + column
+    $('.modal').modal('show')
+    $('.modal .modal-body').load(url)

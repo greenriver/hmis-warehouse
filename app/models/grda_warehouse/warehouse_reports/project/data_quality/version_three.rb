@@ -57,6 +57,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
     end
 
+    def completeness_goal
+      90
+    end
+
     def set_project_metadata
       agency_names = projects.map(&:organization).map(&:OrganizationName).compact
       project_names = projects.map(&:ProjectName)
@@ -638,6 +642,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                 "No Exit Interview Completed": no_interview_percentages(data),
                 "Don't Know / Refused": missing_or_dont_know_percentages(data),
                 "Missing / Null": incompleteness_percentages('missing', data),
+                'Target': Array.new(self.class.completeness_field_names.values.size, completeness_goal),
             }
         }
       end
@@ -1328,7 +1333,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       json_shape = {
           labels: unit_utilization.first.select do |key, _|
             key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-          end.keys,
+          end.keys.map do |k|
+            k&.to_date&.strftime('%D')
+          end,
           data: begin
             data_map = {}
             unit_utilization.each do |project|

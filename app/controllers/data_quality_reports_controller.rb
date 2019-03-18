@@ -50,7 +50,11 @@ class DataQualityReportsController < ApplicationController
         format.xlsx do
           render xlsx: :index, filename: "support-#{@key}.xlsx"
         end
-        format.html {}
+        format.html do
+          if params[:layout].present? && params[:layout] == 'false'
+            render layout: false
+          end
+        end
         format.js {}
       end
     end

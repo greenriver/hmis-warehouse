@@ -1,142 +1,122 @@
 .well.overflow-scroll
   .row
     .col-sm-2
-      %h4
-        Percent of Enrolled Clients Active
-    .col-sm-2
-      %h4
-        Bed Utilization
-    .col-sm-2
-      %h4
-        Unit Utilization
-    .col-sm-2
-      %h4
-        Project Descriptor Completeness
-    .col-sm-2
-      %h4
-        Data Completeness
-    .col-sm-2
-      %h4
-        Timeliness
-
-  .row
-    - 6.times do
-      .col-sm-2
-        %hr
-
-  .row
-    .col-sm-2
+      %h4 Percent of Enrolled Clients Active
       - if @report.report['total_active_clients'] / @report.report['total_clients'] < 0.9
-        %ul
+        %ul.list-unstyled
           %li
             = "Percent of enrolled clients with a service in the reporting period below acceptable threshold."
     .col-sm-2
+      %h4 Bed Utilization
       - if @report.report['bed_utilization_totals']['counts']['average_daily_percentage'] < 90
-        %ul
+        %ul.list-unstyled
           %li
             = "Bed utilization below acceptable threshold"
       - elsif @report.report['bed_utilization_totals']['counts']['average_daily_percentage'] > 105
-        %ul
+        %ul.list-unstyled
           %li
             = "Bed utilization above acceptable threshold"
       - else
-        %ul
+        %ul.list-unstyled
           %li
             = "Bed utilization falls in acceptable threshold"
     .col-sm-2
+      %h4 Unit Utilization
       - if @report.report['unit_utilization_totals']['counts']['average_daily_percentage'] < 90
-        %ul
+        %ul.list-unstyled
           %li
             = "Unit utilization below acceptable threshold"
       - elsif @report.report['unit_utilization_totals']['counts']['average_daily_percentage'] > 105
-        %ul
+        %ul.list-unstyled
           %li
             = "Unit utilization above acceptable threshold"
       - else
-        %ul
+        %ul.list-unstyled
           %li
             = "Unit utilization falls in acceptable threshold"
 
     .col-sm-2
+      %h4 Project Descriptor Completeness
       - if @report.report['bed_utilization_totals']['counts']['capacity'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Bed Inventory"
       - if @report.report['unit_utilization_totals']['counts']['capacity'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Unit Inventory"
       - if @report.report['coc_code'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing CoC Code"
       - if @report.report['grant_id'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Funder"
       - if @report.report['geocode'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Geocode"
       - if @report.report['geography_type'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Geography Type"
       - if @report.report['housing_type'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Housing Type"
       - if @report.report['information_date'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Information Date"
       - if @report.report['operating_start_date'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Operation Start Date"
       - if @report.report['coc_program_component'] == "" 
-        %ul
+        %ul.list-unstyled
           %li
             = "Missing Project Type"
     .col-sm-2
+      %h4 Data Completeness
       - if @report.report['missing_name_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Name"
       - if @report.report['refused_name_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Name"
       - if @report.report['missing_ssn_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - SSN"
       - if @report.report['refused_ssn_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - SSN"
       - if @report.report['missing_dob_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - DOB"
       - if @report.report['refused_dob_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - DOB"
       - if @report.report['missing_veteran_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Veteran"
       - if @report.report['refused_veteran_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Veteran"
       - if @report.report['missing_ethnicity_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Ethnicity"
       - if @report.report['refused_ethnicity_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Ethnicity"
       - if @report.report['missing_race_percent'] > 10 
@@ -144,108 +124,86 @@
           %li
             = "High Missing Rate - Race"
       - if @report.report['refused_race_percent'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Race"
       - if @report.report['missing_disabling_condition_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Disabling Condition"
       - if @report.report['refused_disabling_condition_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Disabling Condition"
       - if @report.report['missing_prior_living_situation_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Prior Living Situation"
       - if @report.report['refused_prior_living_situation_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Prior Living Situation"
       - if @report.report['missing_destination_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Destination"
       - if @report.report['refused_destination_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Destination"
       - if @report.report['missing_income_at_entry_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Income at Entry"
       - if @report.report['refused_income_at_entry_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Income At Entry"
       - if @report.report['missing_income_at_exit_percentage'] > 10
-        %ul
+        %ul.list-unstyled
           %li
             = "High Missing Rate - Income at Exit"
       - if @report.report['refused_income_at_entry_percentage'] > 10 
-        %ul
+        %ul.list-unstyled
           %li
             = "High Refused Rate - Income At Exit"
     .col-sm-2
+      %h4 Timeliness
       - if @report.report['average_timeliness_of_entry']['Average'] > 14
-        %ul
+        %ul.list-unstyled
           %li
-            = "Time to enter exeeds acceptable threshold"
+            = "Time to enter exceeds acceptable threshold"
       - if @report.report['average_timeliness_of_exit']['Average'] > 14
-        %ul
+        %ul.list-unstyled
           %li
-            = "Time to exit exeeds acceptable threshold"
+            = "Time to exit exceeds acceptable threshold"
 
+    
   .row
     .col-sm-2
-      %h4
-        DOB on or after entry date
-    .col-sm-2
-      %h4
-        No service in the final month of enrollment
-    .col-sm-2
-      %h4
-        Service after exit
-    .col-sm-2
-      %h4
-        Incorrect Household Type
-    .col-sm-2
-      %h4
-        Enrollments with no Service
-    .col-sm-2
-      %h4
-
-  .row
-    - 5.times do
-      .col-sm-2
-        %hr
-    .col-sm-2
-      %h4
-
-  .row
-    .col-sm-2
+      %h4 DOB on or after entry date
       - total = @report.report['incorrect_dob'].values.sum
       - if total > 0
         = "#{total} clients"
     .col-sm-2
+      %h4 No service in the final month of enrollment
       - total = @report.report['missing_nights'].values.sum
       - if total > 0
         = "#{total} clients"
     .col-sm-2
+      %h4 Service after exit
       - total = @report.report['service_after_close'].values.sum
       - if total > 0
         = "#{total} clients"
     .col-sm-2
+      %h4 Incorrect Household Type
       - total = @report.report['individuals_at_family_projects'].values.sum
       - if total > 0
         = "#{total} individuals at family project"
       - total = @report.report['individuals_at_family_projects'].values.sum
       - if total > 0
         = "#{total} families at individual project"
+
     .col-sm-2
-      %hr
-    .col-sm-2
-      %h4
-  
-      
+      %h4 Enrollments with no Service
+
