@@ -197,23 +197,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         individuals_at_family_projects: {}
       }
       support = {}
+      all_clients = []
       individuals.each do |project_id, clients|
-        answers[:individuals_at_family_projects][project_id] = clients.count
-        support["individuals_at_family_projects_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
-          counts: clients.map do |service|
-            client_id = destination_id_for_client(service[:id])
-            [
-              client_id,
+        counts = clients.map do |service|
+          [
+              service[:id],
               service[:first_name],
               service[:last_name],
               service[:project_name],
               service[:first_date_in_program],
               service[:last_date_in_program],
-            ]
-          end
+          ]
+        end
+        all_clients = all_clients + counts
+        answers[:individuals_at_family_projects][project_id] = clients.count
+        support["individuals_at_family_projects_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: counts
         }
       end
+      support['individuals_at_family_projects'] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: all_clients.uniq
+      }
       add_answers(answers, support)
     end
 
@@ -252,9 +258,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         support["families_at_individual_projects_#{project_id}"] = {
           headers: ['Client ID', 'First Name', 'Last Name', 'Household ID','Project', 'Entry Date', 'Exit Date'],
           counts: clients.map do |service|
-            client_id = destination_id_for_client(service[:id])
             [
-              client_id,
+              service[:id],
               service[:first_name],
               service[:last_name],
               service[:household_id],
@@ -296,12 +301,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.to_h
       }
       support = {}
+      all_clients = []
       service_after_close.each do |project_id, clients|
-        support["service_after_close_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
-          counts: clients.map do |service|
-            client_id = destination_id_for_client(service[:id])
-            [
+        counts = clients.map do |service|
+          client_id = destination_id_for_client(service[:id])
+          [
               client_id,
               service[:first_name],
               service[:last_name],
@@ -309,10 +313,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               service[:first_date_in_program],
               service[:last_date_in_program],
               service[:late_service],
-            ]
-          end
+          ]
+        end
+        all_clients = all_clients + counts
+        support["service_after_close_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: counts
         }
       end
+      support['service_after_close'] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: all_clients.uniq
+      }
       add_answers(answers, support)
     end
 
@@ -349,12 +361,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.to_h
       }
       support = {}
+      all_clients = []
       missing_nights.each do |project_id, clients|
-        support["missing_nights_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
-          counts: clients.map do |service|
-            client_id = destination_id_for_client(service[:id])
-            [
+        counts = clients.map do |service|
+          client_id = destination_id_for_client(service[:id])
+          [
               client_id,
               service[:first_name],
               service[:last_name],
@@ -362,10 +373,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
               service[:first_date_in_program],
               service[:last_date_in_program],
               service[:max_date],
-            ]
-          end
+          ]
+        end
+        all_clients = all_clients + counts
+        support["missing_nights_#{project_id}"] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: counts
         }
       end
+      support['missing_nights'] = {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date', 'Last Date Served'],
+          counts: all_clients.uniq
+      }
       add_answers(answers, support)
     end
 
