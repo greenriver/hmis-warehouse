@@ -1470,10 +1470,10 @@ ActiveRecord::Schema.define(version: 20190319174002) do
     t.integer  "assessment_id"
     t.integer  "data_source_id",           null: false
     t.integer  "site_id"
+    t.datetime "vispdat_score_updated_at"
     t.float    "vispdat_total_score"
     t.float    "vispdat_youth_score"
     t.float    "vispdat_family_score"
-    t.float    "vispdat_individual_score"
     t.float    "vispdat_months_homeless"
     t.float    "vispdat_times_homeless"
   end

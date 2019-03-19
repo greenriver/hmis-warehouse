@@ -39,6 +39,11 @@ module Importing
           @notifier.ping('Set client consent if appropriate') if @send_notifications
         end
 
+        if GrdaWarehouse::HmisForm.vispdat.exists?
+          GrdaWarehouse::HmisForm.set_missing_vispdat_scores
+          @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+        end
+
         # Disable CAS for anyone who's been housed in CAS
         GrdaWarehouse::CasHoused.inactivate_clients
 

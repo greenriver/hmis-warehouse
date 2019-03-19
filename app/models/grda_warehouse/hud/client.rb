@@ -1910,13 +1910,19 @@ module GrdaWarehouse::Hud
       vispdats.completed.first
     end
 
+    # Fetch most recent VI-SPDAT from the warehouse, 
+    # if not available use the most recent ETO VI-SPDAT
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score || 0
+      vispdats.completed.scores.first&.score || 
+        source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
+          pluck(:vispdat_total_score)&.first || 0
     end
 
     def most_recent_vispdat_length_homeless_in_days
       begin
-        vispdats.completed.order(submitted_at: :desc).first&.days_homeless || 0
+        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless || 
+         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
+          vispdat_days_homeless || 0
       rescue
         0
       end
