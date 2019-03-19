@@ -850,6 +850,12 @@ module GrdaWarehouse::Hud
         else
           'Expired'
         end
+      elsif release_duration == 'Use Expiration Date'
+        if consent_form_valid?
+          "Valid Until #{consent_expires_on}"
+        else
+          'Expired'
+        end 
       else
         _(housing_release_status)
       end
@@ -860,7 +866,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.release_duration
-      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
+      @release_duration = GrdaWarehouse::Config.get(:release_duration)
     end
 
     def release_valid?
@@ -870,13 +876,19 @@ module GrdaWarehouse::Hud
     def consent_form_valid?
       if release_duration == 'One Year'
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+      elsif release_duration == 'Use Expiration Date'
+        release_valid? && consent_expires_on.present? && consent_expires_on >= Date.today
       else
         release_valid?
       end
     end
 
     def consent_confirmed?
-      client_files.consent_forms.signed.confirmed.exists?
+      if release_duration == 'Use Expiration Date'
+        consent_form_signed_on.present? && consent_form_valid?
+      else
+        client_files.consent_forms.signed.confirmed.exists?
+      end
     end
 
     def newest_consent_form
@@ -888,7 +900,7 @@ module GrdaWarehouse::Hud
       if housing_release_status.blank?
         return 'None on file'
       end
-      if release_duration == 'One Year'
+      if release_duration.in?['One Year', 'Use Expiration Date']
         if ! (consent_form_valid? && consent_confirmed?)
           return 'Expired'
         end
@@ -900,7 +912,8 @@ module GrdaWarehouse::Hud
       update_columns(
         consent_form_id: nil,
         housing_release_status: nil,
-        consent_form_signed_on: nil
+        consent_form_signed_on: nil,
+        consent_expires_on: nil,
       )
     end
 

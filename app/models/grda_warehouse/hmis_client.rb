@@ -5,6 +5,13 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   serialize :counselor_attributes, Hash
   serialize :outreach_counselor_attributes, Hash
 
+  scope :consent_active, -> do
+    where(
+      arel_table[:consent_confirmed_on].lteq(Date.today).
+      and(arel_table[:consent_expires_on].gteq(Date.today))
+    )
+  end
+
   def address_lat_lon
     return nil unless last_permanent_zip.present?
     begin
