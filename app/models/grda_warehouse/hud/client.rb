@@ -594,27 +594,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def self.consent_validity_period
-      if release_duration == 'One Year'
-        1.years
-      elsif release_duration == 'Indefinite'
-        100.years
-      else
-        raise 'Unknown Release Duration'
-      end
-    end
-
-    def self.revoke_expired_consent
-      if release_duration == 'One Year'
-        clients_with_consent = self.where.not(consent_form_signed_on: nil)
-        clients_with_consent.each do |client|
-          if client.consent_form_signed_on < consent_validity_period.ago
-            client.update_columns(housing_release_status: nil)
-          end
-        end
-      end
-    end
-
     def alternate_names
       names = client_names.map do |m|
         m[:name]
@@ -839,6 +818,31 @@ module GrdaWarehouse::Hud
       # Return the untranslated string, but force the translator to see it
       _('Limited CAS Release')
       'Limited CAS Release'
+    end
+
+    def self.consent_validity_period
+      if release_duration == 'One Year'
+        1.years
+      elsif release_duration == 'Indefinite'
+        100.years
+      else
+        raise 'Unknown Release Duration'
+      end
+    end
+
+    def self.revoke_expired_consent
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < consent_validity_period.ago
+            client.update_columns(housing_release_status: nil)
+          end
+        end
+      elsif release_duration == 'Use Expiration Date'
+        self.destination.where(
+          arel_table[:consent_expires_on].lt(Date.today)
+        ).update_all(housing_release_status: nil)
+      end
     end
 
     def release_current_status

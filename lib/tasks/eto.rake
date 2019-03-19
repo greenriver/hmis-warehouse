@@ -26,5 +26,9 @@ namespace :eto do
       EtoApi::Tasks::UpdateClientDemographics.new.run!
     end
 
+    desc 'Update client consent from HMIS Clients'
+    task maintain_client_consent: [:environment, "log:info_to_stdout"] do
+      GrdaWarehouse::HmisClient.maintain_client_consent
+    end
   end
 end
