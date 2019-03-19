@@ -1,5 +1,6 @@
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  has_one :destination_client, through: :client
   serialize :case_manager_attributes, Hash
   serialize :assigned_staff_attributes, Hash
   serialize :counselor_attributes, Hash
@@ -14,7 +15,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   scope :consent_inactive, -> do
     where.not(id: consent_active.select(:id))
-  and
+  end
 
   def address_lat_lon
     return nil unless last_permanent_zip.present?
@@ -38,8 +39,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
     GrdaWarehouse::Hud::Client.revoke_expired_consent
     # all active consent gets a full release
-    self.consent_active.preload(client: :destination_client).each do |hmis_client|
-      d_client = hmis_client.client.destination_client
+    self.consent_active.preload(:destination_client).find_each do |hmis_client|
+      d_client = hmis_client.destination_client
       d_client.consent_form_signed_on = hmis_client.consent_confirmed_on
       d_client.consent_expires_on = hmis_client.consent_expires_on
       d_client.housing_release_status = d_client.class.full_release_string
