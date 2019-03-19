@@ -656,9 +656,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       json_shape = {}
+      all_completeness_percentages = []
       projects.each do |project|
         name = project.name
         data = answers[:project_missing][project.id]
+        all_completeness_percentages += completeness_percentages(data)
         json_shape[name] = {
             labels: self.class.completeness_field_names.values,
             data: {
@@ -672,7 +674,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         }
       end
 
-      answers = { project_missing: json_shape }
+      completeness_percentage = all_completeness_percentages.sum / all_completeness_percentages.size
+      answers = { project_missing: json_shape, completeness_percentage: completeness_percentage }
 
       add_answers(answers, support)
     end
@@ -714,7 +717,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def incompleteness_percentages(prefix, data)
       result = []
       self.class.completeness_field_names.keys.each do |key|
-        result << data["#{prefix}_#{key}_percentage"]
+        result << data["#{prefix}_#{key}_percentage"].round
       end
       return result
     end
@@ -723,7 +726,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       result = []
       self.class.completeness_field_names.keys.each do |key|
         if key == :destination
-          result << data["no_interview_destination_percentage"]
+          result << data["no_interview_destination_percentage"].round
         else
           result << 0
         end

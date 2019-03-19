@@ -7,8 +7,7 @@
   .col-sm-6
     %h4.text-center This Program
     %hr
-    %h3.text-center
-      = "#{@report.report['average_timeliness_of_exit']['Average']} days"
+    %h3.text-center #{@report.report['completeness_percentage']}% complete
 
   %br
   - @report.report['project_missing'].keys.each_with_index do |project, index|
