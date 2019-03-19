@@ -1,23 +1,33 @@
 #= require ./namespace
 
 class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
-  _data_object: (data) ->
-    hash = {}
-    for k,v of data
-      hash[k] = [ 14, v]
-    return hash
-
   _format_data: (data) ->
+    values = {}
+    for k,v of data
+      values[k] = [0, v, 0]
+    values["Goal"] = [14, 14, 14]
     {
-      labels: ["Goal", "This Program"],
-      data: this._data_object(data)
+      labels: ["", "", ""],
+      data: values
     }
 
 
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
-      data: {json: @data['data'], type: "bar", color: @_colors, onclick: @_follow_link}
+      data:
+        json: @data['data'],
+        type: "bar",
+        color: @_colors,
+        onclick: @_follow_link
+        types:
+          "Goal": "line",
+      point:
+        show: false,
+      line:
+        classes: [
+          'data-quality__target-line'
+        ]
       axis:
         x:
           type: "category",
