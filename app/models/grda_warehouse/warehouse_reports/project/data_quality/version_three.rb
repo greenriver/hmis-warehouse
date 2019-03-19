@@ -1636,76 +1636,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           headers: universal_element_client_header,
           counts: universal_element_client_counts(clients.select{|m| leavers.include?(m[:id])}),
         },
-        missing_first_name: {
-            headers: ['Client ID'],
-            counts: missing_first_name.map{|m| Array.wrap(m)}
-        },
-        missing_last_name: {
-            headers: ['Client ID'],
-            counts: missing_last_name.map{|m| Array.wrap(m)}
-        },
-        missing_name: {
-          headers: ['Client ID'],
-          counts: missing_name.map{|m| Array.wrap(m)}
-        },
-        missing_ssn: {
-          headers: ['Client ID'],
-          counts: missing_ssn.map{|m| Array.wrap(m)}
-        },
-        missing_dob: {
-          headers: ['Client ID'],
-          counts: missing_dob.map{|m| Array.wrap(m)}
-        },
-        missing_veteran: {
-          headers: ['Client ID'],
-          counts: missing_veteran.map{|m| Array.wrap(m)}
-        },
-        missing_ethnicity: {
-          headers: ['Client ID'],
-          counts: missing_ethnicity.map{|m| Array.wrap(m)}
-        },
-        missing_race: {
-          headers: ['Client ID'],
-          counts: missing_race.map{|m| Array.wrap(m)}
-        },
-        missing_gender: {
-          headers: ['Client ID'],
-          counts: missing_gender.map{|m| Array.wrap(m)}
-        },
-        refused_name: {
-          headers: ['Client ID'],
-          counts: refused_name.map{|m| Array.wrap(m)}
-        },
-        refused_ssn: {
-          headers: ['Client ID'],
-          counts: refused_ssn.map{|m| Array.wrap(m)}
-        },
-        refused_dob: {
-          headers: ['Client ID'],
-          counts: refused_dob.map{|m| Array.wrap(m)}
-        },
-        refused_veteran: {
-          headers: ['Client ID'],
-          counts: refused_veteran.map{|m| Array.wrap(m)}
-        },
-        refused_ethnicity: {
-          headers: ['Client ID'],
-          counts: refused_ethnicity.map{|m| Array.wrap(m)}
-        },
-        refused_race: {
-          headers: ['Client ID'],
-          counts: refused_race.map{|m| Array.wrap(m)}
-        },
-        refused_gender: {
-          headers: ['Client ID'],
-          counts: refused_gender.map{|m| Array.wrap(m)}
-        },
-        no_interview_destination: {
-            headers: ['Client ID'],
-            counts: no_interview_destination.map{|m| Array.wrap(m)}
-        },
+        missing_first_name: problem_support_details(missing_first_name, 'missing', 'First Name'),
+        missing_last_name: problem_support_details(missing_last_name, 'missing', 'Last Name'),
+        missing_name: problem_support_details(missing_name, 'missing', 'Name'),
+        missing_ssn: problem_support_details(missing_ssn, 'missing', 'SSN'),
+        missing_dob: problem_support_details(missing_dob, 'missing', 'DOB'),
+        missing_veteran: problem_support_details(missing_veteran, 'missing', 'Veteran Status'),
+        missing_ethnicity: problem_support_details(missing_ethnicity, 'missing', 'Ethnicity'),
+        missing_race: problem_support_details(missing_race, 'missing', 'Race'),
+        missing_gender: problem_support_details(missing_gender, 'missing', 'Gender'),
+        refused_name: problem_support_details(refused_name, 'refused', 'Name'),
+        refused_ssn: problem_support_details(refused_ssn, 'refused', 'SSN'),
+        refused_dob: problem_support_details(refused_dob, 'refused', 'DOB'),
+        refused_veteran: problem_support_details(refused_veteran, 'refused', 'Veteran Status'),
+        refused_ethnicity: problem_support_details(refused_ethnicity, 'refused', 'Ethnicity'),
+        refused_race: problem_support_details(refused_race, 'refused', 'Race'),
+        refused_gender: problem_support_details(refused_gender, 'refused', 'Gender'),
+        no_interview_destination: problem_support_details(no_interview_destination, 'missing', 'Exit Destination'),
       }
       add_answers(answers, support)
+    end
+
+    def problem_support_details(counts, problem, field)
+      {
+          headers: ['Client ID', 'Problem', 'Field'],
+          counts: counts.map{|m| [m, problem, field]}
+      }
     end
 
     def meets_data_quality_benchmark
