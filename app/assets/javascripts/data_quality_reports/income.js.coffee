@@ -7,9 +7,7 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
       data:
         json: @data['data'],
         type: "bar",
-        colors:
-          "This Program": "#091f2f",
-          "Goal": 'rgb(228, 228, 228)'
+        color: @_colors,
         onclick: @_follow_link
         types:
           "This Program": "bar",
