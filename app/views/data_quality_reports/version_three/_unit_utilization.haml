@@ -1,0 +1,20 @@
+.well.overflow-scroll
+	.row
+		.col-sm-3
+			%br
+			%p.text-center Unit Inventory
+			%h3.text-center
+				= "#{@report.report['unit_utilization_totals']['counts']['capacity']} units"
+			%hr
+			%p.text-center Average Daily Households
+			%h3.text-center
+				= "#{@report.report['unit_utilization_totals']['counts']['average_daily']} households"
+			%hr
+			%p.text-center Average Unit Utilization
+			%h3.text-center
+				= "#{@report.report['unit_utilization_totals']['counts']['average_daily_percentage']}%"
+
+		.col-sm-9
+			%h3.text-center Nightly Unit Census
+			.unit-census-chart.jChart
+				%p.jLoading Loading

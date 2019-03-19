@@ -1,0 +1,94 @@
+- content_for :title, "Project Data Quality Report for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
+%h1= content_for :title
+- if @report.processing_errors.present?
+  %p.alert.alert-danger.text-center
+    Processing error:
+    = JSON.parse(@report.processing_errors).first
+- elsif @report.completed_at.present?
+  - support_path = [:support, :project, :data_quality_report]
+  = link_to "answers", answers_project_data_quality_report_path(@project, @report)
+  = link_to "support", support_project_data_quality_report_path(@project, @report)
+
+  %h3 Overview
+  %hr
+  = render 'data_quality_reports/version_three/overview', support_path: support_path
+
+  %h3 Data Quality Summary
+  %hr
+  = render 'data_quality_reports/version_three/summary', support_path: support_path
+
+  %h3 Bed Utilization
+  %hr
+  = render 'data_quality_reports/version_three/bed_utilization_description'
+  = render 'data_quality_reports/version_three/bed_utilization'
+
+  %h3 Unit Utilization
+  %hr
+  = render 'data_quality_reports/version_three/unit_utilization_description'
+  = render 'data_quality_reports/version_three/unit_utilization'
+
+  %h3 Completeness
+  %hr
+  = render 'data_quality_reports/version_three/project_descriptor_completeness'
+  = render 'data_quality_reports/version_three/completeness'
+
+
+  %h3 Timelineness
+  %hr
+  = render 'data_quality_reports/version_three/timeliness'
+
+  %h3 Outcomes
+  %hr
+  = render 'data_quality_reports/version_three/outcomes'
+
+
+  = content_for :page_js do
+    - @report.report['project_missing'].keys.each_with_index do |project, index|
+      :javascript
+        (function($) {
+          var url = '#{answers_project_data_quality_report_path(@project, @report)}'
+          $.get(url, function(data){
+            var completeness_#{index} = new App.DataQualityReports.Completeness(
+              data['project_missing']['#{project}'], 
+              '.completeness-chart-#{index}',
+              '#{support_project_data_quality_report_path(@project, @report)}'
+            );
+            completeness_#{index}.build_chart();
+          });
+        })(jQuery);
+    :javascript
+      (function($) {
+        var url = '#{answers_project_data_quality_report_path(@project, @report)}'
+        $.get(url, function(data){
+          var bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "bed_utilization")}');
+          bed_census.build_chart();
+
+          var unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "unit_utilization")}');
+          unit_census.build_chart();
+
+          var time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_entry")}');
+          time_to_enter.build_chart();
+
+          var time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "average_timeliness_of_exit")}');
+          time_to_exit.build_chart();
+
+          var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "enrolled_length_of_stay")}');
+          time_in_program.build_chart();
+
+          var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
+          '#{support_project_data_quality_report_path(@project, @report, key: "client_income")}');
+          income.build_chart();
+
+          var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations_percentage'], '.ph-destination-chart', 
+          '#{support_project_data_quality_report_path(@project, @report, key: "ph_destinations_percentage")}');
+          ph_destination.build_chart();
+        });
+      })(jQuery);
+- else
+  %p.alert.alert-info.text-center
+    The report is currently running...
