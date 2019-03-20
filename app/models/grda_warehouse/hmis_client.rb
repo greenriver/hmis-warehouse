@@ -8,8 +8,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   scope :consent_active, -> do
     where(
-      arel_table[:consent_confirmed_on].gteq(Date.today).
-      and(arel_table[:consent_expires_on].lteq(Date.today))
+      arel_table[:consent_confirmed_on].lteq(Date.today).
+      and(arel_table[:consent_expires_on].gteq(Date.today))
     )
   end
 
