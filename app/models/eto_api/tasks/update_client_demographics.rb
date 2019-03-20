@@ -96,6 +96,7 @@ module EtoApi::Tasks
               if found.present?
                 fetch_assessments(client)
               end
+              client.update(temporary_high_priority: false) if client.temporary_high_priority
               if Time.now > @restart
                 Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
                 @api = nil
@@ -198,7 +199,7 @@ module EtoApi::Tasks
             
           # end
 
-          # Special cases for fields that don't exist on hmis_client:wq
+          # Special cases for fields that don't exist on hmis_client
           @custom_config.additional_fields.each do |key,cdid|
             case key
             when 'hud_last_permanent_zip'
@@ -412,6 +413,12 @@ module EtoApi::Tasks
       defined_demographic_value(value: item_value.to_i, cdid: item_cdid, site_id: client.site_id_in_data_source)
     end
 
+    # Use client_ids passed in, 
+    # OR
+    # If we have anyone flagged as high-priority, process those
+    # OR
+    # any client who we've created a record in ApiClientDataSourceId for who hasn't been 
+    # updated in the past 3 days
     private def load_candidates type:
       return [] unless type.present?
       scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
@@ -422,13 +429,17 @@ module EtoApi::Tasks
         # Load anyone who's not been updated recently
         case type
         when :demographic
-          # scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
-          #   where(data_source_id: @data_source_id).
-          #   order(last_contact: :desc)
-          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
-            where(['updated_at < ?', 3.days.ago.to_date])
-          ).
-          where(data_source_id: @data_source_id)
+          # any high-priority?
+          if GrdaWarehouse::ApiClientDataSourceId.high_priority.exists?
+            scope = scope.high_priority
+          else
+            hc_t = GrdaWarehouse::HmisClient.arel_table
+            scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
+              where(hc_t[:updated_at].lt(3.days.ago.to_date))
+            ).
+            where(data_source_id: @data_source_id).
+            order(Arel.sql("#{hc_t[:updated_at].asc.to_sql} NULLS FIRST"))
+          end
         when :assessment
           scope.joins(:hmis_client)
             # .where(['updated_at < ?', 1.week.ago.to_date])
