@@ -5,7 +5,7 @@ module Exporters::Tableau::EntryExit
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       model = she_t.engine
-      export_scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: nil)
+      export_scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: coc_code)
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
