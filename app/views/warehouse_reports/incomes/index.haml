@@ -13,6 +13,8 @@
 = render 'filter'
 
 .row
+  %p= page_entries_info @enrollments, entry_name: _('client')
+  %p= paginate @enrollments
   .col-sm-12
     %table.table.table-condensed
       %thead
@@ -30,12 +32,11 @@
           %th
             Ethnicity
       %tbody
-        = paginate @enrollments
         - @enrollments.each do |record|
           %tr
             %td
               = link_to client_path(record.client) do
-                #{record.client.FirstName} #{record.client.LastName}
+                = record.client.name
             %td
               %ul.list-unstyled
                 - record.enrollment.income_benefits_at_entry&.sources_and_amounts&.each do |name, amount|

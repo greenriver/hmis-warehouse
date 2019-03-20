@@ -208,17 +208,19 @@ ActiveRecord::Schema.define(version: 20190129210815) do
     t.string   "verb"
     t.datetime "created_at",                                                          null: false
     t.datetime "updated_at",                                                          null: false
+    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_view_clients",                                    default: false
     t.boolean  "can_edit_clients",                                    default: false
     t.boolean  "can_view_censuses",                                   default: false
     t.boolean  "can_view_census_details",                             default: false
     t.boolean  "can_edit_users",                                      default: false
+    t.boolean  "can_edit_roles",                                      default: false
+    t.boolean  "can_audit_users",                                     default: false
     t.boolean  "can_view_full_ssn",                                   default: false
     t.boolean  "can_view_full_dob",                                   default: false
     t.boolean  "can_view_hiv_status",                                 default: false
     t.boolean  "can_view_dmh_status",                                 default: false
     t.boolean  "can_view_imports",                                    default: false
-    t.boolean  "can_edit_roles",                                      default: false
     t.boolean  "can_view_projects",                                   default: false
     t.boolean  "can_edit_projects",                                   default: false
     t.boolean  "can_edit_project_groups",                             default: false
@@ -230,7 +232,6 @@ ActiveRecord::Schema.define(version: 20190129210815) do
     t.boolean  "can_upload_hud_zips",                                 default: false
     t.boolean  "can_edit_translations",                               default: false
     t.boolean  "can_manage_assessments",                              default: false
-    t.boolean  "can_edit_anything_super_user",                        default: false
     t.boolean  "can_manage_client_files",                             default: false
     t.boolean  "can_manage_window_client_files",                      default: false
     t.boolean  "can_see_own_file_uploads",                            default: false
@@ -288,7 +289,6 @@ ActiveRecord::Schema.define(version: 20190129210815) do
     t.boolean  "can_manage_accountable_care_organizations",           default: false
     t.boolean  "can_view_member_health_reports",                      default: false
     t.boolean  "health_role",                                         default: false, null: false
-    t.boolean  "can_audit_users",                                     default: false
     t.boolean  "can_audit_clients",                                   default: false
     t.boolean  "can_export_anonymous_hmis_data",                      default: false
     t.boolean  "can_view_youth_intake",                               default: false
