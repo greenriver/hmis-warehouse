@@ -227,7 +227,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         client_signed_yesterday.save
         client_signed_2_years_ago.save
         client_signed_2_years_ago_short_consent.save
-        GrdaWarehouse::Hud::Client.instance_variable_set(:@release_duration, 'One Year')
+        GrdaWarehouse::Config.first.update(release_duration: 'One Year')
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(1)
       end
