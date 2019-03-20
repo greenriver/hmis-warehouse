@@ -199,7 +199,7 @@ module EtoApi::Tasks
             
           # end
 
-          # Special cases for fields that don't exist on hmis_client:wq
+          # Special cases for fields that don't exist on hmis_client
           @custom_config.additional_fields.each do |key,cdid|
             case key
             when 'hud_last_permanent_zip'

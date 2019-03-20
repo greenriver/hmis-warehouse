@@ -67,8 +67,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     order(collected_at: :desc)
   end
 
+  scope :oldest_first, -> do
+    order(collected_at: :asc)
+  end
+
   def self.set_missing_vispdat_scores
-    vispdat.preload(:destination_client).where(
+    vispdat.oldest_first.preload(:destination_client).where(
       arel_table[:vispdat_total_score].eq(nil).
       or(arel_table[:collected_at].gt(arel_table[:vispdat_score_updated_at]))
     ).find_each(batch_size: 100).each do |hmis_form|
