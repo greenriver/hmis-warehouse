@@ -11,8 +11,7 @@ module WarehouseReports
       @start_date = @filter.start
       @end_date = @filter.end
 
-      @enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
-          entry.
+      @enrollments = enrollment_source.
           open_between(start_date: @start_date, end_date: @end_date).
           in_project(@filter.effective_project_ids).
           joins(:client, :enrollment).
@@ -28,7 +27,7 @@ module WarehouseReports
       end
     end
 
-    def report_params
+    private def report_params
       params.permit(
         filter: [
             :start,
@@ -39,6 +38,12 @@ module WarehouseReports
           data_source_ids: [],
         ]
       )
+    end
+
+    private def enrollment_source
+    GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
   end
 end
