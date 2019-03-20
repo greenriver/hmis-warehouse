@@ -594,27 +594,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def self.consent_validity_period
-      if release_duration == 'One Year'
-        1.years
-      elsif release_duration == 'Indefinite'
-        100.years
-      else
-        raise 'Unknown Release Duration'
-      end
-    end
-
-    def self.revoke_expired_consent
-      if release_duration == 'One Year'
-        clients_with_consent = self.where.not(consent_form_signed_on: nil)
-        clients_with_consent.each do |client|
-          if client.consent_form_signed_on < consent_validity_period.ago
-            client.update_columns(housing_release_status: nil)
-          end
-        end
-      end
-    end
-
     def alternate_names
       names = client_names.map do |m|
         m[:name]
@@ -841,6 +820,31 @@ module GrdaWarehouse::Hud
       'Limited CAS Release'
     end
 
+    def self.consent_validity_period
+      if release_duration == 'One Year'
+        1.years
+      elsif release_duration == 'Indefinite'
+        100.years
+      else
+        raise 'Unknown Release Duration'
+      end
+    end
+
+    def self.revoke_expired_consent
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < consent_validity_period.ago
+            client.update_columns(housing_release_status: nil)
+          end
+        end
+      elsif release_duration == 'Use Expiration Date'
+        self.destination.where(
+          arel_table[:consent_expires_on].lt(Date.today)
+        ).update_all(housing_release_status: nil)
+      end
+    end
+
     def release_current_status
       if housing_release_status.blank?
         'None on file'
@@ -850,6 +854,12 @@ module GrdaWarehouse::Hud
         else
           'Expired'
         end
+      elsif release_duration == 'Use Expiration Date'
+        if consent_form_valid?
+          "Valid Until #{consent_expires_on}"
+        else
+          'Expired'
+        end 
       else
         _(housing_release_status)
       end
@@ -860,7 +870,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.release_duration
-      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
+      @release_duration = GrdaWarehouse::Config.get(:release_duration)
     end
 
     def release_valid?
@@ -870,13 +880,19 @@ module GrdaWarehouse::Hud
     def consent_form_valid?
       if release_duration == 'One Year'
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+      elsif release_duration == 'Use Expiration Date'
+        release_valid? && consent_expires_on.present? && consent_expires_on >= Date.today
       else
         release_valid?
       end
     end
 
     def consent_confirmed?
-      client_files.consent_forms.signed.confirmed.exists?
+      if release_duration == 'Use Expiration Date'
+        consent_form_signed_on.present? && consent_form_valid?
+      else
+        client_files.consent_forms.signed.confirmed.exists?
+      end
     end
 
     def newest_consent_form
@@ -888,7 +904,7 @@ module GrdaWarehouse::Hud
       if housing_release_status.blank?
         return 'None on file'
       end
-      if release_duration == 'One Year'
+      if release_duration.in?['One Year', 'Use Expiration Date']
         if ! (consent_form_valid? && consent_confirmed?)
           return 'Expired'
         end
@@ -900,7 +916,8 @@ module GrdaWarehouse::Hud
       update_columns(
         consent_form_id: nil,
         housing_release_status: nil,
-        consent_form_signed_on: nil
+        consent_form_signed_on: nil,
+        consent_expires_on: nil,
       )
     end
 
@@ -1893,13 +1910,19 @@ module GrdaWarehouse::Hud
       vispdats.completed.first
     end
 
+    # Fetch most recent VI-SPDAT from the warehouse, 
+    # if not available use the most recent ETO VI-SPDAT
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score || 0
+      vispdats.completed.scores.first&.score || 
+        source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
+          pluck(:vispdat_total_score)&.first || 0
     end
 
     def most_recent_vispdat_length_homeless_in_days
       begin
-        vispdats.completed.order(submitted_at: :desc).first&.days_homeless || 0
+        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless || 
+         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
+          vispdat_days_homeless || 0
       rescue
         0
       end
