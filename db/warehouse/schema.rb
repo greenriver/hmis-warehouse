@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190319174002) do
+ActiveRecord::Schema.define(version: 20190320135300) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -807,6 +807,7 @@ ActiveRecord::Schema.define(version: 20190319174002) do
     t.integer "data_source_id"
     t.integer "client_id"
     t.date    "last_contact"
+    t.boolean "temporary_high_priority", default: false, null: false
   end
 
   add_index "api_client_data_source_ids", ["client_id"], name: "index_api_client_data_source_ids_on_client_id", using: :btree
