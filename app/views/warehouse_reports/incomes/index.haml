@@ -36,7 +36,7 @@
           %tr
             %td
               = link_to client_path(record.client) do
-                #{record.client.name}
+                = record.client.name
             %td
               %ul.list-unstyled
                 - record.enrollment.income_benefits_at_entry&.sources_and_amounts&.each do |name, amount|
