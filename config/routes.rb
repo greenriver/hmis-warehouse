@@ -165,6 +165,11 @@ Rails.application.routes.draw do
         get :clients
       end
     end
+    resources :psh, only: [:index] do
+      collection do
+        get :clients
+      end
+    end
     resources :consent, only: [:index] do
       post :update_clients, on: :collection
     end

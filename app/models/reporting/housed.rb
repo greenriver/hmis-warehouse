@@ -10,6 +10,14 @@ module Reporting
       where(project_id: GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id))
     end
 
+    scope :rrh, -> do
+      where(project_type: 13)
+    end
+
+    scope :psh, -> do
+      where(project_type: 3)
+    end
+
     scope :youth, -> do
       where(dob: 24.years.ago..18.years.ago)
     end
@@ -187,7 +195,7 @@ module Reporting
     end
 
     def one_project_ids
-      one_project_ids = GrdaWarehouse::Hud::Project.rrh.
+      one_project_ids = GrdaWarehouse::Hud::Project.ph.
         where.not(id: two_project_ids).
         distinct.
         pluck(:id)
@@ -364,7 +372,7 @@ module Reporting
       @affiliated_projects ||= begin
         residential_projects = GrdaWarehouse::Hud::Affiliation.
           joins(:residential_project).
-          merge(GrdaWarehouse::Hud::Project.rrh).
+          merge(GrdaWarehouse::Hud::Project.ph).
           pluck(*affiliation_columns.values).map do |row|
             Hash[affiliation_columns.keys.zip(row)]
           end
