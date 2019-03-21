@@ -6,8 +6,12 @@
     = JSON.parse(@report.processing_errors).first
 - elsif @report.completed_at.present?
   - support_path = [:support, :project, :data_quality_report]
-  = link_to "answers", answers_project_data_quality_report_path(@project, @report)
-  = link_to "support", support_project_data_quality_report_path(@project, @report)
+  - if Rails.env.development?
+    .alert.alert-warning
+      %p Development Only
+      = link_to "answers", answers_project_data_quality_report_path(@project, @report)
+      %br
+      = link_to "support", support_project_data_quality_report_path(@project, @report)
 
   %h3 Overview
   %hr
