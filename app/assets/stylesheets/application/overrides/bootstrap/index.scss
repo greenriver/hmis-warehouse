@@ -32,13 +32,6 @@ a.icon-cross:link {
   }
 }
 
-.btn-link--danger {
-  color: $brand-danger-d;
-  &:hover {
-    color: darken($brand-danger-d, 10%);
-  }
-}
-
 .label {
   @include tag-pill;
 }

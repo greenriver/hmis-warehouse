@@ -1,4 +1,4 @@
-@import '../helpers';
+@import '../../helpers';
 
 button.close {
   background-color: inherit;
@@ -6,19 +6,7 @@ button.close {
 }
 
 .btn {
-  @include open-sans-bold;
-  padding: $input-btn-padding-y $input-btn-padding-x;
-  min-height: rem(40px);
-  display: inline-flex;
-  align-items: center;
-  [class^='icon'],
-  span {
-    margin-right: space(2);
-  }
-  .caret {
-    margin-left: space(2);
-    margin-right: 0;
-  }
+  @include custom-button-styles;
 }
 
 .btn-icon-only {
@@ -392,4 +380,11 @@ button.close {
 .show > .dropdown-toggle.btn-default {
   background: $brand-primary;
   color: $white;
+}
+
+.btn-link--danger {
+  color: $brand-danger-d;
+  &:hover {
+    color: darken($brand-danger-d, 10%);
+  }
 }

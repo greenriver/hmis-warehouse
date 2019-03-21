@@ -399,14 +399,17 @@
 
 @mixin button($color: $brand-primary) {
   display: inline-block;
-  font-family: $btn-font-family;
-  font-weight: $btn-font-weight;
   color: $body-color;
   text-align: center;
   vertical-align: middle;
   user-select: none;
   background-color: transparent;
   border: $btn-border-width solid transparent;
+
+  // Custom styles
+  @include custom-button-styles;
+  // ~~~~~~~~~~~~~~~~~~~~~~~~
+
   @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
   @include transition($btn-transition);
 
@@ -438,4 +441,20 @@
   }
 
   @include button-variant($color, $color);
+}
+
+@mixin custom-button-styles {
+  @include open-sans-bold;
+  padding: $input-btn-padding-y $input-btn-padding-x;
+  min-height: rem(40px);
+  display: inline-flex;
+  align-items: center;
+  [class^='icon'],
+  span {
+    margin-right: space(2);
+  }
+  .caret {
+    margin-left: space(2);
+    margin-right: 0;
+  }
 }
