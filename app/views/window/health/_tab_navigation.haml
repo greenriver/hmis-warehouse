@@ -9,7 +9,7 @@
       permission: can_edit_client_health?,
     },
   }
-%ul.nav.nav-tabs.mb-1
+%ul.nav.nav-tabs.mb-6
   - tabs.each do |action, details|
     - if action == current
       - if details[:permission]

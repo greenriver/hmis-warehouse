@@ -23,9 +23,23 @@
 }
 
 .o-page__action {
-  margin-left: auto;
   display: flex;
   flex-wrap: wrap;
+  flex: 0 0 100%;
+  margin-bottom: space(4);
+  @include media-breakpoint-up(md) {
+    margin-left: auto;
+    flex: 0 0 auto;
+    margin-bottom: 0;
+  }
+}
+
+.o-page__action .btn {
+  width: 100%;
+  text-align: center;
+  @include media-breakpoint-up(md) {
+    width: auto;
+  }
 }
 
 .o-page__action--stacked {
@@ -42,15 +56,16 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: -10px;
+  margin-bottom: space(4);
+  flex: 0 0 100%;
+  @include media-breakpoint-up(md) {
+    flex: 0 0 50%;
+    margin-bottom: 0;
+  }
 }
 
 .o-page__search {
   width: 100%;
-  @include media-breakpoint-up(md) {
-    width: 50%;
-    margin-right: space(4);
-  }
 }
 
 .o-page__search .form-group {

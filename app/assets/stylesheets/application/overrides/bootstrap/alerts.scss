@@ -20,3 +20,8 @@
 .alert a:focus {
   text-decoration: none;
 }
+
+.alert .close {
+  font-size: 1rem;
+  padding-left: space(4);
+}

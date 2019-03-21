@@ -155,6 +155,7 @@
 .well {
   @include card-content;
   box-shadow: none;
+  margin-bottom: space(6);
 }
 
 .c-card--row {
