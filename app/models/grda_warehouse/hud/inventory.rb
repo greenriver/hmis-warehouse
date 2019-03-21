@@ -137,13 +137,13 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.relevant_inventory(inventories:, date:)
+    def self.relevant_inventories(inventories:, date:)
       inventories = inventories.select{ |inv| inv.BedInventory.present? }
       if inventories.any?
         ref = date.to_time.to_i
         inventories.sort_by do |inv|
           ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
-        end.first
+        end
       end
     end
   end
