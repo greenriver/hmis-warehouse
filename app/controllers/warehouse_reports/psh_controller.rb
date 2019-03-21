@@ -55,7 +55,7 @@ module WarehouseReports
     end
 
     private def available_projects
-      @available_projects ||= project_source.with_project_type(3).
+      @available_projects ||= project_source.with_project_type([3, 9, 10]).
         joins(:organization).
         pluck(o_t[:OrganizationName].to_sql, :ProjectName, :id).
         map do |org_name, project_name, id|

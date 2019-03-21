@@ -57,8 +57,189 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       }
     end
 
+    # View related
+    def total_client_count
+      @total_client_count ||= report['total_clients'] rescue 0
+    end
+
+    def no_clients?
+      total_client_count == 0
+    end
+
+    def no_issues
+      'No issues'
+    end
+
+    def describe_served_percentage
+      if report['total_active_clients'] / total_client_count < (completeness_goal/100)
+        'Percent of enrolled clients with a service in the reporting period below acceptable threshold.'
+      else
+        no_issues
+      end
+    end
+
+    def describe_bed_utilization
+      if report['bed_utilization_totals']['counts']['average_daily_percentage'] < completeness_goal
+       'Bed utilization below acceptable threshold'
+      elsif report['bed_utilization_totals']['counts']['average_daily_percentage'] > excess_goal
+        'Bed utilization above acceptable threshold'
+      else
+        no_issues
+      end
+    end
+
+    def describe_unit_utilization
+      if report['unit_utilization_totals']['counts']['average_daily_percentage'] < completeness_goal
+       'Unit utilization below acceptable threshold'
+      elsif report['unit_utilization_totals']['counts']['average_daily_percentage'] > excess_goal
+        'Unit utilization above acceptable threshold'
+      else
+        no_issues
+      end
+    end
+
+    def describe_descriptor_completeness
+      issues = []
+      if report['bed_utilization_totals']['counts']['capacity'].blank?
+        issues << "Missing Bed Inventory"
+      end
+      if report['unit_utilization_totals']['counts']['capacity'].blank?
+        issues << "Missing Unit Inventory"
+      end
+      if report['coc_code'].blank?
+        issues << "Missing CoC Code"
+      end
+      if report['grant_id'].blank?
+        issues << "Missing Funder"
+      end
+      if report['geocode'].blank?
+        issues << "Missing Geocode"
+      end
+      if report['geography_type'].blank?
+        issues << "Missing Geography Type"
+      end
+      if report['housing_type'].blank?
+        issues << "Missing Housing Type"
+      end
+      if report['information_date'].blank?
+        issues << "Missing Information Date"
+      end
+      if report['operating_start_date'].blank?
+        issues << "Missing Operation Start Date"
+      end
+      if report['coc_program_component'].blank?
+        issues << "Missing Project Type"
+      end
+      issues << no_issues if issues.empty?
+      return issues
+    end
+
+    def describe_data_completeness
+      issues = []
+      if report['missing_name_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Name"
+      end
+      if report['refused_name_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Name"
+      end
+      if report['missing_ssn_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - SSN"
+      end
+      if report['refused_ssn_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - SSN"
+      end
+      if report['missing_dob_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - DOB"
+      end
+      if report['refused_dob_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - DOB"
+      end
+      if report['missing_veteran_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Veteran"
+      end
+      if report['refused_veteran_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Veteran"
+      end
+      if report['missing_ethnicity_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Ethnicity"
+      end
+      if report['refused_ethnicity_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Ethnicity"
+      end
+      if report['missing_race_percent'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Race"
+      end
+      if report['refused_race_percent'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Race"
+      end
+      if report['missing_disabling_condition_percentage'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Disabling Condition"
+      end
+      if report['refused_disabling_condition_percentage'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Disabling Condition"
+      end
+      if report['missing_prior_living_situation_percentage'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Prior Living Situation"
+      end
+      if report['refused_prior_living_situation_percentage'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Prior Living Situation"
+      end
+      if report['missing_destination_percentage'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Destination"
+      end
+      if report['refused_destination_percentage'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Destination"
+      end
+      if report['missing_income_at_entry_percentage'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Income at Entry"
+      end
+      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Income At Entry"
+      end
+      if report['missing_income_at_exit_percentage'] > minimum_completeness_threshold
+        issues << "High Missing Rate - Income at Exit"
+      end
+      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
+        issues << "High Refused Rate - Income At Exit"
+      end
+      issues << no_issues if issues.empty?
+      return issues
+    end
+
+    def describe_timeliness
+      issues = []
+      # if we have more than one project, use average, otherwise, use the project
+      key = 'Average'
+      if projects.count == 1
+        key = project.name
+      end
+      if report['average_timeliness_of_entry'][key].present? && report['average_timeliness_of_entry'][key] > timeliness_goal
+        issues << "Time to enter exceeds acceptable threshold"
+      end
+      if report['average_timeliness_of_exit'].present? && report['average_timeliness_of_exit'][key] > timeliness_goal
+        issues << "Time to exit exceeds acceptable threshold"
+      end
+
+      issues << no_issues if issues.empty?
+      return issues
+    end
+
+    # End view related
+
     def completeness_goal
       90
+    end
+
+    def excess_goal
+      105
+    end
+
+    def mininum_completeness_threshold
+      100 - completeness_goal
+    end
+
+    def timeliness_goal
+      14 # days
     end
 
     def set_project_metadata
@@ -498,7 +679,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             end
             data_map['Total'] = []
             self.class.length_of_stay_buckets.values.each do |range|
-              data_map['Total'] << totals[:counts][:buckets][range]
+              data_map['Total'] << totals[:counts][:buckets][range] if projects.count > 1
             end
             data_map
           end
@@ -1450,13 +1631,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entry_timeliness.keys.each do |project_name|
         json_entry_shape[project_name] = entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0
       end
-      json_entry_shape['Average'] = entry_total / entry_count rescue 0
+      if entry_timeliness.keys.count > 1
+        json_entry_shape['Average'] = entry_total / entry_count rescue 0
+      end
 
       json_exit_shape = {}
       exit_timeliness.keys.each do |project_name|
         json_exit_shape[project_name] = exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0
       end
-      json_exit_shape['Average'] = exit_total / exit_count rescue 0
+      if exit_timeliness.keys.count > 1
+        json_exit_shape['Average'] = exit_total / exit_count rescue 0
+      end
 
       add_answers({
           average_timeliness_of_entry: json_entry_shape,

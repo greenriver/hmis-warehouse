@@ -15,7 +15,7 @@ module Reporting
     end
 
     scope :psh, -> do
-      where(project_type: 3)
+      where(project_type: [3, 9, 10])
     end
 
     scope :youth, -> do
