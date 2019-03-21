@@ -25,3 +25,9 @@
   font-size: 1rem;
   padding-left: space(4);
 }
+
+.alert p {
+  &:only-child {
+    margin-bottom: 0;
+  }
+}

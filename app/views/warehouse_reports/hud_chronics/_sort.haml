@@ -5,11 +5,11 @@
     Sort
     %span.caret
   .dropdown-menu.options
-    %ul
+    %ul.list-unstyled.mb-0
       - @sort_options.each do |opt|
         - if @column == opt[:column] && @direction == opt[:direction]
           - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
         - else
           - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
         %li
-          = link_to title, params.merge!(direction: opt[:direction], column: opt[:column]) 
+          = link_to title, params.merge!(direction: opt[:direction], column: opt[:column])
