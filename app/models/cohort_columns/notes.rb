@@ -34,7 +34,7 @@ module CohortColumns
       note_count = cohort_client.cohort_client_notes.length || 0
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
       html = content_tag(:span, note_count, class: "hidden")
-      html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html += link_to note_count, path, class: 'badge badge-primary', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
       html
     end
 

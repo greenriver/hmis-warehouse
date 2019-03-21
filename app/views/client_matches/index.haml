@@ -33,7 +33,7 @@
       = link_to url_for(params.merge(status: status, page: nil)), class: 'nav-link' do
         = label
         - if (count = @counts[status].to_i) > 0
-          %span.badge{data: {status: status}}= count
+          %span.badge.badge-primary{data: {status: status}}= count
 - if @matches.empty?
   %p There are no #{@status} client matches at this time.
 - @matches.group_by{|m| m.destination_client.destination_client}.each do |dest, matches|
