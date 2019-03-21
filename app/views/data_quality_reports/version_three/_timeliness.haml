@@ -10,7 +10,7 @@
 				%h4.text-center This Program
 				%hr
 				%h3.text-center
-					= "#{@report.report['average_timeliness_of_entry']['Average']} days"
+					= pluralize(@report.describe_timeliness_entry_average_value, 'day')
 			.time-to-enter-chart.jChart
 				%p.jLoading Loading
 		.col-sm-6
@@ -23,6 +23,6 @@
 				%h4.text-center This Program
 				%hr
 				%h3.text-center
-					= "#{@report.report['average_timeliness_of_exit']['Average']} days"
+					= pluralize(@report.describe_timeliness_exit_average_value, 'day')
 			.time-to-exit-chart.jChart
 				%p.jLoading Loading

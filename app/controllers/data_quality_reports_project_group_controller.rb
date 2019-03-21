@@ -9,7 +9,6 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
 
 
   def support
-    
     @key = params[:key].to_s
     if @key.blank?
       render json: @report.support
@@ -20,7 +19,11 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
         format.xlsx do
           render xlsx: :index, filename: "support-#{@key}.xlsx"
         end
-        format.html {}
+        format.html do
+          if params[:layout].present? && params[:layout] == 'false'
+            render layout: false
+          end
+        end
       end
     end
   end

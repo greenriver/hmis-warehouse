@@ -224,6 +224,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return issues
     end
 
+    def describe_timeliness_entry_average_value
+      key = 'Average'
+      if projects.count == 1
+        key = project.name
+      end
+      report['average_timeliness_of_entry'][key]
+    end
+
+    def describe_timeliness_exit_average_value
+      key = 'Average'
+      if projects.count == 1
+        key = project.name
+      end
+      report['average_timeliness_of_exit'][key]
+    end
+
     # End view related
 
     def completeness_goal
