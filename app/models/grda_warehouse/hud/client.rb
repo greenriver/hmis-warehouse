@@ -904,7 +904,7 @@ module GrdaWarehouse::Hud
       if housing_release_status.blank?
         return 'None on file'
       end
-      if release_duration.in?['One Year', 'Use Expiration Date']
+      if release_duration.in?(['One Year', 'Use Expiration Date'])
         if ! (consent_form_valid? && consent_confirmed?)
           return 'Expired'
         end
