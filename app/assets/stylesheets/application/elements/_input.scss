@@ -1,0 +1,5 @@
+@import '../helpers';
+
+input[type=submit] {
+  @include button($brand-primary);
+}
