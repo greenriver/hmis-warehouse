@@ -1,9 +1,4 @@
-@import '../helpers';
-
-.container-fluid {
-  padding-right: 30px;
-  padding-left: 30px;
-}
+@import '../../helpers';
 
 th .fa {
   padding-left: 4px;
@@ -16,35 +11,6 @@ th .fa {
 
 .info {
   color: black;
-}
-
-.popover {
-  max-width: 80%; /* Max Width of the popover (depending on the container!) */
-  white-space: pre-wrap;
-}
-
-.popover ol {
-  padding-left: 0 !important;
-  -webkit-padding-start: 10px !important;
-}
-
-.alert {
-  z-index: $zIndex-3--notice;
-  @include open-sans-medium;
-  color: rgba($black, .75);
-}
-
-.alert a {
-  color: rgba($black, .75);
-}
-
-.alert a:link {
-  text-decoration: underline;
-}
-
-.alert a:hover,
-.alert a:focus {
-  text-decoration: none;
 }
 
 a.icon-cross:link {

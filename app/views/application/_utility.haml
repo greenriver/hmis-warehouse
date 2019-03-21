@@ -6,4 +6,5 @@
   %div{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
     - if msg.is_a?(String)
       = msg.html_safe unless msg.blank?
-    %a.icon-cross.pull-right{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}
+    %button.close.ml-auto{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}
+      %span.icon-cross

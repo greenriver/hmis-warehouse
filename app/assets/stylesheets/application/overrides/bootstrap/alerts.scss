@@ -1,0 +1,22 @@
+@import '../../helpers';
+
+.alert {
+  z-index: $zIndex-3--notice;
+  @include open-sans-medium;
+  color: rgba($black, .75);
+  display: flex;
+  align-items: center;
+}
+
+.alert a {
+  color: rgba($black, .75);
+}
+
+.alert a:link {
+  text-decoration: underline;
+}
+
+.alert a:hover,
+.alert a:focus {
+  text-decoration: none;
+}
