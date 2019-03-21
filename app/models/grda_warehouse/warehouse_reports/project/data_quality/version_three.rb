@@ -2387,7 +2387,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         service_history_enrollment_scope.
           service_within_date_range(start_date: self.start, end_date: self.end).
           joins(:client, :project).
-          where(Project: {id: project.id}).
+          where(Project: {id: projects.map(&:id)}).
           distinct.
           pluck(*client_columns.values).
           map do |row|
