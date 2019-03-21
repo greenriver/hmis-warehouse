@@ -65,7 +65,9 @@
 }
 
 .o-page__search {
-  width: 100%;
+  min-width: 400px;
+  max-width: 500px;
+  margin-right: space(4);
 }
 
 .o-page__search .form-group {

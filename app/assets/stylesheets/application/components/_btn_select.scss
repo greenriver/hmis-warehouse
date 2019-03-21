@@ -1,7 +1,9 @@
 @import '../helpers';
 
 .c-btn-select {
-  @include checkbox-default;
+  $size: 30px;
+  @include checkbox-default($size: $size);
+  min-width: rem($size);
   border: 0;
   background: none;
   padding: 0;

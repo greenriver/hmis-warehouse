@@ -1,6 +1,6 @@
 - if @active_patient_referral_group.present?
   .alert.alert-info= _("If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff.")
-  .pull-left.mt-3
+  .mt-3
     .btn-group.btn-group-action-2.btn-group-xs{role: 'group'}
       - @patient_referral_groups.each do |group|
         - btn_classes = ['btn', 'btn-secondary']

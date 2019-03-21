@@ -16,5 +16,7 @@
 %div{class: can_bulk_assign? ? 'col-sm-2' : 'col-sm-3'}
   = render 'reject', pr: pr
 - if can_bulk_assign?
-  .col-sm-1.text-right
-    = check_box_tag :patient_referral_id, pr.id
+  .col-sm-1.d-flex
+    .c-checkbox.c-checkbox--round.ml-auto
+      = check_box_tag :patient_referral_id, pr.id
+      %label{for: :patient_referral_id}
