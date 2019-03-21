@@ -33,7 +33,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def title
       if projects.count == 1
-        "#{@project.ProjectName} at #{@project.organization.OrganizationName}"
+        "#{project.ProjectName} at #{project.organization.OrganizationName}"
       else
         project_group.name
       end
