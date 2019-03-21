@@ -118,6 +118,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "required_minimum_occupancy",                         default: 1
     t.boolean  "requires_elevator_access",                           default: false
     t.string   "verified_veteran_status"
+    t.jsonb    "neighborhood_interests",                             default: [],    null: false
     t.boolean  "interested_in_set_asides",                           default: false
     t.date     "consent_expires_on"
   end
