@@ -14,15 +14,15 @@
               = link_to delete_goal_path(goal), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
                 %span.icon-cross
       .row.mb-2
-        .col-xs-4
+        .col-sm-4
           %label Responsible Care Team Member
           .health-careplan__goal-responsible
             = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
-        .col-xs-4
+        .col-sm-4
           %label Start Date
           .health-careplan__goal-start-date
             = goal.start_date
-        .col-xs-4
+        .col-sm-4
           %label Status
           .health-careplan__goal-status
             = goal.status

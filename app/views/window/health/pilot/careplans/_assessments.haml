@@ -12,10 +12,10 @@
           = render 'spinner'
     - else
       .row
-        .col-xs-8
+        .col-sm-8
           Last updated: 
           = status[:updated_at]
-        .col-xs-4
+        .col-sm-4
           = link_to 'Update', eto_api_path ,method: :patch, class: 'btn btn-sm btn-secondary', data: {confirm: "Updating assessment data can take a few minutes. During this time, assessments for this client won't be available Are you sure you want to proceed?"}
 
   = render 'touch_points_table'

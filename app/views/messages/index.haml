@@ -7,7 +7,7 @@
     = link_to 'Unread', messages_path( message_params.merge search: 'unseen' ), class: 'nav-link'
 
 .row
-  .col-xs-4
+  .col-sm-4
 
     %table.table.table-condensed
       %tr
@@ -30,6 +30,6 @@
 
     %p= paginate @messages
 
-  .col-xs-8
+  .col-sm-8
     - if @message
       = render 'message'
