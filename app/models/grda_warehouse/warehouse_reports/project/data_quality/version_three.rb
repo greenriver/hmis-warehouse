@@ -213,10 +213,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      if report['average_timeliness_of_entry'][key].present? && report['average_timeliness_of_entry'][key] > timeliness_goal
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      if report['average_timeliness_of_entry']['data'][key].present? && report['average_timeliness_of_entry']['data'][key].second > timeliness_goal
         issues << "Time to enter exceeds acceptable threshold"
       end
-      if report['average_timeliness_of_exit'].present? && report['average_timeliness_of_exit'][key] > timeliness_goal
+      if report['average_timeliness_of_exit']['data'][key].present? && report['average_timeliness_of_exit']['data'][key].second > timeliness_goal
         issues << "Time to exit exceeds acceptable threshold"
       end
 
@@ -229,7 +231,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      report['average_timeliness_of_entry'][key]
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      report['average_timeliness_of_entry']['data'].try(:[], key)&.second
     end
 
     def describe_timeliness_exit_average_value
@@ -237,7 +241,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      report['average_timeliness_of_exit'][key]
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      report['average_timeliness_of_exit'].try(:[], key)&.second
     end
 
     # End view related
@@ -1639,15 +1645,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entry_count = 0
       entries.each do |client_id, enrollments|
         enrollments.each do |enrollment|
-            service_date = enrollment[:first_date_in_program]
-            record_date = enrollment[:creation_date].to_date
-            timeliness = (record_date - service_date).to_i
-            entry_timeliness[enrollment[:project_name]] ||= []
-            entry_timeliness[enrollment[:project_name]] << timeliness
-            entry_total += timeliness
-            entry_count += 1
-            entry_timeliness_support[enrollment[:project_name]] ||= []
-            entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          service_date = enrollment[:first_date_in_program]
+          record_date = enrollment[:enrollment_created].to_date
+          timeliness = (record_date - service_date).to_i
+          entry_timeliness[enrollment[:project_name]] ||= []
+          entry_timeliness[enrollment[:project_name]] << timeliness
+          entry_total += timeliness
+          entry_count += 1
+          entry_timeliness_support[enrollment[:project_name]] ||= []
+          entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
         end
       end
       exit_timeliness = {}
@@ -1660,7 +1666,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       exits.each do |client_id, enrollments|
         enrollments.each do |enrollment|
           service_date = enrollment[:last_date_in_program]
-          record_date = enrollment[:creation_date].to_date
+          record_date = enrollment[:exit_created].to_date
           timeliness = (record_date - service_date).to_i
           exit_timeliness[enrollment[:project_name]] ||= []
           exit_timeliness[enrollment[:project_name]] << timeliness
@@ -1673,23 +1679,31 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       json_entry_shape = {}
       entry_timeliness.keys.each do |project_name|
-        json_entry_shape[project_name] = entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0
+        json_entry_shape[project_name] = [0, (entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0), 0]
       end
       if entry_timeliness.keys.count > 1
-        json_entry_shape['Average'] = entry_total / entry_count rescue 0
+        json_entry_shape['Average'] = [0, (entry_total / entry_count rescue 0), 0]
       end
+      json_entry_shape['Goal'] = [timeliness_goal, timeliness_goal, timeliness_goal]
 
       json_exit_shape = {}
       exit_timeliness.keys.each do |project_name|
-        json_exit_shape[project_name] = exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0
+        json_exit_shape[project_name] = [0, (exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0), 0]
       end
       if exit_timeliness.keys.count > 1
-        json_exit_shape['Average'] = exit_total / exit_count rescue 0
+        json_exit_shape['Average'] = [0, (exit_total / exit_count rescue 0), 0]
       end
+      json_exit_shape['Goal'] = [timeliness_goal, timeliness_goal, timeliness_goal]
 
       add_answers({
-          average_timeliness_of_entry: json_entry_shape,
-          average_timeliness_of_exit: json_exit_shape,
+          average_timeliness_of_entry: {
+            labels: ["", "Days to Entry", ""],
+            data: json_entry_shape,
+          },
+          average_timeliness_of_exit: {
+            labels: ["", "Days to Exit", ""],
+            data: json_exit_shape,
+          },
         },
         {
           timeliness_of_entry: entry_timeliness_support,
@@ -2569,7 +2583,5 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         return true
       end
     end
-
-    alias_method :service_history_enrollment_scope, :service_source
   end
 end

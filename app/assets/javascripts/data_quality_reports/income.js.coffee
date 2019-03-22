@@ -10,7 +10,7 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
         color: @_colors,
         onclick: @_follow_link
         types:
-          "This Program": "bar",
+          "This Project": "bar",
           "Goal": "line",
       point:
         show: false,

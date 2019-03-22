@@ -29,6 +29,7 @@ class App.DataQualityReports.Base
     data
   
   _follow_link: (d, element) =>
-    console.log(d, element, @support_url)
+    # Do nothing by default
+    # console.log(d, element, @support_url)
     
   

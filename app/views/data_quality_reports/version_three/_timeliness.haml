@@ -11,7 +11,7 @@
           - if @report.projects.count > 1
             Average
           - else
-            This Program
+            This Project
         %hr
         %h3.text-center
           = pluralize(@report.describe_timeliness_entry_average_value, 'day')
@@ -28,7 +28,7 @@
           - if @report.projects.count > 1
             Average
           - else
-            This Program
+            This Project
         %hr
         %h3.text-center
           = pluralize(@report.describe_timeliness_exit_average_value, 'day')

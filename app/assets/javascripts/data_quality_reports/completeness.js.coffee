@@ -48,6 +48,9 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
           categories: @data['labels'],
           tick:
             rotate: 60
+        range:
+          min: 
+            y: -100
       grid:
         y:
           lines:

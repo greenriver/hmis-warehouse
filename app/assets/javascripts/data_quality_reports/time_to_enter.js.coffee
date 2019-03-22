@@ -1,19 +1,12 @@
 #= require ./namespace
 
 class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
-  _format_data: (data) ->
-    values = {}
-    for k,v of data
-      values[k] = [0, v, 0]
-    values["Goal"] = [14, 14, 14]
-    {
-      labels: ["", "Days to Enter", ""],
-      data: values
-    }
 
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
+      size: 
+        height: 250
       data:
         json: @data['data'],
         type: "bar",
