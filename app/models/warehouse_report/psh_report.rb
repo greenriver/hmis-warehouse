@@ -1,6 +1,6 @@
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::RrhReport
+class WarehouseReport::PshReport
   include ArelHelper
 
   attr_accessor :project_id, :start_date, :end_date, :subpopulation, :household_type
@@ -8,8 +8,8 @@ class WarehouseReport::RrhReport
     @project_id = project_id
     @start_date = start_date
     @end_date = end_date
-    @subpopulation = Reporting::Housed.rrh.subpopulation(subpopulation)
-    @household_type = Reporting::Housed.rrh.household_type(household_type)
+    @subpopulation = Reporting::Housed.psh.subpopulation(subpopulation)
+    @household_type = Reporting::Housed.psh.household_type(household_type)
   end
 
   def pre_placement_project_name
@@ -361,7 +361,7 @@ class WarehouseReport::RrhReport
   end
 
   def housed_source
-    Reporting::Housed.rrh
+    Reporting::Housed.psh
   end
 
   def housed_scope

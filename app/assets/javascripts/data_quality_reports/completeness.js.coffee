@@ -1,6 +1,9 @@
 #= require ./namespace
 
 class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
+  constructor: (@data, @chart_selector, @support_url, @project_id) ->
+    super(@data, @chart_selector, @support_url)
+
   _format_data: (data) ->
     {
       labels: data.labels,
@@ -49,28 +52,32 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         y:
           lines:
             value: 0,
+      tooltip:
+        format:
+          value: (v) -> 
+            "#{v}%"
 
   _follow_link: (d, element) =>
     column = [
-      "_name",
-      "_dob",
-      "_ssn",
-      "_race",
-      "_ethnicity",
-      "_gender",
-      "_veteran",
-      "_disabling_condition",
-      "_prior_living_situation",
-      "_income_at_entry",
-      "_income_at_exit",
-      "_destination",
+      "name",
+      "dob",
+      "ssn",
+      "race",
+      "ethnicity",
+      "gender",
+      "veteran",
+      "disabling_condition",
+      "prior_living_situation",
+      "income_at_entry",
+      "income_at_exit",
+      "destination",
     ][d.x]
     switch d.id
-      when "Missing / Null" then prefix = "missing"
-      when "Don't Know / Refused" then prefix = "refused"
-      when "No Exit Interview Completed" then prefix = "no_interview"
+      when "Missing / Null" then prefix = "_missing_"
+      when "Don't Know / Refused" then prefix = "_refused_"
+      when "No Exit Interview Completed" then prefix = "_no_interview_"
       else return
 
-    url = @support_url + ".html?layout=false&key=" + prefix + column
+    url = @support_url + ".html?layout=false&key=project_missing_" + @project_id + prefix + column
     $('.modal').modal('show')
     $('.modal .modal-body').load(url)

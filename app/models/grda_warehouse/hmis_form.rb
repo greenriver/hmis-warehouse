@@ -1,6 +1,7 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
   serialize :api_response, Hash
   serialize :answers, Hash
@@ -9,6 +10,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
   scope :triage, -> { where name: 'Triage Assessment'}
+  scope :vispdat, -> do
+    where(name: 'VI-SPDAT v2')
+  end
   scope :confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
   end
@@ -63,6 +67,36 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     order(collected_at: :desc)
   end
 
+  scope :oldest_first, -> do
+    order(collected_at: :asc)
+  end
+
+  def self.set_missing_vispdat_scores
+    # Process in batches, but ensure the batches occur such that the most recently completed are last
+    # Fetch the ids, in order of unprocessed vispdat records
+    ids = vispdat.oldest_first.
+      where(
+        arel_table[:vispdat_total_score].eq(nil).
+        or(arel_table[:collected_at].gt(arel_table[:vispdat_score_updated_at]))
+      ).pluck(:id)
+    # loop over those records in batches of 100
+    ids.each_slice(100) do |batch|
+      # fetch the batch, in order
+      vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        hmis_form.vispdat_total_score = hmis_form.vispdat_score_total
+        hmis_form.vispdat_family_score = hmis_form.vispdat_score_family
+        hmis_form.vispdat_youth_score = hmis_form.vispdat_score_youth
+        hmis_form.vispdat_months_homeless = hmis_form.vispdat_homless_months
+        hmis_form.vispdat_times_homeless = hmis_form.vispdat_homless_times
+        hmis_form.vispdat_score_updated_at = Time.now
+        if hmis_form.changed?
+          hmis_form.save
+          hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
+        end
+      end
+    end
+    
+  end
 
   def primary_language
     return 'Unknown' unless answers.present?
@@ -95,7 +129,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
+      section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
     relevant_question = relevant_section[:questions].select do |question|
@@ -120,7 +154,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def youth_rrh_desired?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
+      section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
@@ -133,7 +167,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def income_maximization_assistance_requested?
     return false unless name&.downcase == self.class.rrh_assessment_name.downcase
     relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase == 'Section 8: Housing Resource Assessment'.downcase
+      section[:section_title].downcase == 'section 8: housing resource assessment'.downcase
     end&.first
     return false unless relevant_section.present?
 
@@ -153,6 +187,71 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     relevant_section[:questions].map do |question|
       "<div><strong>#{question[:question]}</strong> #{question[:answer]}</div>"
     end.join(' ')
+  end
+
+  def vispdat_score_total
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('scoring') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('total score')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_score_family
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('family score') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('total family score')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_score_youth
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('youth score') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('total score.')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_homless_months
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('history of housing and homelessness') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('2. how long has it been since you lived in permanent stable housing? (months)')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_homless_times
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('history of housing and homelessness') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('3. in the last three years, how many times have you been homeless?')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_days_homeless
+    return 0 unless vispdat_months_homeless.present?
+    vispdat_months_homeless * 30
   end
 
   def qualifying_activities

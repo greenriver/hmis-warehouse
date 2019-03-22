@@ -33,6 +33,16 @@ module Importing
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
+        # Update consent if it comes from HMIS Client
+        if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+          GrdaWarehouse::HmisClient.maintain_client_consent
+          @notifier.ping('Set client consent if appropriate') if @send_notifications
+        end
+
+        if GrdaWarehouse::HmisForm.vispdat.exists?
+          GrdaWarehouse::HmisForm.set_missing_vispdat_scores
+          @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+        end
 
         # Disable CAS for anyone who's been housed in CAS
         GrdaWarehouse::CasHoused.inactivate_clients

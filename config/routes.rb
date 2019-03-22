@@ -165,6 +165,11 @@ Rails.application.routes.draw do
         get :clients
       end
     end
+    resources :psh, only: [:index] do
+      collection do
+        get :clients
+      end
+    end
     resources :consent, only: [:index] do
       post :update_clients, on: :collection
     end
@@ -488,6 +493,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 

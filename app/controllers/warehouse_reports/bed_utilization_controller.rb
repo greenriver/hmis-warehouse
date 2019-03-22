@@ -23,8 +23,8 @@ module WarehouseReports
     end
 
     def info project, projects_by_date, date
-      ri = relevant_inventory project.inventories, date
-      capacity = ri.try(&:BedInventory)
+      ri = relevant_inventories project.inventories, date
+      capacity = ri&.map(&:BedInventory)&.sum
       clients = projects_by_date[date].try(&:client_count).to_i
       {
         capacity:         capacity,
@@ -53,10 +53,10 @@ module WarehouseReports
     # find the inventory closest in time to the reference date
     # this might not be the approved way to deal with it -- perhaps we only want the closest preceding inventory -- but
     # our inventory information is exceedingly spotty
-    def relevant_inventory inventories, date
-      GrdaWarehouse::Hud::Inventory.relevant_inventory(inventories: inventories, date: date)
+    def relevant_inventories inventories, date
+      GrdaWarehouse::Hud::Inventory.relevant_inventories(inventories: inventories, date: date)
     end
-    helper_method :relevant_inventory
+    helper_method :relevant_inventories
 
     def organization_scope
       GrdaWarehouse::Hud::Organization.viewable_by(current_user)

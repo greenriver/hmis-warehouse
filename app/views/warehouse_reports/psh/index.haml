@@ -1,0 +1,15 @@
+- title = "Permanent Supportive Housing Dashboard"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+= render 'form'
+= render 'overview'
+= render 'time_in_program'
+= render 'outcomes'
+= render 'returns'
+- content_for :page_js do
+  :javascript
+    var destination_chart_data = #{@report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json}
+    var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
+    var returns_data = #{@report.returns_for_chart.to_json}
+    var returns_chart = new App.WarehouseReports.Rrh.Returns('.rrh__returns-chart', returns_data);

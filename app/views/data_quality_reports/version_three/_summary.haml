@@ -1,214 +1,80 @@
 .well.overflow-scroll
-  .row
-    .col-sm-2
-      %h4 Percent of Enrolled Clients Active
-      - if @report.report['total_active_clients'] / @report.report['total_clients'] < 0.9
+  - if @report.no_clients?
+    %p No clients enrolled during range
+  - else
+    .row
+      .col-sm-2
+        %h4 Percent of Enrolled Clients Active
         %ul.list-unstyled
-          %li
-            = "Percent of enrolled clients with a service in the reporting period below acceptable threshold."
-    .col-sm-2
-      %h4 Bed Utilization
-      - if @report.report['bed_utilization_totals']['counts']['average_daily_percentage'] < 90
+          %li= @report.describe_served_percentage
+      .col-sm-2
+        %h4 Bed Utilization
         %ul.list-unstyled
-          %li
-            = "Bed utilization below acceptable threshold"
-      - elsif @report.report['bed_utilization_totals']['counts']['average_daily_percentage'] > 105
+          %li= @report.describe_bed_utilization
+      .col-sm-2
+        %h4 Unit Utilization
         %ul.list-unstyled
-          %li
-            = "Bed utilization above acceptable threshold"
-      - else
+          %li= @report.describe_unit_utilization
+      .col-sm-2
+        %h4 Project Descriptor Completeness
         %ul.list-unstyled
-          %li
-            = "Bed utilization falls in acceptable threshold"
-    .col-sm-2
-      %h4 Unit Utilization
-      - if @report.report['unit_utilization_totals']['counts']['average_daily_percentage'] < 90
+          - @report.describe_descriptor_completeness.each do |issue|
+            %li= issue
+      .col-sm-2
+        %h4 Data Completeness
         %ul.list-unstyled
-          %li
-            = "Unit utilization below acceptable threshold"
-      - elsif @report.report['unit_utilization_totals']['counts']['average_daily_percentage'] > 105
+          - @report.describe_descriptor_completeness.each do |issue|
+            %li= issue
+      .col-sm-2
+        %h4 Timeliness
         %ul.list-unstyled
-          %li
-            = "Unit utilization above acceptable threshold"
-      - else
-        %ul.list-unstyled
-          %li
-            = "Unit utilization falls in acceptable threshold"
+          - @report.describe_timeliness.each do |issue|
+            %li= issue
+      
+    .row
+      .col-sm-2
+        %h4 DOB on or after entry date
+        - total = @report.report['incorrect_dob'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'incorrect_dob'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+      .col-sm-2
+        %h4 No service in the final month of enrollment
+        - total = @report.report['missing_nights'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'missing_nights'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+      .col-sm-2
+        %h4 Service after exit
+        - total = @report.report['service_after_close'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'service_after_close'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+      .col-sm-2
+        %h4 Incorrect Household Type
+        - individual_total = @report.report['individuals_at_family_projects'].values.sum
+        - if individual_total > 0
+          = link_to polymorphic_path(support_path, {key: 'individuals_at_family_projects'}), data: {loads_in_pjax_modal: true} do
+            = "#{individual_total} individuals at family project"
+        - family_total = @report.report['families_at_individual_projects'].values.sum
+        - if family_total > 0
+          = link_to polymorphic_path(support_path, {key: 'families_at_individual_projects'}), data: {loads_in_pjax_modal: true} do
+            = "#{family_total} families at individual project"
+        - if (individual_total + family_total) == 0
+          No issues
+      .col-sm-2
+        %h4 Enrollments with no Service
+        - total = @report.report['enrollments_with_no_service'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'enrollments_with_no_service'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} enrollments with no service"
+        - else
+          No issues
 
-    .col-sm-2
-      %h4 Project Descriptor Completeness
-      - if @report.report['bed_utilization_totals']['counts']['capacity'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Bed Inventory"
-      - if @report.report['unit_utilization_totals']['counts']['capacity'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Unit Inventory"
-      - if @report.report['coc_code'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing CoC Code"
-      - if @report.report['grant_id'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Funder"
-      - if @report.report['geocode'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Geocode"
-      - if @report.report['geography_type'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Geography Type"
-      - if @report.report['housing_type'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Housing Type"
-      - if @report.report['information_date'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Information Date"
-      - if @report.report['operating_start_date'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Operation Start Date"
-      - if @report.report['coc_program_component'] == "" 
-        %ul.list-unstyled
-          %li
-            = "Missing Project Type"
-    .col-sm-2
-      %h4 Data Completeness
-      - if @report.report['missing_name_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Name"
-      - if @report.report['refused_name_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Name"
-      - if @report.report['missing_ssn_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - SSN"
-      - if @report.report['refused_ssn_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - SSN"
-      - if @report.report['missing_dob_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - DOB"
-      - if @report.report['refused_dob_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - DOB"
-      - if @report.report['missing_veteran_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Veteran"
-      - if @report.report['refused_veteran_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Veteran"
-      - if @report.report['missing_ethnicity_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Ethnicity"
-      - if @report.report['refused_ethnicity_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Ethnicity"
-      - if @report.report['missing_race_percent'] > 10 
-        %ul
-          %li
-            = "High Missing Rate - Race"
-      - if @report.report['refused_race_percent'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Race"
-      - if @report.report['missing_disabling_condition_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Disabling Condition"
-      - if @report.report['refused_disabling_condition_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Disabling Condition"
-      - if @report.report['missing_prior_living_situation_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Prior Living Situation"
-      - if @report.report['refused_prior_living_situation_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Prior Living Situation"
-      - if @report.report['missing_destination_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Destination"
-      - if @report.report['refused_destination_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Destination"
-      - if @report.report['missing_income_at_entry_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Income at Entry"
-      - if @report.report['refused_income_at_entry_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Income At Entry"
-      - if @report.report['missing_income_at_exit_percentage'] > 10
-        %ul.list-unstyled
-          %li
-            = "High Missing Rate - Income at Exit"
-      - if @report.report['refused_income_at_entry_percentage'] > 10 
-        %ul.list-unstyled
-          %li
-            = "High Refused Rate - Income At Exit"
-    .col-sm-2
-      %h4 Timeliness
-      - if @report.report['average_timeliness_of_entry']['Average'] > 14
-        %ul.list-unstyled
-          %li
-            = "Time to enter exceeds acceptable threshold"
-      - if @report.report['average_timeliness_of_exit']['Average'] > 14
-        %ul.list-unstyled
-          %li
-            = "Time to exit exceeds acceptable threshold"
-
-    
-  .row
-    .col-sm-2
-      %h4 DOB on or after entry date
-      - total = @report.report['incorrect_dob'].values.sum
-      - if total > 0
-        = link_to polymorphic_path(support_path, {key: 'incorrect_dob'}), data: {loads_in_pjax_modal: true} do
-          = "#{total} clients"
-    .col-sm-2
-      %h4 No service in the final month of enrollment
-      - total = @report.report['missing_nights'].values.sum
-      - if total > 0
-        = link_to polymorphic_path(support_path, {key: 'missing_nights'}), data: {loads_in_pjax_modal: true} do
-          = "#{total} clients"
-    .col-sm-2
-      %h4 Service after exit
-      - total = @report.report['service_after_close'].values.sum
-      - if total > 0
-        = link_to polymorphic_path(support_path, {key: 'service_after_close'}), data: {loads_in_pjax_modal: true} do
-          = "#{total} clients"
-    .col-sm-2
-      %h4 Incorrect Household Type
-      - total = @report.report['individuals_at_family_projects'].values.sum
-      - if total > 0
-        = link_to polymorphic_path(support_path, {key: 'individuals_at_family_projects'}), data: {loads_in_pjax_modal: true} do
-          = "#{total} individuals at family project"
-      - total = @report.report['families_at_individual_projects'].values.sum
-      - if total > 0
-        = link_to polymorphic_path(support_path, {key: 'families_at_individual_projects'}), data: {loads_in_pjax_modal: true} do
-          = "#{total} families at individual project"
-
-    .col-sm-2
-      %h4 Enrollments with no Service
 

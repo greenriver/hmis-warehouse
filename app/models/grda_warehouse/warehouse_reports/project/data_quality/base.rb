@@ -31,6 +31,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     end
 
+    def title
+      if projects.count == 1
+        "#{project.ProjectName} at #{project.organization.OrganizationName}"
+      else
+        project_group.name
+      end
+    end
+
     def run!
       raise 'Define in Sub-class'
     end

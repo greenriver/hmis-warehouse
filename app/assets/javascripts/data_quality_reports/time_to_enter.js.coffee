@@ -7,7 +7,7 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
       values[k] = [0, v, 0]
     values["Goal"] = [14, 14, 14]
     {
-      labels: ["", "", ""],
+      labels: ["", "Days to Enter", ""],
       data: values
     }
 

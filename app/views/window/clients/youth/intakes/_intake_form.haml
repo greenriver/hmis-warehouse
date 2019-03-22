@@ -48,9 +48,15 @@
         - elsif ! f.object.how_hear_options.include? f.object.how_hear
           .mb-4
             = f.object.how_hear
-    
+
     .youth-intake__exit-info
       = f.input :exit_date, as: :date_picker, label: 'Date for which you are no longer working with this youth (Exit Date)'
+
+    .youth-intake__turned_away
+      - if ! readonly
+        = f.input :turned_away, label: 'Was this client turned away with no services, for example because they were not eligible?'
+      - elsif @intake.turned_away
+        %p This client was this client turned away with no services.
 
 = content_for :page_js do
   :javascript

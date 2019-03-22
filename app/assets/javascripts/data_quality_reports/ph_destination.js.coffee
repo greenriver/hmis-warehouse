@@ -1,14 +1,6 @@
 #= require ./namespace
 
 class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
-  _format_data: (data) ->
-    {
-      labels: [ "", "", "" ],
-      data: {
-        "This Program": [ 0, data, 0 ],
-        "Goal": [ 60, 60, 60 ],
-      }
-    }
 
   _build_chart: ->
     @chart = bb.generate
@@ -16,12 +8,9 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
       data:
         json: @data['data'],
         type: "bar",
-        colors:
-          "This Program": "#091f2f",
-          "Goal": 'rgb(228, 228, 228)'
+        color: @_colors,
         onclick: @_follow_link
         types:
-          "This Program": "bar",
           "Goal": "line",
       point:
         show: false,
@@ -33,3 +22,7 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+      tooltip:
+        format:
+          value: (v) -> 
+            "#{v}%"
