@@ -55,15 +55,16 @@
 
 
   = content_for :page_js do
-    - @report.report['project_missing'].keys.each_with_index do |project, index|
+    - @report.projects.each_with_index do |project, index|
       :javascript
         (function($) {
           var url = '#{polymorphic_path(answers_path, report_keys)}'
           $.get(url, function(data){
             var completeness_#{index} = new App.DataQualityReports.Completeness(
-              data['project_missing']['#{project}'], 
+              data['project_missing']['#{project.name}'], 
               '.completeness-chart-#{index}',
-              '#{polymorphic_path(support_path, report_keys)}'
+              '#{polymorphic_path(support_path, report_keys)}',
+              #{project.id}
             );
             completeness_#{index}.build_chart();
           });

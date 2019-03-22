@@ -22,3 +22,7 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+      tooltip:
+        format:
+          value: (v) -> 
+            "#{v}%"

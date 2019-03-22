@@ -1,28 +1,36 @@
 .well.overflow-scroll
-	.row
-		.col-sm-6
-			%h3.text-center Time to Enter
-			.col-sm-6
-				%h4.text-center Goal
-				%hr
-				%h3.text-center 14 days or less
-			.col-sm-6
-				%h4.text-center This Program
-				%hr
-				%h3.text-center
-					= pluralize(@report.describe_timeliness_entry_average_value, 'day')
-			.time-to-enter-chart.jChart
-				%p.jLoading Loading
-		.col-sm-6
-			%h3.text-center Time to Exit
-			.col-sm-6
-				%h4.text-center Goal
-				%hr
-				%h3.text-center 14 days or less
-			.col-sm-6
-				%h4.text-center This Program
-				%hr
-				%h3.text-center
-					= pluralize(@report.describe_timeliness_exit_average_value, 'day')
-			.time-to-exit-chart.jChart
-				%p.jLoading Loading
+  .row
+    .col-sm-6
+      %h3.text-center Time to Enter
+      .col-sm-6
+        %h4.text-center Goal
+        %hr
+        %h3.text-center 14 days or less
+      .col-sm-6
+        %h4.text-center 
+          - if @report.projects.count > 1
+            Average
+          - else
+            This Program
+        %hr
+        %h3.text-center
+          = pluralize(@report.describe_timeliness_entry_average_value, 'day')
+      .time-to-enter-chart.jChart
+        %p.jLoading Loading
+    .col-sm-6
+      %h3.text-center Time to Exit
+      .col-sm-6
+        %h4.text-center Goal
+        %hr
+        %h3.text-center 14 days or less
+      .col-sm-6
+        %h4.text-center 
+          - if @report.projects.count > 1
+            Average
+          - else
+            This Program
+        %hr
+        %h3.text-center
+          = pluralize(@report.describe_timeliness_exit_average_value, 'day')
+      .time-to-exit-chart.jChart
+        %p.jLoading Loading
