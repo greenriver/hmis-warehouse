@@ -97,8 +97,8 @@
           '#{polymorphic_path(support_path, report_keys.merge({key: "client_income"}))}');
           income.build_chart();
 
-          var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations_percentage'], '.ph-destination-chart', 
-          '#{polymorphic_path(support_path, report_keys.merge({key: "ph_destinations_percentage"}))}');
+          var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations'], '.ph-destination-chart', 
+          '#{polymorphic_path(support_path, report_keys.merge({key: "ph_destinations"}))}');
           ph_destination.build_chart();
         });
       })(jQuery);
