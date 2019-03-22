@@ -2134,20 +2134,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          ph_destinations << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations[enrollment[:project_name]] << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
-      ph_destinations_percentage = (ph_destinations.size.to_f/leavers.size*100).round(2) rescue 0
-      # json_shape = {
-      #     labels: [ "Increased or Retained", "20% Increase" ],
-      #     data: {
-      #       "Earned Income": [ increased_earned_percentage, increased_earned_twenty_percent_percentage],
-      #       "Non-Cash Income": [ increased_non_cash_percentage, increased_non_cash_twenty_percent_percentage ],
-      #       "Overall Income": [ increased_overall_percentage, increased_overall_twenty_percent_percentage ],
-      #       "Goal": [ income_increase_goal, income_increase_goal ],
-      #     }
-      # }
-
+      ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0
 
       json_shape = {
         labels: [ '', "Exit %", '' ],
