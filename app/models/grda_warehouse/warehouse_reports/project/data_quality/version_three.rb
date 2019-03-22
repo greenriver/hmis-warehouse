@@ -2134,6 +2134,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
+          ph_destinations[enrollment[:project_name]] ||= Set.new
           ph_destinations[enrollment[:project_name]] << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
