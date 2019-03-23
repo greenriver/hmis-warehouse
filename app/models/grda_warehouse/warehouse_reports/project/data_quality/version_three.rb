@@ -2140,13 +2140,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
       ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0
-
+      
       json_shape = {
         labels: [ '', "Exit %", '' ],
         data: {},
       }
       ph_destinations.each do |project_name, ids|
-        json_shape[:data][project_name] = [0, ids.count, 0]
+        ph_percentage = (ids.count.to_f/leavers.size*100).round(2)
+        json_shape[:data][project_name] = [0, ph_percentage, 0]
       end
       json_shape[:data]["Goal"] = [ph_destination_increase_goal, ph_destination_increase_goal, ph_destination_increase_goal]
       

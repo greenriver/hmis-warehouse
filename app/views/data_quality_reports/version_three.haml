@@ -1,5 +1,10 @@
 - content_for :title, "Project Data Quality Report for #{@report.title}"
 %h1= content_for :title
+%p
+  Reporting Period:
+  %strong= @report.start
+  to
+  %strong= @report.end
 - if @report.processing_errors.present?
   %p.alert.alert-danger.text-center
     Processing error:
@@ -20,37 +25,28 @@
       %br
       = link_to "support", polymorphic_path(support_path, report_keys)
      
-
   %h3 Overview
-  %hr
   = render 'data_quality_reports/version_three/overview', support_path: support_path
 
   %h3 Data Quality Summary
-  %hr
   = render 'data_quality_reports/version_three/summary', support_path: support_path
 
   %h3 Bed Utilization
-  %hr
   = render 'data_quality_reports/version_three/bed_utilization_description'
   = render 'data_quality_reports/version_three/bed_utilization'
 
   %h3 Unit Utilization
-  %hr
   = render 'data_quality_reports/version_three/unit_utilization_description'
   = render 'data_quality_reports/version_three/unit_utilization'
 
   %h3 Completeness
-  %hr
   = render 'data_quality_reports/version_three/project_descriptor_completeness'
   = render 'data_quality_reports/version_three/completeness'
 
-
   %h3 Timelineness
-  %hr
   = render 'data_quality_reports/version_three/timeliness'
 
   %h3 Outcomes
-  %hr
   = render 'data_quality_reports/version_three/outcomes'
 
 
