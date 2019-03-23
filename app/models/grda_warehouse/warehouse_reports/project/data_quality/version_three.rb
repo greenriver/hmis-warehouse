@@ -772,8 +772,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       projects.each do |project|
         counts = {}
         # Reset for each project
-        @refused_ssn_client_ids = Set.new
-        @refused_dob_client_ids = Set.new
+        # @refused_ssn_client_ids = Set.new
+        # @refused_dob_client_ids = Set.new
         self.class.missing_refused_names.keys.each do |word|
           counts["missing_#{word}"] = Set.new
           counts["refused_#{word}"] = Set.new
@@ -879,15 +879,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data = answers[:project_missing][project.id]
         all_completeness_percentages += completeness_percentages(data)
         json_shape[name] = {
-            labels: self.class.completeness_field_names.values,
-            data: {
-                "Complete": completeness_percentages(data),
-                # "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
-                "No Exit Interview Completed": no_interview_percentages(data),
-                "Don't Know / Refused": missing_or_dont_know_percentages(data),
-                "Missing / Null": incompleteness_percentages('missing', data),
-                'Target': Array.new(self.class.completeness_field_names.values.size, completeness_goal),
-            }
+          labels: self.class.completeness_field_names.values,
+          data: {
+            "Complete": completeness_percentages(data),
+            # "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
+            "No Exit Interview Completed": no_interview_percentages(data),
+            "Don't Know / Refused": missing_or_dont_know_percentages(data),
+            "Missing / Null": incompleteness_percentages('missing', data),
+            'Target': Array.new(self.class.completeness_field_names.values.size, completeness_goal),
+          }
         }
       end
 
@@ -899,20 +899,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def self.completeness_field_names
       {
-          #first_name: "First Name",
-          #last_name: "Last Name",
-          name: "Name",
-          dob: "DOB",
-          ssn: "SSN",
-          race: "Race",
-          ethnicity: "Ethnicity",
-          gender: "Gender",
-          veteran: "Veteran Status",
-          disabling_condition: "Disabling Condition",
-          prior_living_situation: "Living Situation",
-          income_at_entry: "Income At Entry",
-          income_at_exit: "Income At Exit",
-          destination: "Destination",
+        #first_name: "First Name",
+        #last_name: "Last Name",
+        name: "Name",
+        dob: "DOB",
+        ssn: "SSN",
+        race: "Race",
+        ethnicity: "Ethnicity",
+        gender: "Gender",
+        veteran: "Veteran Status",
+        disabling_condition: "Disabling Condition",
+        prior_living_situation: "Living Situation",
+        income_at_entry: "Income At Entry",
+        income_at_exit: "Income At Exit",
+        destination: "Destination",
       }
     end
 
@@ -1290,11 +1290,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
-      if alternate_clients.map{|m| !@refused_ssn_client_ids.include?(m[:destination_id]) && m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
-        counts['missing_ssn'] << columns_for_ssn_support(client)
+      if alternate_clients.map{|m| m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
+        counts['missing_ssn'] << columns_for_ssn_support(client) unless @refused_ssn_client_ids.include?(client[:destination_id])
       end
-      if alternate_clients.map{|m| !@refused_dob_client_ids.include?(m[:destination_id]) && m[:dob]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:dob_data_quality])}.all?
-        counts['missing_dob'] << columns_for_dob_support(client)
+      if alternate_clients.map{|m| m[:dob]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:dob_data_quality])}.all?
+        counts['missing_dob'] << columns_for_dob_support(client) unless @refused_dob_client_ids.include?(client[:destination_id])
       end
       if alternate_all_adults && (alternate_clients.map{|m| m[:veteran_status]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:veteran_status])}.all?)
         counts['missing_veteran'] << columns_for_veteran_support(client)
@@ -2134,6 +2134,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
+          # this fixes a bug in bad staging data
           ph_destinations[enrollment[:project_name]] ||= Set.new
           ph_destinations[enrollment[:project_name]] << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
