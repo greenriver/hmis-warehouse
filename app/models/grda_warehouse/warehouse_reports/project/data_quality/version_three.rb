@@ -1460,24 +1460,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       json_shape = {
-          labels: bed_utilization.first.select do |key, _|
-            key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-          end.keys,
-          data: begin
-            data_map = {}
-            bed_utilization.each do |project|
-              project_name = project[:name]
-              data_map[project_name] = project.select do |key, _|
-                key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-              end.values
-            end
-            if data_map.size > 1
-              data_map['Total'] = totals[:counts].select do |key, _|
-                 key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-              end.values
-            end
-            data_map
+        labels: bed_utilization.first.select do |key, _|
+          key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+        end.keys,
+        data: begin
+          data_map = {}
+          bed_utilization.each do |project|
+            project_name = project[:name]
+            data_map[project_name] = project.select do |key, _|
+              key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+            end.values
           end
+          if data_map.size > 1
+            data_map['Total'] = totals[:counts].select do |key, _|
+               key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+            end.values
+          end
+          data_map
+        end
       }
 
       add_answers(
@@ -1534,27 +1534,27 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts[:average_daily] = households.count / filter.range.count rescue 0
 
         data[:average_daily] = project.service_history_enrollments.
-            joins(:client, :enrollment).
-            merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
-            where(date: filter.range).
-            distinct.
-            pluck(*utilization_client_columns)
+          joins(:client, :enrollment).
+          merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
+          where(date: filter.range).
+          distinct.
+          pluck(*utilization_client_columns)
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
           data[key] = project.service_history_enrollments.
-              joins(:client, :enrollment).
-              merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
-              where(date: date).
-              distinct.
-              pluck(*utilization_client_columns)
+            joins(:client, :enrollment).
+            merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
+            where(date: date).
+            distinct.
+            pluck(*utilization_client_columns)
           counts[key] = data[key].count
         end
 
         project_counts = {
-            id: project.id,
-            name: project.name,
-            project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
+          id: project.id,
+          name: project.name,
+          project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
 
         totals[:counts][:capacity] += counts[:capacity]
@@ -1578,8 +1578,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         percentage = 0 if percentage.infinite?
         totals[:counts]["#{attr}_percentage"] = percentage
         support["unit_utilization_totals_#{attr}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: totals[:data][attr]
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: totals[:data][attr]
         }
       end
 
@@ -1639,7 +1639,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entry_timeliness = {}
       entry_timeliness_support = {}
       projects.each do |project|
-        entry_timeliness[project.name] = 0
+        entry_timeliness[project.name] = []
       end
       entry_total = 0
       entry_count = 0
@@ -1658,7 +1658,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       exit_timeliness = {}
       projects.each do |project|
-        exit_timeliness[project.name] = 0
+        exit_timeliness[project.name] = []
       end
       exit_timeliness_support = {}
       exit_total = 0
@@ -2136,7 +2136,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollments[client_id].each do |enrollment|
           # this fixes a bug in bad staging data
           ph_destinations[enrollment[:project_name]] ||= Set.new
-          ph_destinations[enrollment[:project_name]] << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
+          ph_destinations[enrollment[:project_name]] << client_id if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
       ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0

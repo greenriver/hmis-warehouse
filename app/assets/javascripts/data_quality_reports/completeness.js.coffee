@@ -23,6 +23,8 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
+      size: 
+        height: 250
       data: 
         json: @data['data'], 
         type: "bar", 

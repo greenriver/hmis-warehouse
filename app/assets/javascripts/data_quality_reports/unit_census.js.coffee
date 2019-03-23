@@ -5,6 +5,8 @@ class App.DataQualityReports.UnitCensus extends App.DataQualityReports.Base
     labels = @data['labels']
     @chart = bb.generate
       bindto: @chart_selector
+      size: 
+        height: 250
       data: {json: @data['data'], type: "line", color: @_colors, onclick: @_follow_link}
       axis:
         x:
