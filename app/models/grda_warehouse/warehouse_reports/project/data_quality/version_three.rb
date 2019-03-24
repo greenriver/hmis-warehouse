@@ -1695,6 +1695,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       json_exit_shape['Goal'] = [timeliness_goal, timeliness_goal, timeliness_goal]
 
+      entry_support = entry_timeliness_support.map do |project_name, data|
+        [
+          "timeliness_of_entry_#{project_name.downcase.gsub(' ', '_')}",
+          {
+            headers: ['Client ID', 'Entry Date', 'Date Recorded'],
+            counts: data,
+          }
+        ]
+      end
+
+      exit_support = exit_timeliness_support.map do |project_name, data|
+        [
+          "timeliness_of_exit_#{project_name.downcase.gsub(' ', '_')}",
+          {
+            headers: ['Client ID', 'Exit Date', 'Date Recorded'],
+            counts: data,
+          }
+        ]
+      end
+      timeliness_support = (entry_support + exit_support).to_h
       add_answers({
           average_timeliness_of_entry: {
             labels: ["", "Days to Entry", ""],
@@ -1705,11 +1725,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             data: json_exit_shape,
           },
         },
-        {
-          timeliness_of_entry: entry_timeliness_support,
-          timeliness_of_exit: exit_timeliness_support,
-        }
+        timeliness_support
       )
+
     end
 
     def universal_element_client_header
@@ -1761,7 +1779,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         # NOTE: You can't have both refused and missing SSN or DOB
-        # Refused or unknown trumps missing        
+        # Refused or unknown trumps missing
         if client[:ssn].blank? || refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
@@ -1793,7 +1811,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_name << client[:destination_id]
         end
         # NOTE: You can't have both refused and missing SSN or DOB
-        # Refused or unknown trumps missing        
+        # Refused or unknown trumps missing
         if !@refused_ssn_client_ids.include?(client[:destination_id]) && (client[:ssn].blank? || missing?(client[:ssn_data_quality]))
           missing_ssn << client[:destination_id]
         end
@@ -2140,7 +2158,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
       ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0
-      
+
       json_shape = {
         labels: [ '', "Exit %", '' ],
         data: {},
@@ -2150,7 +2168,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         json_shape[:data][project_name] = [0, ph_percentage, 0]
       end
       json_shape[:data]["Goal"] = [ph_destination_increase_goal, ph_destination_increase_goal, ph_destination_increase_goal]
-      
+
       answers = {
         ph_destinations: json_shape,
         ph_destinations_percentage: ph_destinations_percentage,

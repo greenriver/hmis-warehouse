@@ -5,7 +5,7 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
-      size: 
+      size:
         height: 250
       data:
         json: @data['data'],
@@ -24,3 +24,7 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+  _follow_link: (d, element) =>
+    url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
+    $('.modal').modal('show')
+    $('.modal .modal-body').load(url)
