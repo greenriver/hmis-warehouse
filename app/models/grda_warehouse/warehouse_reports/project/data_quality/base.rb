@@ -272,7 +272,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         destination_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
-        creation_date: e_t[:DateCreated].to_sql,
+        enrollment_created: e_t[:DateCreated].as('enrollment_created').to_sql,
+        exit_created: ex_t[:DateCreated].as('exit_created').to_sql,
       }
     end
 
@@ -455,11 +456,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
+    def service_history_enrollment_scope
+      service_source.
+        joins(:project, :enrollment, enrollment: :client).
+          includes(enrollment: :exit).
+          references(enrollment: :exit)
+    end
+
     def client_scope
       service_source.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 
@@ -469,6 +479,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 

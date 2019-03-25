@@ -23,14 +23,16 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
-      data: 
-        json: @data['data'], 
-        type: "bar", 
-        order: @data['order'], 
-        groups: @data['groups'], 
-        color: @_colors, 
+      size:
+        height: 250
+      data:
+        json: @data['data'],
+        type: "bar",
+        order: @data['order'],
+        groups: @data['groups'],
+        color: @_colors,
         onclick: @_follow_link,
-        types: 
+        types:
           "Complete": "bar",
           "No Exit Interview Completed": "bar",
           "Don't Know / Refused": "bar",
@@ -48,13 +50,16 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
           categories: @data['labels'],
           tick:
             rotate: 60
+        range:
+          min:
+            y: -100
       grid:
         y:
           lines:
             value: 0,
       tooltip:
         format:
-          value: (v) -> 
+          value: (v) ->
             "#{v}%"
 
   _follow_link: (d, element) =>
@@ -80,4 +85,4 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
 
     url = @support_url + ".html?layout=false&key=project_missing_" + @project_id + prefix + column
     $('.modal').modal('show')
-    $('.modal .modal-body').load(url)
+    $('.modal .modal-content').load(url)

@@ -5,6 +5,8 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
   _build_chart: ->
     @chart = bb.generate
       bindto: @chart_selector
+      size:
+        height: 250
       data:
         json: @data['data'],
         type: "bar",
@@ -24,5 +26,9 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
           categories: @data['labels'],
       tooltip:
         format:
-          value: (v) -> 
+          value: (v) ->
             "#{v}%"
+   _follow_link: (d, element) =>
+    url = @support_url + "&layout=false"
+    $('.modal').modal('show')
+    $('.modal .modal-content').load(url)

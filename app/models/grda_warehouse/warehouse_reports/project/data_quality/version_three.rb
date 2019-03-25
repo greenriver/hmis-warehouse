@@ -213,10 +213,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      if report['average_timeliness_of_entry'][key].present? && report['average_timeliness_of_entry'][key] > timeliness_goal
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      if report['average_timeliness_of_entry']['data'][key].present? && report['average_timeliness_of_entry']['data'][key].second > timeliness_goal
         issues << "Time to enter exceeds acceptable threshold"
       end
-      if report['average_timeliness_of_exit'].present? && report['average_timeliness_of_exit'][key] > timeliness_goal
+      if report['average_timeliness_of_exit']['data'][key].present? && report['average_timeliness_of_exit']['data'][key].second > timeliness_goal
         issues << "Time to exit exceeds acceptable threshold"
       end
 
@@ -229,7 +231,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      report['average_timeliness_of_entry'][key]
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      report['average_timeliness_of_entry']['data'].try(:[], key)&.second
     end
 
     def describe_timeliness_exit_average_value
@@ -237,7 +241,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if projects.count == 1
         key = project.name
       end
-      report['average_timeliness_of_exit'][key]
+      # This is nasty, but for billboard we save these as a 3 element array
+      # the second element contains the actual value
+      report['average_timeliness_of_exit'].try(:[], key)&.second
     end
 
     # End view related
@@ -692,23 +698,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {
-          labels: self.class.length_of_stay_buckets.keys,
-          data: begin
-            data_map = {}
-            projects.each do |project|
-            # project_counts.keys.each do |project_id|
-              name = project.name
-              data_map[name] = []
-              self.class.length_of_stay_buckets.values.each do |range|
-                data_map[name] << project_counts[project.id][:buckets][range] rescue 0
-              end
-            end
-            data_map['Total'] = []
+        labels: self.class.length_of_stay_buckets.keys,
+        data: begin
+          data_map = {}
+          projects.each do |project|
+          # project_counts.keys.each do |project_id|
+            name = project.name
+            data_map[name] = []
             self.class.length_of_stay_buckets.values.each do |range|
-              data_map['Total'] << totals[:counts][:buckets][range] if projects.count > 1
+              data_map[name] << project_counts[project.id][:buckets][range] rescue 0
             end
-            data_map
           end
+          data_map['Total'] = []
+          self.class.length_of_stay_buckets.values.each do |range|
+            data_map['Total'] << totals[:counts][:buckets][range] if projects.count > 1
+          end
+          data_map
+        end,
+        ranges: self.class.length_of_stay_buckets,
+        projects: projects.map{|m| [m.name, m.id]}.to_h,
       }
 
       answers = {
@@ -766,8 +774,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       projects.each do |project|
         counts = {}
         # Reset for each project
-        @refused_ssn_client_ids = Set.new
-        @refused_dob_client_ids = Set.new
+        # @refused_ssn_client_ids = Set.new
+        # @refused_dob_client_ids = Set.new
         self.class.missing_refused_names.keys.each do |word|
           counts["missing_#{word}"] = Set.new
           counts["refused_#{word}"] = Set.new
@@ -873,15 +881,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         data = answers[:project_missing][project.id]
         all_completeness_percentages += completeness_percentages(data)
         json_shape[name] = {
-            labels: self.class.completeness_field_names.values,
-            data: {
-                "Complete": completeness_percentages(data),
-                # "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
-                "No Exit Interview Completed": no_interview_percentages(data),
-                "Don't Know / Refused": missing_or_dont_know_percentages(data),
-                "Missing / Null": incompleteness_percentages('missing', data),
-                'Target': Array.new(self.class.completeness_field_names.values.size, completeness_goal),
-            }
+          labels: self.class.completeness_field_names.values,
+          data: {
+            "Complete": completeness_percentages(data),
+            # "Anonymous": Array.new(self.class.completeness_field_names.values.size, 0),
+            "No Exit Interview Completed": no_interview_percentages(data),
+            "Don't Know / Refused": missing_or_dont_know_percentages(data),
+            "Missing / Null": incompleteness_percentages('missing', data),
+            'Target': Array.new(self.class.completeness_field_names.values.size, completeness_goal),
+          }
         }
       end
 
@@ -893,20 +901,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def self.completeness_field_names
       {
-          #first_name: "First Name",
-          #last_name: "Last Name",
-          name: "Name",
-          dob: "DOB",
-          ssn: "SSN",
-          race: "Race",
-          ethnicity: "Ethnicity",
-          gender: "Gender",
-          veteran: "Veteran Status",
-          disabling_condition: "Disabling Condition",
-          prior_living_situation: "Living Situation",
-          income_at_entry: "Income At Entry",
-          income_at_exit: "Income At Exit",
-          destination: "Destination",
+        #first_name: "First Name",
+        #last_name: "Last Name",
+        name: "Name",
+        dob: "DOB",
+        ssn: "SSN",
+        race: "Race",
+        ethnicity: "Ethnicity",
+        gender: "Gender",
+        veteran: "Veteran Status",
+        disabling_condition: "Disabling Condition",
+        prior_living_situation: "Living Situation",
+        income_at_entry: "Income At Entry",
+        income_at_exit: "Income At Exit",
+        destination: "Destination",
       }
     end
 
@@ -1063,6 +1071,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         disabling_condition: ['Client ID', 'First Name', 'Last Name', 'Disability Type', 'Disability Response'],
         prior_living_situation: ['Client ID', 'First Name', 'Last Name', 'Prior Living Situation'],
         destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
+        no_interview_destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
         # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
         income_at_entry: ['Client ID', 'First Name', 'Last Name'],
         income_at_exit: ['Client ID', 'First Name', 'Last Name'],
@@ -1284,11 +1293,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
-      if alternate_clients.map{|m| !@refused_ssn_client_ids.include?(m[:destination_id]) && m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
-        counts['missing_ssn'] << columns_for_ssn_support(client)
+      if alternate_clients.map{|m| m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
+        counts['missing_ssn'] << columns_for_ssn_support(client) unless @refused_ssn_client_ids.include?(client[:destination_id])
       end
-      if alternate_clients.map{|m| !@refused_dob_client_ids.include?(m[:destination_id]) && m[:dob]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:dob_data_quality])}.all?
-        counts['missing_dob'] << columns_for_dob_support(client)
+      if alternate_clients.map{|m| m[:dob]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:dob_data_quality])}.all?
+        counts['missing_dob'] << columns_for_dob_support(client) unless @refused_dob_client_ids.include?(client[:destination_id])
       end
       if alternate_all_adults && (alternate_clients.map{|m| m[:veteran_status]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:veteran_status])}.all?)
         counts['missing_veteran'] << columns_for_veteran_support(client)
@@ -1454,24 +1463,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       json_shape = {
-          labels: bed_utilization.first.select do |key, _|
-            key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-          end.keys,
-          data: begin
-            data_map = {}
-            bed_utilization.each do |project|
-              project_name = project[:name]
-              data_map[project_name] = project.select do |key, _|
-                key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-              end.values
-            end
-            if data_map.size > 1
-              data_map['Total'] = totals[:counts].select do |key, _|
-                 key.to_s.match(/\d{4}-\d{2}-\d{2}/)
-              end.values
-            end
-            data_map
+        labels: bed_utilization.first.select do |key, _|
+          key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+        end.keys,
+        data: begin
+          data_map = {}
+          bed_utilization.each do |project|
+            project_name = project[:name]
+            data_map[project_name] = project.select do |key, _|
+              key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+            end.values
           end
+          if data_map.size > 1
+            data_map['Total'] = totals[:counts].select do |key, _|
+               key.to_s.match(/\d{4}-\d{2}-\d{2}/)
+            end.values
+          end
+          data_map
+        end
       }
 
       add_answers(
@@ -1528,27 +1537,27 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts[:average_daily] = households.count / filter.range.count rescue 0
 
         data[:average_daily] = project.service_history_enrollments.
-            joins(:client, :enrollment).
-            merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
-            where(date: filter.range).
-            distinct.
-            pluck(*utilization_client_columns)
+          joins(:client, :enrollment).
+          merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
+          where(date: filter.range).
+          distinct.
+          pluck(*utilization_client_columns)
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
           data[key] = project.service_history_enrollments.
-              joins(:client, :enrollment).
-              merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
-              where(date: date).
-              distinct.
-              pluck(*utilization_client_columns)
+            joins(:client, :enrollment).
+            merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
+            where(date: date).
+            distinct.
+            pluck(*utilization_client_columns)
           counts[key] = data[key].count
         end
 
         project_counts = {
-            id: project.id,
-            name: project.name,
-            project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
+          id: project.id,
+          name: project.name,
+          project_type: project[GrdaWarehouse::Hud::Project.project_type_column],
         }.merge(counts)
 
         totals[:counts][:capacity] += counts[:capacity]
@@ -1572,8 +1581,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         percentage = 0 if percentage.infinite?
         totals[:counts]["#{attr}_percentage"] = percentage
         support["unit_utilization_totals_#{attr}"] = {
-            headers: ['Client ID', 'First Name', 'Last Name'],
-            counts: totals[:data][attr]
+          headers: ['Client ID', 'First Name', 'Last Name'],
+          counts: totals[:data][attr]
         }
       end
 
@@ -1633,26 +1642,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entry_timeliness = {}
       entry_timeliness_support = {}
       projects.each do |project|
-        entry_timeliness[project.name] = 0
+        entry_timeliness[project.name] = []
       end
       entry_total = 0
       entry_count = 0
       entries.each do |client_id, enrollments|
         enrollments.each do |enrollment|
-            service_date = enrollment[:first_date_in_program]
-            record_date = enrollment[:creation_date].to_date
-            timeliness = (record_date - service_date).to_i
-            entry_timeliness[enrollment[:project_name]] ||= []
-            entry_timeliness[enrollment[:project_name]] << timeliness
-            entry_total += timeliness
-            entry_count += 1
-            entry_timeliness_support[enrollment[:project_name]] ||= []
-            entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          service_date = enrollment[:first_date_in_program]
+          record_date = enrollment[:enrollment_created].to_date
+          timeliness = (record_date - service_date).to_i
+          entry_timeliness[enrollment[:project_name]] ||= []
+          entry_timeliness[enrollment[:project_name]] << timeliness
+          entry_total += timeliness
+          entry_count += 1
+          entry_timeliness_support[enrollment[:project_name]] ||= []
+          entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
         end
       end
       exit_timeliness = {}
       projects.each do |project|
-        exit_timeliness[project.name] = 0
+        exit_timeliness[project.name] = []
       end
       exit_timeliness_support = {}
       exit_total = 0
@@ -1660,7 +1669,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       exits.each do |client_id, enrollments|
         enrollments.each do |enrollment|
           service_date = enrollment[:last_date_in_program]
-          record_date = enrollment[:creation_date].to_date
+          record_date = enrollment[:exit_created].to_date
           timeliness = (record_date - service_date).to_i
           exit_timeliness[enrollment[:project_name]] ||= []
           exit_timeliness[enrollment[:project_name]] << timeliness
@@ -1673,29 +1682,55 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       json_entry_shape = {}
       entry_timeliness.keys.each do |project_name|
-        json_entry_shape[project_name] = entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0
+        json_entry_shape[project_name] = [0, (entry_timeliness[project_name].sum / entry_timeliness[project_name].size rescue 0), 0]
       end
       if entry_timeliness.keys.count > 1
-        json_entry_shape['Average'] = entry_total / entry_count rescue 0
+        json_entry_shape['Average'] = [0, (entry_total / entry_count rescue 0), 0]
       end
+      json_entry_shape['Goal'] = [timeliness_goal, timeliness_goal, timeliness_goal]
 
       json_exit_shape = {}
       exit_timeliness.keys.each do |project_name|
-        json_exit_shape[project_name] = exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0
+        json_exit_shape[project_name] = [0, (exit_timeliness[project_name].sum / exit_timeliness[project_name].size rescue 0), 0]
       end
       if exit_timeliness.keys.count > 1
-        json_exit_shape['Average'] = exit_total / exit_count rescue 0
+        json_exit_shape['Average'] = [0, (exit_total / exit_count rescue 0), 0]
+      end
+      json_exit_shape['Goal'] = [timeliness_goal, timeliness_goal, timeliness_goal]
+
+      entry_support = entry_timeliness_support.map do |project_name, data|
+        [
+          "timeliness_of_entry_#{project_name.downcase.gsub(' ', '_')}",
+          {
+            headers: ['Client ID', 'Entry Date', 'Date Recorded'],
+            counts: data,
+          }
+        ]
       end
 
+      exit_support = exit_timeliness_support.map do |project_name, data|
+        [
+          "timeliness_of_exit_#{project_name.downcase.gsub(' ', '_')}",
+          {
+            headers: ['Client ID', 'Exit Date', 'Date Recorded'],
+            counts: data,
+          }
+        ]
+      end
+      timeliness_support = (entry_support + exit_support).to_h
       add_answers({
-          average_timeliness_of_entry: json_entry_shape,
-          average_timeliness_of_exit: json_exit_shape,
+          average_timeliness_of_entry: {
+            labels: ["", "Days to Entry", ""],
+            data: json_entry_shape,
+          },
+          average_timeliness_of_exit: {
+            labels: ["", "Days to Exit", ""],
+            data: json_exit_shape,
+          },
         },
-        {
-          timeliness_of_entry: entry_timeliness_support,
-          timeliness_of_exit: exit_timeliness_support,
-        }
+        timeliness_support
       )
+
     end
 
     def universal_element_client_header
@@ -1747,7 +1782,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         # NOTE: You can't have both refused and missing SSN or DOB
-        # Refused or unknown trumps missing        
+        # Refused or unknown trumps missing
         if client[:ssn].blank? || refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
@@ -1779,7 +1814,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_name << client[:destination_id]
         end
         # NOTE: You can't have both refused and missing SSN or DOB
-        # Refused or unknown trumps missing        
+        # Refused or unknown trumps missing
         if !@refused_ssn_client_ids.include?(client[:destination_id]) && (client[:ssn].blank? || missing?(client[:ssn_data_quality]))
           missing_ssn << client[:destination_id]
         end
@@ -2120,30 +2155,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       leavers.each do |client_id|
         enrollments[client_id].each do |enrollment|
-          ph_destinations << enrollment[:destination_id] if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
+          # this fixes a bug in bad staging data
+          ph_destinations[enrollment[:project_name]] ||= Set.new
+          ph_destinations[enrollment[:project_name]] << client_id if HUD.permanent_destinations.include?(enrollment[:destination].to_i)
         end
       end
-      ph_destinations_percentage = (ph_destinations.size.to_f/leavers.size*100).round(2) rescue 0
-      # json_shape = {
-      #     labels: [ "Increased or Retained", "20% Increase" ],
-      #     data: {
-      #       "Earned Income": [ increased_earned_percentage, increased_earned_twenty_percent_percentage],
-      #       "Non-Cash Income": [ increased_non_cash_percentage, increased_non_cash_twenty_percent_percentage ],
-      #       "Overall Income": [ increased_overall_percentage, increased_overall_twenty_percent_percentage ],
-      #       "Goal": [ income_increase_goal, income_increase_goal ],
-      #     }
-      # }
-
+      ph_destinations_percentage = (ph_destinations.values.flatten.uniq.size.to_f/leavers.size*100).round(2) rescue 0
 
       json_shape = {
         labels: [ '', "Exit %", '' ],
         data: {},
       }
       ph_destinations.each do |project_name, ids|
-        json_shape[:data][project_name] = [0, ids.count, 0]
+        ph_percentage = (ids.count.to_f/leavers.size*100).round(2)
+        json_shape[:data][project_name] = [0, ph_percentage, 0]
       end
       json_shape[:data]["Goal"] = [ph_destination_increase_goal, ph_destination_increase_goal, ph_destination_increase_goal]
-      
+
       answers = {
         ph_destinations: json_shape,
         ph_destinations_percentage: ph_destinations_percentage,
@@ -2151,8 +2179,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       support = {
         ph_destinations: {
-          headers: ['Client ID'],
-          counts: ph_destinations.map{|m| Array.wrap(m)}
+          headers: ['Client ID', 'Project'],
+          counts: ph_destinations.map do |project_name, ids|
+            ids.map do |id|
+              [
+                id,
+                project_name
+              ]
+            end
+          end.flatten(1)
         },
       }
       add_answers(answers, support)
@@ -2234,17 +2269,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_overall_percentage: increased_overall_percentage,
       }
       support = {
-        increased_earned: {
+        'Earned Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_earned.map{|m| Array.wrap(m)}
         },
-        increased_non_cash: {
+        'Non-Cash Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_non_cash.map{|m| Array.wrap(m)}
         },
-        increased_overall: {
+        'Overall Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_overall.map{|m| Array.wrap(m)}
+        },
+        'Earned Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_earned_twenty_percent.map{|m| Array.wrap(m)}
+        },
+        'Non-Cash Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_non_cash_twenty_percent.map{|m| Array.wrap(m)}
+        },
+        'Overall Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_overall_twenty_percent.map{|m| Array.wrap(m)}
         },
       }
       add_answers(answers, support)
@@ -2569,7 +2616,5 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         return true
       end
     end
-
-    alias_method :service_history_enrollment_scope, :service_source
   end
 end
