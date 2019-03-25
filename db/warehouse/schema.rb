@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190322182648) do
+ActiveRecord::Schema.define(version: 20190325205709) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -3366,7 +3366,7 @@ ActiveRecord::Schema.define(version: 20190322182648) do
     t.datetime "created_at",                                               null: false
     t.datetime "updated_at",                                               null: false
     t.datetime "deleted_at"
-    t.boolean  "turned_away"
+    t.boolean  "turned_away",                              default: false, null: false
   end
 
   add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
