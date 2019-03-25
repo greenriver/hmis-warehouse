@@ -132,6 +132,7 @@ module Window::Clients::Youth
         :youth_experiencing_homelessness_at_start,
         :other_language,
         :other_how_hear,
+        :turned_away,
         client_race: [],
         disabilities: [],
       )
