@@ -21,7 +21,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
         end
         format.html do
           if params[:layout].present? && params[:layout] == 'false'
-            render layout: false
+            render layout: "pjax_modal_content"
           end
         end
       end
@@ -56,7 +56,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
   end
 
   def set_report
-    @report = report_scope.where(project_group_id: params[:project_group_id].to_i ).find(params[:id].to_i) 
+    @report = report_scope.where(project_group_id: params[:project_group_id].to_i ).find(params[:id].to_i)
   end
 
   def set_project_group

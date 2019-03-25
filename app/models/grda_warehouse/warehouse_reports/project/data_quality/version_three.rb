@@ -698,23 +698,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {
-          labels: self.class.length_of_stay_buckets.keys,
-          data: begin
-            data_map = {}
-            projects.each do |project|
-            # project_counts.keys.each do |project_id|
-              name = project.name
-              data_map[name] = []
-              self.class.length_of_stay_buckets.values.each do |range|
-                data_map[name] << project_counts[project.id][:buckets][range] rescue 0
-              end
-            end
-            data_map['Total'] = []
+        labels: self.class.length_of_stay_buckets.keys,
+        data: begin
+          data_map = {}
+          projects.each do |project|
+          # project_counts.keys.each do |project_id|
+            name = project.name
+            data_map[name] = []
             self.class.length_of_stay_buckets.values.each do |range|
-              data_map['Total'] << totals[:counts][:buckets][range] if projects.count > 1
+              data_map[name] << project_counts[project.id][:buckets][range] rescue 0
             end
-            data_map
           end
+          data_map['Total'] = []
+          self.class.length_of_stay_buckets.values.each do |range|
+            data_map['Total'] << totals[:counts][:buckets][range] if projects.count > 1
+          end
+          data_map
+        end,
+        ranges: self.class.length_of_stay_buckets,
+        projects: projects.map{|m| [m.name, m.id]}.to_h,
       }
 
       answers = {
@@ -1069,6 +1071,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         disabling_condition: ['Client ID', 'First Name', 'Last Name', 'Disability Type', 'Disability Response'],
         prior_living_situation: ['Client ID', 'First Name', 'Last Name', 'Prior Living Situation'],
         destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
+        no_interview_destination: ['Client ID', 'First Name', 'Last Name', 'Destination'],
         # last_permanent_zip: ['Client ID', 'First Name', 'Last Name', 'Last Permanent Zip'],
         income_at_entry: ['Client ID', 'First Name', 'Last Name'],
         income_at_exit: ['Client ID', 'First Name', 'Last Name'],
@@ -2176,8 +2179,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       support = {
         ph_destinations: {
-          headers: ['Client ID'],
-          counts: ph_destinations.map{|m| Array.wrap(m)}
+          headers: ['Client ID', 'Project'],
+          counts: ph_destinations.map do |project_name, ids|
+            ids.map do |id|
+              [
+                id,
+                project_name
+              ]
+            end
+          end.flatten(1)
         },
       }
       add_answers(answers, support)
@@ -2259,17 +2269,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_overall_percentage: increased_overall_percentage,
       }
       support = {
-        increased_earned: {
+        'Earned Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_earned.map{|m| Array.wrap(m)}
         },
-        increased_non_cash: {
+        'Non-Cash Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_non_cash.map{|m| Array.wrap(m)}
         },
-        increased_overall: {
+        'Overall Income'.downcase.gsub(' ', '_') => {
           headers: ['Client ID'],
           counts: increased_overall.map{|m| Array.wrap(m)}
+        },
+        'Earned Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_earned_twenty_percent.map{|m| Array.wrap(m)}
+        },
+        'Non-Cash Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_non_cash_twenty_percent.map{|m| Array.wrap(m)}
+        },
+        'Overall Income 20'.downcase.gsub(' ', '_') => {
+          headers: ['Client ID'],
+          counts: increased_overall_twenty_percent.map{|m| Array.wrap(m)}
         },
       }
       add_answers(answers, support)

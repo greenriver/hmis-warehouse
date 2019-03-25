@@ -90,7 +90,7 @@
           time_in_program.build_chart();
 
           var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "client_income"}))}');
+          '#{polymorphic_path(support_path, report_keys.merge({key: ""}))}');
           income.build_chart();
 
           var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations'], '.ph-destination-chart',

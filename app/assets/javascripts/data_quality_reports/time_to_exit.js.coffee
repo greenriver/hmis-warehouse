@@ -28,4 +28,4 @@ class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
   _follow_link: (d, element) =>
     url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
     $('.modal').modal('show')
-    $('.modal .modal-body').load(url)
+    $('.modal .modal-content').load(url)
