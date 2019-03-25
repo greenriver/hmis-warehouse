@@ -6,6 +6,8 @@ module GrdaWarehouse::WarehouseReports::Youth
       @end_date = filter.end
     end
 
+    # A. Core Services
+
     def section_1_scope
       GrdaWarehouse::YouthIntake::Base.
         open_between(start_date: @start_date, end_date: @end_date).
@@ -292,6 +294,139 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def total_served
       @total_served = (@four_a + @five_a + @six_a).uniq
+    end
+
+    # F. Demographics
+
+    def demographics_scope
+      GrdaWarehouse::YouthIntake::Base.
+          open_between(start_date: @start_date, end_date: @end_date)
+    end
+
+    def f_one_a
+      at = GrdaWarehouse::YouthIntake::Base.arel_table
+      @f_one_a ||= get_client_ids(demographics_scope.
+        where(at[:client_dob].gteq(@start_date - 18.years)))
+    end
+
+    def f_one_b
+      @f_one_b ||= get_client_ids(demographics_scope.
+        where(client_gender: 1)) # HUD.gender male
+    end
+
+    def f_one_c
+      @f_one_c ||= get_client_ids(demographics_scope.
+          where(client_gender: 0)) # HUD.gender female
+    end
+
+    def f_one_d
+      @f_one_d ||= get_client_ids(demographics_scope.
+          where(client_gender: [2, 3])) # HUD.gender trans
+    end
+
+    def f_one_e
+      @f_one_e ||= get_client_ids(demographics_scope.
+          where(client_gender: 4)) # HUD.gender non-binary
+    end
+
+    def f_two_a
+      @f_two_a ||= get_client_ids(demographics_scope.
+          where('client_race ?| array[:race]', race: 'White' ))
+    end
+
+    def f_two_b
+      @f_two_b ||= get_client_ids(demographics_scope.
+          where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
+    end
+
+    def f_two_c
+      @f_two_c ||= get_client_ids(demographics_scope.
+          where('client_race ?| array[:race]', race: 'Asian' ))
+    end
+
+    def f_two_d
+      @f_two_d ||= get_client_ids(demographics_scope.
+          where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
+    end
+
+    def f_two_e
+      @f_two_e ||= get_client_ids(demographics_scope.
+          where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+    end
+
+    def f_two_f
+      @f_two_f ||= get_client_ids(demographics_scope.
+          where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
+    end
+
+    def f_two_g
+      @f_two_g ||= get_client_ids(demographics_scope.
+        where(client_primary_language: 'English'))
+    end
+
+    def f_two_h
+      @f_two_h ||= get_client_ids(demographics_scope.
+          where(client_primary_language: 'Spanish'))
+    end
+
+    def f_two_i
+      @f_two_i ||= get_client_ids(demographics_scope.
+          where.not(client_primary_language: ['English', 'Spanish']))
+    end
+
+    def f_three_a
+      @f_three_a ||= get_client_ids(demographics_scope.
+          where(' disabilities ?| array[:disability]', disability: 'Mental / Emotional disability'))
+    end
+
+    def f_three_b
+      @f_three_b ||= get_client_ids(demographics_scope.
+          where(' disabilities ?| array[:disability]', disability: 'Medical / Physical disability'))
+    end
+
+    def f_three_c
+      @f_three_c ||= get_client_ids(demographics_scope.
+          where(' disabilities ?| array[:disability]', disability: 'Developmental disability'))
+    end
+
+    def f_four_a
+      @f_four_a ||= get_client_ids(demographics_scope.
+          where(pregnant_or_parenting: ['Pregnant', 'Parenting', 'Pregnant and Parenting']))
+    end
+
+    def f_four_b
+      @f_four_b ||= get_client_ids(demographics_scope.
+          where(client_lgbtq: 'Yes'))
+    end
+
+    def f_four_c
+      @f_four_c ||= get_client_ids(demographics_scope.
+          where(secondary_education: ['Completed High School', 'Completed GED/HiSET']))
+    end
+
+    def f_four_d
+      @f_four_d ||= get_client_ids(demographics_scope.
+          where(secondary_education: 'Currently attending High School'))
+    end
+
+    def f_four_e
+      @f_four_e ||= get_client_ids(demographics_scope.
+          where(attending_college: 'Yes'))
+    end
+
+    def f_four_f
+      @f_four_f ||= get_client_ids(demographics_scope.
+        where(other_agency_involvement: 'Yes'))
+    end
+
+    def f_four_g
+      @f_four_g ||= get_client_ids(demographics_scope.
+          where(health_insurance: 'Yes'))
+    end
+
+    def f_four_h
+      @f_four_h ||= get_client_ids(demographics_scope.
+          where(owns_cell_phone: 'Yes'))
     end
 
     private def get_client_ids(scope)

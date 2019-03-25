@@ -9,7 +9,7 @@
 = render 'filter'
 
 .row
-  %h2 A.Core Services
+  %h2 A. Core Services
   %table.table.table-condensed
     %tbody
       %tr
@@ -169,3 +169,96 @@
         %th TOTAL YYA SERVED
         %th Number of YYA served
         %td= @report.total_served.count
+
+.row
+  %h2 F. Demographics
+  %table.table.table-condensed
+    %tbody
+      %tr
+        %th.col-md-4{rowspan: 5} 1. Age and Gender
+        %th.col-md-4
+          a. Number of YYA served who were Under 18
+          %br
+          %i at start of reporting period
+        %td.col-md-4= @report.f_one_a.count
+      %tr
+        %th b. Number of YYA  served who identified as Male
+        %td= @report.f_one_b.count
+      %tr
+        %th c. Number of YYA  served who identified as Female
+        %td= @report.f_one_c.count
+      %tr
+        %th d. Number of YYA  served who identified as Transgender
+        %td= @report.f_one_d.count
+      %tr
+        %th
+          e. Number of YYA  served who identified as Other
+          %br
+          %i does not include refused or not collected
+        %td= @report.f_one_e.count
+
+    %tr
+      %th.col-md-4{rowspan: 9} 2. Race, Ethnicity and Language
+      %th.col-md-4 a. Number of YYA  served who identified as White (race)
+      %td.col-md-4= @report.f_two_a.count
+    %tr
+      %th b. Number of YYA  served who identified as African American (race)
+      %td= @report.f_two_b.count
+    %tr
+      %th c. Number of YYA  served who identified as Asian (race)
+      %td= @report.f_two_c.count
+    %tr
+      %th d. Number of YYA  served who identified as American Indian/Alaska Native (race)
+      %td= @report.f_two_d.count
+    %tr
+      %th e. Number of YYA  served who identified as Other (race)
+      %td= @report.f_two_e.count
+    %tr
+      %th f. Number of YYA  served who identified as Hispanic (ethnicity)
+      %td= @report.f_two_f.count
+    %tr
+      %th g. Number of YYA  served whose primary language was English (language)
+      %td= @report.f_two_g.count
+    %tr
+      %th h. Number of YYA  served whose primary language was Spanish (language)
+      %td= @report.f_two_h.count
+    %tr
+      %th i. Number of YYA  served whose primary language was Other (language)
+      %td= @report.f_two_i.count
+
+    %tr
+      %th.col-md-4{rowspan: 3} 3. Disability
+      %th.col-md-4 a. Number of YYA served who reported having a Mental/Emotional Disability (disability)
+      %td.col-md-4= @report.f_three_a.count
+    %tr
+      %th b. Number of YYA served who reported having a Medical/Physical Disability (disability)
+      %td= @report.f_three_b.count
+    %tr
+      %th c. Number of YYA served who reported having a Developmental Disability (disability)
+      %td= @report.f_three_c.count
+
+    %tr
+      %th.col-md-4{rowspan: 8} 4. Other
+      %th.col-md-4 a. Number of YYA served who were Pregnant or Parenting
+      %td.col-md-4= @report.f_four_a.count
+    %tr
+      %th b. Number of YYA served who were LGBTQ+
+      %td= @report.f_four_b.count
+    %tr
+      %th c. Number of YYA served who had Completed high school or GED/HiSET
+      %td= @report.f_four_c.count
+    %tr
+      %th d. Number of YYA served who were Enrolled in school during the reporting period
+      %td= @report.f_four_d.count
+    %tr
+      %th e. Number of YYA served who were Enrolled in college during the reporting period
+      %td= @report.f_four_e.count
+    %tr
+      %th f. Number of YYA  served who were involved with Other State Agencies
+      %td= @report.f_four_f.count
+    %tr
+      %th g. Number of YYA served who had Health insurance
+      %td= @report.f_four_g.count
+    %tr
+      %th h. Number of YYA served who owned a Cell phone
+      %td= @report.f_four_h.count
