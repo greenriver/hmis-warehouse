@@ -149,6 +149,7 @@ Rails.application.routes.draw do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
   namespace :warehouse_reports do
+    resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
     resources :dob_entry_same, only: [:index]
@@ -160,6 +161,11 @@ Rails.application.routes.draw do
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :rrh, only: [:index] do
+      collection do
+        get :clients
+      end
+    end
+    resources :psh, only: [:index] do
       collection do
         get :clients
       end
@@ -475,6 +481,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 
@@ -486,6 +493,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 

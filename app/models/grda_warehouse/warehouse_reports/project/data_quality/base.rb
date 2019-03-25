@@ -31,6 +31,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     end
 
+    def title
+      if projects.count == 1
+        "#{project.ProjectName} at #{project.organization.OrganizationName}"
+      else
+        project_group.name
+      end
+    end
+
     def run!
       raise 'Define in Sub-class'
     end
@@ -38,12 +46,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def clients
       @clients ||= begin
         Rails.logger.debug "Loading Clients"
-        client_scope.entry.select(*client_columns.values).
+        clients = client_scope.entry.select(*client_columns.values).
           distinct.
           pluck(*client_columns.values).
           map do |row|
             Hash[client_columns.keys.zip(row)]
           end
+        clients.each do |client|
+          client[:most_recent_service] = GrdaWarehouse::ServiceHistoryService.
+              where(client_id: client[:destination_id], service_history_enrollment_id: client[:enrollment_id]).maximum(:date)
+        end
       end
     end
 
@@ -238,6 +250,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         id: c_t[:id].to_sql,
         project_id: she_t[:project_id].to_sql,
         project_name: she_t[:project_name].to_sql,
+        enrollment_id: she_t[:id].to_sql,
         enrollment_group_id: she_t[:enrollment_group_id].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,
@@ -259,39 +272,48 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         destination_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
+        enrollment_created: e_t[:DateCreated].as('enrollment_created').to_sql,
+        exit_created: ex_t[:DateCreated].as('exit_created').to_sql,
+      }
+    end
+
+    def common_client_columns
+      @common_client_columns ||= {
+          id: c_t[:id].to_sql,
+          first_name: c_t[:FirstName].to_sql,
+          last_name: c_t[:LastName].to_sql,
+          name_data_quality: c_t[:NameDataQuality].to_sql,
+          ssn: c_t[:SSN].to_sql,
+          ssn_data_quality: c_t[:SSNDataQuality].to_sql,
+          dob: c_t[:DOB].to_sql,
+          dob_data_quality: c_t[:DOBDataQuality].to_sql,
+          veteran_status: c_t[:VeteranStatus].to_sql,
+          ethnicity: c_t[:Ethnicity].to_sql,
+          gender: c_t[:Gender].to_sql,
+          race_none: c_t[:RaceNone].to_sql,
+          am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
+          asian: c_t[:Asian].to_sql,
+          black_af_american: c_t[:BlackAfAmerican].to_sql,
+          native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
+          white: c_t[:White].to_sql,
+          data_source_id:  c_t[:data_source_id].to_sql,
       }
     end
 
     def client_columns
       @client_columns ||= {
-        id: c_t[:id].to_sql,
-        first_name: c_t[:FirstName].to_sql,
-        last_name: c_t[:LastName].to_sql,
-        name_data_quality: c_t[:NameDataQuality].to_sql,
-        ssn: c_t[:SSN].to_sql,
-        ssn_data_quality: c_t[:SSNDataQuality].to_sql,
-        dob: c_t[:DOB].to_sql,
-        dob_data_quality: c_t[:DOBDataQuality].to_sql,
-        veteran_status: c_t[:VeteranStatus].to_sql,
-        ethnicity: c_t[:Ethnicity].to_sql,
-        gender: c_t[:Gender].to_sql,
-        race_none: c_t[:RaceNone].to_sql,
-        am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
-        asian: c_t[:Asian].to_sql,
-        black_af_american: c_t[:BlackAfAmerican].to_sql,
-        native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
-        white: c_t[:White].to_sql,
-        data_source_id:  c_t[:data_source_id].to_sql,
+        enrollment_id: she_t[:id].to_sql,
         destination_id: she_t[:client_id].to_sql,
-      }
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        destination: she_t[:destination].to_sql,
+      }.merge(common_client_columns)
     end
 
     def source_client_columns
-      @source_client_columns ||= begin
-        columns = client_columns.deep_dup
-        columns[:destination_id] = wc_t[:destination_id].to_sql
-        columns
-      end
+      @source_client_columns ||= {
+          destination_id: wc_t[:destination_id].to_sql,
+      }.merge(common_client_columns)
     end
 
     def service_columns
@@ -396,7 +418,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def in_percentage numerator, denominator
-      ((numerator.to_f/denominator) * 100).round(2) rescue 0
+      percentage = ((numerator.to_f/denominator) * 100)
+      if percentage.finite?
+        percentage.round(2)
+      else
+        0
+      end
     end
 
     # Display methods
@@ -429,11 +456,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
+    def service_history_enrollment_scope
+      service_source.
+        joins(:project, :enrollment, enrollment: :client).
+          includes(enrollment: :exit).
+          references(enrollment: :exit)
+    end
+
     def client_scope
       service_source.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 
@@ -443,6 +479,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 

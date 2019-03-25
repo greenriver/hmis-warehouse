@@ -1,0 +1,82 @@
+.well.overflow-scroll
+  - if @report.no_clients?
+    %p No clients enrolled during range
+  - else
+    .row
+      .col-sm-4
+        %h4 Percent of Enrolled Clients Active
+        %ul.list-unstyled
+          %li= @report.describe_served_percentage
+      .col-sm-4
+        %h4 Bed Utilization
+        %ul.list-unstyled
+          %li= @report.describe_bed_utilization
+      .col-sm-4
+        %h4 Unit Utilization
+        %ul.list-unstyled
+          %li= @report.describe_unit_utilization
+    .row
+      .col-sm-4
+        %h4 Project Descriptor Completeness
+        %ul.list-unstyled
+          - @report.describe_descriptor_completeness.each do |issue|
+            %li= issue
+      .col-sm-4
+        %h4 Data Completeness
+        %ul.list-unstyled
+          - @report.describe_descriptor_completeness.each do |issue|
+            %li= issue
+      .col-sm-4
+        %h4 Timeliness
+        %ul.list-unstyled
+          - @report.describe_timeliness.each do |issue|
+            %li= issue
+      
+    .row
+      .col-sm-4
+        %h4 DOB on or after entry date
+        - total = @report.report['incorrect_dob'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'incorrect_dob'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+      .col-sm-4
+        %h4 No service in the final month of enrollment
+        - total = @report.report['missing_nights'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'missing_nights'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+      .col-sm-4
+        %h4 Service after exit
+        - total = @report.report['service_after_close'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'service_after_close'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} clients"
+        - else
+          No issues
+    .row
+      .col-sm-4
+        %h4 Incorrect Household Type
+        - individual_total = @report.report['individuals_at_family_projects'].values.sum
+        - if individual_total > 0
+          = link_to polymorphic_path(support_path, {key: 'individuals_at_family_projects'}), data: {loads_in_pjax_modal: true} do
+            = "#{individual_total} individuals at family project"
+        - family_total = @report.report['families_at_individual_projects'].values.sum
+        - if family_total > 0
+          = link_to polymorphic_path(support_path, {key: 'families_at_individual_projects'}), data: {loads_in_pjax_modal: true} do
+            = "#{family_total} families at individual project"
+        - if (individual_total + family_total) == 0
+          No issues
+      .col-sm-4
+        %h4 Enrollments with no Service
+        - total = @report.report['enrollments_with_no_service'].values.sum
+        - if total > 0
+          = link_to polymorphic_path(support_path, {key: 'enrollments_with_no_service'}), data: {loads_in_pjax_modal: true} do
+            = "#{total} enrollments with no service"
+        - else
+          No issues
+
+

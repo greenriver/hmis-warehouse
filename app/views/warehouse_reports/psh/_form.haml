@@ -1,0 +1,13 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_rrh_index_path, method: :get do |f|
+  = f.input :project_id, collection: @available_projects, input_html: {class: :select2}, include_blank: 'All'
+  .row
+    .col-sm-3
+      = f.input :subpopulation, collection: Reporting::Housed.available_subpopulations.invert, input_html: {class: :select2}, include_blank: 'All'
+    .col-sm-3
+      = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, input_html: {class: :select2}, include_blank: 'All'
+    .col-sm-3
+      = f.input :start_date, as: :date_picker
+    .col-sm-3
+      = f.input :end_date, as: :date_picker
+  .text-right 
+    = f.submit 'Update', class: ['btn', 'btn-primary']

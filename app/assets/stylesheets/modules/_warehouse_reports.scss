@@ -128,6 +128,11 @@
   box-shadow: inset 0px 2px 0px -1px $brand-success;
 }
 
+.data-quality__target-line
+{
+  stroke-dasharray: 3 4; stroke-width: 3px;
+}
+
 [class^=rrh__] 
 {
   .title
