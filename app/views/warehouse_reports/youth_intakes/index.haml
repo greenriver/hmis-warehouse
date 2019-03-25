@@ -1,0 +1,171 @@
+- title = "Youth Intakes Report"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+.row
+  .col-sm-8
+    %h1= title
+
+= render 'filter'
+
+.row
+  %h2 A.Core Services
+  %table.table.table-condensed
+    %tbody
+      %tr
+        %th.col-md-4{rowspan: 2} 1.Street Outreach/Collaboration
+        %th.col-md-4 a. Unduplicated number of outreach contacts with YYA experiencing homelessness
+        %td.col-md-4= @report.one_a.count
+      %tr
+        %th b. Unduplicated number of outreach contacts with YYA considered “at-risk” of homelessness
+        %td= @report.one_b.count
+
+      %tr
+        %th{rowspan: 3} 2. Referrals Received
+        %th a. Number of initial contacts: YYA experiencing homelessness
+        %td= @report.two_a.count
+      %tr
+        %th b. Number of initial contacts: YYA considered “at-risk” of homelessness
+        %td= @report.two_b.count
+      %tr
+        %th c. Referral sources (number of YYA, if available)
+        %td
+          %ul.list-unstyled
+            - @report.two_c.each do |label, count|
+              %li= "#{label} (#{count.count})"
+
+      %tr
+        %th{rowspan: 3} 3. Assessment/ Case Management/ Case Coordination - Prevention
+        %th a. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
+        %td= @report.three_a.count
+      %tr
+        %th b. Number of YYA continuing in case management
+        %td= @report.three_b.count
+      %tr
+        %th c. Number of YYA turned away
+        %td= @report.three_c.count
+
+      %tr
+        %th{rowspan: 4} 4. Assessment/ Case Management/ Case Coordination - Rehousing
+        %th a. Number of YYA completing new intake: YYA experiencing homelessness
+        %td= @report.four_a.count
+      %tr
+        %th b. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
+        %td= @report.four_b.count
+      %tr
+        %th c. Number of YYA continuing in case management
+        %td= @report.four_c.count
+      %tr
+        %th d. Number of YYA turned away
+        %td= @report.four_d.count
+
+      %tr
+        %th{rowspan: 15} 5. Direct Financial Assistance (Flex Funds)
+        %th a. Total number of YYA who received direct financial assistance/ flex funds
+        %td= @report.five_a.count
+      %tr
+        %th b. Number of YYA who did not receive assistance
+        %td= @report.five_b.count
+      %tr
+        %th c. Number of YYA who received assistance with Move-in costs
+        %td= @report.five_c.count
+      %tr
+        %th d. Number of YYA who received assistance with Rent
+        %td= @report.five_d.count
+      %tr
+        %th e. Number of YYA who received assistance with Rent arrears
+        %td= @report.five_e.count
+      %tr
+        %th f. Number of YYA who received assistance with Utilities
+        %td= @report.five_f.count
+      %tr
+        %th g. Number of YYA who received assistance with Transportation-related costs
+        %td= @report.five_g.count
+      %tr
+        %th h. Number of YYA who received assistance with Education-related costs
+        %td= @report.five_h.count
+      %tr
+        %th i. Number of YYA who received assistance with Legal costs
+        %td= @report.five_h.count
+      %tr
+        %th j. Number of YYA who received assistance with Child care
+        %td= @report.five_j.count
+      %tr
+        %th k. Number of YYA who received assistance with Work-related costs
+        %td= @report.five_k.count
+      %tr
+        %th l. Number of YYA who received assistance with Medical costs
+        %td= @report.five_l.count
+      %tr
+        %th m. Number of YYA who received assistance with Cell phone costs
+        %td= @report.five_m.count
+      %tr
+        %th n. Number of YYA who received assistance with Food/groceries
+        %td= @report.five_n.count
+      %tr
+        %th o. Number of YYA who received assistance with Other costs
+        %td
+          %ul.list-unstyled
+            - @report.five_o.each do |label, count|
+              %li= "#{label} (#{count.count})"
+
+      %tr
+        %th{rowspan: 17} 6. Referrals to Other Providers
+        %th a. Total number of YYA who received referrals out
+        %td= @report.six_a.count
+      %tr
+        %th b. Number of YYA who were referred to Health services (excluding mental health)
+        %td= @report.six_b.count
+      %tr
+        %th c. Number of YYA who were referred to Mental health services
+        %td= @report.six_c.count
+      %tr
+        %th d. Number of YYA who were referred to substance use services
+        %td= @report.six_d.count
+      %tr
+        %th e. Number of YYA who were referred to Employment & job training services
+        %td= @report.six_e.count
+      %tr
+        %th f. Number of YYA who were referred to Education services
+        %td= @report.six_f.count
+      %tr
+        %th g. Number of YYA who were referred to Parenting resources
+        %td= @report.six_g.count
+      %tr
+        %th h. Number of YYA who were referred to Domestic violence-related services
+        %td= @report.six_h.count
+      %tr
+        %th i. Number of YYA who were referred to Life skills/ financial literacy services
+        %td= @report.six_i.count
+      %tr
+        %th j. Number of YYA who were referred to Legal services
+        %td= @report.six_j.count
+      %tr
+        %th k. Number of YYA who were referred to Language-related resources
+        %td= @report.six_k.count
+      %tr
+        %th l. Number of YYA who were referred to Housing supports
+        %td= @report.six_l.count
+      %tr
+        %th m. Number of YYA who were referred to Benefits (excluding health insurance)
+        %td= @report.six_m.count
+      %tr
+        %th n. Number of YYA who were referred to health insurance providers
+        %td= @report.six_n.count
+      %tr
+        %th o. Number of YYA who were referred to other state agencies
+        %td= @report.six_o.count
+      %tr
+        %th p. Number of YYA who were referred to Cultural/ recreation activities
+        %td= @report.six_p.count
+      %tr
+        %th q. Number of YYA who were referred to Other services or activities
+        %td
+          %ul.list-unstyled
+            - @report.six_q.each do |label, count|
+              %li= "#{label} (#{count.count})"
+
+      %tr
+        %th TOTAL YYA SERVED
+        %th Number of YYA served
+        %td= @report.total_served.count

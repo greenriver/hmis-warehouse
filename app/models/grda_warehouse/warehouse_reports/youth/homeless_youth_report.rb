@@ -280,7 +280,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def six_q
       @six_q ||= {}
-      available_types = GrdaWarehouse::Youth::YouthReferral.new.available_types -
+      available_types = GrdaWarehouse::Youth::YouthReferral.new.available_referrals -
           [ 'Referred to other services / activities not listed above', 'Other' ]
       groups = section_6_referral_scope.pluck(:referred_to, :client_id).group_by(&:first)
       groups.each do |group, items|

@@ -58,7 +58,7 @@ module GrdaWarehouse::YouthIntake
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :open_after, -> (start_date:) do
+    scope :open_after, -> (start_date) do
       at = arel_table
       where(at[:engagement_date].gteq(start_date))
     end
