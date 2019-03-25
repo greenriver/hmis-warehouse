@@ -54,7 +54,7 @@
 
     .youth-intake__turned_away
       - if ! readonly
-        = f.input :turned_away, label: 'Was this client turned away with no services, for example because they were not eligible?'
+        = f.input :turned_away, as: :radio_buttons, label: 'Was this client turned away with no services, for example because they were not eligible?'
       - elsif @intake.turned_away
         %p This client was this client turned away with no services.
 
