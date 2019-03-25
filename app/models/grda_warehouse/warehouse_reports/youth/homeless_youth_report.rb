@@ -69,7 +69,9 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def three_c
-      @three_c ||= nil # TODO
+      @three_c ||= get_client_ids(section_3_intake_scope.
+          open_after(@start_date).
+          where(housing_status: 'At risk of homelessness', turned_away: true))
     end
 
     def section_4_intake_scope
@@ -98,7 +100,9 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def four_d
-      @four_d ||= nil # TODO
+      @four_d ||= get_client_ids(section_4_intake_scope.
+          open_after(@start_date).
+          where(turned_away: true))
     end
 
     def section_5_assistance_scope
