@@ -1417,7 +1417,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         data[:average_daily] = utilization.values.flatten.map(&:values)
-        counts[:average_daily] = total_count / filter.range.count rescue
+        counts[:average_daily] = total_count / filter.range.count rescue 0
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
