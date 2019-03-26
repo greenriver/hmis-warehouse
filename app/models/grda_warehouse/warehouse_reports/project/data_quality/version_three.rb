@@ -1023,15 +1023,19 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         pluck(*hoh_columns.values).map do |row|
           Hash[hoh_columns.keys.zip(row)]
       end
+
       enrollment_ids = hohs.map{|m| m[:enrollment_id]}
-      max_dates = max_dates_served(enrollment_ids)
+      # min_enrollment_date = hohs.map{|c| c[:first_date_in_program]}.min
+      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+      max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
+
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
         if dest != 0
           hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
         end
 
-        hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]]
+        hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
         hoh.delete(:enrollment_id)
       end
       {
@@ -1046,13 +1050,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def transitioning_household_support(households)
       hohs = households.values.deep_dup.map(&:first)
 
+      enrollment_ids = hohs.map{|m| m[:enrollment_id]}
+      # min_enrollment_date = hohs.map{|c| c[:first_date_in_program]}.min
+      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+      max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
+
       hohs.each do |hoh|
         dest = hoh[:destination].to_i
         if dest != 0
           hoh[:destination_text] = "#{dest}: #{HUD.destination(dest)}"
         end
-        hoh[:most_recent_service] = GrdaWarehouse::ServiceHistoryService.
-            where(client_id: hoh[:id], service_history_enrollment_id: hoh[:enrollment_id]).maximum(:date)
+        hoh[:most_recent_service] = max_dates[hoh[:enrollment_id]] || 'Before report start'
         hoh.delete(:enrollment_id)
       end
       {
@@ -1501,7 +1509,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         client_id: :client_id,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
-        date: she_t[:date].to_sql,
+        date: shs_t[:date].to_sql,
+        household_id: she_t[:household_id].to_sql,
       }
     end
 
@@ -1529,12 +1538,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         counts[:capacity] = project.inventories.within_range(filter.range).map{|i| i[:UnitInventory] || 0}.sum
 
-        counts[:average_daily] = households.count / filter.range.count rescue 0
-
         utilization = project.service_history_enrollments.
           joins(:client, :enrollment).
+          service_within_date_range(start_date: self.start, end_date: self.end).
           merge(GrdaWarehouse::Hud::Enrollment.heads_of_households).
-          where(date: filter.range).
           distinct.
           pluck(*unit_utilization_client_columns.values).map do |row|
           Hash[unit_utilization_client_columns.keys.zip(row)]
@@ -1542,6 +1549,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           row[:date]
         end
         data[:average_daily] = utilization.values.flatten.map(&:values)
+
+        daily_household = project.service_history_enrollments.
+          service_within_date_range(start_date: self.start, end_date: self.end).
+          joins(:client).
+          distinct.
+          group(shs_t[:date]).
+          count(she_t[:household_id].to_sql)
+
+        counts[:average_daily] = daily_household.values.sum.to_f / filter.range.count rescue 0
 
         filter.range.each do |date|
           key = date.to_formatted_s(:iso8601)
@@ -1615,7 +1631,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def self.unit_utilization_attributes
       [
-          :average_daily,
+        :average_daily,
       ]
     end
 

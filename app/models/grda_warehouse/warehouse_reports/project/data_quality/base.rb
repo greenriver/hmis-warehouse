@@ -53,19 +53,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
             Hash[client_columns.keys.zip(row)]
           end
 
-        # max date and enrollment_id from GrdaWarehouse::ServiceHistoryServiceMaterialized and then apply those to clients
         enrollment_ids = clients.map do |client|
           client[:enrollment_id]
         end
-        max_dates = max_dates_served(enrollment_ids)
+
+        # min_enrollment_date = clients.map{|c| c[:first_date_in_program]}.min
+        max_exit_date = (clients.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+        max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
         clients.each do |client|
-          client[:most_recent_service] = max_dates[client[:enrollment_id]]
+          client[:most_recent_service] = max_dates[client[:enrollment_id]] || 'Before report start'
         end
       end
     end
 
-    def max_dates_served(enrollment_ids)
-      GrdaWarehouse::ServiceHistoryServiceMaterialized.where(
+    def max_dates_served(enrollment_ids, range:)
+      GrdaWarehouse::ServiceHistoryService.where(
+        date: range,
         service_history_enrollment_id: enrollment_ids
       ).group(:service_history_enrollment_id).maximum(:date)
     end

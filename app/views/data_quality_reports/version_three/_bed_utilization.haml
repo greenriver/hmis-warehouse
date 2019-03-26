@@ -7,16 +7,16 @@
 				= "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
 			%hr
 			%p.text-center Average Daily / Nightly Clients
-			
+
 			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily']} clients"
 			%hr
 			%p.text-center Average Bed Utilization
-			
+
 			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily_percentage']}%"
 
 		.col-sm-9
-			%h3.text-center Nightly Bed Census
+			%h3.text-center Nightly Client Census
 			.bed-census-chart.jChart
 				%p.jLoading Loading
