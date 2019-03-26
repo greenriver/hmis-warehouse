@@ -1,103 +1,92 @@
 - content_for :title, "Project Data Quality Report for #{@report.title}"
 %h1= content_for :title
-%p
-  Reporting Period:
-  %strong= @report.start
-  to
-  %strong= @report.end
 - if @report.processing_errors.present?
   %p.alert.alert-danger.text-center
     Processing error:
     = JSON.parse(@report.processing_errors).first
-- elsif @report.completed_at.present?
-  - if @report.projects.count == 1
-    - report_keys = {project_id: @project.id, id: @report.id}
-    - support_path = [:support, :project, :data_quality_report]
-    - answers_path = [:answers, :project, :data_quality_report]
-  - else
-    - report_keys = {project_group_id: @project_group.id, id: @report.id}
-    - support_path = [:support, :project_group, :data_quality_report]
-    - answers_path = [:answers, :project_group, :data_quality_report]
-  - if Rails.env.development?
-    .alert.alert-warning
-      %p Development Only
-      = link_to "answers", polymorphic_path(answers_path, report_keys)
-      %br
-      = link_to "support", polymorphic_path(support_path, report_keys)
-
-  %h3 Overview
-  = render 'data_quality_reports/version_three/overview', support_path: support_path
-
-  %h3 Data Quality Summary
-  = render 'data_quality_reports/version_three/summary', support_path: support_path
-
-  %h3 Bed Utilization
-  = render 'data_quality_reports/version_three/bed_utilization_description'
-  = render 'data_quality_reports/version_three/bed_utilization'
-
-  %h3 Unit Utilization
-  = render 'data_quality_reports/version_three/unit_utilization_description'
-  = render 'data_quality_reports/version_three/unit_utilization'
-
-  %h3 Completeness
-  = render 'data_quality_reports/version_three/project_descriptor_completeness'
-  = render 'data_quality_reports/version_three/completeness'
-
-  %h3 Timelineness
-  = render 'data_quality_reports/version_three/timeliness'
-
-  %h3 Outcomes
-  = render 'data_quality_reports/version_three/outcomes'
-
-
-  = content_for :page_js do
-    - @report.projects.each_with_index do |project, index|
-      :javascript
-        (function($) {
-          var url = '#{polymorphic_path(answers_path, report_keys)}'
-          $.get(url, function(data){
-            var completeness_#{index} = new App.DataQualityReports.Completeness(
-              data['project_missing']['#{project.name}'],
-              '.completeness-chart-#{index}',
-              '#{polymorphic_path(support_path, report_keys)}',
-              #{project.id}
-            );
-            completeness_#{index}.build_chart();
-          });
-        })(jQuery);
-    :javascript
-      (function($) {
-        var url = '#{polymorphic_path(answers_path, report_keys)}'
-        $.get(url, function(data){
-          var bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "bed_utilization"}))}');
-          bed_census.build_chart();
-
-          var unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "unit_utilization"}))}');
-          unit_census.build_chart();
-
-          var time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "timeliness_of_entry"}))}');
-          time_to_enter.build_chart();
-
-          var time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "timeliness_of_exit"}))}');
-          time_to_exit.build_chart();
-
-          var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "enrolled_length_of_stay"}))}');
-          time_in_program.build_chart();
-
-          var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: ""}))}');
-          income.build_chart();
-
-          var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations'], '.ph-destination-chart',
-          '#{polymorphic_path(support_path, report_keys.merge({key: "ph_destinations"}))}');
-          ph_destination.build_chart();
-        });
-      })(jQuery);
-- else
+- elsif @report.completed_at.blank?
   %p.alert.alert-info.text-center
     The report is currently running...
+- else
+  = render 'data_quality_reports/version_three/status', support_path: @support_path
+  %h3 Report Parameters
+  .well.overflow-scroll
+    %h4 Reporting Period
+    %p
+      %strong= @report.start
+      to
+      %strong= @report.end
+    %h3 Project Descriptors
+    = render 'data_quality_reports/version_three/project_descriptor_completeness'
+    %h3 Overview
+    = render 'data_quality_reports/version_three/overview', support_path: @support_path
+
+    %h3 Data Quality Summary
+    = render 'data_quality_reports/version_three/summary', support_path: @support_path
+
+    %h3 Bed Utilization
+    = render 'data_quality_reports/version_three/bed_utilization_description'
+    = render 'data_quality_reports/version_three/bed_utilization'
+
+    %h3 Unit Utilization
+    = render 'data_quality_reports/version_three/unit_utilization_description'
+    = render 'data_quality_reports/version_three/unit_utilization'
+
+    %h3 Completeness
+    = render 'data_quality_reports/version_three/completeness'
+
+    %h3 Timelineness
+    = render 'data_quality_reports/version_three/timeliness'
+
+    %h3 Outcomes
+    = render 'data_quality_reports/version_three/outcomes'
+
+
+    = content_for :page_js do
+      - @report.projects.each_with_index do |project, index|
+        :javascript
+          (function($) {
+            var url = '#{polymorphic_path(@answers_path, @report_keys)}'
+            $.get(url, function(data){
+              var completeness_#{index} = new App.DataQualityReports.Completeness(
+                data['project_missing']['#{project.name}'],
+                '.completeness-chart-#{index}',
+                '#{polymorphic_path(@support_path, @report_keys)}',
+                #{project.id}
+              );
+              completeness_#{index}.build_chart();
+            });
+          })(jQuery);
+      :javascript
+        (function($) {
+          var url = '#{polymorphic_path(@answers_path, @report_keys)}'
+          $.get(url, function(data){
+            var bed_census = new App.DataQualityReports.BedCensus(data['bed_utilization'], '.bed-census-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "bed_utilization"}))}');
+            bed_census.build_chart();
+
+            var unit_census = new App.DataQualityReports.UnitCensus(data['unit_utilization'], '.unit-census-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"}))}');
+            unit_census.build_chart();
+
+            var time_to_enter = new App.DataQualityReports.TimeToEnter(data['average_timeliness_of_entry'], '.time-to-enter-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"}))}');
+            time_to_enter.build_chart();
+
+            var time_to_exit = new App.DataQualityReports.TimeToExit(data['average_timeliness_of_exit'], '.time-to-exit-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"}))}');
+            time_to_exit.build_chart();
+
+            var time_in_program = new App.DataQualityReports.TimeInProgram(data['enrolled_length_of_stay'], '.time-in-program-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "enrolled_length_of_stay"}))}');
+            time_in_program.build_chart();
+
+            var income = new App.DataQualityReports.Income(data['client_income'], '.income-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: ""}))}');
+            income.build_chart();
+
+            var ph_destination = new App.DataQualityReports.PHDestination(data['ph_destinations'], '.ph-destination-chart',
+            '#{polymorphic_path(@support_path, @report_keys.merge({key: "ph_destinations"}))}');
+            ph_destination.build_chart();
+          });
+        })(jQuery);
