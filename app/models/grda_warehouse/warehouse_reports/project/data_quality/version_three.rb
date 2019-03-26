@@ -243,7 +243,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
       # This is nasty, but for billboard we save these as a 3 element array
       # the second element contains the actual value
-      report['average_timeliness_of_exit'].try(:[], key)&.second
+      report['average_timeliness_of_exit']['data'].try(:[], key)&.second
     end
 
     # End view related
@@ -361,26 +361,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       answers = {
         enrollments_with_no_service: {}
       }
-      support = {}
+      # This only gets support as a batch
+      support = {
+        'enrollments_with_no_service' => {
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
+          counts: []
+        }
+      }
       empty_enrollments.each do |project_id, ens|
         # NOTE: we are counting enrollments not distinct clients
         answers[:enrollments_with_no_service][project_id] = ens.count
-        support["enrollments_with_no_service_#{project_id}"] = {
-          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Exit Date'],
-          counts: ens.flatten(1).
-            index_by{|m| [m[:personal_id],m[:data_source_id]]}.
-            map do |_, enrollment|
-              client_id = destination_id_for_client(enrollment[:id])
-              [
-                client_id,
-                enrollment[:first_name],
-                enrollment[:last_name],
-                enrollment[:project_name],
-                enrollment[:first_date_in_program],
-                enrollment[:last_date_in_program],
-              ]
-            end
-        }
+        support['enrollments_with_no_service'][:counts] +=  ens.flatten(1).
+          index_by{|m| [m[:personal_id],m[:data_source_id]]}.
+          map do |_, enrollment|
+            client_id = destination_id_for_client(enrollment[:id])
+            [
+              client_id,
+              enrollment[:first_name],
+              enrollment[:last_name],
+              enrollment[:project_name],
+              enrollment[:first_date_in_program],
+              enrollment[:last_date_in_program],
+            ]
+          end
       end
       add_answers(answers, support)
     end
@@ -661,7 +664,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end.to_h,
         counts: {
           total_days: 0,
-          average_days: 0,
+          total_clients: 0,
         },
       }
 
@@ -678,6 +681,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
+        totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
         project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round rescue 0
@@ -694,7 +698,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         project_counts[project.id][:buckets] = counts.map{|range,services| [range, services.count]}.to_h
         project_support[project.id][:buckets] = counts
       end
-      totals[:counts][:average] = (totals[:counts][:total_days].to_f / (self.end - self.start).to_i).round
+      # average length of stay, days / people
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {

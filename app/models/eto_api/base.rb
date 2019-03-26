@@ -365,7 +365,7 @@ module EtoApi
     memoize :touch_point_response
 
     def touch_point_response_by_response_set_id(site_id:, response_set_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponsesByID?#{{TouchPointID: id, ResponseSetID: response_set_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponsesByID?#{{TouchPointID: touch_point_id, ResponseSetID: response_set_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point_response_by_response_set_id
 
