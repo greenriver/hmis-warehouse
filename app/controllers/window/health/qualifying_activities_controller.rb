@@ -14,7 +14,8 @@ module Window::Health
     end
 
     def destroy
-      @qa.update(claim_submitted_on: nil)
+      @qa.claim_submitted_on = nil
+      @qa.save(validate: false)
       flash[:notice] = 'QA unsubmitted'
       redirect_to(polymorphic_path(health_path_generator + [:qualifying_activities]))
     end
