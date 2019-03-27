@@ -36,7 +36,7 @@ Rails.application.routes.draw do
         end
       end
       resources :services
-      resources :qualifying_activities, only: [:index]
+      resources :qualifying_activities, only: [:index, :destroy]
       resources :durable_equipments, except: [:index]
       resources :files, only: [:index, :show]
       resources :team_members, controller: :patient_team_members

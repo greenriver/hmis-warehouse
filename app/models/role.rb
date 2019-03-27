@@ -403,6 +403,10 @@ class Role < ActiveRecord::Base
         description: 'Use for downloading individual member reports',
         administrative: true,
       },
+      can_unsubmit_submitted_claims: {
+        description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
+        administrative: true,
+      },
     }
   end
 

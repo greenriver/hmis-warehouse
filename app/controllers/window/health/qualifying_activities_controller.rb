@@ -4,11 +4,19 @@ module Window::Health
     include WindowClientPathGenerator
     before_action :require_some_patient_access!
     before_action :set_hpc_patient
-    before_action :set_qualifying_activities, only: :index
+    before_action :set_qualifying_activities, only: [:index]
+    before_action :require_can_unsubmit_submitted_claims!, only: [:destroy]
+    before_action :set_qualifying_activity, only: [:destroy]
 
     def index
       @start_date = params[:start_date]
       @end_date = params[:end_date]
+    end
+
+    def destroy
+      @qa.update(claim_submitted_on: nil)
+      flash[:notice] = 'QA unsubmitted'
+      redirect_to(polymorphic_path(health_path_generator + [:qualifying_activities]))
     end
 
     def set_qualifying_activities
@@ -21,6 +29,14 @@ module Window::Health
 
     protected def title_for_show
       "#{@client.name} - Health - Qualifying Activities"
+    end
+
+    protected def set_qualifying_activity
+      @qa = @patient.qualifying_activities.find(params[:id].to_i)
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Qualifying Activity' }
     end
 
   end
