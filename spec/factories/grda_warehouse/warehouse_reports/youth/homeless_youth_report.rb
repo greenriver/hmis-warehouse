@@ -35,6 +35,7 @@ FactoryGirl.define do
     needs_shelter 'No'
     in_stable_housing 'No'
     youth_experiencing_homelessness_at_start 'No'
+    how_hear 'Example'
   end
 
   trait :existing_intake do
