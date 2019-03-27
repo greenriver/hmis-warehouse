@@ -36,4 +36,12 @@ FactoryGirl.define do
     in_stable_housing 'No'
     youth_experiencing_homelessness_at_start 'No'
   end
+
+  trait :existing_intake do
+    engagement_date { Date.parse('2018-12-31') }
+  end
+
+  trait :new_intake do
+    engagement_date { Date.parse('2019-01-01') }
+  end
 end
