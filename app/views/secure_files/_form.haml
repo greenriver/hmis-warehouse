@@ -1,0 +1,11 @@
+%h2 Upload
+= simple_form_for @secure_file, as: :secure_file, url: secure_files_path(@data_source) do |f|
+  = f.error_notification
+  .form-inputs
+    = f.input :file, as: :file, label: false
+    = f.input :name, label: "Briefly describe this file"
+    = f.input :recipient_id, collection: User.all, label: "Who should have access to this file?"
+    = f.hidden_field :file_cache
+    = f.hidden_field :import_type, value: :hmis_611
+  .form-actions
+    = f.button :submit, value: 'Upload'

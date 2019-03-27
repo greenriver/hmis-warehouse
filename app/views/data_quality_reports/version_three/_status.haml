@@ -1,0 +1,14 @@
+- if @report.projects.count == 1
+  - @report_keys = {project_id: @project.id, id: @report.id}
+  - @support_path = [:support, :project, :data_quality_report]
+  - @answers_path = [:answers, :project, :data_quality_report]
+- else
+  - @report_keys = {project_group_id: @project_group.id, id: @report.id}
+  - @support_path = [:support, :project_group, :data_quality_report]
+  - @answers_path = [:answers, :project_group, :data_quality_report]
+- if Rails.env.development?
+  .alert.alert-warning
+    %p Development Only
+    = link_to "answers", polymorphic_path(@answers_path, @report_keys)
+    %br
+    = link_to "support", polymorphic_path(@support_path, @report_keys)

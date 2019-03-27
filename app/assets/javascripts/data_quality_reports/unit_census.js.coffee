@@ -5,7 +5,7 @@ class App.DataQualityReports.UnitCensus extends App.DataQualityReports.Base
     labels = @data['labels']
     @chart = bb.generate
       bindto: @chart_selector
-      size: 
+      size:
         height: 250
       data: {json: @data['data'], type: "line", color: @_colors, onclick: @_follow_link}
       axis:
@@ -13,8 +13,10 @@ class App.DataQualityReports.UnitCensus extends App.DataQualityReports.Base
           type: "category",
           categories: @data['labels'],
           tick:
+            show: false
             rotate: 90
             width: 72
-            count: 13
+            culling:
+              max: 10
             format: (x) ->
               labels[Math.round(x)]

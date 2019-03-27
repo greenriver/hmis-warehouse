@@ -1,40 +1,37 @@
 .well.overflow-scroll
   %h3.text-center Project Descriptor Completeness
   .row
-    .col-sm-4
+    .col-sm-3
       %h4.text-center Operating Start Date
       %p.text-center= @report.report['operating_start_date']
-    .col-sm-4
+    .col-sm-3
       %h4.text-center CoC Code
       %p.text-center= @report.report['coc_code']
-    .col-sm-4
+    .col-sm-3
       %h4.text-center Funder
       %p.text-center= @report.report['grant_id']
-  .row
-    .col-sm-4
-      %h4.text-center Geocode
-      %p.text-center= @report.report['geocode']
-    .col-sm-4
-      %h4.text-center Geography Type
-      %p.text-center= @report.report['geography_type']
-    .col-sm-4
+    .col-sm-3
       %h4.text-center Information Date
       %p.text-center= @report.report['information_date']
   .row
-    .col-sm-6
-      %h4.text-center Housing Type
-      %p.text-center= @report.report['housing_type']
-    .col-sm-6
-      %h4.text-center
-        - if @report.projects.count > 1
-          Project Types
-        - else
-          Project Type
-      %p.text-center= @report.report['coc_program_component']
-  .row
-    .col-sm-6
+    .col-sm-3
+      %h4.text-center Geocode
+      %p.text-center= @report.report['geocode']
+    .col-sm-3
+      %h4.text-center Geography Type
+      %p.text-center= @report.report['geography_type']
+    .col-sm-3
       %h4.text-center Unit Inventory
       %p.text-center= "#{@report.report['unit_utilization_totals']['counts']['capacity']} units"
-    .col-sm-6
+    .col-sm-3
       %h4.text-center Bed Inventory
       %p.text-center= "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
+
+  %h4 Housing Type
+  %p= @report.report['housing_type']
+  %h4
+    - if @report.projects.count > 1
+      Project Types
+    - else
+      Project Type
+  %p= @report.report['coc_program_component']

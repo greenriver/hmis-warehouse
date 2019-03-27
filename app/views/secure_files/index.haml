@@ -1,0 +1,36 @@
+- title = "Secure Files"
+- content_for :title, title
+
+%h1= content_for :title
+
+.row
+  .col-sm-6
+    - if @secure_files.any?
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th
+              File name
+            %th
+              Uploaded By
+            %th
+              Destined For
+            %th
+              Uploaded On
+            %th
+              Remove
+        %tbody
+          - @secure_files.each do |file|
+            %tr
+              %td
+                = link_to secure_file_path(file) do
+                  = file.name
+              %td= file.sender&.name
+              %td= file.recipient&.name
+              %td= file.created_at.to_date
+              %td
+                = link_to secure_file_path(file), method: :delete, class: 'btn btn-link btn-link--danger' do
+                  %i.icon-cross
+
+  .col-sm-6
+    = render 'form'
