@@ -241,6 +241,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   end
 
+  scope :heads_of_households, -> () do
+    where(she_t[:head_of_household].eq(true))
+  end
+
   scope :visible_in_window_to, -> (user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
   end

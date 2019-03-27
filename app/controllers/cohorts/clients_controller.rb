@@ -194,8 +194,13 @@ module Cohorts
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
       end
+      if @hoh_only
+        @clients = @clients.joins(:service_history_enrollments).
+            merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+            distinct
+      end
       counts = GrdaWarehouse::WarehouseClientsProcessed.
-        where(client_id: @clients.select(:id)).
+        where(client_id: @clients.reorder(id: :asc).select(:id)).
         pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
       @days_homeless = counts.map{|client_id, days_homeless, _, _| [client_id, days_homeless]}.to_h
       @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years]}.to_h
