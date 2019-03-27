@@ -18,6 +18,6 @@
           .col-sm-4
             = select_tag('populations[population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans', 'Individual Adults'), :last, :first, params[:population]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
           .col-sm-4
-            = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'margin-bottom-00'}, input_html: {checked: @hoh_only}
+            = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'mb-0'}, input_html: {checked: @hoh_only}
           .col-sm-4
             = f.button :submit, value: 'Show'

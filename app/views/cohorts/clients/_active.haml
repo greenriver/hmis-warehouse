@@ -23,9 +23,9 @@
         .row
           .col-sm-6
             = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}
-            = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'margin-bottom-00'}, input_html: {checked: @hoh_only}
+            = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'mb-0'}, input_html: {checked: @hoh_only}
           .col-sm-6
-            Limit by population 
+            Limit by population
             = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', include_blank: 'All Clients')
         .row
           .col-sm-8
