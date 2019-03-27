@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190324204257) do
+ActiveRecord::Schema.define(version: 20190327174322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2082,6 +2082,19 @@ ActiveRecord::Schema.define(version: 20190324204257) do
 
   add_index "report_tokens", ["contact_id"], name: "index_report_tokens_on_contact_id", using: :btree
   add_index "report_tokens", ["report_id"], name: "index_report_tokens_on_report_id", using: :btree
+
+  create_table "secure_files", force: :cascade do |t|
+    t.string   "name"
+    t.string   "file"
+    t.string   "content_type"
+    t.binary   "content"
+    t.integer  "size"
+    t.integer  "sender_id"
+    t.integer  "recipient_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+  end
 
   create_table "service_history_enrollments", force: :cascade do |t|
     t.integer "client_id",                                                   null: false

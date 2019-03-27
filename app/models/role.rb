@@ -306,6 +306,10 @@ class Role < ActiveRecord::Base
         description: 'Access to upload the non-HMIS files for use in the Tableau dashboard export',
         administrative: false,
       },
+      can_view_all_secure_uploads: {
+        description: 'Access to see all "secure" uploaded files',
+        administrative: true,
+      },
     }
   end
 
