@@ -17,7 +17,7 @@ FactoryGirl.define do
     staff_email 'nobody@example.com'
     unaccompanied 'No'
     street_outreach_contact 'No'
-    housing_status 'Unkown'
+    housing_status 'Unknown'
     other_agency_involvement 'No'
     owns_cell_phone 'No'
     secondary_education 'Unknown'
@@ -27,7 +27,7 @@ FactoryGirl.define do
     staff_believes_youth_under_24 'Yes'
     client_gender 0
     client_lgbtq 'No'
-    client_race ['White']
+    client_race ['RaceNone']
     client_ethnicity 0
     client_primary_language 'Unknown'
     pregnant_or_parenting 'No'
