@@ -292,8 +292,14 @@ module GrdaWarehouse::WarehouseReports::Youth
       @six_q
     end
 
+    def all_open_intakes
+      get_client_ids(GrdaWarehouse::YouthIntake::Base.
+          open_between(start_date: @start_date, end_date: @end_date).
+          open_after(@start_date))
+    end
+
     def total_served
-      @total_served = (@four_a + @five_a + @six_a).uniq
+      @total_served ||= (all_open_intakes + four_a + five_a + six_a).uniq
     end
 
     # F. Demographics
