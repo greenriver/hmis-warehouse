@@ -196,8 +196,8 @@ module Cohorts
       end
       if @hoh_only
         @clients = @clients.joins(:service_history_enrollments).
-            merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
-            distinct
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+          distinct
       end
       counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.reorder(id: :asc).select(:id)).

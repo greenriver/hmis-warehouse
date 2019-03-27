@@ -241,7 +241,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   end
 
-  scope :heads_of_households, -> () do
+  scope :heads_of_households, -> do
     where(she_t[:head_of_household].eq(true))
   end
 
