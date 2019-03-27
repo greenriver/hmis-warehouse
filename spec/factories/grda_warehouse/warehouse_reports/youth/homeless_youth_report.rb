@@ -44,4 +44,16 @@ FactoryGirl.define do
   trait :new_intake do
     engagement_date { Date.parse('2019-01-01') }
   end
+
+  trait :street_outreach_contact do
+    street_outreach_contact 'Yes'
+  end
+
+  trait :homeless do
+    housing_status 'Experiencing homelessness: couch surfing'
+  end
+
+  trait :at_risk do
+    housing_status 'At risk of homelessness'
+  end
 end
