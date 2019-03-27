@@ -15,6 +15,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_homeless_contact) { create :intake, :new_intake, :homeless, how_hear: 'Another'}
   let!(:new_at_risk_contact) { create :intake, :new_intake, :at_risk}
 
+  let!(:existing_case_management_existing_client) { create :case_management, :existing_case_management, client: existing_intake.client}
+  let!(:new_case_management_existing_client) { create :case_management, :new_case_management, client: existing_intake.client}
+  let!(:new_case_management_new_client) { create :case_management, :new_case_management, client: new_intake.client}
+
+  let!(:turned_away_at_risk) { create :intake, :new_intake, :at_risk, turned_away: true}
+
   let(:report) { build :homeless_youth_report }
 
   describe 'when a report is generated' do
@@ -45,6 +51,22 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
       expect(report.two_c.keys.count).to eq 2
       expect(report.two_c.keys).to include 'Example'
       expect(report.two_c.keys).to include 'Another'
+    end
+
+    it 'counts youth at risk of homelessness at start' do
+      expect(report.three_a.count).to eq 2
+      expect(report.three_a).to include new_at_risk_street_outreach_contact.client_id
+      expect(report.three_a).to include new_at_risk_contact.client_id
+    end
+
+    it 'counts continuing clients with case management' do
+      expect(report.three_b.count).to eq 1
+      expect(report.three_b).to include new_case_management_existing_client.client_id
+    end
+
+    it 'counts at risk turned away' do
+      expect(report.three_c.count).to eq 1
+      expect(report.three_c).to include turned_away_at_risk.client_id
     end
   end
 end

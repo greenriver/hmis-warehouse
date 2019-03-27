@@ -36,6 +36,7 @@ FactoryGirl.define do
     in_stable_housing 'No'
     youth_experiencing_homelessness_at_start 'No'
     how_hear 'Example'
+    turned_away false
   end
 
   trait :existing_intake do
@@ -56,5 +57,21 @@ FactoryGirl.define do
 
   trait :at_risk do
     housing_status 'At risk of homelessness'
+  end
+
+  trait :homeless_at_start do
+    youth_experiencing_homelessness_at_start 'Yes'
+  end
+
+  factory :case_management, class: 'GrdaWarehouse::Youth::YouthCaseManagement' do
+    activity 'Prevention'
+  end
+
+  trait :existing_case_management do
+    engaged_on { Date.parse('2018-12-31') }
+  end
+
+  trait :new_case_management do
+    engaged_on { Date.parse('2019-01-01') }
   end
 end

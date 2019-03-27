@@ -42,6 +42,10 @@ module GrdaWarehouse::YouthIntake
       end
     end
 
+    scope :served, -> () do
+      where(turned_away: false)
+    end
+
     scope :ongoing, -> do
       where(exit_date: nil)
     end

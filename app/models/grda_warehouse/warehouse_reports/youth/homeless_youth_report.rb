@@ -10,6 +10,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def section_1_scope
       GrdaWarehouse::YouthIntake::Base.
+        served.
         open_between(start_date: @start_date, end_date: @end_date).
         where(street_outreach_contact: "Yes")
     end
@@ -26,6 +27,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def section_2_scope
       GrdaWarehouse::YouthIntake::Base.
+        served.
         open_between(start_date: @start_date, end_date: @end_date).
         where(street_outreach_contact: "No")
     end
@@ -57,6 +59,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def three_a
       @three_a ||= get_client_ids(section_3_intake_scope.
+        served.
         open_after(@start_date).
         where(housing_status: 'At risk of homelessness'))
     end
@@ -84,11 +87,13 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def four_a
       @four_a ||= get_client_ids(section_4_intake_scope.
+        served.
         open_after(@start_date))
     end
 
     def four_b
       @four_b ||= get_client_ids(section_4_intake_scope.
+        served.
         where(housing_status: 'At risk of homelessness'))
     end
 
@@ -98,7 +103,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def four_c
-      @four_c ||= get_client_ids(section_4_management_scope) - get_client_ids(section_4_intake_scope)
+      @four_c ||= get_client_ids(section_4_management_scope) - get_client_ids(section_4_intake_scope.served)
     end
 
     def four_d
@@ -118,6 +123,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def section_5_intake_scope
       GrdaWarehouse::YouthIntake::Base.
+          served.
           open_between(start_date: @start_date, end_date: @end_date)
     end
 
@@ -294,6 +300,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def all_open_intakes
       get_client_ids(GrdaWarehouse::YouthIntake::Base.
+          served.
           open_between(start_date: @start_date, end_date: @end_date).
           open_after(@start_date))
     end
@@ -306,6 +313,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def demographics_scope
       GrdaWarehouse::YouthIntake::Base.
+          served.
           open_between(start_date: @start_date, end_date: @end_date)
     end
 
