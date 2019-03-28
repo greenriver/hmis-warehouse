@@ -1916,7 +1916,7 @@ module GrdaWarehouse::Hud
     def most_recent_vispdat_score
       vispdats.completed.scores.first&.score ||
         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
-          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first.compact.max || 0
+          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max || 0
     end
 
     def most_recent_vispdat_length_homeless_in_days
