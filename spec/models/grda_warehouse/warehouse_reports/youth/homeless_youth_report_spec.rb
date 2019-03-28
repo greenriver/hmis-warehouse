@@ -29,6 +29,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
       expect(report.total_served.count).to eq 5
     end
 
+    # A1
+
     it 'counts homeless street outreach contacts' do
       expect(report.one_a.count).to eq 2
     end
@@ -36,6 +38,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     it 'counts at risk street outreach contacts' do
       expect(report.one_b.count).to eq 2
     end
+
+    # A2
 
     it 'counts new homeless contacts' do
       expect(report.two_a.count).to eq 1
@@ -53,6 +57,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
       expect(report.two_c.keys).to include 'Another'
     end
 
+    # A3
+
     it 'counts youth at risk of homelessness at start' do
       expect(report.three_a.count).to eq 2
       expect(report.three_a).to include new_at_risk_street_outreach_contact.client_id
@@ -67,6 +73,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     it 'counts at risk turned away' do
       expect(report.three_c.count).to eq 1
       expect(report.three_c).to include turned_away_at_risk.client_id
+    end
+
+    # A4
+
+    it 'counts homeless new intakes' do
+      expect(report.four_a.count).to eq 2
+    end
+
+    it 'counts at risk new intakes' do
+      pending 'not clear what this should be'
+      expect(report.four_b.count).to eq 2
+    end
+
+    it 'counts continuing clients with case management' do
+      expect(report.four_c.count).to eq 1
     end
   end
 end

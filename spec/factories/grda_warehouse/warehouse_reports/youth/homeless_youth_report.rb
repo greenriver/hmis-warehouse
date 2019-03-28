@@ -53,14 +53,11 @@ FactoryGirl.define do
 
   trait :homeless do
     housing_status 'Experiencing homelessness: couch surfing'
+    youth_experiencing_homelessness_at_start 'Yes'
   end
 
   trait :at_risk do
     housing_status 'At risk of homelessness'
-  end
-
-  trait :homeless_at_start do
-    youth_experiencing_homelessness_at_start 'Yes'
   end
 
   factory :case_management, class: 'GrdaWarehouse::Youth::YouthCaseManagement' do
