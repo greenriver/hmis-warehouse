@@ -29,7 +29,7 @@ module GrdaWarehouse
 
     def self.available_release_durations
       [
-        'Indefinite', 
+        'Indefinite',
         'One Year',
         'Use Expiration Date',
       ]
@@ -39,6 +39,13 @@ module GrdaWarehouse
       {
         "Potentially chronic" => :chronics,
         "HUD definition" => :hud_chronics,
+      }
+    end
+
+    def self.available_vispdat_prioritization_schemes
+      {
+        'Length of time Homeless' => :length_of_time,
+        'Veteran status' => :veteran_status,
       }
     end
 

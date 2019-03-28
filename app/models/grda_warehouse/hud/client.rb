@@ -859,7 +859,7 @@ module GrdaWarehouse::Hud
           "Valid Until #{consent_expires_on}"
         else
           'Expired'
-        end 
+        end
       else
         _(housing_release_status)
       end
@@ -1298,8 +1298,8 @@ module GrdaWarehouse::Hud
 
     def self.cas_readiness_parameters
       cas_columns.keys + [
-        :housing_assistance_network_released_on, 
-        :vispdat_prioritization_days_homeless, 
+        :housing_assistance_network_released_on,
+        :vispdat_prioritization_days_homeless,
         :verified_veteran_status,
         :interested_in_set_asides,
         :neighborhood_interests => [],
@@ -1910,17 +1910,18 @@ module GrdaWarehouse::Hud
       vispdats.completed.first
     end
 
-    # Fetch most recent VI-SPDAT from the warehouse, 
+    # Fetch most recent VI-SPDAT from the warehouse,
     # if not available use the most recent ETO VI-SPDAT
+    # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score || 
+      vispdats.completed.scores.first&.score ||
         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
-          pluck(:vispdat_total_score)&.first || 0
+          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max || 0
     end
 
     def most_recent_vispdat_length_homeless_in_days
       begin
-        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless || 
+        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
          source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
           vispdat_days_homeless || 0
       rescue
@@ -1933,20 +1934,26 @@ module GrdaWarehouse::Hud
     end
 
     def calculate_vispdat_priority_score
-      vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization
-      vispdat_score = most_recent_vispdat_score
-      vispdat_length_homeless_in_days ||= 0
-      vispdat_score ||= 0
-      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
-        1095
-      elsif vispdat_length_homeless_in_days >= 730
-        730
-      elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
-        365
-      else
-        0
+      vispdat_score = most_recent_vispdat_score || 0
+      if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
+        prioritization_bump = 0
+        if veteran?
+          prioritization_bump = 100
+        end
+        vispdat_score + prioritization_bump
+      else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
+        vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization || 0
+        vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+          1095
+        elsif vispdat_length_homeless_in_days >= 730
+          730
+        elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+          365
+        else
+          0
+        end
+        vispdat_score + vispdat_prioritized_days_score
       end
-      vispdat_score + vispdat_prioritized_days_score
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)
