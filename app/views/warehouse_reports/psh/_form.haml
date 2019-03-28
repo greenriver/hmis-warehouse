@@ -1,4 +1,4 @@
-= simple_form_for @filter, as: :filter, url: warehouse_reports_rrh_index_path, method: :get do |f|
+= simple_form_for @filter, as: :filter, url: warehouse_reports_psh_index_path, method: :get do |f|
   = f.input :project_id, collection: @available_projects, input_html: {class: :select2}, include_blank: 'All'
   .row
     .col-sm-3
@@ -9,5 +9,5 @@
       = f.input :start_date, as: :date_picker
     .col-sm-3
       = f.input :end_date, as: :date_picker
-  .text-right 
+  .text-right
     = f.submit 'Update', class: ['btn', 'btn-primary']
