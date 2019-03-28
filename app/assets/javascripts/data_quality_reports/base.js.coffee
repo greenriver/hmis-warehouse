@@ -17,18 +17,22 @@ class App.DataQualityReports.Base
     key = d
     if key.id?
       key = key.id
-    colors = [ "#091f2f", "#fb4d42", "#288be4", "#d2d2d2" ,'rgb(228, 228, 228)']
-    color = @color_map[key]
-    if !color?
-      color = colors[@next_color++]
-      @color_map[key] = color
-      @next_color = @next_color % colors.length
+    colors = [ '#091f2f', '#fb4d42', '#288be4', '#d2d2d2' ]
+    if key in ['Goal', 'Average', 'Target']
+      color = 'rgb(228, 228, 228)'
+    else
+      color = @color_map[key]
+      if !color?
+        color = colors[@next_color++]
+        @color_map[key] = color
+        @next_color = @next_color % colors.length
     return color
 
   _format_data: (data) ->
     data
   
   _follow_link: (d, element) =>
-    console.log(d, element, @support_url)
+    # Do nothing by default
+    # console.log(d, element, @support_url)
     
   

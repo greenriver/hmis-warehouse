@@ -52,7 +52,7 @@ class DataQualityReportsController < ApplicationController
         end
         format.html do
           if params[:layout].present? && params[:layout] == 'false'
-            render layout: false
+            render layout: "pjax_modal_content"
           end
         end
         format.js {}

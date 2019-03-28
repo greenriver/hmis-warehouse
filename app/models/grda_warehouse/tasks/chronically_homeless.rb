@@ -135,7 +135,7 @@ module GrdaWarehouse::Tasks
 
     def load_active_clients
       @clients = active_client_scope unless @limited
-      # before we return, sanity check these clients, then load them again if 
+      # before we return, sanity check these clients, then load them again if
       # any don't pass
       if @sanity_check
         if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
@@ -161,7 +161,7 @@ module GrdaWarehouse::Tasks
       @client_details[client.id][:days_in_last_three_years] = days_served.length
       @client_details[client.id][:age] = client.age_on(@date)
       @client_details[client.id][:individual] = GrdaWarehouse::Hud::Client.where(id: client.id).homeless_individual(on_date: @date, chronic_types_only: true).exists?
-      
+
       @client_details[client.id][:homeless_since] = client.date_of_first_service
       @client_details[client.id][:months_in_last_three_years] = months_homeless
       @client_details[client.id][:trigger] = chronic_trigger
@@ -198,11 +198,11 @@ module GrdaWarehouse::Tasks
         service_history_columns.keys.zip(row).to_h
       end
       # Throw out any dates that fall outside of the enrollment
-      all_dates.reject! do |m| 
+      all_dates.reject! do |m|
         m[:last_date_in_program].present?&& m[:last_date_in_program] < m[:date]
       end
       debug_log "Found #{all_dates.size} days in the residential history"
-      
+
       # group by enrollment and then calculated adjusted dates for each enrollment
       enrollments_by_project_entry = all_dates.group_by do |m|
         [m[:enrollment_group_id], m[:project_id], m[:data_source_id]]

@@ -36,7 +36,7 @@ Rails.application.routes.draw do
         end
       end
       resources :services
-      resources :qualifying_activities, only: [:index]
+      resources :qualifying_activities, only: [:index, :destroy]
       resources :durable_equipments, except: [:index]
       resources :files, only: [:index, :show]
       resources :team_members, controller: :patient_team_members
@@ -124,6 +124,9 @@ Rails.application.routes.draw do
       resources :support, only: [:index], controller: 'report_results/support'
     end
   end
+
+  resources :secure_files, only: [:show, :create, :index, :destroy]
+
   namespace :reports do
     namespace :hic do
       resource :export, only: [:show]
@@ -399,7 +402,7 @@ Rails.application.routes.draw do
       resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: 'clients/youth/direct_financial_assistances'
       resources :youth_referrals, except: [:index], controller: 'clients/youth/referrals'
-      
+
       resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member

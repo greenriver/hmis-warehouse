@@ -97,13 +97,14 @@ module Cohorts
     end
 
     def new
+      @hoh_only = false
       @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
       @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       # whitelist for scope
-      @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(params[:population]&.to_sym)
-          params[:population]
-        elsif params.keys.include?('population')
+      @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(populations_params[:population]&.to_sym)
+        populations_params[:population]
+        elsif populations_params.keys.include?('population')
           :all_clients
         else
           false
@@ -113,18 +114,21 @@ module Cohorts
 
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
+        @hoh_only = _debool(params[:filter][:hoh])
         load_filter()
         @clients = @clients.includes(:chronics).
           preload(source_clients: :data_source).
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif params[:hud_filter].present?
+        @hoh_only = _debool(params[:hud_filter][:hoh])
         load_hud_filter()
         @clients = @clients.includes(:hud_chronics).
             preload(source_clients: :data_source).
             merge(GrdaWarehouse::HudChronic.on_date(date: @hud_filter.date)).
             order(LastName: :asc, FirstName: :asc)
       elsif @actives
+        @hoh_only = _debool(@actives[:hoh])
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.where(
             she_t[:client_id].eq(wcp_t[:client_id])
           ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end])
@@ -163,6 +167,7 @@ module Cohorts
           # Active record seems to have trouble with the complicated nature of this scope
           @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
       elsif @population
+        @hoh_only = _debool(populations_params[:hoh])
         # Force service to fall within the correct age ranges for some populations
         service_scope = :current_scope
         if ['youth', 'children'].include? @population
@@ -189,8 +194,13 @@ module Cohorts
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
       end
+      if @hoh_only
+        @clients = @clients.joins(:service_history_enrollments).
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+          distinct
+      end
       counts = GrdaWarehouse::WarehouseClientsProcessed.
-        where(client_id: @clients.select(:id)).
+        where(client_id: @clients.reorder(id: :asc).select(:id)).
         pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
       @days_homeless = counts.map{|client_id, days_homeless, _, _| [client_id, days_homeless]}.to_h
       @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years]}.to_h
@@ -362,6 +372,14 @@ module Cohorts
       )
     end
 
+    def populations_params
+      return {} unless params[:populations].present?
+      params.require(:populations).permit(
+          :population,
+          :hoh,
+      )
+    end
+
     def actives_params
       return false unless params[:actives].present?
       params.require(:actives).permit(
@@ -369,7 +387,8 @@ module Cohorts
         :end,
         :min_days_homeless,
         :limit_to_last_three_years,
-        :actives_population
+        :hoh,
+        :actives_population,
       )
     end
 

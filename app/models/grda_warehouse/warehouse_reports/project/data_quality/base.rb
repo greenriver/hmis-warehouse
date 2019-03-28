@@ -52,11 +52,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           map do |row|
             Hash[client_columns.keys.zip(row)]
           end
+
+        enrollment_ids = clients.map do |client|
+          client[:enrollment_id]
+        end
+
+        # min_enrollment_date = clients.map{|c| c[:first_date_in_program]}.min
+        max_exit_date = (clients.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+        max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
         clients.each do |client|
-          client[:most_recent_service] = GrdaWarehouse::ServiceHistoryService.
-              where(client_id: client[:destination_id], service_history_enrollment_id: client[:enrollment_id]).maximum(:date)
+          client[:most_recent_service] = max_dates[client[:enrollment_id]] || 'Before report start'
         end
       end
+    end
+
+    def max_dates_served(enrollment_ids, range:)
+      GrdaWarehouse::ServiceHistoryService.where(
+        date: range,
+        service_history_enrollment_id: enrollment_ids
+      ).group(:service_history_enrollment_id).maximum(:date)
     end
 
     def source_clients_for_source_client source_client_id:, data_source_id:
@@ -119,24 +133,36 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def incomes
       @incomes ||= begin
         incomes = {}
-        enrollments.each do |client_id, enrollments|
+        # enrollments is keyed on source client id
+        enrollments.each do |client_id, client_enrollments|
           # Use last enrollment within window for the client, per HUD Data Quality Spec
-          ds_id = enrollments.last[:data_source_id]
-          personal_id = enrollments.last[:personal_id]
-          enrollment_group_id = enrollments.last[:enrollment_group_id]
-          assessments = income_source.where(data_source_id: ds_id).
-            where(PersonalID: personal_id).
-            where(EnrollmentID: enrollment_group_id).
-            where(ib_t[:InformationDate].lteq(self.end)).
-            where(DataCollectionStage: [3, 1, 2]).
-            order(InformationDate: :asc).
-          pluck(*income_columns).map do |row|
-            Hash[income_columns.zip(row)]
-          end
+          enrollment_id = client_enrollments.last[:enrollment_id]
+          assessments = income_assessment_for(source_client_id: client_id, enrollment_id: enrollment_id) || []
           incomes[client_id] = assessments
         end
         incomes
       end
+    end
+
+    def income_assessment_for source_client_id:, enrollment_id:
+      @all_incomes_by_client_id_enrollment_id ||= all_incomes.group_by do |m|
+        [
+          m[:client_id],
+          m[:enrollment_id],
+        ]
+      end
+      @all_incomes_by_client_id_enrollment_id[[source_client_id, enrollment_id]]
+    end
+
+    def income_assessment_at_stage_for source_client_id:, enrollment_id:, data_collection_stage:
+      @all_incomes_by_client_id_enrollment_id_and_stage ||= all_incomes.group_by do |m|
+        [
+          m[:client_id],
+          m[:enrollment_id],
+          m[:data_collection_stage],
+        ]
+      end
+      @all_incomes_by_client_id_enrollment_id_and_stage[[source_client_id, enrollment_id, data_collection_stage]]
     end
 
     def disabilities
@@ -204,12 +230,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def income_columns
-      @income_columns ||= [
-        :TotalMonthlyIncome,
-        :IncomeFromAnySource,
-        :InformationDate,
-        :DataCollectionStage
-      ] + amount_columns
+      @income_columns ||= {
+        enrollment_id: she_t[:id].to_sql,
+        destination_id: she_t[:client_id].to_sql,
+        client_id: c_t[:id].to_sql, # source client_id
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        personal_id: c_t[:PersonalID].to_sql,
+        data_source_id: e_t[:data_source_id].to_sql,
+        TotalMonthlyIncome: ib_t[:TotalMonthlyIncome].to_sql,
+        IncomeFromAnySource: ib_t[:IncomeFromAnySource].to_sql,
+        InformationDate: ib_t[:InformationDate].to_sql,
+        DataCollectionStage: ib_t[:DataCollectionStage].to_sql,
+      }.merge(amount_columns)
     end
 
     def disability_columns
@@ -225,24 +257,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def amount_columns
-      @amount_columns ||= [
-        :Earned,
-        :EarnedAmount,
-        :UnemploymentAmount,
-        :SSIAmount,
-        :SSDIAmount,
-        :VADisabilityServiceAmount,
-        :VADisabilityNonServiceAmount,
-        :PrivateDisabilityAmount,
-        :WorkersCompAmount,
-        :TANFAmount,
-        :GAAmount,
-        :SocSecRetirementAmount,
-        :PensionAmount,
-        :ChildSupportAmount,
-        :AlimonyAmount,
-        :OtherIncomeAmount
-      ]
+      @amount_columns ||= {
+        Earned: ib_t[:Earned].to_sql,
+        EarnedAmount: ib_t[:EarnedAmount].to_sql,
+        UnemploymentAmount: ib_t[:UnemploymentAmount].to_sql,
+        SSIAmount: ib_t[:SSIAmount].to_sql,
+        SSDIAmount: ib_t[:SSDIAmount].to_sql,
+        VADisabilityServiceAmount: ib_t[:VADisabilityServiceAmount].to_sql,
+        VADisabilityNonServiceAmount: ib_t[:VADisabilityNonServiceAmount].to_sql,
+        PrivateDisabilityAmount: ib_t[:PrivateDisabilityAmount].to_sql,
+        WorkersCompAmount: ib_t[:WorkersCompAmount].to_sql,
+        TANFAmount: ib_t[:TANFAmount].to_sql,
+        GAAmount: ib_t[:GAAmount].to_sql,
+        SocSecRetirementAmount: ib_t[:SocSecRetirementAmount].to_sql,
+        PensionAmount: ib_t[:PensionAmount].to_sql,
+        ChildSupportAmount: ib_t[:ChildSupportAmount].to_sql,
+        AlimonyAmount: ib_t[:AlimonyAmount].to_sql,
+        OtherIncomeAmount: ib_t[:OtherIncomeAmount].to_sql,
+      }
     end
 
     def enrollment_columns
@@ -272,7 +304,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         destination_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
-        creation_date: e_t[:DateCreated].to_sql,
+        enrollment_created: e_t[:DateCreated].as('enrollment_created').to_sql,
+        exit_created: ex_t[:DateCreated].as('exit_created').to_sql,
       }
     end
 
@@ -455,11 +488,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
 
+    def service_history_enrollment_scope
+      service_source.
+        joins(:project, :enrollment, enrollment: :client).
+          includes(enrollment: :exit).
+          references(enrollment: :exit)
+    end
+
     def client_scope
       service_source.
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 
@@ -469,6 +511,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         open_between(start_date: self.start.to_date - 1.day,
           end_date: self.end).
         joins(:project, enrollment: :client).
+        includes(enrollment: :exit).
+        references(enrollment: :exit).
         where(Project: {id: projects.map(&:id)})
     end
 
@@ -490,6 +534,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def income_source
       GrdaWarehouse::Hud::IncomeBenefit
+    end
+
+    def all_incomes
+      @all_incomes ||= service_history_enrollment_scope.
+        joins(enrollment: :income_benefits).
+        pluck(*income_columns.values).map do |row|
+          Hash[income_columns.keys.zip(row)]
+        end
     end
 
     def disability_source

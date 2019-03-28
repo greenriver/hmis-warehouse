@@ -5,7 +5,11 @@
     %hr
     %h3.text-center #{@report.completeness_goal}% complete
   .col-sm-6
-    %h4.text-center This Program
+    %h4.text-center 
+      - if @report.projects.count == 1
+        This Project
+      - else
+        The Project Group
     %hr
     %h3.text-center #{@report.report['completeness_percentage']}% complete
 

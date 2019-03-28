@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190325205709) do
+ActiveRecord::Schema.define(version: 20190328135601) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1187,6 +1187,7 @@ ActiveRecord::Schema.define(version: 20190325205709) do
     t.boolean "allow_multiple_file_tags",                  default: false,                    null: false
     t.boolean "infer_family_from_household_id",            default: false,                    null: false
     t.string  "chronic_definition",                        default: "chronics",               null: false
+    t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1463,6 +1464,7 @@ ActiveRecord::Schema.define(version: 20190325205709) do
     t.float    "vispdat_family_score"
     t.float    "vispdat_months_homeless"
     t.float    "vispdat_times_homeless"
+    t.string   "staff_email"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree
@@ -1852,6 +1854,162 @@ ActiveRecord::Schema.define(version: 20190325205709) do
     t.datetime "deleted_at"
   end
 
+  create_table "recent_report_enrollments", id: false, force: :cascade do |t|
+    t.string   "EnrollmentID",                                 limit: 50
+    t.string   "PersonalID"
+    t.string   "ProjectID",                                    limit: 50
+    t.date     "EntryDate"
+    t.string   "HouseholdID"
+    t.integer  "RelationshipToHoH"
+    t.integer  "LivingSituation"
+    t.string   "OtherResidencePrior"
+    t.integer  "LengthOfStay"
+    t.integer  "DisablingCondition"
+    t.integer  "EntryFromStreetESSH"
+    t.date     "DateToStreetESSH"
+    t.integer  "ContinuouslyHomelessOneYear"
+    t.integer  "TimesHomelessPastThreeYears"
+    t.integer  "MonthsHomelessPastThreeYears"
+    t.integer  "MonthsHomelessThisTime"
+    t.integer  "StatusDocumented"
+    t.integer  "HousingStatus"
+    t.date     "DateOfEngagement"
+    t.integer  "InPermanentHousing"
+    t.date     "MoveInDate"
+    t.date     "DateOfPATHStatus"
+    t.integer  "ClientEnrolledInPATH"
+    t.integer  "ReasonNotEnrolled"
+    t.integer  "WorstHousingSituation"
+    t.integer  "PercentAMI"
+    t.string   "LastPermanentStreet"
+    t.string   "LastPermanentCity",                            limit: 50
+    t.string   "LastPermanentState",                           limit: 2
+    t.string   "LastPermanentZIP",                             limit: 10
+    t.integer  "AddressDataQuality"
+    t.date     "DateOfBCPStatus"
+    t.integer  "EligibleForRHY"
+    t.integer  "ReasonNoServices"
+    t.integer  "SexualOrientation"
+    t.integer  "FormerWardChildWelfare"
+    t.integer  "ChildWelfareYears"
+    t.integer  "ChildWelfareMonths"
+    t.integer  "FormerWardJuvenileJustice"
+    t.integer  "JuvenileJusticeYears"
+    t.integer  "JuvenileJusticeMonths"
+    t.integer  "HouseholdDynamics"
+    t.integer  "SexualOrientationGenderIDYouth"
+    t.integer  "SexualOrientationGenderIDFam"
+    t.integer  "HousingIssuesYouth"
+    t.integer  "HousingIssuesFam"
+    t.integer  "SchoolEducationalIssuesYouth"
+    t.integer  "SchoolEducationalIssuesFam"
+    t.integer  "UnemploymentYouth"
+    t.integer  "UnemploymentFam"
+    t.integer  "MentalHealthIssuesYouth"
+    t.integer  "MentalHealthIssuesFam"
+    t.integer  "HealthIssuesYouth"
+    t.integer  "HealthIssuesFam"
+    t.integer  "PhysicalDisabilityYouth"
+    t.integer  "PhysicalDisabilityFam"
+    t.integer  "MentalDisabilityYouth"
+    t.integer  "MentalDisabilityFam"
+    t.integer  "AbuseAndNeglectYouth"
+    t.integer  "AbuseAndNeglectFam"
+    t.integer  "AlcoholDrugAbuseYouth"
+    t.integer  "AlcoholDrugAbuseFam"
+    t.integer  "InsufficientIncome"
+    t.integer  "ActiveMilitaryParent"
+    t.integer  "IncarceratedParent"
+    t.integer  "IncarceratedParentStatus"
+    t.integer  "ReferralSource"
+    t.integer  "CountOutreachReferralApproaches"
+    t.integer  "ExchangeForSex"
+    t.integer  "ExchangeForSexPastThreeMonths"
+    t.integer  "CountOfExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSex"
+    t.integer  "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer  "WorkPlaceViolenceThreats"
+    t.integer  "WorkplacePromiseDifference"
+    t.integer  "CoercedToContinueWork"
+    t.integer  "LaborExploitPastThreeMonths"
+    t.integer  "HPScreeningScore"
+    t.integer  "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string   "UserID",                                       limit: 100
+    t.datetime "DateDeleted"
+    t.string   "ExportID"
+    t.integer  "data_source_id"
+    t.integer  "id"
+    t.integer  "LOSUnderThreshold"
+    t.integer  "PreviousStreetESSH"
+    t.integer  "UrgentReferral"
+    t.integer  "TimeToHousingLoss"
+    t.integer  "ZeroIncome"
+    t.integer  "AnnualPercentAMI"
+    t.integer  "FinancialChange"
+    t.integer  "HouseholdChange"
+    t.integer  "EvictionHistory"
+    t.integer  "SubsidyAtRisk"
+    t.integer  "LiteralHomelessHistory"
+    t.integer  "DisabledHoH"
+    t.integer  "CriminalRecord"
+    t.integer  "SexOffender"
+    t.integer  "DependentUnder6"
+    t.integer  "SingleParent"
+    t.integer  "HH5Plus"
+    t.integer  "IraqAfghanistan"
+    t.integer  "FemVet"
+    t.integer  "ThresholdScore"
+    t.integer  "ERVisits"
+    t.integer  "JailNights"
+    t.integer  "HospitalNights"
+    t.integer  "RunawayYouth"
+    t.string   "processed_hash"
+    t.string   "processed_as"
+    t.boolean  "roi_permission"
+    t.string   "last_locality"
+    t.string   "last_zipcode"
+    t.string   "source_hash"
+    t.integer  "demographic_id"
+    t.integer  "client_id"
+  end
+
+  add_index "recent_report_enrollments", ["EntryDate"], name: "entrydate_ret_index", using: :btree
+  add_index "recent_report_enrollments", ["client_id"], name: "client_id_ret_index", using: :btree
+  add_index "recent_report_enrollments", ["id"], name: "id_ret_index", unique: true, using: :btree
+
+  create_table "recent_service_history", id: false, force: :cascade do |t|
+    t.integer "id"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.date    "date"
+    t.date    "first_date_in_program"
+    t.date    "last_date_in_program"
+    t.string  "enrollment_group_id",     limit: 50
+    t.integer "age",                     limit: 2
+    t.integer "destination"
+    t.string  "head_of_household_id",    limit: 50
+    t.string  "household_id",            limit: 50
+    t.integer "project_id"
+    t.integer "project_type",            limit: 2
+    t.integer "project_tracking_method"
+    t.integer "organization_id"
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type",            limit: 2
+    t.integer "computed_project_type",   limit: 2
+    t.boolean "presented_as_individual"
+  end
+
+  add_index "recent_service_history", ["client_id"], name: "client_id_rsh_index", using: :btree
+  add_index "recent_service_history", ["computed_project_type"], name: "computed_project_type_rsh_index", using: :btree
+  add_index "recent_service_history", ["date"], name: "date_rsh_index", using: :btree
+  add_index "recent_service_history", ["household_id"], name: "household_id_rsh_index", using: :btree
+  add_index "recent_service_history", ["id"], name: "id_rsh_index", unique: true, using: :btree
+  add_index "recent_service_history", ["project_tracking_method"], name: "project_tracking_method_rsh_index", using: :btree
+  add_index "recent_service_history", ["project_type"], name: "project_type_rsh_index", using: :btree
+
   create_table "recurring_hmis_export_links", force: :cascade do |t|
     t.integer "hmis_export_id"
     t.integer "recurring_hmis_export_id"
@@ -1911,6 +2069,19 @@ ActiveRecord::Schema.define(version: 20190325205709) do
 
   add_index "report_tokens", ["contact_id"], name: "index_report_tokens_on_contact_id", using: :btree
   add_index "report_tokens", ["report_id"], name: "index_report_tokens_on_report_id", using: :btree
+
+  create_table "secure_files", force: :cascade do |t|
+    t.string   "name"
+    t.string   "file"
+    t.string   "content_type"
+    t.binary   "content"
+    t.integer  "size"
+    t.integer  "sender_id"
+    t.integer  "recipient_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+  end
 
   create_table "service_history_enrollments", force: :cascade do |t|
     t.integer "client_id",                                                   null: false
@@ -3210,7 +3381,7 @@ ActiveRecord::Schema.define(version: 20190325205709) do
     t.datetime "created_at",                                               null: false
     t.datetime "updated_at",                                               null: false
     t.datetime "deleted_at"
-    t.boolean  "turned_away"
+    t.boolean  "turned_away",                              default: false, null: false
   end
 
   add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
