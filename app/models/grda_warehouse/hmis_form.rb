@@ -71,6 +71,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     order(collected_at: :asc)
   end
 
+  scope :with_staff_contact, -> do
+    where.not(staff_email: nil)
+  end
+
   def self.set_missing_vispdat_scores
     # Process in batches, but ensure the batches occur such that the most recently completed are last
     # Fetch the ids, in order of unprocessed vispdat records
@@ -95,7 +99,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         end
       end
     end
-    
+
   end
 
   def primary_language

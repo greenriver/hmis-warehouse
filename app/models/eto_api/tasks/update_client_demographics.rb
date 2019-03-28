@@ -188,13 +188,9 @@ module EtoApi::Tasks
           end
 
           # This is only valid for Boston...
-          # FIXME: these need to be moved to the DB
           # if @data_source_id == 3
           #   hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
           #   hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
-          # else
-
-          # end
 
           # Special cases for fields that don't exist on hmis_client
           @custom_config.additional_fields.each do |key,cdid|
@@ -312,7 +308,6 @@ module EtoApi::Tasks
             }
             if @custom_config.present?
               # Some special cases
-              # FIXME: This should be moved to the DB
               # if element['Stimulus'] == 'A-1. At what point is this data being collected?'
               #    hmis_form.assessment_type = value
               # end
