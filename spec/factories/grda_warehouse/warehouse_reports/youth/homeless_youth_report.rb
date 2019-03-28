@@ -71,4 +71,16 @@ FactoryGirl.define do
   trait :new_case_management do
     engaged_on { Date.parse('2019-01-01') }
   end
+
+  factory :financial_assistance, class: 'GrdaWarehouse::Youth::DirectFinancialAssistance' do
+    type_provided 'Other'
+  end
+
+  trait :existing_financial_assistance do
+    provided_on { Date.parse('2018-12-31') }
+  end
+
+  trait :new_financial_assistance do
+    provided_on { Date.parse('2019-01-01') }
+  end
 end

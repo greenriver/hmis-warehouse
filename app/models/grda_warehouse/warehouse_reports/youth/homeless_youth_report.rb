@@ -8,6 +8,13 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     # A. Core Services
 
+    def new_enrollments_scope
+      GrdaWarehouse::YouthIntake::Base.
+        served.
+        open_between(start_date: @start_date, end_date: @end_date).
+        open_after(@start_date)
+    end
+
     def section_1_scope
       GrdaWarehouse::YouthIntake::Base.
         served.
@@ -54,13 +61,13 @@ module GrdaWarehouse::WarehouseReports::Youth
     def section_3_intake_scope
       GrdaWarehouse::YouthIntake::Base.
         open_between(start_date: @start_date, end_date: @end_date).
+        open_after(@start_date).
         where(youth_experiencing_homelessness_at_start: "No")
     end
 
     def three_a
       @three_a ||= get_client_ids(section_3_intake_scope.
         served.
-        open_after(@start_date).
         where(housing_status: 'At risk of homelessness'))
     end
 
@@ -75,7 +82,6 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def three_c
       @three_c ||= get_client_ids(section_3_intake_scope.
-          open_after(@start_date).
           where(housing_status: 'At risk of homelessness', turned_away: true))
     end
 
@@ -103,7 +109,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def four_c
-      @four_c ||= get_client_ids(section_4_management_scope) - get_client_ids(section_4_intake_scope.served)
+      @four_c ||= get_client_ids(section_4_management_scope) - get_client_ids(new_enrollments_scope)
     end
 
     def four_d
