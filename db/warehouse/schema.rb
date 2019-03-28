@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190328135601) do
+ActiveRecord::Schema.define(version: 20190328183719) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1144,6 +1144,7 @@ ActiveRecord::Schema.define(version: 20190328135601) do
     t.string   "user_date_2"
     t.string   "user_date_3"
     t.string   "user_date_4"
+    t.integer  "assessment_score"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
