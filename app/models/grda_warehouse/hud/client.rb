@@ -194,6 +194,10 @@ module GrdaWarehouse::Hud
       neighborhood_interests.map(&:to_i)
     end
 
+    def default_shelter_agency_contacts
+      source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard
@@ -803,6 +807,20 @@ module GrdaWarehouse::Hud
 
     def score_for_rrh_assessment
       processed_service_history&.eto_coordinated_entry_assessment_score || 0
+    end
+
+    # if we are pulling RRH assessments from ETO, use that
+    # Otherwise, use highest assessment score from any cohort clients
+    def assessment_score_for_cas
+      if GrdaWarehouse::HmisForm.rrh_assessment.exists?
+        score_for_rrh_assessment
+      else
+        assessment_score_from_cohort_clients
+      end
+    end
+
+    def assessment_score_from_cohort_clients
+      cohort_clients.pluck(:assessment_score)&.compact&.max || 0
     end
 
     ##############################
