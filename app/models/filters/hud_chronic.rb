@@ -5,6 +5,7 @@ module Filters
     attribute :individual, Boolean, default: false
     attribute :dmh, Boolean, default: false
     attribute :veteran, Boolean, default: false
+    attribute :hoh, Boolean, default: false
     attribute :last_service_after, Integer, default: 30
     attribute :name, String
 
