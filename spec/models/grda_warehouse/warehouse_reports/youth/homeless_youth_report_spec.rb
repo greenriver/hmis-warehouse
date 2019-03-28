@@ -24,6 +24,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:existing_financial_assistance) { create :financial_assistance, :existing_financial_assistance, client_id: existing_intake.client_id }
   let!(:new_financial_assistance) { create :financial_assistance, :new_financial_assistance, client_id: existing_intake.client_id }
 
+  let!(:existing_referral_out) { create :referral_out, :existing_referral_out, client_id: existing_intake.client_id }
+  let!(:new_referral_out) { create :referral_out, :new_referral_out, client_id: existing_intake.client_id }
+
   let(:report) { build :homeless_youth_report }
 
   describe 'when a report is generated' do
@@ -101,6 +104,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
 
     it 'counts clients without financial assistance in interval' do
       expect(report.five_b.count).to eq 7
+    end
+
+    # A6
+
+    it 'count clients with referrals out in the interval' do
+      expect(report.six_a.count).to eq 1
     end
   end
 end

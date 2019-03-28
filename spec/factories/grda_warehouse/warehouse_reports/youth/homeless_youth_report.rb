@@ -83,4 +83,16 @@ FactoryGirl.define do
   trait :new_financial_assistance do
     provided_on { Date.parse('2019-01-01') }
   end
+
+  factory :referral_out, class: 'GrdaWarehouse::Youth::YouthReferral' do
+    referred_to 'Other'
+  end
+
+  trait :existing_referral_out do
+    referred_on { Date.parse('2018-12-31') }
+  end
+
+  trait :new_referral_out do
+    referred_on { Date.parse('2019-01-01') }
+  end
 end
