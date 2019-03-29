@@ -61,9 +61,9 @@ module EtoApi::Tasks
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
-       
+
       # 422 Zip Code of Last Permanent Address (HUD) - BPHC only
-      # 423 Zip Code Type (HUD) - BPHC only 
+      # 423 Zip Code Type (HUD) - BPHC only
 
       # Loop over all items in the config
       api_config = EtoApi::Base.api_configs
@@ -74,7 +74,7 @@ module EtoApi::Tasks
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect
 
-        # This number may be larger than the original client_id list since each client may be 
+        # This number may be larger than the original client_id list since each client may be
         # in more than one site
         cs = load_candidates(type: :demographic)
 
@@ -96,6 +96,7 @@ module EtoApi::Tasks
               if found.present?
                 fetch_assessments(client)
               end
+              client.update(temporary_high_priority: false) if client.temporary_high_priority
               if Time.now > @restart
                 Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
                 @api = nil
@@ -162,9 +163,6 @@ module EtoApi::Tasks
         hud_last_permanent_zip_quality = nil
 
         if @custom_config.present?
-          # FIXME: these specific label values should be moved to the DB
-          # hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
-          # hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
           @custom_config.demographic_fields.each do |key,label|
             hmis_client[key] = defined_value(client: client, response: api_response, label: label)
           end
@@ -186,19 +184,15 @@ module EtoApi::Tasks
             if data.present?
               hmis_client[key] = data.try(:[], 'EntityName')
               hmis_client[details['attributes']] = data if hmis_client[key].present?
-            end 
+            end
           end
 
           # This is only valid for Boston...
-          # FIXME: these need to be moved to the DB
           # if @data_source_id == 3
           #   hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
           #   hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
-          # else
-            
-          # end
 
-          # Special cases for fields that don't exist on hmis_client:wq
+          # Special cases for fields that don't exist on hmis_client
           @custom_config.additional_fields.each do |key,cdid|
             case key
             when 'hud_last_permanent_zip'
@@ -314,7 +308,6 @@ module EtoApi::Tasks
             }
             if @custom_config.present?
               # Some special cases
-              # FIXME: This should be moved to the DB
               # if element['Stimulus'] == 'A-1. At what point is this data being collected?'
               #    hmis_form.assessment_type = value
               # end
@@ -337,6 +330,8 @@ module EtoApi::Tasks
 
         staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        hmis_form.staff_email = staff['Email']
+        # Add email
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
         hmis_form.name = assessment_name
         hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
@@ -412,6 +407,12 @@ module EtoApi::Tasks
       defined_demographic_value(value: item_value.to_i, cdid: item_cdid, site_id: client.site_id_in_data_source)
     end
 
+    # Use client_ids passed in,
+    # OR
+    # If we have anyone flagged as high-priority, process those
+    # OR
+    # any client who we've created a record in ApiClientDataSourceId for who hasn't been
+    # updated in the past 3 days
     private def load_candidates type:
       return [] unless type.present?
       scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
@@ -422,13 +423,17 @@ module EtoApi::Tasks
         # Load anyone who's not been updated recently
         case type
         when :demographic
-          # scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
-          #   where(data_source_id: @data_source_id).
-          #   order(last_contact: :desc)
-          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
-            where(['updated_at < ?', 3.days.ago.to_date])
-          ).
-          where(data_source_id: @data_source_id)
+          # any high-priority?
+          if GrdaWarehouse::ApiClientDataSourceId.high_priority.exists?
+            scope = scope.high_priority
+          else
+            hc_t = GrdaWarehouse::HmisClient.arel_table
+            scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
+              where(hc_t[:updated_at].lt(3.days.ago.to_date))
+            ).
+            where(data_source_id: @data_source_id).
+            order(Arel.sql("#{hc_t[:updated_at].asc.to_sql} NULLS FIRST"))
+          end
         when :assessment
           scope.joins(:hmis_client)
             # .where(['updated_at < ?', 1.week.ago.to_date])

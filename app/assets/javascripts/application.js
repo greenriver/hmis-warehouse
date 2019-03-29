@@ -74,5 +74,6 @@
 //= require_directory ./users
 //= require_directory ./cohorts/viewers
 //= require_directory ./cohorts/editors
+//= require_directory ./data_quality_reports
 
 //= require init

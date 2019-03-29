@@ -116,7 +116,7 @@ module WarehouseReports::Project
 
     # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionTwo
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree
     end
 
     def report_base_class
@@ -137,10 +137,10 @@ module WarehouseReports::Project
     end
 
     def load_data_quality_report_shells
-      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - ['report', 'support']). order(started_at: :asc). index_by(&:project_id)
+      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - ['report', 'support']). order(id: :asc). index_by(&:project_id)
       @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
         select(report_base_class.column_names - ['report', 'support']).
-        order(started_at: :asc).
+        order(id: :asc).
         index_by(&:project_group_id)
     end
 

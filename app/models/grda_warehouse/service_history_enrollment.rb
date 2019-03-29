@@ -148,6 +148,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(shs_t[:date].gteq(start_date).and(shs_t[:date].lteq(end_date)))
   end
 
+  scope :service_on_date, -> (date) do
+    joins(:service_history_services).
+      merge(GrdaWarehouse::ServiceHistoryService.service).
+      where(shs_t[:date].eq(date))
+  end
+
   scope :entry_within_date_range, -> (start_date: , end_date: ) do
     entry.open_between(start_date: start_date, end_date: end_date)
   end
@@ -233,6 +239,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       send(service_scope).
       exists)
 
+  end
+
+  scope :heads_of_households, -> do
+    where(she_t[:head_of_household].eq(true))
   end
 
   scope :visible_in_window_to, -> (user) do

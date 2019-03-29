@@ -36,7 +36,7 @@ Rails.application.routes.draw do
         end
       end
       resources :services
-      resources :qualifying_activities, only: [:index]
+      resources :qualifying_activities, only: [:index, :destroy]
       resources :durable_equipments, except: [:index]
       resources :files, only: [:index, :show]
       resources :team_members, controller: :patient_team_members
@@ -124,6 +124,9 @@ Rails.application.routes.draw do
       resources :support, only: [:index], controller: 'report_results/support'
     end
   end
+
+  resources :secure_files, only: [:show, :create, :index, :destroy]
+
   namespace :reports do
     namespace :hic do
       resource :export, only: [:show]
@@ -149,6 +152,7 @@ Rails.application.routes.draw do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
   namespace :warehouse_reports do
+    resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
     resources :dob_entry_same, only: [:index]
@@ -160,6 +164,11 @@ Rails.application.routes.draw do
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :rrh, only: [:index] do
+      collection do
+        get :clients
+      end
+    end
+    resources :psh, only: [:index] do
       collection do
         get :clients
       end
@@ -393,7 +402,7 @@ Rails.application.routes.draw do
       resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: 'clients/youth/direct_financial_assistances'
       resources :youth_referrals, except: [:index], controller: 'clients/youth/referrals'
-      
+
       resources :files, controller: 'clients/files' do
         get :preview, on: :member
         get :thumb, on: :member
@@ -476,6 +485,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 
@@ -487,6 +497,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 

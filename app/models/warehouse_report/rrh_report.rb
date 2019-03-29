@@ -8,8 +8,8 @@ class WarehouseReport::RrhReport
     @project_id = project_id
     @start_date = start_date
     @end_date = end_date
-    @subpopulation = Reporting::Housed.subpopulation(subpopulation)
-    @household_type = Reporting::Housed.household_type(household_type)
+    @subpopulation = Reporting::Housed.rrh.subpopulation(subpopulation)
+    @household_type = Reporting::Housed.rrh.household_type(household_type)
   end
 
   def pre_placement_project_name
@@ -361,7 +361,7 @@ class WarehouseReport::RrhReport
   end
 
   def housed_source
-    Reporting::Housed
+    Reporting::Housed.rrh
   end
 
   def housed_scope

@@ -40,6 +40,7 @@ module Admin
         :allow_multiple_file_tags,
         :infer_family_from_household_id,
         :chronic_definition,
+        :vispdat_prioritization_scheme,
         client_details: []
       )
     end

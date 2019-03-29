@@ -259,6 +259,7 @@ module GrdaWarehouse
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
         ::CohortColumns::SchoolDistrict.new(),
+        ::CohortColumns::AssessmentScore.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),

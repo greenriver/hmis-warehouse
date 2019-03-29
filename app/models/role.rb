@@ -306,6 +306,10 @@ class Role < ActiveRecord::Base
         description: 'Access to upload the non-HMIS files for use in the Tableau dashboard export',
         administrative: false,
       },
+      can_view_all_secure_uploads: {
+        description: 'Access to see all "secure" uploaded files',
+        administrative: true,
+      },
     }
   end
 
@@ -397,6 +401,10 @@ class Role < ActiveRecord::Base
       },
       can_view_member_health_reports: {
         description: 'Use for downloading individual member reports',
+        administrative: true,
+      },
+      can_unsubmit_submitted_claims: {
+        description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
       },
     }

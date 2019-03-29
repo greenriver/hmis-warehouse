@@ -194,6 +194,10 @@ module GrdaWarehouse::Hud
       neighborhood_interests.map(&:to_i)
     end
 
+    def default_shelter_agency_contacts
+      source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard
@@ -594,27 +598,6 @@ module GrdaWarehouse::Hud
       }
     end
 
-    def self.consent_validity_period
-      if release_duration == 'One Year'
-        1.years
-      elsif release_duration == 'Indefinite'
-        100.years
-      else
-        raise 'Unknown Release Duration'
-      end
-    end
-
-    def self.revoke_expired_consent
-      if release_duration == 'One Year'
-        clients_with_consent = self.where.not(consent_form_signed_on: nil)
-        clients_with_consent.each do |client|
-          if client.consent_form_signed_on < consent_validity_period.ago
-            client.update_columns(housing_release_status: nil)
-          end
-        end
-      end
-    end
-
     def alternate_names
       names = client_names.map do |m|
         m[:name]
@@ -826,6 +809,20 @@ module GrdaWarehouse::Hud
       processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
+    # if we are pulling RRH assessments from ETO, use that
+    # Otherwise, use highest assessment score from any cohort clients
+    def assessment_score_for_cas
+      if GrdaWarehouse::HmisForm.rrh_assessment.exists?
+        score_for_rrh_assessment
+      else
+        assessment_score_from_cohort_clients
+      end
+    end
+
+    def assessment_score_from_cohort_clients
+      cohort_clients.pluck(:assessment_score)&.compact&.max || 0
+    end
+
     ##############################
     # NOTE: this section deals with the release/consent form as uploaded
     # and maintained in the warehouse
@@ -841,12 +838,43 @@ module GrdaWarehouse::Hud
       'Limited CAS Release'
     end
 
+    def self.consent_validity_period
+      if release_duration == 'One Year'
+        1.years
+      elsif release_duration == 'Indefinite'
+        100.years
+      else
+        raise 'Unknown Release Duration'
+      end
+    end
+
+    def self.revoke_expired_consent
+      if release_duration == 'One Year'
+        clients_with_consent = self.where.not(consent_form_signed_on: nil)
+        clients_with_consent.each do |client|
+          if client.consent_form_signed_on < consent_validity_period.ago
+            client.update_columns(housing_release_status: nil)
+          end
+        end
+      elsif release_duration == 'Use Expiration Date'
+        self.destination.where(
+          arel_table[:consent_expires_on].lt(Date.today)
+        ).update_all(housing_release_status: nil)
+      end
+    end
+
     def release_current_status
       if housing_release_status.blank?
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
+        else
+          'Expired'
+        end
+      elsif release_duration == 'Use Expiration Date'
+        if consent_form_valid?
+          "Valid Until #{consent_expires_on}"
         else
           'Expired'
         end
@@ -860,7 +888,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.release_duration
-      @release_duration ||= GrdaWarehouse::Config.get(:release_duration)
+      @release_duration = GrdaWarehouse::Config.get(:release_duration)
     end
 
     def release_valid?
@@ -870,13 +898,19 @@ module GrdaWarehouse::Hud
     def consent_form_valid?
       if release_duration == 'One Year'
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+      elsif release_duration == 'Use Expiration Date'
+        release_valid? && consent_expires_on.present? && consent_expires_on >= Date.today
       else
         release_valid?
       end
     end
 
     def consent_confirmed?
-      client_files.consent_forms.signed.confirmed.exists?
+      if release_duration == 'Use Expiration Date'
+        consent_form_signed_on.present? && consent_form_valid?
+      else
+        client_files.consent_forms.signed.confirmed.exists?
+      end
     end
 
     def newest_consent_form
@@ -888,7 +922,7 @@ module GrdaWarehouse::Hud
       if housing_release_status.blank?
         return 'None on file'
       end
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Use Expiration Date'])
         if ! (consent_form_valid? && consent_confirmed?)
           return 'Expired'
         end
@@ -900,7 +934,8 @@ module GrdaWarehouse::Hud
       update_columns(
         consent_form_id: nil,
         housing_release_status: nil,
-        consent_form_signed_on: nil
+        consent_form_signed_on: nil,
+        consent_expires_on: nil,
       )
     end
 
@@ -1281,8 +1316,8 @@ module GrdaWarehouse::Hud
 
     def self.cas_readiness_parameters
       cas_columns.keys + [
-        :housing_assistance_network_released_on, 
-        :vispdat_prioritization_days_homeless, 
+        :housing_assistance_network_released_on,
+        :vispdat_prioritization_days_homeless,
         :verified_veteran_status,
         :interested_in_set_asides,
         :neighborhood_interests => [],
@@ -1893,13 +1928,20 @@ module GrdaWarehouse::Hud
       vispdats.completed.first
     end
 
+    # Fetch most recent VI-SPDAT from the warehouse,
+    # if not available use the most recent ETO VI-SPDAT
+    # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
     def most_recent_vispdat_score
-      vispdats.completed.scores.first&.score || 0
+      vispdats.completed.scores.first&.score ||
+        source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
+          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max || 0
     end
 
     def most_recent_vispdat_length_homeless_in_days
       begin
-        vispdats.completed.order(submitted_at: :desc).first&.days_homeless || 0
+        vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
+         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
+          vispdat_days_homeless || 0
       rescue
         0
       end
@@ -1910,20 +1952,26 @@ module GrdaWarehouse::Hud
     end
 
     def calculate_vispdat_priority_score
-      vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization
-      vispdat_score = most_recent_vispdat_score
-      vispdat_length_homeless_in_days ||= 0
-      vispdat_score ||= 0
-      vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
-        1095
-      elsif vispdat_length_homeless_in_days >= 730
-        730
-      elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
-        365
-      else
-        0
+      vispdat_score = most_recent_vispdat_score || 0
+      if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
+        prioritization_bump = 0
+        if veteran?
+          prioritization_bump = 100
+        end
+        vispdat_score + prioritization_bump
+      else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
+        vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization || 0
+        vispdat_prioritized_days_score = if vispdat_length_homeless_in_days >= 1095
+          1095
+        elsif vispdat_length_homeless_in_days >= 730
+          730
+        elsif vispdat_length_homeless_in_days >= 365 && vispdat_score >= 8
+          365
+        else
+          0
+        end
+        vispdat_score + vispdat_prioritized_days_score
       end
-      vispdat_score + vispdat_prioritized_days_score
     end
 
     def self.days_homeless_in_last_three_years(client_id:, on_date: Date.today)

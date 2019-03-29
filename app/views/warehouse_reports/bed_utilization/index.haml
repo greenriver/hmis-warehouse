@@ -59,7 +59,7 @@
       - projects_by_date = projects.index_by(&:date)
       %tr
         %td
-          = project.name
+          = link_to project.name, project_path(project)
         %td
           - project_type = project[GrdaWarehouse::Hud::Project.project_type_column]
           - p_type = ::HUD.project_type_brief(project_type)
@@ -68,7 +68,7 @@
             .enrollment__project_type{class: p_class}
               %em.service-type__program-type= p_type
         %td
-          = ri = relevant_inventory( project.inventories, @mo.range.end ).try(&:BedInventory)
+          = ri = relevant_inventories( project.inventories, @mo.range.end )&.map(&:BedInventory)&.sum
         - totals[:prog] << ri
         - i = avg_info project, projects_by_date, @mo.range
         - p, c = i[:persons], i[:percent_capacity]

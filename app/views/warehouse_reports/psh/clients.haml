@@ -1,0 +1,17 @@
+= content_for :modal_title do
+  = "Supporting Data"
+- if @clients.any?
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th First Name
+        %th Last Name
+    %tbody
+      - @clients.each do |id, first_name, last_name|
+        %tr
+          - if current_user.can_view_clients? || current_user.can_edit_clients?
+            %td= link_to first_name, client_path(id: id), target: '_blank'
+            %td= link_to last_name, client_path(id: id), target: '_blank'
+          - elsif current_user.can_view_client_window?
+            %td= link_to first_name, window_client_path(id: id), target: '_blank'
+            %td= link_to last_name, window_client_path(id: id), target: '_blank'

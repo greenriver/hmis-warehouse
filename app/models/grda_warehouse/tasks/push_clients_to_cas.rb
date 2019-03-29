@@ -47,7 +47,7 @@ module GrdaWarehouse::Tasks
       (client_ids - already_available).each do |id|
         client = GrdaWarehouse::Hud::Client.find id
         GrdaWarehouse::CasAvailability.create(
-          client_id: id, 
+          client_id: id,
           available_at: available_at,
           part_of_a_family: client.family_member,
           age_at_available_at: client.age,
@@ -122,7 +122,7 @@ module GrdaWarehouse::Tasks
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :cohort_ids_for_cas,
-        assessment_score: :score_for_rrh_assessment,
+        assessment_score: :assessment_score_for_cas,
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
@@ -138,6 +138,7 @@ module GrdaWarehouse::Tasks
         requires_elevator_access: :requires_elevator_access,
         neighborhood_interests: :neighborhood_ids_for_cas,
         interested_in_set_asides: :interested_in_set_asides,
+        default_shelter_agency_contacts: :default_shelter_agency_contacts,
       }
     end
   end

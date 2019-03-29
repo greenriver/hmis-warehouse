@@ -459,12 +459,11 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it "chooses the first and last name of the highest quality record, and treats nil like 99" do
       source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
+      source_2.update!({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
       client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
         map do |row|
           Hash[@cleanup.client_columns.keys.zip(row)]
         end
-
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
