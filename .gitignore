@@ -22,6 +22,8 @@
 !/.ruby-version
 !/.ruby-gemset
 !/.gitignore
+!/.overcommit.yml
+!/.rubocop.yml
 
 # Ignore operational files
 package.box
