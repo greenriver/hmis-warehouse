@@ -1,0 +1,26 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "Eligibility Determination"
+- content_for :title, title
+%h1= content_for :title
+
+.well.mt-4
+  %p
+    The following Eligibility Benefit Inquiry file (720) was generated on
+    %strong #{@report.created_at.strftime('%b %e, %Y at %I:%M%P')}.
+  = link_to "#{warehouse_reports_health_eligibility_url(@report)}.txt", class: 'btn btn-secondary btn-sm', target: '_blank' do
+    %i.icon-download2
+    Download File
+.well.mt-4
+  %p After uploading the file to #{@sender.receiver_name}, return here and upload the resulting Eligibility Benefit Response file (271).
+  = simple_form_for :result, url: warehouse_reports_health_eligibility_path(@report), method: :put do |f|
+    = f.input :content, as: :file, label: false
+    .mt-2
+      = f.button :submit, "Upload Eligibility Benefit Response (271) from #{@sender.receiver_name}", disabled: true, id: 'upload_button', class: 'btn btn-secondary btn-sm ml-2'
+
+= render 'reports'
+
+- content_for :page_js do
+  :javascript
+    $('#result_content').on('change', function() {
+      $('#upload_button').prop('disabled', !$(this).val());
+    });

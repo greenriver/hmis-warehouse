@@ -7,7 +7,18 @@ module Health
   class EligibilityInquiry < HealthBase
     before_create :assign_control_numbers
 
-    def build_inquiry_file(service_date = Time.now.utc)
+    scope :pending, -> () do
+      where(result: nil)
+    end
+
+    def build_inquiry_file
+      self.inquiry ||= begin
+        build_inquiry_edi
+        convert_to_text
+      end
+    end
+
+    private def build_inquiry_edi
       config = Stupidedi::Config.hipaa
       b = Stupidedi::Builder::BuilderDsl.build(config)
       hl = 0
@@ -58,7 +69,7 @@ module Health
       @edi_builder = b
     end
 
-    def convert_to_text
+    private def convert_to_text
       file = ''
       @edi_builder.machine.zipper.tap do |z|
         separators = Stupidedi::Reader::Separators.build(
@@ -73,7 +84,7 @@ module Health
       return file
     end
 
-    def subscribers
+    private def subscribers
       Health::Patient.all
     end
 
@@ -81,7 +92,7 @@ module Health
       Rails.env.production? ? 'P' : 'T'
     end
 
-    def assign_control_numbers
+    private def assign_control_numbers
       self.isa_control_number = self.class.next_isa_control_number
       self.group_control_number = self.class.next_group_control_number
       self.transaction_control_number = self.class.next_transaction_control_number

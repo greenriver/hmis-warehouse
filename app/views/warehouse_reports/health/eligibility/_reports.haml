@@ -1,0 +1,16 @@
+- if @reports.any?
+  %p= paginate @reports
+  %table.table.table-condensed
+    %thead
+      %tr
+        %th Eligibility Request
+        %th Created On
+        %th Acknowledged
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td= link_to "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt"
+          %td= report.created_at
+          %td
+            -if report.result
+              %i.icon-checkmark
