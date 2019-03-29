@@ -260,10 +260,15 @@ module GrdaWarehouse
         ::CohortColumns::ActiveInCasMatch.new(),
         ::CohortColumns::SchoolDistrict.new(),
         ::CohortColumns::AssessmentScore.new(),
+        ::CohortColumns::VispdatScoreManual.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),
         ::CohortColumns::UserString4.new(),
+        ::CohortColumns::UserString5.new(),
+        ::CohortColumns::UserString6.new(),
+        ::CohortColumns::UserString7.new(),
+        ::CohortColumns::UserString8.new(),
         ::CohortColumns::UserBoolean1.new(),
         ::CohortColumns::UserBoolean2.new(),
         ::CohortColumns::UserBoolean3.new(),
@@ -276,6 +281,10 @@ module GrdaWarehouse
         ::CohortColumns::UserDate2.new(),
         ::CohortColumns::UserDate3.new(),
         ::CohortColumns::UserDate4.new(),
+        ::CohortColumns::UserNumeric1.new(),
+        ::CohortColumns::UserNumeric2.new(),
+        ::CohortColumns::UserNumeric3.new(),
+        ::CohortColumns::UserNumeric4.new(),
       ]
     end
 
