@@ -26,7 +26,6 @@ script:
   - bundle exec brakeman -q --ensure-latest
   - bundle exec bundle-audit check --update
   - bundle exec rspec
-  
 
 addons:
   postgresql: "9.5"
