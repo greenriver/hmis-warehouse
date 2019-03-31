@@ -1,0 +1,66 @@
+AllCops:
+  Include:
+    - '**/Rakefile'
+    - '**/config.ru'
+    - 'lib/tasks/**/*'
+    - 'app/**/*'
+  Exclude:
+    - 'db/**/*'
+    - 'config/**/*'
+    - 'script/**/*'
+    - 'bin/{rails,rake}'
+    - 'app/assets/**/*'
+
+# We don't care about method length, since we check method cyclomatic
+# complexity.
+Metrics/MethodLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/AbcSize:
+  # The ABC size is a calculated magnitude, so this number can be a Fixnum or
+  # a Float.
+  Max: 35
+
+# Trailing commas make for clearer diffs because the last line won't appear
+# to have been changed, as it would if it lacked a comma and had one added.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Cop supports --auto-correct.
+# Configuration parameters: PreferredDelimiters.
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    # Using `[]` for string arrays instead of `()`, since normal arrays are
+    # indicated with `[]` not `()`.
+    '%w': '[]'
+    '%W': '[]'
+
+Style/AndOr:
+  Enabled: true
+
+Style/ClassAndModuleChildren:
+  Exclude:
+    - 'app/controllers/**/*'
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: false

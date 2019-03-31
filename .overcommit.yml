@@ -15,15 +15,27 @@
 #
 # Uncomment the following lines to make the configuration take effect.
 
-#PreCommit:
-#  RuboCop:
-#    enabled: true
-#    on_warn: fail # Treat all warnings as failures
-#
-#  TrailingWhitespace:
-#    enabled: true
-#    exclude:
-#      - '**/db/structure.sql' # Ignore trailing whitespace in generated files
+PreCommit:
+  BundleCheck:
+    enabled: true
+  BundleAudit:
+    enabled: true
+  RuboCop:
+    enabled: false
+    on_warn: fail # Treat all warnings as failures
+  # CoffeeLint:
+  #   enabled: true
+  #   required_executable: 'npm'
+  #   command: ['npm', 'run', 'coffeelint']
+
+
+  TrailingWhitespace:
+    enabled: false
+    exclude:
+      - 'db/schema.rb' # Ignore trailing whitespace in generated files
+      - 'db/**/schema.rb'
+      - 'db/structure.rb'
+      - 'db/**/structure.rb'
 #
 #PostCheckout:
 #  ALL: # Special hook name that customizes all hooks of this type
