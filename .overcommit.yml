@@ -16,6 +16,8 @@
 # Uncomment the following lines to make the configuration take effect.
 
 PreCommit:
+  TextWidth:
+    enabled: false
   BundleCheck:
     enabled: true
   BundleAudit:
