@@ -1934,7 +1934,7 @@ module GrdaWarehouse::Hud
     def most_recent_vispdat_score
       vispdats.completed.scores.first&.score ||
         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
-          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max || 0
+          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max
     end
 
     def most_recent_vispdat_length_homeless_in_days
@@ -1952,7 +1952,8 @@ module GrdaWarehouse::Hud
     end
 
     def calculate_vispdat_priority_score
-      vispdat_score = most_recent_vispdat_score || 0
+      vispdat_score = most_recent_vispdat_score
+      return nil unless vispdat_score.present?
       if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
         prioritization_bump = 0
         if veteran?

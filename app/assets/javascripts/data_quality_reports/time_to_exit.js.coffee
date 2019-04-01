@@ -6,7 +6,7 @@ class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
     @chart = bb.generate
       bindto: @chart_selector
       size:
-        height: 250
+        height: 350
       data:
         json: @data['data'],
         type: "bar",
