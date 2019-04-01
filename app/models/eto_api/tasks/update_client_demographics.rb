@@ -412,7 +412,9 @@ module EtoApi::Tasks
     # updated in the past 3 days
     private def candidate_scope type:
       return GrdaWarehouse::ApiClientDataSourceId.joins(:client).none unless type.present?
-      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client, :hmis_client)
+      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client).
+        includes(:hmis_client).
+        references(:hmis_client)
       if @client_ids.any?
         # Force a specific candidate set
         scope.where(client_id: @client_ids, data_source_id: @data_source_id)
