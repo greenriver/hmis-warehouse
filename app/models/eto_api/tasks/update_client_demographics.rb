@@ -90,7 +90,7 @@ module EtoApi::Tasks
         candidate_ids = candidate_scope(type: :demographic).pluck(:id)
         candidate_ids.each_slice(10) do |ids|
           clients = candidate_scope(type: :demographic).
-            where(client_id: ids)
+            where(id: ids)
           clients.each do |client|
             begin
               found = fetch_demographics(client)
@@ -412,7 +412,7 @@ module EtoApi::Tasks
     # updated in the past 3 days
     private def candidate_scope type:
       return GrdaWarehouse::ApiClientDataSourceId.joins(:client).none unless type.present?
-      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
+      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client, :hmis_client)
       if @client_ids.any?
         # Force a specific candidate set
         scope.where(client_id: @client_ids, data_source_id: @data_source_id)
