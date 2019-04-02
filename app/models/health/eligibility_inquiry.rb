@@ -27,8 +27,6 @@ module Health
       sender_id = "#{sender.pid}#{sender.sl}"
       application_id = id&.to_s
 
-      company_id = 'OPENPATH00'
-
       b.ISA '00', b.blank, '00', b.blank, 'ZZ', sender_id, 'ZZ', sender.receiver_id, created_at, created_at, '^', '00501', isa_control_number, '0', interchange_usage_indicator, '>'
       b.GS 'HS', sender_id, sender.receiver_id, created_at, created_at.strftime('%H%M'), group_control_number, 'X', '005010X279A1'
       b.ST '270', transaction_control_number, '005010X279A1'
@@ -46,8 +44,8 @@ module Health
         # Subscriber information
         hl += 1
         b.HL hl, '2', '22', '0'
-        # Use the subscriber rails id as the trace record number
-        b.TRN '1', subscriber.id, company_id
+        # Use the subscriber's medicaid id as the trace record number
+        b.TRN '1', subscriber.medicaid_id, sender.trace_id
         b.NM1 'IL', '1', subscriber.last_name, subscriber.first_name, subscriber.middle_name, b.blank, b.blank, 'MI', subscriber.medicaid_id
         b.DMG 'D8', subscriber.birthdate&.strftime('%Y%m%d'), subscriber.gender
         b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
