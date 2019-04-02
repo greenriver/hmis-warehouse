@@ -9,4 +9,13 @@ FactoryGirl.define do
     project { GrdaWarehouse::Hud::Project.first }
   end
 
+  factory :dq_project_group, class: 'GrdaWarehouse::ProjectGroup' do
+    name 'project group'
+    projects { GrdaWarehouse::Hud::Project.all }
+  end
+
+  trait :project_group do
+    association :project_group, factory: :dq_project_group
+  end
+
 end
