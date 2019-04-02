@@ -40,7 +40,7 @@ module Reporting
 
     scope :ph_destinations, -> do
       where(destination: HUD.permanent_destinations)
-    end   
+    end
 
     # Pre-placement
     scope :enrolled_pre_placement, ->(start_date:, end_date:) do
@@ -182,6 +182,7 @@ module Reporting
         en[:race] = cache_client.race_string(scope_limit: GrdaWarehouse::Hud::Client.where(id: client_ids), destination_id: en[:client_id])
         en
       end
+      return unless data.present?
       headers = data.first.keys
 
       self.transaction do
@@ -236,7 +237,7 @@ module Reporting
     # fetch residential RRH data
     # fetch all enrollments for associated pre-placement enrollments
     # comparing by client_id, loop over rrh data and add pre-placement data for record immediately preceding
-    # 
+    #
     def two_project_data
       @two_project_data ||= begin
         processed_service_enrollments = Set.new
@@ -359,7 +360,7 @@ module Reporting
 
     def affiliation_columns
       @affiliation_columns ||= {
-        p_id: p_t[:id].to_sql, 
+        p_id: p_t[:id].to_sql,
         res_id: :ResProjectID,
         ser_id: :ProjectID,
         data_source_id: :data_source_id,
