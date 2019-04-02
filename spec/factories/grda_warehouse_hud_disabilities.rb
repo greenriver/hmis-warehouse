@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_disability, class: 'GrdaWarehouse::Hud::Disability' do
     sequence(:DisabilitiesID, 5)
     sequence(:EnrollmentID, 1)

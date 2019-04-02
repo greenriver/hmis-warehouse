@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     sequence(:ProjectID, 100)
     sequence(:EnrollmentID, 1)
@@ -29,7 +29,7 @@ FactoryGirl.define do
     # DateToStreetESSH
     # ContinuouslyHomelessOneYear
     # TimesHomelessPastThreeYears
-    MonthsHomelessPastThreeYears 4
+    MonthsHomelessPastThreeYears { 4 }
     # MonthsHomelessThisTime
     # StatusDocumented
     # HousingStatus

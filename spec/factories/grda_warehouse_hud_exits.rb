@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_exit, class: 'GrdaWarehouse::Hud::Exit' do
     sequence(:ExitID, 7)
     sequence(:EnrollmentID, 1)

@@ -1,8 +1,8 @@
-FactoryGirl.define do
-  factory :data_quality_report_base, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree' do
+FactoryBot.define do
+  factory :data_quality_report_version_three, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree' do
     completed_at { Time.now }
-    start { Date.parse('2015-01-01') }
-    add_attribute(:end) { Date.today }
+    start { '2016-01-01'.to_date }
+    add_attribute(:end) { '2016-12-31'.to_date }
   end
 
   trait :single_project do
@@ -10,7 +10,7 @@ FactoryGirl.define do
   end
 
   factory :dq_project_group, class: 'GrdaWarehouse::ProjectGroup' do
-    name 'project group'
+    name { 'project group' }
     projects { GrdaWarehouse::Hud::Project.all }
   end
 
