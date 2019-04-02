@@ -52,8 +52,12 @@ module Health::Tasks
               patient_referral.save!
             end
           end
-          summary_path = update_summary_receipt(local_path, headers.count, file.last_row - 1)
-          upload_summary_reciept(summary_path, config)
+          begin
+            summary_path = update_summary_receipt(local_path, headers.count, file.last_row - 1)
+            upload_summary_reciept(summary_path, config)
+          rescue Zip::Error => e
+            puts "Unable to create summary file: #{e.message}"
+          end
           Health::PatientReferralImport.create(file_name: file_path)
         end
       end
