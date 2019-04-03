@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190206194409) do
+ActiveRecord::Schema.define(version: 20190402142851) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -279,7 +279,7 @@ ActiveRecord::Schema.define(version: 20190206194409) do
     t.string   "key_contact_last_name"
     t.string   "key_contact_email"
     t.string   "key_contact_phone"
-    t.boolean  "sender",                 default: false, null: false
+    t.boolean  "sender",                            default: false, null: false
     t.string   "receiver_name"
     t.string   "receiver_id"
     t.datetime "created_at"
@@ -287,11 +287,23 @@ ActiveRecord::Schema.define(version: 20190206194409) do
     t.datetime "deleted_at"
     t.string   "npi"
     t.string   "ein"
+    t.string   "trace_id",               limit: 10
   end
 
   create_table "data_sources", force: :cascade do |t|
     t.string   "name"
     t.datetime "deleted_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "eligibility_inquiries", force: :cascade do |t|
+    t.date     "service_date",               null: false
+    t.string   "inquiry"
+    t.string   "result"
+    t.integer  "isa_control_number",         null: false
+    t.integer  "group_control_number",       null: false
+    t.integer  "transaction_control_number", null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -645,14 +657,14 @@ ActiveRecord::Schema.define(version: 20190206194409) do
     t.date     "birthdate"
     t.string   "ssn"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                       null: false
-    t.datetime "updated_at",                                       null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false, null: false
-    t.integer  "rejected_reason",                  default: 0,     null: false
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date"
+    t.datetime "effective_date",                   default: "now()"
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"

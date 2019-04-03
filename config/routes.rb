@@ -316,6 +316,7 @@ Rails.application.routes.draw do
         end
       end
       resources :premium_payments, only: [:index, :show, :create, :destroy]
+      resources :eligibility
     end
   end
 
