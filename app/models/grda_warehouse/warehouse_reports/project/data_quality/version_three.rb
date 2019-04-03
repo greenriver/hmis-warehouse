@@ -1765,6 +1765,42 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def calculate_missing_universal_elements
+      # NB: requirements vary by element
+      # All Clients
+      #   FirstName
+      #   LastName
+      #   SSN
+      #   DOB
+      #   Race
+      #   Ethnicity
+      #   Gender
+      #   Disabling Condition
+      #   Physical Disability
+      #   Developmental Disability
+      #   Chronic Health Condition
+      #   HIV/AIDS
+      #   Mental Health
+      #   Substance Use
+      #
+      # Adults Only
+      #   VeteranStatus
+      #
+      # Heads of Household and Adults
+      #   Residence Prior to Project Entry
+      #   Housing Status (at entry)
+      #   Income and Sources (at entry)
+      #   Non-Cash Benefits (at entry)
+      #   Non-Cash Benefits (at exit)
+      #   Domestic Violence
+      #
+      # Leavers
+      #   Destination
+      #
+      # Leavers who are also Heads of Households or Adults
+      #   Income and Sources (at exit)
+      #
+      # Non-DHCD programs
+
       @refused_ssn_client_ids = Set.new
       @refused_dob_client_ids = Set.new
 

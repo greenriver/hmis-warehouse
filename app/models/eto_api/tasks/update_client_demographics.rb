@@ -29,7 +29,6 @@ module EtoApi::Tasks
 
     # optionally pass an array of client source ids
     def initialize client_ids:[], batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false
-      @clients = []
       @client_ids = client_ids || []
       @trace = trace
       @batch_time = batch_time
@@ -76,7 +75,7 @@ module EtoApi::Tasks
 
         # This number may be larger than the original client_id list since each client may be
         # in more than one site
-        cs = load_candidates(type: :demographic)
+        cs = candidate_scope(type: :demographic)
 
         current_hmis_clients = GrdaWarehouse::HmisClient.count
         current_hmis_forms = GrdaWarehouse::HmisForm.count
@@ -88,8 +87,10 @@ module EtoApi::Tasks
         end
         Rails.logger.info msg if msg.present?
         notifier.ping msg if send_notifications && msg.present?
-        @clients = load_candidates(type: :demographic)
-        @clients.find_in_batches(batch_size: 10) do |clients|
+        candidate_ids = candidate_scope(type: :demographic).pluck(:id)
+        candidate_ids.each_slice(10) do |ids|
+          clients = candidate_scope(type: :demographic).
+            where(id: ids)
           clients.each do |client|
             begin
               found = fetch_demographics(client)
@@ -118,10 +119,6 @@ module EtoApi::Tasks
             end
           end
         end
-        # @clients = load_candidates(type: :assessment)
-        # @clients.each do |client|
-        #   fetch_assessments(client)
-        # end
       end
       return true
     end
@@ -413,9 +410,11 @@ module EtoApi::Tasks
     # OR
     # any client who we've created a record in ApiClientDataSourceId for who hasn't been
     # updated in the past 3 days
-    private def load_candidates type:
-      return [] unless type.present?
-      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
+    private def candidate_scope type:
+      return GrdaWarehouse::ApiClientDataSourceId.joins(:client).none unless type.present?
+      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client).
+        includes(:hmis_client).
+        references(:hmis_client)
       if @client_ids.any?
         # Force a specific candidate set
         scope.where(client_id: @client_ids, data_source_id: @data_source_id)
