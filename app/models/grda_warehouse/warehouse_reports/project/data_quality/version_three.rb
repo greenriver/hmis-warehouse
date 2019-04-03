@@ -681,6 +681,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
+        # FIXME: This should use a set for total_clients and count at the end, to prevent duplicate counts for multi project runs
         totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
@@ -1908,7 +1909,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
       answers = {
-        total_clients: clients.size,
+        total_clients: clients.map{ |m| m[:destination_id] }.uniq.size,
         total_active_clients: active_clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
