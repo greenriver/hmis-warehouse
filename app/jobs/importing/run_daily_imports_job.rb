@@ -13,13 +13,13 @@ module Importing
     def advisory_lock_key
       "run_daily_imports_job"
     end
-    
+
     def perform
       # refuse to run if there's already a nightly process running
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Nightly process already running EXITING!!!'
         logger.warn msg
-        @notifier.ping() if @send_notifications
+        @notifier.ping(msg) if @send_notifications
         return
       end
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
@@ -155,8 +155,8 @@ module Importing
 
         Rails.cache.clear
         warm_cache
-        
-        # take snapshots of client enrollments 
+
+        # take snapshots of client enrollments
         GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
         # Generate some duplicates if we need to, but not too many

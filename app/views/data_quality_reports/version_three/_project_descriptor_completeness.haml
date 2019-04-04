@@ -26,12 +26,12 @@
     .col-sm-3
       %h4.text-center Bed Inventory
       %p.text-center= "#{@report.report['bed_utilization_totals']['counts']['capacity']} beds"
-
-  %h4 Housing Type
-  %p= @report.report['housing_type']
-  %h4
-    - if @report.projects.count > 1
-      Project Types
-    - else
-      Project Type
-  %p= @report.report['coc_program_component']
+  .text-center
+    %h4 Housing Type
+    %p= @report.report['housing_type']
+    %h4
+      - if @report.projects.count > 1
+        Project Types
+      - else
+        Project Type
+    %p= @report.report['coc_program_component']

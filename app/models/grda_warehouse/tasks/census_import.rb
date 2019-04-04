@@ -2,7 +2,7 @@ module GrdaWarehouse::Tasks
   class CensusImport
     include TsqlImport
     include ArelHelper
-    
+
     def initialize replace_all = nil
       if replace_all.present?
         @replace_all = true
@@ -15,6 +15,8 @@ module GrdaWarehouse::Tasks
       if @replace_all
         Rails.logger.info 'Replacing all GrdaWarehouse::Census census records'
       end
+
+      return unless GrdaWarehouse::ServiceHistoryEnrollment.exists?
 
       # Determine the appropriate date range
       if @replace_all

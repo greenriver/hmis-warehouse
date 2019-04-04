@@ -8,11 +8,11 @@
 			%hr
 			%p.text-center Average Daily Households
 			%h3.text-center
-				= "#{@report.report['unit_utilization_totals']['counts']['average_daily']} households"
+				= "#{@report.report['unit_utilization_totals']['counts']['average_daily']&.round} households"
 			%hr
 			%p.text-center Average Unit Utilization
 			%h3.text-center
-				= "#{@report.report['unit_utilization_totals']['counts']['average_daily_percentage']}%"
+				= "#{@report.report['unit_utilization_totals']['counts']['average_daily_percentage']&.round}%"
 
 		.col-sm-9
 			%h3.text-center Nightly Household Census

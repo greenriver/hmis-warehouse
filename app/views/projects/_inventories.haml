@@ -13,6 +13,7 @@
         %th Veteran Bed Inventory
         %th Youth Bed Inventory
         %th Youth Age Group
+        %th CoC Code
 
     %tbody
       - inventories.all.each do |inventory|
@@ -29,5 +30,6 @@
           %td= inventory.VetBedInventory
           %td= inventory.YouthBedInventory
           %td= HUD.youth_age_group inventory.YouthAgeGroup
+          %td= inventory.CoCCode
 - else
   %p.text-center No inventory
