@@ -1669,7 +1669,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           entry_total += timeliness
           entry_count += 1
           entry_timeliness_support[enrollment[:project_name]] ||= []
-          entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          entry_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
       exit_timeliness = {}
@@ -1689,7 +1689,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           exit_total += timeliness
           exit_count += 1
           exit_timeliness_support[enrollment[:project_name]] ||= []
-          exit_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          exit_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
 
@@ -1715,7 +1715,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_entry_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Entry Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Date Recorded'],
             counts: data,
           }
         ]
@@ -1725,7 +1725,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_exit_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Exit Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date', 'Date Recorded'],
             counts: data,
           }
         ]
