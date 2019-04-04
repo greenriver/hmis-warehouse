@@ -360,7 +360,7 @@ module Exporters::HmisSixOneOne
       export.ExportDate = Date.today
       export.ExportStartDate = @range.start
       export.ExportEndDate = @range.end
-      export.SoftwareName = 'Boston HMIS Warehouse'
+      export.SoftwareName = _('OpenPath HMIS Warehouse')
       export.SoftwareVersion = 1
       export.ExportPeriodType = @period_type
       export.ExportDirective = @directive
