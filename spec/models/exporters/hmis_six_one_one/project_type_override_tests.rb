@@ -32,11 +32,11 @@ RSpec.shared_context "project type override tests", shared_context: :metadata do
         expect(projects.first.ProjectType).not_to eq projects.first.act_as_project_type
       end
       it 'project type override is a type of PH' do
-        expect([3,9, 10, 13]).to include(projects.first.act_as_project_type)
+        expect(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).to include(projects.first.act_as_project_type)
       end
       it 'MoveInDate is set in the enrollment' do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
-        expect(csv.first['MoveInDate']).to exist
+        expect(csv.first['MoveInDate']).not_to be_empty
       end
       it 'MoveInDate is set in the enrollment' do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
