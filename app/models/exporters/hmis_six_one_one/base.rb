@@ -23,7 +23,7 @@ module Exporters::HmisSixOneOne
       faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')
-      @file_path = "#{file_path}/#{Time.now.to_i}"
+      @file_path = "#{file_path}/#{Time.now.to_f}"
       @logger = logger
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
