@@ -127,7 +127,7 @@
 }
 
 @mixin icon {
-  font-family: 'icomoon';
+  font-family: 'icons';
 }
 
 @mixin vertical-align($position: relative) {
@@ -274,7 +274,7 @@
   }
   &::after {
     $icon: map-get($icons, checkmark);
-    font-family: 'icomoon';
+    font-family: 'icons';
     content: $icon;
     color: $gray-020;
   }

@@ -66,3 +66,7 @@ $icons: (
   list2: '\e9bb',
   list: '\e9ba',
 );
+
+@function get-icon-code($name) {
+  @return map-get($icons, "#{$name}");
+}

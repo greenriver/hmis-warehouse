@@ -1,20 +1,20 @@
 @import '../_settings/icons';
 
 @font-face {
-    font-family: 'icomoon';
-    src:    font-url('icomoon.eot?yti3ye');
-    src:    font-url('icomoon.eot?yti3ye#iefix') format('embedded-opentype'),
-        font-url('icomoon.woff2?yti3ye') format('woff2'),
-        font-url('icomoon.ttf?yti3ye') format('truetype'),
-        font-url('icomoon.woff?yti3ye') format('woff'),
-        font-url('icomoon.svg?yti3ye#icomoon') format('svg');
+    font-family: 'icons';
+    src:    font-url('icons.eot?yti3ye');
+    src:    font-url('icons.eot?yti3ye#iefix') format('embedded-opentype'),
+        font-url('icons.woff2?yti3ye') format('woff2'),
+        font-url('icons.ttf?yti3ye') format('truetype'),
+        font-url('icons.woff?yti3ye') format('woff'),
+        font-url('icons.svg?yti3ye#icons') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 [class^="icon-"], [class*=" icon-"] {
     /* use !important to prevent issues with browser extensions that change fonts */
-    font-family: 'icomoon' !important;
+    font-family: 'icons' !important;
     speak: none;
     font-style: normal;
     font-weight: normal;
@@ -42,8 +42,4 @@
       content: $char-code;
     }
   }
-}
-
-@function get-icon-code($name) {
-  @return map-get($icons, "#{$name}");
 }
