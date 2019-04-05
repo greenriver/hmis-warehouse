@@ -4,13 +4,13 @@ RSpec.shared_context "project type override tests", shared_context: :metadata do
       exporter.create_export_directory()
       exporter.set_time_format()
       exporter.setup_export()
-      # The enrollments and project sequences seem to drift.
-      # This ensures we'll have one to test
-      enrollments.first.update(ProjectID: projects.first.ProjectID)
     end
     after(:each) do
       exporter.remove_export_files()
       exporter.reset_time_format()
+      # The enrollments and project sequences seem to drift.
+      # This ensures we'll have one to test
+      FactoryGirl.reload
     end
     describe 'when exporting enrollments' do
       before(:each) do
