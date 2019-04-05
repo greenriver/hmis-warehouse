@@ -26,6 +26,10 @@ label {
   font-weight: normal;
 }
 
+.label-info {
+  background: $brand-info;
+}
+
 .label-danger {
   background: $brand-danger-l;
 }

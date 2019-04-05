@@ -37,6 +37,7 @@
 .o-page__action .btn {
   width: 100%;
   text-align: center;
+  margin-left: space(2);
   @include media-breakpoint-up(md) {
     width: auto;
   }

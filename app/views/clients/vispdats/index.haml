@@ -1,8 +1,8 @@
 - title = "VISPDATs"
 - content_for :title, title
+.o-page
+  = render 'clients/breadcrumbs'
 
-= render 'clients/breadcrumbs'
-
-= render 'window/clients/aliases'
-= render 'clients/tab_navigation', current: client_vispdats_path(client_id: @client.id)
-= render 'list'
+  = render 'window/clients/aliases'
+  = render 'clients/tab_navigation', current: client_vispdats_path(client_id: @client.id)
+  = render 'list'
