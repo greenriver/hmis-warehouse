@@ -81,7 +81,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         it 'has the appropriate number of missing dob' do
           # Excludes refused
           count = report.report['missing_dob']
-          expect(count).to eq 35
+          expect(count).to eq 33
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::Hud::Client.where(
@@ -95,6 +95,19 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               where.not(DOBDataQuality: 9).pluck(:id)
 
           expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of refused dob' do
+          count = report.report['refused_dob']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              DOBDataQuality: 9
+          ).
+              pluck(:id)
+          expect(count).to eq refused.uniq.count
         end
 
         it 'has the appropriate number of missing ssn' do
