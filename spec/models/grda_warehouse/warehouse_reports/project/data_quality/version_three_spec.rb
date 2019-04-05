@@ -302,7 +302,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing living situation' do
           count = report.report['missing_prior_living_situation']
-          expect(count).to eq 88
+          expect(count).to eq 87
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -310,6 +310,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               where(
                   client_id: client_ids,
                   Enrollment: {LivingSituation: [99, nil, '']}
+              ).
+              pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with refused living situation' do
+          count = report.report['refused_prior_living_situation']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+              joins(enrollment: :client).
+              where(
+                  client_id: client_ids,
+                  Enrollment: {LivingSituation: 9}
               ).
               pluck(:client_id)
           expect(count).to eq missing.uniq.count
