@@ -1,9 +1,9 @@
 require 'rails_helper'
-require "models/exporters/hmis_six_one_one/project_setup.rb"
-require "models/exporters/hmis_six_one_one/single_project_tests.rb"
+require "models/exporters/hmis_six_one_one/project_type_override_setup.rb"
+require "models/exporters/hmis_six_one_one/project_type_override_tests.rb"
 
 RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
-  include_context "project setup"
+  include_context "project type override setup"
 
   let(:exporter) {
     Exporters::HmisSixOneOne::Base.new(
@@ -16,6 +16,5 @@ RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
     )
   }
 
-  include_context "single-project tests"
-
+  include_context "project type override tests"
 end

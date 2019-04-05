@@ -3,5 +3,6 @@ FactoryGirl.define do
     sequence(:ProjectName, 100) {|n| "Project #{n}"}
     sequence(:ProjectID, 100)
     sequence(:OrganizationID, 200)
+    ProjectType { ::HUD.project_types.keys.sample }
   end
 end

@@ -19,6 +19,7 @@ RSpec.shared_context "multi-enrollment tests", shared_context: :metadata do
     after(:each) do
       exporter.remove_export_files()
       exporter.reset_time_format()
+      FactoryGirl.reload
     end
     describe 'when exporting enrollments' do
       before(:each) do

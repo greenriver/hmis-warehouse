@@ -8,6 +8,7 @@ RSpec.shared_context "single-project tests", shared_context: :metadata do
     after(:each) do
       exporter.remove_export_files()
       exporter.reset_time_format()
+      FactoryGirl.reload
     end
     describe 'when exporting projects' do
       before(:each) do
@@ -56,7 +57,7 @@ RSpec.shared_context "single-project tests", shared_context: :metadata do
             expect(csv.first['ProjectID']).to eq projects.first.id.to_s
           end
         end
-        
+
       end
     end
   end
