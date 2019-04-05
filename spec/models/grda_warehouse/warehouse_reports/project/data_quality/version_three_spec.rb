@@ -375,6 +375,20 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               pluck(:client_id)
           expect(count).to eq missing.uniq.count
         end
+
+        it 'has the appropriate number of clients with refused destination at exit' do
+          count = report.report['refused_destination']
+          expect(count).to eq 1
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+              where(
+                  client_id: client_ids,
+                  destination: 9
+              ).
+              pluck(:client_id)
+          expect(count).to eq refused.uniq.count
+        end
       end
     end
 
