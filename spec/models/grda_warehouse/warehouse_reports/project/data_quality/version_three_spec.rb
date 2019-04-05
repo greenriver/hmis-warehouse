@@ -113,7 +113,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         it 'has the appropriate number of missing ssn' do
           # Excludes refused
           count = report.report['missing_ssn']
-          expect(count).to eq 69
+          expect(count).to eq 67
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::Hud::Client.where(
@@ -128,6 +128,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           expect(count).to eq missing.uniq.count
         end
+
+
+        it 'has the appropriate number of refused ssn' do
+          count = report.report['refused_ssn']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              SSNDataQuality: 9
+          ).
+              pluck(:id)
+          expect(count).to eq refused.uniq.count
+        end
+
 
         it 'has the appropriate number of clients with missing race' do
           count = report.report['missing_race']
