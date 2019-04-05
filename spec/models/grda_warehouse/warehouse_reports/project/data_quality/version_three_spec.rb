@@ -272,7 +272,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing disabling condition' do
           count = report.report['missing_disabling_condition']
-          expect(count).to eq 88
+          expect(count).to eq 87
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -282,6 +282,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               Enrollment: {DisablingCondition: [99, nil, '']}
             ).
             pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with refused disabling condition' do
+          count = report.report['refused_disabling_condition']
+          expect(count).to eq 1
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+              joins(enrollment: :client).
+              where(
+                  client_id: client_ids,
+                  Enrollment: {DisablingCondition: 9}
+              ).
+              pluck(:client_id)
           expect(count).to eq missing.uniq.count
         end
 
