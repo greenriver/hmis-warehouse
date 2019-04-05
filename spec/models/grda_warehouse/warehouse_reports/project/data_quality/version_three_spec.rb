@@ -207,7 +207,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing gender' do
           count = report.report['missing_gender']
-          expect(count).to eq 3
+          expect(count).to eq 5
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::Hud::Client.where(
@@ -216,6 +216,19 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           ).
           pluck(:id)
           expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of refused gender' do
+          count = report.report['refused_gender']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              Gender: 9
+          ).
+              pluck(:id)
+          expect(count).to eq refused.uniq.count
         end
 
         it 'has the appropriate number of clients with missing veteran status' do
