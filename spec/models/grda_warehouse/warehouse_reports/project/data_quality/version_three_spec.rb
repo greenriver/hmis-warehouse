@@ -17,7 +17,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
       it 'loads clients with enrollments open during the report range' do
         open_enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range).where(ProjectID: report.project.ProjectID).count
-        expect(report.clients.count).to eq 92
+        expect(report.clients.count).to eq 90
         expect(report.clients.count).to eq open_enrollments
       end
 
@@ -25,7 +25,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         clients_ids = report.clients.map{|client| client[:id]}.uniq
         project_clients = report.clients_for_project(project.id).map{|client| client[:id]}.uniq
 
-        expect(project_clients.count).to eq 90
+        expect(project_clients.count).to eq 88
         expect(clients_ids).to match_array project_clients
       end
 
@@ -39,7 +39,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['total_clients']
 
           open_enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range).where(ProjectID: report.project.ProjectID).distinct.select(:PersonalID).count
-          expect(count).to eq 90
+          expect(count).to eq 88
           expect(count).to eq open_enrollments
         end
 
@@ -86,7 +86,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         it 'has the appropriate number of missing ssn' do
           # Excludes refused
           count = report.report['missing_ssn']
-          expect(count).to eq 70
+          expect(count).to eq 69
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::Hud::Client.where(
@@ -174,7 +174,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing disabling condition' do
           count = report.report['missing_disabling_condition']
-          expect(count).to eq 90
+          expect(count).to eq 88
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -189,7 +189,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing living situation' do
           count = report.report['missing_prior_living_situation']
-          expect(count).to eq 90
+          expect(count).to eq 88
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -258,7 +258,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
       end
 
       it 'loads all clients' do
-        expect(report.clients.map{|m| m[:id] }.uniq.count).to eq 112
+        expect(report.clients.map{|m| m[:id] }.uniq.count).to eq 110
       end
     end
   end
