@@ -62,7 +62,6 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
-gem "select2-rails"
 gem 'font-awesome-sass', '~> 5.4.1'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'

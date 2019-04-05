@@ -1,9 +1,8 @@
 - content_for :title, 'Nightly Census'
 %h1= content_for :title
 = render 'dashboards/tabs', active: 'census'
-.row
+.row.mb-4
   .col-sm-12
-    
     = render partial: 'form'
     .jCharts
       %p.jLoading.text-center Loading...

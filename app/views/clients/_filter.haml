@@ -4,8 +4,8 @@
   - filter_class = 'client__filter'
 
 .dropdown.o-filtration{class: filter_class}
-  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
-    Filter
+  %button.btn.btn-secondary.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup:"true", expanded:"false"}}
+    %span Filter
     %span.caret
 
   .o-filtration__container.dropdown-menu.dropdown-menu-left.options

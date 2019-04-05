@@ -59,7 +59,7 @@ function handleClick(event, container, options) {
   var link = event.currentTarget
   var $link = $(link)
 
-  if (link.tagName.toUpperCase() !== 'A')
+  if (link && link.tagName && link.tagName.toUpperCase() !== 'A')
     throw "$.fn.pjax or $.pjax.click requires an anchor element"
 
   // Middle click, cmd click, and ctrl click should open
@@ -116,7 +116,7 @@ function handleSubmit(event, container, options) {
   var form = event.currentTarget
   var $form = $(form)
 
-  if (form.tagName.toUpperCase() !== 'FORM')
+  if (form && form.tagName && form.tagName.toUpperCase() !== 'FORM')
     throw "$.pjax.submit requires a form element"
 
   var defaults = {
