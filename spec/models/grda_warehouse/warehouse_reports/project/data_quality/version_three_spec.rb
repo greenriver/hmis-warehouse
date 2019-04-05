@@ -45,9 +45,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of missing names' do
           count = report.report['missing_name']
-          expect(count).to eq 37
+           expect(count).to eq 35
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          # A field is missing if the DQ is 99 or empty, even if the field itself contains data
           missing = GrdaWarehouse::Hud::Client.where(
               id: client_ids,
               NameDataQuality: [99, nil, '']
@@ -62,6 +63,19 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           ).
           where.not(NameDataQuality: 9).pluck(:id)
           expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of refused names' do
+          count = report.report['refused_name']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              NameDataQuality: 9
+          ).
+              pluck(:id)
+          expect(count).to eq refused.uniq.count
         end
 
         it 'has the appropriate number of missing dob' do
