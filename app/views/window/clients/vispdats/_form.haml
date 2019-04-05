@@ -18,13 +18,6 @@
           %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
           %button.btn.btn-primary(type='submit') Upload
 
-.vispdat-type-warning
-  - if @vispdat.family?
-    = _('This is a Family VI-SPDAT')
-  - elsif @vispdat.youth?
-    = _('This is a Youth VI-SPDAT')
-  - else
-    = _('This is an Individual VI-SPDAT')
 = simple_form_for @vispdat, url: path, wrapper: (readonly || SimpleForm.default_wrapper), html: { class: 'vispdat-form', data: { url: polymorphic_path(vispdat_path_generator, client_id: @client.id, id: @vispdat.id, format: :js) }}  do |f|
   = f.error_notification
 
@@ -56,7 +49,7 @@
     .row
       .col-sm-4
         - if @vispdat.files.empty?
-          %a.btn.btn-default(data-toggle='modal' data-target='#upload-file')
+          %button.btn.btn-default(data-toggle='modal' data-target='#upload-file')
             %i.icon-upload2
             Upload Signed Consent Form
         - else

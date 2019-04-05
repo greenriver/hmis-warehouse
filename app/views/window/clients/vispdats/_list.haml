@@ -7,7 +7,7 @@
         %button.btn.btn-default.dropdown-toggle(type='button' data-toggle='dropdown')
           New VI-SPDAT
           %span.caret
-        %ul.dropdown-menu
+        %ul.dropdown-menu.dropdown-menu-right
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
               %i.icon-child

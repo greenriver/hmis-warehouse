@@ -13,7 +13,7 @@
 
 - if @client.client_files.any? || @deleted_files.any?
   %ul.nav.nav-tabs
-    %li.nav-item.active
+    %li.nav-item
       %a.nav-link.active{href: '#consent', role: "presentation", data: {toggle: :tab}}
         Consent Forms
     %li.nav-item
@@ -24,7 +24,7 @@
         %a.nav-link{href: '#deleted', role: "presentation", data: {toggle: :tab}}
           Deleted Files
   .tab-content
-    .tab-pane.active#consent
+    .tab-pane#consent
       - if @consent_files.any?
         %section
           %header.o-section-card__header
@@ -60,6 +60,12 @@
     if (url.match('#')) {
       $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
     }
+
+    $('.nav-tabs a').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
+    });
 
     // Change hash for page-reload
     $('.nav-tabs a').on('shown.bs.tab', function (e) {

@@ -3,6 +3,9 @@
 }
 
 .input-group-append button {
-  font-weight: normal;
   background: #d8e7ea;
+}
+
+.input-group-append [class^='icon'] {
+  font-weight: normal;
 }

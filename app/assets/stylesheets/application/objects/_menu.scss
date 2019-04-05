@@ -2,6 +2,7 @@
 
 .o-menu {
   position: relative;
+  min-height: 100%;
   max-width: $nav-side-width;
   flex: 0 0 $nav-side-width;
   align-self: stretch;

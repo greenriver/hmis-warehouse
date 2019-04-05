@@ -1,4 +1,4 @@
-#= require jquery.pjax
+#= require jquery.pjax_old
 #= require namespace
 
 #############
@@ -57,6 +57,6 @@ $ ->
       @title.html("")
       @body.html("")
       @footer.html("")
-      @loading.show()      
+      @loading.show()
 
   (new PjaxModal).listen()
