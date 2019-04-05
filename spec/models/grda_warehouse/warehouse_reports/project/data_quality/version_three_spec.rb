@@ -246,6 +246,22 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           pluck(:id)
           expect(count).to eq missing.uniq.count
         end
+
+        it 'has the appropriate number of refused veteran status' do
+          count = report.report['refused_veteran']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          eighteen = report.start - 18.years
+          c_t = GrdaWarehouse::Hud::Client.arel_table
+          refused = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              VeteranStatus: 9
+          ).
+              where( c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)) ).
+              pluck(:id)
+          expect(count).to eq refused.uniq.count
+        end
       end
 
       describe 'when looking at missing enrollment elements' do
