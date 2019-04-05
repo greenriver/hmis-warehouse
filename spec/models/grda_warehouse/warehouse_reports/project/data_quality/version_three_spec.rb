@@ -9,6 +9,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
     after(:all) do
       cleanup_fixture
     end
+
     describe 'a single project report' do
       let(:report) { create :data_quality_report_version_three, :single_project }
       let(:project) { report.project }
@@ -33,6 +34,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           report.start_report()
           report.calculate_missing_universal_elements()
         end
+
         it 'has the appropriate number of total clients' do
           count = report.report['total_clients']
 
@@ -44,26 +46,205 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         it 'has the appropriate number of missing names' do
           count = report.report['missing_name']
           expect(count).to eq 37
-          # TODO: Add matching count from Client
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              NameDataQuality: [99, nil, '']
+          ).
+          pluck(:id)
+          missing += GrdaWarehouse::Hud::Client.where(
+              id: client_ids, FirstName: [nil, '']
+          ).
+          where.not(NameDataQuality: 9).pluck(:id)
+          missing += GrdaWarehouse::Hud::Client.where(
+              id: client_ids, LastName: [nil, '']
+          ).
+          where.not(NameDataQuality: 9).pluck(:id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of missing dob' do
+          # Excludes refused
+          count = report.report['missing_dob']
+          expect(count).to eq 35
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              DOBDataQuality: [99, nil, '']
+          ).
+          pluck(:id)
+          missing += GrdaWarehouse::Hud::Client.where(
+              id: client_ids, DOB: [nil, '']
+          ).
+              where.not(DOBDataQuality: 9).pluck(:id)
+
+          expect(count).to eq missing.uniq.count
         end
 
         it 'has the appropriate number of missing ssn' do
           # Excludes refused
           count = report.report['missing_ssn']
+          expect(count).to eq 70
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             SSNDataQuality: [99, nil, '']
           ).
-          where.not(SSNDataQuality: 9).pluck(:id)
+          pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, SSN: [nil, '']
           ).
           where.not(SSNDataQuality: 9).pluck(:id)
 
-binding.pry
-          expect(count).to eq 70
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing race' do
+          count = report.report['missing_race']
+          expect(count).to eq 67
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              RaceNone: [99]
+          ).
+          pluck(:id)
+          missing += GrdaWarehouse::Hud::Client.where(
+              id: client_ids, AmIndAKNative: [0, 99, nil, ''],
+              Asian: [0, 99, nil, ''],
+              BlackAfAmerican: [0, 99, nil, ''],
+              NativeHIOtherPacific: [0, 99, nil, ''],
+              White: [0, 99, nil, '']
+          ).
+          pluck(:id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing ethnicity' do
+          count = report.report['missing_ethnicity']
+          expect(count).to eq 62
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              Ethnicity: [99, nil, '']
+          ).
+          pluck(:id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing gender' do
+          count = report.report['missing_gender']
+          expect(count).to eq 3
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              Gender: [99, nil, '']
+          ).
+          pluck(:id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing veteran status' do
+          count = report.report['missing_veteran']
+          expect(count).to eq 46
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          eighteen = report.start - 18.years
+          c_t = GrdaWarehouse::Hud::Client.arel_table
+          missing = GrdaWarehouse::Hud::Client.where(
+              id: client_ids,
+              VeteranStatus: [99, nil, '']
+          ).
+          where( c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)) ).
+          pluck(:id)
+          expect(count).to eq missing.uniq.count
+        end
+      end
+
+      describe 'when looking at missing enrollment elements' do
+        before do
+          report.start_report
+          report.add_missing_enrollment_elements
+        end
+
+        it 'has the appropriate number of clients with missing disabling condition' do
+          count = report.report['missing_disabling_condition']
+          expect(count).to eq 90
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: {DisablingCondition: [99, nil, '']}
+            ).
+            pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing living situation' do
+          count = report.report['missing_prior_living_situation']
+          expect(count).to eq 90
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+              joins(enrollment: :client).
+              where(
+                  client_id: client_ids,
+                  Enrollment: {LivingSituation: [99, nil, '']}
+              ).
+              pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing income at entry' do
+          count = report.report['missing_income_at_entry']
+          expect(count).to eq 1
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.
+              includes(enrollment: :income_benefits).
+              references(enrollment: :income_benefits).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.at_entry.all_sources_missing).
+              where(
+                  client_id: client_ids,
+              ).
+              pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing income at exit' do
+          count = report.report['missing_income_at_exit']
+          expect(count).to eq 1
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.
+              includes(enrollment: :income_benefits).
+              references(enrollment: :income_benefits).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing).
+              where(
+                  client_id: client_ids,
+              ).
+              pluck(:client_id)
+          expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with missing destinations at exit' do
+          count = report.report['missing_destination']
+          expect(count).to eq 1
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+              where(
+                  client_id: client_ids,
+                  destination: [99, nil, '']
+              ).
+              pluck(:client_id)
           expect(count).to eq missing.uniq.count
         end
       end

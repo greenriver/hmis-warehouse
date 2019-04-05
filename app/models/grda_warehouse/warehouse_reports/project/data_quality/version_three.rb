@@ -1775,7 +1775,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       #   Race
       #   Ethnicity
       #   Gender
-      #   Disabling Condition
+      #   Disabling Condition - in add_missing_enrollment_elements
       #   Physical Disability
       #   Developmental Disability
       #   Chronic Health Condition
@@ -1833,11 +1833,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         # NOTE: You can't have both refused and missing SSN or DOB
         # Refused or unknown trumps missing
-        if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+        if refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
         end
-        if client[:dob].blank? || refused?(client[:dob_data_quality])
+        if refused?(client[:dob_data_quality])
           @refused_dob_client_ids << client[:destination_id]
           refused_dob << client[:destination_id]
         end
@@ -1878,7 +1878,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_ethnicity << client[:destination_id]
         end
         # If we have no race info, whatsoever
-        if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+        if missing?(client[:race_none]) && missing_race?(client[:am_ind_ak_native]) && missing_race?(client[:asian]) && missing_race?(client[:black_af_american]) && missing_race?(client[:native_hi_other_pacific]) && missing_race?(client[:white])
           missing_race << client[:destination_id]
         end
         if client[:gender].blank? || missing?(client[:gender])

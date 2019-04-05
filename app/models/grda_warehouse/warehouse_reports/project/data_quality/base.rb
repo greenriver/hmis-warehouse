@@ -410,13 +410,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       [99].include?(value.to_i)
     end
 
+    def missing_race?(value)
+      return true if value.blank?
+      [0, 99].include?(value.to_i)
+    end
+
     def adult?(age)
       return true if age.blank?
       age >= 18
     end
 
     def age dob
-      GrdaWarehouse::Hud::Client.age date: Date.today, dob: dob
+      GrdaWarehouse::Hud::Client.age date: self.start, dob: dob
     end
 
     def missing_disability? disabilities
