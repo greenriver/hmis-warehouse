@@ -29,9 +29,13 @@ module WarehouseReports::Health
     end
 
     def update
-      @report = inquiry_scope.find(params[:id].to_i)
-      @report.result = update_params[:content].read
-      @report.save!
+      begin
+        @report = inquiry_scope.find(params[:id].to_i)
+        @report.result = update_params[:content].read
+        @report.save!
+      rescue
+        flash[:error] = 'Error processing uploaded file'
+      end
       redirect_to action: :index
     end
 
