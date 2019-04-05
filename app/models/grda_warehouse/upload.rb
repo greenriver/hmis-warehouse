@@ -54,7 +54,7 @@ module GrdaWarehouse
           'unknown'
         end
       else
-        'incomplete'
+        'processing...'
       end
     end
 
