@@ -139,6 +139,7 @@ module GrdaWarehouse::Tasks
         neighborhood_interests: :neighborhood_ids_for_cas,
         interested_in_set_asides: :interested_in_set_asides,
         default_shelter_agency_contacts: :default_shelter_agency_contacts,
+        tags: :cas_tags,
       }
     end
   end
