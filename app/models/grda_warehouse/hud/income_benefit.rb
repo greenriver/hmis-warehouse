@@ -198,6 +198,10 @@ module GrdaWarehouse::Hud
       where(IncomeFromAnySource: [99, nil, ''])
     }
 
+    scope :all_sources_refused, -> {
+      where(IncomeFromAnySource: 9)
+    }
+
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
       Alimony:                :AlimonyAmount,

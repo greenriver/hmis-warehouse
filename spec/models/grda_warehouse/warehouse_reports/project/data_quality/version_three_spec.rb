@@ -346,6 +346,22 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           expect(count).to eq missing.uniq.count
         end
 
+        it 'has the appropriate number of clients with refused income at entry' do
+          count = report.report['refused_income_at_entry']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.
+              includes(enrollment: :income_benefits).
+              references(enrollment: :income_benefits).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.at_entry.all_sources_refused).
+              where(
+                  client_id: client_ids
+              ).
+              pluck(:client_id)
+          expect(count).to eq refused.uniq.count
+        end
+
         it 'has the appropriate number of clients with missing income at exit' do
           count = report.report['missing_income_at_exit']
           expect(count).to eq 1
@@ -360,6 +376,22 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               ).
               pluck(:client_id)
           expect(count).to eq missing.uniq.count
+        end
+
+        it 'has the appropriate number of clients with refused income at exit' do
+          count = report.report['refused_income_at_exit']
+          expect(count).to eq 2
+
+          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.
+              includes(enrollment: :income_benefits).
+              references(enrollment: :income_benefits).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused).
+              where(
+                  client_id: client_ids
+              ).
+              pluck(:client_id)
+          expect(count).to eq refused.uniq.count
         end
 
         it 'has the appropriate number of clients with missing destinations at exit' do
