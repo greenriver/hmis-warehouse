@@ -41,11 +41,11 @@ module HudChronicDefinition
       date_to_street = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.DateToStreetESSH
       return false unless date_to_street
       # how many unique months between data_to_street and on_date
-      months_on_street = (on_date.year * 12 + on_date.month) - (date_to_street.year * 12 + date_to_street.month) + 1 # plus one for current month 
+      months_on_street = (on_date.year * 12 + on_date.month) - (date_to_street.year * 12 + date_to_street.month) + 1 # plus one for current month
       hud_chronic_data[:months_in_last_three_years] = if months_on_street > 36 then 36 else months_on_street end
       months_on_street >= 12
     end
-    
+
     # Has the client been homeless 4 times within the past
     # 3 years?
     def times_4_homeless? on_date:
@@ -82,7 +82,7 @@ module HudChronicDefinition
       hud_chronic_data[:months_in_last_three_years] = months_on_street - 100
       months_on_street > 111
     end
-    
+
     # Has the client been homeless more than 12 months
     def total_months_homeless_more_than_12? on_date:
       entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
@@ -96,19 +96,22 @@ module HudChronicDefinition
     end
 
     # Is the head of household for this client disabled?
+    # as of 4/8/2019 we are standardizing all disabled calculations
+    # on GrdaWarehouse::Hud::Client.disabled_client_scope
     def hoh_disabled? on_date:
-      entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
+      entry = service_history_enrollments.entry.
+        ongoing(on_date: on_date).
+        order(first_date_in_program: :desc).first
       return false unless entry
-      entry.head_of_household&.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
+      entry.head_of_household&.destination_client&.currently_disabled?
     end
 
     # is the current client disabled?
+    # as of 4/8/2019 we are standardizing all disabled calculations
+    # on GrdaWarehouse::Hud::Client.disabled_client_scope
     def disabled? on_date:
-      entry = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first
-      return false unless entry
-      entry.client&.source_enrollments&.pluck(:DisablingCondition)&.include?(1)
+      client&.currently_disabled?
     end
-
   end
 
   # added as class methods
