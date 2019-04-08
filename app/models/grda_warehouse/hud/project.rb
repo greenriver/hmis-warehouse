@@ -442,6 +442,13 @@ module GrdaWarehouse::Hud
       act_as_project_type.presence || self.ProjectType
     end
 
+    # Originally wasn't PH, but is overridden to PH
+    def project_type_overridden_as_ph?
+      @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      ! @psh_types.include?(self.ProjectType) &&
+        @psh_types.include?(self.compute_project_type)
+    end
+
     def organization_and_name(include_confidential_names: false)
       if include_confidential_names
         "#{organization&.name} / #{name}"

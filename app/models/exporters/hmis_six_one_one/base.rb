@@ -23,7 +23,7 @@ module Exporters::HmisSixOneOne
       faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')
-      @file_path = "#{file_path}/#{Time.now.to_i}"
+      @file_path = "#{file_path}/#{Time.now.to_f}"
       @logger = logger
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
@@ -360,7 +360,7 @@ module Exporters::HmisSixOneOne
       export.ExportDate = Date.today
       export.ExportStartDate = @range.start
       export.ExportEndDate = @range.end
-      export.SoftwareName = 'Boston HMIS Warehouse'
+      export.SoftwareName = _('OpenPath HMIS Warehouse')
       export.SoftwareVersion = 1
       export.ExportPeriodType = @period_type
       export.ExportDirective = @directive
