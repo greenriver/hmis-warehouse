@@ -1850,7 +1850,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if refused?(client[:race_none])
           refused_race << client[:destination_id]
         end
-        if client[:gender].blank? || refused?(client[:gender])
+        if refused?(client[:gender])
           refused_gender << client[:destination_id]
         end
 
