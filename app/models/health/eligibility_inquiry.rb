@@ -40,14 +40,14 @@ module Health
       b.HL hl, '1', '21', '1'
       b.NM1 '1P', '2', sender.mmis_enrollment_name, b.blank, b.blank, b.blank, b.blank, 'XX', sender.npi
 
-      subscribers.each do |subscriber|
+      patients.each do |patient|
         # Subscriber information
         hl += 1
         b.HL hl, '2', '22', '0'
-        # Use the subscriber's medicaid id as the trace record number
-        b.TRN '1', subscriber.medicaid_id, sender.trace_id
-        b.NM1 'IL', '1', subscriber.last_name, subscriber.first_name, subscriber.middle_name, b.blank, b.blank, 'MI', subscriber.medicaid_id
-        b.DMG 'D8', subscriber.birthdate&.strftime('%Y%m%d'), subscriber.gender
+        # Use the patient's medicaid id as the trace record number
+        b.TRN '1', patient.medicaid_id, sender.trace_id
+        b.NM1 'IL', '1', patient.last_name, patient.first_name, patient.middle_name, b.blank, b.blank, 'MI', patient.medicaid_id
+        b.DMG 'D8', patient.birthdate&.strftime('%Y%m%d'), edi_gender(patient.gender)
         b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
         b.EQ(
             b.repeated '30'
@@ -82,7 +82,13 @@ module Health
       return file
     end
 
-    private def subscribers
+    # DMG03 is optional, but if it appears, it can only have the values M, F, or U
+    private def edi_gender(gender)
+      @valid_gender ||= ['M', 'F', 'Trans F to M', 'Trans M to F', 'U']
+      gender.last if @valid_gender.include?(gender)
+    end
+
+    private def patients
       Health::Patient.all
     end
 
