@@ -24,9 +24,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
       it 'loads the same clients by project' do
         clients_ids = report.clients.map{|client| client[:id]}.uniq
-        expect(project_clients.count).to eq 91
-
         project_clients = report.clients_for_project(project.id).map{|client| client[:id]}.uniq
+
+        expect(project_clients.count).to eq 91
         expect(clients_ids).to match_array project_clients
       end
 
