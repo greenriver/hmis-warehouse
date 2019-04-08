@@ -110,7 +110,7 @@ module HudChronicDefinition
     # as of 4/8/2019 we are standardizing all disabled calculations
     # on GrdaWarehouse::Hud::Client.disabled_client_scope
     def disabled? on_date:
-      client&.currently_disabled?
+      currently_disabled?
     end
   end
 
