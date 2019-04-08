@@ -37,9 +37,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of total clients' do
           count = report.report['total_clients']
+          expect(count).to eq 91
 
           open_enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range).where(ProjectID: report.project.ProjectID).distinct.select(:PersonalID).count
-          expect(count).to eq 88
           expect(count).to eq open_enrollments
         end
 
