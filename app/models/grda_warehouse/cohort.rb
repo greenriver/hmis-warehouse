@@ -159,6 +159,9 @@ module GrdaWarehouse
       active_cohort?
     end
 
+    def cas_tag_name
+      Cas::Tag.find(tag_id)&.name rescue nil
+    end
 
     def visible_columns
       return self.class.default_visible_columns unless column_state.present?
