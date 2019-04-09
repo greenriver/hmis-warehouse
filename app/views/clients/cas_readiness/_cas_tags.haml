@@ -12,5 +12,5 @@
           - @client.cas_tags.each do |id, rank|
             - tag = Cas::Tag.find(id)
             %tr
-              %td= tag&.name
+              %td= tag&.name || 'Unknown'
               %td= rank
