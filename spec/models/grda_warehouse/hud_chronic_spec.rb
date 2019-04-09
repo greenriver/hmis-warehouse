@@ -2,36 +2,75 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
-  let(:client) { create :grda_warehouse_hud_client }
-  let(:source_enrollment) { create :hud_enrollment, DisablingCondition: 1 }
-  let(:source_disability) { create :hud_disability, EnrollmentID: source_enrollment.id }
+  # need destination and source client, source enrollment and source disability
+  let!(:client) { create :grda_warehouse_hud_client }
+  let!(:ds) { create :data_source_fixed_id }
+  let!(:source_client) {
+    create :grda_warehouse_hud_client,
+    data_source: ds,
+    PersonalID: client.PersonalID
+  }
+  let!(:warehouse_client) {
+    create :warehouse_client,
+    destination: client,
+    source: source_client,
+    data_source_id: source_client.data_source_id
+  }
+  let!(:source_enrollment) {
+    create :hud_enrollment,
+    DisablingCondition: 1,
+    data_source_id: source_client.data_source_id,
+    PersonalID: source_client.PersonalID
+  }
+  let!(:source_disability) {
+    create :hud_disability,
+    EnrollmentID: source_enrollment.EnrollmentID,
+    data_source_id: source_client.data_source_id,
+    PersonalID: source_client.PersonalID,
+    DisabilityType: 5,
+    DisabilityResponse: 1
+  }
 
+  # The following should be called to instantiate them in before each
+  # so that we only instantiate the correct one for the test
   let(:not_chronic) {
     create :grda_warehouse_hud_enrollment,
+      ProjectID: 1,
       DateToStreetESSH: april_1_2016 - 6.months,
-      DisablingCondition: 1
+      DisablingCondition: 1,
+      PersonalID: source_client.PersonalID,
+      data_source_id: source_client.data_source_id
   }
 
   let(:enrollment_12_months_homeless) {
     create :grda_warehouse_hud_enrollment,
+      ProjectID: 1,
       DateToStreetESSH: april_1_2016 - 13.months,
-      DisablingCondition: 1
+      DisablingCondition: 1,
+      PersonalID: source_client.PersonalID,
+      data_source_id: source_client.data_source_id
   }
 
   let(:enrollment_11_months_homeless) {
     create :grda_warehouse_hud_enrollment,
+      ProjectID: 1,
       DateToStreetESSH: april_1_2016 - 10.months,
       DisablingCondition: 1,
       TimesHomelessPastThreeYears: 4,
-      MonthsHomelessPastThreeYears: 112
+      MonthsHomelessPastThreeYears: 112,
+      PersonalID: source_client.PersonalID,
+      data_source_id: source_client.data_source_id
   }
 
   let(:enrollment_12_months_on_street) {
     create :grda_warehouse_hud_enrollment,
+      ProjectID: 1,
       DateToStreetESSH: april_1_2016 - 10.months,
       DisablingCondition: 1,
       TimesHomelessPastThreeYears: 4,
-      MonthsHomelessPastThreeYears: 111
+      MonthsHomelessPastThreeYears: 111,
+      PersonalID: source_client.PersonalID,
+      data_source_id: source_client.data_source_id
   }
 
   let(:service_history) {
@@ -39,53 +78,38 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     first_date_in_program: april_1_2016 - 1.month,
     client_id: client.id,
     date: april_1_2016 - 1.month,
-    record_type: 'entry',
-    computed_project_type: 1
+    record_type: :entry,
+    computed_project_type: 1,
+    head_of_household_id: source_client.PersonalID,
+    data_source_id: source_client.data_source_id,
+    project_id: 1
   }
   let(:april_1_2016) { Date.new(2016,4,1) }
 
   context 'if homeless but not chronic' do
     before(:each) do
-
-      # add enrollment
+      # Instantiate the appropriate history
       service_history
-      client.enrollments << not_chronic
-      @is_chronic = client.hud_chronic? on_date: april_1_2016
+      not_chronic
     end
 
     it 'is not hud chronic' do
-      expect( @is_chronic ).to be_falsey
+      expect( client.hud_chronic?(on_date: april_1_2016) ).to be_falsey
     end
   end
 
   context 'if homeless all of last 12 months' do
 
     before(:each) do
-
       # add enrollment
       service_history
-      client.enrollments << enrollment_12_months_homeless
+      enrollment_12_months_homeless
 
-      # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:client).and_return( client )
-
-      # fake out the source_enrollments so client is disabled.
-      source_enrollments = double('source_enrollments')
-      expect( client ).to receive(:source_enrollments).and_return(source_enrollments)
-      expect( source_enrollments ).to receive(:pluck).with(:DisablingCondition).and_return [1]
-
-      # use disability table to make client disabled
-      source_disabilities = double('source_disabilities')
-      expect( client ).to receive(:source_disabilities).and_return(source_disabilities)
-      expect( source_disabilities ).to receive(:pluck).with(:DisabilityType, :DisabilityResponse).and_return [5, 1]
-
-      # return an enrollment that has a date to street
-      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_12_months_homeless )
-      @is_chronic = client.hud_chronic? on_date: april_1_2016
+      # force the chronic calculation, which sets the triggers
+      @is_chronic = client.hud_chronic?(on_date: april_1_2016)
     end
 
     it 'is HUD chronic' do
-      binding.pry
       expect( @is_chronic ).to be true
     end
     it 'has correct trigger' do
@@ -98,22 +122,13 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     before(:each) do
       # add enrollment
       service_history
-      client.enrollments << enrollment_11_months_homeless
-
-      # return client as head of household
-      expect_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:client).and_return( client )
-
-      # fake out the source_enrollments so client is disabled.
-      source_enrollments = double('source_enrollments')
-      expect( client ).to receive(:source_enrollments).and_return(source_enrollments)
-      expect( source_enrollments ).to receive(:pluck).with(:DisablingCondition).and_return [1]
+      enrollment_11_months_homeless
     end
 
     context 'and 12+ months homeless' do
 
       before(:each) do
-        # return an enrollment that has a date to street
-        allow_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_11_months_homeless )
+        service_history.update(enrollment_group_id: enrollment_11_months_homeless.EnrollmentID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
@@ -129,7 +144,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
       before(:each) do
         # return an enrollment that has a date to street
-        allow_any_instance_of( GrdaWarehouse::ServiceHistoryEnrollment ).to receive(:enrollment).and_return( enrollment_12_months_on_street )
+        service_history.update(enrollment_group_id: enrollment_12_months_on_street.EnrollmentID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
