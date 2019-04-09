@@ -144,7 +144,8 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
       before(:each) do
         # return an enrollment that has a date to street
-        service_history.update(enrollment_group_id: enrollment_12_months_on_street.EnrollmentID)
+        service_history.update!(enrollment_group_id: enrollment_12_months_on_street.EnrollmentID)
+        puts client.service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: april_1_2016).order(first_date_in_program: :desc).first&.enrollment&.inspect
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
