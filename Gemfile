@@ -75,6 +75,7 @@ gem 'htmlentities'
 # ETO API related
 gem "rest-client", "~> 2.0"
 gem "gmail", require: false
+gem 'savon'
 
 gem 'stupidedi', require: false, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
