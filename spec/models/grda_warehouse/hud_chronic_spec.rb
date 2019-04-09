@@ -18,6 +18,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   }
   let!(:source_enrollment) {
     create :hud_enrollment,
+    EnrollmentID: 'a',
     DisablingCondition: 1,
     data_source_id: source_client.data_source_id,
     PersonalID: source_client.PersonalID
@@ -88,11 +89,8 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
   context 'if homeless but not chronic' do
     before(:each) do
-      # Instantiate the appropriate history
-      service_history
-      not_chronic
+      service_history.update(enrollment_group_id: not_chronic.EnrollmentID)
     end
-
     it 'is not hud chronic' do
       expect( client.hud_chronic?(on_date: april_1_2016) ).to be_falsey
     end
@@ -101,11 +99,8 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   context 'if homeless all of last 12 months' do
 
     before(:each) do
-      # add enrollment
-      service_history
-      enrollment_12_months_homeless
-
       # force the chronic calculation, which sets the triggers
+      service_history.update(enrollment_group_id: enrollment_12_months_homeless.EnrollmentID)
       @is_chronic = client.hud_chronic?(on_date: april_1_2016)
     end
 
@@ -118,12 +113,6 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   end
 
   context 'when 4+ episodes of homelessness in last 3 years' do
-
-    before(:each) do
-      # add enrollment
-      service_history
-      enrollment_11_months_homeless
-    end
 
     context 'and 12+ months homeless' do
 
@@ -143,11 +132,8 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     context 'and 12+ months on the street or in ES/SH' do
 
       before(:each) do
-        puts enrollment_11_months_homeless.inspect
-        puts enrollment_12_months_on_street.inspect
         # return an enrollment that has a date to street
         service_history.update!(enrollment_group_id: enrollment_12_months_on_street.EnrollmentID)
-        puts client.service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: april_1_2016).order(first_date_in_program: :desc).first&.enrollment&.inspect
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
 
