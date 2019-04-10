@@ -38,6 +38,7 @@ module HudChronicDefinition
     # Has is been at least 12 months since client was
     # first homeless to on_date?
     def months_12_homeless? on_date:
+      @hud_chronic_data ||= {}
       date_to_street = service_history_enrollments.hud_homeless(chronic_types_only: true).entry.ongoing(on_date: on_date).order(first_date_in_program: :desc).first&.enrollment&.DateToStreetESSH
       return false unless date_to_street
       # how many unique months between data_to_street and on_date
