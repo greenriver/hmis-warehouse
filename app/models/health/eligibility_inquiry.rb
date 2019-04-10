@@ -89,7 +89,7 @@ module Health
     end
 
     private def patients
-      Health::Patient.all
+      Health::Patient.where.not(medicaid_id: nil).joins(:patient_referral)
     end
 
     private def interchange_usage_indicator
