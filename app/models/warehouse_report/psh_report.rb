@@ -36,9 +36,9 @@ class WarehouseReport::PshReport
   end
 
   def project_names
-    @project_names ||= 
+    @project_names ||=
     (
-      pre_placement_project_name.split(', ') + 
+      pre_placement_project_name.split(', ') +
       stabilization_project_name.split(', ')
     ).uniq.
       join(', ')
@@ -79,7 +79,7 @@ class WarehouseReport::PshReport
   end
 
   def leavers_average_days_in_pre_placement
-    days = leavers_days_in_pre_placement.map do |entry_date, exit_date| 
+    days = leavers_days_in_pre_placement.map do |entry_date, exit_date|
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -90,13 +90,13 @@ class WarehouseReport::PshReport
     @stayers_days_in_pre_placement ||= housed_scope.
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date| 
-        [entry_date, end_date] 
+      pluck(:search_start).compact.map do |entry_date|
+        [entry_date, end_date]
       end
   end
 
   def stayers_average_days_in_pre_placement
-    days = stayers_days_in_pre_placement.map do |entry_date, exit_date| 
+    days = stayers_days_in_pre_placement.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -111,7 +111,7 @@ class WarehouseReport::PshReport
   end
 
   def leavers_average_days_in_stabilization
-    days = leavers_days_in_stabilization.map do |entry_date, exit_date| 
+    days = leavers_days_in_stabilization.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -123,13 +123,13 @@ class WarehouseReport::PshReport
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
       where.not(housed_date: nil).
-      pluck(:housed_date).compact.map do |entry_date| 
+      pluck(:housed_date).compact.map do |entry_date|
         [entry_date, end_date]
       end
   end
 
   def stayers_average_days_in_stabilization
-    days = stayers_days_in_stabilization.map do |entry_date, exit_date| 
+    days = stayers_days_in_stabilization.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -144,7 +144,7 @@ class WarehouseReport::PshReport
   end
 
   def leavers_average_days
-    days = leavers_days.map do |entry_date, exit_date| 
+    days = leavers_days.map do |entry_date, exit_date|
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -155,13 +155,13 @@ class WarehouseReport::PshReport
     @stayers_days ||= housed_scope.
       stayers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date| 
-        [entry_date, end_date] 
+      pluck(:search_start).compact.map do |entry_date|
+        [entry_date, end_date]
       end
   end
 
   def stayers_average_days
-    days = stayers_days.map do |entry_date, exit_date| 
+    days = stayers_days.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -263,7 +263,7 @@ class WarehouseReport::PshReport
   end
 
   # Supporting methods
-  
+
   def enrolled_client_ids
     housed_scope.
       enrolled(start_date: start_date, end_date: end_date).
@@ -326,7 +326,7 @@ class WarehouseReport::PshReport
 
   # See if this project has a residential_project, if it does, use that ID
   # NOTE: the spec supports the possibility of more than one affiliation
-  # we're assuming one for now 
+  # we're assuming one for now
   def stabilization_project
     @stabilization_project ||= if project.residential_projects.exists?
       project.residential_projects.first
