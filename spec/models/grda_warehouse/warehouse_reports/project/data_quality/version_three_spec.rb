@@ -399,10 +399,15 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_destination']
           expect(count).to eq 1
 
-          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          client_ids = []
+          report.leavers.each do |leaver|
+            report.enrollments[leaver].each do |enrollment|
+              client_ids << enrollment[:destination_id]
+            end
+          end
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.
               where(
-                  client_id: client_ids,
+                  client_id: client_ids.uniq,
                   destination: [99, nil, '']
               ).
               pluck(:client_id)
@@ -413,8 +418,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_destination']
           expect(count).to eq 1
 
-          client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          client_ids = []
+          report.leavers.each do |leaver|
+            report.enrollments[leaver].each do |enrollment|
+              client_ids << enrollment[:destination_id]
+            end
+          end
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.
               where(
                   client_id: client_ids,
                   destination: 9
