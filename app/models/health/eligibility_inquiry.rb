@@ -82,9 +82,9 @@ module Health
       return file
     end
 
-    # DMG03 is optional, but if it appears, it can only have the values M, F, or U
+    # DMG03 is optional, but if it appears, it can only have the values M, F
     private def edi_gender(gender)
-      @valid_gender ||= ['M', 'F', 'Trans F to M', 'Trans M to F', 'U']
+      @valid_gender ||= ['M', 'F', 'Trans F to M', 'Trans M to F']
       gender.last if @valid_gender.include?(gender)
     end
 
