@@ -225,11 +225,11 @@ module LsaSqlServer
     end
 
     def four_ten
-      '4.10 Set HHType for Active HouseholdIDs '
+      '4.10 Set HHType for Active HouseholdIDs'
     end
 
     def four_eleven
-      '4.11 Get Active Clients for tmp_Person '
+      '4.11 Get Active Clients for tmp_Person'
     end
 
     def four_twelve
