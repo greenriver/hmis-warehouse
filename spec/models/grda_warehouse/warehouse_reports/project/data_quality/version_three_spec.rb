@@ -16,18 +16,27 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
       let(:range) { ::Filters::DateRange.new(start: report.start, end: report.end) }
 
       it 'loads clients with enrollments open during the report range' do
-        expect(report.clients.count).to eq 93
+        open_enrollments = GrdaWarehouse::Hud::Enrollment.
+            open_during_range(range).
+            where(ProjectID: report.project.ProjectID).
+            distinct.count(:PersonalID)
 
-        open_enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range).where(ProjectID: report.project.ProjectID).count
-        expect(report.clients.count).to eq open_enrollments
+        client_count = report.clients.map{|client| client[:destination_id]}.uniq.count
+
+        aggregate_failures "checking counts" do
+          expect(client_count).to eq 91
+          expect(client_count).to eq open_enrollments
+        end
       end
 
       it 'loads the same clients by project' do
         clients_ids = report.clients.map{|client| client[:id]}.uniq
         project_clients = report.clients_for_project(project.id).map{|client| client[:id]}.uniq
 
-        expect(project_clients.count).to eq 91
-        expect(clients_ids).to match_array project_clients
+        aggregate_failures "comparing clients" do
+          expect(project_clients.count).to eq 91
+          expect(clients_ids).to match_array project_clients
+        end
       end
 
       describe 'when looking at universal elements' do
@@ -38,10 +47,14 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of total clients' do
           count = report.report['total_clients']
-          expect(count).to eq 91
-
-          open_enrollments = GrdaWarehouse::Hud::Enrollment.open_during_range(range).where(ProjectID: report.project.ProjectID).distinct.select(:PersonalID).count
-          expect(count).to eq open_enrollments
+          open_enrollments = GrdaWarehouse::Hud::Enrollment.
+              open_during_range(range).
+              where(ProjectID: report.project.ProjectID).
+              distinct.count(:PersonalID)
+          aggregate_failures "counting clients" do
+            expect(count).to eq 91
+            expect(count).to eq open_enrollments
+          end
         end
 
         it 'has the appropriate number of missing names' do
@@ -303,7 +316,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of clients with missing living situation' do
           count = report.report['missing_prior_living_situation']
-          expect(count).to eq 87
+          expect(count).to eq 86
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -443,7 +456,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
       end
 
       it 'loads all clients' do
-        expect(report.clients.map{|m| m[:id] }.uniq.count).to eq 110
+        expect(report.clients.map{|m| m[:destination_id] }.uniq.count).to eq 111
       end
     end
   end
