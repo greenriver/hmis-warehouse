@@ -1,13 +1,9 @@
 = simple_form_for @range, as: :range, remote: true, url: warehouse_reports_active_veterans_path, html: { method: :get, class: 'jFilter' } do |f|
-  = f.error_notification
-  .row
-    .col-sm-4
-      = f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, as: :date_picker, label: false
-    .col-sm-4
-      = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, as: :date_picker, label: false
-    .col-sm-4
-      = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
-  .row
-    .col-sm-12
-      %div.pull-right
-        = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
+  - content_for :form_col_l do
+    = render 'warehouse_reports/date_range_filters', f:f
+
+  - content_for :form_col_r do
+    = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
+
+  - submit_button = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
+  = render 'warehouse_reports/filters', f:f, submit_button: submit_button

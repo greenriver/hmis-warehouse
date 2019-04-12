@@ -37,7 +37,8 @@
 
 .c-card__content .form-control,
 .c-card__content textarea,
-.c-card__content input:not([type="submit"]) {
+.c-card__content input:not([type="submit"]),
+.c-card__content .select2-selection {
   background-color: $body-bg;
 }
 

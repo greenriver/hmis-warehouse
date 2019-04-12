@@ -1,0 +1,40 @@
+@import '../helpers';
+
+.c-filters {
+  display: flex;
+  flex-direction: column;
+  margin-top: space(2);
+  margin-bottom: space(5);
+}
+
+.c-filters__row,
+.c-filters__group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.c-filters__group {
+  margin-right: space(6);
+}
+
+.c-filters__group .form-group,
+.c-filters__group .select2-container {
+  margin-bottom: 0;
+  margin-right: space(3);
+}
+
+.c-filters__group--justify {
+  justify-content: space-between;
+}
+
+.c-filters__group--right {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.c-filters__group--right .form-group,
+.c-filters__group--right .select2-container {
+  margin-left: space(3);
+  margin-right: 0;
+}

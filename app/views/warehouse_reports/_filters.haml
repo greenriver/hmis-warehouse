@@ -1,0 +1,19 @@
+- submit_button ||= ''
+
+= f.error_notification
+.c-filters.c-card
+  .c-card__content
+    .c-filters__row.mb-4
+      .c-filters__group
+        = yield :form_col_l
+      .c-filters__group
+        = yield :form_col_r
+    %hr
+    .c-filters__row
+      - if submit_button.present?
+        = submit_button
+      - else
+        = f.button :submit, value: 'Update View'
+
+- content_for :page_js do
+  = yield :form_js
