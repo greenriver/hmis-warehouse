@@ -2,7 +2,7 @@
   - if careplan.patient_signed_on
     .signature-words
       = checkmark(true)
-      Patient Signature 
+      Patient Signature
     .signature-date
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
@@ -26,7 +26,7 @@
   - if careplan.provider_signed_on
     .signature-words
       = checkmark(true)
-      PCP Signature 
+      PCP Signature
     .signature-date
       (#{careplan.provider_signed_on&.to_date})
   - elsif careplan.aco_signature_requests.outstanding.exists?
@@ -48,13 +48,13 @@
       = checkmark(true)
       PCP Signature (#{pcp_signature_request.completed_at.to_date})
     - elsif pcp_signature_request.expired?
-      .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
+      .pctp__signature-expired.mb-2{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at&.strftime('%b %e, %Y at %I:%M%P') || 'unsent'} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
         PCP Signature request expired
 
       = link_to polymorphic_path(careplan_path_generator + [:pcp_signature_request], {client_id: @client.id, careplan_id: careplan.id, id: pcp_signature_request.id}), method: :delete, class: 'btn btn-sm btn-secondary' do
         Cancel this PCP Signature Request
     - elsif pcp_signature_request.outstanding? && pcp_signature_request.sent_at
-      .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at.strftime('%b %e, %Y at %I:%M%P')} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
+      .pctp__signature-pending{data: {toggle: :tooltip, title: "Requested: #{pcp_signature_request.sent_at&.strftime('%b %e, %Y at %I:%M%P') || 'unsent'} <br />by #{pcp_signature_request.requestor_name}. <br />Valid until: #{pcp_signature_request.expires_at}", html: 'true'}}
         PCP signature requested
         %br
         from #{pcp_signature_request.to_name}
@@ -85,7 +85,7 @@
 - if expires_on = careplan.expires_on
   - if expires_on > Date.today
     .pctp__expiration.mt-2
-      Careplan expires 
+      Careplan expires
       %br
       #{expires_on}
   - else

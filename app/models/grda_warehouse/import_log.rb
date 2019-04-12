@@ -17,7 +17,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     elsif upload.present?
       upload.import_time(details: details)
     else
-      'incomplete'
+      'processing...'
     end
   end
 end

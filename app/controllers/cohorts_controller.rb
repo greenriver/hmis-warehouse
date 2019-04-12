@@ -139,6 +139,7 @@ class CohortsController < ApplicationController
       :show_on_client_dashboard,
       :visible_in_cas,
       :assessment_trigger,
+      :tag_id,
       user_ids: []
     )
   end

@@ -8,6 +8,7 @@ RSpec.shared_context "multi-project tests", shared_context: :metadata do
     after(:each) do
       exporter.remove_export_files()
       exporter.reset_time_format()
+      FactoryGirl.reload
     end
     describe 'when exporting projects' do
       before(:each) do
@@ -56,12 +57,12 @@ RSpec.shared_context "multi-project tests", shared_context: :metadata do
             current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
             csv_keys = csv.map{|m| m[current_hud_key]}.sort
             projects_project_ids = GrdaWarehouse::Hud::Project.where(id: involved_project_ids).pluck(:ProjectID)
-            source_keys = send(item[:list]).select do |m| 
+            source_keys = send(item[:list]).select do |m|
               projects_project_ids.include? m.ProjectID
             end.map(&:id).map(&:to_s).sort
             expect(csv_keys).to eq source_keys
           end
-        
+
           it 'ProjectIDs from CSV file match project ids' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             csv_project_ids = csv.map{|m| m['ProjectID']}.sort
@@ -74,7 +75,7 @@ RSpec.shared_context "multi-project tests", shared_context: :metadata do
             current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
             csv_keys = csv.map{|m| m[current_hud_key]}.sort
             projects_org_ids = GrdaWarehouse::Hud::Project.where(id: involved_project_ids).pluck(:OrganizationID)
-            source_keys = send(item[:list]).select do |m| 
+            source_keys = send(item[:list]).select do |m|
               projects_org_ids.include? m.OrganizationID
             end.map(&:id).map(&:to_s).sort
             expect(csv_keys).to eq source_keys

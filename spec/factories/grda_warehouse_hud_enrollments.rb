@@ -15,7 +15,7 @@ FactoryGirl.define do
     end
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
-    # EnrollmentID
+    sequence(:EnrollmentID, 1)
     # PersonalID
     # ProjectID
     # EntryDate

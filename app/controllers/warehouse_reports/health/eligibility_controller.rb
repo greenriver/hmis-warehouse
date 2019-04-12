@@ -5,8 +5,8 @@ module WarehouseReports::Health
     before_action :set_reports
 
     def index
-      if inquiry_scope.pending.exists?
-        @report = inquiry_scope.pending.first
+      @report = inquiry_scope.pending.first
+      if @report.present? && @report.inquiry.present?
         render :edit
       else
         render :new
@@ -29,9 +29,19 @@ module WarehouseReports::Health
     end
 
     def update
+      begin
+        @report = inquiry_scope.find(params[:id].to_i)
+        @report.result = update_params[:content].read
+        @report.save!
+      rescue
+        flash[:error] = 'Error processing uploaded file'
+      end
+      redirect_to action: :index
+    end
+
+    def destroy
       @report = inquiry_scope.find(params[:id].to_i)
-      @report.result = update_params[:content].read
-      @report.save!
+      @report.destroy
       redirect_to action: :index
     end
 

@@ -3,16 +3,16 @@ module GrdaWarehouse
     include TsqlImport
     acts_as_paranoid
     has_paper_trail
-    
+
     belongs_to :cohort
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :cohort_client_notes
 
     validates_presence_of :cohort, :client
-    
+
     delegate :name, to: :client
 
-    scope :active, -> do 
+    scope :active, -> do
       where(active: true)
     end
 
@@ -23,6 +23,7 @@ module GrdaWarehouse
         'Housed',
         'Mistake',
         'Missing',
+        'Not a veteran',
         'Deceased',
         'Inactive',
         'Unknown',

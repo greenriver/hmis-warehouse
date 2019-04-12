@@ -24,7 +24,7 @@ class Import < ActiveRecord::Base
       seconds = ((completed_at - created_at)/1.minute).round * 60
       distance_of_time_in_words(seconds)
     else
-      'incomplete'
+      'processing...'
     end
   end
 

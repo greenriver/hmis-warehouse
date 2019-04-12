@@ -194,6 +194,26 @@ module GrdaWarehouse::Hud
       neighborhood_interests.map(&:to_i)
     end
 
+    # Should be in the format {tag_id: min_rank}
+    # and returns the lowest rank for an individual for each tag
+    def cas_tags
+      @cas_tags = {}
+      cohort_clients.joins(:cohort).
+        merge(GrdaWarehouse::Cohort.where(id: cohort_ids_for_cas)).
+        each do |cc|
+          tag_id = cc.cohort.tag_id
+          if tag_id.present?
+            @cas_tags[tag_id] ||= cc.rank
+            @cas_tags[tag_id] = cc.rank if cc.rank.present? && (cc.rank < @cas_tags[tag_id])
+          end
+        end
+      # Are any tags that should be added based on HmisForms
+      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+        @cas_tags[tag.id] = assessment_score_for_cas
+      end
+      @cas_tags
+    end
+
     def default_shelter_agency_contacts
       source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
     end
