@@ -31,3 +31,8 @@
 
   - elsif searched?
     %p No results found
+
+  - else
+    .well
+      %p This page can be used to search for specific records within the source HMIS data.  Searches are conducted against the underlying IDs of the items.
+      %p One use case is to determine which project is associated with an inventory record identified as having issues in the LSA.  You can search for the inventory ID provided in the LSA feedback. Then search again for the resulting ProjectID listed next to the inventory record.
