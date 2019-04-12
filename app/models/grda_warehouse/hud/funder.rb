@@ -50,5 +50,9 @@ module GrdaWarehouse::Hud
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
     end
+
+    def self.related_item_keys
+      [:ProjectID]
+    end
   end
 end

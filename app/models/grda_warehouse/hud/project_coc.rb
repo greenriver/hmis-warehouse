@@ -45,5 +45,9 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def self.related_item_keys
+      [:ProjectID]
+    end
+
   end
 end

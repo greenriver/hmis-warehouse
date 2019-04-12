@@ -64,5 +64,13 @@ module GrdaWarehouse::Hud
       where(CoCCode: coc_code)
     end
 
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+        :ProjectID,
+      ]
+    end
+
   end
 end

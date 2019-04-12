@@ -232,5 +232,12 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
+
   end
 end

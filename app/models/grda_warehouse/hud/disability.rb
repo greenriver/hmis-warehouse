@@ -113,5 +113,12 @@ module GrdaWarehouse::Hud
     def disability_type_text
       ::HUD::disability_type self.DisabilityType
     end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
   end
 end

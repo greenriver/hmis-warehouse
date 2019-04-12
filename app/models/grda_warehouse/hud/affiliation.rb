@@ -22,5 +22,9 @@ module GrdaWarehouse::Hud
     belongs_to :residential_project, class_name: GrdaWarehouse::Hud::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ResProjectID, :data_source_id], inverse_of: :affiliations
     belongs_to :export, **hud_belongs(Export), inverse_of: :affiliations
     belongs_to :data_source
+
+    def self.related_item_keys
+      [:ProjectID]
+    end
   end
 end

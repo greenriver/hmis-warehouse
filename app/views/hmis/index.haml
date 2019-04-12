@@ -12,6 +12,8 @@
           %th Data Source
           %th Warehouse ID
           %th= @klass.hud_key
+          - @klass.related_item_keys.each do |k|
+            %th= k
           %th DateCreated
           %th DateUpdated
 
@@ -22,6 +24,8 @@
             %td= link_to result.data_source.name, data_source_path(result.data_source)
             %td= link_to result.id, url
             %td= link_to result[@klass.hud_key], url
+            - @klass.related_item_keys.each do |k|
+              %td= result[k]
             %td= result.DateCreated
             %td= result.DateUpdated
 

@@ -53,5 +53,12 @@ module GrdaWarehouse::Hud
     has_one :project, through: :enrollment
     belongs_to :data_source
 
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
+
   end
 end

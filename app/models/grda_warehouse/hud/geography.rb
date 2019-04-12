@@ -61,6 +61,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def self.related_item_keys
+      [:ProjectID]
+    end
+
     def name
       "#{self.Address} #{self.City}"
     end
