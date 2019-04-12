@@ -29,10 +29,9 @@
         %strong #{@step_range.first}
         and
         %strong #{@step_range.second}.
-    .col-sm-2
-      .pull-right
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
+    .col-sm-2.ml-auto
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
   %table.table.table-sm
     %thead
       %tr
@@ -57,4 +56,3 @@
           %td= terminal_step&.terminal_status
           %td
             = link_to match.id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}", target: "_blank"
-

@@ -7,10 +7,9 @@
     %p
       Limit to clients on the chronic list within a date range.
     = render 'filter'
-  .col-sm-2
-    .pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+  .col-sm-2.ml-auto
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 .row
   .col-sm-12
     .warehouse-reports
@@ -19,7 +18,7 @@
           Found
           %strong
             = @clients.size
-          clients housed in permanent destinations and on the chronic lists between: 
+          clients housed in permanent destinations and on the chronic lists between:
           %strong
             = "#{@range.start} and #{@range.end}."
       %table.table.table-sm.table-hover

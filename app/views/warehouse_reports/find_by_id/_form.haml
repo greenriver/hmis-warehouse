@@ -5,7 +5,7 @@
   - content_for :filters_col do
     = text_area :client, :id, rows: 8, cols: 20, style: 'width: 100%;', value: @ids.join(', ')
 
-  - content_for :form_actions do
+  - content_for :filter_actions do
     = f.button :submit, value: 'Show Details'
     = f.button :button, name: :format, value: :xlsx do
       Download Details

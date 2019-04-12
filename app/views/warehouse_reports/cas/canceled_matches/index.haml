@@ -7,10 +7,9 @@
     %p
       Limit to matches canceled within a date range.
     = render 'filter'
-  .col-sm-2
-    .pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+  .col-sm-2.ml-auto
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 .row
   .col-sm-12
     .warehouse-reports

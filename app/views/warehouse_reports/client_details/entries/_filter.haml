@@ -26,5 +26,7 @@
   - content_for :form_js do
     = render 'warehouse_reports/new_range_js'
 
-  - submit_button = render 'warehouse_reports/update_view_button', f:f
-  = render 'warehouse_reports/filters', f:f, submit_button: submit_button
+  - content_for :filter_actions do
+    = render 'warehouse_reports/update_view_button', f:f
+
+  = render 'warehouse_reports/filters', f:f

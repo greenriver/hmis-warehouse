@@ -12,7 +12,7 @@
 =# debug [data_type, by, table_id]
 .ho-container.loso__container
   .ho-container__header
-    %h4= title 
+    %h4= title
   .row
     .col-sm-12
       .loso__legend
@@ -27,8 +27,8 @@
           %p{style: 'margin-left: 20px;'} No Data
         - else
           %div{id: vm.chart_id(data_type, period, by)}
-  .loso-footer.clearfix
-    %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+  .loso-footer
+    %button.btn.btn-secondary.btn-sm{data: {toggle: 'collapse', target: "##{collapse_id}"}}
       Show Details
   .collapse.loso-collapse{id: collapse_id}
     - stackKeys = vm.stack_keys(data_type, by)

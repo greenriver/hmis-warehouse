@@ -23,8 +23,8 @@
           %div{id: legend_id}
             %p
               %small= "* Hover over #{by.to_s.humanize}s to see individual lines"
-      .loso-footer.clearfix
-        %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+      .loso-footer
+        %button.btn.btn-secondary.btn-sm{data: {toggle: 'collapse', target: "##{collapse_id}"}}
           Show Details
       .collapse.loso-collapse{id: collapse_id}
         %div{id: table_id}

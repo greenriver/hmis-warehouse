@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   margin-top: space(2);
-  margin-bottom: space(5);
+  margin-bottom: space(8);
 }
 
 .c-filters__row,
@@ -33,6 +33,10 @@
   margin-right: space(3);
 }
 
+.c-filters__group .select2-container {
+  min-width: 200px;
+}
+
 .c-filters__group--justify {
   justify-content: space-between;
 }
@@ -46,4 +50,10 @@
 .c-filters__group--right .select2-container {
   margin-left: space(3);
   margin-right: 0;
+}
+
+.c-filters__actions input[type=submit],
+.c-filters__actions a,
+.c-filters__actions button {
+  margin-right: space(3);
 }

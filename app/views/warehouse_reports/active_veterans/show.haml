@@ -6,9 +6,9 @@
 
 .warehouse-reports__active-veterans
   = render 'parameters', report: @report
-  = render 'sort', sort_options: @sort_options
-  .pull-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+  .d-flex
+    = render 'sort', sort_options: @sort_options
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
 %hr
 

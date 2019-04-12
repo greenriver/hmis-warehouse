@@ -12,11 +12,11 @@
       .c-filters__group<
         = yield :filters_col_r
     %hr
-    .c-filters__row
+    .c-filters__row.c-filters__actions
       - if submit_button.present?
         = submit_button
       - else
-        = yield :form_actions
+        = yield :filter_actions
 
 - content_for :page_js do
   = yield :form_js

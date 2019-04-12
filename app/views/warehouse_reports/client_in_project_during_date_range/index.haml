@@ -9,10 +9,9 @@
     .col-sm-8
       %p
         = page_entries_info @clients, entry_name: 'Client'
-    .col-sm-4
-      .pull-right
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
+    .col-sm-4.ml-auto
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
   %table.table.table-sm.table-hover
     %thead
       %tr

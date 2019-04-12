@@ -5,5 +5,7 @@
   - content_for :filters_col_r do
     = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
 
-  - submit_button = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
-  = render 'warehouse_reports/filters', f:f, submit_button: submit_button
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
+
+  = render 'warehouse_reports/filters', f:f

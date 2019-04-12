@@ -1,13 +1,14 @@
 = simple_form_for @filter, as: :mo, url: fetch_length_warehouse_reports_length_of_stay_index_path, html: { method: :get } do |f|
-  = f.error_notification
-  .row
-    .col-sm-3
-      = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
-    .col-sm-3
-      = f.input :end, as: :date_picker, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
-    .col-sm-3
-      = f.input :org, collection: @filter.disambiguated_organizations, selected: @filter.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
-    .col-sm-3
-      = f.button :submit, value: 'Update View'
-      = link_to( params.merge( format: :xlsx ), { class: 'btn btn-primary pull-right jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
-        Excel
+  - content_for :filters_col_l do
+    = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
+    = f.input :end, as: :date_picker, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
+
+  - content_for :filters_col_r do
+    = f.input :org, collection: @filter.disambiguated_organizations, selected: @filter.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update View'
+    = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+      Download Excel File
+
+  = render 'warehouse_reports/filters', f:f

@@ -39,8 +39,8 @@
         .loso__legend-pie
           %h4= "#{by.to_s.humanize.titleize} (filling)"
           .clearfix{id: legend_id}
-  .loso-footer.clearfix
-    %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+  .loso-footer
+    %button.btn.btn-secondary.btn-sm{data: {toggle: 'collapse', target: "##{collapse_id}"}}
       Show Details
   .collapse.loso-collapse{id: collapse_id}
     %table.table.loso-table{id: "#{table_id}-more-details"}
@@ -53,10 +53,3 @@
           %th{data: {d3_key: k}}= k
           - buckets[:data].each do |key, values|
             %td.text-center= values[k] || 0
-
-
-
-
-                
-
-
