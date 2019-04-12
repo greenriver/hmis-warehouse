@@ -18,6 +18,15 @@
   margin-right: space(6);
 }
 
+.c-filters__group--w-100 {
+  width: 100%;
+  flex: 1 1 100%;
+  &:empty {
+    display: none;
+    margin: 0;
+  }
+}
+
 .c-filters__group .form-group,
 .c-filters__group .select2-container {
   margin-bottom: 0;

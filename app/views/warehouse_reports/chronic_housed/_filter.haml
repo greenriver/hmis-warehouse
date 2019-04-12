@@ -1,8 +1,9 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_chronic_housed_index_path, html: { method: :get, class: 'jFilter' } do |f|
-  - content_for :form_col_l do
+  - content_for :filters_col_l do
     = render 'warehouse_reports/date_range_filters', f:f
 
   - content_for :form_js do
     = 'warehouse_reports/new_range_js'
 
-  = render 'warehouse_reports/filters', f:f
+  - submit_button = render 'warehouse_reports/update_view_button', f:f
+  = render 'warehouse_reports/filters', f:f, submit_button: submit_button

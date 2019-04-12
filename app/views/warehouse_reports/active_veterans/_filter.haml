@@ -1,8 +1,8 @@
 = simple_form_for @range, as: :range, remote: true, url: warehouse_reports_active_veterans_path, html: { method: :get, class: 'jFilter' } do |f|
-  - content_for :form_col_l do
+  - content_for :filters_col_l do
     = render 'warehouse_reports/date_range_filters', f:f
 
-  - content_for :form_col_r do
+  - content_for :filters_col_r do
     = f.input :project_type, collection: @range.project_types, input_html: { multiple: true, class: 'select2', data: {placeholder: 'Project Type'} }, label: false
 
   - submit_button = f.button :submit, value: 'Run Report', data: { disable: 'running...' }

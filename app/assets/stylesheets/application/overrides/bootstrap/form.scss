@@ -9,3 +9,7 @@
 .input-group-append [class^='icon'] {
   font-weight: normal;
 }
+
+.form-group > label {
+  display: block;
+}

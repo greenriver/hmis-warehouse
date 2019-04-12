@@ -1,2 +1,10 @@
-= f.input :start, input_html: {value: @range.start, class: 'form-control jStart'}, as: :date_picker, label: 'Start date'
-= f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, as: :date_picker, label: 'End date'
+:ruby
+  start_input_html = {}
+  end_input_html = {}
+  if @range
+    start_input_html = {value: @range.start, class: 'form-control jStart'}
+    end_input_html = {value: @range.end, class: 'form-control jStart'}
+  end
+
+= f.input :start, input_html: start_input_html, as: :date_picker, label: 'Start date'
+= f.input :end, input_html: end_input_html, as: :date_picker, label: 'End Date'

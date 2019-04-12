@@ -3,17 +3,20 @@
 = f.error_notification
 .c-filters.c-card
   .c-card__content
+    = yield :filters_message
     .c-filters__row.mb-4
-      .c-filters__group
-        = yield :form_col_l
-      .c-filters__group
-        = yield :form_col_r
+      .c-filters__group.c-filters__group--w-100<
+        = yield :filters_col
+      .c-filters__group<
+        = yield :filters_col_l
+      .c-filters__group<
+        = yield :filters_col_r
     %hr
     .c-filters__row
       - if submit_button.present?
         = submit_button
       - else
-        = f.button :submit, value: 'Update View'
+        = yield :form_actions
 
 - content_for :page_js do
   = yield :form_js

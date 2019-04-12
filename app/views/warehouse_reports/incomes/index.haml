@@ -12,9 +12,10 @@
 
 = render 'filter'
 
-.row
-  %p= page_entries_info @enrollments, entry_name: _('client')
-  %p= paginate @enrollments
+.row.mt-4
+  .col-sm-12.d-flex.align-items-center.mb-4
+    %p.mr-4= page_entries_info @enrollments, entry_name: _('client')
+    %p= paginate @enrollments
   .col-sm-12
     %table.table.table-sm
       %thead
@@ -52,4 +53,3 @@
             %td
               = HUD.ethnicity(record.client.Ethnicity)
     = paginate @enrollments
-              
