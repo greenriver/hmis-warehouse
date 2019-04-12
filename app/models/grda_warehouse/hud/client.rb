@@ -209,9 +209,7 @@ module GrdaWarehouse::Hud
         end
       # Are any tags that should be added based on HmisForms
       Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
-        hmis_forms.oldest_first.rrh_assessment.each do |form|
-          @cas_tags[tag.id] = form.value_for_rrh_cas_tag
-        end
+        @cas_tags[tag.id] = assessment_score_for_cas
       end
       @cas_tags
     end
