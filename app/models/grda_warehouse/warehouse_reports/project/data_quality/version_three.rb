@@ -2228,12 +2228,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       support = {
         ph_destinations: {
-          headers: ['Client ID', 'Project'],
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date'],
           counts: ph_destinations.map do |project_name, ids|
             ids.map do |id|
+              client = enrollments[id].sort_by{|h| h[:last_date_in_program]}.last # most recent exit
               [
                 id,
-                project_name
+                client[:first_name],
+                client[:last_name],
+                project_name,
+                client[:last_date_in_program]
               ]
             end
           end.flatten(1)
