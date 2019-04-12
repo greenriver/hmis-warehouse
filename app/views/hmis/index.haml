@@ -1,3 +1,29 @@
-- title = 'Cohorts'
+- title = 'HMIS Source Data'
 - content_for :title, title
 %h1= content_for :title
+
+= render 'search'
+
+.results
+  - if @results.any? && searched?
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Data Source
+          %th Warehouse ID
+          %th= @klass.hud_key
+          %th DateCreated
+          %th DateUpdated
+
+      %tbody
+        - @results.each do |result|
+          - url = hmi_path(result, type: params[:search].try(:[], :type))
+          %tr
+            %td= link_to result.data_source.name, data_source_path(result.data_source)
+            %td= link_to result.id, url
+            %td= link_to result[@klass.hud_key], url
+            %td= result.DateCreated
+            %td= result.DateUpdated
+
+  - elsif searched?
+    %p No results found

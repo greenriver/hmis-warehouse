@@ -1,7 +1,7 @@
 .o-page__search
-  = search_form_for @search, url: hmis_path, method: :get do |f|
+  = simple_form_for :search, url: hmis_path, method: :get do |f|
+    = f.input :type, collection: GrdaWarehouse::Hud.hud_csv_names, include_blank: false, selected: @type, input_html: { class: :select2 }, label: 'Record Type'
     .input-group
-      = f.search_field :name_cont, label: false, placeholder: 'Search by id', class: 'form-control'
-      = f.input :type, collection: GrdaWarehouse::Hud.hud_csv_names
+      = f.input :id, label: false, placeholder: 'Search by ID or HMIS ID', class: 'form-control', value: @id
       %span.input-group-btn
         %button.btn.btn-secondary{type: :submit} Search
