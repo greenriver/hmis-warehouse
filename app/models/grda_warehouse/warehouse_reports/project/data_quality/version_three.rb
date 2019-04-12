@@ -1669,7 +1669,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           entry_total += timeliness
           entry_count += 1
           entry_timeliness_support[enrollment[:project_name]] ||= []
-          entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          entry_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
       exit_timeliness = {}
@@ -1689,7 +1689,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           exit_total += timeliness
           exit_count += 1
           exit_timeliness_support[enrollment[:project_name]] ||= []
-          exit_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          exit_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
 
@@ -1715,7 +1715,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_entry_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Entry Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Date Recorded'],
             counts: data,
           }
         ]
@@ -1725,7 +1725,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_exit_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Exit Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date', 'Date Recorded'],
             counts: data,
           }
         ]
@@ -2228,12 +2228,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       support = {
         ph_destinations: {
-          headers: ['Client ID', 'Project'],
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date'],
           counts: ph_destinations.map do |project_name, ids|
             ids.map do |id|
+              client = enrollments[id].sort_by{|h| h[:last_date_in_program]}.last # most recent exit
               [
                 id,
-                project_name
+                client[:first_name],
+                client[:last_name],
+                project_name,
+                client[:last_date_in_program]
               ]
             end
           end.flatten(1)
@@ -2249,6 +2253,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       increased_earned_twenty_percent = Set.new
       increased_non_cash_twenty_percent = Set.new
       increased_overall_twenty_percent = Set.new
+      change_in_earned_percentage = {}
+      change_in_non_cash_percentage = {}
+      change_in_overall_percentage = {}
 
       earned_types = [
         :EarnedAmount,
@@ -2285,14 +2292,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_non_cash_income = first_assessment.values_at(*non_cash_types).compact.sum
         last_total_income = last_assessment.values_at(*all_income_types).compact.sum
         first_total_income = first_assessment.values_at(*all_income_types).compact.sum
+
         increased_earned << client_id if last_earned_income >= first_earned_income
         increased_earned_twenty_percent << client_id if increased_twenty_percent?(last_earned_income, first_earned_income)
         # you might also have an increase that doesn't contain the value details
         increased_earned << client_id if first_earned_income != 1 && last_earned_income == 1
+        change_in_earned_percentage[client_id] = income_increase(change_in_earned_percentage[client_id], last_earned_income, first_earned_income, last_assessment)
+
         increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income
         increased_non_cash_twenty_percent << client_id if increased_twenty_percent?(last_non_cash_income, first_non_cash_income)
+        change_in_non_cash_percentage[client_id] = income_increase(change_in_non_cash_percentage[client_id], last_non_cash_income, first_non_cash_income, last_assessment)
+
         increased_overall << client_id if last_total_income >= first_total_income
         increased_overall_twenty_percent << client_id if increased_twenty_percent?(last_total_income, first_total_income)
+        change_in_overall_percentage[client_id] = income_increase(change_in_overall_percentage[client_id], last_total_income, first_total_income, last_assessment)
+
       end
 
       increased_earned_percentage = (increased_earned.size.to_f/clients.size*100).round(2) rescue 0
@@ -2322,34 +2336,62 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_non_cash_percentage: increased_non_cash_percentage,
         increased_overall_percentage: increased_overall_percentage,
       }
+
       support = {
         'Earned Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_earned.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_earned.map{|m| income_support(m, change_in_earned_percentage)}
         },
         'Non-Cash Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_non_cash.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_non_cash.map{|m| income_support(m, change_in_non_cash_percentage)}
         },
         'Overall Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_overall.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_overall.map{|m| income_support(m, change_in_overall_percentage)}
         },
         'Earned Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_earned_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_earned_twenty_percent.map{|m| income_support(m, change_in_earned_percentage)}
         },
         'Non-Cash Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_non_cash_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_non_cash_twenty_percent.map{|m| income_support(m, change_in_non_cash_percentage)}
         },
         'Overall Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_overall_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_overall_twenty_percent.map{|m| income_support(m, change_in_overall_percentage)}
         },
       }
       add_answers(answers, support)
 
+    end
+
+    def income_support_header
+      ['Client ID', 'First Name', 'Last Name', 'Project Name', '% Change']
+    end
+
+    def income_support(client_id, changes)
+      data = changes[client_id]
+      [ client_id, data[:first_name], data[:last_name], data[:project_name], data[:change] ]
+    end
+
+    def income_increase(current_values, last_earned_income, first_earned_income, assessment)
+      result = current_values || {}
+
+      enrollment = enrollments[assessment[:client_id]].detect{|e| e[:enrollment_id] == assessment[:enrollment_id]}
+      result[:first_name] ||= enrollment[:first_name]
+      result[:last_name] ||= enrollment[:last_name]
+      result[:project_name] ||= enrollment[:project_name]
+
+      if first_earned_income && first_earned_income > 0
+        increase = last_earned_income - first_earned_income
+        change = ((increase.to_f / first_earned_income) * 100).round
+        result[:change] = [change, result[:change]].compact.max
+      else
+        result[:change] = result[:change] || 'no income at start'
+      end
+      result
     end
 
     def increased_twenty_percent?(last_earned_income, first_earned_income)
