@@ -25,7 +25,7 @@
         = render 'sort'
 
     = simple_form_for @cohort, url: cohorts_path do |f|
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th{style: 'min-width: 20em;'} Name
@@ -40,7 +40,7 @@
                 = f.input :effective_date, as: :date_picker, label: false
               %td
                 = f.submit value: 'Create Cohort', class: 'btn btn-primary'
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th{style: 'min-width: 20em;'} Name
@@ -67,7 +67,7 @@
       .o-page__controls
         = render 'search'
         = render 'sort'
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %tr
           %th{style: 'min-width: 20em;'} Name

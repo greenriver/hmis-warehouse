@@ -91,9 +91,9 @@ table.dataTable thead .sorting_desc:after {
       font-url('icons.svg?mjkcjl#icons') format('svg');
 }
 
-table.dataTable.table-condensed .sorting:after,
-table.dataTable.table-condensed .sorting_asc:after,
-table.dataTable.table-condensed .sorting_desc:after {
+table.dataTable.table-sm .sorting:after,
+table.dataTable.table-sm .sorting_asc:after,
+table.dataTable.table-sm .sorting_desc:after {
   top: auto;
   bottom: 6px;
   right: 6px;

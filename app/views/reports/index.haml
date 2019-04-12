@@ -11,7 +11,7 @@
 .tab-content
   - @reports.each_with_index do |(category, years), index|
     %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: category.parameterize.dasherize}
-      %table.table.table-condensed.table-hover.table-reports.table-responsive
+      %table.table.table-sm.table-hover.table-reports.table-responsive
         - i = 0
         - years.each do |base,reports|
           - show_header = i == 0

@@ -5,7 +5,7 @@
     = link_to support_project_data_quality_report_path(@project, @report, {key: @key, format: :xlsx}) do
       Download
       %span.icon-download2 
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         - @data[:headers].each do |t|
