@@ -1,6 +1,9 @@
 
 class HmisController < ApplicationController
-  # TODO: this is a temporary proxy for access
+  # Permission notes: This is limited to people who can upload HMIS data
+  # and further limited to the data sources someone can edit.  This means
+  # the user must be granted explicit access to a data source and already
+  # has access to the source data.
   before_action :require_can_upload_hud_zips!
   before_action :set_item, only: [:show]
   before_action :searched?, only: [:index]
