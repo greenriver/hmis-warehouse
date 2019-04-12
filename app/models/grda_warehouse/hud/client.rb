@@ -207,6 +207,10 @@ module GrdaWarehouse::Hud
             @cas_tags[tag_id] = cc.rank if cc.rank.present? && (cc.rank < @cas_tags[tag_id])
           end
         end
+      # Are any tags that should be added based on HmisForms
+      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+        @cas_tags[tag.id] = assessment_score_for_cas
+      end
       @cas_tags
     end
 
