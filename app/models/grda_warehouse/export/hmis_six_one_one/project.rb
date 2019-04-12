@@ -25,22 +25,20 @@ module GrdaWarehouse::Export::HMISSixOneOne
     end
 
     def apply_overrides row, data_source_id:
-      if override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
-        row[:HousingType] = override
-      end
-      if override = continuum_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
-        row[:ContinuumProject] = override
-      end
+      override = housing_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+      row[:HousingType] = override if override.present?
+
+      override = continuum_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+      row[:ContinuumProject] = override if override.present?
       row[:ContinuumProject] = row[:ContinuumProject].presence || 0
 
-      if override = operating_start_date_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
-        row[:OperatingStartDate] = override
-      end
+      override = operating_start_date_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+      row[:OperatingStartDate] = override if override.present?
+
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
-      if override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
-        row[:ProjectType] = override
-      end
+      override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+      row[:ProjectType] = override if override.present?
 
       return row
     end
@@ -62,14 +60,17 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @continuum_project_overrides ||= self.class.where.not(hud_continuum_funded: nil).
         pluck(:data_source_id, :id, :hud_continuum_funded).
         map do |data_source_id, project_id, hud_continuum_funded|
-          if hud_continuum_funded.present?
-            [[data_source_id, project_id], hud_continuum_funded]
+          if hud_continuum_funded.in?([true, false])
+            override = 0
+            if hud_continuum_funded
+              override = 1
+            end
+            [[data_source_id, project_id], override]
           else
             nil
           end
         end.compact.to_h
-      return 1 if @continuum_project_overrides[[data_source_id, project_id]]
-      return nil
+      return @continuum_project_overrides[[data_source_id, project_id]]
     end
 
     def operating_start_date_override_for project_id:, data_source_id:
