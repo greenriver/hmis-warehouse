@@ -2058,14 +2058,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
-      entries.each do |client_id, enrollments|
+      # Only applies to enrollments started or ended during the report range
+      entries.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_entry << client_id if missing_income(enrollment, data_collection_stage: 1)
+          missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
         end
       end
-      exits.each do |client_id, enrollments|
+      exits.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_exit << client_id if missing_income(enrollment, data_collection_stage: 3)
+          missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
         end
       end
 
@@ -2582,6 +2583,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entries.keys
     end
 
+    # Enrollments opened during report range
     def entries
       @entries ||= begin
         entries = {}
@@ -2597,6 +2599,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    # Enrollments closed during the report range
     def exits
       @exits ||= begin
         exits = {}
@@ -2655,9 +2658,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     # At entry: data_collection_stage = 1
     # At exit: data_collection_stage = 3
-    def missing_income(enrollment, data_collection_stage:)
+    def missing_income(source_client_id, enrollment, data_collection_stage:)
       incomes = income_assessment_at_stage_for(
-        source_client_id: enrollment[:id],
+        source_client_id: source_client_id,
         enrollment_id: enrollment[:enrollment_id],
         data_collection_stage: data_collection_stage
       )
