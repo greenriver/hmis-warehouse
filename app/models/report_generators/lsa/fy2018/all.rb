@@ -339,8 +339,10 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def validate_lsa_sample_code
-      ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 60_000_000
+      unless ENV['NO_LSA_RDS'].present?
+        ::Rds.identifier = sql_server_identifier
+        ::Rds.timeout = 60_000_000
+      end
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
       LsaSqlServer::LSAQueries.new.validate_file
     end
