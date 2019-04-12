@@ -2657,7 +2657,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     # At exit: data_collection_stage = 3
     def missing_income(enrollment, data_collection_stage:)
       incomes = income_assessment_at_stage_for(
-        source_client_id: enrollment[:client_id],
+        source_client_id: enrollment[:id],
         enrollment_id: enrollment[:enrollment_id],
         data_collection_stage: data_collection_stage
       )

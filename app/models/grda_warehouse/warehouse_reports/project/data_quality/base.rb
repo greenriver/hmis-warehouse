@@ -159,7 +159,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           m[:client_id],
           m[:enrollment_id],
-          m[:data_collection_stage],
+          m[:DataCollectionStage],
         ]
       end
       @all_incomes_by_client_id_enrollment_id_and_stage[[source_client_id, enrollment_id, data_collection_stage]]
