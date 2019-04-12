@@ -1,4 +1,4 @@
-#= require jquery.pjax_old
+#= require jquery.pjax
 #= require namespace
 
 #############
@@ -32,10 +32,10 @@ $ ->
 
     _registerLinks: ->
       $(document).pjax @linkTriggers.selector, @container.selector, timeout: false, push: false, scrollTo: false
-      $(document).on 'click', @linkTriggers.selector, (e) =>
-        @body.hide()
-        @footer.hide()
-        @open()
+      # $(document).on 'click', @linkTriggers.selector, (e) =>
+      #   @body.hide()
+      #   @footer.hide()
+      #   @open()
 
     _registerForms: ->
       $(document).on 'submit', @formTriggers.selector, (evt) =>
