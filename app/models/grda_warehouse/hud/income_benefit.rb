@@ -186,21 +186,29 @@ module GrdaWarehouse::Hud
       where( condition )
     }
 
-    scope :at_entry, -> {
+    scope :at_entry, -> do
       where(DataCollectionStage: 1)
-    }
+    end
 
-    scope :at_exit, -> {
+    scope :at_exit, -> do
       where(DataCollectionStage: 3)
-    }
+    end
 
-    scope :all_sources_missing, -> {
+    scope :at_annual_update, -> do
+      where(DataCollectionStage: 5)
+    end
+
+    scope :at_update, -> do
+      where(DataCollectionStage: 2)
+    end
+
+    scope :all_sources_missing, -> do
       where(IncomeFromAnySource: [99, nil, ''])
-    }
+    end
 
-    scope :all_sources_refused, -> {
+    scope :all_sources_refused, -> do
       where(IncomeFromAnySource: 9)
-    }
+    end
 
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
