@@ -3,6 +3,7 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th
         %th InventoryID
         %th Availability
         %th Dates
@@ -18,6 +19,7 @@
     %tbody
       - inventories.all.each do |inventory|
         %tr
+          %td= link_to 'HMIS', hmi_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= inventory.InventoryID
           %td= HUD.availability inventory.Availability
           %td

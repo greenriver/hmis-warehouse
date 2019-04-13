@@ -6,7 +6,6 @@ class HmisController < ApplicationController
   # has access to the source data.
   before_action :require_can_upload_hud_zips!
   before_action :set_item, only: [:show]
-  before_action :searched?, only: [:index]
 
   include ArelHelper
 
@@ -21,7 +20,7 @@ class HmisController < ApplicationController
   end
 
   def show
-
+    @type = params[:type] if valid_class(params[:type]).present?
   end
 
   private def searched?
@@ -31,6 +30,7 @@ class HmisController < ApplicationController
 
   private def load_results
     return [] unless @searched
+    # whitelist the passed in class
     @klass = valid_class(params[:search].try(:[], :type))
     return [] unless @klass.present?
     return [] unless params[:search][:id].present?
