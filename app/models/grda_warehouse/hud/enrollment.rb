@@ -314,6 +314,13 @@ module GrdaWarehouse::Hud
     # End Standard Demographic Scopes
     #################################
 
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :ProjectID,
+      ]
+    end
+
     def self.youth_columns
       {
         personal_id: :PersonalID,
@@ -442,7 +449,7 @@ module GrdaWarehouse::Hud
         joins(:service_history_services).
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', 
+            record_type: 'service',
             date: thirty_days_ago...self.EntryDate
           )
         ).

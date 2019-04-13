@@ -1,6 +1,6 @@
 # From the Data Standards
 # When a project reduces inventory, but will continue to serve the same household type with a smaller number of beds, a new record should be added with an 'Information Date’ of the effective date of the decrease; the same Inventory Start Date from the previous record should be used. The earlier record should be closed out by recording an Inventory End Date that is the day prior to the effective date of the decrease.
-# 
+#
 # This is the clearest indication of how the three dates are supposed to function.
 # 1. InventoryStartDate is when the physical beds/units were constructed
 # 2. InformationDate is the start of when the beds can be used/counted
@@ -47,6 +47,7 @@ module GrdaWarehouse::Hud
     # has_one :project, through: :project_coc, source: :project
     has_one :project, **hud_belongs(Project), inverse_of: :inventories
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
+    belongs_to :data_source
 
     alias_attribute :start_date, :InventoryStartDate
     alias_attribute :end_date, :InventoryEndDate
@@ -145,6 +146,10 @@ module GrdaWarehouse::Hud
           ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
         end
       end
+    end
+
+    def self.related_item_keys
+      [:ProjectID]
     end
   end
 end

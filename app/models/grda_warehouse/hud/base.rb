@@ -1,7 +1,7 @@
 module GrdaWarehouse::Hud
   class Base < GrdaWarehouseBase
     self.abstract_class = true
-    def self.hud_paranoid_column 
+    def self.hud_paranoid_column
       :DateDeleted
     end
 
@@ -48,6 +48,11 @@ module GrdaWarehouse::Hud
     def self.hud_belongs(model)
       hud_assoc model
     end
+
+    def self.related_item_keys
+      []
+    end
+
   end
 
 end

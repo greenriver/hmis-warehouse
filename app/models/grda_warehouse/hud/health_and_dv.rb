@@ -59,6 +59,14 @@ module GrdaWarehouse::Hud
     has_one :project, through: :enrollment
     belongs_to :export, **hud_belongs(Export), inverse_of: :health_and_dvs
     has_one :destination_client, through: :client
+    belongs_to :data_source
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
 
   end
 end

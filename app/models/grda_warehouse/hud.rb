@@ -28,4 +28,13 @@ module GrdaWarehouse::Hud
       'Geography.csv' => GrdaWarehouse::Hud::Geography,
     }.freeze
   end
+
+  module_function def hud_csv_names
+    models_by_hud_filename.keys.map{|m| m.gsub('.csv', '')}.sort
+  end
+
+  module_function def class_from_csv_name name
+    key = "#{name}.csv"
+    models_by_hud_filename[key]
+  end
 end

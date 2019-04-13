@@ -64,7 +64,9 @@
             .c-card--flush.mb-5
               %header.row.c-card__header
                 .col-sm-8
-                  %h3= org.name
+                  %h3
+                    = org.name
+                    = link_to 'HMIS', hmi_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
                   - if org.dmh
                     Treated as DMH for chronic calculations
                 .col-sm-4.text-right
@@ -101,11 +103,11 @@
                             .o-text--italic.mb-2
                               Acts as
                               = HUD.project_type project.act_as_project_type
-
                         .project__tracking-method.mb-2
                           %em.small
                             Tracking Method:
                             = HUD.tracking_method project.TrackingMethod
+                        = link_to 'HMIS', hmi_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
 
                       %td
                         = checkmark project.confidential

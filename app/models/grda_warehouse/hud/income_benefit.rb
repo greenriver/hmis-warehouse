@@ -177,6 +177,7 @@ module GrdaWarehouse::Hud
     belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :income_benefits
     has_one :project, through: :enrollment
     belongs_to :export, **hud_belongs(Export), inverse_of: :income_benefits
+    belongs_to :data_source
 
     scope :any_benefits, -> {
       at = arel_table
@@ -229,6 +230,13 @@ module GrdaWarehouse::Hud
         two_thousand: { name: 'Over $2001', range: (2001..Float::INFINITY) },
         missing: { name: 'Missing', range: [nil] },
       }
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
     end
 
   end
