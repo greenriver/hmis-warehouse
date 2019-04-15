@@ -62,6 +62,8 @@ module Admin::Health
           flash[:notice] = "Patient has been rejected."
         else
           patient.restore if patient.present?
+          # Clean up any removal acknowledgement with the patient
+          @patient_referral.update(removal_acknowledged: false)
           flash[:notice] = "Patient rejection removed."
         end
       else
