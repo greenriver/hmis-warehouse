@@ -412,8 +412,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               client_id: client_ids,
             ).
             pluck(:client_id)
+
           aggregate_failures "checking counts" do
-            expect(count).to eq 1
+            expect(count).to eq 93
             expect(count).to eq missing.uniq.count
           end
         end
@@ -426,6 +427,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             entry_within_date_range(start_date: report.start, end_date: report.end).
             includes(enrollment: :income_benefits_at_entry_all_sources_refused).
             references(enrollment: :income_benefits_at_entry_all_sources_refused).
+            merge(GrdaWarehouse::Hud::IncomeBenefit.at_entry.all_sources_refused).
             where(
               client_id: client_ids
             ).
