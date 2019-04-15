@@ -2062,11 +2062,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entries.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
           missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
+          refused_income_at_entry << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 1)
         end
       end
       exits.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
           missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
+          refused_income_at_exit << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 3)
         end
       end
 
@@ -2674,6 +2676,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       else
         return true
       end
+    end
+
+    def refused_income(source_client_id, enrollment, data_collection_stage:)
+      incomes = income_assessment_at_stage_for(
+          source_client_id: source_client_id,
+          enrollment_id: enrollment[:enrollment_id],
+          data_collection_stage: data_collection_stage
+      )
+
+      if incomes.present?
+        incomes.each do |income|
+          return true if income[:IncomeFromAnySource] == 9 # Refused
+        end
+      end
+      return false
     end
   end
 end
