@@ -155,7 +155,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :entry_within_date_range, -> (start_date: , end_date: ) do
-    entry.open_between(start_date: start_date, end_date: end_date)
+    self.entry.where(first_date_in_program: [start_date..end_date])
   end
 
   scope :exit_within_date_range, -> (start_date: , end_date: ) do

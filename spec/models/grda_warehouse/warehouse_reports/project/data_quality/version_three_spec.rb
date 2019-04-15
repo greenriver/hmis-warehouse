@@ -414,7 +414,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             pluck(:client_id)
 
           aggregate_failures "checking counts" do
-            expect(count).to eq 93
+            expect(count).to eq 41
             expect(count).to eq missing.uniq.count
           end
         end
