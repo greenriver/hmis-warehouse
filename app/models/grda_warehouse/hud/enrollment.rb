@@ -229,13 +229,13 @@ module GrdaWarehouse::Hud
     end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
 
     has_one :income_benefits_at_exit, -> do
-      at_exit
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit
     end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
     has_one :income_benefits_at_exit_all_sources_refused, -> do
-      at_exit.all_sources_refused
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused
     end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
     has_one :income_benefits_at_exit_all_sources_missing, -> do
-      at_exit.all_sources_missing
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing
     end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
     has_many :income_benefits_annual_update, -> do
       at_annual_update
