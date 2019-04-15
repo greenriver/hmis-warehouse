@@ -24,7 +24,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         client_count = report.clients.map{|client| client[:destination_id]}.uniq.count
 
         aggregate_failures "checking counts" do
-          expect(client_count).to eq 91
+          expect(client_count).to eq 92
           expect(client_count).to eq open_enrollments
         end
       end
@@ -34,7 +34,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         project_clients = report.clients_for_project(project.id).map{|client| client[:id]}.uniq
 
         aggregate_failures "comparing clients" do
-          expect(project_clients.count).to eq 91
+          expect(project_clients.count).to eq 92
           expect(clients_ids).to match_array project_clients
         end
       end
@@ -53,7 +53,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               distinct.count(:PersonalID)
 
           aggregate_failures "counting clients" do
-            expect(count).to eq 91
+            expect(count).to eq 92
             expect(count).to eq open_enrollments
           end
         end
@@ -341,7 +341,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             pluck(:client_id)
 
           aggregate_failures "checking counts" do
-            expect(count).to eq 87
+            expect(count).to eq 88
             expect(count).to eq missing.uniq.count
           end
         end
@@ -377,7 +377,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               pluck(:client_id)
 
           aggregate_failures "checking counts" do
-            expect(count).to eq 86
+            expect(count).to eq 87
             expect(count).to eq missing.uniq.count
           end
         end
@@ -451,7 +451,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             pluck(:client_id)
 
           aggregate_failures "compare counts" do
-            expect(count).to eq 2
+            expect(count).to eq 3
             expect(count).to eq missing.uniq.count
           end
         end
@@ -464,13 +464,14 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               exit_within_date_range(start_date: report.start, end_date: report.end).
               includes(enrollment: :income_benefits_at_exit_all_sources_refused).
               references(enrollment: :income_benefits_at_exit_all_sources_refused).
+              merge(GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused).
             where(
               client_id: client_ids
             ).
             pluck(:client_id)
 
           aggregate_failures "compare counts" do
-            expect(count).to eq 2
+            expect(count).to eq 1
             expect(count).to eq refused.uniq.count
           end
         end
@@ -529,7 +530,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
       end
 
       it 'loads all clients' do
-        expect(report.clients.map{|m| m[:destination_id] }.uniq.count).to eq 111
+        expect(report.clients.map{|m| m[:destination_id] }.uniq.count).to eq 112
       end
     end
   end
