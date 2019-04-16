@@ -22,4 +22,16 @@ FactoryBot.define do
     # computed_project_type
     # presented_as_individua
   end
+
+  trait :service_history_entry do
+    client_id { 0 }
+    record_type { 'entry' }
+    date { Date.today }
+  end
+
+  trait :service_history_exit do
+    client_id { 0 }
+    record_type { 'exit' }
+    date { Date.today }
+  end
 end
