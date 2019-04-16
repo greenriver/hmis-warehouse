@@ -7,8 +7,12 @@ module Health
   class EligibilityInquiry < HealthBase
     before_create :assign_control_numbers
 
+    has_one :eligibility_response, dependent: :destroy
+
     scope :pending, -> () do
-      where(result: nil)
+      includes(:eligibility_response).
+      references(:eligibility_response).
+      where(eligibility_responses: {response: nil})
     end
 
     def build_inquiry_file

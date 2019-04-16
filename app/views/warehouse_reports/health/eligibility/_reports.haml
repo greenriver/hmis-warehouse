@@ -13,7 +13,7 @@
           %td= link_to_if report.inquiry.present?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt"
           %td= report.created_at
           %td
-            - if report.result
+            - if report.eligibility_response
               %i.icon-checkmark
           %td
             = link_to warehouse_reports_health_eligibility_url(report), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: {confirm: "Are you sure you want to delete this Eligibility Request?"} do
