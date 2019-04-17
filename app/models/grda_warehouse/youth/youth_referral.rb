@@ -14,6 +14,12 @@ module GrdaWarehouse::Youth
       order(referred_on: :desc)
     end
 
+    scope :between, -> (start_date:, end_date:) do
+      at = arel_table
+      where(at[:referred_on].gteq(start_date).and(at[:referred_on].lteq(end_date)))
+    end
+
+
     scope :visible_by?, -> (user) do
       if user.can_edit_anything_super_user?
         all

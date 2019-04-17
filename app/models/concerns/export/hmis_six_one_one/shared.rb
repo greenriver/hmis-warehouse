@@ -61,6 +61,7 @@ module Export::HMISSixOneOne::Shared
     @organization_lookup = nil
     @client_lookup = nil
     @dest_client_lookup = nil
+    @project_type_overridden_to_psh = nil
   end
 
 
@@ -212,6 +213,21 @@ module Export::HMISSixOneOne::Shared
         [[p_id, ds_id], id]
       end.to_h
     @project_lookup[[project_id, data_source_id]]
+  end
+
+  def project_type_overridden_to_psh? project_id, data_source_id
+    @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+    if self.is_a? GrdaWarehouse::Hud::Project
+      return self.project_type_overridden_as_ph?
+    end
+    @project_type_overridden_to_psh ||= GrdaWarehouse::Hud::Project.all.
+      map do |project|
+        [
+          [project.ProjectID, project.data_source_id],
+          project.project_type_overridden_as_ph?
+        ]
+      end.to_h
+    @project_type_overridden_to_psh[[project_id, data_source_id]]
   end
 
   def organization_export_id organization_id, data_source_id

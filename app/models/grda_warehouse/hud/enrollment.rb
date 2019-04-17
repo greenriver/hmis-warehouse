@@ -353,6 +353,13 @@ module GrdaWarehouse::Hud
     # End Standard Demographic Scopes
     #################################
 
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :ProjectID,
+      ]
+    end
+
     def self.youth_columns
       {
         personal_id: :PersonalID,

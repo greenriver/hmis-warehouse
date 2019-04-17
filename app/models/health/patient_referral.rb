@@ -81,6 +81,7 @@ module Health
       'ACO/MCO requested change' => 6,
       Medical_exception: 8,
       Reported_Eligibility_Loss: 9,
+      Disengaged: 10,
       Deceased: 7,
     }
 

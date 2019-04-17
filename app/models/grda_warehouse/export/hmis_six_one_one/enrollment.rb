@@ -35,6 +35,13 @@ module GrdaWarehouse::Export::HMISSixOneOne
         row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
       end
       row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank?
+      # If the project has been overridden as PH, assume the MoveInDate
+      # is the EntryDate if we don't have a MoveInDate.
+      # Usually we won't have a MoveInDate because it isn't required
+      # if the project type isn't PH
+      if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
+        row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate]
+      end
       return row
     end
 

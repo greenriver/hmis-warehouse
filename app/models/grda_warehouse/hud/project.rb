@@ -433,6 +433,10 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def self.related_item_keys
+      [:OrganizationID]
+    end
+
     def self.project_type_override
       p_t[:computed_project_type]
       # cl(p_t[:act_as_project_type], p_t[:ProjectType])
@@ -440,6 +444,13 @@ module GrdaWarehouse::Hud
 
     def compute_project_type
       act_as_project_type.presence || self.ProjectType
+    end
+
+    # Originally wasn't PH, but is overridden to PH
+    def project_type_overridden_as_ph?
+      @psh_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      ! @psh_types.include?(self.ProjectType) &&
+        @psh_types.include?(self.compute_project_type)
     end
 
     def organization_and_name(include_confidential_names: false)

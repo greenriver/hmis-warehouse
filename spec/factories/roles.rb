@@ -1,4 +1,8 @@
 FactoryBot.define do
+  factory :role, class: 'Role' do
+    name { 'role' }
+  end
+
   factory :admin_role, class: 'Role' do
     name { "admin" }
     verb { nil }
@@ -92,5 +96,15 @@ FactoryBot.define do
   factory :assigned_ds_viewer, class: 'Role' do
     name { 'ds viewer' }
     can_see_clients_in_window_for_assigned_data_sources { true }
+  end
+
+  factory :secure_file_recipient, class: 'Role' do
+    name 'secure file recipient'
+    can_view_assigned_secure_uploads true
+  end
+
+  factory :secure_file_admin, class: 'Role' do
+    name 'secure file admin'
+    can_view_all_secure_uploads true
   end
 end
