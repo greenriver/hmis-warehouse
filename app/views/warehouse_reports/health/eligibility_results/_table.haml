@@ -1,0 +1,14 @@
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Name
+      %th Birthday
+      %th Agency
+      %th Care Coordinator
+  %tbody
+    - patients.each do |patient|
+      %tr
+        %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(patient.client)
+        %td= patient.birthdate
+        %td= patient.health_agency.name
+        %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"
