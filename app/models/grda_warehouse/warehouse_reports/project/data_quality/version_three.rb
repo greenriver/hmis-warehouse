@@ -100,10 +100,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_descriptor_completeness
       issues = []
-      if report['bed_utilization_totals']['counts']['capacity'].blank?
+      if report['bed_utilization_totals']['counts']['capacity'].blank? || report['bed_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Bed Inventory"
       end
-      if report['unit_utilization_totals']['counts']['capacity'].blank?
+      if report['unit_utilization_totals']['counts']['capacity'].blank? || report['unit_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Unit Inventory"
       end
       if report['coc_code'].blank?

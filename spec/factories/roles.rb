@@ -99,12 +99,12 @@ FactoryBot.define do
   end
 
   factory :secure_file_recipient, class: 'Role' do
-    name 'secure file recipient'
-    can_view_assigned_secure_uploads true
+    name { 'secure file recipient' }
+    can_view_assigned_secure_uploads { true }
   end
 
   factory :secure_file_admin, class: 'Role' do
-    name 'secure file admin'
-    can_view_all_secure_uploads true
+    name { 'secure file admin' }
+    can_view_all_secure_uploads { true }
   end
 end
