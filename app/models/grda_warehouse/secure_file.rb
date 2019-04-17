@@ -12,12 +12,26 @@ module GrdaWarehouse
 
     scope :visible_by?, -> (user) do
       # If you can see all client files, show everything
-      if user.can_view_all_secure_uploads?
+      visible_scope = if user.can_view_all_secure_uploads?
         all
       # You can only see files you were sent
       else
         where(recipient_id: user.id)
       end
+      # all secure files expire after 1.month
+      visible_scope.unexpired
+    end
+
+    scope :expired, -> do
+      where(arel_table[:created_at].lt(1.month.ago.to_date))
+    end
+
+    scope :unexpired, -> do
+      where(created_at: (1.month.ago.to_date..Date.tomorrow))
+    end
+
+    def self.clean_expired
+      expired.update_all(deleted_at: Time.now)
     end
 
     def file_exists_and_not_too_large
