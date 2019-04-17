@@ -4,7 +4,6 @@ module GrdaWarehouse
 
     belongs_to :recipient, class_name: User.name
     belongs_to :sender, class_name: User.name
-    belongs_to :vispdat, class_name: User.name
     validates_presence_of :name
     validate :file_exists_and_not_too_large
 
@@ -15,8 +14,10 @@ module GrdaWarehouse
       visible_scope = if user.can_view_all_secure_uploads?
         all
       # You can only see files you were sent
-      else
+      elsif user.can_view_assigned_secure_uploads?
         where(recipient_id: user.id)
+      else
+        none
       end
       # all secure files expire after 1.month
       visible_scope.unexpired
