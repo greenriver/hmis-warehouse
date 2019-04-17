@@ -21,6 +21,24 @@ module Health
       subscribers.select{|s| eligible(s) == false}.map{|s| TRN(s)}
     end
 
+    def eligible_clients
+      count = self.num_eligible
+      count ||= begin
+        count = eligible_ids.count
+        update(num_eligible: count)
+        count
+      end
+    end
+
+    def ineligible_clients
+      count = num_ineligible
+      count ||= begin
+        count = ineligible_ids.count
+        update(num_ineligible: count)
+        count
+      end
+    end
+
     def TRN(subscriber)
       subscriber["2000C SUBSCRIBER LEVEL"].
         select{|h| h.keys.include? :TRN}.map{|h| h[:TRN]}.
