@@ -24,7 +24,7 @@
       .col-sm-4
         %h4 Data Completeness
         %ul.list-unstyled
-          - @report.describe_descriptor_completeness.each do |issue|
+          - @report.describe_data_completeness.each do |issue|
             %li= issue
       .col-sm-4
         %h4 Timeliness

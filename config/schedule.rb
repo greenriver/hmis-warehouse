@@ -26,6 +26,7 @@ daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
   rake "grda_warehouse:daily"
   rake "grda_warehouse:process_recurring_hmis_exports"
+  rake "grda_warehouse:secure_files:clean_expired"
 end
 
 # refresh this every six hours, during the day

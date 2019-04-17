@@ -64,6 +64,7 @@ module GrdaWarehouse::Hud
     has_one :project, through: :enrollment
     belongs_to :export, class_name: 'GrdaWarehouse::Hud::Export', primary_key: [:ExportID, :data_source_id], foreign_key: [:ExportID, :data_source_id], inverse_of: :disabilities
     has_one :destination_client, through: :client
+    belongs_to :data_source
 
     #################################
     # Standard Cohort Scopes
@@ -111,6 +112,13 @@ module GrdaWarehouse::Hud
 
     def disability_type_text
       ::HUD::disability_type self.DisabilityType
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
     end
   end
 end

@@ -121,5 +121,12 @@ module GrdaWarehouse::Hud
 
     # End Standard Cohort Scopes
     #################################
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
   end
 end

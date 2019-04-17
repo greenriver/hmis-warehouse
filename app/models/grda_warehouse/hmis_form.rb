@@ -358,7 +358,9 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     end
   end
 
-
+  def value_for_rrh_cas_tag
+    rrh_assessment_score
+  end
 
   # a display order we use on the client dashboard
   def <=>(other)

@@ -309,4 +309,10 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
   end
 
+  namespace :secure_files do
+    desc "Remove expired secure files"
+    task clean_expired: [:environment] do
+      GrdaWarehouse::SecureFile.clean_expired
+    end
+  end
 end

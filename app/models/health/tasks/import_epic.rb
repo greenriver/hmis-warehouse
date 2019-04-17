@@ -37,7 +37,7 @@ module Health::Tasks
       end
     end
 
-    # This does not remove any data coming from EPIC, only upsirt
+    # This does not remove any data coming from EPIC, only upsert
     def import klass:, file:
       path = "#{@config['destination']}/#{file}"
       handle = read_csv_file(path: path)

@@ -72,5 +72,12 @@ module GrdaWarehouse::Hud
           exists.not
       )
     }
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
   end
 end

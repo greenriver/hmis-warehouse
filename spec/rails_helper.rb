@@ -12,7 +12,7 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
   SimpleCov::Formatter::Console,
 ])
 #SimpleCov.start 'rails'
-SimpleCov.start 
+SimpleCov.start
 SimpleCov.add_filter '/test/'
 
 # Add additional requires below this line. Rails is not loaded until this point!
@@ -64,5 +64,5 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   config.include Devise::Test::ControllerHelpers, :type => :controller
   config.include AuthenticationHelper, type: :controller
-  config.include FactoryGirl::Syntax::Methods
+  config.include FactoryBot::Syntax::Methods
 end

@@ -100,10 +100,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_descriptor_completeness
       issues = []
-      if report['bed_utilization_totals']['counts']['capacity'].blank?
+      if report['bed_utilization_totals']['counts']['capacity'].blank? || report['bed_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Bed Inventory"
       end
-      if report['unit_utilization_totals']['counts']['capacity'].blank?
+      if report['unit_utilization_totals']['counts']['capacity'].blank? || report['unit_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Unit Inventory"
       end
       if report['coc_code'].blank?
@@ -681,6 +681,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
+        # FIXME: This should use a set for total_clients and count at the end, to prevent duplicate counts for multi project runs
         totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
@@ -699,7 +700,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         project_support[project.id][:buckets] = counts
       end
       # average length of stay, days / people
-      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round rescue 0
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {
@@ -1669,7 +1670,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           entry_total += timeliness
           entry_count += 1
           entry_timeliness_support[enrollment[:project_name]] ||= []
-          entry_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          entry_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
       exit_timeliness = {}
@@ -1689,7 +1690,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           exit_total += timeliness
           exit_count += 1
           exit_timeliness_support[enrollment[:project_name]] ||= []
-          exit_timeliness_support[enrollment[:project_name]] << [client_id, service_date, record_date]
+          exit_timeliness_support[enrollment[:project_name]] << [client_id, enrollment[:first_name], enrollment[:last_name], enrollment[:project_name], service_date, record_date]
         end
       end
 
@@ -1715,7 +1716,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_entry_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Entry Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Entry Date', 'Date Recorded'],
             counts: data,
           }
         ]
@@ -1725,7 +1726,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           "timeliness_of_exit_#{project_name.downcase.gsub(' ', '_')}",
           {
-            headers: ['Client ID', 'Exit Date', 'Date Recorded'],
+            headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date', 'Date Recorded'],
             counts: data,
           }
         ]
@@ -1774,7 +1775,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       #   Race
       #   Ethnicity
       #   Gender
-      #   Disabling Condition
+      #   Disabling Condition - in add_missing_enrollment_elements
       #   Physical Disability
       #   Developmental Disability
       #   Chronic Health Condition
@@ -1832,11 +1833,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         # NOTE: You can't have both refused and missing SSN or DOB
         # Refused or unknown trumps missing
-        if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+        if refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
         end
-        if client[:dob].blank? || refused?(client[:dob_data_quality])
+        if refused?(client[:dob_data_quality])
           @refused_dob_client_ids << client[:destination_id]
           refused_dob << client[:destination_id]
         end
@@ -1849,7 +1850,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if refused?(client[:race_none])
           refused_race << client[:destination_id]
         end
-        if client[:gender].blank? || refused?(client[:gender])
+        if refused?(client[:gender])
           refused_gender << client[:destination_id]
         end
 
@@ -1877,7 +1878,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_ethnicity << client[:destination_id]
         end
         # If we have no race info, whatsoever
-        if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+        if missing?(client[:race_none]) && missing_race?(client[:am_ind_ak_native]) && missing_race?(client[:asian]) && missing_race?(client[:black_af_american]) && missing_race?(client[:native_hi_other_pacific]) && missing_race?(client[:white])
           missing_race << client[:destination_id]
         end
         if client[:gender].blank? || missing?(client[:gender])
@@ -1908,7 +1909,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
       answers = {
-        total_clients: clients.size,
+        total_clients: clients.map{ |m| m[:destination_id] }.uniq.size,
         total_active_clients: active_clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
@@ -2057,14 +2058,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
-      entries.each do |client_id, enrollments|
+      # Only applies to enrollments started or ended during the report range
+      entries.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_entry << client_id if missing_income(enrollment, data_collection_stage: 1)
+          missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
+          refused_income_at_entry << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 1)
         end
       end
-      exits.each do |client_id, enrollments|
+      exits.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_exit << client_id if missing_income(enrollment, data_collection_stage: 3)
+          missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
+          refused_income_at_exit << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 3)
         end
       end
 
@@ -2228,12 +2232,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       support = {
         ph_destinations: {
-          headers: ['Client ID', 'Project'],
+          headers: ['Client ID', 'First Name', 'Last Name', 'Project', 'Exit Date'],
           counts: ph_destinations.map do |project_name, ids|
             ids.map do |id|
+              client = enrollments[id].sort_by{|h| h[:last_date_in_program]}.last # most recent exit
               [
                 id,
-                project_name
+                client[:first_name],
+                client[:last_name],
+                project_name,
+                client[:last_date_in_program]
               ]
             end
           end.flatten(1)
@@ -2249,6 +2257,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       increased_earned_twenty_percent = Set.new
       increased_non_cash_twenty_percent = Set.new
       increased_overall_twenty_percent = Set.new
+      change_in_earned_percentage = {}
+      change_in_non_cash_percentage = {}
+      change_in_overall_percentage = {}
 
       earned_types = [
         :EarnedAmount,
@@ -2285,14 +2296,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         first_non_cash_income = first_assessment.values_at(*non_cash_types).compact.sum
         last_total_income = last_assessment.values_at(*all_income_types).compact.sum
         first_total_income = first_assessment.values_at(*all_income_types).compact.sum
+
         increased_earned << client_id if last_earned_income >= first_earned_income
         increased_earned_twenty_percent << client_id if increased_twenty_percent?(last_earned_income, first_earned_income)
         # you might also have an increase that doesn't contain the value details
         increased_earned << client_id if first_earned_income != 1 && last_earned_income == 1
+        change_in_earned_percentage[client_id] = income_increase(change_in_earned_percentage[client_id], last_earned_income, first_earned_income, last_assessment)
+
         increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income
         increased_non_cash_twenty_percent << client_id if increased_twenty_percent?(last_non_cash_income, first_non_cash_income)
+        change_in_non_cash_percentage[client_id] = income_increase(change_in_non_cash_percentage[client_id], last_non_cash_income, first_non_cash_income, last_assessment)
+
         increased_overall << client_id if last_total_income >= first_total_income
         increased_overall_twenty_percent << client_id if increased_twenty_percent?(last_total_income, first_total_income)
+        change_in_overall_percentage[client_id] = income_increase(change_in_overall_percentage[client_id], last_total_income, first_total_income, last_assessment)
+
       end
 
       increased_earned_percentage = (increased_earned.size.to_f/clients.size*100).round(2) rescue 0
@@ -2322,34 +2340,62 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_non_cash_percentage: increased_non_cash_percentage,
         increased_overall_percentage: increased_overall_percentage,
       }
+
       support = {
         'Earned Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_earned.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_earned.map{|m| income_support(m, change_in_earned_percentage)}
         },
         'Non-Cash Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_non_cash.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_non_cash.map{|m| income_support(m, change_in_non_cash_percentage)}
         },
         'Overall Income'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_overall.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_overall.map{|m| income_support(m, change_in_overall_percentage)}
         },
         'Earned Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_earned_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_earned_twenty_percent.map{|m| income_support(m, change_in_earned_percentage)}
         },
         'Non-Cash Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_non_cash_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_non_cash_twenty_percent.map{|m| income_support(m, change_in_non_cash_percentage)}
         },
         'Overall Income 20'.downcase.gsub(' ', '_') => {
-          headers: ['Client ID'],
-          counts: increased_overall_twenty_percent.map{|m| Array.wrap(m)}
+          headers: income_support_header,
+          counts: increased_overall_twenty_percent.map{|m| income_support(m, change_in_overall_percentage)}
         },
       }
       add_answers(answers, support)
 
+    end
+
+    def income_support_header
+      ['Client ID', 'First Name', 'Last Name', 'Project Name', '% Change']
+    end
+
+    def income_support(client_id, changes)
+      data = changes[client_id]
+      [ client_id, data[:first_name], data[:last_name], data[:project_name], data[:change] ]
+    end
+
+    def income_increase(current_values, last_earned_income, first_earned_income, assessment)
+      result = current_values || {}
+
+      enrollment = enrollments[assessment[:client_id]].detect{|e| e[:enrollment_id] == assessment[:enrollment_id]}
+      result[:first_name] ||= enrollment[:first_name]
+      result[:last_name] ||= enrollment[:last_name]
+      result[:project_name] ||= enrollment[:project_name]
+
+      if first_earned_income && first_earned_income > 0
+        increase = last_earned_income - first_earned_income
+        change = ((increase.to_f / first_earned_income) * 100).round
+        result[:change] = [change, result[:change]].compact.max
+      else
+        result[:change] = result[:change] || 'no income at start'
+      end
+      result
     end
 
     def increased_twenty_percent?(last_earned_income, first_earned_income)
@@ -2581,6 +2627,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entries.keys
     end
 
+    # Enrollments opened during report range
     def entries
       @entries ||= begin
         entries = {}
@@ -2596,6 +2643,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    # Enrollments closed during the report range
     def exits
       @exits ||= begin
         exits = {}
@@ -2654,9 +2702,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     # At entry: data_collection_stage = 1
     # At exit: data_collection_stage = 3
-    def missing_income(enrollment, data_collection_stage:)
+    def missing_income(source_client_id, enrollment, data_collection_stage:)
       incomes = income_assessment_at_stage_for(
-        source_client_id: enrollment[:client_id],
+        source_client_id: source_client_id,
         enrollment_id: enrollment[:enrollment_id],
         data_collection_stage: data_collection_stage
       )
@@ -2664,12 +2712,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if incomes.present?
         incomes.each do |income|
           return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
-            income[:TotalMonthlyIncome] == nil
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 0) ||
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 1)
         end
         return false
       else
         return true
       end
+    end
+
+    def refused_income(source_client_id, enrollment, data_collection_stage:)
+      incomes = income_assessment_at_stage_for(
+          source_client_id: source_client_id,
+          enrollment_id: enrollment[:enrollment_id],
+          data_collection_stage: data_collection_stage
+      )
+
+      if incomes.present?
+        incomes.each do |income|
+          return true if income[:IncomeFromAnySource] == 9 # Refused
+        end
+      end
+      return false
     end
   end
 end

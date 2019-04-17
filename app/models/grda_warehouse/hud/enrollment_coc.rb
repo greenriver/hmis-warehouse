@@ -48,6 +48,7 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :enrollment_cocs
     belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment_cocs
     has_one :project, through: :enrollment
+    belongs_to :data_source
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
@@ -61,6 +62,14 @@ module GrdaWarehouse::Hud
 
     scope :in_coc, -> (coc_code:) do
       where(CoCCode: coc_code)
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+        :ProjectID,
+      ]
     end
 
   end

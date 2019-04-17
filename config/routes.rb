@@ -502,6 +502,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :hmis, only: [:index, :show]
+
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do

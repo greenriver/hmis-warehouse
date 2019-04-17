@@ -51,6 +51,14 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :employment_educations
     belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :employment_educations
     has_one :project, through: :enrollment
+    belongs_to :data_source
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
 
   end
 end

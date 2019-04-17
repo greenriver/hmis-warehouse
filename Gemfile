@@ -144,7 +144,7 @@ group :development, :test do
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
   gem 'rspec-rails'
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
   # gem 'rb-readline'
 end
@@ -172,6 +172,7 @@ group :development do
   # gem 'rb-readline'
   gem 'overcommit'
   gem 'rubocop', require: false
+  gem 'rubocop-rspec', require: false
 end
 
 group :test do

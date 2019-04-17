@@ -31,6 +31,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::GenerateServiceHistoryLog,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::DataSource,
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
     ]
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
