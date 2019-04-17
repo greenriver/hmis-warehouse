@@ -187,6 +187,37 @@ module GrdaWarehouse::Hud
       where( condition )
     }
 
+    scope :at_entry, -> do
+      where(DataCollectionStage: 1)
+    end
+
+    scope :at_exit, -> do
+      where(DataCollectionStage: 3)
+    end
+
+    scope :at_annual_update, -> do
+      where(DataCollectionStage: 5)
+    end
+
+    scope :at_update, -> do
+      where(DataCollectionStage: 2)
+    end
+
+    scope :all_sources_missing, -> do
+      ib_t = arel_table
+      # data not collected, or you claimed it was but there was no value
+      where(
+        ib_t[:IncomeFromAnySource].in([99, nil, '']).
+        or(ib_t[:TotalMonthlyIncome].eq(nil).
+          and(ib_t[:IncomeFromAnySource].in([0, 1]))
+        )
+      )
+    end
+
+    scope :all_sources_refused, -> do
+      where(IncomeFromAnySource: 9)
+    end
+
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
       Alimony:                :AlimonyAmount,

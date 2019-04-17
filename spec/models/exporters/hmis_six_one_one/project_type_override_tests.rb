@@ -10,7 +10,7 @@ RSpec.shared_context "project type override tests", shared_context: :metadata do
       exporter.reset_time_format()
       # The enrollments and project sequences seem to drift.
       # This ensures we'll have one to test
-      FactoryGirl.reload
+      FactoryBot.reload
     end
     describe 'when exporting enrollments' do
       before(:each) do

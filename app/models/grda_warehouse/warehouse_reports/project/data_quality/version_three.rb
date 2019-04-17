@@ -100,10 +100,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_descriptor_completeness
       issues = []
-      if report['bed_utilization_totals']['counts']['capacity'].blank?
+      if report['bed_utilization_totals']['counts']['capacity'].blank? || report['bed_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Bed Inventory"
       end
-      if report['unit_utilization_totals']['counts']['capacity'].blank?
+      if report['unit_utilization_totals']['counts']['capacity'].blank? || report['unit_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Unit Inventory"
       end
       if report['coc_code'].blank?
@@ -681,6 +681,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
+        # FIXME: This should use a set for total_clients and count at the end, to prevent duplicate counts for multi project runs
         totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
@@ -1774,7 +1775,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       #   Race
       #   Ethnicity
       #   Gender
-      #   Disabling Condition
+      #   Disabling Condition - in add_missing_enrollment_elements
       #   Physical Disability
       #   Developmental Disability
       #   Chronic Health Condition
@@ -1832,11 +1833,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         # NOTE: You can't have both refused and missing SSN or DOB
         # Refused or unknown trumps missing
-        if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+        if refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
         end
-        if client[:dob].blank? || refused?(client[:dob_data_quality])
+        if refused?(client[:dob_data_quality])
           @refused_dob_client_ids << client[:destination_id]
           refused_dob << client[:destination_id]
         end
@@ -1849,7 +1850,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if refused?(client[:race_none])
           refused_race << client[:destination_id]
         end
-        if client[:gender].blank? || refused?(client[:gender])
+        if refused?(client[:gender])
           refused_gender << client[:destination_id]
         end
 
@@ -1877,7 +1878,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_ethnicity << client[:destination_id]
         end
         # If we have no race info, whatsoever
-        if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+        if missing?(client[:race_none]) && missing_race?(client[:am_ind_ak_native]) && missing_race?(client[:asian]) && missing_race?(client[:black_af_american]) && missing_race?(client[:native_hi_other_pacific]) && missing_race?(client[:white])
           missing_race << client[:destination_id]
         end
         if client[:gender].blank? || missing?(client[:gender])
@@ -1908,7 +1909,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
       answers = {
-        total_clients: clients.size,
+        total_clients: clients.map{ |m| m[:destination_id] }.uniq.size,
         total_active_clients: active_clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
@@ -2057,14 +2058,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
-      entries.each do |client_id, enrollments|
+      # Only applies to enrollments started or ended during the report range
+      entries.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_entry << client_id if missing_income(enrollment, data_collection_stage: 1)
+          missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
+          refused_income_at_entry << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 1)
         end
       end
-      exits.each do |client_id, enrollments|
+      exits.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_exit << client_id if missing_income(enrollment, data_collection_stage: 3)
+          missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
+          refused_income_at_exit << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 3)
         end
       end
 
@@ -2623,6 +2627,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entries.keys
     end
 
+    # Enrollments opened during report range
     def entries
       @entries ||= begin
         entries = {}
@@ -2638,6 +2643,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    # Enrollments closed during the report range
     def exits
       @exits ||= begin
         exits = {}
@@ -2696,9 +2702,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     # At entry: data_collection_stage = 1
     # At exit: data_collection_stage = 3
-    def missing_income(enrollment, data_collection_stage:)
+    def missing_income(source_client_id, enrollment, data_collection_stage:)
       incomes = income_assessment_at_stage_for(
-        source_client_id: enrollment[:client_id],
+        source_client_id: source_client_id,
         enrollment_id: enrollment[:enrollment_id],
         data_collection_stage: data_collection_stage
       )
@@ -2706,12 +2712,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if incomes.present?
         incomes.each do |income|
           return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
-            income[:TotalMonthlyIncome] == nil
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 0) ||
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 1)
         end
         return false
       else
         return true
       end
+    end
+
+    def refused_income(source_client_id, enrollment, data_collection_stage:)
+      incomes = income_assessment_at_stage_for(
+          source_client_id: source_client_id,
+          enrollment_id: enrollment[:enrollment_id],
+          data_collection_stage: data_collection_stage
+      )
+
+      if incomes.present?
+        incomes.each do |income|
+          return true if income[:IncomeFromAnySource] == 9 # Refused
+        end
+      end
+      return false
     end
   end
 end

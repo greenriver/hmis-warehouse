@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_income_benefit, class: 'GrdaWarehouse::Hud::IncomeBenefit' do
     sequence(:IncomeBenefitsID, 7)
     sequence(:EnrollmentID, 1)

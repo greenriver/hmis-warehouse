@@ -1,9 +1,9 @@
-FactoryGirl.define do
+FactoryBot.define do
   # puts Message.new.attributes
   factory :message do
-    from    %w( macbeth@scotland.gov.uk )
-    subject 'futility'
-    body <<-END.strip_heredoc
+    from    { %w( macbeth@scotland.gov.uk ) }
+    subject { 'futility' }
+    body { <<-END.strip_heredoc }
         Tomorrow and tomorrow and tomorrow
         Creeps in this petty pace from day to day
         To the last syllable of recorded time,
