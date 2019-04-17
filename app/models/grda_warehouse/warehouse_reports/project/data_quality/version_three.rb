@@ -1309,7 +1309,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| m[:first_name]}.all?(&:blank?) || alternate_clients.map{|m| m[:last_name]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:name_data_quality])}.all?
         counts['missing_name'] << columns_for_name_support(client)
       end
-      # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
       if alternate_clients.map{|m| m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
         counts['missing_ssn'] << columns_for_ssn_support(client) unless @refused_ssn_client_ids.include?(client[:destination_id])
@@ -1341,7 +1340,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| refused?(m[:name_data_quality])}.all?
         counts['refused_name'] << columns_for_name_support(client)
       end
-      # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
       if alternate_clients.map{|m| refused?(m[:ssn_data_quality])}.all?
         @refused_ssn_client_ids << client[:destination_id]
