@@ -1407,6 +1407,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if missing_income(client_id, enrollment, data_collection_stage: 3)
         counts['missing_income_at_exit'] << columns_for_destination_support(enrollment)
       end
+
+      return counts
     end
 
     def add_bed_utilization
