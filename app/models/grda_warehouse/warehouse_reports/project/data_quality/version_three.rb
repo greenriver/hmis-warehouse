@@ -699,7 +699,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         project_support[project.id][:buckets] = counts
       end
       # average length of stay, days / people
-      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round rescue 0
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {
