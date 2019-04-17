@@ -2670,7 +2670,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if incomes.present?
         incomes.each do |income|
           return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
-            income[:TotalMonthlyIncome] == nil
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 0) ||
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 1)
         end
         return false
       else

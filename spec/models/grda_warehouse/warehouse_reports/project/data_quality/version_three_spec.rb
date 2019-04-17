@@ -1,4 +1,5 @@
 require 'rails_helper'
+include ArelHelper
 
 RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree, type: :model do
   # NOTE: The date range of the report is limited and will not include everyone in the import file
@@ -403,17 +404,29 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_income_at_entry']
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
             entry_within_date_range(start_date: report.start, end_date: report.end).
-            includes(enrollment: :income_benefits_at_entry_all_sources_missing).
-            references(enrollment: :income_benefits_at_entry_all_sources_missing).
-            where(
-              client_id: client_ids,
-            ).
+            where(client_id: client_ids).
+            distinct.
             pluck(:client_id)
 
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: :income_benefits_at_entry).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9]))
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          missing = expected_client_ids - valid_client_ids
+
           aggregate_failures "checking counts" do
-            expect(count).to eq 41
+            expect(count).to eq 39
             expect(count).to eq missing.uniq.count
           end
         end
@@ -424,12 +437,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.entry.
             entry_within_date_range(start_date: report.start, end_date: report.end).
-            includes(enrollment: :income_benefits_at_entry_all_sources_refused).
-            references(enrollment: :income_benefits_at_entry_all_sources_refused).
-            merge(GrdaWarehouse::Hud::IncomeBenefit.at_entry.all_sources_refused).
-            where(
-              client_id: client_ids
-            ).
+            joins(enrollment: :income_benefits_at_entry_all_sources_refused).
+            where(client_id: client_ids).
             pluck(:client_id)
 
           aggregate_failures "checking counts" do
@@ -442,17 +451,28 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_income_at_exit']
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
             exit_within_date_range(start_date: report.start, end_date: report.end).
-            includes(enrollment: :income_benefits_at_exit_all_sources_missing).
-            references(enrollment: :income_benefits_at_exit_all_sources_missing).
-            where(
-              client_id: client_ids,
-            ).
+            where(client_id: client_ids).
+            distinct.
             pluck(:client_id)
 
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: [:income_benefits_at_exit, :exit]).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9]))
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          missing = expected_client_ids - valid_client_ids
+
           aggregate_failures "compare counts" do
-            expect(count).to eq 3
+            expect(count).to eq 2
             expect(count).to eq missing.uniq.count
           end
         end
@@ -462,13 +482,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-              exit_within_date_range(start_date: report.start, end_date: report.end).
-              includes(enrollment: :income_benefits_at_exit_all_sources_refused).
-              references(enrollment: :income_benefits_at_exit_all_sources_refused).
-              merge(GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused).
-            where(
-              client_id: client_ids
-            ).
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: [:income_benefits_at_exit_all_sources_refused, :exit]).
+            where(client_id: client_ids).
             pluck(:client_id)
 
           aggregate_failures "compare counts" do
@@ -899,17 +915,29 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_income_at_entry']
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-              entry_within_date_range(start_date: report.start, end_date: report.end).
-              includes(enrollment: :income_benefits_at_entry_all_sources_missing).
-              references(enrollment: :income_benefits_at_entry_all_sources_missing).
-              where(
-                  client_id: client_ids,
-              ).
-              pluck(:client_id)
+
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: :income_benefits_at_entry).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9]))
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          missing = expected_client_ids - valid_client_ids
 
           aggregate_failures "checking counts" do
-            expect(count).to eq 49
+            expect(count).to eq 42
             expect(count).to eq missing.uniq.count
           end
         end
@@ -919,14 +947,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-              entry_within_date_range(start_date: report.start, end_date: report.end).
-              includes(enrollment: :income_benefits_at_entry_all_sources_refused).
-              references(enrollment: :income_benefits_at_entry_all_sources_refused).
-              merge(GrdaWarehouse::Hud::IncomeBenefit.at_entry.all_sources_refused).
-              where(
-                  client_id: client_ids
-              ).
-              pluck(:client_id)
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: :income_benefits_at_entry_all_sources_refused).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures "checking counts" do
             expect(count).to eq 2
@@ -938,17 +962,29 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_income_at_exit']
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-              exit_within_date_range(start_date: report.start, end_date: report.end).
-              includes(enrollment: :income_benefits_at_exit_all_sources_missing).
-              references(enrollment: :income_benefits_at_exit_all_sources_missing).
-              where(
-                  client_id: client_ids,
-              ).
-              pluck(:client_id)
+
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: [:income_benefits_at_exit, :exit]).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9]))
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
+
+          missing = expected_client_ids - valid_client_ids
 
           aggregate_failures "compare counts" do
-            expect(count).to eq 3
+            expect(count).to eq 2
             expect(count).to eq missing.uniq.count
           end
         end
@@ -958,14 +994,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map{|client| client[:destination_id]}.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-              exit_within_date_range(start_date: report.start, end_date: report.end).
-              includes(enrollment: :income_benefits_at_exit_all_sources_refused).
-              references(enrollment: :income_benefits_at_exit_all_sources_refused).
-              merge(GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused).
-              where(
-                  client_id: client_ids
-              ).
-              pluck(:client_id)
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: [:income_benefits_at_exit_all_sources_refused, :exit]).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures "compare counts" do
             expect(count).to eq 1

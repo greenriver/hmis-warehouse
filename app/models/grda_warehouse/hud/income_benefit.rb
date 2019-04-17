@@ -203,7 +203,14 @@ module GrdaWarehouse::Hud
     end
 
     scope :all_sources_missing, -> do
-      where(IncomeFromAnySource: [99, nil, ''])
+      ib_t = arel_table
+      # data not collected, or you claimed it was but there was no value
+      where(
+        ib_t[:IncomeFromAnySource].in([99, nil, '']).
+        or(ib_t[:TotalMonthlyIncome].eq(nil).
+          and(ib_t[:IncomeFromAnySource].in([0, 1]))
+        )
+      )
     end
 
     scope :all_sources_refused, -> do
