@@ -32,6 +32,7 @@ module WarehouseReports::Health
       begin
         @report = inquiry_scope.find(params[:id].to_i)
         Health::EligibilityResponse.create(eligibility_inquiry: @report, response: update_params[:content].read)
+        Health::FlagIneligiblePatientsJob.perform_later
       rescue
         flash[:error] = 'Error processing uploaded file'
       end
