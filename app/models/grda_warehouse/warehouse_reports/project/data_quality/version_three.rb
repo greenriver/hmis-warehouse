@@ -824,8 +824,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         counts.each do |key, value|
           totals[key] += value
           answers[:project_missing][project.id] ||= {}
-          answers[:project_missing][project.id][key] = value.size
-          answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size)
+          item_count = value.size
+          # disabling conditions can occur more than once per enrollment, count unique clients
+          if key.to_s.include?('disabling_condition')
+            item_count = value&.map(&:first)&.uniq&.count || 0
+          end
+          answers[:project_missing][project.id][key] = item_count
+          answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(item_count, clients_in_project.size)
           header_key = key.to_s.gsub('missing_', '').gsub('refused_', '').gsub('unknown_', '').to_sym
           support["project_missing_#{project.id}_#{key}"] = {
             headers: self.class.missing_refused_names[header_key],
@@ -873,7 +878,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         count
       totals.each do |key, value|
         header_key = key.to_s.gsub('missing_', '').gsub('refused_', '').gsub('unknown_', '').to_sym
-        answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
+        item_count = value.count
+        # disabling conditions may get reported multiple times per enrollment, we want unique client counts
+        if header_key == :disabling_condition
+          item_count = value&.map(&:first)&.uniq&.count || 0
+        end
+        answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(item_count, clients.size)
         if ! [:total_open_enrollments, :total_missing, :clients_served_during_range].include?(key)
           support["project_missing_totals_#{key}"] = {
             headers: self.class.missing_refused_names[header_key],
@@ -2297,10 +2307,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :OtherIncomeAmount
       ]
       all_income_types = earned_types + non_cash_types
-      # FIXME: this is not working after recent changes
-      # https://boston-hmis.dev/projects/343/data_quality_reports/974
-      # VS
-      # https://boston-hmis.dev/projects/343/data_quality_reports/976
 
       incomes.each do |client_id, income_assessments|
         next if income_assessments.count < 2
