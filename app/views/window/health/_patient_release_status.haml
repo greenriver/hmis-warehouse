@@ -15,3 +15,7 @@
     %i.alert__icon.icon-warning
     %p
       #{@patient.name} is no longer participating in the BH CP.
+- if @patient.ineligible
+  %div.alert.alert-warning
+    %i.alert__icon.icon-warning
+    #{@patient.name} was flagged as ineligible for MassHealth on #{@patient.ineligible}
