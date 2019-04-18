@@ -48,6 +48,7 @@ module Health
               return  trn.detect{|h| h.keys.include? :E127}[:E127][:value][:raw]
             end
           end
+      return nil
     end
 
     def eligible(subscriber)
