@@ -17,7 +17,13 @@ module Health
     end
 
     def notify_care_coordinators(ineligible_ids)
-      # TODO
+      groups = Health::Patient.where(medicaid_id: ineligible_ids).
+        where.not(care_coordinator_id: nil).
+        group_by{|patient| patient.care_coordinator}
+
+      groups.each do |coordinator, patients|
+        IneligiblePatientMailer.ineligible_patients(coordinator, patients).deliver_later
+      end
     end
   end
 end
