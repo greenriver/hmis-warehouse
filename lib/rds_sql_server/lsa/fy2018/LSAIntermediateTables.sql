@@ -1,7 +1,7 @@
 /**********************************************************************
-4.1 Create Intermediate Tables 
+4.1 Create Intermediate Tables
 **********************************************************************/
-if object_id ('active_Enrollment') is null 
+if object_id ('active_Enrollment') is null
 begin
   CREATE TABLE dbo.active_Enrollment(
     EnrollmentID varchar(32) NOT NULL,
@@ -18,7 +18,7 @@ begin
     ProjectID varchar(32) NULL,
     ProjectType int NULL,
     TrackingMethod int NULL,
-    PRIMARY KEY (EnrollmentID) 
+    PRIMARY KEY (EnrollmentID)
   )
   ;
 end
@@ -26,9 +26,9 @@ else delete from active_Enrollment
 
 if not exists (select * from sys.indexes where name = 'ix_active_Enrollment_PersonalID_HouseholdID')
 begin
-  create index ix_active_Enrollment_PersonalID_HouseholdID 
+  create index ix_active_Enrollment_PersonalID_HouseholdID
     on active_Enrollment (PersonalID, HouseholdID) include (AgeGroup)
-end 
+end
 
 if object_id ('active_Household') is null
 begin
@@ -50,7 +50,7 @@ CREATE TABLE dbo.active_Household(
   HHChild int NULL,
   HHNoDOB int NULL,
   AC3Plus int NULL,
-  PRIMARY KEY (HouseholdID) 
+  PRIMARY KEY (HouseholdID)
 );
 end
 else delete from active_Household
@@ -58,11 +58,11 @@ else delete from active_Household
 
 if not exists (select * from sys.indexes where name = 'ix_active_Household_HoHID_HHType')
 begin
-  create index ix_active_Household_HoHID_HHType 
+  create index ix_active_Household_HoHID_HHType
     on active_Household (HoHID, HHType) include (ProjectType)
 end
 
-if object_id ('ch_Enrollment') is null 
+if object_id ('ch_Enrollment') is null
 begin
 CREATE TABLE dbo.ch_Enrollment(
   PersonalID varchar(32) NULL,
@@ -72,7 +72,7 @@ CREATE TABLE dbo.ch_Enrollment(
   StartDate date NULL,
   MoveInDate date NULL,
   StopDate date NULL
-    PRIMARY KEY (EnrollmentID) 
+    PRIMARY KEY (EnrollmentID)
 )
 ;
 end
@@ -80,8 +80,8 @@ else delete from ch_Enrollment
 
 if not exists (select * from sys.indexes where name = 'ix_ch_Enrollment_PersonalID_ProjectType')
 begin
-create index ix_ch_Enrollment_PersonalID_ProjectType 
-  on ch_Enrollment (PersonalID, ProjectType) include (StartDate, StopDate) 
+create index ix_ch_Enrollment_PersonalID_ProjectType
+  on ch_Enrollment (PersonalID, ProjectType) include (StartDate, StopDate)
 end
 
 if object_id ('ch_Episodes') is not null drop table ch_Episodes
@@ -97,7 +97,7 @@ if object_id ('ch_Exclude') is not null drop table ch_Exclude
 CREATE TABLE dbo.ch_Exclude(
   PersonalID varchar(32) NOT NULL,
   excludeDate date NOT NULL,
-  PRIMARY KEY (PersonalID, excludeDate) 
+  PRIMARY KEY (PersonalID, excludeDate)
 )
 ;
 
@@ -109,7 +109,7 @@ CREATE TABLE dbo.ch_Time(
 )
 ;
 
-if object_id ('dq_Enrollment') is null 
+if object_id ('dq_Enrollment') is null
 begin
 CREATE TABLE dbo.dq_Enrollment(
   EnrollmentID varchar(32) NOT NULL,
@@ -122,7 +122,7 @@ CREATE TABLE dbo.dq_Enrollment(
   ExitDate date NULL,
   Adult int NULL,
   SSNValid int NULL,
-  PRIMARY KEY (EnrollmentID) 
+  PRIMARY KEY (EnrollmentID)
 )
 ;
 end
@@ -134,7 +134,7 @@ begin
     on dq_Enrollment (PersonalID, HouseholdID) include (RelationshipToHoH, Adult)
 end
 
-if object_id ('ex_Enrollment') is null 
+if object_id ('ex_Enrollment') is null
 begin
 CREATE TABLE dbo.ex_Enrollment(
   Cohort int NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE dbo.ex_Enrollment(
   ExitDate date NULL,
   ExitTo int NULL,
   Active bit NULL,
-  PRIMARY KEY (EnrollmentID) 
+  PRIMARY KEY (EnrollmentID)
 )
 ;
 end
@@ -155,7 +155,7 @@ else delete from ex_Enrollment
 
 if not exists (select * from sys.indexes where name = 'ix_ex_Enrollment_Cohort_HoHID_HHType')
 begin
-  create index ix_ex_Enrollment_Cohort_HoHID_HHType 
+  create index ix_ex_Enrollment_Cohort_HoHID_HHType
     on ex_Enrollment (Cohort, HoHID, HHType) include (EntryDate, ExitDate, ExitTo)
 end
 
@@ -209,7 +209,7 @@ CREATE TABLE dbo.lsa_Organization(
   UserID varchar(32) NULL,
   DateDeleted datetime NULL,
   ExportID varchar(32) NOT NULL,
-  PRIMARY KEY (OrganizationID) 
+  PRIMARY KEY (OrganizationID)
 )
 ;
 CREATE TABLE dbo.lsa_Project(
@@ -232,7 +232,7 @@ CREATE TABLE dbo.lsa_Project(
   UserID varchar(32) NULL,
   DateDeleted datetime NULL,
   ExportID varchar(32) NOT NULL,
-  PRIMARY KEY (ProjectID) 
+  PRIMARY KEY (ProjectID)
 )
 ;
 CREATE TABLE dbo.lsa_Inventory(
@@ -281,7 +281,7 @@ CREATE TABLE dbo.lsa_Geography(
   GeographyID varchar(32) NOT NULL,
   ProjectID varchar(32) NOT NULL,
   CoCCode varchar(6) NOT NULL,
-  InformationDate datetime NOT NULL,
+  InformationDate date NOT NULL,
   Geocode varchar(6) NOT NULL,
   GeographyType int NOT NULL,
   Address1 varchar(50) NULL,
@@ -445,14 +445,14 @@ CREATE TABLE dbo.lsa_Report(
 -- INSERT [dbo].[lsa_Report] ([ReportID]
 --   , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
 --   , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
---   , [LSAScope]) 
+--   , [LSAScope])
 -- VALUES (1009
 --   , CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
 --     , CAST(N'2017-09-30' AS Date), N'XX-500'
 --   , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
 --   , 1)
 
-if object_id ('sys_Enrollment') is null 
+if object_id ('sys_Enrollment') is null
 begin
 CREATE TABLE dbo.sys_Enrollment(
   HoHID varchar(32) not null,
@@ -463,7 +463,7 @@ CREATE TABLE dbo.sys_Enrollment(
   MoveInDate date NULL,
   ExitDate date NULL,
   Active bit NULL,
-    PRIMARY KEY (EnrollmentID) 
+    PRIMARY KEY (EnrollmentID)
 )
 ;
 end
@@ -471,7 +471,7 @@ else delete from sys_Enrollment
 
 if not exists (select * from sys.indexes where name = 'ix_sys_Enrollment_HoHID_HHType')
 begin
-  create index ix_sys_Enrollment_HoHID_HHType 
+  create index ix_sys_Enrollment_HoHID_HHType
     on sys_Enrollment (HoHID, HHType) include (ProjectType, EntryDate, ExitDate)
 end
 
@@ -481,7 +481,7 @@ CREATE TABLE dbo.sys_Time(
   HHType int NOT NULL,
   sysDate date NOT NULL,
   sysStatus varchar(8) NULL,
-  PRIMARY KEY (HoHID,HHType,sysDate) 
+  PRIMARY KEY (HoHID,HHType,sysDate)
 )
 ;
 
@@ -494,7 +494,7 @@ CREATE TABLE dbo.tmp_CohortDates(
 )
 ;
 
-if object_id ('tmp_Exit') is null 
+if object_id ('tmp_Exit') is null
 begin
 CREATE TABLE dbo.tmp_Exit(
   HoHID varchar(32) NOT NULL,
@@ -520,21 +520,21 @@ CREATE TABLE dbo.tmp_Exit(
   AC3Plus int NULL,
   SystemPath int NULL,
   ReportID int NULL,
-  PRIMARY KEY (Cohort, HoHID, HHType) 
+  PRIMARY KEY (Cohort, HoHID, HHType)
 )
 ;
-end 
+end
 else delete from tmp_Exit
 
 if not exists (select * from sys.indexes where name = 'ix_tmp_Exit_EntryDate_ExitDate_Stat')
 begin
-  create index ix_tmp_Exit_EntryDate_ExitDate_Stat 
+  create index ix_tmp_Exit_EntryDate_ExitDate_Stat
     on tmp_Exit (EntryDate, ExitDate, Stat) include (ExitFrom)
 end
 
 
 
-if object_id ('tmp_Household') is null 
+if object_id ('tmp_Household') is null
 begin
 CREATE TABLE dbo.tmp_Household(
   HoHID varchar(32) NOT NULL,
@@ -583,13 +583,13 @@ CREATE TABLE dbo.tmp_Household(
   ReportID int NULL,
   FirstEntry date NULL,
   LastActive date NULL,
-  PRIMARY KEY (HoHID, HHType) 
+  PRIMARY KEY (HoHID, HHType)
 )
 ;
 end
 else delete from tmp_Household
 
-if object_id ('tmp_Person') is null 
+if object_id ('tmp_Person') is null
 begin
 CREATE TABLE dbo.tmp_Person(
   PersonalID varchar(32) NOT NULL,
@@ -619,8 +619,8 @@ CREATE TABLE dbo.tmp_Person(
   HHParent int NULL,
   AC3Plus int NULL,
   ReportID int NULL,
-  PRIMARY KEY (PersonalID) 
+  PRIMARY KEY (PersonalID)
 )
-; 
+;
 end
 else delete from tmp_Person
