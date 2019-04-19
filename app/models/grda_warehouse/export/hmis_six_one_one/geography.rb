@@ -7,6 +7,34 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     belongs_to :project_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :geographies
 
+    # Geography records should be one per ProjectID per CoCCode
+    def export_project_related! project_scope:, path:, export:
+      case export.period_type
+      when 3
+        export_scope = self.class.where(project_exits_for_model(project_scope))
+      when 1
+        export_scope = self.class.where(project_exits_for_model(project_scope)).modified_within_range(range: (export.start_date..export.end_date))
+      end
+      # limit based on id order (this is somewhat arbitrary, but we need something that ensures order)
+      d_t1 = GrdaWarehouse::Hud::Geography.arel_table
+      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2.table_alias = 'geography_2'
+      export_scope = export_scope.where(
+        d_t2.project('1').where(d_t2[:DateDeleted].eq(nil)).
+        where(d_t2[:ProjectID].eq(d_t1[:ProjectID])).
+        where(d_t2[:CoCCode].eq(d_t1[:CoCCode])).
+        where(d_t2[:data_source_id].eq(d_t1[:data_source_id])).
+        where(d_t2[:id].gt(d_t1[:id])).
+        exists.not
+      )
+
+      export_to_path(
+        export_scope: export_scope,
+        path: path,
+        export: export
+      )
+    end
+
     def apply_overrides row, data_source_id:
       if override = geography_type_override_for(geography_id: row[:GeographyID].to_i, data_source_id: data_source_id)
         row[:GeographyType] = override
