@@ -15,7 +15,11 @@
     %i.alert__icon.icon-warning
     %p
       #{@patient.name} is no longer participating in the BH CP.
-- if @patient.ineligible
+- if @patient.coverage_level == 'none'
   %div.alert.alert-warning
     %i.alert__icon.icon-warning
-    #{@patient.name} was flagged as ineligible for MassHealth on #{@patient.ineligible}
+    #{@patient.name} was flagged as ineligible for MassHealth on #{@patient.coverage_inquiry_date}
+- elsif @patient.coverage_level == 'standard'
+  %div.alert.alert-warning
+    %i.alert__icon.icon-warning
+    #{@patient.name} has MassHealth coverage, but was flagged as not associated with an ACO on #{@patient.coverage_inquiry_date}

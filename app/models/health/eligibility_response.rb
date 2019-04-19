@@ -13,12 +13,20 @@ module Health
 
     belongs_to :eligibility_inquiry, class_name: Health::EligibilityInquiry
 
+    def subscriber_ids
+      @subs ||= subscribers.map{|s| TRN(s)}
+    end
+
     def eligible_ids
-      subscribers.select{|s| eligible(s) == true}.map{|s| TRN(s)}
+      @eligibles ||= subscribers.select{|s| eligible(s) == true}.map{|s| TRN(s)}
+    end
+
+    def managed_care_ids
+      @manageds ||= subscribers.select{|s| managed_care(s) == true}.map{|s| TRN(s)}
     end
 
     def ineligible_ids
-      subscribers.select{|s| eligible(s) == false}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.select{|s| eligible(s) == false}.map{|s| TRN(s)}
     end
 
     def eligible_clients
@@ -52,20 +60,29 @@ module Health
     end
 
     def eligible(subscriber)
+      EB(subscriber).include?('1')
+    end
+
+    def managed_care(subscriber)
+      ebs = EB(subscriber)
+      ebs.include?('L') || ebs.include?('MC')
+    end
+
+    def EB(subscriber)
+      codes = []
       subscriber["2000C SUBSCRIBER LEVEL"].
-        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
-        select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
+          detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
+          select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
           each do |info|
-            code = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
-              detect{|h| h.keys.include? :EB}[:EB].
-              detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
-            return true if code == '1'
-          end
-      return false
+        codes << info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+            detect{|h| h.keys.include? :EB}[:EB].
+            detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
+      end
+      return codes
     end
 
     def subscribers
-      as_json[:interchanges].
+      @json_subs ||= as_json[:interchanges].
         detect{|h| h.keys.include? :functional_groups}[:functional_groups].
         detect{|h| h.keys.include? :transactions}[:transactions].
         select{|h| h.keys.include? "Table 2 - Subscriber Detail"}.

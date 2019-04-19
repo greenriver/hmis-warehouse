@@ -29,6 +29,8 @@ module Health
     phi_attr :engagement_date, Phi::Date
     phi_attr :death_date, Phi::Date
     phi_attr :care_coordinator_id, Phi::SmallPopulation
+    phi_attr :coverage_level, Phi::NeedsReview
+    phi_attr :coverage_inquiry_date, Phi::NeedsReview
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients

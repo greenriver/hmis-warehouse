@@ -3,6 +3,7 @@
     %tr
       %th Name
       %th Birthday
+      %th ACO Coverage
       %th Agency
       %th Care Coordinator
   %tbody
@@ -10,5 +11,8 @@
       %tr
         %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(patient.client)
         %td= patient.birthdate
+        %td
+          -if has_managed_care(patient)
+            %i.icon-checkmark
         %td= patient.health_agency.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"

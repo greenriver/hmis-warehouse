@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190418152152) do
+ActiveRecord::Schema.define(version: 20190419122444) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -752,7 +752,8 @@ ActiveRecord::Schema.define(version: 20190418152152) do
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
     t.date     "death_date"
-    t.date     "ineligible"
+    t.string   "coverage_level"
+    t.date     "coverage_inquiry_date"
   end
 
   add_index "patients", ["medicaid_id"], name: "index_patients_on_medicaid_id", using: :btree
