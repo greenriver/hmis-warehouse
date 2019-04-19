@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190419122444) do
+ActiveRecord::Schema.define(version: 20190419150901) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -315,6 +315,9 @@ ActiveRecord::Schema.define(version: 20190419122444) do
     t.datetime "updated_at"
     t.integer  "num_eligible"
     t.integer  "num_ineligible"
+    t.integer  "user_id"
+    t.string   "original_filename"
+    t.datetime "deleted_at"
   end
 
   create_table "epic_careplans", force: :cascade do |t|

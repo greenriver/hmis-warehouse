@@ -10,8 +10,12 @@ require "#{json_dir}/json"
 
 module Health
   class EligibilityResponse < HealthBase
+    acts_as_paranoid
+
+    mount_uploader :file, EligibilityResponseFileUploader
 
     belongs_to :eligibility_inquiry, class_name: Health::EligibilityInquiry
+    belongs_to :user
 
     def subscriber_ids
       @subs ||= subscribers.map{|s| TRN(s)}
