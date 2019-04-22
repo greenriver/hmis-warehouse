@@ -1,10 +1,11 @@
 AllCops:
   Include:
+    # TODO: as these are cleaned, add them back for overcommit
     - '**/Rakefile'
-    - '**/config.ru'
-    - 'lib/tasks/**/*'
-    - 'app/**/*'
-    - 'spec/**/*'
+    # - '**/config.ru'
+    # - 'lib/tasks/**/*'
+    # - 'app/**/*'
+    - 'spec/**/*.rb'
   Exclude:
     - 'db/**/*'
     - 'config/**/*'
@@ -64,4 +65,13 @@ Style/RescueStandardError:
   Enabled: true
 
 Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/MixinUsage:
   Enabled: false

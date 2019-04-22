@@ -1,8 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe AccountsController, type: :controller do
-
-  # TODO - get auth working in tests
+  # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }
 
@@ -10,22 +9,21 @@ RSpec.describe AccountsController, type: :controller do
     authenticate(user)
   end
 
-  describe "GET edit" do
+  describe 'GET edit' do
     before(:each) do
       get :edit
     end
 
     it 'assigns user' do
-      expect( assigns(:user) ).to eq user
+      expect(assigns(:user)).to eq user
     end
 
     it 'renders edit' do
-      expect( response ).to render_template :edit
+      expect(response).to render_template :edit
     end
   end
 
-  describe "PUT update" do
-
+  describe 'PUT update' do
     let(:changes) do
       {
         first_name: 'Fake',
@@ -37,13 +35,13 @@ RSpec.describe AccountsController, type: :controller do
       patch :update, user: changes
     end
     it 'updates first_name' do
-      expect( User.not_system.first.first_name ).to eq changes[:first_name]
+      expect(User.not_system.first.first_name).to eq changes[:first_name]
     end
     it 'updates last_name' do
-      expect( User.not_system.first.last_name ).to eq changes[:last_name]
+      expect(User.not_system.first.last_name).to eq changes[:last_name]
     end
     it 'redirects to edit' do
-      expect( response ).to redirect_to edit_account_path
+      expect(response).to redirect_to edit_account_path
     end
   end
 end

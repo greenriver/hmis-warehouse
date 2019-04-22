@@ -3,7 +3,6 @@ require 'rails_helper'
 model = GrdaWarehouse::Hud::Project
 
 RSpec.describe model, type: :model do
-
   # set up hierarchy like so
   #
   # data source:       ds1            ds2
@@ -41,12 +40,11 @@ RSpec.describe model, type: :model do
   let!(:pc5) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p7.ProjectID, CoCCode: 'foo', hud_coc_code: 'bar' }
   let!(:pc6) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p8.ProjectID, hud_coc_code: 'bar' }
 
-  u = -> (user) { model.viewable_by(user).pluck(:id).sort }
-  p = -> (*projects) { projects.map(&:id).sort }
+  u = ->(user) { model.viewable_by(user).pluck(:id).sort }
+  p = ->(*projects) { projects.map(&:id).sort }
 
   describe 'scopes' do
     describe 'viewability' do
-
       describe 'ordinary user' do
         it 'sees nothing' do
           expect(model.viewable_by(user).exists?).to be false
@@ -61,7 +59,7 @@ RSpec.describe model, type: :model do
           user.roles = []
         end
         it 'sees all 8' do
-          expect(u[user]).to eq p[ p1, p2, p3, p4, p5, p6, p7, p8 ]
+          expect(u[user]).to eq p[p1, p2, p3, p4, p5, p6, p7, p8]
         end
       end
 
@@ -85,7 +83,7 @@ RSpec.describe model, type: :model do
           user.entities.destroy_all
         end
         it 'sees p1 and p2' do
-          expect(u[user]).to eq p[ p1, p2 ]
+          expect(u[user]).to eq p[p1, p2]
         end
       end
 
@@ -97,13 +95,13 @@ RSpec.describe model, type: :model do
           user.entities.destroy_all
         end
         it 'sees p1 - p4' do
-          expect(u[user]).to eq p[ p1, p2, p3, p4 ]
+          expect(u[user]).to eq p[p1, p2, p3, p4]
         end
       end
 
       describe 'user assigned to coc foo' do
         before do
-          user.coc_codes = %w(foo)
+          user.coc_codes = %w[foo]
           user.save
         end
         after do
@@ -111,13 +109,13 @@ RSpec.describe model, type: :model do
           user.save
         end
         it 'sees p1, p2, p4, p5' do
-          expect(u[user]).to eq p[ p1, p2, p4, p5 ]
+          expect(u[user]).to eq p[p1, p2, p4, p5]
         end
       end
 
       describe 'user assigned to coc bar' do
         before do
-          user.coc_codes = %w(bar)
+          user.coc_codes = %w[bar]
           user.save
         end
         after do
@@ -125,11 +123,9 @@ RSpec.describe model, type: :model do
           user.save
         end
         it 'sees p7 and p8' do
-          expect(u[user]).to eq p[ p7, p8 ]
+          expect(u[user]).to eq p[p7, p8]
         end
       end
     end
   end
-
-
 end
