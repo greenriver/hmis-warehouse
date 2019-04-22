@@ -683,7 +683,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
-        total_client_set << service_histories.map{|m| m[:client_id]}
+        total_client_set += service_histories.map{|m| m[:client_id]}
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
         project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round rescue 0
