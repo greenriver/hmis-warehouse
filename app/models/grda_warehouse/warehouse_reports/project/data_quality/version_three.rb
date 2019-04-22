@@ -667,6 +667,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         },
       }
 
+      total_client_set = Set.new
+
       projects.each do |project|
         counts = self.class.length_of_stay_buckets.map do |title, range|
           [range, Set.new]
@@ -680,8 +682,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
-        # FIXME: This should use a set for total_clients and count at the end, to prevent duplicate counts for multi project runs
-        totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
+        total_client_set += service_histories.map{|m| m[:client_id]}
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
         project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round rescue 0
@@ -698,6 +699,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         project_counts[project.id][:buckets] = counts.map{|range,services| [range, services.count]}.to_h
         project_support[project.id][:buckets] = counts
       end
+
+      # count the total number of clients
+      totals[:counts][:total_clients] = total_client_set.size
+
       # average length of stay, days / people
       totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round rescue 0
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
