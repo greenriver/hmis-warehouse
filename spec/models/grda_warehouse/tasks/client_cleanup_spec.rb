@@ -1,36 +1,36 @@
 require 'rails_helper'
 
 DEFAULT_DEST_ATTR = {
-  FirstName: 'Blair', 
-  LastName: 'Abbott', 
-  SSN: '555555555', 
-  DOB: '1978-06-12', 
+  FirstName: 'Blair',
+  LastName: 'Abbott',
+  SSN: '555555555',
+  DOB: '1978-06-12',
   VeteranStatus: nil,
-  Gender: nil
-}
+  Gender: nil,
+}.freeze
 
 RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
-
   describe 'When Updating destination records from client sources, using db based relationships' do
     let!(:destination_client) { create(:grda_warehouse_hud_client, PersonalID: 2) }
     let!(:source_data_source) { create(:source_data_source) }
-    let!(:source_1) { 
+    let!(:source_1) do
       create(
-        :grda_warehouse_hud_client, 
-        PersonalID: 2, 
+        :grda_warehouse_hud_client,
+        PersonalID: 2,
         data_source: source_data_source,
         DateUpdated: 1.day.ago,
-        DateCreated: 2.days.ago
+        DateCreated: 2.days.ago,
       )
-    }
-    let!(:source_2) { create(
-        :grda_warehouse_hud_client, 
-        PersonalID: 3, 
+    end
+    let!(:source_2) do
+      create(
+        :grda_warehouse_hud_client,
+        PersonalID: 3,
         data_source: source_data_source,
         DateUpdated: 2.day.ago,
-        DateCreated: 3.days.ago
+        DateCreated: 3.days.ago,
       )
-    }
+    end
 
     before(:each) do
       destination_client.update(DEFAULT_DEST_ATTR)
@@ -41,7 +41,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           id_in_source: client.PersonalID,
           source_id: client.id,
           destination_id: destination_client.id,
-          data_source_id: client.data_source_id
+          data_source_id: client.data_source_id,
         )
       end
       GrdaWarehouse::WarehouseClientsProcessed.create(client_id: destination_client.id, routine: :service_history)
@@ -55,69 +55,63 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       @veteran = 1
       @civilian = 0
       @cleanup = GrdaWarehouse::Tasks::ClientCleanup.new
-
     end
 
     it "doesn't select blank names" do
-      source_1.update({FirstName: 'Correct', LastName: 'Update', NameDataQuality: 99})
-      source_2.update({FirstName: '', LastName: '', NameDataQuality: 9})
+      source_1.update(FirstName: 'Correct', LastName: 'Update', NameDataQuality: 99)
+      source_2.update(FirstName: '', LastName: '', NameDataQuality: 9)
 
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Correct')
       expect(destination_client.LastName).to eq('Update')
     end
 
-    it "keeps the original name fields if all sources are blank" do
-      source_1.update({FirstName: '', LastName: '', NameDataQuality: 99})
-      source_2.update({FirstName: '', LastName: '', NameDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'keeps the original name fields if all sources are blank' do
+      source_1.update(FirstName: '', LastName: '', NameDataQuality: 99)
+      source_2.update(FirstName: '', LastName: '', NameDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Blair')
       expect(destination_client.LastName).to eq('Abbott')
     end
 
-    it "chooses the first and last name of the highest quality record" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 99})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 99)
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
     end
 
-    it "chooses the first and last name of the highest quality record, even if the quality is nil" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record, even if the quality is nil' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil)
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
     end
 
-    it "chooses the first and last name of the highest quality record, and treats nil like 99" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record, and treats nil like 99' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil)
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
@@ -125,158 +119,145 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it "chooses the oldest record's names when quality is equivalent" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
     end
 
-    it "chooses the oldest, and treats nil like 99" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil, DateCreated: Date.new(2017,5,1)})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 99, DateCreated: Date.new(2016,5,1)})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the oldest, and treats nil like 99' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 99, DateCreated: Date.new(2016, 5, 1))
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.FirstName).to eq('Right')
       expect(destination_client.LastName).to eq('Right')
     end
 
-    it "sets DOB to nil if all client records are blank" do
-      source_1.update({DOB: nil, DOBDataQuality: 99})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'sets DOB to nil if all client records are blank' do
+      source_1.update(DOB: nil, DOBDataQuality: 99)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to be_nil
     end
 
-    it "only updates DOB from clients with a value" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 99})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates DOB from clients with a value' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: 99)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to eq(@dob_1)
     end
 
-    it "only updates DOB from clients with a value, even if the quality is nil" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates DOB from clients with a value, even if the quality is nil' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: nil)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to eq(@dob_1)
     end
 
-    it "chooses the highest quality DOB" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 99})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality DOB' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: 99)
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to eq(@dob_2)
     end
 
-    it "chooses the highest quality DOB and treats nil like 99" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality DOB and treats nil like 99' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: nil)
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to eq(@dob_2)
     end
 
     it "chooses the oldest record's DOB when quality is equivalent" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(DOB: @dob_1, DOBDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.DOB).to eq(@dob_1)
     end
 
-    it "sets SSN to nil if all client records are blank" do
-      source_1.update({SSN: nil, SSNDataQuality: 99})
-      source_2.update({SSN: nil, SSNDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'sets SSN to nil if all client records are blank' do
+      source_1.update(SSN: nil, SSNDataQuality: 99)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to be_nil
     end
 
-    it "only updates SSN from clients with a value" do
-      source_1.update({SSN: @ssn1, SSNDataQuality: 99})
-      source_2.update({SSN: nil, SSNDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates SSN from clients with a value' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to eq(@ssn1)
     end
 
-    it "chooses the highest quality SSN" do 
-      source_1.update({SSN: @ssn1, SSNDataQuality: 99})
-      source_2.update({SSN: @ssn2, SSNDataQuality: 9})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality SSN' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 9)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
     it "chooses the oldest record's SSN if all have equivalent quality" do
-      source_1.update({SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      source_2.update({SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.SSN).to eq(@ssn2)
     end
 
-    it "overwrites nil veteran status if something is non-blank" do
-      source_1.update({VeteranStatus: nil, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: 99, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'overwrites nil veteran status if something is non-blank' do
+      source_1.update(VeteranStatus: nil, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: 99, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.VeteranStatus).to eq(99)
@@ -284,12 +265,11 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'maintains the newest veteran status if there is no yes' do
       destination_client.update(VeteranStatus: @veteran)
-      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: 8, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: 99, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: 8, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.VeteranStatus).to eq(8)
@@ -297,50 +277,46 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'sets to no when override is set, even if newer answer is yes' do
       destination_client.update(VeteranStatus: @veteran, verified_veteran_status: :non_veteran)
-      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: 99, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.VeteranStatus).to eq(@civilian)
     end
 
-    it "maintains veteran status of yes, even when no is newer" do
+    it 'maintains veteran status of yes, even when no is newer' do
       destination_client.update(VeteranStatus: @veteran)
-      source_1.update({VeteranStatus: @civilian, DateUpdated: 1.day.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: @civilian, DateUpdated: 1.day.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.VeteranStatus).to eq(@veteran)
     end
 
-    it "updates veteran status with the newest yes/no value" do
+    it 'updates veteran status with the newest yes/no value' do
       destination_client.update(VeteranStatus: @veteran)
-      source_1.update({VeteranStatus: @civilian, DateUpdated: 2.days.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 1.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: @civilian, DateUpdated: 2.days.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 1.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.VeteranStatus).to eq(@veteran)
     end
 
-    it "overwrites nil gender if something is non-blank" do
-      source_1.update({Gender: nil, DateUpdated: 3.days.ago})
-      source_2.update({Gender: 99, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'overwrites nil gender if something is non-blank' do
+      source_1.update(Gender: nil, DateUpdated: 3.days.ago)
+      source_2.update(Gender: 99, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.Gender).to eq(99)
@@ -348,12 +324,11 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'only updates gender known value if some client is a known value' do
       destination_client.update(Gender: 3)
-      source_1.update({Gender: 99, DateUpdated: 3.days.ago})
-      source_2.update({Gender: 8, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 99, DateUpdated: 3.days.ago)
+      source_2.update(Gender: 8, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.Gender).to eq(3)
@@ -361,12 +336,11 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'overwrites gender with newest known value' do
       destination_client.update(Gender: 3)
-      source_1.update({Gender: 1, DateUpdated: 1.day.ago})
-      source_2.update({Gender: 2, DateUpdated: 2.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 1, DateUpdated: 1.day.ago)
+      source_2.update(Gender: 2, DateUpdated: 2.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.Gender).to eq(1)
@@ -374,17 +348,15 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'uses newest known gender value' do
       destination_client.update(Gender: 4)
-      source_1.update({Gender: 1, DateUpdated: 2.days.ago})
-      source_2.update({Gender: 4, DateUpdated: 1.days.ago})
-      client_sources = destination_client.source_clients.pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 1, DateUpdated: 2.days.ago)
+      source_2.update(Gender: 4, DateUpdated: 1.days.ago)
+      destination_client.source_clients.pluck(*@cleanup.client_columns.values).map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @cleanup.update_client_demographics_based_on_sources
       destination_client.reload
       expect(destination_client.Gender).to eq(4)
     end
-
   end
   describe 'When Updating destination records from client sources' do
     let!(:destination_client) { create(:grda_warehouse_hud_client) }
@@ -407,220 +379,220 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     end
 
     it "doesn't select blank names" do
-      source_1.update({FirstName: 'Correct', LastName: 'Update', NameDataQuality: 99})
-      source_2.update({FirstName: '', LastName: '', NameDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(FirstName: 'Correct', LastName: 'Update', NameDataQuality: 99)
+      source_2.update(FirstName: '', LastName: '', NameDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:FirstName]).to eq('Correct')
       expect(@dest_attr[:LastName]).to eq('Update')
     end
 
-    it "keeps the original name fields if all sources are blank" do
-      source_1.update({FirstName: '', LastName: '', NameDataQuality: 99})
-      source_2.update({FirstName: '', LastName: '', NameDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'keeps the original name fields if all sources are blank' do
+      source_1.update(FirstName: '', LastName: '', NameDataQuality: 99)
+      source_2.update(FirstName: '', LastName: '', NameDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:FirstName]).to eq('Blair')
       expect(@dest_attr[:LastName]).to eq('Abbott')
     end
 
-    it "chooses the first and last name of the highest quality record" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 99})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 99)
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
-    it "chooses the first and last name of the highest quality record, even if the quality is nil" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record, even if the quality is nil' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil)
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
-    it "chooses the first and last name of the highest quality record, and treats nil like 99" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil})
-      source_2.update!({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the first and last name of the highest quality record, and treats nil like 99' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil)
+      source_2.update!(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
     it "chooses the oldest record's names when quality is equivalent" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
-    it "chooses the oldest, and treats nil like 99" do
-      source_1.update({FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil, DateCreated: Date.new(2017,5,1)})
-      source_2.update({FirstName: 'Right', LastName: 'Right', NameDataQuality: 99, DateCreated: Date.new(2016,5,1)})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the oldest, and treats nil like 99' do
+      source_1.update(FirstName: 'Wrong', LastName: 'Wrong', NameDataQuality: nil, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(FirstName: 'Right', LastName: 'Right', NameDataQuality: 99, DateCreated: Date.new(2016, 5, 1))
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect('Right').to eq(@dest_attr[:FirstName])
       expect('Right').to eq(@dest_attr[:LastName])
     end
 
-    it "sets DOB to nil if all client records are blank" do
-      source_1.update({DOB: nil, DOBDataQuality: 99})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'sets DOB to nil if all client records are blank' do
+      source_1.update(DOB: nil, DOBDataQuality: 99)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:DOB]).to be_nil
     end
 
-    it "only updates DOB from clients with a value" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 99})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates DOB from clients with a value' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: 99)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
-    it "only updates DOB from clients with a value, even if the quality is nil" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
-      source_2.update({DOB: nil, DOBDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates DOB from clients with a value, even if the quality is nil' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: nil)
+      source_2.update(DOB: nil, DOBDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
-    it "chooses the highest quality DOB" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 99})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality DOB' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: 99)
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_2).to eq(@dest_attr[:DOB])
     end
 
-    it "chooses the highest quality DOB and treats nil like 99" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: nil})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality DOB and treats nil like 99' do
+      source_1.update(DOB: @dob_1, DOBDataQuality: nil)
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_2).to eq(@dest_attr[:DOB])
     end
 
     it "chooses the oldest record's DOB when quality is equivalent" do
-      source_1.update({DOB: @dob_1, DOBDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      source_2.update({DOB: @dob_2, DOBDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(DOB: @dob_1, DOBDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      source_2.update(DOB: @dob_2, DOBDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dob_1).to eq(@dest_attr[:DOB])
     end
 
-    it "sets SSN to nil if all client records are blank" do
-      source_1.update({SSN: nil, SSNDataQuality: 99})
-      source_2.update({SSN: nil, SSNDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'sets SSN to nil if all client records are blank' do
+      source_1.update(SSN: nil, SSNDataQuality: 99)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:SSN]).to be_nil
     end
 
-    it "only updates SSN from clients with a value" do
-      source_1.update({SSN: @ssn1, SSNDataQuality: 99})
-      source_2.update({SSN: nil, SSNDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'only updates SSN from clients with a value' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
+      source_2.update(SSN: nil, SSNDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn1).to eq(@dest_attr[:SSN])
     end
 
-    it "chooses the highest quality SSN" do 
-      source_1.update({SSN: @ssn1, SSNDataQuality: 99})
-      source_2.update({SSN: @ssn2, SSNDataQuality: 9})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'chooses the highest quality SSN' do
+      source_1.update(SSN: @ssn1, SSNDataQuality: 99)
+      source_2.update(SSN: @ssn2, SSNDataQuality: 9)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
     it "chooses the oldest record's SSN if all have equivalent quality" do
-      source_1.update({SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017,5,1)})
-      source_2.update({SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016,5,1)})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(SSN: @ssn1, SSNDataQuality: 9, DateCreated: Date.new(2017, 5, 1))
+      source_2.update(SSN: @ssn2, SSNDataQuality: 9, DateCreated: Date.new(2016, 5, 1))
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@ssn2).to eq(@dest_attr[:SSN])
     end
 
-    it "overwrites nil veteran status if something is non-blank" do
-      source_1.update({VeteranStatus: nil, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: 99, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'overwrites nil veteran status if something is non-blank' do
+      source_1.update(VeteranStatus: nil, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: 99, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(99).to eq(@dest_attr[:VeteranStatus])
@@ -628,25 +600,25 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'maintains the newest veteran status if there is no yes' do
       @dest_attr[:VeteranStatus] = @veteran
-      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: 8, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: 99, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: 8, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:VeteranStatus]).to eq(8)
     end
 
-    it "maintains veteran status of yes, even when no is newer" do
+    it 'maintains veteran status of yes, even when no is newer' do
       @dest_attr[:VeteranStatus] = @veteran
-      source_1.update({VeteranStatus: @civilian, DateUpdated: 1.day.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: @civilian, DateUpdated: 1.day.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@veteran).to eq(@dest_attr[:VeteranStatus])
@@ -655,37 +627,37 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
     it 'sets to no when override is set, even if newer answer is yes' do
       @dest_attr[:VeteranStatus] = @veteran
       @dest_attr[:verified_veteran_status] = 'non_veteran'
-      source_1.update({VeteranStatus: 99, DateUpdated: 3.days.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: 99, DateUpdated: 3.days.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@dest_attr[:VeteranStatus]).to eq(@civilian)
     end
 
-    it "updates veteran status with the newest yes/no value" do
+    it 'updates veteran status with the newest yes/no value' do
       @dest_attr[:VeteranStatus] = @veteran
-      source_1.update({VeteranStatus: @civilian, DateUpdated: 2.days.ago})
-      source_2.update({VeteranStatus: @veteran, DateUpdated: 1.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(VeteranStatus: @civilian, DateUpdated: 2.days.ago)
+      source_2.update(VeteranStatus: @veteran, DateUpdated: 1.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(@veteran).to eq(@dest_attr[:VeteranStatus])
     end
 
-    it "overwrites nil gender if something is non-blank" do
-      source_1.update({Gender: nil, DateUpdated: 3.days.ago})
-      source_2.update({Gender: 99, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+    it 'overwrites nil gender if something is non-blank' do
+      source_1.update(Gender: nil, DateUpdated: 3.days.ago)
+      source_2.update(Gender: 99, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(99).to eq(@dest_attr[:Gender])
@@ -693,12 +665,12 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'only updates gender known value if some client is a known value' do
       @dest_attr[:Gender] = 3
-      source_1.update({Gender: 99, DateUpdated: 3.days.ago})
-      source_2.update({Gender: 8, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 99, DateUpdated: 3.days.ago)
+      source_2.update(Gender: 8, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(3).to eq(@dest_attr[:Gender])
@@ -706,12 +678,12 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'overwrites gender with newest known value' do
       @dest_attr[:Gender] = 3
-      source_1.update({Gender: 1, DateUpdated: 1.day.ago})
-      source_2.update({Gender: 2, DateUpdated: 2.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 1, DateUpdated: 1.day.ago)
+      source_2.update(Gender: 2, DateUpdated: 2.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(1).to eq(@dest_attr[:Gender])
@@ -719,12 +691,12 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     it 'uses newest known gender value' do
       @dest_attr[:Gender] = 4
-      source_1.update({Gender: 1, DateUpdated: 2.days.ago})
-      source_2.update({Gender: 4, DateUpdated: 1.days.ago})
-      client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).
-        map do |row|
-          Hash[@cleanup.client_columns.keys.zip(row)]
-        end
+      source_1.update(Gender: 1, DateUpdated: 2.days.ago)
+      source_2.update(Gender: 4, DateUpdated: 1.days.ago)
+      GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values)
+                                .map do |row|
+        Hash[@cleanup.client_columns.keys.zip(row)]
+      end
 
       @dest_attr = @cleanup.choose_attributes_from_sources(@dest_attr, client_sources)
       expect(4).to eq(@dest_attr[:Gender])
