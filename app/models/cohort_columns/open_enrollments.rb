@@ -22,7 +22,9 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      value(cohort_client).map(&:last).join(' ')
+      v = value(cohort_client)
+      return '' unless v.present?
+      v&.map(&:last)&.join(' ')
     end
 
     def display_for user

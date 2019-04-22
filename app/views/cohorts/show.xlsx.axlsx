@@ -14,7 +14,7 @@ wb.add_worksheet(name: @cohort.sanitized_name.slice(0,30)) do |sheet|
         column.value(cohort_client)
       elsif column.input_type == 'notes'
       elsif column.input_type == 'enrollment_tag'
-        column.value(cohort_client).map(&:last).join('; ')
+        column.value(cohort_client)&.map(&:last)&.join('; ')
       else
         cohort_client.public_send(column.column)
       end
