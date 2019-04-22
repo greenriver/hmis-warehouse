@@ -4,7 +4,7 @@ FactoryBot.define do
   end
 
   factory :admin_role, class: 'Role' do
-    name { "admin" }
+    name { 'admin' }
     verb { nil }
     can_view_clients { true }
     can_edit_clients { true }
@@ -48,7 +48,7 @@ FactoryBot.define do
   end
 
   factory :health_admin, class: 'Role' do
-    name { "health admin" }
+    name { 'health admin' }
     verb { nil }
     health_role { true }
     can_view_assigned_reports { true }
@@ -58,18 +58,18 @@ FactoryBot.define do
   end
 
   factory :vispdat_viewer, class: 'Role' do
-    name { "vispdat viewer" }
+    name { 'vispdat viewer' }
     can_view_vspdat { true }
   end
 
   factory :vispdat_editor, class: 'Role' do
-    name { "vispdat editor" }
+    name { 'vispdat editor' }
     can_view_vspdat { true }
     can_edit_vspdat { true }
   end
 
   factory :cohort_manager, class: 'Role' do
-    name { "cohort manager" }
+    name { 'cohort manager' }
     can_manage_cohorts { true }
   end
 

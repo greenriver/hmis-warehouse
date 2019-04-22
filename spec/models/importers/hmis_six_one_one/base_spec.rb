@@ -206,7 +206,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       expect(GrdaWarehouse::Hud::Organization.where(OrganizationID: 108).first.projects.count).to eq(2)
     end
 
-    describe "projects have appropriate relations" do
+    describe 'projects have appropriate relations' do
       projects = {
         469 => {
           funders: 1,

@@ -17,5 +17,4 @@ FactoryBot.define do
   trait :project_group do
     association :project_group, factory: :dq_project_group
   end
-
 end

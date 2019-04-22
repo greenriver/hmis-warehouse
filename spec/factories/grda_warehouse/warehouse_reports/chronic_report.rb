@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :chronic_report, class: 'GrdaWarehouse::WarehouseReports::ChronicReport' do
-      parameters { {} }
-      data { [] }
+    parameters { {} }
+    data { [] }
   end
 end

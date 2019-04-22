@@ -1,22 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
-
   let(:client) { 0 }
   let(:start_date) { Date.today }
   let(:end_date) { Date.tomorrow }
-
 
   let!(:start_in_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date, last_date_in_program: end_date }
   let!(:start_before_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
   let!(:start_after_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: end_date + 1.day, last_date_in_program: end_date + 2.days }
 
   let!(:end_in_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
-  let!(:end_before_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 2.days, last_date_in_program: start_date - 1.day}
+  let!(:end_before_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 2.days, last_date_in_program: start_date - 1.day }
   let!(:end_after_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date, last_date_in_program: end_date + 1.day }
 
   describe 'entry_within_date_range' do
-
     let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.entry_within_date_range(start_date: start_date, end_date: end_date) }
 
     it 'includes entry started within range' do
@@ -33,7 +30,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
   end
 
   describe 'exit_within_date_range' do
-
     let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.exit_within_date_range(start_date: start_date, end_date: end_date) }
 
     it 'includes exit ended within range' do
@@ -48,5 +44,4 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
       expect(scope).not_to include end_after_range
     end
   end
-
 end

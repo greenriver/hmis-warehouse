@@ -11,7 +11,7 @@ FactoryBot.define do
         17.days.ago,
         4.weeks.ago,
       ]
-      dates[n%5].to_date
+      dates[n % 5].to_date
     end
   end
 end

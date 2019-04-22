@@ -10,5 +10,4 @@ FactoryBot.define do
     percentage_low { 6 }
     percentage_high { 10 }
   end
-
 end
