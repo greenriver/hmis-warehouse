@@ -228,15 +228,15 @@ module GrdaWarehouse::Hud
     end
 
     def last_exit_destination
-      exit = exits.order(ExitDate: :desc).first
-      if exit
-        destination_code = exit.Destination || 99
+      last_exit = source_exits.order(ExitDate: :desc).first
+      if last_exit
+        destination_code = last_exit.Destination || 99
         if destination_code == 17
-          destination_string = exit.OtherDestination
+          destination_string = last_exit.OtherDestination
         else
           destination_string = HUD.destination(destination_code)
         end
-        return "#{destination_string} (#{exit.ExitDate})"
+        return "#{destination_string} (#{last_exit.ExitDate})"
       else
         return "None"
       end
