@@ -239,6 +239,7 @@ module GrdaWarehouse
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
         ::CohortColumns::DestinationFromHomelessness.new(),
+        ::CohortColumns::HmisDestination.new(),
         ::CohortColumns::OpenEnrollments.new(),
         ::CohortColumns::Ineligible.new(),
         ::CohortColumns::ConsentConfirmed.new(),

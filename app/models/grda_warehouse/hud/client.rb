@@ -227,6 +227,21 @@ module GrdaWarehouse::Hud
       end.map(&:cohort).compact.uniq
     end
 
+    def last_exit_destination
+      exit = exits.order(ExitDate: :desc).first
+      if exit
+        destination_code = exit.Destination || 99
+        if destination_code == 17
+          destination_string = exit.OtherDestination
+        else
+          destination_string = HUD.destination(destination_code)
+        end
+        return "#{destination_string} (#{exit.ExitDate})"
+      else
+        return "None"
+      end
+    end
+
     has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
 
     # Delegations
