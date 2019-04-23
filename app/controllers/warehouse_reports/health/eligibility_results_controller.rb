@@ -18,7 +18,7 @@ module WarehouseReports::Health
     end
 
     def inquiry_scope
-      Health::EligibilityInquiry
+      Health::EligibilityInquiry.all
     end
 
     def patient_scope

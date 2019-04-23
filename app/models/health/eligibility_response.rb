@@ -1,6 +1,6 @@
 # ### HIPAA Risk Assessment
-# Risk:
-# Control:
+# Risk: Describes an insurance eligibility response and contains PHI
+# Control: PHI attributes not documented
 
 require "stupidedi"
 stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir

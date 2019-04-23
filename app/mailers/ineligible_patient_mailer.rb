@@ -1,11 +1,11 @@
 class IneligiblePatientMailer < DatabaseMailer
-  def ineligible_patients(coordinator, patients)
-    @patients = patients
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: coordinator.email, subject: "Patients Flagged as Ineligible by MassHealth")
+  def ineligible_patients(coordinator, patient_ids)
+    @patients = patient_ids
+    mail(from: ENV.fetch('HEALTH_FROM'), to: coordinator, subject: "Patients Flagged as Ineligible by MassHealth")
   end
 
-  def no_managed_care_patients(coordinator, patients)
-    @patients = patients
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: coordinator.email, subject: "Patients Flagged without Managed Care by MassHealth")
+  def no_managed_care_patients(coordinator, patient_ids)
+    @patients = patient_ids
+    mail(from: ENV.fetch('HEALTH_FROM'), to: coordinator, subject: "Patients Flagged without Managed Care by MassHealth")
   end
 end

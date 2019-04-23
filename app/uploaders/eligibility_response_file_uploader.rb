@@ -38,7 +38,7 @@ class EligibilityResponseFileUploader < CarrierWave::Uploader::Base
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
   def content_type_whitelist
-    WHITELIST+%w(application/octet-stream)
+    WHITELIST
   end
 
   # MagicMimeWhitelist content_type handling uses
@@ -76,7 +76,7 @@ class EligibilityResponseFileUploader < CarrierWave::Uploader::Base
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   def size_range
-    0..25.megabytes #Up to two megabytes
+    0..25.megabytes
   end
 
   def max_size_in_bytes

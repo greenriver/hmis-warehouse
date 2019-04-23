@@ -29,8 +29,8 @@ module Health
     phi_attr :engagement_date, Phi::Date
     phi_attr :death_date, Phi::Date
     phi_attr :care_coordinator_id, Phi::SmallPopulation
-    phi_attr :coverage_level, Phi::NeedsReview
-    phi_attr :coverage_inquiry_date, Phi::NeedsReview
+    phi_attr :coverage_level, Phi::SmallPopulation
+    phi_attr :coverage_inquiry_date, Phi::Date
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -439,6 +439,30 @@ module Health
       else
         nil
       end
+    end
+
+    def self.coverage_level_none_value
+      'none'
+    end
+
+    def coverage_level_none?
+      coverage_level == Health::Patient.coverage_level_none_value
+    end
+
+    def self.coverage_level_standard_value
+      'standard'
+    end
+
+    def coverage_level_standard?
+      coverage_level == Health::Patient.coverage_level_standard_value
+    end
+
+    def self.coverage_level_managed_value
+      'managed'
+    end
+
+    def coverage_level_managed?
+      coverage_level == Health::Patient.coverage_level_managed_value
     end
 
     # most recently updated Epic Patient

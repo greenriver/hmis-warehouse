@@ -1,6 +1,6 @@
 # ### HIPAA Risk Assessment
-# Risk:
-# Control:
+# Risk: Describes an insurance eligibility inquiry and contains PHI
+# Control: PHI attributes not documented
 
 require "stupidedi"
 module Health
@@ -10,9 +10,7 @@ module Health
     has_one :eligibility_response, dependent: :destroy
 
     scope :pending, -> () do
-      includes(:eligibility_response).
-      references(:eligibility_response).
-      where(eligibility_responses: {response: nil})
+      where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
     end
 
     def build_inquiry_file
