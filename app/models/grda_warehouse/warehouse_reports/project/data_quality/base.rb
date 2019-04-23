@@ -159,7 +159,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           m[:client_id],
           m[:enrollment_id],
-          m[:data_collection_stage],
+          m[:DataCollectionStage],
         ]
       end
       @all_incomes_by_client_id_enrollment_id_and_stage[[source_client_id, enrollment_id, data_collection_stage]]
@@ -410,13 +410,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       [99].include?(value.to_i)
     end
 
+    def missing_race?(value)
+      return true if value.blank?
+      [0, 99].include?(value.to_i)
+    end
+
     def adult?(age)
       return true if age.blank?
       age >= 18
     end
 
     def age dob
-      GrdaWarehouse::Hud::Client.age date: Date.today, dob: dob
+      GrdaWarehouse::Hud::Client.age date: self.start, dob: dob
     end
 
     def missing_disability? disabilities

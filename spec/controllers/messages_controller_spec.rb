@@ -21,14 +21,14 @@ RSpec.describe MessagesController, type: :controller do
           event.id,
           event.subject,
         ]],
-        count: 1
+        count: 1,
       }
       expect(response.body).to eq expected_response.to_json
     end
   end
 
   describe 'POST seen' do
-    it "sets seen_at to expected date" do
+    it 'sets seen_at to expected date' do
       Timecop.freeze
       post :seen, id: event.id
 

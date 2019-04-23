@@ -433,6 +433,10 @@ module GrdaWarehouse::Hud
 
     alias_attribute :name, :ProjectName
 
+    def self.related_item_keys
+      [:OrganizationID]
+    end
+
     def self.project_type_override
       p_t[:computed_project_type]
       # cl(p_t[:act_as_project_type], p_t[:ProjectType])

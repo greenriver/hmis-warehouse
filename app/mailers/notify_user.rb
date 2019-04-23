@@ -124,19 +124,19 @@ class NotifyUser < DatabaseMailer
   def health_member_status_report_finished user_id
     @user = User.find(user_id)
     @report_url = warehouse_reports_health_member_status_reports_url
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>',to: @user.email, subject: "Your Member Status report has finished")
+    mail(from: ENV.fetch('HEALTH_FROM'),to: @user.email, subject: "Your Member Status report has finished")
   end
 
   def health_claims_finished user_id
     @user = User.find(user_id)
     @report_url = warehouse_reports_health_claims_url
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: @user.email, subject: "Your Claims file has been generated")
+    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: "Your Claims file has been generated")
   end
 
   def health_qa_pre_calculation_finished user_id
     @user = User.find(user_id)
     @report_url = warehouse_reports_health_claims_url
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: @user.email, subject: "Qualifying Activity Payability has been calculated")
+    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: "Qualifying Activity Payability has been calculated")
   end
 
   def hud_report_finished user_id, report_id, report_result_id
@@ -148,7 +148,7 @@ class NotifyUser < DatabaseMailer
   def health_premium_payments_finished user_id
     @user = User.find(user_id)
     @report_url = warehouse_reports_health_premium_payments_url
-    mail(from: '"Boston Coordinated Care Hub" <cas-help@boston.gov>', to: @user.email, subject: "Premium Payment File Processed")
+    mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: "Premium Payment File Processed")
   end
 
 end

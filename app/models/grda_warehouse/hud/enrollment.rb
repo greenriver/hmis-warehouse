@@ -213,11 +213,50 @@ module GrdaWarehouse::Hud
     has_many :enrollment_cocs, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
     has_many :employment_educations, class_name: GrdaWarehouse::Hud::EmploymentEducation.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
 
-    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
-    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_one :enrollment_coc_at_entry, -> do
+      where(DataCollectionStage: 1)
+    end, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+
+    # Income benefits at various stages
+    has_one :income_benefits_at_entry, -> do
+      at_entry
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_entry_all_sources_refused, -> do
+      at_entry.all_sources_refused
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_entry_all_sources_missing, -> do
+      at_entry.all_sources_missing
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+
+    has_one :income_benefits_at_exit, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_exit_all_sources_refused, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_one :income_benefits_at_exit_all_sources_missing, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    has_many :income_benefits_annual_update, -> do
+      at_annual_update
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_annual_update_all_sources_refused, -> do
+      at_annual_update.all_sources_refused
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_annual_update_all_sources_missing, -> do
+      at_annual_update.all_sources_missing
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_update, -> do
+      at_update
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_update_all_sources_refused, -> do
+      at_update.all_sources_refused
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_many :income_benefits_update_all_sources_missing, -> do
+      at_update.all_sources_missing
+    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+
+
     # NOTE: you will want to limit this to a particular record_type
     has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :enrollment
     has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
@@ -313,6 +352,13 @@ module GrdaWarehouse::Hud
 
     # End Standard Demographic Scopes
     #################################
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :ProjectID,
+      ]
+    end
 
     def self.youth_columns
       {
@@ -442,7 +488,7 @@ module GrdaWarehouse::Hud
         joins(:service_history_services).
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', 
+            record_type: 'service',
             date: thirty_days_ago...self.EntryDate
           )
         ).

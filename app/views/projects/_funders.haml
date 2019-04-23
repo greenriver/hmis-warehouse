@@ -3,12 +3,14 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th
         %th FunderID
         %th Source
         %th Grant ID
     %tbody
       - funders.each do |f|
         %tr
+          %td= link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= f.FunderID
           %td
             = HUD.funding_source f.Funder.to_i

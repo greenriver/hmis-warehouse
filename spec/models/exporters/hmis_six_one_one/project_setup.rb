@@ -1,6 +1,6 @@
-RSpec.shared_context "project setup", shared_context: :metadata do
-  let!(:data_source) { create :source_data_source, id: 2}
-  let!(:user) {create :user}
+RSpec.shared_context 'project setup', shared_context: :metadata do
+  let!(:data_source) { create :source_data_source, id: 2 }
+  let!(:user) { create :user }
   let!(:projects) { create_list :hud_project, 5, data_source_id: data_source.id }
   let!(:organizations) { create_list :hud_organization, 5, data_source_id: data_source.id }
   let!(:inventories) { create_list :hud_inventory, 5, data_source_id: data_source.id }
@@ -16,7 +16,7 @@ RSpec.shared_context "project setup", shared_context: :metadata do
   # 'Organization.csv' => organization_source,
   # 'Geography.csv' => geography_source,
   # 'ProjectCoC.csv' => project_coc_source,
-  
+
   # Enrollment Related
   # 'Disabilities.csv' => disability_source,
   # 'EmploymentEducation.csv' => employment_education_source,
@@ -25,7 +25,7 @@ RSpec.shared_context "project setup", shared_context: :metadata do
   # 'HealthAndDV.csv' => health_and_dv_source,
   # 'IncomeBenefits.csv' => income_benefits_source,
   # 'Services.csv' => service_source,
-  
+
   #  Other
   # 'Export.csv' => export_source,
   # 'Client.csv' => client_source,
@@ -34,44 +34,44 @@ RSpec.shared_context "project setup", shared_context: :metadata do
 
   class ProjectRelatedTests
     TESTS ||= [
-      { 
+      {
         list: :organizations,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Organization,
         export_method: :export_organizations,
       },
-      { 
+      {
         list: :inventories,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Inventory,
         export_method: :export_inventories,
       },
-      { 
+      {
         list: :affiliations,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Affiliation,
         export_method: :export_affiliations,
       },
-      { 
+      {
         list: :geographies,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Geography,
         export_method: :export_geographies,
       },
-      { 
+      {
         list: :project_cocs,
         klass: GrdaWarehouse::Export::HMISSixOneOne::ProjectCoc,
         export_method: :export_project_cocs,
       },
-      { 
+      {
         list: :funders,
         klass: GrdaWarehouse::Export::HMISSixOneOne::Funder,
         export_method: :export_funders,
       },
-    ]
+    ].freeze
   end
 
-  def csv_file_path klass
+  def csv_file_path(klass)
     File.join(exporter.file_path, klass.file_name)
   end
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "project setup", include_shared: true
+  rspec.include_context 'project setup', include_shared: true
 end

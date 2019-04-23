@@ -1,6 +1,5 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionThree < Base
-    MISSING_THRESHOLD = 10
     def run!
       progress_methods = [
         :start_report,
@@ -100,10 +99,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_descriptor_completeness
       issues = []
-      if report['bed_utilization_totals']['counts']['capacity'].blank?
+      if report['bed_utilization_totals']['counts']['capacity'].blank? || report['bed_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Bed Inventory"
       end
-      if report['unit_utilization_totals']['counts']['capacity'].blank?
+      if report['unit_utilization_totals']['counts']['capacity'].blank? || report['unit_utilization_totals']['counts']['capacity'] == 0
         issues << "Missing Unit Inventory"
       end
       if report['coc_code'].blank?
@@ -136,70 +135,70 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_data_completeness
       issues = []
-      if report['missing_name_percent'] > minimum_completeness_threshold
+      if report['missing_name_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - Name"
       end
-      if report['refused_name_percent'] > minimum_completeness_threshold
+      if report['refused_name_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - Name"
       end
-      if report['missing_ssn_percent'] > minimum_completeness_threshold
+      if report['missing_ssn_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - SSN"
       end
-      if report['refused_ssn_percent'] > minimum_completeness_threshold
+      if report['refused_ssn_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - SSN"
       end
-      if report['missing_dob_percent'] > minimum_completeness_threshold
+      if report['missing_dob_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - DOB"
       end
-      if report['refused_dob_percent'] > minimum_completeness_threshold
+      if report['refused_dob_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - DOB"
       end
-      if report['missing_veteran_percent'] > minimum_completeness_threshold
+      if report['missing_veteran_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - Veteran"
       end
-      if report['refused_veteran_percent'] > minimum_completeness_threshold
+      if report['refused_veteran_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - Veteran"
       end
-      if report['missing_ethnicity_percent'] > minimum_completeness_threshold
+      if report['missing_ethnicity_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - Ethnicity"
       end
-      if report['refused_ethnicity_percent'] > minimum_completeness_threshold
+      if report['refused_ethnicity_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - Ethnicity"
       end
-      if report['missing_race_percent'] > minimum_completeness_threshold
+      if report['missing_race_percent'] > mininum_completeness_threshold
         issues << "High Missing Rate - Race"
       end
-      if report['refused_race_percent'] > minimum_completeness_threshold
+      if report['refused_race_percent'] > mininum_completeness_threshold
         issues << "High Refused Rate - Race"
       end
-      if report['missing_disabling_condition_percentage'] > minimum_completeness_threshold
+      if report['missing_disabling_condition_percentage'] > mininum_completeness_threshold
         issues << "High Missing Rate - Disabling Condition"
       end
-      if report['refused_disabling_condition_percentage'] > minimum_completeness_threshold
+      if report['refused_disabling_condition_percentage'] > mininum_completeness_threshold
         issues << "High Refused Rate - Disabling Condition"
       end
-      if report['missing_prior_living_situation_percentage'] > minimum_completeness_threshold
+      if report['missing_prior_living_situation_percentage'] > mininum_completeness_threshold
         issues << "High Missing Rate - Prior Living Situation"
       end
-      if report['refused_prior_living_situation_percentage'] > minimum_completeness_threshold
+      if report['refused_prior_living_situation_percentage'] > mininum_completeness_threshold
         issues << "High Refused Rate - Prior Living Situation"
       end
-      if report['missing_destination_percentage'] > minimum_completeness_threshold
+      if report['missing_destination_percentage'] > mininum_completeness_threshold
         issues << "High Missing Rate - Destination"
       end
-      if report['refused_destination_percentage'] > minimum_completeness_threshold
+      if report['refused_destination_percentage'] > mininum_completeness_threshold
         issues << "High Refused Rate - Destination"
       end
-      if report['missing_income_at_entry_percentage'] > minimum_completeness_threshold
+      if report['missing_income_at_entry_percentage'] > mininum_completeness_threshold
         issues << "High Missing Rate - Income at Entry"
       end
-      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
+      if report['refused_income_at_entry_percentage'] > mininum_completeness_threshold
         issues << "High Refused Rate - Income At Entry"
       end
-      if report['missing_income_at_exit_percentage'] > minimum_completeness_threshold
+      if report['missing_income_at_exit_percentage'] > mininum_completeness_threshold
         issues << "High Missing Rate - Income at Exit"
       end
-      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
+      if report['refused_income_at_entry_percentage'] > mininum_completeness_threshold
         issues << "High Refused Rate - Income At Exit"
       end
       issues << no_issues if issues.empty?
@@ -668,6 +667,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         },
       }
 
+      total_client_set = Set.new
+
       projects.each do |project|
         counts = self.class.length_of_stay_buckets.map do |title, range|
           [range, Set.new]
@@ -681,7 +682,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           end.uniq
         service_history_count = service_histories.select{|m| m[:date].present?}.count
         totals[:counts][:total_days] += service_histories.count
-        totals[:counts][:total_clients] += service_histories.map{|m| m[:client_id]}.uniq.count
+        total_client_set += service_histories.map{|m| m[:client_id]}
         service_histories = service_histories.group_by{|m| m[:id]}
         # days/client
         project_counts[project.id][:average] = (service_history_count.to_f / service_histories.count).round rescue 0
@@ -698,8 +699,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         project_counts[project.id][:buckets] = counts.map{|range,services| [range, services.count]}.to_h
         project_support[project.id][:buckets] = counts
       end
+
+      # count the total number of clients
+      totals[:counts][:total_clients] = total_client_set.size
+
       # average length of stay, days / people
-      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round
+      totals[:counts][:average] = (totals[:counts][:total_days].to_f / totals[:counts][:total_clients]).round rescue 0
       totals[:counts][:buckets] = totals[:buckets].map{|range,services| [range,services.count]}.to_h
 
       json_shape = {
@@ -803,6 +808,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                 counts = add_missing_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
                 counts = add_refused_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
                 counts = add_unknown_enrollment(client_id: client_id, enrollment: enrollment, counts: counts)
+                counts = add_missing_entry_incomes(client_id: client_id, enrollment: enrollment, counts: counts)
               end
             end
             leavers_in_project = leavers_for_project(project.ProjectID, project.data_source_id)
@@ -813,16 +819,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
                   counts = add_refused_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                   counts = add_unknown_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
                   counts = add_no_interview_destinations(client_id: client_id, enrollment: enrollment, counts: counts)
+                  counts = add_missing_exit_incomes(client_id: client_id, enrollment: enrollment, counts: counts)
                 end
               end
             end
           end
         end
+
         counts.each do |key, value|
           totals[key] += value
           answers[:project_missing][project.id] ||= {}
-          answers[:project_missing][project.id][key] = value.size
-          answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(value.size, clients_in_project.size)
+          item_count = value.size
+          # disabling conditions can occur more than once per enrollment, count unique clients
+          if key.to_s.include?('disabling_condition')
+            item_count = value&.map(&:first)&.uniq&.count || 0
+          end
+          answers[:project_missing][project.id][key] = item_count
+          answers[:project_missing][project.id]["#{key}_percentage"] = in_percentage(item_count, clients_in_project.size)
           header_key = key.to_s.gsub('missing_', '').gsub('refused_', '').gsub('unknown_', '').to_sym
           support["project_missing_#{project.id}_#{key}"] = {
             headers: self.class.missing_refused_names[header_key],
@@ -870,7 +883,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         count
       totals.each do |key, value|
         header_key = key.to_s.gsub('missing_', '').gsub('refused_', '').gsub('unknown_', '').to_sym
-        answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(value.size, clients.size)
+        item_count = value.count
+        # disabling conditions may get reported multiple times per enrollment, we want unique client counts
+        if header_key == :disabling_condition
+          item_count = value&.map(&:first)&.uniq&.count || 0
+        end
+        answers[:project_missing][:totals]["#{key}_percentage"] = in_percentage(item_count, clients.size)
         if ! [:total_open_enrollments, :total_missing, :clients_served_during_range].include?(key)
           support["project_missing_totals_#{key}"] = {
             headers: self.class.missing_refused_names[header_key],
@@ -1306,7 +1324,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| m[:first_name]}.all?(&:blank?) || alternate_clients.map{|m| m[:last_name]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:name_data_quality])}.all?
         counts['missing_name'] << columns_for_name_support(client)
       end
-      # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
       if alternate_clients.map{|m| m[:ssn]}.all?(&:blank?) || alternate_clients.map{|m| missing?(m[:ssn_data_quality])}.all?
         counts['missing_ssn'] << columns_for_ssn_support(client) unless @refused_ssn_client_ids.include?(client[:destination_id])
@@ -1338,7 +1355,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| refused?(m[:name_data_quality])}.all?
         counts['refused_name'] << columns_for_name_support(client)
       end
-      # FIXME: SSN and DOB, can't be both missing and don't know refused
       # Refused trumps missing
       if alternate_clients.map{|m| refused?(m[:ssn_data_quality])}.all?
         @refused_ssn_client_ids << client[:destination_id]
@@ -1389,6 +1405,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if alternate_clients.map{|m| unknown?(m[:gender])}.all?
         counts['unknown_gender'] << columns_for_gender_support(client)
       end
+      return counts
+    end
+
+    def add_missing_entry_incomes client_id:, enrollment:, counts:
+      if missing_income(client_id, enrollment, data_collection_stage: 1)
+        counts['missing_income_at_entry'] << columns_for_destination_support(enrollment)
+      end
+
+      return counts
+    end
+
+    def add_missing_exit_incomes client_id:, enrollment:, counts:
+      if missing_income(client_id, enrollment, data_collection_stage: 3)
+        counts['missing_income_at_exit'] << columns_for_destination_support(enrollment)
+      end
+
       return counts
     end
 
@@ -1774,7 +1806,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       #   Race
       #   Ethnicity
       #   Gender
-      #   Disabling Condition
+      #   Disabling Condition - in add_missing_enrollment_elements
       #   Physical Disability
       #   Developmental Disability
       #   Chronic Health Condition
@@ -1832,11 +1864,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
         # NOTE: You can't have both refused and missing SSN or DOB
         # Refused or unknown trumps missing
-        if client[:ssn].blank? || refused?(client[:ssn_data_quality])
+        if refused?(client[:ssn_data_quality])
           @refused_ssn_client_ids << client[:destination_id]
           refused_ssn << client[:destination_id]
         end
-        if client[:dob].blank? || refused?(client[:dob_data_quality])
+        if refused?(client[:dob_data_quality])
           @refused_dob_client_ids << client[:destination_id]
           refused_dob << client[:destination_id]
         end
@@ -1849,7 +1881,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         if refused?(client[:race_none])
           refused_race << client[:destination_id]
         end
-        if client[:gender].blank? || refused?(client[:gender])
+        if refused?(client[:gender])
           refused_gender << client[:destination_id]
         end
 
@@ -1877,7 +1909,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           missing_ethnicity << client[:destination_id]
         end
         # If we have no race info, whatsoever
-        if missing?(client[:race_none]) && missing?(client[:am_ind_ak_native]) && missing?(client[:asian]) && missing?(client[:black_af_american]) && missing?(client[:native_hi_other_pacific]) && missing?(client[:white])
+        if missing?(client[:race_none]) && missing_race?(client[:am_ind_ak_native]) && missing_race?(client[:asian]) && missing_race?(client[:black_af_american]) && missing_race?(client[:native_hi_other_pacific]) && missing_race?(client[:white])
           missing_race << client[:destination_id]
         end
         if client[:gender].blank? || missing?(client[:gender])
@@ -1908,7 +1940,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       refused_gender_percent = (refused_gender.size.to_f/clients.size*100).round(2) rescue 0
 
       answers = {
-        total_clients: clients.size,
+        total_clients: clients.map{ |m| m[:destination_id] }.uniq.size,
         total_active_clients: active_clients.size,
         total_enterers: enterers.size,
         total_leavers: leavers.size,
@@ -2022,7 +2054,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :refused_income_at_entry_percentage,
         :refused_income_at_exit_percentage,
       ]
-      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < MISSING_THRESHOLD rescue false
+      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < mininum_completeness_threshold rescue false
       add_answers({
         meets_dq_benchmark: meets_dq_benchmark
       })
@@ -2057,14 +2089,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
       end
 
-      entries.each do |client_id, enrollments|
+      # Only applies to enrollments started or ended during the report range
+      entries.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_entry << client_id if missing_income(enrollment, data_collection_stage: 1)
+          missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
+          refused_income_at_entry << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 1)
         end
       end
-      exits.each do |client_id, enrollments|
+      exits.each do |source_client_id, enrollments|
         enrollments.each do |enrollment|
-          missing_income_at_exit << client_id if missing_income(enrollment, data_collection_stage: 3)
+          missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
+          refused_income_at_exit << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 3)
         end
       end
 
@@ -2277,10 +2312,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :OtherIncomeAmount
       ]
       all_income_types = earned_types + non_cash_types
-      # FIXME: this is not working after recent changes
-      # https://boston-hmis.dev/projects/343/data_quality_reports/974
-      # VS
-      # https://boston-hmis.dev/projects/343/data_quality_reports/976
 
       incomes.each do |client_id, income_assessments|
         next if income_assessments.count < 2
@@ -2543,7 +2574,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         #   callback: :percent
         # },
         meets_dq_benchmark: {
-          title:"Meets DQ Benchmark (all missing/refused < #{MISSING_THRESHOLD}%)",
+          title:"Meets DQ Benchmark (all missing/refused < #{mininum_completeness_threshold}%)",
           callback: :boolean,
         },
         one_year_enrollments: {
@@ -2623,6 +2654,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       entries.keys
     end
 
+    # Enrollments opened during report range
     def entries
       @entries ||= begin
         entries = {}
@@ -2638,6 +2670,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    # Enrollments closed during the report range
     def exits
       @exits ||= begin
         exits = {}
@@ -2696,9 +2729,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     # At entry: data_collection_stage = 1
     # At exit: data_collection_stage = 3
-    def missing_income(enrollment, data_collection_stage:)
+    def missing_income(source_client_id, enrollment, data_collection_stage:)
       incomes = income_assessment_at_stage_for(
-        source_client_id: enrollment[:client_id],
+        source_client_id: source_client_id,
         enrollment_id: enrollment[:enrollment_id],
         data_collection_stage: data_collection_stage
       )
@@ -2706,12 +2739,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if incomes.present?
         incomes.each do |income|
           return true if income[:IncomeFromAnySource] == 99 || # Data Not Collected
-            income[:TotalMonthlyIncome] == nil
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 0) ||
+            (income[:TotalMonthlyIncome] == nil && income[:IncomeFromAnySource] == 1)
         end
         return false
       else
         return true
       end
+    end
+
+    def refused_income(source_client_id, enrollment, data_collection_stage:)
+      incomes = income_assessment_at_stage_for(
+          source_client_id: source_client_id,
+          enrollment_id: enrollment[:enrollment_id],
+          data_collection_stage: data_collection_stage
+      )
+
+      if incomes.present?
+        incomes.each do |income|
+          return true if income[:IncomeFromAnySource] == 9 # Refused
+        end
+      end
+      return false
     end
   end
 end

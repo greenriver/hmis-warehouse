@@ -1,5 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :rank, class: 'CohortColumns::Rank' do
-    
   end
 end

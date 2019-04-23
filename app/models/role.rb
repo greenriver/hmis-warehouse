@@ -310,6 +310,10 @@ class Role < ActiveRecord::Base
         description: 'Access to see all "secure" uploaded files',
         administrative: true,
       },
+      can_view_assigned_secure_uploads: {
+        description: 'Access to see assigned "secure" uploaded files',
+        administrative: false,
+      },
     }
   end
 

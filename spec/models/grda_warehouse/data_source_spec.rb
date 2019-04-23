@@ -2,7 +2,6 @@ require 'rails_helper'
 
 model = GrdaWarehouse::DataSource
 RSpec.describe model, type: :model do
-
   # set up hierarchy like so
   #
   # data source:       ds1            ds2
@@ -32,12 +31,11 @@ RSpec.describe model, type: :model do
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
-  user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
-  ids      = -> (*sources) { sources.map(&:id).sort }
+  user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
+  ids      = ->(*sources) { sources.map(&:id).sort }
 
   describe 'scopes' do
     describe 'viewability' do
-
       describe 'ordinary user' do
         it 'sees nothing' do
           expect(model.viewable_by(user).exists?).to be false
@@ -52,7 +50,7 @@ RSpec.describe model, type: :model do
           user.roles = []
         end
         it 'sees both' do
-          expect(user_ids[user]).to eq ids[ ds1, ds2 ]
+          expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
 
@@ -67,7 +65,7 @@ RSpec.describe model, type: :model do
         it 'sees ds1 and ds2' do
           user.entities.create entity: p1
           user.entities.create entity: p5
-          expect(user_ids[user]).to eq ids[ ds1, ds2 ]
+          expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
 
@@ -82,7 +80,7 @@ RSpec.describe model, type: :model do
         it 'sees ds1 and ds2' do
           user.entities.create entity: o1
           user.entities.create entity: o3
-          expect(user_ids[user]).to eq ids[ ds1, ds2 ]
+          expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
 
@@ -97,12 +95,9 @@ RSpec.describe model, type: :model do
         it 'sees ds1 and ds2' do
           user.entities.create entity: ds1
           user.entities.create entity: ds2
-          expect(user_ids[user]).to eq ids[ ds1, ds2 ]
+          expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
-
     end
   end
-
-
 end

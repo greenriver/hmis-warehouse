@@ -174,9 +174,9 @@ class User < ActiveRecord::Base
     associations.flat_map do |association|
       case association
       when :coc_code
-        coc_codes.map do |code| 
+        coc_codes.map do |code|
           [
-            code, 
+            code,
             GrdaWarehouse::Hud::Project.project_names_for_coc(code)
           ]
         end
@@ -238,6 +238,10 @@ class User < ActiveRecord::Base
 
   def can_see_admin_menu?
     can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
+  end
+
+  def self.can_receive_secure_files?
+    can_view_assigned_secure_uploads || can_view_all_secure_uploads
   end
 
   def admin_dashboard_landing_path

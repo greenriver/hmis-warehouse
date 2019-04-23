@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :exporters_hmis_six_one_one_basis, class: 'Exporters::HmisSixOneOne::Base' do
     # file_path
     # logger

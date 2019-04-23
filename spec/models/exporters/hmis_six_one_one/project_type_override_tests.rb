@@ -1,27 +1,27 @@
-RSpec.shared_context "project type override tests", shared_context: :metadata do
+RSpec.shared_context 'project type override tests', shared_context: :metadata do
   describe 'When exporting enrollment related item' do
     before(:each) do
-      exporter.create_export_directory()
-      exporter.set_time_format()
-      exporter.setup_export()
+      exporter.create_export_directory
+      exporter.set_time_format
+      exporter.setup_export
     end
     after(:each) do
-      exporter.remove_export_files()
-      exporter.reset_time_format()
+      exporter.remove_export_files
+      exporter.reset_time_format
       # The enrollments and project sequences seem to drift.
       # This ensures we'll have one to test
-      FactoryGirl.reload
+      FactoryBot.reload
     end
     describe 'when exporting enrollments' do
       before(:each) do
-        exporter.export_enrollments()
+        exporter.export_enrollments
         @enrollment_class = GrdaWarehouse::Export::HMISSixOneOne::Enrollment
       end
       it 'enrollment scope should find one enrollment' do
-        expect( exporter.enrollment_scope.count ).to eq 1
+        expect(exporter.enrollment_scope.count).to eq 1
       end
       it 'creates one CSV file' do
-        expect(File.exists?(csv_file_path(@enrollment_class))).to be true
+        expect(File.exist?(csv_file_path(@enrollment_class))).to be true
       end
       it 'adds one row to the enrollment CSV file' do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
@@ -50,5 +50,5 @@ RSpec.shared_context "project type override tests", shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "project type override tests", include_shared: true
+  rspec.include_context 'project type override tests', include_shared: true
 end

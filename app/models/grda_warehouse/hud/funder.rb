@@ -23,6 +23,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :project, **hud_belongs(Project), inverse_of: :funders
     belongs_to :export, **hud_belongs(Export), inverse_of: :funders
+    belongs_to :data_source
 
     scope :open_between, -> (start_date:, end_date: ) do
       at = arel_table
@@ -41,13 +42,17 @@ module GrdaWarehouse::Hud
     def valid_funder_code?
       self.class.valid_funder_code?(self.Funder)
     end
-    
+
     def self.valid_funder_code? funder
       HUD.funding_sources.keys.include?(funder)
     end
 
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
+    end
+
+    def self.related_item_keys
+      [:ProjectID]
     end
   end
 end

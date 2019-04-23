@@ -177,6 +177,7 @@ module GrdaWarehouse::Hud
     belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :income_benefits
     has_one :project, through: :enrollment
     belongs_to :export, **hud_belongs(Export), inverse_of: :income_benefits
+    belongs_to :data_source
 
     scope :any_benefits, -> {
       at = arel_table
@@ -185,6 +186,37 @@ module GrdaWarehouse::Hud
       condition = condition.or( conditions.shift ) while conditions.any?
       where( condition )
     }
+
+    scope :at_entry, -> do
+      where(DataCollectionStage: 1)
+    end
+
+    scope :at_exit, -> do
+      where(DataCollectionStage: 3)
+    end
+
+    scope :at_annual_update, -> do
+      where(DataCollectionStage: 5)
+    end
+
+    scope :at_update, -> do
+      where(DataCollectionStage: 2)
+    end
+
+    scope :all_sources_missing, -> do
+      ib_t = arel_table
+      # data not collected, or you claimed it was but there was no value
+      where(
+        ib_t[:IncomeFromAnySource].in([99, nil, '']).
+        or(ib_t[:TotalMonthlyIncome].eq(nil).
+          and(ib_t[:IncomeFromAnySource].in([0, 1]))
+        )
+      )
+    end
+
+    scope :all_sources_refused, -> do
+      where(IncomeFromAnySource: 9)
+    end
 
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
@@ -229,6 +261,13 @@ module GrdaWarehouse::Hud
         two_thousand: { name: 'Over $2001', range: (2001..Float::INFINITY) },
         missing: { name: 'Missing', range: [nil] },
       }
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
     end
 
   end
