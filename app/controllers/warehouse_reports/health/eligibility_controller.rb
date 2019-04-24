@@ -35,7 +35,7 @@ module WarehouseReports::Health
           response: update_params[:content].read,
           user: current_user,
           original_filename: update_params[:content].original_filename)
-        Health::FlagIneligiblePatientsJob.perform_later(@report)
+        Health::FlagIneligiblePatientsJob.perform_later(@report.id)
       rescue Exception => e
         flash[:error] = "Error processing uploaded file #{e}"
       end
