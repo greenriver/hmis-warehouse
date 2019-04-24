@@ -39,8 +39,7 @@ module Health
 
     def notify_care_coordinators(response)
       groups = patient_scope(response.ineligible_ids).
-        joins(:team_members).
-        where(team_members: {type: 'Health::Team::CareCoordinator'}).
+        joins(:team_care_coordinators).
         where(eligibility_notification: nil).
         group_by{|patient| patient.team_members}
 
@@ -55,8 +54,7 @@ module Health
       end
 
       groups = patient_scope(response.eligible_ids - response.managed_care_ids).
-        joins(:team_members).
-        where(team_members: {type: 'Health::Team::CareCoordinator'}).
+        joins(:team_care_coordinators).
         where(eligibility_notification: nil).
         group_by{|patient| patient.team_members}
 

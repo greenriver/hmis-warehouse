@@ -51,6 +51,7 @@ module Health
     # has_many :teams, through: :careplans
     # has_many :team_members, class_name: Health::Team::Member.name, through: :team
     has_many :team_members, class_name: Health::Team::Member.name
+    has_many :team_care_coordinators, class_name: Health::Team::CareCoordinator.name
 
     # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
     has_many :goals, class_name: Health::Goal::Base.name
