@@ -1,6 +1,6 @@
-%h2 Patient MassHealth Eligibility
+%h2 Patient #{@sender.receiver_name} Eligibility
 
-In a recent MassHealth eligibility check, the following patients were marked as not having managed care coverage:
+In a recent #{@sender.receiver_name} eligibility check, the following patients were marked as not having managed care coverage:
 
 %ul
   - @patients.each do |patient|
