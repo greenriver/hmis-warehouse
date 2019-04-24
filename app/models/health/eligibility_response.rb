@@ -1,6 +1,6 @@
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility response and contains PHI
-# Control: PHI attributes not documented
+# Control: PHI attributes documented
 
 require "stupidedi"
 stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir
@@ -11,6 +11,8 @@ require "#{json_dir}/json"
 module Health
   class EligibilityResponse < HealthBase
     acts_as_paranoid
+
+    phi_attr :response, Phi::Bulk # contains EDI serialized PHI
 
     mount_uploader :file, EligibilityResponseFileUploader
 
