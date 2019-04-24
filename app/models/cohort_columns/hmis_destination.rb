@@ -5,7 +5,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def value cohort_client
-      cohort_client.client.last_exit_destination
+      cohort_client.client.processed_service_history&.last_exit_destination
     end
 
   end
