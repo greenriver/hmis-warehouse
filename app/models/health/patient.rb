@@ -51,7 +51,6 @@ module Health
     # has_many :teams, through: :careplans
     # has_many :team_members, class_name: Health::Team::Member.name, through: :team
     has_many :team_members, class_name: Health::Team::Member.name
-    has_many :team_care_coordinators, class_name: Health::Team::CareCoordinator.name
 
     # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
     has_many :goals, class_name: Health::Goal::Base.name
@@ -87,6 +86,16 @@ module Health
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
+
+    scope :should_be_notified, -> { where eligibility_notification: nil }
+    scope :program_ineligible, -> do
+      where coverage_level: [
+        Health::Patient.coverage_level_none_value,
+        Health::Patient.coverage_level_standard_value
+      ]
+    end
+    scope :no_coverage, -> { where coverage_level: Health::Patient.coverage_level_none_value }
+    scope :standard_coverage, -> { where coverage_level: Health::Patient.coverage_level_standard_value }
 
     scope :full_text_search, -> (text) do
       text_search(text, patient_scope: current_scope)
