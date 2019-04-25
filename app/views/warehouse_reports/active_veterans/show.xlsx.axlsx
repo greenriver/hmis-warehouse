@@ -25,7 +25,7 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
       client['id'],
       client['FirstName'],
       client['LastName'],
-      dob_or_age(client['DOB'].to_date),
+      dob_or_age(client['DOB']&.to_date),
       client['SSN'],
       client['data_sources'].join(', '),
       client['first_date_served'],

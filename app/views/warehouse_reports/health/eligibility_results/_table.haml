@@ -14,5 +14,5 @@
         %td
           -if has_managed_care(patient)
             %i.icon-checkmark
-        %td= patient.health_agency.name
+        %td= patient.health_agency&.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"
