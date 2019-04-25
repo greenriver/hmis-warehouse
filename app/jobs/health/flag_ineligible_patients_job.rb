@@ -32,7 +32,7 @@ module Health
             patient.update!(coverage_level: Health::Patient.coverage_level_none_value)
           end
 
-          notify_care_coordinators(response)
+          # notify_care_coordinators(response)
         end
       end
     end

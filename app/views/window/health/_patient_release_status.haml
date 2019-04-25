@@ -1,4 +1,4 @@
-- unless @patient.release_forms.valid.exists?
+- unless @patient&.release_forms&.valid&.exists?
   .alert.alert--flex.alert-danger
     %i.alert__icon.icon-warning
     %p
