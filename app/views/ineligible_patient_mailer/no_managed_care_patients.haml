@@ -1,0 +1,7 @@
+%h2 Patient #{@sender.receiver_name} Eligibility
+
+In a recent #{@sender.receiver_name} eligibility check, the following patients were marked as not having managed care coverage:
+
+%ul
+  - @patients.each do |patient|
+    %li= link_to nil, window_client_health_patient_index_url(patient)

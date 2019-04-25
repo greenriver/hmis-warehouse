@@ -1,0 +1,20 @@
+= content_for :crumbs do
+  = link_to warehouse_reports_health_eligibility_index_url do
+    = "« Eligibilty Determination"
+
+- title = "Eligibility Determination Results for #{@inquiry.service_date}"
+- content_for :title, title
+%h1= content_for :title
+
+%ul.nav.nav-tabs{role: :tablist}
+  %li.active{role: :presentation}
+    %a{href: '#eligible-patients', aria: {controls: 'eligible-patients'}, data: {toggle: :tab}, role: :tab} Eligible Patients
+  %li{role: :presentation}
+    %a{href: '#ineligible-patients', aria: {controls: 'ineligible-patients'}, data: {toggle: :tab}, role: :tab} Ineligible Patients
+
+.tab-content
+  #eligible-patients.tab-pane.active{role: :tabpanel}
+    = render "table", patients: @eligible
+
+  #ineligible-patients.tab-pane{role: :tabpanel}
+    = render "table", patients: @ineligible

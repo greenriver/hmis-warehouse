@@ -1,14 +1,19 @@
 # ### HIPAA Risk Assessment
-# Risk:
-# Control:
+# Risk: Describes an insurance eligibility inquiry and contains PHI
+# Control: PHI attributes documented
 
 require "stupidedi"
 module Health
   class EligibilityInquiry < HealthBase
     before_create :assign_control_numbers
 
+    phi_attr :inquiry, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :result, Phi::Bulk # contains EDI serialized PHI
+
+    has_one :eligibility_response, dependent: :destroy
+
     scope :pending, -> () do
-      where(result: nil)
+      where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
     end
 
     def build_inquiry_file
