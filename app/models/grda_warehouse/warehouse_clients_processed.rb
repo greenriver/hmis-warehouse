@@ -289,6 +289,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         vispdat_priority_score: client.calculate_vispdat_priority_score,
         vispdat_score: client.most_recent_vispdat_score,
         active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
+        last_exit_destination: client.last_exit_destination,
       }
     end
 
