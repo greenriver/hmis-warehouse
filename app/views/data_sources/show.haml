@@ -127,7 +127,7 @@
 
                       %td
                         .mb-2
-                          = checkmark_or_x(project.ContinuumProject)
+                          = checkmark_or_x(project.ContinuumProject == 1)
                         - if ! project.hud_continuum_funded.nil?
                           .o-text--italic.mb-2
                             Overridden
