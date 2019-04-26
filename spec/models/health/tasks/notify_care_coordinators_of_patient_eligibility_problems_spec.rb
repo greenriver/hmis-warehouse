@@ -20,6 +20,10 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
 
   let!(:coordinator_c_aco_patients) { create_list :patient, 5, coverage_level: 'managed', care_coordinator_id: coordinator_c.id }
 
+  before(:each) do
+    ActionMailer::Base.deliveries.clear
+  end
+
   it 'sends each coordinator at most one email' do
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
 
