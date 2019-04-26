@@ -4,7 +4,7 @@ module GrdaWarehouse::Contact
     acts_as_paranoid
 
     has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
-    has_many :report_tokens, -> { where(contact_id: id)}, class_name: GrdaWarehouse::ReportToken.name
+    has_many :report_tokens, foreign_key: :contact_id, class_name: GrdaWarehouse::ReportToken.name
 
     validates_email_format_of :email
 
