@@ -10,10 +10,10 @@
     %tbody
       - @reports.each do |report|
         %tr
-          %td= link_to_if report.inquiry.present?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt"
+          %td= link_to "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt"
           %td= report.created_at
           %td
-            - if report.eligibility_response
+            - if report.eligibility_response.present?
               = link_to warehouse_reports_health_eligibility_result_url(report) do
                 %i.icon-checkmark
                 = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients)"
