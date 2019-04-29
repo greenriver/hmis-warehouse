@@ -150,83 +150,83 @@ class ReportResultsController < ApplicationController
       # There are a few required project descriptor fields.  Without these the report won't run cleanly
       @missing_data[:missing_housing_type] = GrdaWarehouse::Hud::Project.joins(:organization).
         includes(:funders).
-        coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
+        where(computed_project_type: [1,2,3,8,9,10,13]).
         where(HousingType: nil, housing_type_override: nil).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         pluck(*missing_data_columns.values).
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
-      
+
       @missing_data[:missing_geocode] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
         includes(project: :funders).
         distinct.
-        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        merge(GrdaWarehouse::Hud::Project.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         where(Geocode: nil, geocode_override: nil).
         pluck(*missing_data_columns.values).
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
-      
+
       @missing_data[:missing_gepgraphy_type] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
         includes(project: :funders).
         distinct.
-        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        merge(GrdaWarehouse::Hud::Project.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         where(GeographyType: nil, geography_type_override: nil).
         pluck(*missing_data_columns.values).
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
-      
+
       @missing_data[:missing_gepgraphy_information_date] = GrdaWarehouse::Hud::Geography.joins(project: :organization).
         includes(project: :funders).
         distinct.
-        merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+        merge(GrdaWarehouse::Hud::Project.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         where(InformationDate: nil, information_date_override: nil).
         pluck(*missing_data_columns.values).
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
-      
+
       @missing_data[:missing_operating_start_date] = GrdaWarehouse::Hud::Project.joins(:organization).
         includes(:funders).
-        coc_funded.where(computed_project_type: [1,2,3,8,9,10,13]).
+        where(computed_project_type: [1,2,3,8,9,10,13]).
         where(OperatingStartDate: nil, operating_start_date_override: nil).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
         pluck(*missing_data_columns.values).
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
@@ -240,9 +240,9 @@ class ReportResultsController < ApplicationController
         map do |row|
           row = Hash[missing_data_columns.keys.zip(row)]
           {
-            project: "#{row[:org_name]} - #{row[:project_name]}", 
-            project_type: row[:project_type], 
-            id: row[:id], data_source_id: 
+            project: "#{row[:org_name]} - #{row[:project_name]}",
+            project_type: row[:project_type],
+            id: row[:id], data_source_id:
             row[:ds_id]
           }
         end
