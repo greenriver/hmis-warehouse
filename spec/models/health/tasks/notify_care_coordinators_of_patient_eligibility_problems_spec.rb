@@ -30,6 +30,21 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
     expect(ActionMailer::Base.deliveries.size).to eq 2
   end
 
+  it 'sends only the relevant patients to a coordinator' do
+    Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
+
+    coordinator_a_email = ActionMailer::Base.deliveries.detect { |email| email.header.encoded.include? coordinator_a.email }
+    expect(coordinator_a_email.body.encoded).not_to include(*coordinator_a_aco_patients.map { |p| p.id.to_s })
+    expect(coordinator_a_email.body.encoded).to include(*coordinator_a_standard_patients.map { |p| p.id.to_s })
+    expect(coordinator_a_email.body.encoded).to include(*coordinator_a_uncovered_patients.map { |p| p.id.to_s })
+
+    other_coordinators_patients = coordinator_b_aco_patients +
+                                  coordinator_b_standard_patients +
+                                  coordinator_b_uncovered_patients +
+                                  coordinator_c_aco_patients
+    expect(coordinator_a_email.body.encoded).not_to include(*other_coordinators_patients.map { |p| p.id.to_s })
+  end
+
   it 'will not send a coordinator an email if all their patients have been flagged already' do
     expect(ActionMailer::Base.deliveries.size).to eq 0
 
