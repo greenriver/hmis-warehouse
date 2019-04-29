@@ -1,13 +1,20 @@
 %h2 Patient #{@sender.receiver_name} Eligibility
 
-In a recent #{@sender.receiver_name} eligibility check, the following patients were marked as ineligible:
+In a recent #{@sender.receiver_name} eligibility check,
 
-%ul
-  - @ineligible_ids.each do |patient|
-    %li= link_to nil, window_client_health_patient_index_url(patient)
+- if @ineligible_ids.size > 0
+  - connector = 'And, the'
+  the following patients were marked as ineligible:
 
-And, the following patients were marked as not having managed care coverage:
+  %ul
+    - @ineligible_ids.each do |patient|
+      %li= link_to nil, window_client_health_patient_index_url(patient)
+- else
+  - connector = ' the'
 
-%ul
-  - @no_aco_ids.each do |patient|
-    %li= link_to nil, window_client_health_patient_index_url(patient)
+- if @no_aco_ids.size > 0
+  #{connector} following patients were marked as not having managed care coverage:
+
+  %ul
+    - @no_aco_ids.each do |patient|
+      %li= link_to nil, window_client_health_patient_index_url(patient)
