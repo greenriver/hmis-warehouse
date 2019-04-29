@@ -21,7 +21,7 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
   it 'does not process other patients' do
     patient_04.reload
 
-    expect(patient_01.coverage_inquiry_date).to be nil
+    expect(patient_04.coverage_inquiry_date).to be nil
   end
 
   it 'flags ineligible patients' do
