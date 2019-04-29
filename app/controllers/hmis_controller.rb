@@ -35,11 +35,17 @@ class HmisController < ApplicationController
     return [] unless @klass.present?
     return [] unless params[:search][:id].present?
     # can't force to_i since this might be a string
-    query = params[:search][:id]
-    item_scope.where(
-      @klass.arel_table[:id].eq(query).
-      or(@klass.arel_table[@klass.hud_key].eq(query))
-    )
+    @query = params[:search][:id]
+    # long string searches against integers make postgres unhappy
+    # limit the search to the HUD key if the search isn't an integer
+    if @query.to_i == @query
+      item_scope.where(
+        @klass.arel_table[:id].eq(@query).
+        or(@klass.arel_table[@klass.hud_key].eq(@query))
+      )
+    else
+      item_scope.where(@klass.arel_table[@klass.hud_key].eq(@query))
+    end
   end
 
   private def valid_class type

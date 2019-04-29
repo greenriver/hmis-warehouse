@@ -3,7 +3,7 @@ module GrdaWarehouse::Hud
   class Client < Base
     include Rails.application.routes.url_helpers
     include RandomScope
-    include ArelHelper   # also included by RandomScope, but this makes dependencies clear
+    include ArelHelper
     include HealthCharts
     include ApplicationHelper
     include HudSharedScopes
