@@ -6,8 +6,8 @@ module CohortClients
       @cohort_clients = @cohort.search_clients(
         page: params[:page].to_i,
         per: params[:per].to_i,
-        inactive:  params[:inactive],
         population: params[:population],
+        user: current_user,
       )
     end
   end
