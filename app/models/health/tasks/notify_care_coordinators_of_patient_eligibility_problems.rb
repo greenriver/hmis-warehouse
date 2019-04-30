@@ -20,11 +20,11 @@ module Health::Tasks
           where(care_coordinator_id: user.id).
           pluck(:id)
 
-        # IneligiblePatientMailer.patients_with_eligibility_problems(user.email, ineligible_patient_ids, no_aco_patient_ids).deliver_now
-        #
-        # Health::Patient.find(ineligible_patient_ids + no_aco_patient_ids).each do |patient|
-        #   patient.update!(eligibility_notification: Time.now)
-        # end
+        IneligiblePatientMailer.patients_with_eligibility_problems(user.email, ineligible_patient_ids, no_aco_patient_ids).deliver_now
+
+        Health::Patient.find(ineligible_patient_ids + no_aco_patient_ids).each do |patient|
+          patient.update!(eligibility_notification: Time.now)
+        end
       end
     end
   end

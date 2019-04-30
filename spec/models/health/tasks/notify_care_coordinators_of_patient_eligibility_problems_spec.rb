@@ -30,14 +30,12 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
   end
 
   it 'sends each coordinator at most one email' do
-    skip 'sending is currently commented out'
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
 
     expect(ActionMailer::Base.deliveries.size).to eq 3
   end
 
   it 'sends only the relevant patients to a coordinator' do
-    skip 'sending is currently commented out'
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
 
     coordinator_a_email = ActionMailer::Base.deliveries.detect { |email| email.header.encoded.include? coordinator_a.email }
@@ -53,7 +51,6 @@ RSpec.describe Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems
   end
 
   it 'will not send a coordinator an email if all their patients have been flagged already' do
-    skip 'sending is currently commented out'
     expect(ActionMailer::Base.deliveries.size).to eq 0
 
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
