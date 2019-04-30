@@ -87,7 +87,7 @@ module Health
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
 
-    scope :should_be_notified, -> { where eligibility_notification: nil }
+    scope :with_unsent_eligibility_notification, -> { where eligibility_notification: nil }
     scope :program_ineligible, -> do
       where coverage_level: [
         Health::Patient.coverage_level_none_value,

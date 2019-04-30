@@ -2,20 +2,20 @@ module Health::Tasks
   class NotifyCareCoordinatorsOfPatientEligibilityProblems
     def notify!
       care_coordinator_ids = Health::Patient.
-        should_be_notified.
+        with_unsent_eligibility_notification.
         program_ineligible.
         distinct.
         pluck(:care_coordinator_id)
 
       User.where(id: care_coordinator_ids).each do |user|
         ineligible_patient_ids = Health::Patient.
-          should_be_notified.
+          with_unsent_eligibility_notification.
           no_coverage.
           where(care_coordinator_id: user.id).
           pluck(:id)
 
         no_aco_patient_ids = Health::Patient.
-          should_be_notified.
+          with_unsent_eligibility_notification.
           standard_coverage.
           where(care_coordinator_id: user.id).
           pluck(:id)
