@@ -100,6 +100,7 @@ module Health
     end
 
     def as_json
+      return {} unless response.present?
       @json ||= begin
         json = {}
         parse_271.zipper.tap{ |z| Stupidedi::Writer::Json.new(z.root.node).write(json) }
