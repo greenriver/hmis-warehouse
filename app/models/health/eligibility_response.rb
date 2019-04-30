@@ -108,6 +108,7 @@ module Health
     end
 
     def parse_271
+      return {} unless response.present?
       config = Stupidedi::Config.hipaa
       parser = Stupidedi::Builder::StateMachine.build(config)
       parsed, result = parser.read(Stupidedi::Reader.build(response))
