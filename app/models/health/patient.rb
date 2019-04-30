@@ -83,6 +83,11 @@ module Health
     scope :hpc, -> { where pilot: false }
     scope :bh_cp, -> { where pilot: false }
 
+    scope :participating, -> do
+      joins(:patient_referral).
+      merge(Health::PatientReferral.not_confirmed_rejected)
+    end
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
