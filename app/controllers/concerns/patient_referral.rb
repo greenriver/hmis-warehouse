@@ -104,11 +104,13 @@ module PatientReferral
 
   def filter_acknowledged_by_mass_health
     if @filters.acknowledged_by_mass_health.present? && @active_patient_referral_tab == 'rejected'
-      @active_filter = true
-      if @filters.acknowledged_by_mass_health == 'true'
-        @patient_referrals = @patient_referrals.rejection_confirmed
-      else
-        @patient_referrals = @patient_referrals.not_confirmed_rejected
+      if @filters.acknowledged_by_mass_health != 'all'
+        @active_filter = true
+        if @filters.acknowledged_by_mass_health == 'true'
+          @patient_referrals = @patient_referrals.rejection_confirmed
+        else
+          @patient_referrals = @patient_referrals.not_confirmed_rejected
+        end
       end
     else
       @filters.acknowledged_by_mass_health = 'all'
