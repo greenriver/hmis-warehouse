@@ -103,7 +103,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       importer.import!
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
     Delayed::Worker.new.work_off(2)
   end
@@ -130,6 +130,6 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       importer.import!
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
   end
 end

@@ -102,7 +102,7 @@ module Importers::HMISSixOneOne
     end
 
     def update_project_types
-      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     end
 
     def match_clients

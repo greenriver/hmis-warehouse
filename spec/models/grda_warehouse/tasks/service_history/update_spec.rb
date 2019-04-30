@@ -97,7 +97,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
       importer.import!
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Update.new.run!
     Delayed::Worker.new.work_off(2)
   end
@@ -142,7 +142,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
       )
       importer.import!
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     end
   end
 end

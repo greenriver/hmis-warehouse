@@ -1,5 +1,5 @@
 module GrdaWarehouse::Tasks
-  class CalculateProjectTypes
+  class ProjectCleanup
     include ArelHelper
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
