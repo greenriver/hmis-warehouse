@@ -88,6 +88,7 @@ module Health
     end
 
     def subscribers
+      return [] unless as_json.present?
       @json_subs ||= as_json[:interchanges].
         detect{|h| h.keys.include? :functional_groups}[:functional_groups].
         detect{|h| h.keys.include? :transactions}[:transactions].
@@ -103,13 +104,15 @@ module Health
       return {} unless response.present?
       @json ||= begin
         json = {}
-        parse_271.zipper.tap{ |z| Stupidedi::Writer::Json.new(z.root.node).write(json) }
+        parsed_271 = parse_271
+        return {} unless parsed_271.present?
+        parsed_271.zipper.tap{ |z| Stupidedi::Writer::Json.new(z.root.node).write(json) }
         json
       end
     end
 
     def parse_271
-      return {} unless response.present?
+      return nil unless response.present?
       config = Stupidedi::Config.hipaa
       parser = Stupidedi::Builder::StateMachine.build(config)
       parsed, result = parser.read(Stupidedi::Reader.build(response))
