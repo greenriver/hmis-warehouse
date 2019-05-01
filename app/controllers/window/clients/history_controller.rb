@@ -33,6 +33,9 @@ module Window::Clients
     end
 
     def pdf
+      # force some consistency.  We may be generating this for a client we haven't seen in over a year
+      # the processed data only gets cached for those with recent enrollments
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client.id])
       show
       @user = User.setup_system_user()
       # Limit to Residential Homeless programs
@@ -118,7 +121,8 @@ module Window::Clients
       @dates = {}
       @years = (params[:years] || 3).to_i
       enrollment_scope.homeless.enrollment_open_in_prior_years(years: @years).
-        includes(:service_history_services, :organization).
+        where(record_type: [:entry, :exit]).
+        preload(:service_history_services, :organization).
         each do |enrollment|
           project_type = enrollment.send(enrollment.class.project_type_column)
           project_name = name_for_project(enrollment.project_name)
