@@ -5,7 +5,7 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications, :notifier_config
 
     def initialize(bogus_notifier=false, debug: false)
-      setup_notifier('Project Type Calculator')
+      setup_notifier('Project Cleaner')
       self.logger = Rails.logger
       @debug = debug
     end
@@ -32,7 +32,7 @@ module GrdaWarehouse::Tasks
               service_history_enrollment_id: service_history_enrollment_source.
                 where(project_id: project.ProjectID, data_source_id: project.data_source_id).distinct.select(:id)
             ).update_all(project_type: project_type)
-            
+
             # Update the project after so that if it fails we trigger a re-update of both
             project.update(computed_project_type: project_type)
           end
@@ -59,14 +59,14 @@ module GrdaWarehouse::Tasks
 
     def should_update_type? project
       project_override_changed = (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
-      
+
       sh_project_types_for_check = sh_project_types(project)
       project_types_match_sh_types = true
       if sh_project_types_for_check.count == 1
         (project_type, computed_project_type) = sh_project_types_for_check.first
         project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
       end
-      project_type_changed_in_source = sh_project_types_for_check.count > 1 
+      project_type_changed_in_source = sh_project_types_for_check.count > 1
       project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
     end
 
