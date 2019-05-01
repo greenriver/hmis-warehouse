@@ -48,8 +48,8 @@ module ReportGenerators::SystemPerformance::Fy2018
       #   from hud_performance_agency_program_info
       #   where CoCFunded = 1
       #     and Component in ('PSH', 'RRH', 'SSO', 'TH')
-      #     and GrantStartDate <= '#{@report.options['report_end']}'
-      #     and (GrantEndDate is null or GrantEndDate >= '#{@report.options['report_start']}')
+      #     and GrantStartDate <= '#{@report_end}'
+      #     and (GrantEndDate is null or GrantEndDate >= '#{@report_start}')
       #     and ProgramTypeCode in (#{(PH + SH + TH).join(', ')})
       # "
       # Find anyone 18 years or older in a relevant project,
@@ -178,12 +178,12 @@ module ReportGenerators::SystemPerformance::Fy2018
       }
 
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        ongoing(on_date: @report.options['report_start']). # need at least 365 days and open on end date
-        ongoing(on_date: @report.options['report_end']).
+        ongoing(on_date: @report_start). # need at least 365 days and open on end date
+        ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(:client, project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
-        grant_funded_between(start_date: @report.options['report_start'], end_date: @report.options['report_end'].to_date + 1.day)
+        grant_funded_between(start_date: @report_start, end_date: @report_end + 1.day)
         if @report.options['coc_code'].present?
           stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
         end
@@ -219,8 +219,8 @@ module ReportGenerators::SystemPerformance::Fy2018
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = long_enrollments.sort_by{|m| m[:first_date_in_program]}.last
-          if final_enrollment[:DOB].present? && (final_enrollment[:first_date_in_program] < @report.options['report_start'].to_date)
-            final_enrollment[:age] = GrdaWarehouse::Hud::Client.age(date: @report.options['report_start'].to_date, dob: final_enrollment[:DOB])
+          if final_enrollment[:DOB].present? && (final_enrollment[:first_date_in_program] < @report_start)
+            final_enrollment[:age] = GrdaWarehouse::Hud::Client.age(date: @report_start, dob: final_enrollment[:DOB])
           end
           final_enrollment
         end.select do |row|
@@ -249,18 +249,18 @@ module ReportGenerators::SystemPerformance::Fy2018
       }
 
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        ongoing(on_date: @report.options['report_end']).
+        ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
-        grant_funded_between(start_date: @report.options['report_start'],
-          end_date: @report.options['report_end'].to_date + 1.day)
+        grant_funded_between(start_date: @report_start,
+          end_date: @report_end + 1.day)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        ended_between(start_date: @report.options['report_start'],
-          end_date: @report.options['report_end'].to_date + 1.days).
+        ended_between(start_date: @report_start,
+          end_date: @report_end + 1.days).
         hud_project_type(PH + SH + TH).
         where.not(
           client_id: client_id_scope.
@@ -269,8 +269,8 @@ module ReportGenerators::SystemPerformance::Fy2018
         ).
         joins(:client, project: :funders).
         where(Funder: {Funder: [2, 3, 4, 5]}).
-        grant_funded_between(start_date: @report.options['report_start'],
-          end_date: @report.options['report_end'].to_date + 1.day)
+        grant_funded_between(start_date: @report_start,
+          end_date: @report_end + 1.day)
 
       if @report.options['coc_code'].present?
           leavers_scope = leavers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
@@ -312,7 +312,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
           where(PersonalID: row[:PersonalID]).
           where(EnrollmentID: row[:enrollment_group_id]).
-          where(income_table[:InformationDate].lteq(@report.options['report_end'])).
+          where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [5, 1]).
           order(InformationDate: :asc).
           pluck(*columns).map do |row|
@@ -390,7 +390,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
           where(PersonalID: row[:PersonalID]).
           where(EnrollmentID: row[:enrollment_group_id]).
-          where(income_table[:InformationDate].lteq(@report.options['report_end'])).
+          where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [3, 1]).
           order(InformationDate: :asc).
           pluck(*columns).map do |row|
