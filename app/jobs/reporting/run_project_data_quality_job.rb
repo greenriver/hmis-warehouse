@@ -14,6 +14,7 @@ module Reporting
           @report.update(processing_errors: [e.message, e.backtrace].to_json)
         end
       end
+      @report.notify_requestor
       if @send_email
         @report.send_notifications
       end
