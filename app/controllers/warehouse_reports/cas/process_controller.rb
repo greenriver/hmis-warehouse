@@ -93,9 +93,10 @@ module WarehouseReports::Cas
         at[:program_name],
         at[:sub_program_name],
         at[:match_started_at],
+        at[:match_route],
       )
       times = at.engine.connection.select_rows(query.to_sql).map do |row|
-        h = Hash[[:days, :id, :program_name, :sub_program_name, :match_started_at].zip(row)]
+        h = Hash[[:days, :id, :program_name, :sub_program_name, :match_started_at, :match_route].zip(row)]
         h[:days] = (h[:days].to_f / divisor).round.to_i
         ::OpenStruct.new(h)
       end.index_by{|m| m.id}
