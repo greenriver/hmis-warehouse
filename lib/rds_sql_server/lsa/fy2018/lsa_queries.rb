@@ -1,5 +1,7 @@
 # require_relative 'sql_server_base'
-require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
+unless ENV['NO_LSA_RDS'].present?
+  require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
+end
 module LsaSqlServer
   class LSAQueries
     attr_accessor :project_ids
@@ -225,11 +227,11 @@ module LsaSqlServer
     end
 
     def four_ten
-      '4.10 Set HHType for Active HouseholdIDs '
+      '4.10 Set HHType for Active HouseholdIDs'
     end
 
     def four_eleven
-      '4.11 Get Active Clients for tmp_Person '
+      '4.11 Get Active Clients for tmp_Person'
     end
 
     def four_twelve

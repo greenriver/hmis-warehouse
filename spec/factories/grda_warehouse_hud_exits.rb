@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_exit, class: 'GrdaWarehouse::Hud::Exit' do
     sequence(:ExitID, 7)
     sequence(:EnrollmentID, 1)
@@ -11,7 +11,7 @@ FactoryGirl.define do
         17.days.ago,
         4.weeks.ago,
       ]
-      dates[n%5].to_date
+      dates[n % 5].to_date
     end
   end
 end

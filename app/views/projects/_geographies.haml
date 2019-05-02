@@ -4,6 +4,7 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th
         %th GeographyID
         %th Information Date
         %th Geocode
@@ -17,6 +18,7 @@
     %tbody
       - geographies.all.each do |geography|
         %tr
+          %td= link_to 'HMIS', hmi_path(geography.id, type: 'Geography'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= geography.GeographyID
           %td
             = geography.InformationDate

@@ -1,25 +1,25 @@
-RSpec.shared_context "single-project tests", shared_context: :metadata do
+RSpec.shared_context 'single-project tests', shared_context: :metadata do
   describe 'When exporting project related item' do
     before(:each) do
-      exporter.create_export_directory()
-      exporter.set_time_format()
-      exporter.setup_export()
+      exporter.create_export_directory
+      exporter.set_time_format
+      exporter.setup_export
     end
     after(:each) do
-      exporter.remove_export_files()
-      exporter.reset_time_format()
-      FactoryGirl.reload
+      exporter.remove_export_files
+      exporter.reset_time_format
+      FactoryBot.reload
     end
     describe 'when exporting projects' do
       before(:each) do
-        exporter.export_projects()
+        exporter.export_projects
         @project_class = GrdaWarehouse::Export::HMISSixOneOne::Project
       end
       it 'project scope should find one project' do
-        expect( exporter.project_scope.count ).to eq 1
+        expect(exporter.project_scope.count).to eq 1
       end
       it 'creates one CSV file' do
-        expect(File.exists?(csv_file_path(@project_class))).to be true
+        expect(File.exist?(csv_file_path(@project_class))).to be true
       end
       it 'adds one row to the project CSV file' do
         csv_projects = CSV.read(csv_file_path(@project_class), headers: true)
@@ -40,13 +40,13 @@ RSpec.shared_context "single-project tests", shared_context: :metadata do
           exporter.public_send(item[:export_method])
         end
         it "creates one #{item[:klass].file_name} CSV file" do
-          expect(File.exists?(csv_file_path(item[:klass]))).to be true
+          expect(File.exist?(csv_file_path(item[:klass]))).to be true
         end
         it "adds one row to the #{item[:klass].file_name} CSV file" do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           expect(csv.count).to eq 1
         end
-        it "hud key in CSV should match id of first item in list" do
+        it 'hud key in CSV should match id of first item in list' do
           csv = CSV.read(csv_file_path(item[:klass]), headers: true)
           current_hud_key = item[:klass].new.clean_headers([item[:klass].hud_key]).first.to_s
           expect(csv.first[current_hud_key]).to eq send(item[:list]).first.id.to_s
@@ -57,12 +57,11 @@ RSpec.shared_context "single-project tests", shared_context: :metadata do
             expect(csv.first['ProjectID']).to eq projects.first.id.to_s
           end
         end
-
       end
     end
   end
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "single-project tests", include_shared: true
+  rspec.include_context 'single-project tests', include_shared: true
 end

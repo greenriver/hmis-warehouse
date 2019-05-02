@@ -23,6 +23,7 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_belongs(Export), inverse_of: :project_cocs
     has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
+    belongs_to :data_source
 
     scope :in_coc, -> (coc_code:) do
       # hud_coc_code overrides CoCCode
@@ -42,6 +43,10 @@ module GrdaWarehouse::Hud
       else
         in_coc( coc_code: user.coc_codes )
       end
+    end
+
+    def self.related_item_keys
+      [:ProjectID]
     end
 
   end

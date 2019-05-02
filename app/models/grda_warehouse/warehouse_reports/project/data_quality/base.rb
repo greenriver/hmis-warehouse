@@ -11,7 +11,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_many :organization_contacts, through: :project
     has_many :project_group_contacts, through: :project_group, source: :contacts
     has_many :organization_project_group_contacts, through: :project_group, source: :organization_contacts
-    has_many :report_tokens, -> { where(report_id: id)}, class_name: GrdaWarehouse::ReportToken.name
+    has_many :report_tokens, foreign_key: :report_id, class_name: GrdaWarehouse::ReportToken.name
 
     scope :complete, -> do
       where.not(completed_at: nil).
@@ -159,7 +159,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         [
           m[:client_id],
           m[:enrollment_id],
-          m[:data_collection_stage],
+          m[:DataCollectionStage],
         ]
       end
       @all_incomes_by_client_id_enrollment_id_and_stage[[source_client_id, enrollment_id, data_collection_stage]]
@@ -393,6 +393,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       notifications_sent()
     end
 
+    def notify_requestor
+      return unless requestor_id.present?
+      contact = User.find(requestor_id)
+      ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
+    end
+
     def notifications_sent
       self.update(sent_at: Time.now)
     end
@@ -410,13 +416,18 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       [99].include?(value.to_i)
     end
 
+    def missing_race?(value)
+      return true if value.blank?
+      [0, 99].include?(value.to_i)
+    end
+
     def adult?(age)
       return true if age.blank?
       age >= 18
     end
 
     def age dob
-      GrdaWarehouse::Hud::Client.age date: Date.today, dob: dob
+      GrdaWarehouse::Hud::Client.age date: self.start, dob: dob
     end
 
     def missing_disability? disabilities

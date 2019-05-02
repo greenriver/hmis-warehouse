@@ -4,12 +4,14 @@
   %table.table.table-condensed.table-hover
     %thead
       %tr
+        %th
         %th ProjectCoCID
         %th CoC Code
         %th
     %tbody
       - project_cocs.all.each do |p_coc|
         %tr
+          %td= link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= p_coc.ProjectCoCID
           %td
             = p_coc.CoCCode

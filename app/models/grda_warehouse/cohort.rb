@@ -12,6 +12,7 @@ module GrdaWarehouse
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+    belongs_to :tags, class_name: Cas::Tag.name
 
     attr_accessor :client_ids, :user_ids
 
@@ -42,26 +43,20 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page: nil, per: nil, inactive: nil, population: :active)
-      @client_search_scope = if inactive.present?
-        cohort_clients.joins(:client)
-      else
-        cohort_clients.joins(:client).where(active: true)
-      end
+    def search_clients(page: nil, per: nil, population: :active, user: )
+      @client_search_scope = cohort_clients.joins(:client)
 
       scope = case population&.to_sym
       when :housed
         housed_scope
       when :active
-        active_scope
+        active_scope.where(active: true)
       when :ineligible
         ineligible_scope
-      else
-        @client_search_scope.where(
-          at[:housed_date].eq(nil).
-          or(at[:destination].eq(nil).
-          or(at[:destination].eq('')))
-        ).where(ineligible: [nil, false])
+      when :inactive
+        inactive_scope(user)
+      else # active
+        active_scope.where(active: true)
       end
       if page.present? && per.present?
         scope = scope.order(id: :asc).page(page).per(per)
@@ -72,10 +67,6 @@ module GrdaWarehouse
           client: [:source_clients, :processed_service_history, {cohort_clients: :cohort}]
         }
       )
-    end
-
-    private def needs_client_search
-      raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
 
     private def at
@@ -94,9 +85,19 @@ module GrdaWarehouse
         ).where(ineligible: [nil, false])
     end
 
+    # only administrator should have access to the inactive clients
+    def inactive_scope user
+      return @client_search_scope.none unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      @client_search_scope.where(active: false)
+    end
+
+    def show_inactive user
+      return false unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      inactive_scope(user).exists?
+    end
+
     # should we show the housed option for the last `client_search`
     def show_housed
-      needs_client_search
       housed_scope.exists?
     end
 
@@ -105,8 +106,7 @@ module GrdaWarehouse
     end
 
     # should we show the inactive option for the last `client_search`
-    def show_inactive
-      needs_client_search
+    def show_ineligible
       ineligible_scope.exists?
     end
 
@@ -120,13 +120,11 @@ module GrdaWarehouse
 
     # full un-paginated scope for the last `client_search`
     def client_search_scope
-      needs_client_search
       @client_search_scope
     end
 
     # paginated/preloaded scope for the last `client_search`
     def client_search_result
-      needs_client_search
       @client_search_result
     end
 
@@ -158,6 +156,9 @@ module GrdaWarehouse
       active_cohort?
     end
 
+    def cas_tag_name
+      Cas::Tag.find(tag_id)&.name rescue nil
+    end
 
     def visible_columns
       return self.class.default_visible_columns unless column_state.present?
@@ -235,6 +236,7 @@ module GrdaWarehouse
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
         ::CohortColumns::DestinationFromHomelessness.new(),
+        ::CohortColumns::HmisDestination.new(),
         ::CohortColumns::OpenEnrollments.new(),
         ::CohortColumns::Ineligible.new(),
         ::CohortColumns::ConsentConfirmed.new(),

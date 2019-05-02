@@ -31,10 +31,8 @@ class CohortsController < ApplicationController
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
     # leave off the pagination here and return all the data
-    @cohort_clients = @cohort.search_clients(
-      inactive:  params[:inactive],
-      population: params[:population],
-    )
+    @cohort_clients = @cohort.search_clients(population: params[:population], user: current_user)
+    # redirect_to cohorts_path(population: ) if @cohort.needs_client_search?
     @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|
@@ -139,6 +137,7 @@ class CohortsController < ApplicationController
       :show_on_client_dashboard,
       :visible_in_cas,
       :assessment_trigger,
+      :tag_id,
       user_ids: []
     )
   end

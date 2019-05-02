@@ -1,5 +1,5 @@
 class SecureFilesController < ApplicationController
-  before_action :require_can_view_all_secure_uploads!, only: [:show]
+  before_action :require_can_view_some_secure_files!, only: [:show]
   before_action :set_file, only: [:show, :destroy]
 
   def index
@@ -61,5 +61,10 @@ class SecureFilesController < ApplicationController
 
   def flash_interpolation_options
     { resource_name: 'File' }
+  end
+
+  def require_can_view_some_secure_files!
+    return true if current_user.can_view_all_secure_uploads? || current_user.can_view_assigned_secure_uploads?
+    not_authorized!
   end
 end

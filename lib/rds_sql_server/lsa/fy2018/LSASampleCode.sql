@@ -350,6 +350,7 @@ CREATE TABLE dbo.lsa_Geography(
   GeographyID varchar(32) NOT NULL,
   ProjectID varchar(32) NOT NULL,
   CoCCode varchar(6) NOT NULL,
+  --4/23/2019 InformationDate datatype is date (was datetime)
   InformationDate date NOT NULL,
   Geocode varchar(6) NOT NULL,
   GeographyType int NOT NULL,
@@ -722,6 +723,8 @@ where hp.ContinuumProject = 1
   --include only projects that were operating during the report period
   and (hp.OperatingEndDate is null or hp.OperatingEndDate >= rpt.ReportStart)
   and hp.ProjectType in (1,2,3,8,9,10,13)
+  --4/23/2019 do not use deleted data in reporting
+  and hp.DateDeleted is null
 /**********************************************************************
 4.3 Get Organization Records / lsa_Organization
 **********************************************************************/
@@ -795,6 +798,8 @@ inner join lsa_Report rpt on hg.InformationDate <= rpt.ReportEnd and hg.CoCCode 
 inner join lsa_Project lp on lp.ProjectID = hg.ProjectID
 left outer join hmis_Geography later on later.ProjectID = hg.ProjectID
   and later.DateDeleted is null
+  -- 4/23/2019 - add CoCCode to join - later record for a different CoC not relevant
+  and later.CoCCode = hg.CoCCode
   and (later.InformationDate > hg.InformationDate
     or (later.InformationDate = hg.InformationDate
       and later.DateUpdated > hg.DateUpdated))
@@ -817,18 +822,28 @@ select distinct hn.HouseholdID
       from hmis_Enrollment
       where HouseholdID = hn.HouseholdID))
   , case when p.ProjectType in (3,13) then
-      (select min(MoveInDate)
-      from hmis_Enrollment
-      where HouseholdID = hn.HouseholdID) else null end
+  -- CHANGE 4/23/2019 DO NOT INCLUDE MOVE-IN DATES AFTER REPORT END
+  -- AND DO NOT INCLUDE INVALID MOVE-IN DATES (i.e. before EntryDate or after ExitDate)
+      (select min(movein.MoveInDate)
+      from hmis_Enrollment movein
+      where movein.HouseholdID = hn.HouseholdID
+        and movein.MoveInDate <= rpt.ReportEnd
+        and movein.MoveInDate >= hn.EntryDate
+        and (x.ExitDate is null or movein.MoveInDate <= x.ExitDate))
+    else null end
   , p.ProjectID, p.ProjectType, p.TrackingMethod
 from lsa_Report rpt
 inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 inner join lsa_Project p on p.ProjectID = hn.ProjectID
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= rpt.ReportEnd
+  --4/23/2019 do not use deleted data in reporting
+  and x.DateDeleted is null
 left outer join hmis_Services bn on bn.EnrollmentID = hn.EnrollmentID
   and bn.DateProvided between rpt.ReportStart and rpt.ReportEnd
   and bn.RecordType = 200
+  --4/23/2019 do not use deleted data in reporting
+  and bn.DateDeleted is null
 where
   /* CHANGE 11/19/2018
   Specs do not require a defined sequence for entry/exit dates --> altering
@@ -849,7 +864,11 @@ where
     from hmis_EnrollmentCoC coc
     where coc.EnrollmentID = hn.EnrollmentID
       and coc.InformationDate <= rpt.ReportEnd
+      --4/23/2019 do not use deleted data in reporting
+      and coc.DateDeleted is null
     order by coc.InformationDate desc) = rpt.ReportCoC
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 /*************************************************************************
 4.8 Get Active Enrollments and Associated AgeDates
@@ -864,12 +883,22 @@ insert into active_Enrollment
 select distinct hn.EnrollmentID, hn.PersonalID, hn.HouseholdID
   , case when hn.PersonalID = hhid.HoHID then 1
     when hn.RelationshipToHoH = 1 and hn.PersonalID <> hhid.HoHID then 99
-    when hn.RelationshipToHoH not in (1,2,3,4,5) then 99
-    else hn.RelationshipToHoH end
+    -- set any non-valid RelationshipToHoH value (including NULL) to 99
+    when hn.RelationshipToHoH in (1,2,3,4,5) then hn.RelationshipToHoH
+    else 99 end
   , case when hn.EntryDate >= rpt.ReportStart then hn.EntryDate
     else rpt.ReportStart end
   , hn.EntryDate
-  , hhid.MoveInDate
+  -- CHANGE 4/23/2019 MoveInDate from active_Household as is IF it occurs between HH member's Entry/ExitDates.  Otherwise:
+  --  If HoH is housed prior to HH member EntryDate, HH member MoveInDate is their own EntryDate;
+  --  If HH member exits prior to HoH MoveInDate, HH member MoveInDate is NULL.
+  , case
+    when hhid.MoveInDate >= hn.EntryDate
+      and (hhid.MoveInDate <= x.ExitDate or x.ExitDate is null) then hhid.MoveInDate
+    when hhid.MoveInDate < hn.EntryDate
+      and (hhid.MoveInDate <= x.ExitDate or x.ExitDate is null)
+      and hhid.HoHID <> hn.PersonalID then hn.EntryDate
+    else null end
   , x.ExitDate
   , hhid.ProjectID, hhid.ProjectType, hhid.TrackingMethod
 from lsa_Report rpt
@@ -877,6 +906,8 @@ inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 inner join active_Household hhid on hhid.HouseholdID = hn.HouseholdID
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= rpt.ReportEnd
+  --4/23/2019 do not use deleted data in reporting
+  and x.DateDeleted is null
 --CHANGE 9/28/2018: where ExitDate >= ReportStart (was just >)
 --CHANGE 11/27/2018:  Include enrollments where ExitDate = EntryDate
 -- under some circumstances (see note with 11/19 change in section 4.7).
@@ -885,6 +916,8 @@ where (x.ExitDate is null
       and (x.ExitDate > hn.EntryDate or
         (x.ExitDate = hn.EntryDate and hhid.MoveInDate is null and hhid.ProjectType in (3,13))))
   )
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 /*************************************************************************
 4.9 Set Age Group for Each Active Enrollment
@@ -1123,12 +1156,18 @@ from tmp_Person lp
 inner join lsa_Report rpt on rpt.ReportID = lp.ReportID
 inner join hmis_Enrollment hn on hn.PersonalID = lp.PersonalID
   and hn.EntryDate <= lp.LastActive
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null --4/25/2019 -- correct 'is not null' to 'is null'
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= lp.LastActive
+    --4/23/2019 do not use deleted data in reporting
+  and x.DateDeleted is null --4/25/2019 -- correct 'is not null' to 'is null'
 inner join (select hhinfo.HouseholdID, min(hhinfo.MoveInDate) as MoveInDate
       , coc.CoCCode
     from hmis_Enrollment hhinfo
     inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
+    --4/23/2019 do not use deleted data in reporting
+    where coc.DateDeleted is null
     group by hhinfo.HouseholdID, coc.CoCCode
   ) hoh on hoh.HouseholdID = hn.HouseholdID and hoh.CoCCode = rpt.ReportCoC
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
@@ -1165,6 +1204,8 @@ inner join ch_Enrollment chn on chn.PersonalID = lp.PersonalID
 left outer join hmis_Services bn on bn.EnrollmentID = chn.EnrollmentID
   and bn.RecordType = 200
   and bn.DateProvided between lp.CHStart and lp.LastActive
+  --4/23/2019 do not use deleted data in reporting
+  and bn.DateDeleted is null
 inner join ref_Calendar cal on
   cal.theDate >= coalesce(chn.StartDate, bn.DateProvided)
   and cal.theDate < coalesce(chn.StopDate, dateadd(dd,1,bn.DateProvided))
@@ -1424,7 +1465,7 @@ left outer join --Level 2 - combine HHTypes into a single value
 update tmp_Person
 set HoHEST = null, HoHRRH = null, HoHPSH = null
 
---set EST HHType
+--set EST HoH identifiers
 update lp
 set lp.HoHEST =
   case when hh.HHTypeCombined is null then -1
@@ -1446,11 +1487,13 @@ left outer join --Level 2 - combine HHTypes into a single value
         else 0 end as HHTypeEach
       from active_Enrollment an
       inner join active_Household hhid on hhid.HoHID = an.PersonalID
+        --4/23/2019 add HouseholdID to join
+        and hhid.HouseholdID = an.HouseholdID
       where an.ProjectType in (1,2,8)) HHTypes
     group by HHTypes.PersonalID
     ) hh on hh.PersonalID = lp.PersonalID
 
---set RRH HHType
+--set RRH HoH identifiers
 update lp
 set lp.HoHRRH =
   case when hh.HHTypeCombined is null then -1
@@ -1473,11 +1516,13 @@ left outer join --Level 2 - combine HHTypes into a single value
         else 0 end as HHTypeEach
       from active_Enrollment an
       inner join active_Household hhid on hhid.HoHID = an.PersonalID
+        --4/23/2019 add HouseholdID to join
+        and hhid.HouseholdID = an.HouseholdID
       where an.ProjectType = 13) HHTypes
     group by HHTypes.PersonalID
     ) hh on hh.PersonalID = lp.PersonalID
 
---set PSH HHType
+--set PSH HoH identifiers
 update lp
 set lp.HoHPSH =
   case when hh.HHTypeCombined is null then -1
@@ -1499,6 +1544,8 @@ left outer join --Level 2 - combine HHTypes into a single value
         else 0 end as HHTypeEach
       from active_Enrollment an
       inner join active_Household hhid on hhid.HoHID = an.PersonalID
+        --4/23/2019 add HouseholdID to join
+        and hhid.HouseholdID = an.HouseholdID
       where an.ProjectType = 3) HHTypes
     group by HHTypes.PersonalID
     ) hh on hh.PersonalID = lp.PersonalID
@@ -1856,6 +1903,7 @@ set PSHStatus = PSHStatus + (select
     and an.ProjectType = 3)
 from tmp_Household hh
 where PSHStatus > 0
+
 /*************************************************************************
 4.27 Set tmp_Household RRH and PSH Move-In Status Indicators
 **********************************************************************/
@@ -1876,7 +1924,9 @@ from tmp_Household hh
 inner join active_Enrollment an on an.PersonalID = hh.HoHID
   and an.HHType = hh.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-where an.ProjectType = 13 and an.MoveInDate >= rpt.ReportStart
+where an.ProjectType = 13
+  --  CHANGE 4/23/2019 disregard any MoveInDate after ReportEnd
+  and an.MoveInDate between rpt.ReportStart and rpt.ReportEnd
   and hh.RRHMoveIn is null
 
 update hh
@@ -1894,7 +1944,9 @@ from tmp_Household hh
 inner join active_Enrollment an on an.PersonalID = hh.HoHID
   and an.HHType = hh.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-where an.ProjectType = 13 and an.MoveInDate is null
+where an.ProjectType = 13
+  -- CHANGE 4/23/2019 MoveInDate after ReportEnd is the equivalent of NULL
+  and (an.MoveInDate is null or an.MoveInDate > rpt.ReportEnd)
   and hh.RRHMoveIn is null
 
 update hh
@@ -1908,7 +1960,9 @@ from tmp_Household hh
 inner join active_Enrollment an on an.PersonalID = hh.HoHID
   and an.HHType = hh.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-where an.ProjectType = 3 and an.MoveInDate >= rpt.ReportStart
+where an.ProjectType = 3
+  --  CHANGE 4/23/2019 disregard any MoveInDate after ReportEnd
+  and an.MoveInDate between rpt.ReportStart and rpt.ReportEnd
   and hh.PSHMoveIn is null
 
 update hh
@@ -1926,7 +1980,9 @@ from tmp_Household hh
 inner join active_Enrollment an on an.PersonalID = hh.HoHID
   and an.HHType = hh.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= an.EntryDate
-where an.ProjectType = 3 and an.MoveInDate is null
+where an.ProjectType = 3
+-- CHANGE 4/23/2019 MoveInDate after ReportEnd is the equivalent of NULL
+  and (an.MoveInDate is null or an.MoveInDate > rpt.ReportEnd)
   and hh.PSHMoveIn is null
 
 /*************************************************************************
@@ -2046,6 +2102,9 @@ where lhh.ESTLivingSit is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.EntryDate asc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
+
 
 update lhh
 set lhh.RRHLivingSit = -1
@@ -2082,6 +2141,9 @@ where lhh.RRHLivingSit is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.EntryDate asc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
+
 update lhh
 set lhh.PSHLivingSit = -1
 from tmp_Household lhh
@@ -2117,6 +2179,8 @@ where lhh.PSHLivingSit is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.EntryDate asc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 /*************************************************************************
 4.28.d Set tmp_Household Destination for Each Project Group
@@ -2149,6 +2213,8 @@ set ESTDestination =
 from tmp_Household lhh
 inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 where lhh.ESTDestination is null
   and hn.EnrollmentID in
     (select top 1 an.EnrollmentID
@@ -2158,6 +2224,8 @@ where lhh.ESTDestination is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.ExitDate desc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 update lhh
 set RRHDestination = -1
@@ -2185,6 +2253,8 @@ set RRHDestination =
 from tmp_Household lhh
 inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 where lhh.RRHDestination is null
   and hn.EnrollmentID in
     (select top 1 an.EnrollmentID
@@ -2194,6 +2264,8 @@ where lhh.RRHDestination is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.ExitDate desc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 update lhh
 set PSHDestination = -1
@@ -2221,6 +2293,8 @@ set PSHDestination =
 from tmp_Household lhh
 inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 where lhh.PSHDestination is null
   and hn.EnrollmentID in
     (select top 1 an.EnrollmentID
@@ -2231,6 +2305,8 @@ where lhh.PSHDestination is null
       and an.RelationshipToHoH = 1
       and an.HHType = lhh.HHType
      order by an.ExitDate desc)
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 
 /*************************************************************************
 4.29.a Get Earliest EntryDate from Active Enrollments
@@ -2277,9 +2353,13 @@ from
       inner join hmis_EnrollmentCoC coc on
         coc.EnrollmentID = hhinfo.EnrollmentID
         and coc.CoCCode = rpt.ReportCoC
+    --4/23/2019 do not use deleted data in reporting
+    and coc.DateDeleted is null
       where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
           group by hhinfo.HouseholdID, coc.CoCCode
           ) hoh on hoh.HouseholdID = hn.HouseholdID
+    --4/23/2019 do not use deleted data in reporting
+    and hn.DateDeleted is null
       group by hn.HouseholdID
       , case when c.DOBDataQuality in (8,9)
           or c.DOB is null
@@ -2304,6 +2384,8 @@ set lhh.StatEnrollmentID =
   from hmis_Enrollment prior
   inner join hmis_Project p on p.ProjectID = prior.ProjectID
   inner join hmis_Exit hx on hx.EnrollmentID = prior.EnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
     and (hx.ExitDate > prior.EntryDate
       --CHANGE 11/27/2018:  Include enrollments where ExitDate = EntryDate
       -- under some circumstances (see note with 11/19 change in section 4.7).
@@ -2313,6 +2395,8 @@ set lhh.StatEnrollmentID =
     #hhstat on #hhstat.HouseholdID = prior.HouseholdID
     where prior.PersonalID = lhh.HoHID and prior.RelationshipToHoH = 1
         and #hhstat.HHType = lhh.HHType
+    --4/23/2019 do not use deleted data in reporting
+  and prior.DateDeleted is null
     order by hx.ExitDate desc)
 from tmp_Household lhh
 
@@ -2332,6 +2416,8 @@ set lhh.Stat = case
   else 4 end
 from tmp_Household lhh
 left outer join hmis_Exit hx on hx.EnrollmentID = lhh.StatEnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 
 /*************************************************************************
 4.29.d Set ReturnTime for tmp_Household
@@ -2342,6 +2428,8 @@ set lhh.ReturnTime = case
   else datediff(dd, hx.ExitDate, lhh.FirstEntry) end
 from tmp_Household lhh
 left outer join hmis_Exit hx on hx.EnrollmentID = lhh.StatEnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 
 /*****************************************************************
 4.30 Get Days In RRH Pre-Move-In
@@ -2420,8 +2508,11 @@ from (select distinct hn.HouseholdID
       inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
         and coc.CoCCode = rpt.ReportCoC
       where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
+    --4/23/2019 do not use deleted data in reporting
+    and hhinfo.DateDeleted is null
       ) hoh on hoh.HouseholdID = hn.HouseholdID
-  ) hhid
+      --4/23/2019 do not use deleted data in reporting
+  where hn.DateDeleted is null) hhid
 group by hhid.HouseholdID
 
 CREATE NONCLUSTERED INDEX ix_hhsys_HouseholdID ON #hhsys (HouseholdID);
@@ -2453,9 +2544,13 @@ from tmp_Household lhh
 inner join lsa_Report rpt on rpt.ReportID = lhh.ReportID
 inner join hmis_Enrollment hn on hn.PersonalID = lhh.HoHID
   and hn.RelationshipToHoH = 1
+  --4/23/2019 do not use deleted data in reporting
+  and hn.DateDeleted is null
 left outer join active_Enrollment an on an.EnrollmentID = hn.EnrollmentID
 left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
   and hx.ExitDate <= rpt.ReportEnd
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
 inner join #hhsys on #hhsys.HouseholdID = hn.HouseholdID
 where
@@ -2480,6 +2575,8 @@ into #padded
 from sys_Enrollment sn
 inner join hmis_Services bn on bn.EnrollmentID = sn.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019 do not use deleted data in reporting
+  and bn.DateDeleted is null
 inner join lsa_Report rpt on rpt.ReportEnd >= bn.DateProvided
 where sn.EntryDate is null
 union select sn.HoHID, sn.HHType, sn.EntryDate
@@ -2550,10 +2647,14 @@ select distinct sn.HoHID, sn.HHType, cal.theDate, 4
 from sys_Enrollment sn
 inner join hmis_Services bn on bn.EnrollmentID = sn.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019 do not use deleted data in reporting
+  and bn.DateDeleted is null
 inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= bn.DateProvided
 left outer join hmis_Exit hx on hx.EnrollmentID = sn.EnrollmentID
   and hx.ExitDate <= rpt.ReportEnd
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
 inner join ref_Calendar cal on cal.theDate = bn.DateProvided
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
@@ -2603,12 +2704,15 @@ set lhh.Other3917Days = (select datediff (dd,
       and hn.DateToStreetESSH <= lhh.LastInactive
       and hn.DateToStreetESSH < hn.EntryDate
     order by hn.DateToStreetESSH asc)
-  , lhh.LastInactive))
+  -- 4/23/2019 add 1 day (the LastInactive date) to count of Other3917Days
+  , lhh.LastInactive)) + 1
 from tmp_Household lhh
 
 insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
 select distinct sn.HoHID, sn.HHType, cal.theDate, 7
 from sys_Enrollment sn
+-- 4/23/2019 add join to tmp_Household to get LastInactive
+inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join hmis_Enrollment hn on hn.EnrollmentID = sn.EnrollmentID
 inner join sys_Time contiguous on contiguous.sysDate = hn.EntryDate
   and contiguous.HoHID = sn.HoHID and contiguous.HHType = sn.HHType
@@ -2617,6 +2721,9 @@ inner join ref_Calendar cal on cal.theDate >= hn.DateToStreetESSH
 left outer join sys_Time st on st.HoHID = sn.HoHID and st.HHType = sn.HHType
   and st.sysDate = cal.theDate
 where st.sysDate is null
+  -- 4/23/2019 add only dates after LastInactive (dates on or before LastInactive
+  --   are counted in the previous step)
+  and cal.theDate > lhh.LastInactive
   and (sn.ProjectType in (1,8)
   or hn.LivingSituation in (1,18,16)
   or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
@@ -2660,7 +2767,10 @@ set ESDays = (select count(distinct st.sysDate)
     from sys_Time st
     where st.sysStatus = 7
     and st.HoHID = lhh.HoHID and st.HHType = lhh.HHType)
-  , TotalHomelessDays = (select count(distinct st.sysDate)
+  --CHANGE 4/23/2019 - include Other3917Days from 4.35 in TotalHomelessDays
+  , TotalHomelessDays = case
+      when Other3917Days is null then 0
+      else Other3917Days end + (select count(distinct st.sysDate)
     from sys_Time st
     where st.sysStatus in (3,4,5,6,7)
     and st.HoHID = lhh.HoHID and st.HHType = lhh.HHType)
@@ -2813,6 +2923,8 @@ select hhid.HouseholdID, case
       --CHANGE 11/9/2018 add join to hmis_Exit, correct join criteria for tmp_CohortDates
       --to eliminate counting some individuals as both an adult and a child.
       inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+      --4/23/2019 do not use deleted data in reporting
+      and hx.DateDeleted is null
       inner join tmp_CohortDates cd on hx.ExitDate between cd.CohortStart and cd.CohortEnd
         and cd.Cohort <= 1
       inner join hmis_Client c on c.PersonalID = hn.PersonalID
@@ -2826,12 +2938,16 @@ select hhid.HouseholdID, case
           left outer join lsa_Project lp on lp.ProjectID = p.ProjectID
           inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
             and coc.CoCCode = rpt.ReportCoC
+      --4/23/2019 do not use deleted data in reporting
+      and coc.DateDeleted is null
           --Project type for qualifying exit MAY BE STREET OUTREACH
           --in addition to ES/SH/TH/RRH/PSH when LSAScope = 1 (systemwide).
           --  When LSAScope = 2 (project-focused), the project must have a record
           --  in lsa_Project
           where p.ProjectType in (1,2,3,4,8,13) and p.ContinuumProject = 1
               and (rpt.LSAScope = 1 or lp.ProjectID is not NULL)
+        --4/23/2019 do not use deleted data in reporting
+        and hhinfo.DateDeleted is null
           group by hhinfo.HouseholdID
           ) hoh on hoh.HouseholdID = hn.HouseholdID
       group by hn.HouseholdID
@@ -2860,6 +2976,8 @@ select hn.PersonalID as HoHID, hh.HHType, hn.EntryDate, hx.ExitDate
     into #b
     from hmis_Enrollment hn
     left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+    --4/23/2019 do not use deleted data in reporting
+    and hx.DateDeleted is null
     inner join (select hhid.HouseholdID, case
           when sum(hhid.AgeStatus%10) > 0 and sum((hhid.AgeStatus/10)%100) > 0 then 2
           when sum(hhid.AgeStatus/100) > 0 then 99
@@ -2907,6 +3025,8 @@ select hn.PersonalID as HoHID, hh.HHType, hn.EntryDate, hx.ExitDate
           group by hhid.HouseholdID
           ) hh on hh.HouseholdID = hn.HouseholdID
         where hn.RelationshipToHoH = 1
+    --4/23/2019 do not use deleted data in reporting
+    and hn.DateDeleted is null
 
 CREATE NONCLUSTERED INDEX ix_hoh_id_b ON #b (HoHID);
 CREATE NONCLUSTERED INDEX ix_hhtype_b ON #b (HHType);
@@ -2938,6 +3058,8 @@ select distinct cd.Cohort, hn.PersonalID, #hhx.HHType, hn.EnrollmentID, p.Projec
 from hmis_Enrollment hn
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+  --4/23/2019 do not use deleted data in reporting
+  and hx.DateDeleted is null
   --CHANGE 11/27/2018:  Include enrollments where ExitDate = EntryDate
   -- under some circumstances (see note with 11/19 change in section 4.7).
   and (hx.ExitDate > hn.EntryDate
@@ -2968,7 +3090,11 @@ where hn.RelationshipToHoH = 1 and #b.HoHID is null and cd.Cohort <= 0
   and rpt.ReportCoC = (select top 1 mostrecent.CoCCode
     from hmis_EnrollmentCoC mostrecent
     where mostrecent.EnrollmentID = hn.EnrollmentID
+    --4/23/2019 do not use deleted data in reporting
+    and mostrecent.DateDeleted is null
     order by mostrecent.InformationDate desc)
+--4/23/2019 do not use deleted data in reporting
+and hn.DateDeleted is null
 
 drop table #hhx
 drop table #b
@@ -3053,8 +3179,12 @@ from (select distinct hn.HouseholdID
         -- to be considered a return
         and (coc.DataCollectionStage = 1 or coc.InformationDate = hhinfo.EntryDate)
       where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
+      --4/23/2019 do not use deleted data in reporting
+      and coc.DateDeleted is null
       group by hhinfo.HouseholdID, coc.CoCCode
       ) hoh on hoh.HouseholdID = hn.HouseholdID
+  --4/23/2019 do not use deleted data in reporting
+  where hn.DateDeleted is null
   group by hn.HouseholdID
   , case when c.DOBDataQuality in (8,9)
       or c.DOB is null
@@ -3077,7 +3207,10 @@ update ex
 set ex.ReturnDate = (select min(hn.EntryDate)
     from hmis_Enrollment hn
     inner join #hhreturn on #hhreturn.HouseholdID = hn.HouseholdID
-        where hn.RelationshipToHoH = 1
+        where
+      --4/23/2019 do not use deleted data in reporting
+      hn.DateDeleted is null
+      and hn.RelationshipToHoH = 1
           and hn.PersonalID = ex.HoHID and #hhreturn.HHType = ex.HHType
           and hn.EntryDate
             between dateadd(dd, 15, ex.ExitDate) and dateadd(dd, 730, ex.ExitDate))
@@ -3146,10 +3279,16 @@ inner join (
   inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
   inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
   inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+    --4/23/2019 do not use deleted data in reporting
+    and hn.DateDeleted is null
   inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
     and hx.ExitDate >= cd.CohortStart
+    --4/23/2019 do not use deleted data in reporting
+    and hx.DateDeleted is null
   inner join hmis_Client c on c.PersonalID = hn.PersonalID
   left outer join hmis_HealthAndDV dv on hn.EnrollmentID = dv.EnrollmentID
+    --4/23/2019 do not use deleted data in reporting
+    and dv.DateDeleted is null
   inner join (select distinct hn.PersonalID
     , case when c.DOBDataQuality in (8,9) then -1
       when c.DOB is null
@@ -3167,8 +3306,12 @@ inner join (
     inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
     inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
     inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+      --4/23/2019 do not use deleted data in reporting
+      and hn.DateDeleted is null
     inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
       and hx.ExitDate >= cd.CohortStart
+      --4/23/2019 do not use deleted data in reporting
+      and hx.DateDeleted is null
     inner join hmis_Client c on c.PersonalID = hn.PersonalID
     ) age on age.PersonalID = hn.PersonalID
   group by ex.EnrollmentID) pop on pop.EnrollmentID = ex.EnrollmentID
@@ -3215,8 +3358,12 @@ inner join
       inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
       inner join hmis_Enrollment hoh on hoh.EnrollmentID = ex.EnrollmentID
       inner join hmis_Enrollment hn on hn.HouseholdID = hoh.HouseholdID
+          --4/23/2019 do not use deleted data in reporting
+          and hn.DateDeleted is null
       inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
         and hx.ExitDate >= cd.CohortStart
+         --4/23/2019 do not use deleted data in reporting
+        and hx.DateDeleted is null
       inner join hmis_Client c on c.PersonalID = hn.PersonalID
       ) adultAges
   group by adultAges.HoHID, adultAges.EnrollmentID
@@ -3272,6 +3419,8 @@ from
       inner join hmis_EnrollmentCoC coc on
         coc.EnrollmentID = hhinfo.EnrollmentID
         and coc.CoCCode = rpt.ReportCoC
+    --4/23/2019
+    and coc.DateDeleted is null
       where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
       --CHANGE 11/19/2018 -- align criteria for CoC with business logic
       --  defined by the specs for tmp_Household.Stat.  The specs fail to
@@ -3279,9 +3428,13 @@ from
       --  cohort households.  The join to hmis_EnrollmentCoC and the criteria
       --  below are, therefore, not required -- but they are consistent
       --  with the intent.
+    --4/23/2019
+    and hhinfo.DateDeleted is null
         and rpt.ReportCoC = (select top 1 mostrecent.CoCCode
           from hmis_EnrollmentCoC mostrecent
           where mostrecent.EnrollmentID = hhinfo.EnrollmentID
+      --4/23/2019
+      and mostrecent.DateDeleted is null
           order by mostrecent.InformationDate desc)
       group by hhinfo.HouseholdID, coc.CoCCode
           ) hoh on hoh.HouseholdID = hn.HouseholdID
@@ -3295,6 +3448,8 @@ update ex
 set ex.StatEnrollmentID = (select top 1 previous.EnrollmentID
   from hmis_Enrollment previous
   inner join hmis_Exit hx on hx.EnrollmentID = previous.EnrollmentID
+    --4/23/2019
+  and hx.DateDeleted is null
     and hx.ExitDate > previous.EntryDate
     and dateadd(dd,730,hx.ExitDate) >= ex.EntryDate
     and hx.ExitDate < ex.ExitDate
@@ -3304,9 +3459,9 @@ set ex.StatEnrollmentID = (select top 1 previous.EnrollmentID
   inner join
     --HouseholdIDs with LSA household types
      #hhxstat on #hhxstat.HouseholdID = previous.HouseholdID
-      where previous.PersonalID = ex.HoHID and previous.RelationshipToHoH = 1
+  where previous.PersonalID = ex.HoHID and previous.RelationshipToHoH = 1
         and #hhxstat.HHType = ex.HHType
-      order by hx.ExitDate desc)
+  order by hx.ExitDate desc)
 from tmp_Exit ex
 
 drop table #hhxstat
@@ -3319,6 +3474,8 @@ set ex.Stat = case when ex.StatEnrollmentID is null then 1
   else 4 end
 from tmp_Exit ex
 left outer join hmis_Exit hx on hx.EnrollmentID = ex.StatEnrollmentID
+  --4/23/2019
+  and hx.DateDeleted is null
 /*****************************************************************
 4.46 Set System Path for Exit Cohort Households
 *****************************************************************/
@@ -3326,7 +3483,7 @@ update ex
 set ex.SystemPath = null
 from tmp_Exit ex
 
---SystemPath is n/a for any household household in PSH by CohortStart
+--SystemPath is n/a for any household housed in PSH as of CohortStart
 update ex
 set ex.SystemPath = -1
 from tmp_Exit ex
@@ -3342,24 +3499,25 @@ inner join hmis_Enrollment hn on hn.EnrollmentID = ex.EnrollmentID
 where ex.ExitFrom in (5,6) and dateadd(dd,365, hn.MoveInDate) <= ex.ExitDate
   and ex.SystemPath is null
 
--- -- SystemPath can be set directly based on ExitFrom for
--- -- -Any household exiting from street outreach (ExitFrom = 1)
--- -- -Any first time homeless household (Stat = 1)
--- -- -Any household returning/re-engaging after 15-730 days (Stat in (2,3,4))
--- update ex
--- set ex.SystemPath = case
---   when ex.ExitFrom = 1 then 12
---   when ex.ExitFrom = 2 then 1
---   when ex.ExitFrom = 3 then 2
---   when ex.ExitFrom = 4 then 1
---   when ex.ExitFrom = 5 then 4
---   when ex.ExitFrom = 6 then 8
---   else 8 end
--- from tmp_Exit ex
--- inner join sys_Enrollment sn on sn.EnrollmentID = ex.EnrollmentID
--- inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
--- where ex.SystemPath is null
---   and (ex.Stat in (1,2,3,4) or ex.ExitFrom = 1)
+-- SystemPath can be set directly based on ExitFrom for
+-- -Any household exiting from street outreach (ExitFrom = 1)
+-- -Any first time homeless household (Stat = 1)
+-- -Any household returning/re-engaging after 15-730 days (Stat in (2,3,4))
+update ex
+set ex.SystemPath = case
+  when ex.ExitFrom = 1 then 12
+  when ex.ExitFrom = 2 then 1
+  when ex.ExitFrom = 3 then 2
+  when ex.ExitFrom = 4 then 1
+  when ex.ExitFrom = 5 then 4
+  when ex.ExitFrom = 6 then 8
+  else 8 end
+from tmp_Exit ex
+--4/23/2019 deleted joins to sys_Enrollment and tmp_CohortDates --
+-- they are irrelevant to logic and caused errors setting SystemPath
+
+where ex.SystemPath is null
+  and (ex.Stat in (1,2,3,4) or ex.ExitFrom = 1)
 
 --Where SystemPath cannot be set directly, sys_Enrollment is used to
 --  to build a service history and determine SystemPath.
@@ -3390,7 +3548,11 @@ select distinct hn.PersonalID
 from tmp_Exit ex
 inner join hmis_Enrollment hn on hn.PersonalID = ex.HoHID
   and hn.RelationshipToHoH = 1
+  --4/23/2019
+  and hn.DateDeleted is null
 inner join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
+  --4/23/2019
+  and hx.DateDeleted is null
 inner join hmis_Project p on p.ProjectID = hn.ProjectID
 inner join
     --HouseholdIDs with LSA household types
@@ -3422,6 +3584,8 @@ inner join
           where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
           group by hhinfo.HouseholdID, coc.CoCCode
           ) hoh on hoh.HouseholdID = hn.HouseholdID
+      --4/23/2019
+      where hn.DateDeleted is null
       ) hhid
     group by hhid.HouseholdID
     ) hh on hh.HouseholdID = hn.HouseholdID
@@ -3452,6 +3616,8 @@ inner join (select ex.Cohort, ex.HoHID, ex.HHType, max(cal.theDate) as inactive
     -- night-by-night) and add requirement for bn.DateProvided <= qualifying exit
     inner join hmis_Services bn on bn.EnrollmentID = sn.EnrollmentID
       and bn.RecordType = 200 and bn.DateProvided <= x.ExitDate
+      --4/23/2019
+      and bn.DateDeleted is null
     where sn.EntryDate is null
     union
     --time in ES/SH/TH or in RRH/PSH but not housed
@@ -3470,26 +3636,6 @@ inner join (select ex.Cohort, ex.HoHID, ex.HHType, max(cal.theDate) as inactive
 --CHANGE 12/19/2018 - add WHERE clause (no change to output, but no need to set
 --  LastInactive unless SystemPath is null).
 where ex.SystemPath is null
-
--- https://github.com/HMIS/LSASampleCode/issues/102
--- SystemPath can be set directly based on ExitFrom for
--- -Any household exiting from street outreach (ExitFrom = 1)
--- -Any first time homeless household (Stat = 1)
--- -Any household returning/re-engaging after 15-730 days (Stat in (2,3,4))
-update ex
-set ex.SystemPath = case
-  when ex.ExitFrom = 1 then 12
-  when ex.ExitFrom = 2 then 1
-  when ex.ExitFrom = 3 then 2
-  when ex.ExitFrom = 4 then 1
-  when ex.ExitFrom = 5 then 4
-  when ex.ExitFrom = 6 then 8
-  else 8 end
-from tmp_Exit ex
-inner join sys_Enrollment sn on sn.EnrollmentID = ex.EnrollmentID
-inner join tmp_CohortDates cd on cd.Cohort = ex.Cohort
-where ex.SystemPath is null
-  and (ex.Stat in (1,2,3,4) or ex.ExitFrom = 1)
 
 update ex
 set ex.SystemPath = case ptype.summary
@@ -3675,7 +3821,8 @@ inner join ref_Populations pop on
   and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
 where lh.RRHPSHPreMoveInDays > 0
   and pop.LOTH = 1
-  and (lh.SystemPath in (4,5,6,7,10,11,12) or pop.SystemPath is null)
+  -- CHANGE 4/23/2019 include SystemPath 8 and 9 (PSH only and ES/SH + PSH)
+  and (lh.SystemPath in (4,5,6,7,8,9,10,11,12) or pop.SystemPath is null)
 group by pop.PopID
   , pop.HHType
   , pop.SystemPath
@@ -3708,7 +3855,8 @@ inner join ref_Populations pop on
   and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
 where lh.SystemHomelessDays > 0
   and pop.LOTH = 1
-  and (lh.SystemPath in (5,6,7,10,11,12) or pop.SystemPath is null)
+  -- 4/23/2019 include SystemPath 8 & 9  (PSH only and ES/SH + PSH)
+  and (lh.SystemPath in (5,6,7,8,9,10,11,12) or pop.SystemPath is null)
 group by pop.PopID
   , pop.HHType
   , pop.SystemPath
@@ -3842,7 +3990,8 @@ inner join ref_Populations pop on
   and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
 where lh.SystemDaysNotPSHHoused > 0
   and pop.LOTH = 1
-  and (lh.SystemPath in (4,5,6,7,10,11,12) or pop.SystemPath is null)
+  -- 4/23/2019 add SystemPath 8 and 9 (PSH only and ES/SH + PSH)
+  and (lh.SystemPath in (4,5,6,7,8,9,10,11,12) or pop.SystemPath is null)
 group by pop.PopID
   , pop.HHType
   , pop.SystemPath
@@ -4146,6 +4295,8 @@ select count (distinct an.PersonalID)
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4169,9 +4320,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID, pop.HHType
 
@@ -4195,6 +4348,8 @@ select count (distinct an.PersonalID)
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4218,9 +4373,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID
     , p.ProjectType
@@ -4239,6 +4396,8 @@ select count (distinct an.PersonalID)
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4258,9 +4417,12 @@ inner join lsa_Project p on p.ProjectID = an.ProjectID
 where cd.Cohort > 0
   and pop.PopID between 0 and 10 and pop.PopType = 1
   and pop.SystemPath is null
-  and ((p.TrackingMethod = 3
+  --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+  and (
+    (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID
     , p.ExportID
@@ -4281,6 +4443,8 @@ select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4304,9 +4468,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
   , pop.HHType
@@ -4332,6 +4498,8 @@ select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4355,9 +4523,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, case p.ProjectType
     when 1 then 11
@@ -4379,6 +4549,8 @@ select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
 from active_Enrollment an
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4399,9 +4571,11 @@ where cd.Cohort > 0
   and pop.PopID between 0 and 10 and pop.PopType = 1 and pop.SystemPath is null
   and pop.SystemPath is null
   and (--for night-by-night ES, count only people with bednights in period
-    (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ExportID
   , pop.HHType
@@ -4422,6 +4596,8 @@ from tmp_Person lp
 inner join active_Enrollment an on an.PersonalID = lp.PersonalID
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4447,9 +4623,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
   , pop.HHType
@@ -4476,6 +4654,8 @@ from tmp_Person lp
 inner join active_Enrollment an on an.PersonalID = lp.PersonalID
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4504,9 +4684,11 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    or (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectType, p.ExportID
   , pop.HHType
@@ -4524,6 +4706,8 @@ from tmp_Person lp
 inner join active_Enrollment an on an.PersonalID = lp.PersonalID
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join active_Household ahh on ahh.HouseholdID = an.HouseholdID
 inner join ref_Populations pop on
   (ahh.HHType = pop.HHType or pop.HHType is null)
@@ -4550,9 +4734,11 @@ where cd.Cohort > 0
   and pop.PopType = 3 and pop.PopID <> 100
   and (
     --for night-by-night ES, count only people with bednights in period
-    (p.TrackingMethod = 3
+    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
+    (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod <> 3 and p.ProjectType in (1,2,8))
+    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ExportID
   , pop.HHType
@@ -4577,6 +4763,8 @@ inner join ref_Populations pop on
   and (ahh.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4617,6 +4805,8 @@ inner join ref_Populations pop on
   and (ahh.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4648,6 +4838,8 @@ inner join ref_Populations pop on
   and (ahh.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4686,6 +4878,8 @@ inner join ref_Populations pop on
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4732,6 +4926,8 @@ inner join ref_Populations pop on
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4770,6 +4966,8 @@ inner join ref_Populations pop on
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
 left outer join hmis_Services bn on bn.EnrollmentID = an.EnrollmentID
   and bn.RecordType = 200
+  --4/23/2019
+  and bn.DateDeleted is null
 inner join lsa_Project p on p.ProjectID = an.ProjectID
 inner join lsa_Report rpt on rpt.ReportID = cast(p.ExportID as int)
 left outer join ref_Calendar est on est.theDate >= an.EntryDate
@@ -4792,8 +4990,11 @@ update rpt
       where lp.ReportID = rpt.ReportID)
   , UnduplicatedAdult1 = (select count(distinct lp.PersonalID)
       from tmp_Person lp
+      -- 4/23/2019 use an.AgeGroup vs. lp.Age so that people served
+      --  at both 17 and 18 are counted
+      inner join active_Enrollment an on an.PersonalID = lp.PersonalID
       where lp.ReportID = rpt.ReportID
-        and lp.Age between 18 and 65)
+        and an.AgeGroup between 18 and 65)
   , AdultHoHEntry1 = (select count(distinct an.EnrollmentID)
       from tmp_Person lp
       inner join hmis_Client c on c.PersonalID = lp.PersonalID
@@ -4817,6 +5018,8 @@ update rpt
       from tmp_Person lp
       inner join active_Enrollment an on an.PersonalID = lp.PersonalID
       inner join hmis_Exit x on x.EnrollmentID = an.EnrollmentID
+        --4/23/2019
+        and x.DateDeleted is null
       where lp.ReportID = rpt.ReportID
         and an.RelationshipToHoH = 1
         and an.ProjectType in (3,13)
@@ -4852,13 +5055,16 @@ update rpt
       inner join hmis_Client c on c.PersonalID = lp.PersonalID
       where lp.ReportID = rpt.ReportID
         and (c.VeteranStatus not in (0,1) or c.VeteranStatus is null))
-  , RelationshipToHoH1 = (select count(distinct n.EnrollmentID)
+  , RelationshipToHoH1 = (select count(distinct hn.EnrollmentID)
       from tmp_Person lp
-      inner join active_Enrollment n on n.PersonalID = lp.PersonalID
+      inner join active_Enrollment an on an.PersonalID = lp.PersonalID
+      -- 4/23/20109 join to hmis_Enrollment to check RelationshipToHoH -- values in
+      --  active_Enrollment may have been adjusted to compensate for missing HoH
+      inner join hmis_Enrollment hn on hn.EnrollmentID = an.EnrollmentID
       where lp.ReportID = rpt.ReportID
         --CHANGE 9/28/2018 add parentheses
-        and (n.RelationshipToHoH not in (1,2,3,4,5)
-          or n.RelationshipToHoH is null))
+        and (hn.RelationshipToHoH not in (1,2,3,4,5)
+          or hn.RelationshipToHoH is null))
   , DisablingCond1 = (select count(distinct an.EnrollmentID)
       from tmp_Person lp
       inner join active_Enrollment an on an.PersonalID = lp.PersonalID
@@ -4958,6 +5164,7 @@ update rpt
       inner join active_Enrollment an on an.PersonalID = c.PersonalID
       left outer join hmis_HealthAndDV dv on dv.EnrollmentID = an.EnrollmentID
         and dv.DataCollectionStage = 1
+        and dv.DateDeleted is null --4/23/2019
       where lp.ReportID = rpt.ReportID
         and (an.RelationshipToHoH = 1 or an.AgeGroup between 18 and 65)
         and (dv.DomesticViolenceVictim not in (0,1)
@@ -4969,6 +5176,7 @@ update rpt
       from tmp_Person lp
       inner join active_Enrollment n on n.PersonalID = lp.PersonalID
       inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+        and x.DateDeleted is null --4/23/2019
       where lp.ReportID = rpt.ReportID
         and n.ExitDate is not null
         and (x.Destination in (8,9,17,30,99) or x.Destination is null))
@@ -4987,6 +5195,7 @@ update rpt
       from tmp_Person lp
       inner join active_Enrollment n on n.PersonalID = lp.PersonalID
       inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+          and x.DateDeleted is null --4/23/2019
       where lp.ReportID = rpt.ReportID
         and n.RelationshipToHoH = 1
         and n.ProjectType in (3,13)
@@ -5026,6 +5235,7 @@ select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
       then 0 else 1 end
 from lsa_report rpt
 inner join hmis_Enrollment n on n.EntryDate <= rpt.ReportEnd
+  and n.DateDeleted is null --4/23/2019
 inner join hmis_Project p on p.ProjectID = n.ProjectID
 inner join hmis_Client c on c.PersonalID = n.PersonalID
 --CHANGE 12/4/2018 / correction to 11/28 change:
@@ -5033,12 +5243,14 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 --  so that WHERE clause can exclude enrollments that ended prior to relevant period
 --  (ExitDates prior to (ReportEnd - 3 years) were previously omitted in join.)
 left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+  and x.DateDeleted is null --4/23/2019
 inner join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDate
   from hmis_Enrollment hh
   inner join lsa_Report rpt on hh.EntryDate <= rpt.ReportEnd
   inner join hmis_Project p on p.ProjectID = hh.ProjectID
   inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hh.EnrollmentID
     and coc.CoCCode = rpt.ReportCoC
+    and coc.DateDeleted is null --4/23/2019
   where p.ProjectType in (1,2,3,8,13) and p.ContinuumProject = 1
   group by hh.HouseholdID
   ) hhinfo on hhinfo.HouseholdID = n.HouseholdID
@@ -5069,6 +5281,7 @@ update rpt
   , HoHPermToPH3 = (select count(distinct n.EnrollmentID)
       from dq_Enrollment n
       inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+        and x.DateDeleted is null --4/23/2019
       where n.RelationshipToHoH = 1
         and n.ProjectType in (3,13)
         and x.Destination in (3,31,19,20,21,26,28,10,11,22,23))
@@ -5076,14 +5289,18 @@ update rpt
       from hmis_Enrollment n
       left outer join hmis_EnrollmentCoC coc on
         coc.EnrollmentID = n.EnrollmentID
+        and coc.DateDeleted is null --4/23/2019
       inner join hmis_Project p on p.ProjectID = n.ProjectID
         and p.ContinuumProject = 1 and p.ProjectType in (1,2,3,8,13)
       inner join hmis_ProjectCoC pcoc on pcoc.CoCCode = rpt.ReportCoC
+        and pcoc.DateDeleted is null --4/23/2019
       left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
         and x.ExitDate >= dateadd(yy, -3, rpt.ReportStart)
+        and x.DateDeleted is null --4/23/2019
       where n.EntryDate <= rpt.ReportEnd
         and n.RelationshipToHoH = 1
-        and coc.CoCCode is null)
+        and coc.CoCCode is null
+        and coc.DateDeleted is null)--4/23/2019
   , SSNNotProvided = (select count(distinct n.PersonalID)
       from dq_Enrollment n
       where n.SSNValid is null)
@@ -5210,6 +5427,7 @@ update rpt
       from dq_Enrollment n
       left outer join hmis_HealthAndDV dv on dv.EnrollmentID = n.EnrollmentID
         and dv.DataCollectionStage = 1
+        and dv.DateDeleted is null --4/23/2019
       where (n.RelationshipToHoH = 1 or n.Adult = 1)
         and (dv.DomesticViolenceVictim not in (0,1)
             or dv.DomesticViolenceVictim is null
@@ -5219,6 +5437,7 @@ update rpt
   , Destination3 = (select count(distinct n.EnrollmentID)
       from dq_Enrollment n
       inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+        and x.DateDeleted is null --4/23/2019
       where n.ExitDate is not null
         and (x.Destination in (8,9,17,30,99) or x.Destination is null))
   , NotOneHoH3 = (select count(distinct n.HouseholdID)
@@ -5232,6 +5451,7 @@ update rpt
   , MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)
       from dq_Enrollment n
       inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID
+        and x.DateDeleted is null --4/23/2019
       where n.RelationshipToHoH = 1
         and n.ProjectType in (3,13)
         and x.Destination in (3,31,19,20,21,26,28,10,11,22,23)

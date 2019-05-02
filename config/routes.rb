@@ -317,6 +317,7 @@ Rails.application.routes.draw do
       end
       resources :premium_payments, only: [:index, :show, :create, :destroy]
       resources :eligibility
+      resources :eligibility_results, only: [:show]
     end
   end
 
@@ -501,6 +502,8 @@ Rails.application.routes.draw do
       get :answers, on: :member
     end
   end
+
+  resources :hmis, only: [:index, :show]
 
   resources :weather, only: [:index]
 

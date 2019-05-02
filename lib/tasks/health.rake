@@ -8,6 +8,7 @@ namespace :health do
   desc "Import and match health data"
   task daily: [:environment, "log:info_to_stdout"] do
     Importing::RunHealthImportJob.new.perform
+    Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
   end
 
   desc "Create Healthcare for the Homeless Data Source"

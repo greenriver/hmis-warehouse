@@ -23,7 +23,7 @@ PreCommit:
   BundleAudit:
     enabled: true
   RuboCop:
-    enabled: false
+    enabled: true
     on_warn: fail # Treat all warnings as failures
   # CoffeeLint:
   #   enabled: true

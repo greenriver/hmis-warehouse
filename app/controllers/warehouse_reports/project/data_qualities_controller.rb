@@ -52,7 +52,8 @@ module WarehouseReports::Project
           report = report_scope.create(
             id_column => id,
             start: @range.start,
-            end: @range.end
+            end: @range.end,
+            requestor_id: current_user.id
           )
         else
           report = report_scope.

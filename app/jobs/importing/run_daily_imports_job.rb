@@ -59,9 +59,9 @@ module Importing
         @notifier.ping('Duplicates identified') if @send_notifications
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
-        # on large data operations
-        GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-        @notifier.ping('Project types calculated') if @send_notifications
+        # on large data operations, and any other project data cleanup
+        GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+        @notifier.ping('Projects cleaned') if @send_notifications
         # Sometimes client data changes in such a way as to leave behind stub
         # clients with no enrollments, this clears those out.
         # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?

@@ -3,7 +3,7 @@ module GrdaWarehouse::Hud
   class Client < Base
     include Rails.application.routes.url_helpers
     include RandomScope
-    include ArelHelper   # also included by RandomScope, but this makes dependencies clear
+    include ArelHelper
     include HealthCharts
     include ApplicationHelper
     include HudSharedScopes
@@ -194,6 +194,26 @@ module GrdaWarehouse::Hud
       neighborhood_interests.map(&:to_i)
     end
 
+    # Should be in the format {tag_id: min_rank}
+    # and returns the lowest rank for an individual for each tag
+    def cas_tags
+      @cas_tags = {}
+      cohort_clients.joins(:cohort).
+        merge(GrdaWarehouse::Cohort.where(id: cohort_ids_for_cas)).
+        each do |cc|
+          tag_id = cc.cohort.tag_id
+          if tag_id.present?
+            @cas_tags[tag_id] ||= cc.rank
+            @cas_tags[tag_id] = cc.rank if cc.rank.present? && (cc.rank < @cas_tags[tag_id])
+          end
+        end
+      # Are any tags that should be added based on HmisForms
+      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+        @cas_tags[tag.id] = assessment_score_for_cas
+      end
+      @cas_tags
+    end
+
     def default_shelter_agency_contacts
       source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
     end
@@ -205,6 +225,21 @@ module GrdaWarehouse::Hud
         meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
         cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
       end.map(&:cohort).compact.uniq
+    end
+
+    def last_exit_destination
+      last_exit = source_exits.order(ExitDate: :desc).first
+      if last_exit
+        destination_code = last_exit.Destination || 99
+        if destination_code == 17
+          destination_string = last_exit.OtherDestination
+        else
+          destination_string = HUD.destination(destination_code)
+        end
+        return "#{destination_string} (#{last_exit.ExitDate})"
+      else
+        return "None"
+      end
     end
 
     has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
