@@ -1,11 +1,20 @@
 - if @report.projects.count == 1
+  - if notification_id
+    - base = [:notification, :project, :data_quality_report]
+  - else
+    - base = [:project, :data_quality_report]
   - @report_keys = {project_id: @project.id, id: @report.id}
-  - @support_path = [:support, :project, :data_quality_report]
-  - @answers_path = [:answers, :project, :data_quality_report]
+  - @support_path = [:support] + base
+  - @answers_path = [:answers] + base
 - else
+  - if true
+    - base = [:notification, :project_group, :data_quality_report]
+  - else
+    - base = [:project_group, :data_quality_report]
   - @report_keys = {project_group_id: @project_group.id, id: @report.id}
-  - @support_path = [:support, :project_group, :data_quality_report]
-  - @answers_path = [:answers, :project_group, :data_quality_report]
+  - @support_path = [:support] + base
+  - @answers_path = [:answers] + base
+- @report_keys[:notification_id] = notification_id
 - if Rails.env.development?
   .alert.alert-warning
     %p Development Only

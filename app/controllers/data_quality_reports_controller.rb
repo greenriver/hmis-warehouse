@@ -76,6 +76,11 @@ class DataQualityReportsController < ApplicationController
     @project = @report.project
   end
 
+  def notification_id
+    params[:notification_id]
+  end
+  helper_method :notification_id
+
   def require_valid_token_or_project_access!
     if params[:notification_id].present?
       token = GrdaWarehouse::ReportToken.find_by_token(params[:notification_id])
