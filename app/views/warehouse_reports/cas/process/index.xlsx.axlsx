@@ -13,6 +13,9 @@ wb.add_worksheet(name: "CAS Match Process") do |sheet|
     'Terminal Date',
     "Result",
     'Link',
+    "Source Datasource",
+    "Source Id",
+    "CAS Id",
   ]
   sheet.add_row(columns, :style => title)
   @matches.each do |_,match|
@@ -26,6 +29,9 @@ wb.add_worksheet(name: "CAS Match Process") do |sheet|
       terminal_step&.updated_at&.to_date,
       terminal_step&.terminal_status,
       "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}",
+      match.source_data_source,
+      match.client_id,
+      match.cas_client_id,
     ]
   sheet.add_row(row)
 
