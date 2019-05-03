@@ -7,7 +7,7 @@
   - @support_path = [:support] + dq_path_base
   - @answers_path = [:answers] + dq_path_base
 - else
-  - if true
+  - if notification_id
     - dq_path_base = [:notification, :project_group, :data_quality_report]
   - else
     - dq_path_base = [:project_group, :data_quality_report]
