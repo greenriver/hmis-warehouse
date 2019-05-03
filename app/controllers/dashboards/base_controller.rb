@@ -6,25 +6,22 @@ module Dashboards
 
     before_action :require_can_view_censuses!
     def index
-      # Census
-      @census_start_date = '2015-07-01'.to_date
-      @census_end_date = 1.weeks.ago.to_date
-
       @months = months
-      @selected = selected_report_id
+      @selected = selected_report_ids
+
     end
 
     def active
-      @report = selected_report_for(active_report_class)
-      if @report.present?
-        data = @report[:data].with_indifferent_access
-        @data = data[:data]
-        @clients = data[:clients]
-        @client_count = data[:client_count]
-        @enrollments = data[:enrollments]
-        @month_name = data[:month_name]
-        @range = ::Filters::DateRange.new(data[:range])
-        @labels = data[:labels]
+      @reports = selected_reports_for(active_report_class)
+      if @reports.exists?
+        @data = @reports.map{|r| r[:data].with_indifferent_access}
+        # @data = data[:data]
+        # @clients = data[:clients]
+        # @client_count = data[:client_count]
+        # @enrollments = data[:enrollments]
+        # @month_name = data[:month_name]
+        # @range = ::Filters::DateRange.new(data[:range])
+        # @labels = data[:labels]
       end
       render layout: !request.xhr?
     end
@@ -73,23 +70,22 @@ module Dashboards
       months
     end
 
-    def selected_report_id
-      params[:choose_report][:month].to_i rescue id_of_most_recent_report
+    def selected_report_ids
+
+      start_month_index = months.keys.index(params[:choose_report][:start_month].to_i) rescue 5
+      end_month_index = months.keys.index(params[:choose_report][:end_month].to_i) rescue 0
+      if end_month_index > start_month_index
+        swap = start_month_index
+        start_month_index = end_month_index
+        end_month_index = swap
+      end
+      @start_month = months.keys[start_month_index]
+      @end_month = months.keys[end_month_index]
+      months.keys[end_month_index..start_month_index]
     end
 
-    def id_of_most_recent_report
-      # assumes that newer reports have higher ids -- may not hold on dev
-      months.max_by {|k, _| k}&.first # id is key of the map
-    end
-
-    def selected_report_for (report_class)
-      selected_report = active_report_class.find(selected_report_id)
-      report_class.
-        where(
-          created_at: [selected_report.created_at.beginning_of_day..selected_report.created_at.end_of_day]
-        ).
-        order(created_at: :desc).
-        limit(1).first
+    def selected_reports_for (report_class)
+      selected_reports = report_class.where(id: selected_report_ids)
     end
   end
 end

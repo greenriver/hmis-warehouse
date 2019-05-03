@@ -1,6 +1,8 @@
 = simple_form_for :choose_report, method: :get do |f|
   .row
     .col-sm-4
-      = f.input :month, collection: @months.sort.reverse.map{ | k, v | [v, k]}, selected: @selected, label: false
+      = f.input :start_month, collection: @months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }
     .col-sm-4
-      = f.button :submit, 'Show Month'
+      = f.input :end_month, collection: @months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }
+    .col-sm-4.mt-no-label
+      = f.button :submit, 'Update View'

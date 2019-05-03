@@ -1,23 +1,25 @@
 - @show_census = false
 = render 'index_title'
 = render 'report_picker'
+= debug @months
+= debug @selected
 
-.jRemoteActive
-  %h2 Active Clients
-  .text-center
-    Loading...
+-# .jRemoteActive
+-#   %h2 Active Clients
+-#   .text-center
+-#     Loading...
 
-.jRemoteEntered
-  %h2 Clients Entering Programs
-  .text-center
-    Loading...
+-# .jRemoteEntered
+-#   %h2 Clients Entering Programs
+-#   .text-center
+-#     Loading...
 
-.jRemoteHoused
-  %h2 Clients Housed
-  .text-center
-    Loading...
+-# .jRemoteHoused
+-#   %h2 Clients Housed
+-#   .text-center
+-#     Loading...
 
-- if @show_census
-  = render 'census'
-= content_for :page_js do
-  = render 'index_js'
+-# - if @show_census
+-#   = render 'census'
+-# = content_for :page_js do
+-#   = render 'index_js'
