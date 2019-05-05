@@ -16,34 +16,6 @@ ActiveRecord::Schema.define(version: 20190503193707) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "monthly_reports", force: :cascade do |t|
-    t.integer  "month",                                    null: false
-    t.integer  "year",                                     null: false
-    t.string   "sub_population"
-    t.integer  "client_id",                                null: false
-    t.integer  "head_of_household",        default: 0,     null: false
-    t.string   "household_id"
-    t.integer  "destination_id"
-    t.boolean  "enrolled",                 default: false, null: false
-    t.boolean  "active",                   default: false, null: false
-    t.boolean  "entered",                  default: false, null: false
-    t.boolean  "exited",                   default: false, null: false
-    t.integer  "project_type",                             null: false
-    t.integer  "days_since_last_entry"
-    t.integer  "prior_entry_project_type"
-    t.datetime "calculated_at",                            null: false
-  end
-
-  add_index "monthly_reports", ["active"], name: "index_monthly_reports_on_active", using: :btree
-  add_index "monthly_reports", ["enrolled"], name: "index_monthly_reports_on_enrolled", using: :btree
-  add_index "monthly_reports", ["entered"], name: "index_monthly_reports_on_entered", using: :btree
-  add_index "monthly_reports", ["exited"], name: "index_monthly_reports_on_exited", using: :btree
-  add_index "monthly_reports", ["head_of_household"], name: "index_monthly_reports_on_head_of_household", using: :btree
-  add_index "monthly_reports", ["household_id"], name: "index_monthly_reports_on_household_id", using: :btree
-  add_index "monthly_reports", ["month"], name: "index_monthly_reports_on_month", using: :btree
-  add_index "monthly_reports", ["sub_population"], name: "index_monthly_reports_on_sub_population", using: :btree
-  add_index "monthly_reports", ["year"], name: "index_monthly_reports_on_year", using: :btree
-
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
     t.date    "search_end"
@@ -73,6 +45,36 @@ ActiveRecord::Schema.define(version: 20190503193707) do
   add_index "warehouse_houseds", ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
   add_index "warehouse_houseds", ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
   add_index "warehouse_houseds", ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
+
+  create_table "warehouse_monthly_reports", force: :cascade do |t|
+    t.integer  "month",                                   null: false
+    t.integer  "year",                                    null: false
+    t.string   "type"
+    t.integer  "client_id",                               null: false
+    t.integer  "head_of_household",       default: 0,     null: false
+    t.string   "household_id"
+    t.integer  "destination_id"
+    t.boolean  "enrolled",                default: false, null: false
+    t.boolean  "active",                  default: false, null: false
+    t.boolean  "entered",                 default: false, null: false
+    t.boolean  "exited",                  default: false, null: false
+    t.integer  "project_type",                            null: false
+    t.date     "first_entry_in_month"
+    t.date     "last_exit_in_month"
+    t.integer  "days_since_last_exit"
+    t.integer  "prior_exit_project_type"
+    t.datetime "calculated_at",                           null: false
+  end
+
+  add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
+  add_index "warehouse_monthly_reports", ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled", using: :btree
+  add_index "warehouse_monthly_reports", ["entered"], name: "index_warehouse_monthly_reports_on_entered", using: :btree
+  add_index "warehouse_monthly_reports", ["exited"], name: "index_warehouse_monthly_reports_on_exited", using: :btree
+  add_index "warehouse_monthly_reports", ["head_of_household"], name: "index_warehouse_monthly_reports_on_head_of_household", using: :btree
+  add_index "warehouse_monthly_reports", ["household_id"], name: "index_warehouse_monthly_reports_on_household_id", using: :btree
+  add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
+  add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
+  add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
   create_table "warehouse_returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false
