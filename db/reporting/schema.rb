@@ -59,8 +59,8 @@ ActiveRecord::Schema.define(version: 20190503193707) do
     t.boolean  "entered",                 default: false, null: false
     t.boolean  "exited",                  default: false, null: false
     t.integer  "project_type",                            null: false
-    t.date     "first_entry_in_month"
-    t.date     "last_exit_in_month"
+    t.date     "entry_date"
+    t.date     "exit_date"
     t.integer  "days_since_last_exit"
     t.integer  "prior_exit_project_type"
     t.datetime "calculated_at",                           null: false
