@@ -142,26 +142,32 @@ module Cohorts
           end
 
           if @actives.key? :actives_population
-            population = @actives[:actives_population]
-            # Force service to fall within the correct age ranges for some populations
-            service_scope = :current_scope
-            if ['youth', 'children'].include? population
-              service_scope = population
-            elsif population == 'parenting_children'
-              service_scope = :children
-            elsif population == 'parenting_youth'
-              service_scope = :youth
-            elsif population == 'individual_adult'
-              service_scope = :adult
-            end
+            populations = @actives[:actives_population]
+            populations.each do |population|
+              enrollment_scope ||= begin
+                # Force service to fall within the correct age ranges for some populations
+                if ['youth', 'children'].include? population
+                  service_scope = population
+                elsif population == 'parenting_children'
+                  service_scope = :children
+                elsif population == 'parenting_youth'
+                  service_scope = :youth
+                elsif population == 'individual_adult'
+                  service_scope = :adult
+                else
+                  service_scope = :current_scope
+                end
 
-            enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start],
-              end_date: @actives[:end],
-              service_scope: service_scope
-            )
-            if @actives[:actives_population].present?
-              enrollment_scope = enrollment_scope.send(population)
+                enrollment_scope.with_service_between(
+                  start_date: @actives[:start],
+                  end_date: @actives[:end],
+                  service_scope: service_scope
+                )
+              end
+
+              if population.present?
+                enrollment_scope = enrollment_scope.send(population)
+              end
             end
           end
           # Active record seems to have trouble with the complicated nature of this scope
@@ -388,7 +394,7 @@ module Cohorts
         :min_days_homeless,
         :limit_to_last_three_years,
         :hoh,
-        :actives_population,
+        actives_population: [],
       )
     end
 
