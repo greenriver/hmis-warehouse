@@ -1,6 +1,9 @@
 # A reporting table to power the population dash boards.
 # One row per client per sub-population per month.
 
+# TODO: Add tests
+# TODO: batch save
+
 module Reporting::MonthlyReports
   class Base < ReportingBase
     include ArelHelper

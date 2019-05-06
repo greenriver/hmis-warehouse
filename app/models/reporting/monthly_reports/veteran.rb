@@ -4,8 +4,7 @@ module Reporting::MonthlyReports
 
     def enrollment_scope start_date:, end_date:
       enrollment_source.veteran.entry.
-        open_between(start_date: start_date, end_date: end_date).
-        where(client_id: 66443)
+        open_between(start_date: start_date, end_date: end_date)
     end
 
     def active_scope
