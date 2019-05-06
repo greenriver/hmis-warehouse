@@ -198,7 +198,11 @@ module Cohorts
         start_date = @touchpoints[:start].to_date
         end_date = @touchpoints[:end].to_date
         assessment_id = @touchpoints[:assessment_id].to_i
-        candidate_ids = GrdaWarehouse::HmisForm.non_confidential.where(collected_at: (start_date..end_date), assessment_id: assessment_id).distinct.pluck(:client_id)
+        candidate_ids = GrdaWarehouse::WarehouseClient.where(
+          source_id: GrdaWarehouse::HmisForm.non_confidential.
+            where(collected_at: (start_date..end_date),
+              assessment_id: assessment_id).distinct.select(:client_id)
+          ).distinct.pluck(:destination_id)
         @clients = client_source.where(id: candidate_ids)
       end
       if @hoh_only
