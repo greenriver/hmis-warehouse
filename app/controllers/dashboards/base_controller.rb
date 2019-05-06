@@ -5,10 +5,11 @@ module Dashboards
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
     before_action :require_can_view_censuses!
+    before_action :set_month_ranges
+
     def index
       @months = months
-      @selected = selected_report_ids
-
+      # @enrolled_clients = active_report_class.new(date_range: )
     end
 
     def active
@@ -58,34 +59,17 @@ module Dashboards
     end
 
     def months
-      months = {}
-      active_report_class.ordered.select(:id, :parameters, :created_at).
-        where(created_at:'2018-03-01'.to_date..Date.today).
-        group_by(&:parameters).map{|k,reports| [k, reports.max_by(&:created_at)]}. # make sure we get the most recent
-        first(36).each do | key, report |
-          report.set_date_range
-          start_date = report.range.start
-          months[report.id] = "#{Date::MONTHNAMES[start_date.month]} #{start_date.year}"
-        end
-      months
+      active_report_class.distinct.order(year: :desc, month: :desc).
+        pluck(:year, :month).map do |year, month|
+          date = Date.new(year, month, 1)
+          [[year, month], date.strftime('%B %Y')]
+        end.to_h
     end
 
-    def selected_report_ids
-
-      start_month_index = months.keys.index(params[:choose_report][:start_month].to_i) rescue 5
-      end_month_index = months.keys.index(params[:choose_report][:end_month].to_i) rescue 0
-      if end_month_index > start_month_index
-        swap = start_month_index
-        start_month_index = end_month_index
-        end_month_index = swap
-      end
-      @start_month = months.keys[start_month_index]
-      @end_month = months.keys[end_month_index]
-      months.keys[end_month_index..start_month_index]
+    def set_month_ranges
+      @start_month = params[:choose_report][:start_month] rescue [6.months.ago.year, 6.months.ago.month].to_s
+      @end_month = params[:choose_report][:end_month] rescue [1.months.ago.year, 1.months.ago.month].to_s
     end
 
-    def selected_reports_for (report_class)
-      selected_reports = report_class.where(id: selected_report_ids)
-    end
   end
 end

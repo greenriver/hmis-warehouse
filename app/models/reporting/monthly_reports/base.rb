@@ -1,9 +1,6 @@
 # A reporting table to power the population dash boards.
 # One row per client per sub-population per month.
 
-# TODO: Add tests
-# TODO: batch save
-
 module Reporting::MonthlyReports
   class Base < ReportingBase
     include ArelHelper
@@ -23,7 +20,7 @@ module Reporting::MonthlyReports
       set_prior_enrollments
       self.class.transaction do
         _clear!
-        # TODO: batch save
+        self.class.import @enrollments_by_client.values.flatten
       end
     end
 
@@ -59,11 +56,14 @@ module Reporting::MonthlyReports
             active: active_in_month?(client_id: client_id, month: month, year: year),
             entered: entered_in_month,
             exited: exited_in_month,
+            project_id: enrollment.project.id,
+            organization_id: enrollment.organization.id,
             project_type: enrollment.computed_project_type,
             entry_date: enrollment.first_date_in_program,
             exit_date: enrollment.last_date_in_program,
             days_since_last_exit: nil,
             prior_exit_project_type: nil,
+            prior_exit_destination_id: nil,
 
             calculated_at: Time.zone.now,
           )
@@ -149,6 +149,11 @@ module Reporting::MonthlyReports
 
     def enrollment_scope
       raise NotImplementedError
+    end
+
+    def active_scope
+      enrollment_scope(start_date: @start_date, end_date: @end_date).
+        with_service_between(start_date: @start_date, end_date: @end_date)
     end
 
     def enrollment_source
