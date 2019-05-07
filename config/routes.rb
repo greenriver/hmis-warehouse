@@ -65,6 +65,7 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
+        get :coversheet, on: :member
         member do
           delete :remove_file
           get :download

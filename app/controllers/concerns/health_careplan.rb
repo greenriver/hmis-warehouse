@@ -19,6 +19,18 @@ module HealthCareplan
       Health::Careplan
     end
 
+    def careplan_pdf_coversheet
+      file_name = 'care_plan_coversheet'
+      coversheet = render_to_string(
+        pdf: file_name,
+        template: 'window/health/careplans/_pdf_coversheet',
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter'
+      )
+      CombinePDF.parse(coversheet)
+    end
+
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
     def careplan_combine_pdf_object
       @goal = Health::Goal::Base.new
@@ -54,14 +66,7 @@ module HealthCareplan
 
       pdf = CombinePDF.new
 
-      coversheet = render_to_string(
-        pdf: file_name,
-        template: 'window/health/careplans/_pdf_coversheet',
-        layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter'
-      )
-      pdf << CombinePDF.parse(coversheet)
+      pdf << careplan_pdf_coversheet
 
       # debugging
       # render layout: false
