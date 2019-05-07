@@ -4,6 +4,8 @@
 module Reporting::MonthlyReports
   class Base < ReportingBase
     include ArelHelper
+    include ::Reporting::MonthlyReports::MonthlyReportCharts
+
     self.table_name = :warehouse_monthly_reports
 
     after_initialize :set_dates
@@ -61,6 +63,7 @@ module Reporting::MonthlyReports
             project_type: enrollment.computed_project_type,
             entry_date: enrollment.first_date_in_program,
             exit_date: enrollment.last_date_in_program,
+            first_enrollment: first_record?(enrollment),
             days_since_last_exit: nil,
             prior_exit_project_type: nil,
             prior_exit_destination_id: nil,
@@ -103,6 +106,7 @@ module Reporting::MonthlyReports
                 if max_exit_enrollment.exit_date < entry_date
                   en.days_since_last_exit = (en.entry_date - max_exit_enrollment.exit_date).to_i
                   en.prior_exit_project_type = max_exit_enrollment.project_type
+                  en.prior_exit_destination_id = max_exit_enrollment.destination_id
                 end
               end
               next if en.days_since_last_exit.present?
@@ -123,6 +127,7 @@ module Reporting::MonthlyReports
                   previous_exit = current_enrollments.sort_by(&:exit_date).last
                   en.days_since_last_exit = (en.entry_date - previous_exit.exit_date).to_i
                   en.prior_exit_project_type = previous_exit.project_type
+                  en.prior_exit_destination_id = previous_exit.destination_id
                   break
                 end
               end
@@ -147,7 +152,23 @@ module Reporting::MonthlyReports
       @active_in_month.include?(k)
     end
 
+    def first_record? enrollment
+      @first_records ||= first_scope.distinct.
+        pluck(
+          :client_id,
+          p_t[:id].to_sql,
+          :first_date_in_program
+        ).map do |client_id, p_id, date|
+          [client_id, [p_id, date]]
+        end.to_h
+      @first_records[enrollment.client_id] == [enrollment.project.id, enrollment.first_date_in_program]
+    end
+
     def enrollment_scope
+      raise NotImplementedError
+    end
+
+    def sub_population_title
       raise NotImplementedError
     end
 
@@ -156,8 +177,12 @@ module Reporting::MonthlyReports
         with_service_between(start_date: @start_date, end_date: @end_date)
     end
 
+    def first_scope
+      enrollment_source.first_date.where(client_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:client_id))
+    end
+
     def enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment.homeless
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless.joins(:project, :organization).preload(:project, :organization)
     end
 
   end

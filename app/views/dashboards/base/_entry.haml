@@ -1,0 +1,90 @@
+.ho-container.rrh
+  .ho-container__header
+    %h3.mb-0 #{@report.sub_population_title} Entry and Re-Entry
+    .description
+      Re-Entry is calculated as a return to the system after a 60 day break
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Newly Homeless During Time Period
+      .metric
+        = pluralize(@report.first_time_client_count, @report.sub_population_title)
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Re-Entering Homelessness During the Time Period
+      .metric
+        = pluralize(@report.re_entry_client_count, @report.sub_population_title)
+
+
+  .jEntryReEntry
+
+  .jEntry
+
+  .jReEntry
+
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var entry_re_entry_data = {
+        x: 'x',
+        columns: #{@report.entry_re_entry_data.to_json}
+      };
+      var entry_re_entry = bb.generate({
+        data: entry_re_entry_data,
+        axis: {
+          x: {
+            type: 'category',
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        size: {
+          height: 200
+        },
+        bindto: ".jEntryReEntry"
+      });
+      var entry_data = {
+        x: 'x',
+        type: 'bar',
+        groups: [#{@report.homeless_project_types.to_json}],
+        columns: #{@report.first_time_entry_locations.to_json}
+      };
+      var entry = bb.generate({
+        data: entry_data,
+        axis: {
+          x: {
+            type: 'category',
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        size: {
+          height: 200
+        },
+        bindto: ".jEntry"
+      });
+      var re_entry_data = {
+        x: 'x',
+        type: 'bar',
+        groups: [#{@report.homeless_project_types.to_json}],
+        columns: #{@report.re_entry_locations.to_json}
+      };
+      var re_entry = bb.generate({
+        data: re_entry_data,
+        axis: {
+          x: {
+            type: 'category',
+          }
+        },
+        legend: {
+          position: "right"
+        },
+        size: {
+          height: 200
+        },
+        bindto: ".jReEntry"
+      });
+    })(jQuery);

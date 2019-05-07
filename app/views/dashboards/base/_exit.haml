@@ -1,0 +1,43 @@
+.ho-container.rrh
+  .ho-container__header
+    %h3.mb-0 #{@report.sub_population_title} Exits to Permanent Housing
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Housed to Date
+      .metric
+        = pluralize(@report.all_housed_client_count, @report.sub_population_title)
+      .description
+        total #{@report.sub_population_title.pluralize.downcase} housed to date
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Housed During Reporting Period
+      .metric
+        = pluralize(@report.housed_client_count, @report.sub_population_title)
+      .description
+        number of #{@report.sub_population_title.pluralize.downcase} housed during reporting period
+
+  .jHoused
+
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var data = {
+        x: 'x',
+        columns: #{@report.housed_by_month.to_json}
+      };
+      var chart = bb.generate({
+        data: data,
+        axis: {
+          x: {
+            type: 'category',
+          }
+        },
+        legend: false,
+        size: {
+          height: 200
+        },
+        bindto: ".jHoused"
+      });
+    })(jQuery);

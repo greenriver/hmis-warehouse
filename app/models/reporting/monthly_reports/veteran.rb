@@ -7,5 +7,8 @@ module Reporting::MonthlyReports
         open_between(start_date: start_date, end_date: end_date)
     end
 
+    def sub_population_title
+      'Veteran'
+    end
   end
 end
