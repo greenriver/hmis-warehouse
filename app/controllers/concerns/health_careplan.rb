@@ -50,6 +50,19 @@ module HealthCareplan
         @ssm_partial = 'clients/assessment_form'
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
+
+
+      pdf = CombinePDF.new
+
+      coversheet = render_to_string(
+        pdf: file_name,
+        template: 'window/health/careplans/_pdf_coversheet',
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter'
+      )
+      pdf << CombinePDF.parse(coversheet)
+
       # debugging
       # render layout: false
 
@@ -75,7 +88,8 @@ module HealthCareplan
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )
-      pdf = CombinePDF.parse(pctp)
+
+      pdf << CombinePDF.parse(pctp)
 
       if @careplan.health_file.present?
         pdf << CombinePDF.parse(@careplan.health_file.content)
