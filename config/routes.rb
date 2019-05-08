@@ -234,6 +234,7 @@ Rails.application.routes.draw do
       get :summary, on: :collection
     end
     resources :client_in_project_during_date_range, only: [:index]
+    resources :enrolled_project_type, only: [:index]
     resources :bed_utilization, only: [:index]
     resources :length_of_stay, only: [:index] do
       collection do

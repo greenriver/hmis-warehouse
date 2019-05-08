@@ -3,6 +3,8 @@ module WarehouseReports::ClientDetails
     include ArelHelper
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
+    before_action :set_projects
+    before_action :set_organizations
 
     def index
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
@@ -74,6 +76,14 @@ module WarehouseReports::ClientDetails
 
     def homeless_service_history_source
       history_scope(service_history_source.homeless, @sub_population)
+    end
+
+    def set_organizations
+      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
+
+    def set_projects
+      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
     end
 
   end

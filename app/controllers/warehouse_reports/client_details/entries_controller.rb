@@ -4,6 +4,8 @@ module WarehouseReports::ClientDetails
     include ApplicationHelper
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
+    before_action :set_projects
+    before_action :set_organizations
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -155,6 +157,14 @@ module WarehouseReports::ClientDetails
 
     def days_since_last_entry enrollments
       enrollments.first(2).map{|m| m[:first_date_in_program]}.reduce(:-).abs
+    end
+
+    def set_organizations
+      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
+
+    def set_projects
+      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
     end
 
   end
