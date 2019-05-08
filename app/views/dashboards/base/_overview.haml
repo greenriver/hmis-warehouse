@@ -17,7 +17,7 @@
         Active Clients
       %i.icon-user.metric
       .metric
-        = pluralize(@report.active_client_count, 'client')
+        = link_to pluralize(@report.active_client_count, 'client'), warehouse_reports_client_details_actives_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date}), target: :_blank
         \/
         = pluralize(@report.active_household_count, 'households')
       .description
@@ -27,7 +27,7 @@
         Enterers
       %i.icon-enter.metric
       .metric
-        = pluralize(@report.entered_client_count, 'client')
+        = link_to pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date}), target: :_blank
         \/
         = pluralize(@report.entered_household_count, 'households')
       .description
@@ -37,7 +37,7 @@
         Exiters
       %i.icon-exit.metric
       .metric
-        = pluralize(@report.exited_client_count, 'client')
+        = link_to pluralize(@report.exited_client_count, 'client'), warehouse_reports_client_details_exits_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date}), target: :_blank
         \/
         = pluralize(@report.exited_household_count, 'households')
       .description

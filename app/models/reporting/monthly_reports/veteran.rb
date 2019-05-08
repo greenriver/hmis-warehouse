@@ -10,5 +10,9 @@ module Reporting::MonthlyReports
     def sub_population_title
       'Veteran'
     end
+
+    def sub_population
+      :veteran
+    end
   end
 end

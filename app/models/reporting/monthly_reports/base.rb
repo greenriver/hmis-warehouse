@@ -172,6 +172,10 @@ module Reporting::MonthlyReports
       raise NotImplementedError
     end
 
+    def sub_population
+      raise NotImplementedError
+    end
+
     def active_scope
       enrollment_scope(start_date: @start_date, end_date: @end_date).
         with_service_between(start_date: @start_date, end_date: @end_date)
