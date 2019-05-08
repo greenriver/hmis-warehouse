@@ -11,8 +11,11 @@ module WarehouseReports::ClientDetails
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      @project_type_code = params[:project_type]&.to_sym || :es
-      @project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[@project_type_code]
+      @project_type_codes = params[:project_type].map(&:presence).map(&:to_sym) rescue [:es]
+      @project_type = []
+      @project_type_codes.each do |code|
+        @project_type += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
+      end
 
       @start_date = @range.start
       @end_date = @range.end

@@ -27,7 +27,7 @@
         Enterers
       %i.icon-enter.metric
       .metric
-        = link_to pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date}), target: :_blank
+        = link_to pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date}, project_type: [:es, :sh, :so, :th]), target: :_blank
         \/
         = pluralize(@report.entered_household_count, 'households')
       .description

@@ -88,7 +88,7 @@ module Dashboards
 
     def set_end_date
       (year, month) = @report_months.first
-      @end_date = Date.new(year, month, 1)
+      @end_date = Date.new(year, month, -1)
     end
 
     def set_project_and_organization_ids
