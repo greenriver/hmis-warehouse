@@ -102,13 +102,16 @@ module Cohorts
       @filter = ::Filters::Chronic.new(params[:filter])
       @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       # whitelist for scope
-      @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(populations_params[:population]&.to_sym)
-        populations_params[:population]
+      @populations = begin
+        populations = populations_params[:population]&.map(&:to_sym)
+        if populations
+          populations.select{|e| GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include? e}
         elsif populations_params.keys.include?('population')
-          :all_clients
+          [:all_clients]
         else
           false
         end
+      end
       @actives = actives_params()
       @client_ids = params[:batch].try(:[], :client_ids)
 
@@ -172,25 +175,33 @@ module Cohorts
           end
           # Active record seems to have trouble with the complicated nature of this scope
           @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
-      elsif @population
+      elsif @populations
         @hoh_only = _debool(populations_params[:hoh])
-        # Force service to fall within the correct age ranges for some populations
-        service_scope = :current_scope
-        if ['youth', 'children'].include? @population
-          service_scope = @population
-        elsif @population == 'parenting_children'
-          service_scope = :children
-        elsif @population == 'parenting_youth'
-          service_scope = :youth
-        end
-
         enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
-            homeless.
-            ongoing.
-            entry.
-            with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
-            where(she_t[:client_id].eq(c_t[:id])).
-            send(@population).select(c_t[:id])
+          homeless.
+          ongoing.
+          entry.
+          where(she_t[:client_id].eq(c_t[:id])).select(c_t[:id])
+        @populations.each do |population|
+          enrollment_query ||= begin
+            if ['youth', 'children'].include? population
+              service_scope = population
+            elsif population == 'parenting_children'
+              service_scope = :children
+            elsif population == 'parenting_youth'
+              service_scope = :youth
+            else
+              service_scope = :current_scope
+            end
+
+            enrollment_query.with_service_between(
+              start_date: 3.months.ago.to_date,
+              end_date: Date.today,
+              service_scope: service_scope)
+          end
+
+          enrollment_query = enrollment_query.send(population)
+        end
         @clients = client_scope.
           where(id: enrollment_query).distinct
       elsif @client_ids.present?
@@ -381,8 +392,8 @@ module Cohorts
     def populations_params
       return {} unless params[:populations].present?
       params.require(:populations).permit(
-          :population,
-          :hoh,
+        :hoh,
+        population: [],
       )
     end
 
