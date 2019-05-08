@@ -87,9 +87,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entered_clients
-      self.class.entered.in_months(months).
-        for_organizations(organization_ids).
-        for_projects(project_ids)
+      active_clients.entered
     end
 
     def entered_client_count
