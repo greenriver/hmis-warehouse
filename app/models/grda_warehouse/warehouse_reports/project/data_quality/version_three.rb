@@ -271,6 +271,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       60
     end
 
+    def all_serve_same_household_type?
+      @all_serve_same_household_type ||= projects.map(&:inventories).map{|inventories| inventories.map(&:HouseholdType)}.flatten.uniq.count == 1
+    end
+
 
     def set_project_metadata
       agency_names = projects.map(&:organization).map(&:OrganizationName).compact
