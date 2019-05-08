@@ -66,25 +66,27 @@ module Health
     end
 
     def eligible(subscriber)
-      EB(subscriber).include?('1')
+      EB(subscriber).detect{ |eb| eb.include?('1') }
     end
 
     def managed_care(subscriber)
       ebs = EB(subscriber)
-      ebs.include?('L') || ebs.include?('MC')
+      ebs.detect{ |eb| eb.first == 'MC' } || ebs.detect{ |eb| eb.first == 'L' && eb.last.include?('ACO') }
     end
 
     def EB(subscriber)
       codes = []
+      text = []
       subscriber["2000C SUBSCRIBER LEVEL"].
           detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
           select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
-          each do |info|
-        codes << info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
-            detect{|h| h.keys.include? :EB}[:EB].
-            detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
-      end
-      return codes
+        each do |info|
+          ebs = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+            detect{|h| h.keys.include? :EB}[:EB]
+          codes << ebs.detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
+          text << ebs.detect{|h| h.keys.include? :E1204}[:E1204][:value][:raw]
+        end
+      return codes.zip(text)
     end
 
     def subscribers
