@@ -2,24 +2,7 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs'
-= simple_form_for :range, action: :index, html: {method: :get} do |f|
-  .well
-    .row
-      .col-sm-3
-        = f.input :start, as: :date_picker, input_html: {value: @start}
-      .col-sm-3
-        = f.input :end, as: :date_picker, input_html: {value: @end}
-      .col-sm-6
-        = f.input :project_type, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, selected: @project_type_codes, input_html: { multiple: true, class: :select2 }
-    .row
-      .col-sm-3
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
-      .col-sm-3
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
-      .col-sm-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, required: false, selected: @sub_population, input_html: {class: 'select2'}
-      .col-sm-2.mt-no-label
-        = f.button :submit, value: 'Update View'
+= render 'filter'
 
 .warehouse-reports__chronic
   .row

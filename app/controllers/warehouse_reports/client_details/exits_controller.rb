@@ -59,7 +59,14 @@ module WarehouseReports::ClientDetails
         joins(:client).
         homeless.
         order(:last_date_in_program)
-      history_scope(scope, @sub_population)
+      hsh_scope = history_scope(scope, @sub_population)
+      if @organization_ids.any?
+        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
+      end
+      if @project_ids.any?
+        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
+      end
+      return hsh_scope
     end
 
     def history_scope scope, sub_population

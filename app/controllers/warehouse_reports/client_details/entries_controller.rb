@@ -88,7 +88,14 @@ module WarehouseReports::ClientDetails
     def homeless_service_history_source
       scope = service_history_source.
         in_project_type(@project_type)
-      history_scope(scope, @sub_population)
+      hsh_scope = history_scope(scope, @sub_population)
+      if @organization_ids.any?
+        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
+      end
+      if @project_ids.any?
+        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
+      end
+      return hsh_scope
     end
 
     def entered_columns
