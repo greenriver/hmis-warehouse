@@ -66,7 +66,7 @@ module Bo
       wsdl_url = ENV['BO_WSDL_URL_1']
       params = {
         wsdl: 1,
-        cuid: ENV['BO_TOUCHPOINT_MODIFICATIONS_BY_GUID_1'],
+        cuid: ENV['BO_TOUCHPOINT_RESPONSE_MODIFICATION_DATES_1'],
       }
 
       url = wsdl_url + params.to_query
