@@ -66,7 +66,7 @@ module Health
     end
 
     def eligible(subscriber)
-      EB(subscriber).detect{ |eb| eb.include?('1') }
+      EB(subscriber).detect{ |eb| eb.first == '1' }
     end
 
     def managed_care(subscriber)
