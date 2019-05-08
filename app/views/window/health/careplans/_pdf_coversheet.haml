@@ -12,12 +12,14 @@
 
 - if ENV['CAREPLAN_LOGO'].present?
   %span
-    = image_tag "theme/logo/#{ENV['CAREPLAN_LOGO']}"
+    = image_tag(wicked_pdf_asset_base64("theme/logo/#{ENV['CAREPLAN_LOGO']}"), style: 'width: 100%;')
 
 .l-print{style: "padding-top: 20px;"}
-  %article.l-print__section.health__care-hub-note
+  %article.l-print__section.health__care-hub-note{style: 'border: 1px solid black;'}
     %p
-      This document is a Person-Centered Treatment Plan prepared by Boston Coordinated Care Hub, a BH CP that works with ACOs
+      This document is a 
+      %b Person-Centered Treatment Plan
+      prepared by Boston Coordinated Care Hub, a BH CP that works with ACOs
       and MCOs to provide care management and coordination to MassHealth members with complex behavioral health conditions.
       This document summarizes a member’s Comprehensive Assessment and conveys important information including the member’s
       preferences, needs, goals, and plans to achieve prioritized goals.
