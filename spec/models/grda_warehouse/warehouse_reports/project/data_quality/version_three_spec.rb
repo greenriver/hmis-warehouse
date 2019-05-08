@@ -1064,7 +1064,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
     importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
     importer.import!
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
     Delayed::Worker.new.work_off(2)
   end

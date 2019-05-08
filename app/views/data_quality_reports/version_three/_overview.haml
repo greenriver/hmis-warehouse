@@ -6,10 +6,10 @@
       %hr
       .h1.text-center.icon-group
       %h3.text-center
-        = link_to polymorphic_path(support_path, {key: 'total_clients'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_clients'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_clients']} clients"
         = " / "
-        = link_to polymorphic_path(support_path, {key: 'total_households'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_households'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_households']} households"
       %p.text-center were enrolled in the project during the reporting period.
     .col-sm-3
@@ -18,10 +18,10 @@
       %hr
       .h1.text-center.icon-individual
       %h3.text-center
-        = link_to polymorphic_path(support_path, {key: 'total_active_clients'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_active_clients'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_active_clients']} clients"
         = " / "
-        = link_to polymorphic_path(support_path, {key: 'total_active_households'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_active_households'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['households']['total_active_households']} households"
       %p.text-center were active in the project during the reporting period.
     .col-sm-3
@@ -30,10 +30,10 @@
       %hr
       .h1.text-center.icon-enter
       %h3.text-center
-        = link_to polymorphic_path(support_path, {key: 'total_enterers'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_enterers'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_enterers']} clients"
         = " / "
-        = link_to polymorphic_path(support_path, {key: 'total_entering_households'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_entering_households'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_entering_households']} households"
       %p entered the project during the reporting period.
     .col-sm-3
@@ -42,9 +42,9 @@
       %hr
       .h1.text-center.icon-exit
       %h3.text-center
-        = link_to polymorphic_path(support_path, {key: 'total_leavers'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_leavers'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_leavers']} clients"
         = " / "
-        = link_to polymorphic_path(support_path, {key: 'total_exiting_households'}), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_exiting_households'})), data: {loads_in_pjax_modal: true} do
           = "#{@report.report['total_exiting_households']} households"
       %p.text-center exited the project during the reporting period.

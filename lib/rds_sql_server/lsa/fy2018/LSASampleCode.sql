@@ -916,7 +916,6 @@ where (x.ExitDate is null
       and (x.ExitDate > hn.EntryDate or
         (x.ExitDate = hn.EntryDate and hhid.MoveInDate is null and hhid.ProjectType in (3,13))))
   )
-  and hn.EnrollmentID is null
   --4/23/2019 do not use deleted data in reporting
   and hn.DateDeleted is null
 

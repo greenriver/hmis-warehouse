@@ -110,6 +110,7 @@ module Cohorts
           false
         end
       @actives = actives_params()
+      @touchpoints = touch_point_params()
       @client_ids = params[:batch].try(:[], :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
@@ -193,6 +194,16 @@ module Cohorts
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
+      elsif @touchpoints
+        start_date = @touchpoints[:start].to_date
+        end_date = @touchpoints[:end].to_date
+        assessment_id = @touchpoints[:assessment_id].to_i
+        candidate_ids = GrdaWarehouse::WarehouseClient.where(
+          source_id: GrdaWarehouse::HmisForm.non_confidential.
+            where(collected_at: (start_date..end_date),
+              assessment_id: assessment_id).distinct.select(:client_id)
+          ).distinct.pluck(:destination_id)
+        @clients = client_source.where(id: candidate_ids)
       end
       if @hoh_only
         @clients = @clients.joins(:service_history_enrollments).
@@ -366,6 +377,17 @@ module Cohorts
       end
     end
 
+    def available_touchpoints
+      GrdaWarehouse::HMIS::Assessment.
+        active.
+        non_confidential.
+        for_user(current_user).
+        order(:name).
+        distinct.
+        pluck(:name, :assessment_id)
+    end
+    helper_method :available_touchpoints
+
     def cohort_params
       params.require(:grda_warehouse_cohort).permit(
         :client_ids
@@ -389,6 +411,15 @@ module Cohorts
         :limit_to_last_three_years,
         :hoh,
         :actives_population,
+      )
+    end
+
+    def touch_point_params
+      return false unless params[:touchpoints].present?
+      params.require(:touchpoints).permit(
+        :start,
+        :end,
+        :assessment_id,
       )
     end
 

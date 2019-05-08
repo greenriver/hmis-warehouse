@@ -128,6 +128,7 @@ class App.Cohorts.Cohort
         when 'date'
           header.cellRenderer = 'dateCellRenderer'
           header.cellEditor = 'dateCellEditor'
+          header.comparator = @sort_dates
           header.getQuickFilterText = (params) =>
             params.value
         when 'dropdown'
@@ -159,6 +160,12 @@ class App.Cohorts.Cohort
       return 0
     if a then 1 else -1
 
+  # work around our text based date format
+  sort_dates: (a, b) =>
+    if a == b
+      return 0
+    if moment(a, 'MMM DD, YYYY').format('YYYYMMDD') > moment(b, 'MMM DD, YYYY').format('YYYYMMDD') then 1 else -1
+
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     $(searchField).removeAttr('disabled')
@@ -176,8 +183,8 @@ class App.Cohorts.Cohort
       if cohort_client_ids.length > 0
         cc_id_field.attr 'value', cohort_client_ids
       $(form).submit()
-        
-      
+
+
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')

@@ -94,7 +94,9 @@ module Health
     end
 
     private def patients
-      Health::Patient.where.not(medicaid_id: nil).joins(:patient_referral)
+      Health::Patient.participating.
+        joins(:patient_referral).
+        where.not(medicaid_id: nil)
     end
 
     private def interchange_usage_indicator

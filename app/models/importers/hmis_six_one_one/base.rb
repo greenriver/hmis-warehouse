@@ -87,7 +87,7 @@ module Importers::HMISSixOneOne
 
           complete_import()
           match_clients()
-          update_project_types()
+          project_cleanup()
           log("Import complete")
         ensure
           remove_import_files() if @remove_files
@@ -101,8 +101,8 @@ module Importers::HMISSixOneOne
       FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
     end
 
-    def update_project_types
-      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    def project_cleanup
+      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     end
 
     def match_clients
@@ -111,8 +111,8 @@ module Importers::HMISSixOneOne
     end
 
     def complete_import
-      @data_source.update(last_imported_at: Time.now)
-      @import.completed_at = Time.now
+      @data_source.update(last_imported_at: Time.zone.now)
+      @import.completed_at = Time.zone.now
       @import.upload_id = @upload.id if @upload.present?
       @import.save
     end
@@ -338,7 +338,7 @@ module Importers::HMISSixOneOne
       row = csv.shift
       headers = csv.headers
       csv.rewind # go back to the start for processing
-      
+
       if headers.blank?
         msg = "Unable to import #{File.basename(read_from.path)}, no data"
         add_error(file_path: read_from.path, message: msg, line: '')

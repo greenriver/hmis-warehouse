@@ -393,6 +393,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       notifications_sent()
     end
 
+    def notify_requestor
+      return unless requestor_id.present?
+      contact = User.find(requestor_id)
+      ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
+    end
+
     def notifications_sent
       self.update(sent_at: Time.now)
     end

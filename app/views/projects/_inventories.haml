@@ -12,8 +12,6 @@
         %th HMIS Participating Beds
         %th Child Bed Inventory
         %th Veteran Bed Inventory
-        %th Youth Bed Inventory
-        %th Youth Age Group
         %th CoC Code
 
     %tbody
@@ -23,15 +21,13 @@
           %td= inventory.InventoryID
           %td= HUD.availability inventory.Availability
           %td
-            - if inventory.InformationDate.present?
-              = "#{inventory.InformationDate} - #{inventory.InventoryEndDate || 'ongoing'}"
+            - if inventory.InventoryStartDate.present?
+              = "#{inventory.InventoryStartDate} - #{inventory.InventoryEndDate || 'ongoing'}"
           %td= inventory.UnitInventory
           %td= inventory.BedInventory
           %td= inventory.HMISParticipatingBeds
           %td= inventory.CHBedInventory
           %td= inventory.VetBedInventory
-          %td= inventory.YouthBedInventory
-          %td= HUD.youth_age_group inventory.YouthAgeGroup
           %td= inventory.CoCCode
 - else
   %p.text-center No inventory

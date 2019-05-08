@@ -39,6 +39,7 @@
         %th Program
         %th Sub-Program
         %th Days Between Steps
+        %th Route
         %th Terminal Step
         %th Terminal Date
         %th Result
@@ -50,6 +51,7 @@
           %td= match.program_name
           %td= match.sub_program_name
           %td= match.days
+          %td= match.match_route
           %td= terminal_step&.match_step
           %td= terminal_step&.updated_at&.to_date
           %td= terminal_step&.terminal_status
