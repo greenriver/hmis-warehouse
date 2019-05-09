@@ -15,12 +15,13 @@
   = render 'on_page_nav'
 %section
   %h2 Patient Summary
-  - if @patient.present?
-    = render 'patient_summary'
-    = render 'simplified_metrics'
-    = render 'patient_dashboard'
-    = render 'patient_details'
+  %section
+    - if @patient.present?
+      = render 'patient_summary'
+      = render 'simplified_metrics'
+      = render 'patient_dashboard'
+      = render 'patient_details'
 
-    = render 'patient_js'
-  - else
-    %p No patient record found.
+      = render 'patient_js'
+    - else
+        %p No patient record found.

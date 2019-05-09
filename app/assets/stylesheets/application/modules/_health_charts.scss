@@ -32,7 +32,8 @@ h2.ho-sub__h2 {
 }
 
 .ho-container {
-  margin-top: 40px;
+  margin-top: space(4);
+  margin-bottom: space(6);
   @include ho-container;
   .ho-chart__title {
     margin-bottom: $ho-padding * 2;
