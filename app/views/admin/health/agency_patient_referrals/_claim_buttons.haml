@@ -1,4 +1,4 @@
-%strong= agency.name
+%strong.mb-2.d-block= agency.name
 - relationship = pr.relationship_to(agency) || pr.relationships.build(agency: agency, claimed: nil)
 - path = relationship.new_record? ? admin_health_agency_patient_referrals_path : admin_health_agency_patient_referral_path(relationship)
 = simple_form_for relationship, url: path, namespace: "relationship_for_#{pr.id}", html: {data: {behavior: 'claim patient'}}, remote: @patient_referral_groups.blank? do |f|
