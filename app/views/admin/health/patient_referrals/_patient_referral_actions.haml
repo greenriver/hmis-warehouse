@@ -18,5 +18,6 @@
 - if can_bulk_assign?
   .col-sm-1.d-flex
     .c-checkbox.c-checkbox--round.ml-auto
-      = check_box_tag :patient_referral_id, pr.id
-      %label{for: :patient_referral_id}
+      - id = "patient_referral_id_#{pr.id}"
+      = check_box_tag :patient_referral_id, pr.id, nil, id: id
+      %label{for: id}
