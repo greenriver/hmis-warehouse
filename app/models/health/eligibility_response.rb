@@ -24,15 +24,15 @@ module Health
     end
 
     def eligible_ids
-      @eligibles ||= subscribers.select{|s| eligible(s) == true}.map{|s| TRN(s)}
+      @eligibles ||= subscribers.select{|s| eligible(s).present?}.map{|s| TRN(s)}
     end
 
     def managed_care_ids
-      @manageds ||= subscribers.select{|s| managed_care(s) == true}.map{|s| TRN(s)}
+      @manageds ||= subscribers.select{|s| managed_care(s).present?}.map{|s| TRN(s)}
     end
 
     def ineligible_ids
-      @ineligibles ||= subscribers.select{|s| eligible(s) == false}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.select{|s| eligible(s).nil?}.map{|s| TRN(s)}
     end
 
     def eligible_clients
