@@ -9,6 +9,7 @@ module WarehouseReports
       report.parameters = params
 
       @user = User.find(params[:current_user_id])
+
       report.user_id = @user.id
       report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
         [:all, 'All']
@@ -27,13 +28,17 @@ module WarehouseReports
           where(Project: {project_source.project_type_column => filter_params[:project_types]}).
           merge(service_history_enrollment_source.entry.ongoing.in_project_type(filter_params[:project_types])).
           distinct.
-          includes(source_disabilities: :project).
+          includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           order(LastName: :asc, FirstName: :asc)
       end
 
       data = clients.map do |client|
         disabilities = client.source_disabilities.map(&:disability_type_text).uniq
-        client.attributes.merge(disabilities: disabilities)
+        attrs = client.attributes.merge(disabilities: disabilities)
+
+        enrollments = client.source_enrollments.map(&:service_history_enrollment).compact
+        enrollment = enrollments.map{|r| r.attributes.compact}.reduce(&:merge)
+        attrs.merge(enrollment: enrollment)
       end
 
       report.client_count = clients.size

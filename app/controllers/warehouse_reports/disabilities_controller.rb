@@ -30,6 +30,12 @@ module WarehouseReports
       respond_with(@report, location: warehouse_reports_disabilities_path)
     end
 
+    def yes_no(bool)
+      return 'unknown' if bool.nil?
+      bool ? 'yes' : 'no'
+    end
+    helper_method :yes_no
+
     def running
       @reports = report_source.ordered.limit(50)
     end
