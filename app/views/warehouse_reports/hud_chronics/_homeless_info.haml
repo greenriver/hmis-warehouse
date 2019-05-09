@@ -1,30 +1,22 @@
 #chronic-accordion.panel-group.panel-collapsible
-  .panel.panel-default
-    .panel-heading
-      .row
-        .col-sm-8
-          %h4.panel-title
-            %a.toggle.collapsed{data: {parent: '#chronic-accordion', toggle: 'collapse'}, href: '#chronic-info'}
-              Clients are considered chronically homeless by HUD if they...
-        .col-sm-4.text-right
-          %a.toggle.collapsed{data: {parent: '#chronic-accordion', toggle: 'collapse'}, href: '#chronic-info'}
-            %i.icon-arrow-circled-right
-            %i.icon-arrow-circled-down.hide
-    #chronic-info.panel-collapse.collapse
-      .panel-body
-        .row
-          .col-sm-6
-            %p
-              = link_to 'The HUD HMIS Glossary definition of Chronically Homeless can be found here.', 'https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary'
-              %ol
-                %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
-                %li are disabled
-                %li have reported being homeless in 12 of the last 36 months.
-                %li have reported being homeless continuously for the past 12 months, or reported 4 or more episodes of homelessness in the past three years.
-          .col-sm-6
-            %p
-              %strong Please note:
-            %ol
-              - if GrdaWarehouse::Config.get(:project_type_override)
-                %li Chronic calculations are done using the Project Type Overrides
-              %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
+  - content_for :panel_collapse_content do
+    .row
+      .col-sm-6
+        %p
+          = link_to 'The HUD HMIS Glossary definition of Chronically Homeless can be found here.', 'https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary'
+          %ol
+            %li are currently homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
+            %li are disabled
+            %li have reported being homeless in 12 of the last 36 months.
+            %li have reported being homeless continuously for the past 12 months, or reported 4 or more episodes of homelessness in the past three years.
+      .col-sm-6
+        %p
+          %strong Please note:
+        %ol
+          - if GrdaWarehouse::Config.get(:project_type_override)
+            %li Chronic calculations are done using the Project Type Overrides
+          %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
+
+  = render 'common/panel_collapse',
+    id: 'chronic-info',
+    title: 'Clients are considered chronically homeless by HUD if they...'

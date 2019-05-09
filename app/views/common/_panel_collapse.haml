@@ -1,0 +1,18 @@
+- id ||= 'panel-collapsible'
+- title ||= ''
+- allow_toggle ||= 'yes'
+- heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}, href: "##{id}" } : {}
+.c-card.mb-4
+  .panel.panel-default.c-card__content.c-card__content--flush
+    %a.panel-heading.p-4.d-block{**heading_attrs}
+      - if content_for?(:panel_collapse_heading)
+        = yield :panel_collapse_heading
+      - else
+        .toggle.ml-auto.d-flex.align-items-center
+          %h4.panel-title= title
+          - if allow_toggle == 'yes'
+            .ml-auto
+              %i.icon-arrow-circled-right.j-toggle-arrow
+    .panel-collapse.collapse{id: id}
+      .panel-body
+        = yield :panel_collapse_content

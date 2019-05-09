@@ -58,15 +58,15 @@
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
-                    = link_to admin_user_audit_path(user) do
-                      %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                    = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                      %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
                   %td
-                    = link_to action: :edit, id: user do
-                      %span.icon-pencil
+                    = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
+                      %i.icon-pencil
                       Edit
                   %td
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"} do
-                      %span.icon-cross
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
+                      %i.icon-cross
                       Delete
 
         %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}

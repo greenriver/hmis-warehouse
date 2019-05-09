@@ -5,12 +5,14 @@
 - panopticon = Role.where( can_edit_anything_super_user: true ).map(&:role_name)
 - can_view_all_entities_message = "The #{panopticon.to_sentence} #{'role'.pluralize panopticon.length} can view all entities."
 
-%p.alert.alert-info
-  %i.icon-warning
-  Clients with records in specified data sources will be visible
-  in the window to this user, regardless of data source visibility settings if they belong to a role with the
-  %strong "Can see clients in window for assigned data sources"
-  permission
+.alert.alert-info.align-items-start
+  %i.icon-warning.mr-2
+  .alert__content
+    %p
+      Clients with records in specified data sources will be visible
+      in the window to this user, regardless of data source visibility settings if they belong to a role with the
+      %strong "Can see clients in window for assigned data sources"
+      permission
 %ul.nav.nav-tabs.mb-0
   %li.nav-item.active
     %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}}

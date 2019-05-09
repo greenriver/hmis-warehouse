@@ -1,6 +1,6 @@
 = simple_form_for @query, as: :q, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
   - content_for :filters_col do
-    .row.w-100
+    .row.w-100.mb-4
       .col-sm-4
         = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', class: :select2}
       .col-sm-6
@@ -10,6 +10,9 @@
           = f.input :organization, collection: @query.all_sources[:organizations], input_html: {class: :select2}
         .hideable.proj.mb-4
           = f.input :project, collection: @query.all_sources[:projects], input_html: {class: :select2}
+    .row.w-100
+      .col-sm-12
+        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns', class: :select2}
 
   - content_for :filter_actions do
     = f.submit 'Count missing fields', class: 'btn btn-primary'
