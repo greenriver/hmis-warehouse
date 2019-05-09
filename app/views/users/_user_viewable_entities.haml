@@ -14,21 +14,21 @@
       %strong "Can see clients in window for assigned data sources"
       permission
 %ul.nav.nav-tabs.mb-0
-  %li.nav-item.active
-    %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}}
+  %li.nav-item
+    %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}, aria: {controls:"user-roles", selected:"true"}}
       User Roles
   %li.nav-item
-    %a.nav-link{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}, aria: {controls:"data-access-assignments", selected:"false"}}
       Data Access Assignments
   %li.nav-item
-    %a.nav-link{href: '#reports-cohorts', role: "presentation", data: {toggle: :tab}}
+    %a.nav-link{href: '#reports-cohorts', role: "presentation", data: {toggle: :tab}, aria: {controls:"reports-cohorts", selected:"false"}}
       Reports &amp; Cohorts
 
 .tab-content
-  .tab-pane.active.fade.in#user-roles
+  .tab-pane.show.active.fade#user-roles{role: 'tabpanel', aria: {labelledby: 'user-roles'}}
     .c-columns
       = render 'users/roles', roles: roles, f: f, user: @user
-  .tab-pane.fade.in#data-access-assignments
+  .tab-pane.fade#data-access-assignments{role: 'tabpanel', aria: {labelledby: 'data-access-assignments'}}
     - if can_view_all_entities
       .c-columns__message
         %p
@@ -42,7 +42,7 @@
 
       - if can_view_all_entities
         .c-columns__veil
-  .tab-pane.fade#reports-cohorts
+  .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
     - if can_view_all_entities
       .c-columns__message
         %p

@@ -12,7 +12,7 @@ $columns-breakpoint: lg;
   border-bottom: 1px solid $column-border-color;
   position: relative;
   overflow: auto;
-  @include scrollbar(5px);
+  @include scrollbar(10px);
   @include media-breakpoint-up($columns-breakpoint) {
     max-height: 50vh;
     flex-direction: row;
@@ -66,6 +66,39 @@ $columns-breakpoint: lg;
   @include scrollbar(5px);
   &.inactive {
     opacity: .8;
+  }
+}
+
+.c-columns__column-content fieldset {
+  .col-form-label {
+    display: none;
+  }
+  .form-check {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    padding-left: space(4);
+    border-top: 1px solid $column-border-color-l;
+    &:hover {
+      background: lighten($gray-015, 2%);
+    }
+  }
+  .form-check input,
+  .form-check label {
+    margin-bottom: 0;
+  }
+  .form-check input {
+    margin: 0;
+    padding-right: space(2);
+    position: static;
+  }
+  .form-check label {
+    // Using @extend because the selector is within this file
+    @extend .c-columns__column-list-item;
+    border-top: 0;
+    padding-left: 0;
+    flex: 1 1 auto;
   }
 }
 
