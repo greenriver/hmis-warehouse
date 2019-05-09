@@ -8,83 +8,32 @@
       %h4.title
         #{@report.sub_population_title.pluralize} Newly Homeless During Time Period
       .metric
-        = pluralize(@report.first_time_client_count, @report.sub_population_title)
+        = link_to pluralize(@report.first_time_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
     .rrh__enrolled.chunk.pr-4.mr-4.mb-4
       %h4.title
         #{@report.sub_population_title.pluralize} Re-Entering Homelessness During the Time Period
       .metric
-        = pluralize(@report.re_entry_client_count, @report.sub_population_title)
+        = link_to pluralize(@report.re_entry_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
 
 
   .jEntryReEntry
-
-  .jEntry
-
-  .jReEntry
+  .row
+    .col-sm-6
+      %h3.text-center Location of Entry
+      .jEntry
+    .col-sm-6
+      %h3.text-center Location of Re-Entry
+      .jReEntry
 
 
 = content_for :page_js do
   :javascript
     (function($){
-      var entry_re_entry_data = {
-        x: 'x',
-        columns: #{@report.entry_re_entry_data.to_json}
-      };
-      var entry_re_entry = bb.generate({
-        data: entry_re_entry_data,
-        axis: {
-          x: {
-            type: 'category',
-          }
-        },
-        legend: {
-          position: "right"
-        },
-        size: {
-          height: 200
-        },
-        bindto: ".jEntryReEntry"
-      });
-      var entry_data = {
-        x: 'x',
-        type: 'bar',
-        groups: [#{@report.homeless_project_types.to_json}],
-        columns: #{@report.first_time_entry_locations.to_json}
-      };
-      var entry = bb.generate({
-        data: entry_data,
-        axis: {
-          x: {
-            type: 'category',
-          }
-        },
-        legend: {
-          position: "right"
-        },
-        size: {
-          height: 200
-        },
-        bindto: ".jEntry"
-      });
-      var re_entry_data = {
-        x: 'x',
-        type: 'bar',
-        groups: [#{@report.homeless_project_types.to_json}],
-        columns: #{@report.re_entry_locations.to_json}
-      };
-      var re_entry = bb.generate({
-        data: re_entry_data,
-        axis: {
-          x: {
-            type: 'category',
-          }
-        },
-        legend: {
-          position: "right"
-        },
-        size: {
-          height: 200
-        },
-        bindto: ".jReEntry"
-      });
+      var entry_support_link = '#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}'
+      var entries = new App.Dashboards.Clients.Entered('.jEntry', #{@report.homeless_project_types.to_json}, #{@report.first_time_entry_locations.to_json}, '#{@report.sub_population_title}', entry_support_link);
+      var re_entry_support_link = '#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}'
+      var re_entries = new App.Dashboards.Clients.Entered('.jReEntry', #{@report.homeless_project_types.to_json}, #{@report.re_entry_locations.to_json}, '#{@report.sub_population_title}', re_entry_support_link);
+
+      var entry_re_entries = new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', #{@report.entry_re_entry_data.to_json}, '#{@report.sub_population_title}', entry_support_link, re_entry_support_link);
+
     })(jQuery);

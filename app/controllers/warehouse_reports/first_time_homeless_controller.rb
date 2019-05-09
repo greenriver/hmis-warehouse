@@ -3,6 +3,9 @@ module WarehouseReports
     include ArelHelper
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
+    before_action :set_projects
+    before_action :set_organizations
+
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
       @range = ::Filters::DateRange.new(date_range_options)
@@ -10,16 +13,15 @@ module WarehouseReports
 
       if @range.valid?
         @first_time_client_ids = Set.new
-        @project_types = params.try(:[], :first_time_homeless).try(:[], :project_types) || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-        @project_types.reject!(&:blank?)
-        @project_types.map!(&:to_i)
-        if @project_types.empty?
-          @project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        @project_type_codes = params[:first_time_homeless][:project_types].map(&:presence).map(&:to_sym) || [:es, :sh, :so, :th]
+        @project_types = []
+        @project_type_codes.each do |code|
+          @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
         end
 
         set_first_time_homeless_client_ids()
 
-        @clients = client_source.joins(first_service_history: :project).
+        @clients = client_source.joins(first_service_history: [project: :organization]).
           merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
           preload(:first_service_history, first_service_history: [:organization, :project], source_clients: :data_source).
           where(she_t[:record_type].eq('first')).
@@ -27,6 +29,12 @@ module WarehouseReports
           distinct.
           select( :id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB ).
           order( she_t[:date], :LastName, :FirstName )
+        if @organization_ids.any?
+          @clients = @clients.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
+        end
+        if @project_ids.any?
+          @clients = @clients.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
+        end
       else
         @clients = client_source.none
       end
@@ -51,6 +59,7 @@ module WarehouseReports
           started_between(start_date: @range.start, end_date: @range.end).
           in_project_type(project_type).select(:client_id)
         )
+
       history_scope(first_scope, @sub_population)
     end
 
@@ -109,5 +118,12 @@ module WarehouseReports
       GrdaWarehouse::ServiceHistoryService
     end
 
+    def set_organizations
+      @organization_ids = params[:first_time_homeless][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
+
+    def set_projects
+      @project_ids = params[:first_time_homeless][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
   end
 end

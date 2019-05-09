@@ -253,6 +253,7 @@ Rails.application.routes.draw do
       resources :entries, only: [:index]
       resources :actives, only: [:index]
     end
+    resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
     resources :manage_cas_flags, only: [:index] do
       post :bulk_update, on: :collection

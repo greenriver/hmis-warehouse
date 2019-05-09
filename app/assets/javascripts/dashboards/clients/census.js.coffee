@@ -1,10 +1,9 @@
 #= require ./namespace
 
-class App.Dashboards.Clients.Exits extends App.Dashboards.Clients.Base
+class App.Dashboards.Clients.Census extends App.Dashboards.Clients.Base
   _build_chart: () =>
     data =
       x: 'x'
-      onclick: @_follow_link
       color: @_colors
       columns: @data
     @chart = bb.generate({

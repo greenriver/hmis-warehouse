@@ -226,9 +226,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def all_housed_clients
-      self.class.housed.
-        for_organizations(organization_ids).
-        for_projects(project_ids)
+      self.class.housed
     end
 
     def all_housed_client_count
@@ -236,7 +234,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_clients
-      enrolled_clients.housed
+      exited_clients.housed
     end
 
     def housed_client_count

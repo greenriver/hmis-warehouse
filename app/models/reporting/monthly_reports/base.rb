@@ -11,6 +11,12 @@ module Reporting::MonthlyReports
     after_initialize :set_dates
     attr_accessor :date_range
 
+    def self.class_for sub_population
+      {
+        veteran: Reporting::MonthlyReports::Veteran
+      }[sub_population.to_sym]
+    end
+
     def set_dates
       @date_range ||= '2015-01-01'.to_date..Date.yesterday
       @start_date = @date_range.first
@@ -51,6 +57,7 @@ module Reporting::MonthlyReports
             month: month,
             year: year,
             client_id: client_id,
+            enrollment_id: enrollment.id,
             head_of_household: enrollment[:head_of_household],
             household_id: enrollment.household_id.presence || "c_#{client_id}",
             destination_id: enrollment.destination,
