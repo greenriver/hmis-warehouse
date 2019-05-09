@@ -11,6 +11,15 @@
   margin-top: space(4);
   margin-bottom: space(4);
   width: calc(100% + 60px);
+  &.affixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0 30px;
+    margin: 0;
+  }
 }
 
 .nav-tabs > li {

@@ -482,7 +482,7 @@
         = f.input :reviewer, input_html: {data: {name: current_user.name}, class: 'jReviewer'}
 
 
-      .form__actions.form__actions--right
+      .form__actions.form__actions--right.mt-2
         = link_to 'Save', polymorphic_path(careplans_path_generator), class: 'btn btn-default mr-1', data: { disable_with: 'Saving...' }
 
 .form.form--with-nav

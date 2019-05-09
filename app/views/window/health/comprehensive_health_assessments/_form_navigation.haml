@@ -1,5 +1,5 @@
 %nav.form__nav.j-form-nav.scrollspy{style: 'padding-bottom: 160px;'}
-  %ul.list-group.nav.j-form-nav-list
+  %ul.list-group.nav.j-form-nav-list.mb-3
     - ('a'..'r').each do |letter|
       %li.list-group-item.nav-item
         = link_to "Section #{letter.upcase}", "#section-#{letter}", class: 'nav-link'
@@ -15,8 +15,12 @@
 - content_for :page_js do
   :javascript
     $(function(){
-      var $tabs = $('.j-form-nav');
-      $tabs.affix({offset: {top: $tabs.offset().top} });
+      var tabs = document.querySelector('.j-form-nav')
+      new App.Affix({
+        element: tabs,
+        offset: tabs.getBoundingClientRect().top,
+        elementToPad: null
+      })
       var sectionTitles = $("h3[id^='section']").map(function(){
         return $(this).text().trim()
       })

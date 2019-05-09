@@ -7,7 +7,9 @@
 
 - content_for :page_js do
   :javascript
-    $(function(){
-      var $tabs = $('.sub-nav-tabs');
-      $tabs.affix({offset: {top: $tabs.offset().top} });
+    var tabs = document.querySelector('.sub-nav-tabs')
+    new App.Affix({
+      element: tabs,
+      offset: tabs.offsetTop,
+      elementToPad: tabs.parentElement.nextElementSibling
     })
