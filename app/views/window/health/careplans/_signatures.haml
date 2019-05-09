@@ -7,7 +7,7 @@
       (#{careplan.patient_signed_on&.to_date})
   - elsif careplan.id == @careplan.id
     .btn-group
-      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown, boundary: 'window'}, aria: {haspopup: :true, expanded: :false}}
         Get Patient Signature
         %span.caret
       %ul.dropdown-menu
@@ -64,7 +64,7 @@
       PCP signature request queued to send.
   - elsif careplan.id == @careplan.id
     .btn-group
-      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown}, aria: {haspopup: :true, expanded: :false}}
+      %button.btn.btn-sm.btn-secondary.dropdown-toggle{type: :button, data: {toggle: :dropdown, boundary: 'window'}, aria: {haspopup: :true, expanded: :false}}
         Get PCP Signature
         %span.caret
       %ul.dropdown-menu

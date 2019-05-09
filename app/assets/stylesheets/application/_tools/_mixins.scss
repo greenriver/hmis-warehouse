@@ -453,13 +453,4 @@
   span {
     margin-right: space(2);
   }
-  .caret {
-    margin-right: 0;
-    &::before {
-      margin-left: space(2);
-      margin-right: 0;
-      content: '\e920';
-      font-family: 'icons';
-    }
-  }
 }
