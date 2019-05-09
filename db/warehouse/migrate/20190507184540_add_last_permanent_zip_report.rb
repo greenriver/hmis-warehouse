@@ -4,7 +4,7 @@ class AddLastPermanentZipReport < ActiveRecord::Migration
       {
         url: 'warehouse_reports/client_details/last_permanent_zips',
         name: 'Last Permanent Zip Report',
-        description: '',
+        description: 'List open enrollments within a date range and the zip codes of last permanent residence.',
         limitable: true,
       },
     ],
