@@ -447,8 +447,10 @@
   @include open-sans-bold;
   padding: $input-btn-padding-y $input-btn-padding-x;
   min-height: rem(40px);
+  /*
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
+   */
   [class^='icon'],
   span {
     margin-right: space(2);

@@ -109,7 +109,15 @@
   }
 }
 
+.c-card__content .dataTable {
+  margin: 0 !important;
+}
+
 .c-card__content .dataTables_wrapper {
+  width: 100%;
+  padding-right: 0;
+  padding-left: 0;
+  overflow: hidden;
   .row:last-of-type {
     padding-left: space(4);
     padding-right: space(4);

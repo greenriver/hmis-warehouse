@@ -1,5 +1,10 @@
 @import '../helpers';
 
+table.dataTable {
+  // Override !important flag applied by library
+  border-collapse: collapse !important;
+}
+
 .dataTables_wrapper .dataTables_paginate .paginate_button:active,
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
   border: 0;
@@ -7,4 +12,9 @@
 
 .dataTables_scrollBody {
   @include scrollbar;
+}
+
+.dataTables_paginate {
+  display: flex;
+  justify-content: flex-end;
 }

@@ -12,7 +12,6 @@ button.close {
 .btn-icon-only {
   @include open-sans-bold;
   display: inline-flex;
-  align-items: center;
   [class^='icon'] {
     margin-right: 0;
   }
