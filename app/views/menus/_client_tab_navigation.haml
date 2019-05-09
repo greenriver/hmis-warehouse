@@ -36,7 +36,7 @@
           - current_tab = current.include? details[:title].downcase
           - item_classes << 'active' if current_tab
           %li.nav-item.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
-            %a.nav-link.dropdown-toggle{data: {toggle: 'dropdown'}}
+            %a.nav-link.dropdown-toggle{data: {toggle: 'dropdown'}, href: '#'}
               = details[:title]
               %span.caret
             %ul.dropdown-menu
