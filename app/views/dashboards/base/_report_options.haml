@@ -1,0 +1,12 @@
+.ho-container
+  %p
+    - if @organization_ids.any?
+      - GrdaWarehouse::Hud::Organization.where(id: @organization_ids).pluck(:OrganizationName).join(", ")
+    - else
+      All Organizations
+  %p
+    - if @project_ids.any?
+      - GrdaWarehouse::Hud::Project.where(id: @project_ids).pluck(:ProjectName).join(", ")
+    - else
+      All Projects
+  %p Date Range #{@report.date_range.first.strftime('%b %Y')} - #{@report.date_range.last.strftime('%b %Y')}

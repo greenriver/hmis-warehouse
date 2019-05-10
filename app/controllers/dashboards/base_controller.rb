@@ -16,7 +16,9 @@ module Dashboards
       @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids)
 
       respond_to do |format|
-        format.html {}
+        format.html do
+          @html = true
+        end
         format.xlsx do
           require_can_view_clients!
           @enrollments = @report.enrolled_clients
@@ -30,7 +32,33 @@ module Dashboards
             id: @enrollments.distinct.pluck(:organization_id)
           ).pluck(:id, :OrganizationName).to_h
         end
+        format.pdf do
+          file_name = "#{@report.sub_population_title} Dashboard"
+          render pdf: file_name,
+            layout: 'pdf',
+            page_size: 'Letter',
+            javascript_delay: 20,
+            show_as_html: true
+          #
+          # pdf = dashboard_pdf(file_name)
+
+          # send_data dashboard_pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+        end
       end
+    end
+
+    def dashboard_pdf file_name
+      render_to_string(
+        pdf: file_name,
+        template: 'dashboards/index',
+        # layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter',
+        # header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
+        # footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+        # Show table of contents by providing the 'toc' property
+        # toc: {}
+      )
     end
 
     def set_available_months

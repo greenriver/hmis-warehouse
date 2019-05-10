@@ -30,7 +30,7 @@ module Reporting::MonthlyReports
     end
 
     def set_dates
-      @date_range ||= '2015-01-01'.to_date..Date.yesterday
+      @date_range ||= '2014-07-01'.to_date..Date.yesterday
       @start_date = @date_range.first
       @end_date = @date_range.last
     end
