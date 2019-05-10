@@ -42,6 +42,8 @@
                 = render 'signatures', careplan: careplan
               %td
                 = render "signable_document", careplan: careplan
+                = link_to polymorphic_path([:coversheet] + careplan_path_generator, id: careplan) do
+                  PDF: Coversheet
               - if false
                 %td
                   - if careplan.patient_signed_on

@@ -65,6 +65,7 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
+        get :coversheet, on: :member
         member do
           delete :remove_file
           get :download
@@ -252,6 +253,7 @@ Rails.application.routes.draw do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
       resources :actives, only: [:index]
+      resources :last_permanent_zips, only: [:index]
     end
     resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
@@ -511,7 +513,10 @@ Rails.application.routes.draw do
 
   resources :notifications, only: [:show] do
     resources :projects, only: [:show] do
-      resources :data_quality_reports, only: [:show]
+      resources :data_quality_reports, only: [:show] do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
     resources :project_groups, only: [:show] do
       resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'

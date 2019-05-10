@@ -102,14 +102,18 @@ module Cohorts
       @filter = ::Filters::Chronic.new(params[:filter])
       @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       # whitelist for scope
-      @population = if GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include?(populations_params[:population]&.to_sym)
-        populations_params[:population]
+      @populations = begin
+        populations = populations_params[:population]&.map(&:to_sym)
+        if populations
+          populations.select{|e| GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include? e}
         elsif populations_params.keys.include?('population')
-          :all_clients
+          [:all_clients]
         else
           false
         end
+      end
       @actives = actives_params()
+      @touchpoints = touch_point_params()
       @client_ids = params[:batch].try(:[], :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
@@ -142,49 +146,63 @@ module Cohorts
           end
 
           if @actives.key? :actives_population
-            population = @actives[:actives_population]
-            # Force service to fall within the correct age ranges for some populations
-            service_scope = :current_scope
+            populations = @actives[:actives_population]
+            populations.each do |population|
+              enrollment_scope ||= begin
+                # Force service to fall within the correct age ranges for some populations
+                if ['youth', 'children'].include? population
+                  service_scope = population
+                elsif population == 'parenting_children'
+                  service_scope = :children
+                elsif population == 'parenting_youth'
+                  service_scope = :youth
+                elsif population == 'individual_adult'
+                  service_scope = :adult
+                else
+                  service_scope = :current_scope
+                end
+
+                enrollment_scope.with_service_between(
+                  start_date: @actives[:start],
+                  end_date: @actives[:end],
+                  service_scope: service_scope
+                )
+              end
+
+              if population.present?
+                enrollment_scope = enrollment_scope.send(population)
+              end
+            end
+          end
+          # Active record seems to have trouble with the complicated nature of this scope
+          @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
+      elsif @populations
+        @hoh_only = _debool(populations_params[:hoh])
+        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
+          homeless.
+          ongoing.
+          entry.
+          where(she_t[:client_id].eq(c_t[:id])).select(c_t[:id])
+        @populations.each do |population|
+          enrollment_query ||= begin
             if ['youth', 'children'].include? population
               service_scope = population
             elsif population == 'parenting_children'
               service_scope = :children
             elsif population == 'parenting_youth'
               service_scope = :youth
-            elsif population == 'individual_adult'
-              service_scope = :adult
+            else
+              service_scope = :current_scope
             end
 
-            enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start],
-              end_date: @actives[:end],
-              service_scope: service_scope
-            )
-            if @actives[:actives_population].present?
-              enrollment_scope = enrollment_scope.send(population)
-            end
+            enrollment_query.with_service_between(
+              start_date: 3.months.ago.to_date,
+              end_date: Date.today,
+              service_scope: service_scope)
           end
-          # Active record seems to have trouble with the complicated nature of this scope
-          @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
-      elsif @population
-        @hoh_only = _debool(populations_params[:hoh])
-        # Force service to fall within the correct age ranges for some populations
-        service_scope = :current_scope
-        if ['youth', 'children'].include? @population
-          service_scope = @population
-        elsif @population == 'parenting_children'
-          service_scope = :children
-        elsif @population == 'parenting_youth'
-          service_scope = :youth
-        end
 
-        enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
-            homeless.
-            ongoing.
-            entry.
-            with_service_between(start_date: 3.months.ago.to_date, end_date: Date.today, service_scope: service_scope).
-            where(she_t[:client_id].eq(c_t[:id])).
-            send(@population).select(c_t[:id])
+          enrollment_query = enrollment_query.send(population)
+        end
         @clients = client_scope.
           where(id: enrollment_query).distinct
       elsif @client_ids.present?
@@ -193,6 +211,16 @@ module Cohorts
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
+      elsif @touchpoints
+        start_date = @touchpoints[:start].to_date
+        end_date = @touchpoints[:end].to_date
+        assessment_id = @touchpoints[:assessment_id].to_i
+        candidate_ids = GrdaWarehouse::WarehouseClient.where(
+          source_id: GrdaWarehouse::HmisForm.non_confidential.
+            where(collected_at: (start_date..end_date),
+              assessment_id: assessment_id).distinct.select(:client_id)
+          ).distinct.pluck(:destination_id)
+        @clients = client_source.where(id: candidate_ids)
       end
       if @hoh_only
         @clients = @clients.joins(:service_history_enrollments).
@@ -366,6 +394,17 @@ module Cohorts
       end
     end
 
+    def available_touchpoints
+      GrdaWarehouse::HMIS::Assessment.
+        active.
+        non_confidential.
+        for_user(current_user).
+        order(:name).
+        distinct.
+        pluck(:name, :assessment_id)
+    end
+    helper_method :available_touchpoints
+
     def cohort_params
       params.require(:grda_warehouse_cohort).permit(
         :client_ids
@@ -375,8 +414,8 @@ module Cohorts
     def populations_params
       return {} unless params[:populations].present?
       params.require(:populations).permit(
-          :population,
-          :hoh,
+        :hoh,
+        population: [],
       )
     end
 
@@ -388,7 +427,16 @@ module Cohorts
         :min_days_homeless,
         :limit_to_last_three_years,
         :hoh,
-        :actives_population,
+        actives_population: [],
+      )
+    end
+
+    def touch_point_params
+      return false unless params[:touchpoints].present?
+      params.require(:touchpoints).permit(
+        :start,
+        :end,
+        :assessment_id,
       )
     end
 
