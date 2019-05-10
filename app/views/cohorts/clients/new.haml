@@ -18,6 +18,12 @@
   - if GrdaWarehouse::Config.get(:eto_api_available)
     = render 'touchpoint'
   = render 'batch_add'
+
+.mt-4.mb-4
+  = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
+    = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
+    = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?
+
 = render 'results'
 
 .mt-4
