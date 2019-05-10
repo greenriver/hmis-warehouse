@@ -1,17 +1,17 @@
 module Reporting::MonthlyReports
-  class Veteran < Base
+  class NonVeteran < Base
 
     def enrollment_scope start_date:, end_date:
-      enrollment_source.veteran.entry.
+      enrollment_source.non_veteran.entry.
         open_between(start_date: start_date, end_date: end_date)
     end
 
     def sub_population_title
-      'Veteran'
+      'Non-Veteran'
     end
 
     def sub_population
-      :veteran
+      :non_veteran
     end
   end
 end

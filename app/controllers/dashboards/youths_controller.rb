@@ -3,22 +3,14 @@ module Dashboards
     include ArelHelper
 
     before_action :require_can_view_censuses!
-    
+
     def sub_population_key
       :youth
     end
     helper_method :sub_population_key
 
     def active_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients
-    end
-
-    def housed_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients
-    end
-
-    def entered_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients
+      Reporting::MonthlyReports::Youth
     end
   end
 end

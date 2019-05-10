@@ -11,10 +11,22 @@ module Reporting::MonthlyReports
     after_initialize :set_dates
     attr_accessor :date_range
 
-    def self.class_for sub_population
+    def self.available_types
       {
-        veteran: Reporting::MonthlyReports::Veteran
-      }[sub_population.to_sym]
+        all_clients: Reporting::MonthlyReports::AllClients,
+        veteran: Reporting::MonthlyReports::Veteran,
+        youth: Reporting::MonthlyReports::Youth,
+        parenting_youth: Reporting::MonthlyReports::ParentingYouth,
+        parenting_children: Reporting::MonthlyReports::ParentingChildren,
+        individual_adults: Reporting::MonthlyReports::IndividualAdults,
+        non_veteran: Reporting::MonthlyReports::NonVeteran,
+        family: Reporting::MonthlyReports::Family,
+        children: Reporting::MonthlyReports::Children,
+      }
+    end
+
+    def self.class_for sub_population
+      available_types[sub_population.to_sym]
     end
 
     def set_dates
@@ -89,6 +101,9 @@ module Reporting::MonthlyReports
     # and populate the days_since_last_exit and prior_exit_project_type as appropriate
     def set_prior_enrollments
       @enrollments_by_client.each do |client_id, enrollments|
+        # FIXME:  There's a bug here, see: https://boston-hmis.dev/clients/56331
+        # https://boston-hmis.dev/warehouse_reports/re_entry?range%5Bend%5D=Apr+30%2C+2019&range%5Bproject_types%5D%5B%5D=es&range%5Bproject_types%5D%5B%5D=sh&range%5Bproject_types%5D%5B%5D=so&range%5Bproject_types%5D%5B%5D=th&range%5Bstart%5D=Nov++1%2C+2018&range%5Bsub_population%5D=veteran
+
         # find the next enrollment where entered == true
         # If all other enrollments in the current month are exits and the max exit date is
         # before the entry date, make note.

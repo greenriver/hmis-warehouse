@@ -1,17 +1,17 @@
 module Reporting::MonthlyReports
-  class Veteran < Base
+  class Youth < Base
 
     def enrollment_scope start_date:, end_date:
-      enrollment_source.veteran.entry.
+      enrollment_source.unaccompanied_youth.entry.
         open_between(start_date: start_date, end_date: end_date)
     end
 
     def sub_population_title
-      'Veteran'
+      'Youth'
     end
 
     def sub_population
-      :veteran
+      :youth
     end
   end
 end
