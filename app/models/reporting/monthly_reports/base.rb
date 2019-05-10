@@ -55,7 +55,7 @@ module Reporting::MonthlyReports
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
         # fetch open enrollments for the given month
         enrollment_scope(start_date: Date.new(year, month, 1), end_date: Date.new(year, month, -1)).
-          find_each do |enrollment|
+          find_each(batch_size: 10_000) do |enrollment|
           entry_month = enrollment.first_date_in_program.month
           entry_year = enrollment.first_date_in_program.year
           exit_month = enrollment.last_date_in_program&.month
@@ -77,8 +77,8 @@ module Reporting::MonthlyReports
             active: active_in_month?(client_id: client_id, month: month, year: year),
             entered: entered_in_month,
             exited: exited_in_month,
-            project_id: enrollment.project.id,
-            organization_id: enrollment.organization.id,
+            project_id: project_id(enrollment.project_id, enrollment.data_source_id),
+            organization_id: organization_id(enrollment.organization_id, enrollment.data_source_id),
             project_type: enrollment.computed_project_type,
             entry_date: enrollment.first_date_in_program,
             exit_date: enrollment.last_date_in_program,
@@ -159,6 +159,20 @@ module Reporting::MonthlyReports
       end
     end
 
+    def organization_id organization_id, data_source_id
+      @organziations ||= GrdaWarehouse::Hud::Organization.pluck(:id, :OrganizationID, :data_source_id).map do |id, org_id, ds_id|
+        [[ds_id, org_id], id]
+      end.to_h
+      @organziations[[data_source_id, organization_id]]
+    end
+
+    def project_id project_id, data_source_id
+      @projects ||= GrdaWarehouse::Hud::Project.pluck(:id, :ProjectID, :data_source_id).map do |id, p_id, ds_id|
+        [[ds_id, p_id], id]
+      end.to_h
+      @projects[[data_source_id, project_id]]
+    end
+
     def previous_month year, month
       Date.new(year, month, 1) - 1.month
     end
@@ -183,7 +197,7 @@ module Reporting::MonthlyReports
         ).map do |client_id, p_id, date|
           [client_id, [p_id, date]]
         end.to_h
-      @first_records[enrollment.client_id] == [enrollment.project.id, enrollment.first_date_in_program]
+      @first_records[enrollment.client_id] == [project_id(enrollment.project_id, enrollment.data_source_id), enrollment.first_date_in_program]
     end
 
     def enrollment_scope
@@ -208,7 +222,7 @@ module Reporting::MonthlyReports
     end
 
     def enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment.homeless.joins(:project, :organization).preload(:project, :organization)
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless.joins(:project, :organization)
     end
 
   end
