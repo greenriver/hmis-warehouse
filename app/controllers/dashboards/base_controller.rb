@@ -14,6 +14,23 @@ module Dashboards
 
     def index
       @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids)
+
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          require_can_view_clients!
+          @enrollments = @report.enrolled_clients
+          @clients = GrdaWarehouse::Hud::Client.where(
+            id: @enrollments.distinct.pluck(:client_id)
+          ).index_by(&:id)
+          @projects = GrdaWarehouse::Hud::Project.where(
+            id: @enrollments.distinct.pluck(:project_id)
+          ).pluck(:id, :ProjectName).to_h
+           @organizations = GrdaWarehouse::Hud::Organization.where(
+            id: @enrollments.distinct.pluck(:organization_id)
+          ).pluck(:id, :OrganizationName).to_h
+        end
+      end
     end
 
     def set_available_months
