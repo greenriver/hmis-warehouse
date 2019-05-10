@@ -1,0 +1,44 @@
+.ho-container.rrh
+  .ho-container__header
+    %h3 Overview
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Enrolled Clients
+      %i.icon-group.metric
+      .metric
+        = link_to pluralize(@report.enrolled_client_count, 'client'), warehouse_reports_enrolled_project_type_index_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_type: [:es, :sh, :so, :th], project_ids: @project_ids, organization_ids: @organization_ids}), target: :_blank
+        \/
+        = pluralize(@report.enrolled_household_count, 'households')
+      .description
+        had open enrollments during this time period
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Active Clients
+      %i.icon-user.metric
+      .metric
+        = link_to pluralize(@report.active_client_count, 'client'), warehouse_reports_client_details_actives_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids}), target: :_blank
+        \/
+        = pluralize(@report.active_household_count, 'households')
+      .description
+        had a service during this time period
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Enterers
+      %i.icon-enter.metric
+      .metric
+        = link_to pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids}, project_type: [:es, :sh, :so, :th]), target: :_blank
+        \/
+        = pluralize(@report.entered_household_count, 'households')
+      .description
+        started enrollments during the reporting period
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Exiters
+      %i.icon-exit.metric
+      .metric
+        = link_to pluralize(@report.exited_client_count, 'client'), warehouse_reports_client_details_exits_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids}), target: :_blank
+        \/
+        = pluralize(@report.exited_household_count, 'households')
+      .description
+        exited enrollments during the reporting period

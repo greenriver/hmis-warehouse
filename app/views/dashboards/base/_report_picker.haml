@@ -1,6 +1,15 @@
-= simple_form_for :choose_report, method: :get do |f|
-  .row
-    .col-sm-4
-      = f.input :month, collection: @months.sort.reverse.map{ | k, v | [v, k]}, selected: @selected, label: false
-    .col-sm-4
-      = f.button :submit, 'Show Month'
+.ho-container
+  .ho-container__header
+    %h3.mt-0 Options
+  = simple_form_for :choose_report, method: :get do |f|
+    .d-flex
+      .w-20.mr-2
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
+      .w-20.mr-2
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+      .w-20.mr-2
+        = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
+      .w-20.mr-2
+        = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
+      .w-20.mt-no-label
+        = f.button :submit, 'Update View'

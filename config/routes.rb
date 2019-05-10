@@ -235,6 +235,7 @@ Rails.application.routes.draw do
       get :summary, on: :collection
     end
     resources :client_in_project_during_date_range, only: [:index]
+    resources :enrolled_project_type, only: [:index]
     resources :bed_utilization, only: [:index]
     resources :length_of_stay, only: [:index] do
       collection do
@@ -254,6 +255,7 @@ Rails.application.routes.draw do
       resources :actives, only: [:index]
       resources :last_permanent_zips, only: [:index]
     end
+    resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
     resources :manage_cas_flags, only: [:index] do
       post :bulk_update, on: :collection

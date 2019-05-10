@@ -1,0 +1,56 @@
+- title = 'Homelessness Re-Entry'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs'
+%p
+  Clients re-entered homelessness between
+  = @range.start
+  and
+  = @range.end
+  after a break of 60 days or more.
+
+= render 'filter'
+= render 'warehouse_reports/limited_by_project_note'
+
+- if @enrollments.any?
+  .row
+    .col-sm-10
+      %p
+        The following #{pluralize(@enrollments.distinct.select(:client_id).count, 'client')} had #{@enrollments.count} re-entries between #{@range.start} and #{@range.end}.
+    .col-sm-2.text-right
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Veteran Status
+        %th Entry Date
+        %th Project Type
+        %th Project
+        %th Organization
+        %th Days Since Previous Exit
+        %th Previous Project Type
+        %th Previous Destination
+    %tbody
+      - @enrollments.each do |enrollment|
+        - client = enrollment.client
+        - re_entry = @re_entries[enrollment.id]
+        %tr
+          %td
+            %nobr= link_to client.LastName, client_path(client)
+          %td
+            %nobr= link_to client.FirstName, client_path(client)
+          %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+          %td= enrollment.first_date_in_program
+          %td= HUD.project_type enrollment.computed_project_type
+          %td= enrollment.project_name
+          %td= enrollment.organization.try(:OrganizationName)
+          %td= re_entry.days_since_last_exit
+          %td= HUD.project_type re_entry.prior_exit_project_type
+          %td= HUD.destination re_entry.prior_exit_destination_id
+
+- else
+  %p.text-center No clients found
