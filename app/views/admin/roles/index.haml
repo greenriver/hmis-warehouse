@@ -43,9 +43,9 @@
             - permitted = role.send(permission)
             %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon{class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
               - if permitted
-                = icon('fas', 'check-circle')
+                %i.icon-check-circle
               - else
-                = icon('far', 'times-circle')
+                %i.icon-times-circle-o
 
 
 - content_for :page_js do

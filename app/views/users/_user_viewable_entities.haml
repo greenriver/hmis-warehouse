@@ -32,7 +32,7 @@
     - if can_view_all_entities
       .c-columns__message
         %p
-          = icon('fas', 'info-circle', class: 'mr-2')
+          %i.icon-info.mr-2
           = can_view_all_entities_message
     .c-columns{class: ('static' if can_view_all_entities)}
       = render 'users/entity_column', entity: data_source_viewability(base), f: f
@@ -46,7 +46,7 @@
     - if can_view_all_entities
       .c-columns__message
         %p
-          = icon('fas', 'info-circle', class: 'mr-2')
+          %i.icon-info.mr-2
           = can_view_all_entities_message
     .c-columns{class: ('static' if can_view_all_entities)}
       = render 'users/entity_column', entity: reports_viewability(base), f: f
