@@ -1,28 +1,20 @@
-.panel.panel-default
-  .panel-heading
+- content_for :panel_collapse_content do
+  = simple_form_for :touchpoints, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+    = f.error_notification
     .row
-      .col-xs-8
-        %h4.panel-title
-          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#touchpoint'}
-            Pick from clients with a Touch Point
-      .col-xs-4.text-right
-        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#touchpoint'}
-          %i.icon-arrow-circled-right
-          %i.icon-arrow-circled-down.hide
-  #touchpoint.panel-collapse.collapse
-    .panel-body
-      = simple_form_for :touchpoints, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-        = f.error_notification
-        .row
-          .col-sm-3
-            = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
-          .col-sm-3
-            = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
-          .col-sm-4
-            %label.control-label Touch Point
-            %div
-              = select_tag('touchpoints[assessment_id]', options_from_collection_for_select(available_touchpoints, :last, :first, params[:assessment_id]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
-          .col-sm-2
-            %label.control-label &nbsp;
-            %div
-              = f.button :submit, value: 'Show'
+      .col-sm-3
+        = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
+      .col-sm-3
+        = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
+      .col-sm-4
+        %label.control-label Touch Point
+        %div
+          = select_tag('touchpoints[assessment_id]', options_from_collection_for_select(available_touchpoints, :last, :first, params[:assessment_id]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
+      .col-sm-2
+        %label.control-label &nbsp;
+        %div
+          = f.button :submit, value: 'Show'
+
+= render 'common/panel_collapse',
+  id: 'touchpoint',
+  title: 'Pick from clients with a Touch Point'

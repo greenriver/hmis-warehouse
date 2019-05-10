@@ -1,18 +1,12 @@
-.panel.panel-default
-  .panel-heading
-    .row
-      .col-sm-8
-        %h4.panel-title
-          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
-            Search clients
-      .col-sm-4.text-right
-        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#search'}
-          %i.icon-arrow-circled-right
-          %i.icon-arrow-circled-down.hide
-  #search.panel-collapse.collapse
-    .panel-body
+- content_for :panel_collapse_content do
+  .row
+    .col-sm-6
       = search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
         .input-group{style: 'margin-bottom: 20px;'}
           = f.search_field :full_text_search, label: false, class: 'form-control'
           %span.input-group-append
-            %button.btn.btn-default{type: :submit} Search
+            %button.btn.btn-primary{type: :submit} Search
+
+= render 'common/panel_collapse',
+  id: 'search',
+  title: 'Search clients'

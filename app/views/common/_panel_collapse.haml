@@ -2,6 +2,9 @@
 - title ||= ''
 - allow_toggle ||= 'yes'
 - heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}, href: "##{id}" } : {}
+- panel_body_padded ||= 'y'
+
+
 .c-card.mb-4
   .panel.panel-default.c-card__content.c-card__content--flush
     %a.panel-heading.p-4.d-block{**heading_attrs}
@@ -14,5 +17,5 @@
             .ml-auto
               %i.icon-arrow-circled-right.j-toggle-arrow
     .panel-collapse.collapse{id: id}
-      .panel-body
+      .panel-body{class: ('panel-body--padded' if panel_body_padded == 'y')}
         = yield :panel_collapse_content

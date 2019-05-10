@@ -1,9 +1,12 @@
+@import '../../helpers';
+
 .input-group > .form-control {
   height: auto;
 }
 
 .input-group-append button {
   background: #d8e7ea;
+  color: $brand-primary-d;
 }
 
 .input-group-append [class^='icon'] {
