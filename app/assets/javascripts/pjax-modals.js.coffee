@@ -34,7 +34,7 @@ $ ->
         @loading.hide()
 
     _registerLinks: ->
-      $(document).pjax @linkTriggerAttr, @container.selector, timeout: false, push: false, scrollTo: false
+      $(document).pjax @linkTriggerAttr, @containerAttr, timeout: false, push: false, scrollTo: false
       $(document).on 'click', @linkTriggerAttr, (e) =>
         @body.hide()
         @footer.hide()
@@ -43,7 +43,7 @@ $ ->
     _registerForms: ->
       $(document).on 'submit', @formTriggerAttr, (evt) =>
         @open()
-        $.pjax.submit evt, @container.selector, timeout: false, push: false
+        $.pjax.submit evt, @containerAttr, timeout: false, push: false
 
     _registerClose: ->
       $('body').on 'click', '[pjax-modal-close]', (e) =>

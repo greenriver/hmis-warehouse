@@ -1,7 +1,7 @@
 class StyleGuidesController < ApplicationController
   include PjaxModalController
   include WindowClientPathGenerator
-  
+
   def alerts
   end
 
@@ -13,7 +13,7 @@ class StyleGuidesController < ApplicationController
     @client = @patient.client
     @careplan = @patient.careplans.build
     @goal = Health::Goal::Base.new
-    @goals = @careplan.goals.order(number: :asc)
+    @goals = @careplan.hpc_goals.order(number: :asc)
   end
 
   def add_goal
