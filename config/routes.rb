@@ -274,6 +274,7 @@ Rails.application.routes.draw do
         end
       end
       resources :decline_reason, only: [:index]
+      resources :rrh_desired, only: [:index]
       resources :canceled_matches, only: [:index]
       resources :process, only: [:index]
       resources :apr, only: [:index]
