@@ -199,21 +199,26 @@ module Reporting::MonthlyReports
     end
 
     def actives_in_month
-      @actives_in_month ||= GrdaWarehouse::ServiceHistoryService.homeless.
-      service_within_date_range(start_date: @start_date, end_date: @end_date).
-      where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
-      distinct.
-      pluck(
-        :client_id,
-        cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
-        cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
-      ).map do |id, month, year|
-        [id, [year, month]]
-      end.to_h
+      @actives_in_month ||= begin
+        acitives = {}
+        GrdaWarehouse::ServiceHistoryService.homeless.
+        service_within_date_range(start_date: @start_date, end_date: @end_date).
+        where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
+        distinct.
+        pluck(
+          :client_id,
+          cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
+          cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
+        ).each do |id, month, year|
+          acitives[id] ||= []
+          acitives[id] << [year, month]
+        end
+        acitives
+      end
     end
 
     def active_in_month? client_id:, month:, year:
-      actives_in_month[id]&.include?([year, month]) || false
+      actives_in_month[client_id]&.include?([year, month]) || false
     end
 
     def first_record? enrollment
