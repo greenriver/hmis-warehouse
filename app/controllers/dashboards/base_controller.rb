@@ -69,9 +69,10 @@ module Dashboards
         end.to_h
     end
 
+    # to_i.to_s to ensure end result is an integer
     def set_chosen_months
-      @start_month = params[:choose_report][:start_month] rescue [6.months.ago.year, 6.months.ago.month].to_s
-      @end_month = params[:choose_report][:end_month] rescue [1.months.ago.year, 1.months.ago.month].to_s
+      @start_month = params[:choose_report][:start_month].to_i.to_s rescue [6.months.ago.year, 6.months.ago.month].to_s
+      @end_month = params[:choose_report][:end_month].to_i.to_s rescue [1.months.ago.year, 1.months.ago.month].to_s
     end
 
     def set_report_months
