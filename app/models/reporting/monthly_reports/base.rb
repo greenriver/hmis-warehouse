@@ -113,7 +113,8 @@ module Reporting::MonthlyReports
         :data_source_id,
         :head_of_household,
         :household_id,
-        :computed_project_type
+        :computed_project_type,
+        :destination,
       ]
     end
 
