@@ -2,26 +2,29 @@ require 'rails_helper'
 
 RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
   let(:report) { build :veteran_dashboard, date_range: '2015-01-01'.to_date..'2017-01-01'.to_date }
-  let!(:veteran) { create :hud_client, VeteranStatus: 1 }
-  let!(:non_vet) { create :hud_client, VeteranStatus: 99 }
+  let!(:data_source) { create :grda_warehouse_data_source }
+  let!(:veteran) { create :hud_client, VeteranStatus: 1, data_source: data_source }
+  let!(:non_vet) { create :hud_client, VeteranStatus: 99, data_source: data_source }
+  let!(:project) { create :hud_project, data_source: data_source }
+  let!(:organization) { create :hud_organization, data_source: data_source }
   # start
-  let!(:she_1) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-01-05'.to_date, first_date_in_program: '2015-01-05'.to_date, last_date_in_program: '2015-03-10'.to_date }
+  let!(:she_1) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-01-05'.to_date, first_date_in_program: '2015-01-05'.to_date, last_date_in_program: '2015-03-10'.to_date, project: project, organization: organization, data_source: data_source }
   # 5 day break
-  let!(:she_2) { create :she_entry, client_id: veteran.id, computed_project_type: 2, date: '2015-03-15'.to_date, first_date_in_program: '2015-03-15'.to_date, last_date_in_program: '2015-04-02'.to_date }
+  let!(:she_2) { create :she_entry, client_id: veteran.id, computed_project_type: 2, date: '2015-03-15'.to_date, first_date_in_program: '2015-03-15'.to_date, last_date_in_program: '2015-04-02'.to_date, project: project, organization: organization, data_source: data_source }
   # no break, entry prior to previous exit
-  let!(:she_3) { create :she_entry, client_id: veteran.id, computed_project_type: 4, date: '2015-04-01'.to_date, first_date_in_program: '2015-04-01'.to_date, last_date_in_program: '2015-04-05'.to_date }
+  let!(:she_3) { create :she_entry, client_id: veteran.id, computed_project_type: 4, date: '2015-04-01'.to_date, first_date_in_program: '2015-04-01'.to_date, last_date_in_program: '2015-04-05'.to_date, project: project, organization: organization, data_source: data_source }
   # no break, same entry as previous exit
-  let!(:she_4) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-04-05'.to_date, first_date_in_program: '2015-04-05'.to_date, last_date_in_program: '2015-04-13'.to_date }
+  let!(:she_4) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-04-05'.to_date, first_date_in_program: '2015-04-05'.to_date, last_date_in_program: '2015-04-13'.to_date, project: project, organization: organization, data_source: data_source }
   # 90 day break
-  let!(:she_5) { create :she_entry, client_id: veteran.id, computed_project_type: 4, date: '2015-07-12'.to_date, first_date_in_program: '2015-07-12'.to_date, last_date_in_program: '2015-07-22'.to_date }
+  let!(:she_5) { create :she_entry, client_id: veteran.id, computed_project_type: 4, date: '2015-07-12'.to_date, first_date_in_program: '2015-07-12'.to_date, last_date_in_program: '2015-07-22'.to_date, project: project, organization: organization, data_source: data_source }
   # 10 day break
-  let!(:she_6) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-08-01'.to_date, first_date_in_program: '2015-08-01'.to_date, last_date_in_program: nil }
+  let!(:she_6) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-08-01'.to_date, first_date_in_program: '2015-08-01'.to_date, last_date_in_program: nil, project: project, organization: organization, data_source: data_source }
   # no break, prior enrollment doesn't have an exit
-  let!(:she_7) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-09-01'.to_date, first_date_in_program: '2015-09-01'.to_date, last_date_in_program: '2015-09-10'.to_date }
+  let!(:she_7) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-09-01'.to_date, first_date_in_program: '2015-09-01'.to_date, last_date_in_program: '2015-09-10'.to_date, project: project, organization: organization, data_source: data_source }
   # no break, prior enrollment doesn't have an exit
-  let!(:she_8) { create :she_entry, client_id: veteran.id, computed_project_type: 8, date: '2015-09-21'.to_date, first_date_in_program: '2015-09-21'.to_date, last_date_in_program: '2015-12-21'.to_date }
+  let!(:she_8) { create :she_entry, client_id: veteran.id, computed_project_type: 8, date: '2015-09-21'.to_date, first_date_in_program: '2015-09-21'.to_date, last_date_in_program: '2015-12-21'.to_date, project: project, organization: organization, data_source: data_source }
   # not included, non-vet
-  let!(:she_8) { create :she_entry, client_id: non_vet.id, computed_project_type: 8, date: '2015-09-21'.to_date, first_date_in_program: '2015-09-21'.to_date, last_date_in_program: '2015-12-21'.to_date }
+  let!(:she_8) { create :she_entry, client_id: non_vet.id, computed_project_type: 8, date: '2015-09-21'.to_date, first_date_in_program: '2015-09-21'.to_date, last_date_in_program: '2015-12-21'.to_date, project: project, organization: organization, data_source: data_source }
 
   describe 'setting enrollments' do
     before :each do
