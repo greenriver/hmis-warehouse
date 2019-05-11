@@ -54,8 +54,14 @@ module Reporting::MonthlyReports
       @enrollments_by_client = {}
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
         # fetch open enrollments for the given month
-        enrollment_scope(start_date: Date.new(year, month, 1), end_date: Date.new(year, month, -1)).
-          find_each(batch_size: 10_000) do |enrollment|
+        enrollment_scope(
+            start_date: Date.new(year, month, 1),
+            end_date: Date.new(year, month, -1)
+          ).
+          joins(:project, :organization).
+          pluck(*enrollment_columns).map do |row|
+            OpenStruct.new(enrollment_columns.zip(row).to_h)
+          end.each do |enrollment|
           entry_month = enrollment.first_date_in_program.month
           entry_year = enrollment.first_date_in_program.year
           exit_month = enrollment.last_date_in_program&.month
@@ -94,6 +100,21 @@ module Reporting::MonthlyReports
         end
       end
       @enrollments_by_client
+    end
+
+    def enrollment_columns
+      @enrollment_columns ||= [
+        :id,
+        :client_id,
+        :first_date_in_program,
+        :last_date_in_program,
+        :project_id,
+        :organization_id,
+        :data_source_id,
+        :head_of_household,
+        :household_id,
+        :computed_project_type
+      ]
     end
 
     # By client, for each enrollment that is an entry in the month,
@@ -177,15 +198,22 @@ module Reporting::MonthlyReports
       Date.new(year, month, 1) - 1.month
     end
 
+    def actives_in_month
+      @actives_in_month ||= GrdaWarehouse::ServiceHistoryService.homeless.
+      service_within_date_range(start_date: @start_date, end_date: @end_date).
+      where(service_history_enrollment_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:id)).
+      distinct.
+      pluck(
+        :client_id,
+        cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
+        cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
+      ).map do |id, month, year|
+        [id, [year, month]]
+      end.to_h
+    end
+
     def active_in_month? client_id:, month:, year:
-      @active_in_month ||= active_scope.joins(:service_history_services).distinct.reorder('').
-        pluck(
-          :client_id,
-          cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
-          cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
-        )
-      k = [client_id, month, year]
-      @active_in_month.include?(k)
+      actives_in_month[id]&.include?([year, month]) || false
     end
 
     def first_record? enrollment
@@ -212,17 +240,19 @@ module Reporting::MonthlyReports
       raise NotImplementedError
     end
 
-    def active_scope
-      enrollment_scope(start_date: @start_date, end_date: @end_date).
-        with_service_between(start_date: @start_date, end_date: @end_date)
+    def active_scope start_date:, end_date:
+      enrollment_scope(start_date: start_date, end_date: end_date).
+        with_service_between(start_date: start_date, end_date: end_date).
+        where(shs_t[:date].between(start_date..end_date))
     end
 
     def first_scope
-      enrollment_source.first_date.where(client_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:client_id))
+      enrollment_source.first_date.where(client_id: enrollment_scope(start_date: @start_date, end_date: @end_date).select(:client_id)).
+        joins(:project, :organization)
     end
 
     def enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment.homeless.joins(:project, :organization)
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless
     end
 
   end
