@@ -4323,7 +4323,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID, pop.HHType
@@ -4376,7 +4376,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID
@@ -4421,7 +4421,7 @@ where cd.Cohort > 0
   and (
     (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID
@@ -4471,7 +4471,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
@@ -4526,7 +4526,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, case p.ProjectType
@@ -4574,7 +4574,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ExportID
@@ -4607,7 +4607,8 @@ inner join ref_Populations pop on
      or pop.CHTime is null)
   and (lp.DisabilityStatus = pop.DisabilityStatus or pop.DisabilityStatus is null)
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-  and (an.AgeGroup = pop.Age or pop.Age is null)
+  --CHANGE 4/23/2019 use lp.Age vs an.AgeGroup per specs section 4.49
+  and (lp.Age = pop.Age or pop.Age is null)
 inner join tmp_CohortDates cd on cd.CohortEnd >= an.EntryDate
     --The date criteria for these counts differs from the general LSA
     --criteria for 'active', which includes those who exited on the start date.
@@ -4626,7 +4627,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
@@ -4666,7 +4667,8 @@ inner join ref_Populations pop on
   and (ahh.HHFleeingDV = pop.HHFleeingDV or pop.HHFleeingDV is null)
   and (ahh.HHParent = pop.HHParent or pop.HHParent is null)
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-  and (an.AgeGroup = pop.Age or pop.Age is null)
+  --CHANGE 4/23/2019 use lp.Age vs an.AgeGroup per specs section 4.49
+  and (lp.Age = pop.Age or pop.Age is null)
   and (lp.Gender = pop.Gender or pop.Gender is null)
   and (lp.Race = pop.Race or pop.Race is null)
   and (lp.Ethnicity = pop.Ethnicity or pop.Ethnicity is null)
@@ -4687,7 +4689,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ProjectType, p.ExportID
@@ -4718,7 +4720,8 @@ inner join ref_Populations pop on
   and (ahh.HHFleeingDV = pop.HHFleeingDV or pop.HHFleeingDV is null)
   and (ahh.HHParent = pop.HHParent or pop.HHParent is null)
   and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-  and (an.AgeGroup = pop.Age or pop.Age is null)
+  --CHANGE 4/23/2019 use lp.Age vs an.AgeGroup per specs section 4.49
+  and (lp.Age = pop.Age or pop.Age is null)
   and (lp.Gender = pop.Gender or pop.Gender is null)
   and (lp.Race = pop.Race or pop.Race is null)
   and (lp.Ethnicity = pop.Ethnicity or pop.Ethnicity is null)
@@ -4737,7 +4740,7 @@ where cd.Cohort > 0
     --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
-    or (p.TrackingMethod = 1 and p.ProjectType = 1)
+    or (p.TrackingMethod = 0 and p.ProjectType = 1)
     or (p.ProjectType in (2,8))
     )
 group by cd.Cohort, pop.PopID, p.ExportID
@@ -5220,6 +5223,11 @@ select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
     or c.DOBDataQuality is null
     or c.DOBDataQuality not in (1,2) then 99
   when dateadd(yy, 18, c.DOB) <= n.EntryDate then 1
+  -- 5/7/2019 Counting clients who turned 18 between EntryDate and [ReportStart-2 years] as adults.
+  --  The is not explicit in the specs -- section 4.70 is fuzzy -- but adding the final WHEN below
+  --  will clear some false positives in the QC reports.
+  when n.EntryDate < dateadd(yy, -2, rpt.ReportStart) and
+    dateadd(yy, 18, c.DOB) <= dateadd(yy, -2, rpt.ReportStart) then 1
   else 0 end
 , case when c.SSNDataQuality in (8,9) then null
     when SUBSTRING(c.SSN,1,3) in ('000','666')
