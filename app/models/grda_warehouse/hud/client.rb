@@ -388,9 +388,11 @@ module GrdaWarehouse::Hud
         where( sht[:date].gteq s ).
         where( exclude ? sht[:date].lt(e) : sht[:date].lteq(e) )
     end
+
     scope :in_data_source, -> (data_source_id) do
       where(data_source_id: data_source_id)
     end
+
     scope :cas_active, -> do
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
@@ -405,12 +407,23 @@ module GrdaWarehouse::Hud
         raise NotImplementedError
       end
     end
+
     scope :full_housing_release_on_file, -> do
       where(housing_release_status: full_release_string)
     end
+
     scope :limited_cas_release_on_file, -> do
       where(housing_release_status: partial_release_string)
     end
+
+    scope :no_release_on_file, -> do
+      where(housing_release_status: nil)
+    end
+
+    scope :desiring_rrh, -> do
+      where(rrh_desired: true)
+    end
+
     scope :verified_disability, -> do
       where.not(disability_verified_on: nil)
     end
@@ -418,12 +431,15 @@ module GrdaWarehouse::Hud
     scope :dmh_eligible, -> do
       where.not(dmh_eligible: false)
     end
+
     scope :va_eligible, -> do
       where.not(va_eligible: false)
     end
+
     scope :hues_eligible, -> do
       where.not(hues_eligible: false)
     end
+
     scope :hiv_positive, -> do
       where.not(hiv_positive: false)
     end

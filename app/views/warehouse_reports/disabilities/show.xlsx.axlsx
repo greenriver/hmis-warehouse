@@ -1,13 +1,29 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'Disability & Response'], :style => title)
+  sheet.add_row(
+    [
+      'Warehouse Client ID',
+      'First Name',
+      'Last Name',
+      'Age',
+      'Unaccompanied?',
+      'Parenting?',
+      'Head of Household?',
+      'Disability & Response',
+    ],
+    :style => title)
   @clients.each do |client|
     disabilities = client['disabilities'].join(', ')
+    enrollment = client['enrollment']
     sheet.add_row [
       client['id'], 
       client['FirstName'], 
-      client['LastName'], 
+      client['LastName'],
+      enrollment&.[]('age'),
+      yes_no(enrollment&.[]('unaccompanied_youth')),
+      yes_no(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile')),
+      yes_no(enrollment&.[]('head_of_household')),
       disabilities
     ] 
   end

@@ -1,0 +1,16 @@
+- title = 'Clients Interested in RRH with no Consent'
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
+
+%table.table.table-condensed
+  %thead
+    %tr
+      %th Client
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td
+          = link_to(client_path(client)) do
+            = client.FirstName
+            = client.LastName

@@ -1,0 +1,14 @@
+- @show_census = false
+= render 'index_title'
+= render 'housed_overall'
+- if @html
+  = render 'report_picker'
+- else
+  = render 'report_options'
+
+= render 'overview'
+= render 'censuses'
+= render 'entry'
+
+= render 'exit'
+= render 'download'

@@ -21,8 +21,10 @@ Dir.chdir APP_ROOT do
       FileUtils.cp "#{file}.sample", file
     end
   end
-  puts "\n== Using a simple .env file =="
-  FileUtils.cp 'sample.env', '.env'
+  unless File.exist?('.env')
+    puts "\n== Creating .env"
+    FileUtils.cp ".env.sample", ".env"
+  end
 
   puts "\n== Preparing Database =="
   system 'bundle exec rake db:create'

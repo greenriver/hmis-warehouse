@@ -84,7 +84,7 @@
 }
 
 
-@each $amount in 100 75 50 25 {
+@each $amount in 100 75 50 25 20 {
   .w-#{$amount} {
     width: #{$amount}% !important;
   }

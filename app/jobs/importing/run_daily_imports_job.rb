@@ -181,10 +181,8 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type.each do |report_type, reports|
-          reports.each do |sub_population, _|
-            WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
-          end
+        Reporting::MonthlyReports::Base.available_types.keys.each do |sub_pop|
+          Reporting::PopulationDashboardPopulateJob.perform_later sub_population: sub_pop.to_s
         end
 
         seconds = ((Time.now - start_time)/1.minute).round * 60

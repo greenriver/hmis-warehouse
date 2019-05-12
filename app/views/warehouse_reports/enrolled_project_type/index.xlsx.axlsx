@@ -1,0 +1,28 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Enrolled Clients") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+   "Clients enrolled in #{@project_type_codes.join(', ').upcase} between #{@start} and #{@end}"
+  ])
+  sheet.merge_cells("A1:F1")
+  sheet.add_row([
+    'Client ID',
+    'First Name',
+    'Last Name',
+    'DOB',
+    'Veteran Status',
+    "Cumulative Days Homeless as of #{Date.today}",
+    "Days Homeless in The Past Three Years as of #{Date.today}",
+  ])
+  @clients.each do |client|
+    sheet.add_row([
+      client.id,
+      client.FirstName,
+      client.LastName,
+      client.DOB,
+      HUD.veteran_status(client.VeteranStatus),
+      client.days_homeless,
+      client.days_homeless_in_last_three_years,
+    ])
+  end
+end

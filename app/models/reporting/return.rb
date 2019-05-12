@@ -15,7 +15,7 @@ module Reporting
 
     def source_data
       @source_data ||= begin
-        GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).
+        GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
         homeless.
         # in_project_type([1,2,4,8]).
         where(client_id: client_ids).
@@ -80,7 +80,7 @@ module Reporting
         project_id: p_t[:id].to_sql,
         destination: she_t[:destination].to_sql,
         project_name: she_t[:project_name].to_sql,
-        organization_id: she_t[:organization_id].to_sql,
+        organization_id: o_t[:id].to_sql,
         unaccompanied_youth: she_t[:unaccompanied_youth].to_sql,
         parenting_youth: she_t[:parenting_youth].to_sql,
       }

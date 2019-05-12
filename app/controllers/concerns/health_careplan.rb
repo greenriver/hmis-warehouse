@@ -19,6 +19,18 @@ module HealthCareplan
       Health::Careplan
     end
 
+    def careplan_pdf_coversheet
+      file_name = 'care_plan_coversheet'
+      coversheet = render_to_string(
+        pdf: file_name,
+        template: 'window/health/careplans/_pdf_coversheet',
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter'
+      )
+      CombinePDF.parse(coversheet)
+    end
+
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
     def careplan_combine_pdf_object
       @goal = Health::Goal::Base.new
@@ -50,6 +62,12 @@ module HealthCareplan
         @ssm_partial = 'clients/assessment_form'
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
+
+
+      pdf = CombinePDF.new
+
+      pdf << careplan_pdf_coversheet
+
       # debugging
       # render layout: false
 
@@ -75,7 +93,8 @@ module HealthCareplan
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )
-      pdf = CombinePDF.parse(pctp)
+
+      pdf << CombinePDF.parse(pctp)
 
       if @careplan.health_file.present?
         pdf << CombinePDF.parse(@careplan.health_file.content)

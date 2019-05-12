@@ -1,0 +1,28 @@
+.ho-container.rrh
+  .ho-container__header
+    %h3.mb-0 #{@report.sub_population_title} Exits to Permanent Housing
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Housed to Date
+      .metric
+        = link_to pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: '2015-01-01'.to_date, end: Date.today, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+      .description
+        total #{@report.sub_population_title.pluralize.downcase} housed to date
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title
+        #{@report.sub_population_title.pluralize} Housed During Reporting Period
+      .metric
+        = link_to pluralize(@report.housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+      .description
+        number of #{@report.sub_population_title.pluralize.downcase} housed during reporting period
+
+  .jHoused
+
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var support_link = '#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}'
+      var exits = new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json}, '#{@report.sub_population_title}', support_link);
+    })(jQuery);

@@ -1,21 +1,18 @@
 module Health::Tasks
   class NotifyCareCoordinatorsOfPatientEligibilityProblems
     def notify!
-      care_coordinator_ids = Health::Patient.
-        with_unsent_eligibility_notification.
+      care_coordinator_ids = patient_scope.
         program_ineligible.
         distinct.
         pluck(:care_coordinator_id)
 
       User.where(id: care_coordinator_ids).each do |user|
-        ineligible_patient_ids = Health::Patient.
-          with_unsent_eligibility_notification.
+        ineligible_patient_ids = patient_scope.
           no_coverage.
           where(care_coordinator_id: user.id).
           pluck(:id)
 
-        no_aco_patient_ids = Health::Patient.
-          with_unsent_eligibility_notification.
+        no_aco_patient_ids = patient_scope.
           standard_coverage.
           where(care_coordinator_id: user.id).
           pluck(:id)
@@ -26,6 +23,12 @@ module Health::Tasks
           patient.update!(eligibility_notification: Time.now)
         end
       end
+    end
+
+    def patient_scope
+      Health::Patient.
+        participating.
+        with_unsent_eligibility_notification
     end
   end
 end
