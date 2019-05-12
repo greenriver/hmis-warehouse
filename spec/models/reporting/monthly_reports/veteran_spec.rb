@@ -45,6 +45,10 @@ RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
       puts '--------------------'
       puts she_1.organization.inspect
       puts '--------------------'
+      puts project.inspect
+      puts '--------------------'
+      puts organization.inspect
+      puts '--------------------'
       expect(@enrollments_by_client.keys.count).to eq 1
     end
     it 'client has 7 unique months' do
