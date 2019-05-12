@@ -5,8 +5,9 @@ RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
   let!(:data_source) { create :data_source_fixed_id }
   let!(:veteran) { create :hud_client, VeteranStatus: 1, data_source_id: 1 }
   let!(:non_vet) { create :hud_client, VeteranStatus: 99, data_source_id: 1 }
-  let!(:project) { create :hud_project, data_source_id: 1 }
   let!(:organization) { create :hud_organization, data_source_id: 1 }
+  let!(:project) { create :hud_project, data_source_id: 1, OrganizationID: organization.OrganizationID }
+
   # start
   let!(:she_1) { create :she_entry, client_id: veteran.id, computed_project_type: 1, date: '2015-01-05'.to_date, first_date_in_program: '2015-01-05'.to_date, last_date_in_program: '2015-03-10'.to_date, project_id: project.ProjectID, organization_id: organization.OrganizationID, data_source_id: 1 }
   # 5 day break
@@ -32,23 +33,6 @@ RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
       @months_for_vet = @enrollments_by_client[veteran.id]
     end
     it 'returns 1 client' do
-      puts '--------------------'
-      puts @enrollments_by_client.inspect
-      puts '--------------------'
-      puts veteran.inspect
-      puts '--------------------'
-      puts she_1.inspect
-      puts '--------------------'
-      puts she_1.client.inspect
-      puts '--------------------'
-      puts she_1.project.inspect
-      puts '--------------------'
-      puts she_1.organization.inspect
-      puts '--------------------'
-      puts project.inspect
-      puts '--------------------'
-      puts organization.inspect
-      puts '--------------------'
       expect(@enrollments_by_client.keys.count).to eq 1
     end
     it 'client has 7 unique months' do
