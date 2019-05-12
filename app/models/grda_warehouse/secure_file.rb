@@ -24,11 +24,11 @@ module GrdaWarehouse
     end
 
     scope :expired, -> do
-      where(arel_table[:created_at].lt(1.month.ago.to_date))
+      where(arel_table[:created_at].lt(1.months.ago.to_date))
     end
 
     scope :unexpired, -> do
-      where(created_at: (1.month.ago.to_date..Date.tomorrow))
+      where(arel_table[:created_at].gteq(1.months.ago))
     end
 
     def self.clean_expired
