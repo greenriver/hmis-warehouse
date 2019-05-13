@@ -40,13 +40,19 @@ module Bo
     def guid_lookup
       @guid_lookup ||= begin
         wsdl_url = ENV['BO_WSDL_URL_1']
-        params = {
-          wsdl: 1,
-          cuid: ENV['BO_GUID_LOOKUP_1'],
-        }
-        url = wsdl_url + params.to_query
-        client = Savon.client(wsdl: url, read_timeout: 600, log_level: :debug)
-        response = client.call(:run_query_as_a_service, message: { login: ENV['BO_USER_1'], password: ENV['BO_PASS_1'], Cms: ENV['BO_SERVER_1'] });
+        url = wsdl_url + params = { cuid: ENV['BO_GUID_LOOKUP_1'] }.to_query
+        client = Savon.client(
+          wsdl: url,
+          read_timeout: 2_400,
+          log_level: :debug
+        )
+        response = client.call(
+          :run_query_as_a_service,
+          message: { login: ENV['BO_USER_1'],
+            password: ENV['BO_PASS_1'],
+            Cms: ENV['BO_SERVER_1']
+          }
+        )
         response.body[:run_query_as_a_service_response][:table][:row]
       end
     end
@@ -62,21 +68,29 @@ module Bo
       site_id_from_name(site_name)
     end
 
-    def testing
+    def touch_point_responses
       wsdl_url = ENV['BO_WSDL_URL_1']
-      params = {
-        wsdl: 1,
-        cuid: ENV['BO_TOUCHPOINT_RESPONSE_MODIFICATION_DATES_1'],
-      }
-
-      url = wsdl_url + params.to_query
-
-      client = Savon.client(wsdl: url)
+      url = wsdl_url + { cuid: ENV['BO_TPRESPONSES'] }.to_query
+      client = Savon.client(
+        wsdl: url,
+        read_timeout: 2_400,
+        log_level: :debug,
+        log: true,
+        filters: [:password]
+      )
 
       puts client.operations
       # => [:run_query_as_a_service, :run_query_as_a_service_ex, :values_of_site_name]
 
-      response = client.call(:run_query_as_a_service, message: { login: ENV['BO_USER_1'], password: ENV['BO_PASS_1'], Cms: ENV['BO_SERVER_1']});
+      response = client.call(
+        :run_query_as_a_service,
+        message: {
+          login: ENV['BO_USER_1'],
+          password: ENV['BO_PASS_1'],
+          Cms: ENV['BO_SERVER_1'],
+          TouchPoint_Unique_Identifier: 143,
+        }
+      )
       # response.body
     end
 
