@@ -31,6 +31,18 @@ module Health
       @manageds ||= subscribers.select{|s| managed_care(s).present?}.map{|s| TRN(s)}
     end
 
+    def aco_names
+      @aco_names ||= begin
+        results = {}
+        subscribers.select{|s| managed_care(s).present?}.each do |s|
+          names = EBNM1(s)
+          name = names['MC'] || names['L']
+          results[TRN(s)] = name
+        end
+        results
+      end
+    end
+
     def ineligible_ids
       @ineligibles ||= subscribers.select{|s| eligible(s).nil?}.map{|s| TRN(s)}
     end
