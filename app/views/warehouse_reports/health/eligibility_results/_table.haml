@@ -15,6 +15,9 @@
         %td
           -if has_managed_care(patient)
             %i.icon-checkmark
-        %td= patient.aco_name
+        %td
+          - if patient.previous_aco_name.present? && patient.previous_aco_name != patient.aco_name
+            %i.icon-warning{data: {toggle: :tooltip, title: "Previously: #{patient.previous_aco_name}"}}
+          = patient.aco_name
         %td= patient.health_agency&.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"

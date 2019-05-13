@@ -18,7 +18,7 @@ module Health
           end
 
           # Set the eligibility level for covered patients
-          patient_scope(response.eligible_ids).find_each do |patient|
+          patient_scope(response.eligible_ids - response.managed_care_ids).find_each do |patient|
             patient.update!(coverage_level: Health::Patient.coverage_level_standard_value,
               aco_name: nil)
           end
@@ -27,9 +27,10 @@ module Health
           patient_scope(response.managed_care_ids).find_each do |patient|
             aco = response.aco_names[patient.medicaid_id]
             if patient.aco_name.present? && patient.aco_name != aco
-              # TODO Flag that ACO previously existed, and has changed
+              previous_aco = patient.aco_name
             end
             patient.update!(coverage_level: Health::Patient.coverage_level_managed_value,
+              previous_aco_name: previous_aco,
               aco_name: aco)
           end
 

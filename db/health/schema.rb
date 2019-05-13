@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190509155939) do
+ActiveRecord::Schema.define(version: 20190513173709) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -669,14 +669,14 @@ ActiveRecord::Schema.define(version: 20190509155939) do
     t.date     "birthdate"
     t.string   "ssn"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                                       null: false
-    t.datetime "updated_at",                                                       null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false,                 null: false
-    t.integer  "rejected_reason",                  default: 0,                     null: false
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date",                   default: '2018-12-14 20:51:35'
+    t.datetime "effective_date",                   default: "now()"
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"
@@ -759,6 +759,7 @@ ActiveRecord::Schema.define(version: 20190509155939) do
     t.date     "coverage_inquiry_date"
     t.datetime "eligibility_notification"
     t.string   "aco_name"
+    t.string   "previous_aco_name"
   end
 
   add_index "patients", ["medicaid_id"], name: "index_patients_on_medicaid_id", using: :btree
