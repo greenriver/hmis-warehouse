@@ -96,6 +96,8 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.deleted_at IS NULL
         )
 
       SQL
@@ -119,6 +121,8 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.deleted_at IS NULL
             WHERE
               #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -144,6 +148,8 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.deleted_at IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{organization_table}.#{qc.('data_source_id')}
               AND
