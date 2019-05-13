@@ -4,6 +4,7 @@
       %th Name
       %th DOB
       %th ACO Coverage
+      %th ACO Name
       %th Agency
       %th Care Coordinator
   %tbody
@@ -14,5 +15,6 @@
         %td
           -if has_managed_care(patient)
             %i.icon-checkmark
+        %td= patient.aco_name
         %td= patient.health_agency&.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"
