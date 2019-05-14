@@ -8,12 +8,13 @@ module Dashboards
     before_action :set_available_months
     before_action :set_chosen_months
     before_action :set_report_months
+    before_action :set_project_types
     before_action :set_project_and_organization_ids
     before_action :set_start_date
     before_action :set_end_date
 
     def index
-      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids)
+      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes)
 
       respond_to do |format|
         format.html do
@@ -94,6 +95,16 @@ module Dashboards
     def set_project_and_organization_ids
       @organization_ids = params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
       @project_ids = params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
+
+    def set_project_types
+      @project_type_codes = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys
+      if params.try(:[], :choose_report).try(:[], :project_types).present?
+         @project_type_codes = params.try(:[], :choose_report).try(:[], :project_types).
+          select(&:present?).
+          map(&:to_sym).
+          select{|m| m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)}
+      end
     end
 
   end
