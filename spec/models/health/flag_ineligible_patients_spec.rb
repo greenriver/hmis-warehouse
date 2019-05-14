@@ -20,7 +20,7 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
   end
 
   it 'does not process other patients' do
-    patient_04.reload
+    patient_05.reload
 
     expect(patient_05.coverage_inquiry_date).to be nil
   end
@@ -44,6 +44,15 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
 
     expect(Health::Patient.program_ineligible).not_to include patient_03
     expect(Health::Patient.program_ineligible).to include patient_01, patient_02, patient_04
+  end
+
+  it 'labels managed patients with org name' do
+    Health::FlagIneligiblePatientsJob.new.perform(inquiry.id)
+
+    # Get patient data from DB
+    patient_03.reload
+
+    expect(patient_03.aco_name).to eq 'ACO NAME'
   end
 
   def read_fixture
