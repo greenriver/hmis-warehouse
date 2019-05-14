@@ -1,0 +1,70 @@
+!!!
+%html
+  %head
+    %meta{name: "openpath-server", content: @op_hostname}
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    - if enable_responsive?
+      %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"}
+    %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+    %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
+    %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
+    = wicked_pdf_stylesheet_link_tag 'application', media: 'all'
+    = wicked_pdf_stylesheet_link_tag 'print', media: 'print'
+
+    = cache('theme', expires_in: 4.hours) do
+      - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
+        - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
+        = wicked_pdf_stylesheet_link_tag(theme_styles, media: 'all')
+
+    = render 'layouts/favicon'
+    = csrf_meta_tags
+
+  %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
+    %header.o-header--page
+      .container-fluid.d-flex.align-items-center{class: container_classes}
+        .site-name.d-flex
+          .o-header--page__title.site-title
+            = link_to root_path do
+              = _('Boston DND Warehouse')
+              - unless Rails.env.production?
+                %span.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
+        .o-header--page__sub-title.tagline
+          - if Rails.env.development?
+            = branch_info
+          = _('Ending Veteran & Chronic Homelessness in Boston')
+        = render 'layouts/warehouse_alert'
+        = render 'layouts/header_nav'
+
+    .l-main__wrapper
+      - if user_signed_in?
+        = render 'layouts/site_menu'
+
+      .l-main__content{ class: ('with-menu' if user_signed_in?) }
+        %main
+          .container-fluid.mb-4{class: container_classes}
+            .utility.d-none--empty<
+              = render "utility"
+            - if content_for? :modal_title
+              %h1
+                = yield :modal_title
+            = yield
+            - if content_for? :modal_footer
+              .row
+                = yield :modal_footer
+
+    %footer{ class: ('with-menu' if user_signed_in?) }
+      .container-fluid.w-100{class: container_classes}
+        .d-flex.flex-column.align-items-center
+          = render 'layouts/footer_seal'
+          %p
+            = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+
+    #d3-tooltip
+    = render 'pjax_modal_frame'
+    = javascript_include_tag 'application'
+    = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
+
+    = yield :page_js
+    - if current_user
+      = auto_session_timeout_js(frequency: 60)

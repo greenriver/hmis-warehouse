@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]}"[0,30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse Client ID',
+      'First Name',
+      'Last Name',
+      'Veteran Status',
+      'Entry Date',
+      'Project Type',
+      'Project',
+      'Organization',
+      'Days Since Previous Exit',
+      'Previous Project Type',
+      'Previous Destination',
+    ],
+    :style => title
+  )
+  @enrollments.each do |enrollment|
+    client = enrollment.client
+    re_entry = @re_entries[enrollment.id]
+    sheet.add_row [
+      client.id,
+      client.FirstName,
+      client.LastName,
+      HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
+      enrollment.first_date_in_program,
+      HUD.project_type(enrollment.computed_project_type),
+      enrollment.project_name,
+      enrollment.organization.try(:OrganizationName),
+      re_entry.days_since_last_exit,
+      HUD.project_type(re_entry.prior_exit_project_type),
+      HUD.destination(re_entry.prior_exit_destination_id),
+    ]
+  end
+end

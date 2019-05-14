@@ -1,0 +1,30 @@
+%h1
+  Send invitation
+.well
+  %p
+    By assigning the role
+    %b= @admin_role_name
+    to this account, you are granting the user administrative privileges. To confirm this, please
+    enter your password below.
+
+  = simple_form_for @user, url: user_invitation_path do |f|
+    = f.error_notification
+
+    = f.hidden_field "safari_username", value: "nil"
+
+    - request.POST[:user].each do | key, value |
+      - if value.is_a? Array
+        - value.each do |item|
+          = f.hidden_field key, multiple: true, value: item
+      - elsif value.is_a? Hash
+        = f.simple_fields_for :contact do |c|
+          - value.each do | key, value |
+            = c.hidden_field key, value: value
+      - else
+        = f.hidden_field key, value: value
+
+    .form-inputs
+      = f.input "confirmation_password", as: :password
+
+    .form-actions
+      = f.button :submit, t("devise.invitations.new.submit_button"), class: 'btn btn-primary'

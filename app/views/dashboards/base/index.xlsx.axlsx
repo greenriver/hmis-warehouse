@@ -1,0 +1,58 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "#{@report.sub_population_title} Dashboard"[0,30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Warehouse Client ID',
+    'First Name',
+    'Last Name',
+    'Head of Household',
+    'Household ID',
+    'Project',
+    'Organization',
+    'Entry Date',
+    'Exit Date',
+    'Exit Destination',
+    'Month',
+    'Year',
+    'First Enrollment',
+    'Enrolled',
+    'Active',
+    'Entered',
+    'Exited',
+    'Days Since Prior Exit',
+    'Prior Exit Project Type',
+    'Prior Exit Destination',
+    'Enrollment ID',
+  ], :style => title)
+  @enrollments.each do |en|
+    client = @clients[en.client_id]
+    project_name = @projects[en[:project_id]]
+    organization_name = @organizations[en[:organization_id]]
+
+    sheet.add_row(
+      [
+        client.id,
+        client.FirstName,
+        client.LastName,
+        en.head_of_household,
+        en.household_id,
+        project_name,
+        organization_name,
+        en.entry_date,
+        en.exit_date,
+        en.destination_id,
+        en.month,
+        en.year,
+        en.first_enrollment,
+        en.enrolled,
+        en.active,
+        en.entered,
+        en.exited,
+        en.days_since_last_exit,
+        en.prior_exit_project_type,
+        en.prior_exit_destination_id,
+        en.enrollment_id,
+      ]
+    )
+  end
+end

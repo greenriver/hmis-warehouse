@@ -1,0 +1,13 @@
+.ho-container.rrh
+  .ho-container__header
+    %h3 Census
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+      %h4.title Monthly Census by Project Type
+  .jMonthlyCensus
+
+= content_for :page_js do
+  :javascript
+    (function($){
+      var exits = new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json}, '#{@report.sub_population_title}', '');
+    })(jQuery);

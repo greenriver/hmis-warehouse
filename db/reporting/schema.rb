@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181204193329) do
+ActiveRecord::Schema.define(version: 20190509162439) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,43 @@ ActiveRecord::Schema.define(version: 20181204193329) do
   add_index "warehouse_houseds", ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
   add_index "warehouse_houseds", ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
   add_index "warehouse_houseds", ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
+
+  create_table "warehouse_monthly_reports", force: :cascade do |t|
+    t.integer  "month",                                     null: false
+    t.integer  "year",                                      null: false
+    t.string   "type"
+    t.integer  "client_id",                                 null: false
+    t.integer  "head_of_household",         default: 0,     null: false
+    t.string   "household_id"
+    t.integer  "project_id",                                null: false
+    t.integer  "organization_id",                           null: false
+    t.integer  "destination_id"
+    t.boolean  "first_enrollment",          default: false, null: false
+    t.boolean  "enrolled",                  default: false, null: false
+    t.boolean  "active",                    default: false, null: false
+    t.boolean  "entered",                   default: false, null: false
+    t.boolean  "exited",                    default: false, null: false
+    t.integer  "project_type",                              null: false
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.integer  "days_since_last_exit"
+    t.integer  "prior_exit_project_type"
+    t.integer  "prior_exit_destination_id"
+    t.datetime "calculated_at",                             null: false
+    t.integer  "enrollment_id"
+  end
+
+  add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
+  add_index "warehouse_monthly_reports", ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled", using: :btree
+  add_index "warehouse_monthly_reports", ["entered"], name: "index_warehouse_monthly_reports_on_entered", using: :btree
+  add_index "warehouse_monthly_reports", ["exited"], name: "index_warehouse_monthly_reports_on_exited", using: :btree
+  add_index "warehouse_monthly_reports", ["head_of_household"], name: "index_warehouse_monthly_reports_on_head_of_household", using: :btree
+  add_index "warehouse_monthly_reports", ["household_id"], name: "index_warehouse_monthly_reports_on_household_id", using: :btree
+  add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
+  add_index "warehouse_monthly_reports", ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
+  add_index "warehouse_monthly_reports", ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
+  add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
+  add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
   create_table "warehouse_returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false

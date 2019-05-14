@@ -13,6 +13,15 @@ Rails.application.routes.draw do
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'users/invitations/confirm', via: :post
+  end
+
+  namespace :users do
+    resources :invitations do
+      collection do
+        post :confirm
+      end
+    end
   end
 
   def healthcare_routes(window:)
@@ -65,6 +74,7 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
+        get :coversheet, on: :member
         member do
           delete :remove_file
           get :download
@@ -234,6 +244,7 @@ Rails.application.routes.draw do
       get :summary, on: :collection
     end
     resources :client_in_project_during_date_range, only: [:index]
+    resources :enrolled_project_type, only: [:index]
     resources :bed_utilization, only: [:index]
     resources :length_of_stay, only: [:index] do
       collection do
@@ -251,7 +262,9 @@ Rails.application.routes.draw do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
       resources :actives, only: [:index]
+      resources :last_permanent_zips, only: [:index]
     end
+    resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
     resources :manage_cas_flags, only: [:index] do
       post :bulk_update, on: :collection
@@ -272,6 +285,7 @@ Rails.application.routes.draw do
         end
       end
       resources :decline_reason, only: [:index]
+      resources :rrh_desired, only: [:index]
       resources :canceled_matches, only: [:index]
       resources :process, only: [:index]
       resources :apr, only: [:index]
