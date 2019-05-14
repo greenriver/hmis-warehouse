@@ -13,6 +13,15 @@ Rails.application.routes.draw do
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'users/invitations/confirm', via: :post
+  end
+
+  namespace :users do
+    resources :invitations do
+      collection do
+        post :confirm
+      end
+    end
   end
 
   def healthcare_routes(window:)
