@@ -24,6 +24,10 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+        y:
+          padding: 0
+          min: 0
+          max: 100
       tooltip:
         format:
           value: (v) ->

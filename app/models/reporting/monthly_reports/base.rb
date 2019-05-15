@@ -152,13 +152,16 @@ module Reporting::MonthlyReports
                   en.prior_exit_project_type = max_exit_enrollment.project_type
                   en.prior_exit_destination_id = max_exit_enrollment.destination_id
                 end
+              elsif other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:entered)
+                min_entry_date = other_enrollments_in_current_month.sort_by(&:entry_date).first
+                next if min_entry_date < entry_date
               end
               next if en.days_since_last_exit.present?
 
               # short circuit if prior month contains ongoing enrollments
               prev = previous_month(current_year, current_month)
               previous_enrollments = grouped_enrollments[[prev.year, prev.month]]
-              next unless previous_enrollments.blank? || previous_enrollments.all?(&:exited)
+              next if previous_enrollments.present? && ! previous_enrollments.all?(&:exited)
 
               # Check back through time
               while(current_year >= first_year && current_month >= first_month) do
