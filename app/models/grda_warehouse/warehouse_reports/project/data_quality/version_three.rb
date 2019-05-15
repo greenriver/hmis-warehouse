@@ -2299,6 +2299,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       earned_types = [
         :EarnedAmount,
       ]
+      earned_flags = [
+        :Earned,
+      ]
       non_cash_types = [
         :UnemploymentAmount,
         :SSIAmount,
@@ -2315,6 +2318,22 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :AlimonyAmount,
         :OtherIncomeAmount
       ]
+      non_cash_flags = [
+        :Unemployment,
+        :SSI,
+        :SSDI,
+        :VADisabilityService,
+        :VADisabilityNonService,
+        :PrivateDisability,
+        :WorkersComp,
+        :TANF,
+        :GA,
+        :SocSecRetirement,
+        :Pension,
+        :ChildSupport,
+        :Alimony,
+        :OtherIncome,
+      ]
       all_income_types = earned_types + non_cash_types
 
       incomes.each do |client_id, income_assessments|
@@ -2328,17 +2347,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         last_total_income = last_assessment.values_at(*all_income_types).compact.sum
         first_total_income = first_assessment.values_at(*all_income_types).compact.sum
 
-        increased_earned << client_id if last_earned_income >= first_earned_income
+        increased_earned << client_id if last_earned_income >= first_earned_income && last_earned_income > 0
         increased_earned_twenty_percent << client_id if increased_twenty_percent?(last_earned_income, first_earned_income)
         # you might also have an increase that doesn't contain the value details
-        increased_earned << client_id if first_earned_income != 1 && last_earned_income == 1
+        # if you had no earned flags at the first assessment, and have at least one at the last, you have new income
+        increased_earned << client_id if first_assessment.values_at(*earned_flags).compact.all?{|v| v != 1} && last_assessment.values_at(*earned_flags).compact.any?{|v| v == 1}
         change_in_earned_percentage[client_id] = income_increase(change_in_earned_percentage[client_id], last_earned_income, first_earned_income, last_assessment)
 
         increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income
+        increased_non_cash << client_id if first_assessment.values_at(*non_cash_flags).compact.all?{|v| v != 1} && last_assessment.values_at(*non_cash_flags).compact.any?{|v| v == 1}
         increased_non_cash_twenty_percent << client_id if increased_twenty_percent?(last_non_cash_income, first_non_cash_income)
         change_in_non_cash_percentage[client_id] = income_increase(change_in_non_cash_percentage[client_id], last_non_cash_income, first_non_cash_income, last_assessment)
 
         increased_overall << client_id if last_total_income >= first_total_income
+        increased_overall << client_id if first_assessment[:IncomeFromAnySource] != 1 && last_assessment[:IncomeFromAnySource] == 1
         increased_overall_twenty_percent << client_id if increased_twenty_percent?(last_total_income, first_total_income)
         change_in_overall_percentage[client_id] = income_increase(change_in_overall_percentage[client_id], last_total_income, first_total_income, last_assessment)
 
@@ -2424,7 +2446,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         change = ((increase.to_f / first_earned_income) * 100).round
         result[:change] = [change, result[:change]].compact.max
       else
-        result[:change] = result[:change] || 'no income at start'
+        result[:change] = result[:change] || "no income at start, $#{last_earned_income} at end"
       end
       result
     end
