@@ -1,7 +1,17 @@
 @import '../helpers';
 
+.select2,
+.select2-wrapper {
+  width: 100% !important;
+}
+
 .select2-container {
   display: inline-flex;
+  width: 100% !important;
+}
+
+.select2-container .selection {
+  width: 100%;
 }
 
 .select2-container--bootstrap.select2-container--focus .select2-selection,
@@ -12,7 +22,6 @@
   @include form-control;
   height: auto;
   min-height: 40px;
-  min-width: 300px;
   box-shadow: none;
   border-color: $input-border-color;
   display: flex;
@@ -70,6 +79,9 @@
 .select2-container--default .select2-selection--multiple .select2-selection__rendered {
   &:only-child {
     padding: 0;
+  }
+  li:only-child {
+    width: 100%;
   }
 }
 

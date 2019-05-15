@@ -4,6 +4,7 @@ App.init = ->
   $('[data-toggle="tooltip"]').tooltip();
   $('[data-toggle="popover"]').popover();
   $('.select2').each () ->
+    $(this).closest('.form-group').addClass('select2-wrapper')
     $(this).select2
       placeholder: $(this).data('placeholder') || ''
   $.fn.datepicker.defaults.format = "M d, yyyy";
@@ -20,7 +21,9 @@ App.init = ->
 # TODO may also need to do on pjax_modal change
 $ ->
   App.init()
-  $('.datepicker.enable-on-load, .date_picker.enable-on-load').prop('disabled', false).datepicker()
+  $('.datepicker.enable-on-load, .date_picker.enable-on-load')
+    .prop('disabled', false)
+    .datepicker()
 
   poller = $('[data-poll-every]').first()
   if poller.length > 0
