@@ -5,7 +5,7 @@
   .c-card__content.c-card__content--flush
     = simple_form_for @assistance, as: :entity, url: polymorphic_path(direct_financial_assistances_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
-        .youth-intake__add-dfa.ma-3
+        .youth-intake__add-dfa.m-3
           = f.input :type_provided, collection: @assistance.available_types, input_html: {class: [:select2, :jOtherTrigger] }
           .jOther.hidden
             = f.input :other
@@ -20,7 +20,7 @@
             %th Date
             %th Type
             %th
-        %tbody                
+        %tbody
           - @direct_financial_assistances.ordered.each do |dfa|
             %tr
               %td.nobr= dfa.provided_on
@@ -28,5 +28,3 @@
               %td
                 = link_to polymorphic_path(direct_financial_assistance_path_generator, id: dfa.id), method: :delete, data: {confirm: 'Deleting this financial assistance will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
                   %i.icon-cross
-
-

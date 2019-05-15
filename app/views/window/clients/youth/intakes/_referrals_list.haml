@@ -4,7 +4,7 @@
   .c-card__content.c-card__content--flush
     = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
-        .youth-intake__add-referral.ma-3
+        .youth-intake__add-referral.m-3
           = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:select2, :jOtherTrigger] }
           .jOther.hidden
             = f.input :other
