@@ -10,8 +10,14 @@
 .c-filters__row,
 .c-filters__group {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
+  margin-bottom: space(4);
+  width: 50%;
+  flex: 1 1 50%;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
 }
 
 .c-filters__group {
@@ -22,16 +28,27 @@
   width: 100%;
   flex: 1 1 100%;
   margin-right: 0;
+  margin-bottom: 0;
+  display: block;
   &:empty {
     display: none;
     margin: 0;
   }
 }
 
-.c-filters__group .form-group,
-.c-filters__group .select2-container {
+.c-filters__group .form-group {
   margin-bottom: 0;
   margin-right: space(3);
+  flex: 1 1 auto;
+}
+
+.c-filters__group--w-100 .form-group {
+  margin-bottom: space(4);
+  margin-right: 0;
+}
+
+.c-filters__group .input-group.datepicker {
+  padding: 0;
 }
 
 .c-filters__group .select2-container {
@@ -60,6 +77,6 @@
 }
 
 .c-filters hr {
-  margin-top: space(6);
+  margin-top: space(4);
   margin-bottom: space(4);
 }

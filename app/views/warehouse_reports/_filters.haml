@@ -4,16 +4,17 @@
 .c-filters.c-card
   .c-card__content
     = yield :filters_message
-    .c-filters__row.mb-4
-      - if content_for?(:filters_col)
-        .c-filters__group.c-filters__group--w-100<
-          = yield :filters_col
-      - if content_for?(:filters_col_l)
-        .c-filters__group<
-          = yield :filters_col_l
-      - if content_for?(:filters_col_r)
-        .c-filters__group<
-          = yield :filters_col_r
+    - if content_for?(:filters_col_l) || content_for?(:filters_col_r)
+      .c-filters__row
+        - if content_for?(:filters_col_l)
+          .c-filters__group<
+            = yield :filters_col_l
+        - if content_for?(:filters_col_r)
+          .c-filters__group<
+            = yield :filters_col_r
+    - if content_for?(:filters_col_full)
+      .c-filters__group.c-filters__group--w-100<
+        = yield :filters_col_full
     %hr
     .c-filters__row.c-filters__actions
       - if submit_button.present?

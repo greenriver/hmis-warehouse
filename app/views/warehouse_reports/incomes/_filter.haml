@@ -1,5 +1,5 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_incomes_path,  html: { method: :get, class: 'jFilter' } do |f|
-  - content_for :filters_col do
+  - content_for :filters_col_full do
     = render 'warehouse_reports/date_range_filters', f:f
     .row.mt-4
       .col-sm-6.mb-4

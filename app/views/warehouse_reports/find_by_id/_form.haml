@@ -2,7 +2,7 @@
   - content_for :filters_message do
     %p Paste client warehouse IDs in this box.  They can be separated by spaces, commas or returns.
 
-  - content_for :filters_col do
+  - content_for :filters_col_full do
     = text_area :client, :id, rows: 8, cols: 20, style: 'width: 100%;', value: @ids.join(', ')
 
   - content_for :filter_actions do

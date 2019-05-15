@@ -1,5 +1,5 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_initiatives_path, html: { method: :post, class: 'jFilter' } do |f|
-  - content_for :filters_col do
+  - content_for :filters_col_full do
     .row.w-100.mb-6
       .col-md-4
         = f.input :initiative_name

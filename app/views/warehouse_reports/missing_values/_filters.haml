@@ -1,5 +1,5 @@
 = simple_form_for @query, as: :q, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
-  - content_for :filters_col do
+  - content_for :filters_col_full do
     .row.w-100.mb-4
       .col-sm-4
         = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', class: :select2}
