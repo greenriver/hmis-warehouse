@@ -3,3 +3,8 @@
 input[type=submit] {
   @include button($brand-primary);
 }
+
+input[type=number] {
+  min-width: 100px;
+  padding-right: space(6);
+}

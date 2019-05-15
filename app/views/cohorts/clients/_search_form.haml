@@ -1,4 +1,4 @@
-- content_for :panel_collapse_content do
+- content_for :panel_collapse_content_search do
   .row
     .col-sm-6
       = search_form_for @q, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
@@ -9,4 +9,5 @@
 
 = render 'common/panel_collapse',
   id: 'search',
-  title: 'Search clients'
+  title: 'Search clients',
+  content: '_search'

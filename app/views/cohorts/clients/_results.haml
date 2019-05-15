@@ -1,6 +1,6 @@
 .c-card
-  .c-card__content.c-card__content--flush
-    - if @clients.any?
+  - if @clients.any?
+    .c-card__content.c-card__content--flush
       %p.p-4.pb-1.font-weight-bold= "Found #{@clients.count} matching clients"
       %table.table.table-sm.small
         %thead
@@ -59,3 +59,6 @@
                 = @days_homeless_three_years[client[:id]]
               %td
                 = @days_literally_homeless_three_years[client[:id]]
+  - else
+    .c-card__content
+      No clients found

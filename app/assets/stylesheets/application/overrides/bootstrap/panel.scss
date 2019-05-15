@@ -1,5 +1,18 @@
 @import '../../helpers';
 
+.panel-body {
+  border-top: 2px solid $gray-200;
+}
+
 .panel-body--padded {
   padding: space(4);
+}
+
+.panel-footer {
+  padding: space(4);
+  border-top: 2px solid $gray-200;
+}
+
+.panel-body .panel-footer {
+  margin: 0 (-#{space(4)}) (-#{space(4)}) (-#{space(4)});
 }

@@ -1,4 +1,4 @@
-- content_for :panel_collapse_content do
+- content_for :panel_collapse_content_touchpoint do
   = simple_form_for :touchpoints, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
     = f.error_notification
     .row
@@ -10,11 +10,11 @@
         %label.control-label Touch Point
         %div
           = select_tag('touchpoints[assessment_id]', options_from_collection_for_select(available_touchpoints, :last, :first, params[:assessment_id]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
-      .col-sm-2
-        %label.control-label &nbsp;
-        %div
-          = f.button :submit, value: 'Show'
+
+    .panel-footer
+      = f.button :submit, value: 'Show'
 
 = render 'common/panel_collapse',
   id: 'touchpoint',
-  title: 'Pick from clients with a Touch Point'
+  title: 'Pick from clients with a Touch Point',
+  content: '_touchpoint'

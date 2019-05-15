@@ -1,4 +1,4 @@
-- content_for :panel_collapse_content do
+- content_for :panel_collapse_content_chronic do
   = simple_form_for @filter, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
     = f.error_notification
     .row
@@ -16,11 +16,11 @@
     .row
       .col-sm-4
         = f.input :last_service_after, label: 'Received Homeless Service After', collection: @filter.date_ranges, include_blank: false
-      .col-sm-4.text-right
-        %label.control-label &nbsp;
-        %div
-          = f.button :submit, value: 'Search'
+
+    .panel-footer
+      = f.button :submit, value: 'Search'
 
 = render 'common/panel_collapse',
   id: 'chronic',
-  title: 'Pick from chronic lists'
+  title: 'Pick from chronic lists',
+  content: '_chronic'

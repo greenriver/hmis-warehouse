@@ -1,4 +1,4 @@
-- content_for :panel_collapse_content do
+- content_for :panel_collapse_content_hud_chronic do
   = simple_form_for @hud_filter, as: :hud_filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
     = f.error_notification
     .row
@@ -14,11 +14,11 @@
     .row
       .col-sm-4
         = f.input :last_service_after, label: 'Received Homeless Service After', collection: @hud_filter.date_ranges, include_blank: false
-      .col-sm-4.text-right
-        %label.control-label &nbsp;
-        %div
-          = f.button :submit, value: 'Search'
+
+    .panel-footer
+      = f.button :submit, value: 'Search'
 
 = render 'common/panel_collapse',
   id: 'hud_chronic',
-  title: 'Pick from HUD chronic lists'
+  title: 'Pick from HUD chronic lists',
+  content: '_hud_chronic'

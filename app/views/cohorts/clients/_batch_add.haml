@@ -1,10 +1,12 @@
-- content_for :panel_collapse_content do
+- content_for :panel_collapse_content_batch do
   %p Add or Paste warehouse ids for clients below.  Separate ids by white-space
   = simple_form_for :batch, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
     = f.input :client_ids, as: :text, label: false, class: 'form-control'
 
-    = f.button :submit, value: 'Show'
+    .panel-footer
+      = f.button :submit, value: 'Show'
 
 = render 'common/panel_collapse',
   id: 'batch',
-  title: 'Add by Warehouse ID'
+  title: 'Add by Warehouse ID',
+  content: '_batch'
