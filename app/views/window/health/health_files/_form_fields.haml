@@ -10,4 +10,10 @@
   - if include_submit
     .d-flex
       .ml-auto
-        = f.button :submit, 'Save', data: { disable_with: 'Uploading...' }, style: 'background-color: #3c6776'
+        = f.button :submit, 'Save', disabled: true, data: { disable_with: 'Uploading...' }, id: 'upload_button', style: 'background-color: #3c6776'
+
+- content_for :page_js do
+  :javascript
+    $('#health_file_health_file_attributes_file').on('change', function() {
+      $('#upload_button').prop('disabled', !$(this).val());
+    });
