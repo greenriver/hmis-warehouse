@@ -16,7 +16,12 @@
           - if sc_count == 1
             - client_name = "#{client_name} in #{c.source_clients.first.data_source.short_name}"
           %td{colspan: colspan}
-            = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: link_to(client_name, client_path(c), target: "_blank")
+            .d-flex.align-items-center
+              .c-checkbox.c-checkbox--round.mr-4
+                -# = f.input :merge, label: false, as: :boolean, checked_value: c.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}
+                = check_box_tag input_id, c.id, nil, id: c.id
+                %label{for:c.id, tabindex:'1' }
+              = link_to(client_name, client_path(c), target: "_blank")
           - if sc_count == 1
             %td
               - if can_view_full_dob?
@@ -33,7 +38,11 @@
               %tr
                 %td{style: 'width: 2em;'}
                 %td.client__source-client
-                  = f.input :merge, label: false, as: :boolean, checked_value: sc.id, unchecked_value: nil, input_html: {name: input_id, id: input_id}, inline_label: "#{sc.full_name} in #{sc.data_source.short_name} <br /> #{sc.uuid}".html_safe
+                  .d-flex.align-items-center
+                    .c-checkbox.c-checkbox--round.mr-4
+                      = check_box_tag input_id, sc.id, nil, id: sc.id
+                      %label{for:sc.id, tabindex:'1' }
+                    %span= "#{sc.full_name} in #{sc.data_source.short_name} <br /> #{sc.uuid}".html_safe
                 %td
                   = sc.DOB
                 %td
