@@ -7,8 +7,24 @@ class Users::InvitationsController < Devise::InvitationsController
     @user = User.new
   end
 
+  def confirm
+    @user = User.new
+    if ! creating_admin?
+      create
+    end
+  end
+
   # POST /resource/invitation
   def create
+    if creating_admin?
+      if ! current_user.valid_password?(confirmation_params[:confirmation_password])
+        flash[:error] = "User not updated. Incorrect password"
+        @user = User.new
+        render :confirm
+        return
+      end
+    end
+
     if User.with_deleted.find_by_email(invite_params[:email]).present?
       @user = User.with_deleted.find_by_email(invite_params[:email]).restore
     end
@@ -67,6 +83,24 @@ class Users::InvitationsController < Devise::InvitationsController
         reports: [],
         cohorts: []
       )
+    end
+
+    def confirmation_params
+      params.require(:user).permit(
+        :confirmation_password
+      )
+    end
+
+    def creating_admin?
+      role_ids = invite_params[:role_ids]&.select{|v| v.present?}&.map(&:to_i) || []
+      role_ids.each do |id|
+        role = Role.find(id)
+        if role.administrative?
+          @admin_role_name = role.name.humanize
+          return true
+        end
+      end
+      return false
     end
 
 end

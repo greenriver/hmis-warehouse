@@ -1,0 +1,4 @@
+- @data.each do |org_name, projects|
+  %optgroup{label: org_name}
+    - projects.each do |name, id|
+      %option{value: id}= name

@@ -1,6 +1,9 @@
 .ho-container.rrh
   .ho-container__header
-    %h3 Overview
+    %h3.d-flex
+      %div Overview
+      .ml-auto
+        %i.icon-info{data: {toggle: :tooltip, title: "Households are calculated as unique heads of household.  This differs from HMIS, which would count each enrollment of a group of people as a new household."}}
   .d-flex.text-center.justify-content-center.mt-4.mb-6
     .rrh__enrolled.chunk.pr-4.mr-4.mb-4
       %h4.title

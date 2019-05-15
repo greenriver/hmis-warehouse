@@ -53,6 +53,9 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         range:
           min:
             y: -100
+        y:
+          padding: 0
+          max: 100
       grid:
         y:
           lines:

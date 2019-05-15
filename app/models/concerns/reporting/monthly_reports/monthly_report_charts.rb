@@ -5,6 +5,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     attr_accessor :organization_ids
     attr_accessor :project_ids
     attr_accessor :months
+    attr_accessor :project_types
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -54,6 +55,19 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       where(project_id: project_ids)
     end
 
+    scope :for_project_types, -> (project_types) do
+      return all unless project_types.present?
+      project_type_codes = []
+      project_types.each do |type|
+        project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type)
+      end
+      where(project_type: project_type_codes)
+    end
+
+    scope :heads_of_household, -> do
+      where(head_of_household: 1)
+    end
+
     def months_in_dates
       @months_in_dates ||= months.map{|year, month| Date.new(year, month, 1) }
     end
@@ -61,21 +75,30 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     def enrolled_clients
       self.class.enrolled.in_months(months).
         for_organizations(organization_ids).
-        for_projects(project_ids)
+        for_projects(project_ids).
+        for_project_types(project_types)
     end
 
     def enrolled_client_count
       enrolled_clients.select(:client_id).distinct.count
     end
 
+    # NOTE: HMIS households (household_id) are different for every enrollment
+    # This uses a proxy of only counting heads of household for household ids that
+    # meet the scope.
+    # Potentially this introduces errors since someone may actually be
+    # The head of household in more than one household
     def enrolled_household_count
-      enrolled_clients.select(:household_id).distinct.count
+      self.class.enrolled.in_months(months).
+        where(household_id: enrolled_clients.select(:household_id)).
+        heads_of_household.select(:client_id).distinct.count
     end
 
     def active_clients
       self.class.active.in_months(months).
         for_organizations(organization_ids).
-        for_projects(project_ids)
+        for_projects(project_ids).
+        for_project_types(project_types)
     end
 
     def active_client_count
@@ -83,7 +106,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def active_household_count
-      active_clients.select(:household_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: active_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def entered_clients
@@ -95,13 +120,16 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entered_household_count
-      entered_clients.select(:household_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: entered_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def exited_clients
       self.class.exited.in_months(months).
         for_organizations(organization_ids).
-        for_projects(project_ids)
+        for_projects(project_ids).
+        for_project_types(project_types)
     end
 
     def exited_client_count
@@ -109,7 +137,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def exited_household_count
-      exited_clients.select(:household_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: exited_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def first_time_clients
@@ -138,7 +168,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def census_by_project_type
       data = Hash[homeless_project_type_ids.zip()]
-      counts = enrolled_clients.group(:year, :month, :project_type).
+      counts = active_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
         distinct(:client_id).count
       homeless_project_type_ids.each do |project_type_id|
