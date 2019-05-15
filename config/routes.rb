@@ -570,6 +570,7 @@ Rails.application.routes.draw do
         resources :top_providers, only: [:index]
       end
     end
+    resources :projects, only: [:index]
   end
 
   namespace :admin do
