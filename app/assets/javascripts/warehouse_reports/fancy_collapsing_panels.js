@@ -9,7 +9,4 @@ $('.panel-collapsible .panel-collapse').on('show.bs.collapse hide.bs.collapse', 
     .find('input')
     .first()
     .focus()
-  console.log($parent
-    .find('input')
-  )
 })
