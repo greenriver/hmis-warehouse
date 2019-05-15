@@ -152,6 +152,7 @@ module Reporting::MonthlyReports
                   en.prior_exit_project_type = max_exit_enrollment.project_type
                   en.prior_exit_destination_id = max_exit_enrollment.destination_id
                 end
+              end
               next if en.days_since_last_exit.present?
 
               # short circuit if prior month contains ongoing enrollments
