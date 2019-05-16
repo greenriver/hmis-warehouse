@@ -1,9 +1,9 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_initiatives_path, html: { method: :post, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
-    .row.w-100.mb-6
+    .row.w-100
       .col-md-4
         = f.input :initiative_name
-    .row.w-100.mb-6
+    .row.w-100
       .col-md-4
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
       - if can_edit_project_groups?
@@ -13,19 +13,15 @@
         = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: 'Population', include_blank: false, input_html: {class: 'select2'}
     .row.w-100
       .col-lg-6
-        %h4 Date Range
-        .row
-          .col-md-6
-            = f.input :start, as: :date_picker
-          .col-md-6
-            = f.input :end, as: :date_picker
+        = render 'warehouse_reports/date_range_filters',
+          f:f,
+          title: 'Date Range'
       .col-lg-6
-        %h4 Comparison Date Range
-        .row
-          .col-md-6
-            = f.input :comparison_start, as: :date_picker, label: 'Start'
-          .col-md-6
-            = f.input :comparison_end, as: :date_picker, label: 'End'
+        = render 'warehouse_reports/date_range_filters',
+          f:f,
+          title: 'Comparison Date Range',
+          start_input: :comparison_start,
+          end_input: :comparison_end
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Queue Report', data: { disable_with: 'running...' }
