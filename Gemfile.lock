@@ -909,8 +909,6 @@ GEM
     fast_gettext (1.4.1)
     ffi (1.9.25)
     flamegraph (0.9.5)
-    font-awesome-sass (5.4.1)
-      sassc (>= 1.11)
     foreman (0.82.0)
       thor (~> 0.19.1)
     formatador (0.2.5)
@@ -1362,7 +1360,6 @@ DEPENDENCIES
   faker (>= 1.7.2)
   fast_gettext
   flamegraph
-  font-awesome-sass (~> 5.4.1)
   foreman
   gettext (>= 3.0.2)
   gettext_i18n_rails
