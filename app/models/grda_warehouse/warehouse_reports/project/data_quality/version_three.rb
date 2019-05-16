@@ -2217,19 +2217,25 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         increased_earned_twenty_percent << client_id if increased_twenty_percent?(last_earned_income, first_earned_income)
         # you might also have an increase that doesn't contain the value details
         # if you had no earned flags at the first assessment, and have at least one at the last, you have new income
-        increased_earned << client_id if first_assessment.values_at(*earned_flags).compact.all?{|v| v != 1} && last_assessment.values_at(*earned_flags).compact.any?{|v| v == 1}
-        change_in_earned_percentage[client_id] = income_increase(change_in_earned_percentage[client_id], last_earned_income, first_earned_income, last_assessment)
+        # unless the last value is 0
+        increased_earned << client_id if first_assessment.values_at(*earned_flags).compact.all?{|v| v != 1} &&
+          last_assessment.values_at(*earned_flags).compact.any?{|v| v == 1} &&
+          last_earned_income > 0
+        change_in_earned_percentage[client_id] = income_increase(last_earned_income, first_earned_income, last_assessment)
 
         increased_non_cash << client_id if last_non_cash_income >= first_non_cash_income && last_non_cash_income > 0
-        increased_non_cash << client_id if first_assessment.values_at(*non_cash_flags).compact.all?{|v| v != 1} && last_assessment.values_at(*non_cash_flags).compact.any?{|v| v == 1}
+        increased_non_cash << client_id if first_assessment.values_at(*non_cash_flags).compact.all?{|v| v != 1} &&
+          last_assessment.values_at(*non_cash_flags).compact.any?{|v| v == 1} &&
+          last_non_cash_income > 0
         increased_non_cash_twenty_percent << client_id if increased_twenty_percent?(last_non_cash_income, first_non_cash_income)
-        change_in_non_cash_percentage[client_id] = income_increase(change_in_non_cash_percentage[client_id], last_non_cash_income, first_non_cash_income, last_assessment)
+        change_in_non_cash_percentage[client_id] = income_increase(last_non_cash_income, first_non_cash_income, last_assessment)
 
         increased_overall << client_id if last_total_income >= first_total_income && last_total_income > 0
-        increased_overall << client_id if first_assessment[:IncomeFromAnySource] != 1 && last_assessment[:IncomeFromAnySource] == 1
+        increased_overall << client_id if first_assessment[:IncomeFromAnySource] != 1 &&
+          last_assessment[:IncomeFromAnySource] == 1 &&
+          last_total_income > 0
         increased_overall_twenty_percent << client_id if increased_twenty_percent?(last_total_income, first_total_income)
-        change_in_overall_percentage[client_id] = income_increase(change_in_overall_percentage[client_id], last_total_income, first_total_income, last_assessment)
-
+        change_in_overall_percentage[client_id] = income_increase(last_total_income, first_total_income, last_assessment)
       end
 
       increased_earned_percentage = (increased_earned.size.to_f/clients.size*100).round(2) rescue 0
@@ -2299,8 +2305,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       [ client_id, data[:first_name], data[:last_name], data[:project_name], data[:change] ]
     end
 
-    def income_increase(current_values, last_earned_income, first_earned_income, assessment)
-      result = current_values || {}
+    def income_increase(last_earned_income, first_earned_income, assessment)
+      result = {}
 
       enrollment = enrollments[assessment[:client_id]].detect{|e| e[:enrollment_id] == assessment[:enrollment_id]}
       result[:first_name] ||= enrollment[:first_name]
@@ -2310,15 +2316,17 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       if first_earned_income && first_earned_income > 0
         increase = last_earned_income - first_earned_income
         change = ((increase.to_f / first_earned_income) * 100).round
-        result[:change] = [change, result[:change]].compact.max
+        result[:change] = change
       else
-        result[:change] = result[:change] || "no income at start, $#{last_earned_income} at end"
+        if last_earned_income > 0
+          result[:change] = "no income at start, $#{last_earned_income} at end"
+        end
       end
       result
     end
 
     def increased_twenty_percent?(last_earned_income, first_earned_income)
-      last_earned_income >= first_earned_income * 1.2
+      last_earned_income >= first_earned_income * 1.2 && last_earned_income > 0
     end
 
     def add_capacity_answers
