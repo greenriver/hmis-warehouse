@@ -6,7 +6,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :set_project_metadata,
         :set_bed_coverage_data,
         :calculate_missing_universal_elements,
-        :add_missing_enrollment_elements,
         :add_agency_entering_data,
         :add_length_of_stay,
         :destination_ph,
@@ -135,70 +134,70 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def describe_data_completeness
       issues = []
-      if report['missing_name_percent'] > mininum_completeness_threshold
+      if report['missing_name_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - Name"
       end
-      if report['refused_name_percent'] > mininum_completeness_threshold
+      if report['refused_name_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - Name"
       end
-      if report['missing_ssn_percent'] > mininum_completeness_threshold
+      if report['missing_ssn_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - SSN"
       end
-      if report['refused_ssn_percent'] > mininum_completeness_threshold
+      if report['refused_ssn_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - SSN"
       end
-      if report['missing_dob_percent'] > mininum_completeness_threshold
+      if report['missing_dob_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - DOB"
       end
-      if report['refused_dob_percent'] > mininum_completeness_threshold
+      if report['refused_dob_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - DOB"
       end
-      if report['missing_veteran_percent'] > mininum_completeness_threshold
+      if report['missing_veteran_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - Veteran"
       end
-      if report['refused_veteran_percent'] > mininum_completeness_threshold
+      if report['refused_veteran_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - Veteran"
       end
-      if report['missing_ethnicity_percent'] > mininum_completeness_threshold
+      if report['missing_ethnicity_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - Ethnicity"
       end
-      if report['refused_ethnicity_percent'] > mininum_completeness_threshold
+      if report['refused_ethnicity_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - Ethnicity"
       end
-      if report['missing_race_percent'] > mininum_completeness_threshold
+      if report['missing_race_percent'] > minimum_completeness_threshold
         issues << "High Missing Rate - Race"
       end
-      if report['refused_race_percent'] > mininum_completeness_threshold
+      if report['refused_race_percent'] > minimum_completeness_threshold
         issues << "High Refused Rate - Race"
       end
-      if report['missing_disabling_condition_percentage'] > mininum_completeness_threshold
+      if report['missing_disabling_condition_percentage'] > minimum_completeness_threshold
         issues << "High Missing Rate - Disabling Condition"
       end
-      if report['refused_disabling_condition_percentage'] > mininum_completeness_threshold
+      if report['refused_disabling_condition_percentage'] > minimum_completeness_threshold
         issues << "High Refused Rate - Disabling Condition"
       end
-      if report['missing_prior_living_situation_percentage'] > mininum_completeness_threshold
+      if report['missing_prior_living_situation_percentage'] > minimum_completeness_threshold
         issues << "High Missing Rate - Prior Living Situation"
       end
-      if report['refused_prior_living_situation_percentage'] > mininum_completeness_threshold
+      if report['refused_prior_living_situation_percentage'] > minimum_completeness_threshold
         issues << "High Refused Rate - Prior Living Situation"
       end
-      if report['missing_destination_percentage'] > mininum_completeness_threshold
+      if report['missing_destination_percentage'] > minimum_completeness_threshold
         issues << "High Missing Rate - Destination"
       end
-      if report['refused_destination_percentage'] > mininum_completeness_threshold
+      if report['refused_destination_percentage'] > minimum_completeness_threshold
         issues << "High Refused Rate - Destination"
       end
-      if report['missing_income_at_entry_percentage'] > mininum_completeness_threshold
+      if report['missing_income_at_entry_percentage'] > minimum_completeness_threshold
         issues << "High Missing Rate - Income at Entry"
       end
-      if report['refused_income_at_entry_percentage'] > mininum_completeness_threshold
+      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
         issues << "High Refused Rate - Income At Entry"
       end
-      if report['missing_income_at_exit_percentage'] > mininum_completeness_threshold
+      if report['missing_income_at_exit_percentage'] > minimum_completeness_threshold
         issues << "High Missing Rate - Income at Exit"
       end
-      if report['refused_income_at_entry_percentage'] > mininum_completeness_threshold
+      if report['refused_income_at_entry_percentage'] > minimum_completeness_threshold
         issues << "High Refused Rate - Income At Exit"
       end
       issues << no_issues if issues.empty?
@@ -255,7 +254,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       105
     end
 
-    def mininum_completeness_threshold
+    def minimum_completeness_threshold
       100 - completeness_goal
     end
 
@@ -921,9 +920,20 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
 
       completeness_percentage = all_completeness_percentages.sum / all_completeness_percentages.size
-      answers = { project_missing: json_shape, completeness_percentage: completeness_percentage }
+      final_answers =
+        {
+          project_missing: json_shape,
+          completeness_percentage: completeness_percentage,
+        }
+      self.class.completeness_field_names.keys.each do |key|
+        final_answers["missing_#{key}"] = answers[:project_missing][:totals]["missing_#{key}"]
+        final_answers["missing_#{key}_percentage"] = answers[:project_missing][:totals]["missing_#{key}_percentage"]
 
-      add_answers(answers, support)
+        final_answers["refused_#{key}"] = answers[:project_missing][:totals]["refused_#{key}"]
+        final_answers["refused_#{key}_percentage"] = answers[:project_missing][:totals]["refused_#{key}_percentage"]
+      end
+
+      add_answers(final_answers, support)
     end
 
     def self.completeness_field_names
@@ -2058,154 +2068,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :refused_income_at_entry_percentage,
         :refused_income_at_exit_percentage,
       ]
-      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < mininum_completeness_threshold rescue false
+      meets_dq_benchmark = report.with_indifferent_access.values_at(*percentages).max < minimum_completeness_threshold rescue false
       add_answers({
         meets_dq_benchmark: meets_dq_benchmark
       })
-    end
-
-    def add_missing_enrollment_elements
-      client_count = clients.size
-      leavers_count = leavers.size
-      missing_disabling_condition = Set.new
-      missing_prior_living = Set.new
-      missing_destination = Set.new
-      missing_income_at_entry = Set.new
-      missing_income_at_exit = Set.new
-      refused_disabling_condition = Set.new
-      refused_prior_living = Set.new
-      refused_destination = Set.new
-      refused_income_at_entry = Set.new
-      refused_income_at_exit = Set.new
-
-      enrollments.each do |client_id, enrollments|
-        enrollments.each do |enrollment|
-          missing_disabling_condition << enrollment[:destination_id] if missing?(enrollment[:disabling_condition])
-          missing_prior_living << enrollment[:destination_id] if missing?(enrollment[:residence_prior])
-          refused_disabling_condition << enrollment[:destination_id] if refused?(enrollment[:disabling_condition])
-          refused_prior_living << enrollment[:destination_id] if refused?(enrollment[:residence_prior])
-        end
-      end
-      leavers.each do |client_id|
-        enrollments[client_id].each do |enrollment|
-          missing_destination << enrollment[:destination_id] if missing?(enrollment[:destination])
-          refused_destination << enrollment[:destination_id] if refused?(enrollment[:destination])
-        end
-      end
-
-      # Only applies to enrollments started or ended during the report range
-      entries.each do |source_client_id, enrollments|
-        enrollments.each do |enrollment|
-          missing_income_at_entry << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 1)
-          refused_income_at_entry << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 1)
-        end
-      end
-      exits.each do |source_client_id, enrollments|
-        enrollments.each do |enrollment|
-          missing_income_at_exit << source_client_id if missing_income(source_client_id, enrollment, data_collection_stage: 3)
-          refused_income_at_exit << source_client_id if refused_income(source_client_id, enrollment, data_collection_stage: 3)
-        end
-      end
-
-      missing_disabling_condition_percentage = (missing_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
-      missing_prior_living_percentage = (missing_prior_living.size.to_f/client_count*100).round(2) rescue 0
-      refused_disabling_condition_percentage = (refused_disabling_condition.size.to_f/client_count*100).round(2) rescue 0
-      refused_prior_living_percentage = (refused_prior_living.size.to_f/client_count*100).round(2) rescue 0
-
-      enter_event_count = entries.values.flatten.count
-      if enter_event_count == 0
-        missing_income_at_entry_percentage = 0
-        refused_income_at_entry_percentage = 0
-      else
-        missing_income_at_entry_percentage = (missing_income_at_entry.size.to_f/enter_event_count*100).round(2) rescue 0
-        refused_income_at_entry_percentage = 0 # (refused_income_at_entry.size.to_f/enter_event_count*100).round(2) rescue 0
-      end
-
-
-      exit_event_count = exits.values.flatten.count
-      if exit_event_count == 0
-        missing_income_at_exit_percentage = 0
-        refused_income_at_exit_percentage = 0
-      else
-        missing_income_at_exit_percentage = (missing_income_at_exit.size.to_f/exit_event_count*100).round(2) rescue 0
-        refused_income_at_exit_percentage = 0 # (refused_income_at_exit.size.to_f/exit_event_count*100).round(2) rescue 0
-      end
-
-      # missing and refused destinations will be NaN if there are no leavers
-      if leavers.count == 0
-        missing_destination_percentage = 0
-        refused_destination_percentage = 0
-      else
-        missing_destination_percentage = (missing_destination.size.to_f/leavers_count*100).round(2) rescue 0
-        refused_destination_percentage = (refused_destination.size.to_f/leavers_count*100).round(2) rescue 0
-      end
-      answers = {
-        missing_disabling_condition: missing_disabling_condition.size,
-        missing_disabling_condition_percentage: missing_disabling_condition_percentage,
-        missing_prior_living_situation: missing_prior_living.size,
-        missing_prior_living_situation_percentage: missing_prior_living_percentage,
-        missing_destination: missing_destination.size,
-        missing_destination_percentage: missing_destination_percentage,
-        refused_disabling_condition: refused_disabling_condition.size,
-        refused_disabling_condition_percentage: refused_disabling_condition_percentage,
-        refused_prior_living_situation: refused_prior_living.size,
-        refused_prior_living_situation_percentage: refused_prior_living_percentage,
-        refused_destination: refused_destination.size,
-        refused_destination_percentage: refused_destination_percentage,
-        missing_income_at_entry: missing_income_at_entry.size,
-        refused_income_at_entry: refused_income_at_entry.size,
-        missing_income_at_exit: missing_income_at_exit.size,
-        refused_income_at_exit: refused_income_at_exit.size,
-        missing_income_at_entry_percentage: missing_income_at_entry_percentage,
-        refused_income_at_entry_percentage: refused_income_at_entry_percentage,
-        missing_income_at_exit_percentage: missing_income_at_exit_percentage,
-        refused_income_at_exit_percentage: refused_income_at_exit_percentage,
-      }
-
-      support = {
-        missing_disabling_condition: {
-          headers: ['Client ID'],
-          counts: missing_disabling_condition.map{|m| Array.wrap(m)}
-        },
-        missing_prior_living_situation: {
-          headers: ['Client ID'],
-          counts: missing_prior_living.map{|m| Array.wrap(m)}
-        },
-        missing_destination: {
-          headers: ['Client ID'],
-          counts: missing_destination.map{|m| Array.wrap(m)}
-        },
-        refused_disabling_condition: {
-          headers: ['Client ID'],
-          counts: refused_disabling_condition.map{|m| Array.wrap(m)}
-        },
-        refused_prior_living_situation: {
-          headers: ['Client ID'],
-          counts: refused_prior_living.map{|m| Array.wrap(m)}
-        },
-        refused_destination: {
-          headers: ['Client ID'],
-          counts: refused_destination.map{|m| Array.wrap(m)}
-        },
-        missing_income_at_entry: {
-          headers: ['Client ID'],
-          counts: missing_income_at_entry.map{|m| Array.wrap(m)}
-        },
-        refused_income_at_entry: {
-          headers: ['Client ID'],
-          counts: refused_income_at_entry.map{|m| Array.wrap(m)}
-        },
-        missing_income_at_exit: {
-          headers: ['Client ID'],
-          counts: missing_income_at_exit.map{|m| Array.wrap(m)}
-        },
-        refused_income_at_exit: {
-          headers: ['Client ID'],
-          counts: refused_income_at_exit.map{|m| Array.wrap(m)}
-        }
-    }
-
-      add_answers(answers, support)
     end
 
     def add_length_of_stay
@@ -2600,7 +2466,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         #   callback: :percent
         # },
         meets_dq_benchmark: {
-          title:"Meets DQ Benchmark (all missing/refused < #{mininum_completeness_threshold}%)",
+          title:"Meets DQ Benchmark (all missing/refused < #{minimum_completeness_threshold}%)",
           callback: :boolean,
         },
         one_year_enrollments: {
