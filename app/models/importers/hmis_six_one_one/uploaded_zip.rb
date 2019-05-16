@@ -90,6 +90,7 @@ module Importers::HMISSixOneOne
 
         FileUtils.mv(clean_file, file)
       end
+      binding.pry
     end
 
     def replace_original_upload_file zip_file_path
