@@ -1,5 +1,5 @@
 .row.mt-2
-  .col-sm-6
+  .col-sm-8
     - if @cohort.effective_date
       %p.mt-2
         %strong
@@ -8,20 +8,20 @@
         %strong
           = @cohort.effective_date
         where appropriate.
-  .col-sm-6.text-right
+  .col-sm-4.text-right
     Text size:
     - button_class = 'btn-secondary'
     - if params[:size].blank? || params[:size].to_sym == :md
-      - button_class = 'btn-primary' 
+      - button_class = 'btn-primary'
     = link_to(params.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
       Default
     - button_class = 'btn-secondary'
     - if params[:size].present? && params[:size].to_sym == :lg
-      - button_class = 'btn-primary' 
+      - button_class = 'btn-primary'
     = link_to(params.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
       Large
     - button_class = 'btn-secondary'
     - if params[:size].present? && params[:size].to_sym == :xl
-      - button_class = 'btn-primary' 
+      - button_class = 'btn-primary'
     = link_to(params.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
       XL

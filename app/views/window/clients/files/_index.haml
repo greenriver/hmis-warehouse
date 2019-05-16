@@ -24,7 +24,7 @@
         %a.nav-link{href: '#deleted', role: "presentation", data: {toggle: :tab}}
           Deleted Files
   .tab-content
-    .tab-pane#consent
+    .tab-pane.fade.show.active#consent
       - if @consent_files.any?
         %section
           %header.o-section-card__header
@@ -34,7 +34,7 @@
             = render 'window/clients/files/file_list', files: @consent_files, paginate: false, consent: true
       - else
         No consent files
-    .tab-pane#other
+    .tab-pane.fade#other
       - if @files.any?
         %section.o-section-card
           %header.o-section-card__header
@@ -44,7 +44,7 @@
             = render 'window/clients/files/file_list', files: @files, paginate: true, consent: false
       - else
         No other files
-    .tab-pane#deleted
+    .tab-pane.fade#deleted
       - if can_manage_client_files? && @deleted_files.any?
         %section.o-section-card
           .c-card.c-card--flush
@@ -61,13 +61,13 @@
       $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
     }
 
-    $('.nav-tabs a').click(function(e) {
+    $('.nav-tabs a[data-toggle="tab"]').click(function(e) {
       e.preventDefault();
       $(this).tab('show');
       $(this).parent().siblings().removeClass('active')
     });
 
     // Change hash for page-reload
-    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+    $('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
       window.location.hash = e.target.hash;
     })

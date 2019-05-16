@@ -1,7 +1,7 @@
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header Referrals
-  .c-card__content.c-card__content--flush
+  .c-card__content
     = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
         .youth-intake__add-referral.m-3

@@ -33,7 +33,7 @@
           - confirmation += " by #{@cohort.column_state&.first&.title} #{@cohort.class.sort_directions[@cohort.default_sort_direction]}"
         - confirmation += "?"
 
-        = f.button class: 'nav-link jReRank disabled', data: {toggle: :tooltip, title: usage_help, confirm: confirmation} do
+        = f.button class: 'nav-link btn-link jReRank disabled', data: {toggle: :tooltip, title: usage_help, confirm: confirmation} do
           %i.icon-arrow-down
           Re-Rank
         %input#rank_order{type: :hidden, name: :rank_order}

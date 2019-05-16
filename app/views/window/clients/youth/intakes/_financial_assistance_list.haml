@@ -2,7 +2,7 @@
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header Direct Financial Assistance
 
-  .c-card__content.c-card__content--flush
+  .c-card__content
     = simple_form_for @assistance, as: :entity, url: polymorphic_path(direct_financial_assistances_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
         .youth-intake__add-dfa.m-3

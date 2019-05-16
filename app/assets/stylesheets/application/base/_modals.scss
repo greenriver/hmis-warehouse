@@ -4,6 +4,8 @@
   font-size: rem(24);
   color: $brand-primary;
   text-transform: uppercase;
+  line-height: line-height(26, 24);
+  margin-top: 0;
 }
 
 .modal-title--secondary {
