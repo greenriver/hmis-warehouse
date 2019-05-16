@@ -84,11 +84,14 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     # NOTE: HMIS households (household_id) are different for every enrollment
-    # This uses a proxy of only counting head of household ids.
+    # This uses a proxy of only counting heads of household for household ids that
+    # meet the scope.
     # Potentially this introduces errors since someone may actually be
     # The head of household in more than one household
     def enrolled_household_count
-      enrolled_clients.heads_of_household.select(:client_id).distinct.count
+      self.class.enrolled.in_months(months).
+        where(household_id: enrolled_clients.select(:household_id)).
+        heads_of_household.select(:client_id).distinct.count
     end
 
     def active_clients
@@ -103,7 +106,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def active_household_count
-      active_clients.heads_of_household.select(:client_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: active_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def entered_clients
@@ -115,7 +120,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entered_household_count
-      entered_clients.heads_of_household.select(:client_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: entered_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def exited_clients
@@ -130,7 +137,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def exited_household_count
-      exited_clients.heads_of_household.select(:client_id).distinct.count
+      self.class.enrolled.in_months(months).
+      where(household_id: exited_clients.select(:household_id)).
+      heads_of_household.select(:client_id).distinct.count
     end
 
     def first_time_clients

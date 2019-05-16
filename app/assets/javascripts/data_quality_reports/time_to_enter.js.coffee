@@ -24,6 +24,7 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+
   _follow_link: (d, element) =>
     url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
     $('.modal').modal('show')

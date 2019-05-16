@@ -18,6 +18,8 @@ class App.Dashboards.Clients.Census extends App.Dashboards.Clients.Base
           tick:
             count: 7
             format: d3.format(",.0f")
+          padding: 0
+          min: 0
       grid:
         x:
           show: true

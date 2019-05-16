@@ -19,6 +19,8 @@ class App.Dashboards.Clients.Exits extends App.Dashboards.Clients.Base
           tick:
             count: 7
             format: d3.format(",.0f")
+          padding: 0
+          min: 0
       grid:
         x:
           show: true

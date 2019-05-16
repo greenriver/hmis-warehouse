@@ -24,3 +24,7 @@ class App.DataQualityReports.BedCensus extends App.DataQualityReports.Base
               max: 10
             format: (x) ->
               labels[Math.round(x)]
+
+        y:
+          padding: 0
+          min: 0
