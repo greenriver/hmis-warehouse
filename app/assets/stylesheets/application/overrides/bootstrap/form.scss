@@ -4,6 +4,15 @@
   height: auto;
 }
 
+.input-group > .form-group {
+  margin-bottom: 0;
+}
+
+.input-group > .form-group > .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .input-group-append button {
   background: #d8e7ea;
   color: $brand-primary-d;
