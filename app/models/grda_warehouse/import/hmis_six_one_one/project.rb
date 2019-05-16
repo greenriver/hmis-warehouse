@@ -51,8 +51,8 @@ module GrdaWarehouse::Import::HMISSixOneOne
       [].tap do |m|
         CSV.read(
           "#{file_path}/#{data_source_id}/#{file_name}",
-          headers: true
-        ).each do |row|
+          headers: self.hud_csv_headers.map(&:to_s)
+        ).drop(1).each do |row|
           extra = {
             file_path: file_path,
             data_source_id: data_source_id,
