@@ -359,7 +359,10 @@ module Importers::HMISSixOneOne
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
-      csv.each do |row|
+      # Reopen the file with corrected headers
+      csv = CSV.new(read_from, headers: header)
+      # since we're providing headers, skip the header row
+      csv.drop(1).each do |row|
         begin
           # remove any internal newlines
           row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }

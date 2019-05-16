@@ -20,8 +20,8 @@ module GrdaWarehouse::Import::HMISSixOneOne
     def self.load_from_csv(file_path: , data_source_id: )
       new CSV.read(
         "#{file_path}/#{data_source_id}/#{file_name}",
-        headers: true
-      ).first.to_h.
+        headers: self.hud_csv_headers.map(&:to_s)
+      ).drop(1).first.to_h.
       merge({file_path: file_path, data_source_id: data_source_id})
     end
 
