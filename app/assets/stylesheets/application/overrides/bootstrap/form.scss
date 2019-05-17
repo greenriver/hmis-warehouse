@@ -22,7 +22,8 @@
   font-weight: normal;
 }
 
-.form-group > label {
+.form-group > label,
+.form-group > legend {
   display: block;
   font-weight: 600;
 }

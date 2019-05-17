@@ -10,7 +10,7 @@
   .form-inputs
     %h3 What Does This File Contain?
     .c-card.c-card--flush.client-file.mb-6
-      .c-card__content.clearfix
+      .c-card__content.clearfix.row
         - @file.class.available_tags.keys.in_groups(2, false) do |batch|
           .col-sm-6
             - batch.each do |group_name|

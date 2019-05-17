@@ -1,7 +1,10 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_recidivism_index_path, html: { method: :get } do |f|
   - content_for :filters_col_full do
-    = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
-    = f.input :end, as: :date_picker, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
+    .row
+      .col-sm-6
+        = f.input :start, as: :date_picker, input_html: {value: @filter.start, class: 'form-control jStart'}, label: false
+      .col-sm-6
+        = f.input :end, as: :date_picker, input_html: {value: @filter.end, class: 'form-control jEnd'}, label: false
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View'

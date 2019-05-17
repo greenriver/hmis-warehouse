@@ -10,13 +10,7 @@
 
 = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_full do
-    .row.mb-4
-      .col-md-8
-        = render 'warehouse_reports/date_range_filters', f:f
-      .col-md-4.d-flex.align-items-center
-        .form-group.form-check.mt-no-label
-          = check_box_tag(:ph, true, params[:ph].present?, class: 'form-check-input')
-          %label.form-check-label.mb-0{for: :ph} PH Only
+    = render 'warehouse_reports/date_range_filters', f:f
 
     .row.mb-4
       .col-sm-6

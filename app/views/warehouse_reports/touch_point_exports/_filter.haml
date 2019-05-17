@@ -1,10 +1,13 @@
 = simple_form_for @filter, as: :filter, url: download_warehouse_reports_touch_point_exports_path(format: :xlsx), html: { method: :get, class: 'jFilter' } do |f|
   - content_for :filters_col_l do
-    = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, as: :date_picker, label: false
-    = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: false
+    .row.mb-4
+      .col-sm-6
+        = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, as: :date_picker, label: 'Start date'
+      .col-sm-6
+        = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: 'End date'
 
-  - content_for :filters_col_r do
-    = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { class: 'select2', data: { placeholder: 'Name' } }, label: false
+  - content_for :filters_col_l do
+    = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { class: 'select2', data: { placeholder: 'Name' } }, label: 'Touch Point'
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Download'

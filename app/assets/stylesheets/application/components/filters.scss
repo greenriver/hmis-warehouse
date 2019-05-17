@@ -13,7 +13,7 @@
   align-items: flex-end;
   flex-wrap: wrap;
   margin-bottom: space(4);
-  width: 50%;
+  width: 100%;
   flex: 1 1 50%;
   &:last-of-type {
     margin-bottom: 0;
@@ -74,6 +74,7 @@
 .c-filters__actions a,
 .c-filters__actions button {
   margin-right: space(3);
+  margin-bottom: space(3);
 }
 
 .c-filters hr {

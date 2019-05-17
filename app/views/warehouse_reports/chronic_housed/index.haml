@@ -1,15 +1,18 @@
 - title = 'Clients Housed, Previously on the Chronic List'
 - content_for :title, title
-%h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 .row
-  .col-sm-10
-    %p
-      Limit to clients on the chronic list within a date range.
-    = render 'filter'
-  .col-sm-2.ml-auto
+  .col-sm-8
+    %h1
+      = title
+  .col-sm-4.text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
       Download Excel
+= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+
+%p
+  Limit to clients on the chronic list within a date range.
+= render 'filter'
+
 .row
   .col-sm-12
     .warehouse-reports
