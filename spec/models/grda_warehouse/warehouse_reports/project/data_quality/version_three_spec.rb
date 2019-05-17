@@ -322,10 +322,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         end
       end
 
-      describe 'when looking at missing enrollment elements' do
+      describe 'when looking at missing enrollment values' do
         before do
           report.start_report
-          report.add_missing_enrollment_elements
+          report.calculate_missing_universal_elements
+          report.add_missing_values
         end
 
         it 'has the appropriate number of clients with missing disabling condition' do
@@ -833,10 +834,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         end
       end
 
-      describe 'when looking at missing enrollment elements' do
+      describe 'when looking at missing enrollment values' do
         before do
           report.start_report
-          report.add_missing_enrollment_elements
+          report.calculate_missing_universal_elements
+          report.add_missing_values
         end
 
         it 'has the appropriate number of clients with missing disabling condition' do
