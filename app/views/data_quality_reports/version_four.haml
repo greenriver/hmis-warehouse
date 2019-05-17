@@ -1,0 +1,31 @@
+- content_for :title, "Project Data Quality Report for #{@report.title}"
+%h1= content_for :title
+- if @report.processing_errors.present?
+  %p.alert.alert-danger.text-center
+    Processing error:
+    = JSON.parse(@report.processing_errors).first
+- elsif @report.completed_at.blank?
+  %p.alert.alert-info.text-center
+    The report is currently running...
+- else
+  = render 'data_quality_reports/version_four/status', support_path: @support_path
+  %h3 Report Parameters
+  .well.overflow-scroll
+    .row
+      .col-sm-4
+        %h4 Reporting Period
+        %p
+          %strong= @report.start
+          to
+          %strong= @report.end
+      .col-sm-4
+        %h4 Projects
+        %p= @report.projects.map(&:organization_and_name).join('<br />').html_safe
+      .col-sm-4
+        %h4 Run
+        - requestor = User.find(@report.requestor_id)
+        %p
+          Run on #{@report.created_at.to_date}
+          - if @report.requestor.present?
+            by #{@report.requestor&.name}
+

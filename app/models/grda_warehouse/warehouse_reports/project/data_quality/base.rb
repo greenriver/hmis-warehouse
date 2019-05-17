@@ -394,9 +394,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def notify_requestor
-      return unless requestor_id.present?
-      contact = User.find(requestor_id)
-      ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
+      return unless requestor.present?
+      ProjectDataQualityReportMailer.report_complete(projects, self, requestor).deliver
+    end
+
+    def requestor
+      return nil unless requestor_id.present?
+      @requestor ||= User.find(requestor_id)
     end
 
     def notifications_sent
