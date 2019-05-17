@@ -170,7 +170,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       data = Hash[homeless_project_type_ids.zip()]
       counts = active_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
         months.reverse.each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
@@ -192,10 +192,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       data = {new: [:New], returning: [:Returning]}
       new_entries = first_time_clients.group(:year, :month).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       returning_entries = re_entry_clients.group(:year, :month).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       months.reverse.each do |year, month|
         data[:new] << (new_entries[[year, month]] || 0)
         data[:returning] << (returning_entries[[year, month]] || 0)
@@ -227,10 +227,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def first_time_entry_locations
       data = Hash[homeless_project_type_ids.zip()]
-      total_counts = first_time_clients.group(:year, :month).distinct(:client_id).count
+      total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
       counts = first_time_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
         months.reverse.each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
@@ -242,10 +242,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def re_entry_locations
       data = Hash[homeless_project_type_ids.zip()]
-      total_counts = re_entry_clients.group(:year, :month).distinct(:client_id).count
+      total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
       counts = re_entry_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
         months.reverse.each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
@@ -260,7 +260,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def all_housed_client_count
-      all_housed_clients.distinct.select(:client_id).count
+      all_housed_clients.select(:client_id).distinct.count
     end
 
     def housed_clients
@@ -268,7 +268,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def housed_client_count
-      housed_clients.distinct.select(:client_id).count
+      housed_clients.select(:client_id).distinct.count
     end
 
     def in_percentage partial, total
@@ -280,7 +280,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       data = {housed: [:Housed]}
       housed = housed_clients.group(:year, :month).
         order(year: :asc, month: :asc).
-        distinct(:client_id).count
+        select(:client_id).distinct.count
       months.reverse.each do |year, month|
         data[:housed] << (housed[[year, month]] || 0)
       end

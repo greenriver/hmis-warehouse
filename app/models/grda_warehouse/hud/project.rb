@@ -204,10 +204,9 @@ module GrdaWarehouse::Hud
 
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
-      # These can only be overridden in the positive direction
       where(
-        arel_table[:ContinuumProject].eq(1).
-        or(arel_table[:hud_continuum_funded].eq(true))
+        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil)).
+        or(arel_table[:hud_continuum_funded].eq(true).and(arel_table[:ContinuumProject].eq(0)))
       )
     end
 
@@ -312,6 +311,7 @@ module GrdaWarehouse::Hud
     private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
       viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table     = quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -325,7 +325,9 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
               AND
-              #{viewability_table}.deleted_at IS NULL
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{project_table}.#{qc.(GrdaWarehouse::Hud::Project.paranoia_column)} IS NULL
         )
 
       SQL
@@ -335,6 +337,7 @@ module GrdaWarehouse::Hud
       viewability_table   = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -350,7 +353,7 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
               AND
-              #{viewability_table}.deleted_at IS NULL
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
               #{organization_table}.#{qc.('data_source_id')} = #{project_table}.#{qc.('data_source_id')}
               AND
@@ -366,6 +369,7 @@ module GrdaWarehouse::Hud
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table     = quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -381,7 +385,7 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
               AND
-              #{viewability_table}.deleted_at IS NULL
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )

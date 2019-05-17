@@ -1,10 +1,12 @@
 class DataQualityReportsController < ApplicationController
   include PjaxModalController
-  # Authorize by either access to projects OR access by token
-  skip_before_action :authenticate_user!, only: [:show, :index, :answers] # support requires authentication
-  before_action :require_valid_token_or_project_access!, except: [:support] # support must have an authenticated user
-  before_action :set_report, only: [:show, :answers, :support]
-  before_action :set_project, only: [:show, :support]
+  skip_before_action :authenticate_user!, only: [:show, :answers]
+  before_action :require_valid_token_or_report_access!, except: [:index]
+  before_action :require_valid_token_or_project_access!
+
+  before_action :set_project
+  before_action :set_report, except: [:index]
+
 
   def show
     @utilization_grades = utilization_grade_scope.
@@ -18,7 +20,6 @@ class DataQualityReportsController < ApplicationController
   end
 
   def index
-    @project = project_source.find(params[:project_id].to_i)
     @reports = @project.data_quality_reports.order(started_at: :desc)
   end
 
@@ -64,8 +65,12 @@ class DataQualityReportsController < ApplicationController
     GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
   end
 
+  def project_scope
+   project_source.viewable_by current_user
+  end
+
   def project_source
-    GrdaWarehouse::Hud::Project.viewable_by current_user
+    GrdaWarehouse::Hud::Project
   end
 
   def set_report
@@ -73,7 +78,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def set_project
-    @project = @report.project
+    @project = project_source.find(params[:project_id].to_i)
   end
 
   def notification_id
@@ -81,13 +86,31 @@ class DataQualityReportsController < ApplicationController
   end
   helper_method :notification_id
 
+  def require_valid_token_or_report_access!
+    if notification_id.present?
+      token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
+      raise ActionController::RoutingError.new('Not Found') if token.blank?
+      return true if token.valid?
+    else
+      set_report
+      report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
+      return true if report_viewable
+      not_authorized!
+      return
+    end
+    raise ActionController::RoutingError.new('Not Found')
+  end
+
   def require_valid_token_or_project_access!
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError.new('Not Found') if token.blank?
       return true if token.valid?
     else
-      require_can_view_client_level_details!
+      set_project
+      project_viewable = project_scope.where(id: @project.id).exists?
+      return true if project_viewable
+      not_authorized!
       return
     end
     raise ActionController::RoutingError.new('Not Found')
