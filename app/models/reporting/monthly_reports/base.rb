@@ -80,7 +80,7 @@ module Reporting::MonthlyReports
             household_id: enrollment.household_id.presence || "c_#{client_id}",
             destination_id: enrollment.destination,
             enrolled: true, # everyone will be enrolled
-            active: active_in_month?(client_id: client_id, month: month, year: year),
+            active: active_in_month?(client_id: client_id, project_type: enrollment.computed_project_type, month: month, year: year),
             entered: entered_in_month,
             exited: exited_in_month,
             project_id: project_id(enrollment.project_id, enrollment.data_source_id),
@@ -211,18 +211,19 @@ module Reporting::MonthlyReports
         distinct.
         pluck(
           :client_id,
+          :project_type,
           cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
           cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
-        ).each do |id, month, year|
+        ).each do |id, project_type, month, year|
           acitives[id] ||= []
-          acitives[id] << [year, month]
+          acitives[id] << [year, month, project_type]
         end
         acitives
       end
     end
 
-    def active_in_month? client_id:, month:, year:
-      actives_in_month[client_id]&.include?([year, month]) || false
+    def active_in_month? client_id:, project_type:, month:, year:
+      actives_in_month[client_id]&.include?([year, month, project_type]) || false
     end
 
     def first_record? enrollment
