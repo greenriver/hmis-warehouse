@@ -1,0 +1,101 @@
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Custom Bootstrap Variables
+// ---------------------------------------------------------------------------
+// Available variables:
+// https://github.com/twbs/bootstrap/blob/v4.3.1/scss/_variables.scss
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@import './colors';
+@import './spacing';
+@import '../_tools/functions';
+
+$body-bg: #f9f9f9;
+$body-color: $gray-080;
+$text-color: $gray-070 !default;
+
+$nav-tabs-active-link-hover-bg:  $body-bg;
+
+$nav-link-padding-y: 1.43rem;
+$nav-link-padding-x: 1.07rem;
+$nav-tabs-border-radius: 0;
+
+$label-color: rgba($black, .95);
+
+$alert-info-text: $white;
+
+// Inputs
+$input-btn-padding-y: .75rem;
+$input-btn-padding-x: 1.25rem;
+$input-btn-sm-padding-y: .3rem;
+$input-btn-sm-padding-x: .75rem;
+$input-btn-xs-padding-y: .15rem;
+$input-btn-xs-padding-x: .5rem;
+$input-padding-y: $input-btn-padding-y;
+$input-padding-x: $input-btn-padding-x;
+$input-border-color: $brand-primary-l;
+$input-border: $input-border-color;
+$input-height-base: 40px;
+
+// Buttons
+$btn-padding-x   : 2rem;
+$btn-padding-y   : $input-btn-padding-y;
+$btn-padding-x-sm: 1.5rem;
+$btn-padding-y-sm: .4rem;
+
+// Theme Colors
+$primary:       $brand-primary;
+$secondary:     $brand-secondary;
+$success:       $brand-success;
+$info:          $brand-info;
+$warning:       $brand-warning;
+$danger:        $brand-danger;
+
+$light:         $gray-015;
+$dark:          $gray-080;
+
+// Tooltips
+$tooltip-font-size: 13px;
+$tooltip-max-width: 300px;
+$tooltip-max-width: 275px;
+
+// Headings
+$heading-color: $gray-070;
+
+// Links
+$link-color: $cob-sg-optimistic-blue;
+$link-hover-decoration: none;
+
+// Labels
+$label-default-bg: lighten($gray-light, 30%);
+$label-primary-bg: $brand-primary-l;
+
+// Pagination
+$pagination-padding-y: .65rem;
+$pagination-padding-x: 1rem;
+$pagination-color: $link-color;
+$pagination-active-bg: $brand-primary-d;
+
+$font-size-base:   1rem !default;
+$font-size-large:  ceil(($font-size-base * 1.25)) !default; // ~18px
+$font-size-small:  ceil(($font-size-base * 0.833)) !default; // ~12px
+$h1-font-size:     2.074rem;
+$h2-font-size:     1.728rem;
+$h3-font-size:     1.44rem;
+$h4-font-size:     1.2rem;
+$h5-font-size:     $font-size-base !default;
+$h6-font-size:     ceil(($font-size-base * 0.833)) !default; // ~12px
+
+$font-family-sans-serif: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+
+$headings-font-family:    'Open Sans Condensed', sans-serif;
+$headings-font-weight:    700 !default;
+$headings-line-height:    1.2 !default;
+$headings-color:          inherit !default;
+
+$enable-caret: false;
+
+// Modals
+$modal-xl: 75vh;
+$modal-lg: 65vh;
+$modal-md: 600px;
+$modal-sm: 300px;

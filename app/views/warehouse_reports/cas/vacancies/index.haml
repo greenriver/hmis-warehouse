@@ -6,24 +6,23 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_cas_vacancies_path, html: { method: :get } do |f|
   = render 'filter', f: f
 
-.row.margin-bottom-02
+.row.mb-2
   .col-sm-10
     %p
       The following counts are for CAS vacancies created between
       %strong #{@report[:start_date]}
       and
       %strong #{@report[:end_date]}.
-  .col-sm-2
-    .pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+  .col-sm-2.ml-auto
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 
 .row.bg-info
   .col-sm-3
     %h3 Vacancies by Route
     %p.description
       The number of vacancies associated with each match route.
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %th
           Route Name
@@ -40,7 +39,7 @@
     %h3 Vacancies by Program
     %p.description
       The number of vacancies associated with each program.
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %th
           Program Name
@@ -57,7 +56,7 @@
     %h3 Vacancies by Sub-program
     %p.description
       The number of vacancies associated with each sub-program.
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %th
           Sub-program Name
@@ -74,7 +73,7 @@
     %h3 Vacancies by Program Type
     %p.description
       The number of vacancies associated with each program type.
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %th
           Program Type
@@ -89,7 +88,7 @@
               = value
 .row
   %h2 Vacancies
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %th
         Created on

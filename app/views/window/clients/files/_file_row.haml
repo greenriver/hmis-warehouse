@@ -1,6 +1,8 @@
 %tr{ class: "client-file-#{file.id}"}
   %td.text-center
-    %input.jDownload{type: :checkbox, value: file.id, checked: @pre_checked&.include?(file.id)}
+    .c-checkbox.c-checkbox--round.mr-4
+      %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
+      %label{for:file.id, tabindex:'1' }
   %td.text-center.jThumb{data: {file: file.id}}
   %td.table__actions
     - if file.content.present?

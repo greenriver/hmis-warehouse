@@ -1,10 +1,10 @@
 .ho-container
   = d3_container_header('patient', @patient.name, just_patient: true)
   .row
-    .col-xs-12
+    .col-sm-12
       = d3_base_chart('d3-housing-status__chart', 'd3-housing-status__dates', 'Housing Status')
   .row
-    .col-xs-12
+    .col-sm-12
       .ss-matrix__container
         .clearfix
           %h4 Self Sufficiency Scores

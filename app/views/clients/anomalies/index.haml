@@ -8,10 +8,10 @@
   %ul.nav.nav-tabs{role: :tablist}
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
       - active = if slug == :new then 'active' end
-      %li{class: active}
-        %a{href: "##{slug}", 'aria-controls' => slug}
+      %li.nav-item{class: active}
+        %a{href: "##{slug}", 'aria-controls' => slug, class: 'nav-link'}
           = status
-  .tab-content.margin-top-02
+  .tab-content.mt-2
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
       - active = if slug == :new then 'active' end
       .tab-pane{role: :tabpanel, id: slug, class: active}

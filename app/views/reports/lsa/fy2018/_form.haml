@@ -1,7 +1,7 @@
 - if @show_missing_data
   .alert.alert-warning
     The LSA report requires some project descriptors.  The following projects are missing either Project HousingType, Geography Geocode, or Geography GeographyType, or have an invalid Funder.
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th Project
@@ -29,7 +29,7 @@
   %h3 Queue Report
   .slab
     = f.error_notification
-    .row.margin-bottom-02
+    .row.mb-2
       .col-sm-4
         = f.input :project_id, collection: Reports::Lsa::Fy2018::Base.available_projects, required: false, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}
         = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.all, required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true, class: 'select2' }

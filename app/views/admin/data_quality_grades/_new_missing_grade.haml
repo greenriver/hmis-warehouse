@@ -1,6 +1,6 @@
 %h3= _('Missing Data Percentages')
 = simple_form_for @missing_grade, as: :grade, url: admin_missing_grades_path do |f|
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th{style: 'width: 4em;'} Grade

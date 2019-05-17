@@ -1,0 +1,18 @@
+:ruby
+  start_input ||= :start
+  end_input ||= :end
+  start_input_html = {}
+  end_input_html = {}
+  title ||= ''
+  if @range
+    start_input_html = {value: @range.start, class: 'form-control jStart'}
+    end_input_html = {value: @range.end, class: 'form-control jStart'}
+  end
+
+- if title
+  %h4=title
+.row
+  .col-md-6
+    = f.input start_input, input_html: start_input_html, as: :date_picker, label: 'Start date'
+  .col-md-6
+    = f.input end_input, input_html: end_input_html, as: :date_picker, label: 'End Date'

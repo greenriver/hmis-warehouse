@@ -1,0 +1,38 @@
+@import '../helpers';
+
+.patient__demographics {
+  flex-basis: 250px;
+}
+.patient__engagement
+{
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.patient__engagement-countdown
+{
+  color: $brand-warning-d;
+}
+
+.pctp__signature-expired
+{
+  color: $brand-danger;
+}
+
+.pctp__signature-pending
+{
+  color: $brand-warning;
+}
+.pctp__success
+{
+  color: $brand-success;
+}
+.health__care-hub-note
+{
+  padding: 1em;
+  background-color: $gray-025;
+}
+.pctp__expired
+{
+  color: $brand-danger;
+}

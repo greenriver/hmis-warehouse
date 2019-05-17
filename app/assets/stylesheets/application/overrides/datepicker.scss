@@ -1,0 +1,9 @@
+@import '../helpers';
+
+.datepicker {
+  padding: 0;
+}
+
+.datepicker input {
+  padding: $input-padding-y $input-padding-x;
+}

@@ -1,0 +1,123 @@
+@import '../helpers';
+
+.cohort-client__input {
+  input[type=radio] {
+    margin-right: 5px !important;
+  }
+}
+
+.modal-dialog {
+  width: 800px;
+  margin: 30px auto;
+}
+
+th.client_notes {
+  width: 150px;
+  display: table-cell;
+}
+
+td.client_notes {
+  width: 150px;
+  display: table;
+}
+
+ul.draggable-list
+{
+  list-style-type: none; margin: 0; padding: 0; width: 60%;
+}
+ul.draggable-list li
+{
+  padding: 0.5em 1em;
+}
+
+li.draggable-list__item {
+  background-color: $gray-015;
+}
+
+#edit_column_state .draggable-list .icon-move
+{
+  padding-right: 0;
+}
+#edit_column_state .draggable-list input
+{
+  margin-right: 1em;
+}
+
+
+.table-right-border td
+{
+  border-right: 1px solid $gray-025;
+}
+
+.cohorts .dataTables_wrapper {
+  overflow: hidden;
+}
+
+.cohorts .datatable.sm
+{
+  font-size: 0.8em;
+}
+
+.cohorts .datatable.lg
+{
+  font-size: 1.2em;
+}
+
+.cohorts .datatable.xl
+{
+  font-size: 1.4em;
+}
+
+.cohorts td[data-input-type=notes]
+{
+  vertical-align: middle;
+}
+
+.cohorts .homeless_inactive
+{
+  background-color: lighten($brand-warning, 40);
+}
+
+.cohorts .cohort_client_ineligible,
+.cohorts .cohort_client_ineligible.htDimmed,
+.cohorts .cohort_client_ineligible a:link,
+.cohorts .cohort_client_ineligible.htDimmed a:link
+{
+  background-color: lighten($gray-060, 40);
+}
+
+.cohorts tr.cohort_client_ineligible textarea,
+.table-striped > tbody > tr.cohort_client_ineligible:nth-of-type(odd) textarea
+{
+  color: black;
+}
+.cohorts tr.cohort_client_ineligible a
+{
+  color: white;
+}
+.cohorts .DTFC_LeftBodyWrapper
+{
+  z-index: 4;
+}
+.jSelectRow
+{
+  padding: 0.5em;
+}
+.cohorts tr.cohort-client-selected,
+.table-striped > tbody > tr.cohort-client-selected:nth-of-type(odd)
+{
+  background-color: $cob-sg-blue-004;
+  color: white;
+}
+
+.cohort-client__table
+{
+  overflow: hidden;
+  height: 70vh;
+  width: 100%;
+}
+
+.cohorts .warning
+{
+  color: $brand-warning;
+}

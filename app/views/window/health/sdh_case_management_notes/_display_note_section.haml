@@ -3,13 +3,13 @@
 - values = section[:values]
 
 - if title.present?
-  %h4.padding-bottom-02.underline-header= title
+  %h4.pb-2.underline-header= title
 - if values.present?
-  .margin-bottom-04
+  .mb-4
     - if subtitle.present?
       %h5.uppercase.gray-light= subtitle
     - values.each do |item|
-      .margin-bottom-01
+      .mb-1
         - label = item[:key]
         - value = item[:value]
         - text_area = item[:text_area] || false
@@ -19,7 +19,7 @@
         - download = item[:download] || false
         %strong= label
         - if text_area && value.present?
-          = simple_format(value, {class: 'padding-left-02'}, {wrapper_tag: 'div'})
+          = simple_format(value, {class: 'pl-2'}, {wrapper_tag: 'div'})
         - elsif download
           - if value.present?
             = link_to value, polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note)
@@ -30,16 +30,16 @@
           - if value.any?
             %br
             - value.each do |v|
-              %span.padding-left-02= v
+              %span.pl-2= v
               %br
         - elsif include_br_before && value.present?
           %br
-          %span.padding-left-02= value
+          %span.pl-2= value
           %br
         - else
           %span= value
           %br
       - if other.present?
-        .margin-bottom-01.padding-left-02
+        .mb-1.pl-2
           %strong= other[:key]
           %span= simple_format(other[:value])

@@ -1,5 +1,5 @@
 - if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any? || @patient.epic_case_notes.any?
-  %table.table.table-condensed.datatable-sdh
+  %table.table.table-sm.datatable-sdh
     %thead
       %tr
         %th Assessment
@@ -18,7 +18,7 @@
           %td
             = link_to url, data: { loads_in_pjax_modal: true } do
               %h4= form[:title]
-              .padding-left-02= form[:sub_title]
+              .pl-2= form[:sub_title]
           %td= form[:date]
           %td= form[:user]
 - else

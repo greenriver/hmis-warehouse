@@ -3,7 +3,7 @@
   .col-sm-8
     %h1= content_for :title
   .col-sm-4.text-right
-    = link_to new_cohort_column_option_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+    = link_to new_cohort_column_option_path, class: 'btn btn-primary pull-right mb-2' do
       %span.icon-plus
       Add a Cohort Column Option
 
@@ -13,34 +13,27 @@
   .col-sm-12
     #cohort-column-options.table-responsive.panel-group.panel-collapsible
       - @cohort_column_options.group_by(&:cohort_column).each do |column, options|
-        .panel.panel-default
-          .panel-heading
-            .row
-              .col-xs-8
-                %h4.panel-title
-                  %a.toggle.collapsed{data: {parent: '#cohort-column-options', toggle: 'collapse'}, href: "##{column}"}
-                    = options.first.available_cohort_columns.invert[column]
-              .col-xs-4.text-right
-                %a.toggle.collapsed{data: {parent: '#cohort-column-options', toggle: 'collapse'}, href: "##{column}"}
-                  %i.icon-arrow-circled-right
-                  %i.icon-arrow-circled-down.hide
-          .panel-collapse.collapse{id: column}
-            .panel-body
-              %table.table.table-condensed
-                %thead
-                  %th{style: "width: 35%;"} Value
-                  %th{style: "width: 15%;"} Active?
-                  %th{style: "width: 15%;"}
-                %tbody
-                  - options.each do |option|
-                    %tr
-                      %td= option.value
-                      %td= checkmark_or_x option.active
-                      %td
+        - content_for :panel_collapse_content do
+          %table.table.table-sm
+            %thead
+              %th{style: "width: 35%;"} Value
+              %th{style: "width: 15%;"} Active?
+              %th{style: "width: 15%;"}
+            %tbody
+              - options.each do |option|
+                %tr
+                  %td= option.value
+                  %td= checkmark_or_x option.active
+                  %td
 
-                        - if !@cohort_column_options_in_use[column]&.include?(option.value)
-                          = link_to action: :edit, id: option do
-                            %span.icon-pencil
-                            Edit
-                        - else
-                          in use
+                    - if !@cohort_column_options_in_use[column]&.include?(option.value)
+                      = link_to action: :edit, id: option do
+                        %span.icon-pencil
+                        Edit
+                    - else
+                      in use
+
+        = render 'common/panel_collapse',
+          id: column,
+          title: options.first.available_cohort_columns.invert[column],
+          panel_body_padded: 'n'

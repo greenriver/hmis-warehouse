@@ -1,23 +1,25 @@
 - content_for(:title, @client.name)
+.o-page
+  = render 'window/clients/breadcrumbs'
 
-= render 'window/clients/breadcrumbs'
+  = render 'window/clients/aliases'
+  = render 'window/clients/tab_navigation', current: window_client_vispdats_path(@client)
 
-= render 'window/clients/aliases'
-= render 'window/clients/tab_navigation', current: window_client_vispdats_path(@client)
-
-.client__vispdat
-  %h1
-    .pull-right
-      - unless @vispdat.show_as_readonly?
-        = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
-          %span.icon-pencil
-          Edit
-      = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
-        %span.icon-menu
-        VI-SPDAT List
-    = content_for :title
-    %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")
-      = @vispdat.type.demodulize
-      VI-SPDAT
-  = render 'administered_by'
-  = render 'vispdat'
+  .client__vispdat
+    .o-page__header
+      .o-page__title
+        %h1= content_for :title
+        %small(data-toggle='tooltip' title="Vulnerability Index - Service Prioritization Decision Assistance Tool")
+          = @vispdat.type.demodulize
+          VI-SPDAT
+        = render 'administered_by'
+        = render 'type_warning'
+      .o-page__action
+        - unless @vispdat.show_as_readonly?
+          = link_to polymorphic_path([:edit] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-primary', title: 'Edit', data: { toggle: 'tooltip' } do
+            %span.icon-pencil
+            Edit
+        = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id), class: 'btn btn-default', title: 'All', data: { toggle: 'tooltip' } do
+          %span.icon-menu
+          VI-SPDAT List
+    = render 'vispdat'

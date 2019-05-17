@@ -7,14 +7,16 @@
       %label{for: 'nightly_census[start_date]'}
         From
       .input-group.date{'data-provide' => 'datepicker'}
-        = f.input_field :start_date, name: :start_date, class: 'form-control', value: @start_date 
-        %span.input-group-addon.icon-calendar
+        = f.input_field :start_date, name: :start_date, class: 'form-control', value: @start_date
+        .input-group-append
+          %button.icon-calendar.btn.btn-secondary{type: 'button'}
     .col-sm-3
       %label{for: 'nightly_census[end_date]'}
         To
       .input-group.date{'data-provide' => 'datepicker'}
-        = f.input_field :end_date, name: :end_date, class: 'form-control', value: @end_date 
-        %span.input-group-addon.icon-calendar
+        = f.input_field :end_date, name: :end_date, class: 'form-control', value: @end_date
+        .input-group-append
+          %button.icon-calendar.btn.btn-secondary{type: 'button'}
     .col-sm-3
       %br
       = f.button :submit, value: 'Update View'

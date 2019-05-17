@@ -17,7 +17,7 @@
       = @date
       Not Flagged for CAS
       = "(#{@missing_in_cas.count})"
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %tr
           %th Client
@@ -42,7 +42,7 @@
       Clients Flagged for CAS, Not in Chronic List with more than 365 days from
       = @date
       = "(#{@not_on_list.count})"
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %tr
           %th

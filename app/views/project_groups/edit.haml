@@ -9,7 +9,7 @@
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
   %h3 Contacts
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th Name
@@ -23,7 +23,7 @@
             = email
 - if @reports.any?
   %h3 Project Data Quality Reports
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th Date Range

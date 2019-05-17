@@ -1,6 +1,6 @@
 %h3= _('Bed Utilization Percentages')
 = simple_form_for @utilization_grade, as: :grade, url: admin_utilization_grades_path do |f|
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th{style: 'width: 4em;'} Grade

@@ -1,0 +1,11 @@
+@import './colors';
+
+@keyframes highlight {
+  0% { background: $brand-warning-l; }
+  100% { background: none; }
+}
+
+@keyframes highlight-positive {
+  0% { background: $brand-success-l; }
+  100% { background: none; }
+}

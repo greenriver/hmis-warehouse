@@ -40,7 +40,7 @@ class App.Rollups.Loader
               $square.tooltip html: true, title: $html.html()
               $id.append $square
               $square.click ->
-                App.util.copyToClipboard $(@).closest('tr,body').find('div.tooltip:visible .pid')
+                App.util.copyToClipboard $('div.tooltip:visible .pid')
             $e.find('.rollup-container').siblings('.jRemoveWhenComplete').remove()
             $(document).dequeue("fx")
           .fail ()->

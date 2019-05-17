@@ -1,14 +1,15 @@
-= simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :last_permanent_zips], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
-  = f.error_notification
-  .row
-    .col-sm-3
-      = f.input :start, label: false, as: :date_picker
-    .col-sm-3
-      = f.input :end, label: false, as: :date_picker
-    .col-sm-3
-      = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false, input_html: {class: 'select2'}
-    .col-sm-3
-      = f.button :submit, value: 'Update View'
+.well.mb-4.mt-4
+  = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :last_permanent_zips], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
+    = f.error_notification
+    .row
+      .col-sm-3
+        = f.input :start, label: false, as: :date_picker
+      .col-sm-3
+        = f.input :end, label: false, as: :date_picker
+      .col-sm-3
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false, input_html: {class: 'select2'}
+      .col-sm-3
+        = f.button :submit, value: 'Update View'
 
 - content_for :page_js do
   :javascript
