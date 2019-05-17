@@ -97,6 +97,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -110,7 +111,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
             AND
-            #{viewability_table}.deleted_at IS NULL
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
       )
 
     SQL
@@ -120,6 +121,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -135,7 +137,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
             AND
-            #{viewability_table}.deleted_at IS NULL
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
             #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
@@ -149,6 +151,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -164,7 +167,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
             AND
-            #{viewability_table}.deleted_at IS NULL
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
             #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
