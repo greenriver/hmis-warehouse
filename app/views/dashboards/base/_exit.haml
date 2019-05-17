@@ -6,7 +6,7 @@
       %h4.title
         #{@report.sub_population_title.pluralize} Housed to Date
       .metric
-        = link_to pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: '2015-01-01'.to_date, end: Date.today, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+        = link_to pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Veteran::LOOKBACK_START.to_date, end: Date.today, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
       .description
         total #{@report.sub_population_title.pluralize.downcase} housed to date
     .rrh__enrolled.chunk.pr-4.mr-4.mb-4

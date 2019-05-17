@@ -8,6 +8,8 @@ module Reporting::MonthlyReports
 
     self.table_name = :warehouse_monthly_reports
 
+    LOOKBACK_START = '2014-07-01'
+
     after_initialize :set_dates
     attr_accessor :date_range
 
@@ -30,7 +32,7 @@ module Reporting::MonthlyReports
     end
 
     def set_dates
-      @date_range ||= '2014-07-01'.to_date..Date.yesterday
+      @date_range ||= LOOKBACK_START.to_date..Date.yesterday
       @start_date = @date_range.first
       @end_date = @date_range.last
     end
