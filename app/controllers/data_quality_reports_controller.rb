@@ -1,10 +1,10 @@
 class DataQualityReportsController < ApplicationController
   include PjaxModalController
-  # Authorize by either access to projects OR access by token
-  skip_before_action :authenticate_user!, only: [:show, :index, :answers] # support requires authentication
-  before_action :require_valid_token_or_project_access!, except: [:support] # support must have an authenticated user
-  before_action :set_report, only: [:show, :answers, :support]
-  before_action :set_project, only: [:show, :support]
+  # Set these before determining access
+  before_action :set_report, except: [:index]
+  before_action :set_project, except: [:index]
+
+  before_action :require_valid_token_or_project_access!
 
   def show
     @utilization_grades = utilization_grade_scope.
@@ -87,7 +87,10 @@ class DataQualityReportsController < ApplicationController
       raise ActionController::RoutingError.new('Not Found') if token.blank?
       return true if token.valid?
     else
-      require_can_view_client_level_details!
+      project_viewable = @project.class.viewable_by(current_user).where(id: @project.id).exists?
+      report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
+      return true if project_viewable && report_viewable
+      not_authorized!
       return
     end
     raise ActionController::RoutingError.new('Not Found')

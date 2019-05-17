@@ -153,7 +153,7 @@ module Reporting::MonthlyReports
                   en.prior_exit_destination_id = max_exit_enrollment.destination_id
                 end
               elsif other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:entered)
-                min_entry_date = other_enrollments_in_current_month.sort_by(&:entry_date).first
+                min_entry_date = other_enrollments_in_current_month.sort_by(&:entry_date).first.entry_date
                 next if min_entry_date < entry_date
               end
               next if en.days_since_last_exit.present?
