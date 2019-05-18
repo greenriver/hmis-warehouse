@@ -1,9 +1,10 @@
 class CreateDataQualityReports < ActiveRecord::Migration
   def change
-    create_table :data_quality_reports do |t|
+    create_table :warehouse_data_quality_report_enrollments do |t|
       t.integer :report_id
       t.integer :client_id
       t.integer :project_id
+      t.integer :enrollment_id
       t.boolean :enrolled
       t.boolean :active
       t.boolean :entered
