@@ -55,16 +55,19 @@ module Reporting::DataQualityReports
     end
 
     def set_days_to_add_entry_date enrollment
-      enrollment.DateCreated - enrollment.EntryDate
+      days_to_add_entry_date = enrollment.DateCreated - enrollment.EntryDate
     end
 
-    def days_to_add_exit_date exit_record
-      return nil unless exit_record.present? && exit_record.ExitDate.present?
-      exit_record.DateCreated - enrollment.ExitDate
+    def set_days_to_add_exit_date exit_record
+      if exit_record.blank? || exit_record.ExitDate.blank?
+        days_to_add_exit_date = nil
+      else
+        days_to_add_exit_date = exit_record.DateCreated - enrollment.ExitDate
+      end
     end
 
     def set_dob_after_entry_date
-      dob.present? && dob > entry_date
+      dob_after_entry_date = dob.present? && dob > entry_date
     end
 
     def is_active? project:, service_dates:, report_start:, report_end:
@@ -72,6 +75,45 @@ module Reporting::DataQualityReports
       ((report_start..report_end).to_a & service_dates).any?
     end
 
+    def set_household_type household_ids:
+      if household_ids.count(household_id) > 1
+         household_type = :family
+       else
+        household_type = :individual
+      end
+    end
 
+    def set_most_recent_service_within_range project:, service_dates:, report_start:, report_end:, exit_date:
+      if project.TrackingMethod.to_s != '3'
+        most_recent_service_within_range = [report_end, exit_date].min
+      else
+        most_recent_service_within_range = ((report_start..report_end).to_a & service_dates).max
+      end
+    end
+
+    def set_service_witin_last_30_days project:, service_dates:, exit_date:, report_end:
+      if project.TrackingMethod.to_s != '3'
+        service_witin_last_30_days = true
+      else
+        if exit_date.present?
+          range = ((exit_date - 30.days)..exit_date)
+        else
+          range = ((report_end - 30.days)..report_end)
+        end
+        service_witin_last_30_days = (range.to_a & service_dates).any?
+      end
+    end
+
+    def set_service_after_exit project:, service_dates:, exit_date:
+      if project.TrackingMethod.to_s != '3' || exit_date.blank?
+        service_after_exit = false
+      else
+        service_after_exit = service_dates.max > exit_date
+      end
+    end
+
+    def set_days_of_service project:, service_dates:, entry_date:, exit_date:, report_start:, report_end:
+
+    end
   end
 end
