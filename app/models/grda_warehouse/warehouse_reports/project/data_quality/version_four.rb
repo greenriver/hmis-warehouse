@@ -1,5 +1,8 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
+
+    has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name
+
     def run!
       progress_methods = [
         :start_report,
