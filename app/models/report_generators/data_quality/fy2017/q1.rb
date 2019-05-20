@@ -56,7 +56,7 @@ module ReportGenerators::DataQuality::Fy2017
         e_t[:MonthsHomelessPastThreeYears].to_sql => :MonthsHomelessPastThreeYears,
       }
 
-      all_client_scope.
+      active_client_scope.
         joins(:project, :enrollment).
         order(date: :asc).
         pluck(*columns.keys).
