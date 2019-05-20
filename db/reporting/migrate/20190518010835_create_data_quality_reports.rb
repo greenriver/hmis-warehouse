@@ -31,43 +31,47 @@ class CreateDataQualityReports < ActiveRecord::Migration
 
       t.integer :destination_id
 
-      t.boolean :name_present
+      t.boolean :name_complete
       t.boolean :name_missing
       t.boolean :name_refused
 
-      t.boolean :ssn_present
+      t.boolean :ssn_complete
       t.boolean :ssn_missing
       t.boolean :ssn_refused
 
-      t.boolean :dob_present
+      t.boolean :gender_complete
+      t.boolean :gender_missing
+      t.boolean :gender_refused
+
+      t.boolean :dob_complete
       t.boolean :dob_missing
       t.boolean :dob_refused
 
-      t.boolean :veteran_present
+      t.boolean :veteran_complete
       t.boolean :veteran_missing
       t.boolean :veteran_refused
 
-      t.boolean :ethnicity_present
+      t.boolean :ethnicity_complete
       t.boolean :ethnicity_missing
       t.boolean :ethnicity_refused
 
-      t.boolean :race_present
+      t.boolean :race_complete
       t.boolean :race_missing
       t.boolean :race_refused
 
-      t.boolean :disabling_condition_present
+      t.boolean :disabling_condition_complete
       t.boolean :disabling_condition_missing
       t.boolean :disabling_condition_refused
 
-      t.boolean :prior_living_situation_present
+      t.boolean :prior_living_situation_complete
       t.boolean :prior_living_situation_missing
       t.boolean :prior_living_situation_refused
 
-      t.boolean :income_at_entry_present
+      t.boolean :income_at_entry_complete
       t.boolean :income_at_entry_missing
       t.boolean :income_at_entry_refused
 
-      t.boolean :income_at_exit_present
+      t.boolean :income_at_exit_complete
       t.boolean :income_at_exit_missing
       t.boolean :income_at_exit_refused
 
