@@ -532,8 +532,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def projects
-      return project_group.projects if self.project_group_id.present?
-      return [project]
+      @projects ||= begin
+        if self.project_group_id.present?
+          project_group.projects
+        else
+          [project]
+        end
+      end
     end
 
     def self.length_of_stay_buckets

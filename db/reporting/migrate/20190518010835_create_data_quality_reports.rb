@@ -34,58 +34,75 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.boolean :name_complete
       t.boolean :name_missing
       t.boolean :name_refused
+      t.boolean :name_not_collected
 
       t.boolean :ssn_complete
       t.boolean :ssn_missing
       t.boolean :ssn_refused
+      t.boolean :ssn_not_collected
 
       t.boolean :gender_complete
       t.boolean :gender_missing
       t.boolean :gender_refused
+      t.boolean :gender_not_collected
 
       t.boolean :dob_complete
       t.boolean :dob_missing
       t.boolean :dob_refused
+      t.boolean :dob_not_collected
 
       t.boolean :veteran_complete
       t.boolean :veteran_missing
       t.boolean :veteran_refused
+      t.boolean :veteran_not_collected
 
       t.boolean :ethnicity_complete
       t.boolean :ethnicity_missing
       t.boolean :ethnicity_refused
+      t.boolean :ethnicity_not_collected
 
       t.boolean :race_complete
       t.boolean :race_missing
       t.boolean :race_refused
+      t.boolean :race_not_collected
 
       t.boolean :disabling_condition_complete
       t.boolean :disabling_condition_missing
       t.boolean :disabling_condition_refused
+      t.boolean :disabling_condition_not_collected
 
       t.boolean :prior_living_situation_complete
       t.boolean :prior_living_situation_missing
       t.boolean :prior_living_situation_refused
+      t.boolean :prior_living_situation_not_collected
 
       t.boolean :income_at_entry_complete
       t.boolean :income_at_entry_missing
       t.boolean :income_at_entry_refused
+      t.boolean :income_at_entry_not_collected
 
       t.boolean :income_at_exit_complete
       t.boolean :income_at_exit_missing
       t.boolean :income_at_exit_refused
+      t.boolean :income_at_exit_not_collected
 
       t.boolean :exit_interview_completed
 
       t.boolean :include_in_income_change_calculation
-      t.integer :income_at_entry
-      t.integer :income_at_later_date
+      t.integer :income_at_entry_earned
+      t.integer :income_at_entry_non_cash
+      t.integer :income_at_entry_overall
+      t.integer :income_at_later_date_earned
+      t.integer :income_at_later_date_non_cash
+      t.integer :income_at_later_date_overall
 
       t.integer :name_data_quality
       t.integer :ssn_data_quality
       t.integer :dob_data_quality
       t.integer :disability_type
       t.integer :disability_response
+
+      t.integer :days_to_move_in_date
 
     end
   end
