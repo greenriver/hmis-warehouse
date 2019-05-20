@@ -10,12 +10,12 @@ module Health::Tasks
         ineligible_patient_ids = patient_scope.
           no_coverage.
           where(care_coordinator_id: user.id).
-          pluck(:id)
+          pluck(:client_id)
 
         no_aco_patient_ids = patient_scope.
           standard_coverage.
           where(care_coordinator_id: user.id).
-          pluck(:id)
+          pluck(:client_id)
 
         IneligiblePatientMailer.patients_with_eligibility_problems(user.email, ineligible_patient_ids, no_aco_patient_ids).deliver_now
 
