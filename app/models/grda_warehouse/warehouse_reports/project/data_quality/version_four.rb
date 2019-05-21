@@ -34,19 +34,32 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def build_report_enrollments
       @report_enrollments = []
       source_enrollments.each do |hud_en|
+        client = hud_en.client
+        project = hud_en.project
+        hud_exit = hud_en.exit
+
         report_enrollment = enrollments.build(
-          client_id: hud_en.client.id,
+          client_id: client.id,
           project_id: hud_en.project.id,
           enrollment_id: hud_en.id,
           enrolled: true,
-
+          household_id: hud_en.HouseholdID,
+          dob: client.DOB,
+          entry_date: hud_en.EntryDate,
+          exit_date: hud_exit&.ExitDate,
         )
         report_enrollment = set_calculated_fields(hud_enrollment: hud_en, report_enrollment: report_enrollment)
       end
     end
 
     def set_calculated_fields hud_enrollment:, report_enrollment:
-      report_enrollment.head_of_household = is_head_of_household?(hud_en)
+      report_enrollment.head_of_household = report_enrollment.is_head_of_household?(enrollment: hud_enrollment)
+      report_enrollment.household_type = household_type_for enrollment: hud_enrollment
+      report_enrollment.age = report_enrollment.calculate_age(date: hud_enrollment.EntryDate)
+      report_enrollment.days_to_add_entry_date =
+      report_enrollment.days_to_add_exit_date
+
+      return report_enrollment
     end
 
     def set_inventory_details
@@ -76,8 +89,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       leavers_by_enrollment_id[id].exit
     end
 
-    def stayers
-      @stayers ||= source_enrollments.where.not(id: @leavers.select(:id))
+    def exiters
+      @exiters ||= source_enrollments.where.not(id: @leavers.select(:id))
+    end
+
+    def household_client_counts
+      @household_client_counts ||= source_enrollments.where.not(HouseholdID: nil).
+        group(:HouseholdID).
+        select(:HouseholdID).
+        count
+    end
+
+    def household_type_for enrollment:
+      if household_client_counts[enrollment].blank? || household_client_counts[enrollment] == 1
+        :individual
+      else
+        :family
+      end
     end
 
 

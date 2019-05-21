@@ -110,12 +110,12 @@ module Reporting::DataQualityReports
     end
 
 
-    def is_adult? date
-      age = calculate_age date
+    def is_adult? date:
+      age = calculate_age date: date
       age.present? && age > 18
     end
 
-    def calculate_age date
+    def calculate_age date:
       GrdaWarehouse::Hud::Client.age date: date, dob: dob
     end
 
@@ -129,15 +129,15 @@ module Reporting::DataQualityReports
     end
 
     # Blanks should not be allowed according to the spec
-    def is_head_of_household? enrollment
+    def is_head_of_household? enrollment:
       enrollment.RelationshipToHoH.blank? || enrollment.RelationshipToHoH == 1
     end
 
-    def calculate_days_to_add_entry_date enrollment
+    def calculate_days_to_add_entry_date enrollment:
       enrollment.DateCreated - enrollment.EntryDate
     end
 
-    def calculate_days_to_add_exit_date exit_record
+    def calculate_days_to_add_exit_date exit_record:
       if exit_record.blank? || exit_record.ExitDate.blank?
         nil
       else
@@ -152,14 +152,6 @@ module Reporting::DataQualityReports
     def is_active? project:, service_dates:, report_start:, report_end:
       return true unless project.bed_night_tracking?
       ((report_start..report_end).to_a & service_dates).any?
-    end
-
-    def calculate_household_type household_ids:
-      if household_ids.count(household_id) > 1
-         :family
-       else
-        :individual
-      end
     end
 
     def calculate_most_recent_service_within_range project:, service_dates:, report_start:, report_end:, exit_date:
