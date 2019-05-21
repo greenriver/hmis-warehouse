@@ -1,9 +1,9 @@
 class IneligiblePatientMailer < DatabaseMailer
-  def patients_with_eligibility_problems(coordinator, ineligible_ids, no_aco_ids)
-    @ineligible_ids = ineligible_ids
-    @no_aco_ids = no_aco_ids
+  def patients_with_eligibility_problems(care_coordinator_email:, ineligible_patient_ids:, non_aco_patient_ids:)
+    @ineligible_ids = ineligible_patient_ids
+    @no_aco_ids = non_aco_patient_ids
     @sender = Health::Cp.sender.first
-    mail(from: ENV.fetch('HEALTH_FROM'), to: coordinator, subject: "Patients Flagged as Ineligible by #{@sender.receiver_name} ")
+    mail(from: ENV.fetch('HEALTH_FROM'), to: care_coordinator_email, subject: "Patients Flagged as Ineligible by #{@sender.receiver_name} ")
   end
 
   def ineligible_patients(coordinator, patient_ids)
