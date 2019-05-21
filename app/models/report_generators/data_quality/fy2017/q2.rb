@@ -315,8 +315,8 @@ module ReportGenerators::DataQuality::Fy2017
         RaceNone: c_t[:RaceNone].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
       }
-                  
-      all_client_scope.
+
+      active_client_scope.
         joins(:project, :enrollment).
         order(date: :asc).
         pluck(*columns.values).
