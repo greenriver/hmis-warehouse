@@ -1,11 +1,12 @@
 - title = "Recidivism Report"
 - content_for :title, title
-%h1= content_for :title
+.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 = render 'form'
-.pull-right
-  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-    Download Excel
 %p
   The following clients have an open PH enrollment between
   = @filter.start
@@ -26,7 +27,7 @@
       .row
         .col-sm-6
           %h4 PH Enrollments
-          %table.table.table-condensed
+          %table.table.table-sm
             %thead
               %tr
                 %th Project
@@ -40,7 +41,7 @@
                   %td= enrollment[:last_date_in_program]
         .col-sm-6
           %h4 ES and SO Enrollments
-          %table.table.table-condensed
+          %table.table.table-sm
             %thead
               %tr
                 %th Project

@@ -13,28 +13,28 @@
             .health-careplan__goal-action.health-careplan__goal-delete
               = link_to delete_goal_path(goal), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
                 %span.icon-cross
-      .row.margin-bottom-02
-        .col-xs-4
+      .row.mb-2
+        .col-sm-4
           %label Responsible Care Team Member
           .health-careplan__goal-responsible
             = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
-        .col-xs-4
+        .col-sm-4
           %label Start Date
           .health-careplan__goal-start-date
             = goal.start_date
-        .col-xs-4
+        .col-sm-4
           %label Status
           .health-careplan__goal-status
             = goal.status
-      .margin-bottom-02
+      .mb-2
         %label Problem
         .health-careplan__goal-problem
           = simple_format goal.problem
-      .margin-bottom-02
+      .mb-2
         %label Goal Description
         .health-careplan__goal-details
           = simple_format goal.goal_details
-      .margin-bottom-02
+      .mb-2
         %label Intervention
         .health-careplan__goal-intervention
           = simple_format goal.intervention

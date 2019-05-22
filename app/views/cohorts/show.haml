@@ -18,24 +18,24 @@
     %i.icon-warning
     This cohort is inactive.  Changes will not be reflected on client dashboards.
 
-= render 'buttons'
+= render 'nav'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
 = render 'text_size_options'
 
 
 .row
-  .col-sm-4.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.margin-top-02
+  .col-sm-12.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.mt-2
     Loading clients... please wait.
     .percent-loaded
 
 
 - if @cohort.clients.blank?
-  %p.text-center.margin-top-02
+  %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus
       Add Clients
 
-.row.margin-top-02
+.row.mt-2
   .col-sm-12
     - if @cohort.cohort_clients.preload(:clients).any?
       = render 'client_table'

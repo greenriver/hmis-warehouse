@@ -1,5 +1,5 @@
 - if @patient.chas.any?
-  %table.table.table-condensed.datatable-ssm
+  %table.table.table-sm.datatable-ssm
     %thead
       %tr
         %th Assessment
@@ -11,7 +11,7 @@
           %tr
             %td
               = link_to polymorphic_path(cha_path_generator, client_id: @client.id, id: form.id), data: { loads_in_pjax_modal: true } do
-                %h4 CHA
+                %h4.mb-0.mt-0 CHA
             %td
               - if form.reviewed_at.present?
                 = "Reviewed on #{form.reviewed_at.to_date}"
@@ -24,8 +24,8 @@
           %tr
             %td
               = link_to polymorphic_path(health_path_generator + [:epic_cha], id: form.id), data: { loads_in_pjax_modal: true } do
-                %h4 CHA
-                .padding-left-02 From Epic
+                %h4.mb-0.mt-0 CHA
+                .pl-2 From Epic
             %td
               - if form.reviewer_name.present?
                 = "Reviewed by #{form.reviewer_name}"

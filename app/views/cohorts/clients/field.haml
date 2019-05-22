@@ -31,7 +31,7 @@
 -#           .cohort-client__input
 -#             = f.collection_radio_buttons(column.column, [[true, 'yes'], [false, 'no']], :first, :last, {item_wrapper_tag: :div})
 -#         - elsif column.input_type == 'notes'
--#           = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge', data: {loads_in_pjax_modal: true} do
+-#           = link_to cohort_cohort_client_cohort_client_notes_path(@cohort, cohort_client), class: 'badge badge-primary', data: {loads_in_pjax_modal: true} do
 -#             #{cohort_client.cohort_client_notes.length}
 -#         - elsif column.input_type == 'integer'
 -#           - options = {as: column.input_type, label: false, input_html: {size: 4, style: 'max-width: 6em;'}}

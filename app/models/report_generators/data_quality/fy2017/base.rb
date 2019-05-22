@@ -41,6 +41,11 @@ module ReportGenerators::DataQuality::Fy2017
       add_filters(scope: client_scope)
     end
 
+    def active_client_scope
+      all_client_scope.service_within_date_range(start_date: @report_start,
+        end_date: @report_end)
+    end
+
     def leavers
       @report_start ||= @report.options['report_start'].to_date
       @report_end ||= @report.options['report_end'].to_date

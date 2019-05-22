@@ -1,125 +1,36 @@
-@charset 'UTF-8';
+// Use 'require' here to cut down on css reloading time.
+// Individual module files should @import 'helpers' at the top of the file
 
-// Settings
-// (Colors, Variables, Fonts)
-// (Ordered by inclusion)
-@import
-  'settings/colors',
-  'settings/variables',
-  'settings/icons',
-  'settings/spacing',
-  'settings/stack_order',
-  'settings/typography';
-
-// Tools
-// (Mixins, Functions)
-@import
-  'tools/functions',
-  'tools/mixins';
-
+//////////////////////
+// Vendored Libraries
+// Or any other static (that we don't change) CSS
+/////////////////////
 // Vendor
-@import
-  'select2',
-  'select2-bootstrap',
-  'bootstrap-datepicker3',
-  'jquery-ui/sortable',
-  'jquery-ui/slider',
-  'jquery-ui/autocomplete',
-  'leaflet',
-  'jquery.minicolors',
-  'datatables.min',
-  'font-awesome-sprockets',
-  'font-awesome',
-  'vis',
-  'vendor/bootstrap/index',
-  'vendor/icomoon',
-  'billboard/billboard.min';
+//= require ./application/vendor/bootstrap/index
+//= require select2
+//= require select2-bootstrap
+//= require bootstrap-datepicker
+//= require handsontable.full.min
+//= require billboard/billboard.min
+//= require jquery-ui/sortable
+//= require jquery-ui/slider
+//= require jquery-ui/autocomplete
+//= require leaflet
+//= require jquery.minicolors
+//= require datatables_bootstrap
+//= require vis
+//= require ./application/vendor/icons
 
-// Elements
-// (DOM elements)
-@import
-  'elements/body',
-  'elements/dl',
-  'elements/html',
-  'elements/label',
-  'elements/main',
-  'elements/section';
-
-// Layouts
-// (Super high-level structural layout)
-@import
-  'layouts/main';
-
-// Objects
-// (High-level items with minimal styling)
-@import
-  'objects/card_grid',
-  'objects/container',
-  'objects/dashboard',
-  'objects/filtration',
-  'objects/list',
-  'objects/menu',
-  'objects/page',
-  'objects/pagination',
-  'objects/section_card',
-  'objects/text';
-
-// Components
-// ()
-@import
-  'components/btn_group',
-  'components/btn_select',
-  'components/card',
-  'components/checkbox',
-  'components/color_key',
-  'components/columns',
-  'components/loading',
-  'components/spinner',
-  'components/table',
-  'components/tag';
-
-// @import 'base/grid_framework';
-@import
-  'base/alerts',
-  'base/typography',
-  'base/buttons',
-  'base/forms',
-  'base/modals',
-  'base/navs';
-
-@import
-  'modules/header',
-  'modules/footer',
-  'modules/tables',
-  'modules/site_menu',
-  'modules/report_results',
-  'modules/warehouse_reports',
-  'modules/client',
-  'modules/window',
-  'modules/census',
-  'modules/data_sources',
-  'modules/reports',
-  'modules/sections_slabs_cards',
-  'modules/lists',
-  'modules/vispdats',
-  'modules/health_forms',
-  'modules/health_charts',
-  'modules/anomalies',
-  'modules/cohorts',
-  'modules/patient';
-
-// Overrides
-@import
-  'overrides/data_table',
-  'overrides/bootstrap',
-  'overrides/select2';
-
-// Utilities
-@import
-  'utilities/bootstrap_polyfills',
-  'utilities/display',
-  'utilities/general',
-  'utilities/helper_classes',
-  'utilities/tables',
-  'utilities/spacing',
-  'utilities/text';
+//////////////////////////////////////////
+// Base Applicaiton Styles
+// In order to use variables/mixins/functions in individual files
+// import the 'helpers' file (app/assets/stylesheets/application/helpers.scss)
+/////////////////////////////////////////
+//= require_tree ./application/elements
+//= require_tree ./application/layouts
+//= require_tree ./application/objects
+//= require_tree ./application/components
+//= require_tree ./application/base
+//= require_tree ./application/modules
+//= require_tree ./application/overrides
+//= require_tree ./application/utilities

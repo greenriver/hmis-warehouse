@@ -62,7 +62,7 @@ window.App.ViewableEntities = class {
         <li class='c-columns__column-list-item' data-id=${ids[i]}>
           <span>${item}</span>
           ${unlimitable}
-          <span> <i class='fas fa-times-circle'></i></span>
+          <span> <i class='icon-cross'></i></span>
         </li>
       `
     }).join('')

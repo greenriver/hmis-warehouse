@@ -12,10 +12,10 @@ class App.WarehouseReports.Cas.DecisionEfficiency
     $('#new_steps').on 'submit', (e) =>
       e.preventDefault()
       $form = $(e.currentTarget)
-      $p = $.getJSON($form.attr('action'), $form.serialize())
-      $p.success (data, status, xhr) =>
-        @plot(data)
-        @set_stats(data)
+      $.getJSON($form.attr('action'), $form.serialize())
+        .done (data, status, xhr) =>
+          @plot(data)
+          @set_stats(data)
 
     $('#new_steps').on 'change', ':input', (e) =>
       $form = $(e.delegateTarget)
@@ -37,7 +37,7 @@ class App.WarehouseReports.Cas.DecisionEfficiency
           $s2.find('option:last').prop('selected', true)
       $form.submit()
 
-    
+
 
   plot: (data) =>
     labels = data['labels']
@@ -52,13 +52,13 @@ class App.WarehouseReports.Cas.DecisionEfficiency
         hoverBackgroundColor: "##{color}"
     if chart = @chart.data('chart')
       chart.destroy()
-    chart = new Chart @chart, 
+    chart = new Chart @chart,
       type: 'bar',
-      data: 
+      data:
         labels: labels,
         datasets: datasets,
-      options: 
-        scales: 
+      options:
+        scales:
           xAxes: [
             stacked: true,
             scaleLabel:
@@ -74,7 +74,7 @@ class App.WarehouseReports.Cas.DecisionEfficiency
             ticks:
               beginAtZero: true,
           ]
-        legend: 
+        legend:
           fullWidth: true,
           position: 'right'
         tooltips:
@@ -94,9 +94,9 @@ class App.WarehouseReports.Cas.DecisionEfficiency
                 text + " :" + value
               else # .. else, you display the dataset and the total, using an array
                 [text + " :" + value, "Total : " + total]
-      
+
     @chart.data('chart', chart)
-    
+
 
   round: (n, places) ->
     v = 10 ** places

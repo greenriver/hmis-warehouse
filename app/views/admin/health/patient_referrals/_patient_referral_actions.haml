@@ -1,5 +1,5 @@
 .col-sm-2
-  %div.margin-bottom-01
+  %div.mb-1
     %strong Known by:
     - pr.display_claimed_by.each do |c|
       %div= c
@@ -16,5 +16,8 @@
 %div{class: can_bulk_assign? ? 'col-sm-2' : 'col-sm-3'}
   = render 'reject', pr: pr
 - if can_bulk_assign?
-  .col-sm-1.text-right
-    = check_box_tag :patient_referral_id, pr.id
+  .col-sm-1.d-flex
+    .c-checkbox.c-checkbox--round.ml-auto
+      - id = "patient_referral_id_#{pr.id}"
+      = check_box_tag :patient_referral_id, pr.id, nil, id: id
+      %label{for: id}

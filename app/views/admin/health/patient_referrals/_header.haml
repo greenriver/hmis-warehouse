@@ -7,7 +7,7 @@
   = render 'menus/health_admin_tabs'
 
   .o-page__main-content.mt-0
-    .d-flex.align-items-center.mb-3
+    .d-flex.align-items-center.mb-6.flex-wrap
       %div
         %h3 Add and Review Patient Assignments
         %p
@@ -15,8 +15,9 @@
         %p
           Note: Choosing 'Not Our Patient' is optional. It is offered as a way to clear your review list. Once BHCHP assigns patients to agencies, those patients will also no longer appear in your review list.
       - if current_user.can_administer_health?
-        = link_to new_admin_health_patient_referral_path(), class: ['btn', 'btn-secondary', 'ml-auto'] do
+        = link_to new_admin_health_patient_referral_path(), class: ['btn', 'btn-secondary'] do
           Add Patient
       - if @active_patient_referral_tab == 'review' &&  current_user.has_patient_referral_review_access?
         = link_to 'Download Excel', params.merge(format: :xlsx), class: 'btn btn-secondary ml-2'
-    = render 'admin/health/patient_referrals/filter'
+    .mb-6
+      = render 'admin/health/patient_referrals/filter'

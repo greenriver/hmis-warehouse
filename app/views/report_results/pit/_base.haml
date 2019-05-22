@@ -7,8 +7,8 @@
         - display_title = "#{title.humanize}-population"
       - else
         - display_title = "#{title.humanize} population"
-      %li{role: :presentation, class: active}
-        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}}= display_title
+      %li.nav-item{role: :presentation, class: active}
+        %a{href: "\##{title}", role: :tab, data: {toggle: :tab}, class: 'nav-link'}= display_title
       - active = ''
   .tab-content
     - active = 'active'
@@ -19,7 +19,7 @@
           - _, breakdowns = section.first
           %h3= section_title.humanize
           .table-responsive
-            %table.table.table-condensed.table-hover
+            %table.table.table-sm.table-hover
               %thead
                 %tr
                   %th
@@ -31,7 +31,7 @@
                 %tr
                   %th.report-result__section-header
                     Question
-                  - breakdowns.keys.each do |k| 
+                  - breakdowns.keys.each do |k|
                     %th.report-result__section-header=k.upcase
               %tbody
                 - section.each do |question, breakdowns|
@@ -60,5 +60,3 @@
     (function($) {
       $('.launch-modal').on('click', function(e){ e.preventDefault();});
     })(jQuery);
-
-  

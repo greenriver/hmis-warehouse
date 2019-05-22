@@ -26,7 +26,11 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
   private
 
   def input_button
-    template.content_tag :span, '', class: 'input-group-addon icon-calendar'
+    template.content_tag :div,  class: 'input-group-append' do
+      template.content_tag :button,  class: 'btn btn-secondary', type: 'button' do
+        template.content_tag :span, '', class: 'icon-calendar mr-0'
+      end
+    end
   end
 
   def set_html_options

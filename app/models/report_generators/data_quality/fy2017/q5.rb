@@ -294,7 +294,7 @@ module ReportGenerators::DataQuality::Fy2017
         PreviousStreetESSH: e_t[:PreviousStreetESSH].to_sql,
       }
 
-      all_client_scope.
+      active_client_scope.
         hud_project_type(project_types).
         includes(:enrollment).
         joins(:project).

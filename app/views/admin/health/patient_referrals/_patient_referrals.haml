@@ -1,4 +1,4 @@
 - @patient_referrals.each do |patient_referral|
-  .row
-    .col-xs-12
+  .row{class: "j-pr-#{patient_referral.id}"}
+    .col-sm-12
       = render 'admin/health/patient_referrals/patient_referral', pr: patient_referral

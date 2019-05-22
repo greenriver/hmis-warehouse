@@ -10,12 +10,15 @@ $ ->
   class PjaxModal
     constructor: ->
       @modal = $(".modal[data-pjax-modal]")
-      @container = @modal.find("[data-pjax-modal-container]")
+      @containerAttr = "[data-pjax-modal-container]"
+      @container = @modal.find(@containerAttr)
       @title = @modal.find("[data-pjax-modal-title]")
       @body = @modal.find("[data-pjax-modal-body]")
       @footer = @modal.find("[data-pjax-modal-footer]")
-      @linkTriggers = $('[data-loads-in-pjax-modal]')
-      @formTriggers = $('[data-submits-to-pjax-modal]')
+      @linkTriggerAttr = '[data-loads-in-pjax-modal]'
+      @linkTriggers = $(@linkTriggerAttr)
+      @formTriggerAttr = '[data-submits-to-pjax-modal]'
+      @formTriggers = $(@formTriggerAttr)
       @loading = @modal.find("[data-pjax-modal-loading]")
 
     listen: ->
@@ -25,22 +28,22 @@ $ ->
       @_registerClose()
 
     _registerLoadingIndicator: ->
-      $(document).on 'pjax:send', =>
+      $(document).on 'pjax:send', (event) =>
         @loading.show()
       $(document).on 'pjax:complete', =>
         @loading.hide()
 
     _registerLinks: ->
-      $(document).pjax @linkTriggers.selector, @container.selector, timeout: false, push: false, scrollTo: false
-      $(document).on 'click', @linkTriggers.selector, (e) =>
+      $(document).pjax @linkTriggerAttr, @containerAttr, timeout: false, push: false, scrollTo: false
+      $(document).on 'click', @linkTriggerAttr, (e) =>
         @body.hide()
         @footer.hide()
         @open()
 
     _registerForms: ->
-      $(document).on 'submit', @formTriggers.selector, (evt) =>
+      $(document).on 'submit', @formTriggerAttr, (evt) =>
         @open()
-        $.pjax.submit evt, @container.selector, timeout: false, push: false
+        $.pjax.submit evt, @containerAttr, timeout: false, push: false
 
     _registerClose: ->
       $('body').on 'click', '[pjax-modal-close]', (e) =>
@@ -57,6 +60,6 @@ $ ->
       @title.html("")
       @body.html("")
       @footer.html("")
-      @loading.show()      
+      @loading.show()
 
   (new PjaxModal).listen()

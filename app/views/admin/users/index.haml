@@ -6,16 +6,16 @@
 = render :partial => 'menus/admin_tabs'
 .o-page
   .o-page__header
+    - @prompt = t '.search_prompt'
+
+    .o-page__controls
+      .o-page__search
+        = render 'search_form'
     .o-page__action.o-page__action--stacked
-      = link_to new_user_invitation_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+      = link_to new_user_invitation_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-plus
         Add a User Account
       = link_to 'Manage Roles', admin_roles_path
-  - @prompt = t '.search_prompt'
-
-  .o-page__controls
-    .o-page__search
-      = render 'search_form'
 
 %ul.nav.nav-tabs
   %li.nav-item.active
@@ -37,7 +37,7 @@
     .row
       .col-sm-12
         .table-responsive
-          %table.table.table-condensed
+          %table.table.table-sm
             %thead
               %tr
                 - titles.each do | k, title |
@@ -58,21 +58,21 @@
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
-                    = link_to admin_user_audit_path(user) do
-                      %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                    = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                      %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
                   %td
-                    = link_to action: :edit, id: user do
-                      %span.icon-pencil
+                    = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
+                      %i.icon-pencil
                       Edit
                   %td
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"} do
-                      %span.icon-cross
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
+                      %i.icon-cross
                       Delete
 
         %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
   .tab-pane#inactive
     .table-responsive
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th Name

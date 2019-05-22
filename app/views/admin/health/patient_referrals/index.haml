@@ -1,6 +1,6 @@
 = render 'header'
 = render 'tabs'
-.clearfix
+.d-flex.mb-4
   = render 'paginate'
   - if can_administer_health? && can_bulk_assign?
     = render 'actions'

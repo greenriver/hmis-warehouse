@@ -1,0 +1,103 @@
+@import '../helpers';
+
+.slab {
+  padding: 12px 12px 2px 12px;
+  background-color: $gray-015;
+  margin-bottom: 24px;
+}
+.slab__base-dates {
+  @include media-breakpoint-down(sm) {
+    padding-bottom: 24px;
+  }
+}
+.slab__header {
+  font-size: 12px;
+  font-weight: 700;
+}
+.section-expander-block {
+  margin-bottom: 24px;
+  padding: 8px 16px 16px;
+  box-shadow: none;
+}
+.section-expander-block__metadata {
+  display: inline-block;
+  padding-right: 12px;
+}
+.section-expander-block__expander-arrow {
+  font-size: 22px;
+}
+.section-expander-block__header {
+  margin: 0;
+  line-height: 1.2;
+}
+.section-expander-block__header a:link,
+.section-expander-block__header a:visited,
+.section-expander-block__header a:hover,
+.section-expander-block__header a:active
+{
+  color: $gray-070;
+}
+.section-expander-block__expander-region {
+  text-align: right;
+  vertical-align: middle;
+  line-height: 1;
+}
+.section-expander-block__action-row {
+  bottom: 0;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  @include media-breakpoint-up(md) {
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+}
+.section-expander-block__separator {
+  border-bottom: 3px solid $cas-blue-007;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+.health__team-member--type {
+  padding: 4px;
+  font-size: 1rem;
+  line-height: 1;
+  height: 2.5em; //hacky b/c the icons have extra white space giving them height
+  @include open-sans-medium;
+  margin-bottom: 9px;
+  clear: left;
+}
+.health__team-member--type i {
+  font-size: 2.5em;
+  vertical-align: middle;
+}
+.health__team-member--name
+{
+  margin-top: 2em;
+}
+.health__team-member__individual {
+  min-height: 180px;
+}
+.health__team-member__action,
+.health-careplan__goal-action
+{
+  display: inline-block;
+  padding-left: 12px;
+}
+.health__team-member__action a,
+.health-careplan__goal-action a
+{
+  color: $cob-sg-blue-006;
+}
+.health__team-member__action a:hover,
+.health__team-member__action a:active,
+.health__team-member__action a:focus,
+.health-careplan__goal-action a:hover,
+.health-careplan__goal-action a:active,
+.health-careplan__goal-action a:focus
+ {
+  color: darken($cob-sg-blue-006, 20);
+}
+.panel-collapsible .panel-heading [class^="icon-"],
+.panel-collapsible .panel-heading [class*=" icon-"]
+{
+  font-size: 22px;
+}

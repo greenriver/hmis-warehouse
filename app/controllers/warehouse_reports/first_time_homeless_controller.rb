@@ -13,7 +13,7 @@ module WarehouseReports
 
       if @range.valid?
         @first_time_client_ids = Set.new
-        @project_type_codes = params[:first_time_homeless][:project_types].map(&:presence).map(&:to_sym) || [:es, :sh, :so, :th]
+        @project_type_codes = params[:first_time_homeless].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
         @project_types = []
         @project_type_codes.each do |code|
           @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]

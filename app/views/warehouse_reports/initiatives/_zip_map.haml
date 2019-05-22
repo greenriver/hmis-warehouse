@@ -21,24 +21,24 @@
     .ho-container.loso__container
       .ho-container__header
         - if period == :report
-          - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}" 
-        - if period == :comparison 
+          - dates = "#{@report_range.first.to_date} to #{@report_range.last.to_date}"
+        - if period == :comparison
           - dates = "#{@comparison_range.first.to_date} to #{@comparison_range.last.to_date}"
-        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period (#{dates})" 
+        %h4= "#{title} by #{by.to_s.humanize.titleize} for #{period.to_s.titleize} Period (#{dates})"
       .row
-        .col-xs-12
+        .col-sm-12
           .loso__legend
             .clearfix{id: legend_id}
       .row
-        .col-xs-12
-          .clearfix
-            %p.pull-left
-              %small * Click the +/- buttons or scroll over the map to zoom in/out
-              %br
-              %small * Click and drag the map to change positions
-            .loso-zoom-buttons.pull-right
-              %button{id: zoom_in_id} +
-              %button{id: zoom_out_id} -
+        .col-sm-12.d-flex
+          %p
+            %small * Click the +/- buttons or scroll over the map to zoom in/out
+            %br
+            %small * Click and drag the map to change positions
+          .loso-zoom-buttons.ml-auto
+            %button{id: zoom_in_id} +
+            %button{id: zoom_out_id} -
+        .col-sm-12
           %div{id: id,style: 'height: 500px; border: 1px solid #000;'}
       = content_for :page_js do
         :javascript
@@ -50,7 +50,7 @@
             var chart;
             $(window).on('resize', function() {
               if($(id).is(':visible')) {
-                chart = new 
+                chart = new
                 App.D3Chart.ZipMap(id, legend_id, zoom_in, zoom_out, '#{asset_path('d3_charts/zip3topo.json')}', #{data.to_json})
                 chart.draw()
               }

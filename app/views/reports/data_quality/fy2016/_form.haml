@@ -2,7 +2,7 @@
   %h3 Queue Report
   .slab
     = f.error_notification
-    .row.margin-bottom-02
+    .row.mb-2
       .col-sm-4
         = f.input :project_id, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: 'select2'}, as: :select, collection: Reports::DataQuality::Fy2016::Base.available_projects, required: false
         = f.input :project_group_ids, input_html: { name: 'report_result[options][project_group_ids][]', multiple: true, class: 'select2' }, as: :select, collection: GrdaWarehouse::ProjectGroup.all, required: false, label: 'Project Groups'
@@ -22,7 +22,7 @@
             End Date
           = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
     .row
-      .col-sm-12.margin-bottom-02
+      .col-sm-12.mb-2
         .form-actions
           = f.button :button, class: 'btn btn-primary pull-right' do
             %span.icon-plus

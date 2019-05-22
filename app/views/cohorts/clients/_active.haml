@@ -1,38 +1,30 @@
-.panel.panel-default
-  .panel-heading
+- content_for :panel_collapse_content_actives do
+  = simple_form_for :actives, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+    = f.error_notification
     .row
-      .col-xs-8
-        %h4.panel-title
-          %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
-            Clients active within a date range
-      .col-xs-4.text-right
-        %a.toggle.collapsed{data: {parent: '#client-search-options', toggle: 'collapse'}, href: '#actives'}
-          %i.icon-arrow-circled-right
-          %i.icon-arrow-circled-down.hide
-  #actives.panel-collapse.collapse
-    .panel-body
-      = simple_form_for :actives, as: :filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
-        = f.error_notification
-        .row
-          .col-sm-4
-            = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
-          .col-sm-4
-            = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
-          .col-sm-4
-            = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180, style: 'width: 5em;'}
-        .row
-          .col-sm-6
-            = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}
-            = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'mb-0'}, input_html: {checked: @hoh_only}
-          .col-sm-6
-            Limit by population
-            %p.help-block.label-helper.label-helper--info Multiple selections combine scopes. For example: "Individual Adults" who are also "Veterans"
-            = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', multiple: true, include_blank: 'All Clients')
-        .row
-          .col-sm-8
-            %p
-              The days counted are the unique dates in ES, SO, SH, and TH where they do not overlap with PH.
-          .col-sm-4.text-right
-            %label.control-label &nbsp;
-            %div
-              = f.button :submit, value: 'Search'
+      .col-sm-4
+        = f.input :start, as: :date_picker, input_html: {value: 1.months.ago.to_date}
+      .col-sm-4
+        = f.input :end, as: :date_picker, input_html: {value: 1.days.ago.to_date}
+      .col-sm-4
+        = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180}
+    .row
+      .col-sm-6
+        = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}, wrapper_html: {class: 'mb-2'}
+        = f.input :hoh, as: :boolean, label: 'Heads-of-household only', wrapper_html: {class: 'mb-4'}, input_html: {checked: @hoh_only}
+      .col-sm-6
+        Limit by population
+        %p.help-block.label-helper.label-helper--info Multiple selections combine scopes. For example: "Individual Adults" who are also "Veterans"
+        = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', multiple: true, include_blank: 'All Clients')
+    .row.mt-4
+      .col-sm-8
+        %p
+          The days counted are the unique dates in ES, SO, SH, and TH where they do not overlap with PH.
+
+    .panel-footer
+      = f.button :submit, value: 'Search'
+
+= render 'common/panel_collapse',
+  id: 'actives',
+  title: 'Clients active within a date range',
+  content: '_actives'

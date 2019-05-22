@@ -10,7 +10,7 @@
           Care Plan Dates
     .row
       .col-md-2.col-md-offset-4.col-sm-4
-        .margin-top-03.slab__base-dates
+        .mt-3.slab__base-dates
           = f.input :sdh_enroll_date, label: 'SHD Enroll Date', as: :string, input_html: {data: {provide: :datepicker}}      
           = f.input :first_meeting_with_case_manager_date, label: 'First meeting with SDH CM', as: :string, input_html: {data: {provide: :datepicker}}
       .col-md-4.col-sm-4
@@ -80,7 +80,7 @@
           %i.icon-plus
           Add Goal
   .row
-    .col-xs-12
+    .col-sm-12
       .section-expander-block__separator
   - if @goals.present?
     .row.section-expander-block__content-row

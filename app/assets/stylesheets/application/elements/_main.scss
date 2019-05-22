@@ -1,0 +1,7 @@
+@import '../helpers';
+
+main {
+  flex: 1 0 auto;
+  padding-bottom: space(4);
+  min-height: calc(100vh - #{$footer-height} - #{$header-height});
+}

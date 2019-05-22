@@ -1,0 +1,14 @@
+.d-none--empty {
+  &:empty {
+    display: none;
+  }
+}
+
+.inline {
+  display: inline !important;
+}
+
+.hidden,
+.hide {
+  display: none;
+}

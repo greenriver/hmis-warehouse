@@ -49,8 +49,8 @@ module ReportGenerators::DataQuality::Fy2017
         CoCCode: ec_t[:CoCCode].to_sql,
         DisablingCondition: e_t[:DisablingCondition].to_sql,
       }
-      
-      all_client_scope.
+
+      active_client_scope.
         includes(enrollment: :enrollment_coc_at_entry).
         joins(:project).
         order(date: :asc).

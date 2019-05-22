@@ -1,0 +1,33 @@
+= simple_form_for @query, as: :q, url: warehouse_reports_missing_values_path, html: { method: :get } do |f|
+  - content_for :filters_col_full do
+    .row.w-100.mb-4
+      .col-sm-4
+        = f.input :source, collection: @query.possible_sources, input_html: { id: 'source-source', class: :select2}
+      .col-sm-6
+        .hideable.datas.mb-4
+          = f.input :data_source, collection: @query.all_sources[:data_sources], input_html: {class: :select2}
+        .hideable.org.mb-4
+          = f.input :organization, collection: @query.all_sources[:organizations], input_html: {class: :select2}
+        .hideable.proj.mb-4
+          = f.input :project, collection: @query.all_sources[:projects], input_html: {class: :select2}
+    .row.w-100
+      .col-sm-12
+        = f.input :columns, collection: @query.possible_columns, input_html: { multiple: true, id: 'columns', class: :select2}
+
+  - content_for :filter_actions do
+    = f.submit 'Count missing fields', class: 'btn btn-primary'
+    %a#clear-cols.btn.btn-default{ href: '#' } Clear
+    %a#client-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Client table' } }
+      Client fields
+    %a#enrollment-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add all fields from the HUD Enrollment table' } }
+      Enrollment fields
+    %a#default-cols.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'add the fields chosen by default' } }
+      Default fields
+    %a#reset.btn.btn-default{ href: '#', data: { toggle: 'tooltip', title: 'reload the page to show the columns currently displayed' } }
+      Reset
+
+    .ml-auto
+      = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+        Download Excel
+
+  = render 'warehouse_reports/filters', f:f

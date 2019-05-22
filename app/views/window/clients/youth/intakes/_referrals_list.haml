@@ -1,10 +1,10 @@
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header Referrals
-  .c-card__content.c-card__content--flush
+  .c-card__content
     = simple_form_for @referral, as: :entity, url: polymorphic_path(youth_referrals_path_generator) do |f|
       - if current_user.can_edit_youth_intake? && @intakes.ongoing.exists?
-        .youth-intake__add-referral.ma-3
+        .youth-intake__add-referral.m-3
           = f.input :referred_to, collection: @referral.available_referrals, input_html: {class: [:select2, :jOtherTrigger] }
           .jOther.hidden
             = f.input :other
@@ -13,7 +13,7 @@
             %button.btn.btn-primary.ml-2.mt-no-label.mb-auto
               %i.icon-plus
               Add
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th Date

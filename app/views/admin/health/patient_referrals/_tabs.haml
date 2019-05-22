@@ -1,10 +1,7 @@
-%ul.nav.sub-nav-tabs
+%ul.nav.nav-tabs.sub-nav-tabs
   - @patient_referral_tabs.each do |tab|
-    - tab_classes = []
+    - tab_classes = ['nav-item']
     - if tab[:id] == @active_patient_referral_tab
       - tab_classes.push('active')
-    %li{role: 'presentation', class: tab_classes}
-      = link_to tab[:tab_text], tab[:path]
-
-
-  
+    %li.nav-item{role: 'presentation', class: tab_classes}
+      = link_to tab[:tab_text], tab[:path], class: 'nav-link'

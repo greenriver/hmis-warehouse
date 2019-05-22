@@ -1,7 +1,7 @@
 - show_relationship_link = can_assign_users_to_clients? || can_view_client_user_assignments?
 .clients__users
   - if client.user_clients.non_confidential.any?
-    %table.table.table-condensed
+    %table.table.table-sm
       %thead
         %tr
           %th

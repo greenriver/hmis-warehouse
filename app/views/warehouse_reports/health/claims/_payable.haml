@@ -6,7 +6,7 @@
       .c-card__content
         .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client_id)
         .c-card__description
-          %table.table.table-condensed.table-striped.table-hover
+          %table.table.table-sm.table-striped.table-hover
             %thead
               %tr
                 %th Date
