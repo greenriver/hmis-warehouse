@@ -134,8 +134,8 @@ module ReportGenerators::DataQuality::Fy2017
         entry_created_at: e_t[:DateCreated].to_sql,
         exit_created_at: ex_t[:DateCreated].to_sql,
       }
-      
-      all_client_scope.
+
+      active_client_scope.
         joins(:enrollment).
         includes(enrollment: :exit).
         order(date: :asc).
