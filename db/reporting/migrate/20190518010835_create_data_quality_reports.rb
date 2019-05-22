@@ -123,12 +123,30 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.date :operating_start_date
       t.string :coc_code
       t.string :funder
-      t.date :information_date
+      t.string :inventory_information_dates
       t.string :geocode
       t.string :geography_type
       t.integer :unit_inventory
       t.integer :bed_inventory
       t.integer :housing_type
+
+      t.integer :average_nightly_clients
+      t.integer :average_nightly_households
+
+      t.integer :average_bed_utilization
+      t.integer :average_unit_utilization
+
+      t.jsonb :nightly_client_census
+      t.jsonb :nightly_household_census
+
+      t.datetime :calculated_at, null: false
+    end
+
+    create_table :warehouse_data_quality_report_project_groups do |t|
+      t.integer :report_id
+
+      t.integer :unit_inventory
+      t.integer :bed_inventory
 
       t.integer :average_nightly_clients
       t.integer :average_nightly_households

@@ -3,8 +3,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     include ArelHelper
     include TsqlImport
 
-    has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name
-    has_many :report_projects, class_name: Reporting::DataQualityReports::Project.name
+    has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name, foreign_key: :report_id
+    has_many :report_projects, class_name: Reporting::DataQualityReports::Project.name, foreign_key: :report_id
+    has_one :report_project_group, class_name: Reporting::DataQualityReports::ProjectGroup.name, foreign_key: :report_id
 
     def run!
       progress_methods = [
@@ -13,6 +14,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :save_report_enrollments,
         :set_report_project_details,
         :save_report_project_details,
+        :set_report_project_group_details,
+        :save_report_project_group_details,
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
@@ -232,16 +235,19 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       projects = GrdaWarehouse::Hud::Project.where(id: self.projects.map(&:id)).
         preload(:inventories, :geographies, :funders, :project_cocs)
       projects.each do |project|
-        report_project = Reporting::DataQualityReports::Enrollment.new(
+        report_project = Reporting::DataQualityReports::Project.new(
           report_id: self.id,
           project_id: project.id,
           project_type: project.computed_project_type,
-          calculated_at: self.started_at,
           operating_start_date: project.OperatingStartDate,
-          information_date: project.InformationDate,
+          housing_type: HUD::housing_type(project.HousingType),
+          calculated_at: self.started_at,
         )
 
         report_project = set_project_calculated_fields(project: project, report_project: report_project)
+        # These rely on calculations from above
+        report_project = set_project_average_fields(report_project: report_project)
+
         @report_projects << report_project
       end
       return @report_projects
@@ -249,18 +255,30 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def set_project_calculated_fields project:, report_project:
       report_project.coc_code = report_project.calculate_coc_code(project: project)
-      report_project.funder = report_project.calculate_funder
-      report_project.geocode = report_project.calculate_geocode
-      report_project.geography_type = report_project.calculate_geography_type
-      report_project.unit_inventory = report_project.calculate_unit_inventory
-      report_project.bed_inventory = report_project.calculate_bed_inventory
-      report_project.housing_type = report_project.calculate_housing_type
-      report_project.average_client_nightly_clients = report_project.calculate_average_client_nightly_clients
-      report_project.average_household_nightly_clients = report_project.calculate_average_household_nightly_clients
+      report_project.funder = report_project.calculate_funder(project: project)
+      report_project.geocode = report_project.calculate_geocode(project: project)
+      report_project.geography_type = report_project.calculate_geography_type(project: project)
+      report_project.inventory_information_dates = report_project.calculate_inventory_information_dates(project: project)
+      report_project.unit_inventory = report_project.calculate_unit_inventory(project: project, report_range: report_range)
+      report_project.bed_inventory = report_project.calculate_bed_inventory(project: project, report_range: report_range)
+      report_project.nightly_client_census = report_project.calculate_nightly_client_census(
+        project: project,
+        report_range: report_range,
+      )
+      report_project.nightly_household_census = report_project.calculate_nightly_household_census(
+        project: project,
+        report_range: report_range,
+      )
+      return report_project
+    end
+
+    # These rely on a set_project_calculated_fields being called first
+    def set_project_average_fields report_project:
+      report_project.average_nightly_clients = report_project.calculate_average_nightly_clients(report_range: report_range)
+      report_project.average_nightly_households = report_project.calculate_average_nightly_households(report_range: report_range)
       report_project.average_bed_utilization = report_project.calculate_average_bed_utilization
       report_project.average_unit_utilization = report_project.calculate_average_unit_utilization
-      report_project.nightly_client_census = report_project.calculate_nightly_client_census
-      report_project.nightly_household_census = report_project.calculate_nightly_household_census
+      return report_project
     end
 
     def save_report_project_details
@@ -269,6 +287,44 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         Reporting::DataQualityReports::Project.import(@report_projects)
       end
     end
+
+    def set_report_project_group_details
+      project_ids = self.projects.map(&:id)
+      @report_project_group = Reporting::DataQualityReports::ProjectGroup.new(
+        report_id: self.id,
+        calculated_at: self.started_at,
+      )
+      @report_project_group.unit_inventory = @report_project_group.calculate_unit_inventory(
+        project_ids: project_ids,
+        report_range: report_range,
+      )
+      @report_project_group.bed_inventory = @report_project_group.calculate_bed_inventory(
+        project_ids: project_ids,
+        report_range: report_range,
+      )
+      @report_project_group.nightly_client_census = @report_project_group.calculate_nightly_client_census(
+        project_ids: project_ids,
+        report_range: report_range,
+      )
+      @report_project_group.nightly_household_census = @report_project_group.calculate_nightly_household_census(
+        project_ids: project_ids,
+        report_range: report_range,
+      )
+      @report_project_group.average_nightly_clients = @report_project_group.calculate_average_nightly_clients(report_range: report_range)
+      @report_project_group.average_nightly_households = @report_project_group.calculate_average_nightly_households(report_range: report_range)
+      @report_project_group.average_nightly_clients = @report_project_group.calculate_average_bed_utilization
+      @report_project_group.average_nightly_households = @report_project_group.calculate_average_unit_utilization
+
+      return @report_project_group
+    end
+
+    def save_report_project_group_details
+      Reporting::DataQualityReports::ProjectGroup.transaction do
+        Reporting::DataQualityReports::ProjectGroup.where(report_id: id).delete_all
+        @report_project_group.save!
+      end
+    end
+
 
     # NOTE: since this is a report that is looking specifically at HMIS data quality
     # we are sticking to source data, including source clients

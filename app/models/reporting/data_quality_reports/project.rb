@@ -4,7 +4,9 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_projects
 
-    def calculate_coc_code
+    belongs_to :report, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name, foreign_key: :report_id
+
+    def calculate_coc_code project:
       project.project_cocs.map(&:CoCCode).uniq.join(', ')
     end
     def calculate_funder project:
@@ -23,33 +25,56 @@ module Reporting::DataQualityReports
         m[:UnitInventory] || 0
       end.sum
     end
-    def calculate_bed_inventory
+    def calculate_bed_inventory project:, report_range:
       project.inventories.within_range(report_range).map do |m|
         m[:BedInventory] || 0
       end.sum
     end
-    def calculate_housing_type
-      project.inventories.map do |m|
-        HUD::housing_type(m.HousingType)
-      end.uniq.join(', ')
-    end
-    def calculate_average_nightly_clients
-    end
-    def calculate_average_nightly_households
-    end
-    def calculate_average_bed_utilization
-    end
-    def calculate_average_unit_utilization
+
+    def calculate_inventory_information_dates project:
+      project.inventories.map(&:InformationDate).join(', ')
     end
 
     # NOTE: this relies on service_history_service, not source data
-    def calculate_nightly_client_census project:, report_range;
-      GrdaWarehouse::ServiceHistoryService.where(date: report_range, project_id: project.id).
+    # Because we'll need to de-dupe these for the project group, we can't rely on the DB
+    # to do the counting, we'll store client ids per date
+    def calculate_nightly_client_census project:, report_range:
+      services_scope(project: project, report_range: report_range).
         group(:date).select(:client_id).distinct.count
     end
 
     # NOTE: this relies on service_history_service, not source data
-    def calculate_nightly_household_census
+    # Counts unique client_ids only for heads of household
+    # Because we'll need to de-dupe these for the project group, we can't rely on the DB
+    # to do the counting, we'll store client ids per date
+    def calculate_nightly_household_census project:, report_range:
+      services_scope(project: project, report_range: report_range).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+        group(:date).select(:client_id).distinct.count
     end
+
+    def services_scope project:, report_range:
+      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project.id)).
+        where(date: report_range.range)
+    end
+
+    # these rely on previously calculated values
+    def calculate_average_nightly_clients report_range:
+      (self.nightly_client_census.values.sum.to_f / report_range.range.count).round rescue 0
+    end
+
+    def calculate_average_nightly_households report_range:
+      (self.nightly_household_census.values.sum.to_f / report_range.range.count).round rescue 0
+    end
+
+    def calculate_average_bed_utilization
+      ((self.average_nightly_clients / self.bed_inventory.to_f ) * 100).round rescue 0
+    end
+
+    def calculate_average_unit_utilization
+      ((self.average_nightly_households / self.unit_inventory.to_f) * 100).round rescue 0
+    end
+
   end
 end
