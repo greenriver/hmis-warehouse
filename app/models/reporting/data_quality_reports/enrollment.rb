@@ -166,7 +166,7 @@ module Reporting::DataQualityReports
 
     def calculate_most_recent_service_within_range project:, service_dates:, report_start:, report_end:, exit_date:
       if ! project.bed_night_tracking?
-        [report_end, exit_date].min
+        [report_end, exit_date].compact.min
       else
         ((report_start..report_end).to_a & service_dates).max
       end
