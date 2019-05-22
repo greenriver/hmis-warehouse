@@ -4,6 +4,7 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.integer :report_id
       t.integer :client_id
       t.integer :project_id
+      t.integer :project_type
       t.integer :enrollment_id
       t.boolean :enrolled
       t.boolean :active
@@ -31,62 +32,71 @@ class CreateDataQualityReports < ActiveRecord::Migration
 
       t.integer :destination_id
 
-      t.boolean :name_complete
-      t.boolean :name_missing
-      t.boolean :name_refused
-      t.boolean :name_not_collected
+      t.boolean :name_complete, default: false
+      t.boolean :name_missing, default: false
+      t.boolean :name_refused, default: false
+      t.boolean :name_not_collected, default: false
+      t.boolean :name_partial, default: false
 
-      t.boolean :ssn_complete
-      t.boolean :ssn_missing
-      t.boolean :ssn_refused
-      t.boolean :ssn_not_collected
+      t.boolean :ssn_complete, default: false
+      t.boolean :ssn_missing, default: false
+      t.boolean :ssn_refused, default: false
+      t.boolean :ssn_not_collected, default: false
+      t.boolean :ssn_partial, default: false
 
-      t.boolean :gender_complete
-      t.boolean :gender_missing
-      t.boolean :gender_refused
-      t.boolean :gender_not_collected
+      t.boolean :gender_complete, default: false
+      t.boolean :gender_missing, default: false
+      t.boolean :gender_refused, default: false
+      t.boolean :gender_not_collected, default: false
+      t.boolean :gender_partial, default: false
 
-      t.boolean :dob_complete
-      t.boolean :dob_missing
-      t.boolean :dob_refused
-      t.boolean :dob_not_collected
+      t.boolean :dob_complete, default: false
+      t.boolean :dob_missing, default: false
+      t.boolean :dob_refused, default: false
+      t.boolean :dob_not_collected, default: false
+      t.boolean :dob_partial, default: false
 
-      t.boolean :veteran_complete
-      t.boolean :veteran_missing
-      t.boolean :veteran_refused
-      t.boolean :veteran_not_collected
+      t.boolean :veteran_complete, default: false
+      t.boolean :veteran_missing, default: false
+      t.boolean :veteran_refused, default: false
+      t.boolean :veteran_not_collected, default: false
+      t.boolean :veteran_partial, default: false
 
-      t.boolean :ethnicity_complete
-      t.boolean :ethnicity_missing
-      t.boolean :ethnicity_refused
-      t.boolean :ethnicity_not_collected
+      t.boolean :ethnicity_complete, default: false
+      t.boolean :ethnicity_missing, default: false
+      t.boolean :ethnicity_refused, default: false
+      t.boolean :ethnicity_not_collected, default: false
+      t.boolean :ethnicity_partial, default: false
 
-      t.boolean :race_complete
-      t.boolean :race_missing
-      t.boolean :race_refused
-      t.boolean :race_not_collected
+      t.boolean :race_complete, default: false
+      t.boolean :race_missing, default: false
+      t.boolean :race_refused, default: false
+      t.boolean :race_not_collected, default: false
+      t.boolean :race_partial, default: false
 
-      t.boolean :disabling_condition_complete
-      t.boolean :disabling_condition_missing
-      t.boolean :disabling_condition_refused
-      t.boolean :disabling_condition_not_collected
+      t.boolean :disabling_condition_complete, default: false
+      t.boolean :disabling_condition_missing, default: false
+      t.boolean :disabling_condition_refused, default: false
+      t.boolean :disabling_condition_not_collected, default: false
+      t.boolean :disabling_condition_partial, default: false
 
-      t.boolean :prior_living_situation_complete
-      t.boolean :prior_living_situation_missing
-      t.boolean :prior_living_situation_refused
-      t.boolean :prior_living_situation_not_collected
+      t.boolean :prior_living_situation_complete, default: false
+      t.boolean :prior_living_situation_missing, default: false
+      t.boolean :prior_living_situation_refused, default: false
+      t.boolean :prior_living_situation_not_collected, default: false
+      t.boolean :prior_living_situation_partial, default: false
 
-      t.boolean :income_at_entry_complete
-      t.boolean :income_at_entry_missing
-      t.boolean :income_at_entry_refused
-      t.boolean :income_at_entry_not_collected
+      t.boolean :income_at_entry_complete, default: false
+      t.boolean :income_at_entry_missing, default: false
+      t.boolean :income_at_entry_refused, default: false
+      t.boolean :income_at_entry_not_collected, default: false
+      t.boolean :income_at_entry_partial, default: false
 
-      t.boolean :income_at_exit_complete
-      t.boolean :income_at_exit_missing
-      t.boolean :income_at_exit_refused
-      t.boolean :income_at_exit_not_collected
-
-      t.boolean :exit_interview_completed
+      t.boolean :income_at_exit_complete, default: false
+      t.boolean :income_at_exit_missing, default: false
+      t.boolean :income_at_exit_refused, default: false
+      t.boolean :income_at_exit_not_collected, default: false
+      t.boolean :income_at_exit_partial, default: false
 
       t.boolean :include_in_income_change_calculation
       t.integer :income_at_entry_earned
@@ -99,11 +109,37 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.integer :name_data_quality
       t.integer :ssn_data_quality
       t.integer :dob_data_quality
-      t.integer :disability_type
-      t.integer :disability_response
 
       t.integer :days_to_move_in_date
 
+      t.datetime :calculated_at, null: false
+
+    end
+
+    create_table :warehouse_data_quality_report_projects do |t|
+      t.integer :report_id
+      t.integer :project_id
+      t.integer :project_type
+      t.date :operating_start_date
+      t.string :coc_code
+      t.string :funder
+      t.date :information_date
+      t.string :geocode
+      t.string :geography_type
+      t.integer :unit_inventory
+      t.integer :bed_inventory
+      t.integer :housing_type
+
+      t.integer :average_nightly_clients
+      t.integer :average_nightly_households
+
+      t.integer :average_bed_utilization
+      t.integer :average_unit_utilization
+
+      t.jsonb :nightly_client_census
+      t.jsonb :nightly_household_census
+
+      t.datetime :calculated_at, null: false
     end
   end
 end

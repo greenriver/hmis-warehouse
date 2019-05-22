@@ -1,13 +1,18 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
+    include ArelHelper
+    include TsqlImport
 
     has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name
+    has_many :report_projects, class_name: Reporting::DataQualityReports::Project.name
 
     def run!
       progress_methods = [
         :start_report,
         :build_report_enrollments,
-        :set_inventory_details,
+        :save_report_enrollments,
+        :set_report_project_details,
+        :save_report_project_details,
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
@@ -20,7 +25,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def report_range
-      @report_range ||= ::Filters::DateRange.new(start: @start_date, end: @end_date)
+      @report_range ||= ::Filters::DateRange.new(start: report_start, end: report_end)
     end
 
     def report_start
@@ -31,39 +36,238 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       self.end.to_date
     end
 
-    def build_report_enrollments
-      @report_enrollments = []
-      source_enrollments.each do |hud_en|
-        client = hud_en.client
-        project = hud_en.project
-        hud_exit = hud_en.exit
-
-        report_enrollment = enrollments.build(
-          client_id: client.id,
-          project_id: hud_en.project.id,
-          enrollment_id: hud_en.id,
-          enrolled: true,
-          household_id: hud_en.HouseholdID,
-          dob: client.DOB,
-          entry_date: hud_en.EntryDate,
-          exit_date: hud_exit&.ExitDate,
-        )
-        report_enrollment = set_calculated_fields(hud_enrollment: hud_en, report_enrollment: report_enrollment)
+    def save_report_enrollments
+      Reporting::DataQualityReports::Enrollment.transaction do
+        Reporting::DataQualityReports::Enrollment.where(report_id: id).delete_all
+        Reporting::DataQualityReports::Enrollment.import(@report_enrollments)
       end
     end
 
+    def build_report_enrollments
+      @report_enrollments = []
+      source_enrollments.each do |hud_enrollment|
+        client = hud_enrollment.client
+        project = hud_enrollment.project
+        hud_exit = hud_enrollment.exit
+
+        report_enrollment = Reporting::DataQualityReports::Enrollment.new(
+          report_id: self.id,
+          client_id: client.id,
+          project_id: project.id,
+          project_type: project.computed_project_type,
+          enrollment_id: hud_enrollment.id,
+          enrolled: true,
+          household_id: hud_enrollment.HouseholdID,
+          dob: client.DOB,
+          entry_date: hud_enrollment.EntryDate,
+          exit_date: hud_exit&.ExitDate,
+          destination_id: hud_exit&.Destination,
+          name_data_quality: client.NameDataQuality,
+          ssn_data_quality: client.SSNDataQuality,
+          dob_data_quality: client.DOBDataQuality,
+          calculated_at: self.started_at,
+        )
+
+        report_enrollment = set_calculated_fields(hud_enrollment: hud_enrollment, report_enrollment: report_enrollment)
+
+        # per the HUD glossary, refused trumps missing, missing trumps partial
+        # We're adding in not collected and complete so these need to be added in the following
+        # order
+        # refused, not collected, missing, partial, complete
+        report_enrollment = set_completeness_fields(report_enrollment: report_enrollment, hud_enrollment: hud_enrollment, client: client)
+
+        @report_enrollments << report_enrollment
+      end
+      return @report_enrollments
+    end
+
     def set_calculated_fields hud_enrollment:, report_enrollment:
+      project = hud_enrollment.project
+      service_dates = service_dates_for_enrollment(hud_enrollment)
+      exit_record = hud_enrollment.exit
       report_enrollment.head_of_household = report_enrollment.is_head_of_household?(enrollment: hud_enrollment)
-      report_enrollment.household_type = household_type_for enrollment: hud_enrollment
+      report_enrollment.active = report_enrollment.is_active?(
+        project: project,
+        service_dates: service_dates,
+        report_start: report_start,
+        report_end: report_end,
+      )
+      report_enrollment.entered = report_enrollment.is_entered?(
+        entry_date: hud_enrollment.EntryDate,
+        report_start: report_start,
+        report_end: report_end,
+      )
+      report_enrollment.exited = report_enrollment.is_exited?(
+        exit_record: exit_record,
+        report_start: report_start,
+        report_end: report_end,
+      )
+      report_enrollment.adult = report_enrollment.is_adult?(date: hud_enrollment.EntryDate)
+      report_enrollment.household_type = household_type_for(enrollment: hud_enrollment)
       report_enrollment.age = report_enrollment.calculate_age(date: hud_enrollment.EntryDate)
-      report_enrollment.days_to_add_entry_date =
-      report_enrollment.days_to_add_exit_date
+      report_enrollment.days_to_add_entry_date = report_enrollment.calculate_days_to_add_entry_date(enrollment: hud_enrollment)
+      report_enrollment.days_to_add_exit_date = report_enrollment.calculate_days_to_add_exit_date(exit_record: exit_record)
+      report_enrollment.dob_after_entry_date = report_enrollment.calculate_dob_after_entry_date()
+      report_enrollment.most_recent_service_within_range = report_enrollment.calculate_most_recent_service_within_range(
+        project: project,
+        service_dates: service_dates,
+        report_start: report_start,
+        report_end: report_end,
+        exit_date: exit_record&.ExitDate
+      )
+      report_enrollment.service_witin_last_30_days = report_enrollment.calculate_service_witin_last_30_days(
+        project: project,
+        service_dates: service_dates,
+        exit_date: exit_record&.ExitDate,
+        report_end: report_end
+      )
+      report_enrollment.service_after_exit = report_enrollment.calculate_service_after_exit(
+        project: project,
+        service_dates: service_dates,
+        exit_date: exit_record&.ExitDate
+      )
+      report_enrollment.days_of_service = report_enrollment.calculate_days_of_service(
+        project: project,
+        service_dates: service_dates,
+        entry_date: hud_enrollment.EntryDate,
+        exit_date: exit_record&.ExitDate,
+        report_end: report_end
+      )
+
+      report_enrollment.include_in_income_change_calculation = report_enrollment.calculate_include_in_income_change_calculation(
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+      )
+      report_enrollment.income_at_entry_earned = report_enrollment.calculate_income_at_entry_earned(
+        income_at_entry: income_at_entry_for_enrollment(hud_enrollment),
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+      )
+      report_enrollment.income_at_entry_non_cash = report_enrollment.calculate_income_at_entry_non_cash(
+        income_at_entry: income_at_entry_for_enrollment(hud_enrollment),
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+      )
+      report_enrollment.income_at_entry_overall = report_enrollment.calculate_income_at_entry_overall(
+        income_at_entry: income_at_entry_for_enrollment(hud_enrollment),
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+      )
+      report_enrollment.income_at_later_date_earned = report_enrollment.calculate_income_at_later_date_earned(
+        incomes: hud_enrollment.income_benefits,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.income_at_later_date_non_cash = report_enrollment.calculate_income_at_later_date_non_cash(
+        incomes: hud_enrollment.income_benefits,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.income_at_later_date_overall = report_enrollment.calculate_income_at_later_date_overall(
+        incomes: hud_enrollment.income_benefits,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.days_to_move_in_date = report_enrollment.calculate_days_to_move_in_date(
+        entry_date: hud_enrollment.EntryDate,
+        move_in_date: hud_enrollment.MoveInDate,
+      )
 
       return report_enrollment
     end
 
-    def set_inventory_details
+    def set_completeness_fields report_enrollment:, hud_enrollment:, client:
+      report_enrollment.set_name_completeness(
+        first_name: client.FirstName,
+        last_name: client.LastName,
+        name_quality: client.NameDataQuality,
+      )
+      report_enrollment.set_ssn_completeness(
+        ssn: client.SSN,
+        ssn_quality: client.SSNDataQuality,
+      )
+      report_enrollment.set_dob_completeness(
+        dob: client.DOB,
+        dob_quality: client.DOBDataQuality,
+        head_of_household: report_enrollment.head_of_household,
+        entry_date: hud_enrollment.EntryDate,
+        enrollment_created_date: hud_enrollment.DateCreated,
+      )
+      report_enrollment.set_gender_completeness(gender: client.Gender)
+      report_enrollment.set_veteran_completeness(veteran: client.VeteranStatus)
+      report_enrollment.set_ethnicity_completeness(ethnicity: client.Ethnicity)
+      report_enrollment.set_race_completeness(
+        race_none: client.RaceNone,
+        american_indian_or_ak_native: client.AmIndAKNative,
+        asian: client.Asian,
+        black_or_african_american: client.BlackAfAmerican,
+        native_hi_or_other_pacific_islander: client.NativeHIOtherPacific,
+        white: client.White,
+      )
+      report_enrollment.set_disabling_condition_completeness(
+        disabling_condition: hud_enrollment.DisablingCondition,
+        all_indefinite_and_impairs: most_recent_disability_resonses_for_enrollment(hud_enrollment)
+      )
+      report_enrollment.set_prior_living_situation_completeness(
+        prior_living_situation: hud_enrollment.LivingSituation,
+        head_of_household: report_enrollment.head_of_household,
+      )
+      report_enrollment.set_income_at_entry_completeness(
+        income_at_entry: income_at_entry_for_enrollment(hud_enrollment)
+      )
+      report_enrollment.set_income_at_exit_completeness(
+        income_at_exit: income_at_exit_for_enrollment(hud_enrollment),
+        head_of_household: report_enrollment.head_of_household,
+        exit_date: hud_enrollment.exit&.ExitDate,
+        report_end: report_end,
+      )
+      return report_enrollment
+    end
 
+    def set_report_project_details
+      @report_projects ||= []
+      projects = GrdaWarehouse::Hud::Project.where(id: self.projects.map(&:id)).
+        preload(:inventories, :geographies, :funders, :project_cocs)
+      projects.each do |project|
+        report_project = Reporting::DataQualityReports::Enrollment.new(
+          report_id: self.id,
+          project_id: project.id,
+          project_type: project.computed_project_type,
+          calculated_at: self.started_at,
+          operating_start_date: project.OperatingStartDate,
+          information_date: project.InformationDate,
+        )
+
+        report_project = set_project_calculated_fields(project: project, report_project: report_project)
+        @report_projects << report_project
+      end
+      return @report_projects
+    end
+
+    def set_project_calculated_fields project:, report_project:
+      report_project.coc_code = report_project.calculate_coc_code(project: project)
+      report_project.funder = report_project.calculate_funder
+      report_project.geocode = report_project.calculate_geocode
+      report_project.geography_type = report_project.calculate_geography_type
+      report_project.unit_inventory = report_project.calculate_unit_inventory
+      report_project.bed_inventory = report_project.calculate_bed_inventory
+      report_project.housing_type = report_project.calculate_housing_type
+      report_project.average_client_nightly_clients = report_project.calculate_average_client_nightly_clients
+      report_project.average_household_nightly_clients = report_project.calculate_average_household_nightly_clients
+      report_project.average_bed_utilization = report_project.calculate_average_bed_utilization
+      report_project.average_unit_utilization = report_project.calculate_average_unit_utilization
+      report_project.nightly_client_census = report_project.calculate_nightly_client_census
+      report_project.nightly_household_census = report_project.calculate_nightly_household_census
+    end
+
+    def save_report_project_details
+      Reporting::DataQualityReports::Project.transaction do
+        Reporting::DataQualityReports::Project.where(report_id: id).delete_all
+        Reporting::DataQualityReports::Project.import(@report_projects)
+      end
     end
 
     # NOTE: since this is a report that is looking specifically at HMIS data quality
@@ -71,26 +275,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def source_enrollments
       @source_enrollments ||= GrdaWarehouse::Hud::Enrollment.open_during_range(report_range).
         joins(:project).
-        preload(:exit, :client, :project).
+        preload(:exit, :client, :project, :income_benefits).
         merge(GrdaWarehouse::Hud::Project.where(id: projects.map(&:id)))
     end
 
-    def leavers
-      @leavers ||= source_enrollments.joins(:exit).
+    def exiters
+      @exiters ||= source_enrollments.joins(:exit).
         where(ExitDate: (report_start..report_end))
     end
 
     # enrollments with joined/preloaded exits, keyed on enrollment id
-    def leavers_by_enrollment_id
-      @leavers_by_enrollment_id ||= leavers.index_by(&:id)
+    def exiters_by_enrollment_id
+      @exiters_by_enrollment_id ||= exiters.index_by(&:id)
     end
 
     def exit_for_enrollment_id id
-      leavers_by_enrollment_id[id].exit
+      exiters_by_enrollment_id[id].exit
     end
 
-    def exiters
-      @exiters ||= source_enrollments.where.not(id: @leavers.select(:id))
+    def stayers
+      @stayers ||= source_enrollments.where.not(id: @exiters.select(:id))
     end
 
     def household_client_counts
@@ -108,6 +312,85 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
+    def service_dates_by_enrollment
+      @service_dates_by_enrollment ||= begin
+        dates_by_enrollment = {}
+        source_enrollments.joins(:services).pluck(:id, s_t[:DateProvided].to_sql).each do |id, date|
+          dates_by_enrollment[id] ||= []
+          dates_by_enrollment[id] << date
+        end
+        # yield dates_by_enrollment
+        dates_by_enrollment
+      end
+    end
+
+    def service_dates_for_enrollment enrollment
+      service_dates_by_enrollment[enrollment.id] || []
+    end
+
+    def most_recent_disability_resonses_by_enrollment
+      @most_recent_disability_resonses_by_enrollment ||= begin
+        responses_by_enrollment = {}
+        columns = {
+          enrollment_id: :id,
+          date: d_t[:InformationDate].to_sql,
+          type: d_t[:DisabilityType].to_sql,
+          response: d_t[:DisabilityResponse].to_sql,
+          indefinite_and_impairs: d_t[:IndefiniteAndImpairs].to_sql,
+        }
+        source_enrollments.joins(:disabilities).
+          pluck(*columns.values).
+          each do |row|
+            row = Hash[columns.keys.zip(row)]
+            responses_by_enrollment[row[:enrollment_id]] ||= {}
+            responses_by_enrollment[row[:enrollment_id]][row[:date]] ||= []
+            responses_by_enrollment[row[:enrollment_id]][row[:date]] << row
+          end
+        responses_by_enrollment.each do |enrollment_id, dates|
+          # only keep the max date
+          max_date = dates.keys.max
+          data = dates[max_date]
+          responses_by_enrollment[enrollment_id] = data
+        end
+        # yield the calculated hash
+        responses_by_enrollment
+      end
+    end
+
+    def most_recent_disability_resonses_for_enrollment enrollment
+      most_recent_disability_resonses_by_enrollment[enrollment.id]
+    end
+
+    def incomes_at_entry_by_enrollment
+      @incomes_at_entry_by_enrollment ||= begin
+        incomes = {}
+        source_enrollments.joins(:income_benefits_at_entry).
+          preload(:income_benefits_at_entry).find_each do |enrollment|
+            incomes[enrollment.id] = enrollment.income_benefits_at_entry
+          end
+        incomes
+      end
+    end
+
+    def income_at_entry_for_enrollment enrollment
+      incomes_at_entry_by_enrollment[enrollment.id]
+    end
+
+    def incomes_at_exit_by_enrollment
+      @incomes_at_exit_by_enrollment ||= begin
+        incomes = {}
+        source_enrollments.joins(:income_benefits_at_exit).
+          preload(:income_benefits_at_exit).find_each do |enrollment|
+            incomes[enrollment.id] = enrollment.income_benefits_at_exit
+          end
+        incomes
+      end
+
+    end
+
+    def income_at_exit_for_enrollment enrollment
+      incomes_at_exit_by_enrollment[enrollment.id]
+    end
 
   end
 end
