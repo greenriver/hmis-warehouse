@@ -7,16 +7,16 @@ module Reporting::DataQualityReports
     belongs_to :report, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name, foreign_key: :report_id
 
     def calculate_unit_inventory project_ids:, report_range:
-      GrdaWarehouse::Hud::Project.where(id: project_ids).joins(:inventories).
-        merge(GrdaWarehouse::Hud::Inventory.within_range(report_range)).
+      GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
           map do |m|
           m[:UnitInventory] || 0
         end.sum
     end
 
     def calculate_bed_inventory project_ids:, report_range:
-      GrdaWarehouse::Hud::Project.where(id: project_ids).joins(:inventories).
-        merge(GrdaWarehouse::Hud::Inventory.within_range(report_range)).
+      GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
           map do |m|
           m[:BedInventory] || 0
         end.sum
@@ -48,19 +48,19 @@ module Reporting::DataQualityReports
 
     # these rely on previously calculated values
     def calculate_average_nightly_clients report_range:
-      ((self.nightly_client_census.values.sum.to_f / report_range.range.count) * 100).round rescue 0
+      (self.nightly_client_census.values.sum.to_f / report_range.range.count).round rescue 0
     end
 
     def calculate_average_nightly_households report_range:
-      ((self.nightly_household_census.values.sum.to_f / report_range.range.count) * 100).round rescue 0
+      (self.nightly_household_census.values.sum.to_f / report_range.range.count).round rescue 0
     end
 
     def calculate_average_bed_utilization
-      ((self.bed_inventory.to_f / self.average_nightly_clients) * 100).round rescue 0
+      ((self.average_nightly_clients / self.bed_inventory.to_f ) * 100).round rescue 0
     end
 
     def calculate_average_unit_utilization
-      ((self.unit_inventory.to_f / self.average_nightly_households) * 100).round rescue 0
+      ((self.average_nightly_households / self.unit_inventory.to_f) * 100).round rescue 0
     end
 
   end

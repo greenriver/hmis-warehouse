@@ -142,13 +142,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       return @served_percentages
     end
 
-    def describe_completeness method
+    def describe_completeness method, as_percent: false
       served_percentages = self.send(method)
       if served_percentages.any?
         served_percentages.map do |details|
           content_tag(:li) do
             concat(content_tag(:span, "#{details[:project_name]}: ")) if report_type == :project_group
-            concat content_tag(:strong, "#{details[:label]} (#{details[:percent]}%)")
+            details_text = "#{details[:label]}"
+            details_text << " (#{details[:percent]}%)" if details[:percent]
+            details_text << " (#{details[:value].presence || 'blank'})" if details[:value]
+            concat content_tag(:strong, details_text)
           end
         end.join.html_safe
       else
@@ -194,7 +197,354 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       return @unit_utilization_percentages
     end
 
+    def project_descriptor
+      @project_descriptor ||= begin
+        issues = []
+        report_projects.each do |report_project|
+          project = projects.detect{|p| p.id == report_project.project_id}
+          # some of these are only valid for residential project types
+          if report_project.project_type.in?(project.class::RESIDENTIAL_PROJECT_TYPE_IDS)
+            if report_project.bed_inventory.blank? || report_project.bed_inventory.zero?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Bed Inventory',
+                value: report_project.bed_inventory,
+              }
+            end
+            if report_project.unit_inventory.blank? || report_project.unit_inventory.zero?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Unit Inventory',
+                value: report_project.unit_inventory,
+              }
+            end
+            if report_project.coc_code.blank? || report_project.coc_code.length != 6
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing or malformed CoC Code',
+                value: report_project.coc_code,
+              }
+            end
+            if report_project.funder.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Funder',
+                value: report_project.funder,
+              }
+            end
+            if report_project.geocode.blank? || report_project.geocode.length != 6
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing or malformed Geocode',
+                value: report_project.geocode,
+              }
+            end
+            if report_project.geography_type.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Geography Type',
+                value: report_project.geography_type,
+              }
+            end
+            if report_project.housing_type.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Housing Type',
+                value: report_project.housing_type,
+              }
+            end
+            if report_project.inventory_information_dates.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Inventory Information Date',
+                value: report_project.inventory_information_dates,
+              }
+            end
+            if report_project.operating_start_date.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Operation Start Date',
+                value: report_project.operating_start_date,
+              }
+            end
+            if report_project.project_type.blank?
+              issues << {
+                project_id: project.id,
+                project_name: project.ProjectName,
+                label: 'Missing Project Type',
+                value: report_project.project_type,
+              }
+            end
+          end
+        end
+        issues
+      end
+      return @project_descriptor
+    end
 
+    def client_data
+      @client_data ||= begin
+        percentages = []
 
+        completeness_metrics.each do |key, options|
+          options[:measures].each do |measure|
+            # FIXME: this isn't always true
+            denominator = send(options[:denominator])
+            counts = enrolled_clients.group(:project_id).select("#{key}_#{measure}").count
+            counts.each do |id, count|
+              next if denominator.zero?
+              percentage = count.to_f / denominator
+              if percentage > mininum_completeness_threshold
+                percentages << {
+                  project_id: id,
+                  project_name: projects.detect{|p| p.id == id}.ProjectName,
+                  label: "High #{measure} rate - #{key.to_s.humanize}",
+                  percent: percentage,
+                }
+              end
+            end
+          end
+        end
+        percentages
+      end
+      return @client_data
+    end
+
+    def completeness_metrics
+      @completeness_metrics ||= {
+        name: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+            :partial,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        ssn: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+            :partial,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        dob: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+            :partial,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        gender: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        veteran: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        ethnicity: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        race: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        disabling_condition: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        prior_living_situation: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        destination: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :exiting_client_count,
+        },
+        income_at_entry: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :enrolled_client_count,
+        },
+        income_at_exit: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :exiting_client_count,
+        },
+      }
+    end
+
+    def timeliness
+      @timeliness ||= begin
+        issues = []
+        time_to_enter_entry = enrolled_clients.group(:project_id).
+          sum(:days_to_add_entry_date)
+        time_to_enter_entry.each do |id, count|
+          denominator = enrolled_client_count
+          average_timeliness = count.to_f / denominator
+          if average_timeliness > timeliness_goal
+            issues << {
+              project_id: id,
+              project_name: projects.detect{|p| p.id == id}.ProjectName,
+              label: "Average time to enter exceeds acceptable threshold",
+              value: average_timeliness.round,
+            }
+          end
+        end
+
+        time_to_enter_exit = enrolled_clients.group(:project_id).
+          sum(:days_to_add_exit_date)
+        time_to_enter_exit.each do |id, count|
+          denominator = enrolled_client_count
+          next if denominator.zero?
+          average_timeliness = count.to_f / denominator
+          if average_timeliness > timeliness_goal
+            issues << {
+              project_id: id,
+              project_name: projects.detect{|p| p.id == id}.ProjectName,
+              label: "Average time to enter exceeds acceptable threshold",
+              value: average_timeliness.round,
+            }
+          end
+        end
+        issues
+      end
+      return @timeliness
+    end
+
+    def dob_after_entry
+      @dob_after_entry ||= begin
+        issues = []
+        dob_issues = enrolled_clients.group(:project_id).
+          where(dob_after_entry_date: true).
+          select(:dob_after_entry_date).count
+        dob_issues.each do |id, count|
+          next if count.zero?
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: "#{pluralize(count, 'client')}",
+            value: count,
+          }
+        end
+        issues
+      end
+    end
+
+    def final_month_service
+      @final_month_service ||= begin
+        issues = []
+        service_issues = enrolled_clients.group(:project_id).
+          where(service_within_last_30_days: true).
+          select(:service_within_last_30_days).count
+        service_issues.each do |id, count|
+          next if count.zero?
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: "#{pluralize(count, 'client')}",
+            value: count,
+          }
+        end
+        issues
+      end
+    end
+
+    def service_after_exit_date
+      @service_after_exit_date ||= begin
+        issues = []
+        service_issues = enrolled_clients.group(:project_id).
+          where(service_after_exit: true).
+          select(:service_after_exit).count
+        service_issues.each do |id, count|
+          next if count.zero?
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: "#{pluralize(count, 'client')}",
+            value: count,
+          }
+        end
+        issues
+      end
+    end
+
+    def household_type_mismatch
+      @household_type_mismatch ||= begin
+        issues = []
+        household_type_issues = enrolled_clients.group(:project_id).distinct.
+          select(:household_type).count
+        household_type_issues.each do |id, count|
+          next if count.zero?
+          project = projects.detect{|p| p.id == id}
+          next if project.serves_families? && project.serves_individuals?
+          if project.serves_families?
+            issues << {
+              project_id: id,
+              project_name: project.ProjectName,
+              label: "individuals at family project",
+              value: count,
+            }
+          else
+            issues << {
+              project_id: id,
+              project_name: project.ProjectName,
+              label: "families at individual project",
+              value: count,
+            }
+          end
+        end
+        issues
+      end
+    end
   end
 end

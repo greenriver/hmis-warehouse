@@ -575,5 +575,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def disability_source
       GrdaWarehouse::Hud::Disability
     end
+
   end
 end

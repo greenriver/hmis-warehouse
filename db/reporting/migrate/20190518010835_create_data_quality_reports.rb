@@ -26,7 +26,7 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.boolean :dob_after_entry_date
 
       t.date :most_recent_service_within_range
-      t.boolean :service_witin_last_30_days
+      t.boolean :service_within_last_30_days
       t.boolean :service_after_exit
       t.integer :days_of_service
 
@@ -79,6 +79,12 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.boolean :disabling_condition_refused, default: false
       t.boolean :disabling_condition_not_collected, default: false
       t.boolean :disabling_condition_partial, default: false
+
+      t.boolean :destination_complete, default: false
+      t.boolean :destination_missing, default: false
+      t.boolean :destination_refused, default: false
+      t.boolean :destination_not_collected, default: false
+      t.boolean :destination_partial, default: false
 
       t.boolean :prior_living_situation_complete, default: false
       t.boolean :prior_living_situation_missing, default: false

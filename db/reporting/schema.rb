@@ -38,7 +38,7 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.integer  "days_to_add_exit_date"
     t.boolean  "dob_after_entry_date"
     t.date     "most_recent_service_within_range"
-    t.boolean  "service_witin_last_30_days"
+    t.boolean  "service_within_last_30_days"
     t.boolean  "service_after_exit"
     t.integer  "days_of_service"
     t.integer  "destination_id"
@@ -82,6 +82,11 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.boolean  "disabling_condition_refused",          default: false
     t.boolean  "disabling_condition_not_collected",    default: false
     t.boolean  "disabling_condition_partial",          default: false
+    t.boolean  "destination_complete",                 default: false
+    t.boolean  "destination_missing",                  default: false
+    t.boolean  "destination_refused",                  default: false
+    t.boolean  "destination_not_collected",            default: false
+    t.boolean  "destination_partial",                  default: false
     t.boolean  "prior_living_situation_complete",      default: false
     t.boolean  "prior_living_situation_missing",       default: false
     t.boolean  "prior_living_situation_refused",       default: false

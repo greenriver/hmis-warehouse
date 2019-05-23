@@ -78,7 +78,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         # We're adding in not collected and complete so these need to be added in the following
         # order
         # refused, not collected, missing, partial, complete
-        report_enrollment = set_completeness_fields(report_enrollment: report_enrollment, hud_enrollment: hud_enrollment, client: client)
+        report_enrollment = set_completeness_fields(report_enrollment: report_enrollment, hud_enrollment: hud_enrollment, client: client, hud_exit: hud_exit)
 
         @report_enrollments << report_enrollment
       end
@@ -119,7 +119,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         report_end: report_end,
         exit_date: exit_record&.ExitDate
       )
-      report_enrollment.service_witin_last_30_days = report_enrollment.calculate_service_witin_last_30_days(
+      report_enrollment.service_within_last_30_days = report_enrollment.calculate_service_within_last_30_days(
         project: project,
         service_dates: service_dates,
         exit_date: exit_record&.ExitDate,
@@ -183,7 +183,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return report_enrollment
     end
 
-    def set_completeness_fields report_enrollment:, hud_enrollment:, client:
+    def set_completeness_fields report_enrollment:, hud_enrollment:, client:, hud_exit:
       report_enrollment.set_name_completeness(
         first_name: client.FirstName,
         last_name: client.LastName,
@@ -214,6 +214,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       report_enrollment.set_disabling_condition_completeness(
         disabling_condition: hud_enrollment.DisablingCondition,
         all_indefinite_and_impairs: most_recent_disability_resonses_for_enrollment(hud_enrollment)
+      )
+      report_enrollment.set_destination_completeness(
+        hud_exit: hud_exit,
+        head_of_household: report_enrollment.head_of_household,
       )
       report_enrollment.set_prior_living_situation_completeness(
         prior_living_situation: hud_enrollment.LivingSituation,
@@ -313,8 +317,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       )
       @report_project_group.average_nightly_clients = @report_project_group.calculate_average_nightly_clients(report_range: report_range)
       @report_project_group.average_nightly_households = @report_project_group.calculate_average_nightly_households(report_range: report_range)
-      @report_project_group.average_nightly_clients = @report_project_group.calculate_average_bed_utilization
-      @report_project_group.average_nightly_households = @report_project_group.calculate_average_unit_utilization
+      @report_project_group.average_bed_utilization = @report_project_group.calculate_average_bed_utilization
+      @report_project_group.average_unit_utilization = @report_project_group.calculate_average_unit_utilization
 
       return @report_project_group
     end

@@ -176,7 +176,7 @@ module Reporting::DataQualityReports
       end
     end
 
-    def calculate_service_witin_last_30_days project:, service_dates:, exit_date:, report_end:
+    def calculate_service_within_last_30_days project:, service_dates:, exit_date:, report_end:
       if ! project.bed_night_tracking?
         true
       else
@@ -503,6 +503,41 @@ module Reporting::DataQualityReports
 
     def calculate_disabling_condition_not_collected disabling_condition:
       disabling_condition == 99
+    end
+
+    def set_destination_completeness hud_exit:, head_of_household:
+      if hud_exit.blank?
+        self.destination_complete = true
+        return
+      end
+      if calculate_destination_refused(destination: hud_exit.Destination, head_of_household: head_of_household)
+        self.destination_refused = true
+        return
+      end
+      if calculate_destination_not_collected(destination: hud_exit.Destination, head_of_household: head_of_household)
+        self.destination_not_collected = true
+        return
+      end
+      if calculate_destination_missing(destination: hud_exit.Destination, head_of_household: head_of_household)
+        self.destination_missing = true
+        return
+      end
+      self.destination_complete = true
+    end
+
+    def calculate_destination_refused destination:, head_of_household:
+      return false unless is_adult?(date: Date.today) || head_of_household
+      destination.in?(REFUSED)
+    end
+
+    def calculate_destination_missing destination:, head_of_household:
+      return false unless is_adult?(date: Date.today) || head_of_household
+      destination.blank?
+    end
+
+    def calculate_destination_not_collected destination:, head_of_household:
+      return false unless is_adult?(date: Date.today) || head_of_household
+      destination == 99
     end
 
     def set_prior_living_situation_completeness  prior_living_situation:, head_of_household:
