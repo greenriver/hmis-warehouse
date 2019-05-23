@@ -1,4 +1,5 @@
 - content_for :title, "Project Data Quality Report for #{@report.title}"
+- grouped_as = @report.report_type
 %h1= content_for :title
 - if @report.processing_errors.present?
   %p.alert.alert-danger.text-center
@@ -29,3 +30,9 @@
           - if @report.requestor.present?
             by #{@report.requestor&.name}
 
+  %h3 Project Descriptors
+  = render "data_quality_reports/version_four/#{grouped_as}/project_descriptor_completeness"
+  %h3 Overview
+  = render "data_quality_reports/version_four/#{grouped_as}/overview", support_path: @support_path
+  %h3 Data Quality Summary
+  = render "data_quality_reports/version_four/#{grouped_as}/summary", support_path: @support_path

@@ -2,6 +2,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
     include ArelHelper
     include TsqlImport
+    include ::Reporting::ProjectDataQualityReports::VersionFour::Display
 
     has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name, foreign_key: :report_id
     has_many :report_projects, class_name: Reporting::DataQualityReports::Project.name, foreign_key: :report_id

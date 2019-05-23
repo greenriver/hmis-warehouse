@@ -373,6 +373,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       save()
     end
 
+    def report_type
+      if projects.count == 1
+        :project
+      else
+        :project_group
+      end
+    end
+
     def status
       return 'Error' if self.processing_errors.present?
       return 'Incomplete' if self.completed_at.blank?

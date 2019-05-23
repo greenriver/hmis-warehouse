@@ -91,11 +91,15 @@ module Reporting::DataQualityReports
       where enrolled: true
     end
 
+    scope :active, -> do
+      where active: true
+    end
+
     scope :stayer, -> do
       where exited: false
     end
 
-    scope :leaver, -> do
+    scope :exited, -> do
       where exited: true
     end
 
