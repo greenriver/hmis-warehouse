@@ -132,6 +132,8 @@ ActiveRecord::Schema.define(version: 20190518010835) do
   create_table "warehouse_data_quality_report_projects", force: :cascade do |t|
     t.integer  "report_id"
     t.integer  "project_id"
+    t.string   "project_name"
+    t.string   "organization_name"
     t.integer  "project_type"
     t.date     "operating_start_date"
     t.string   "coc_code"

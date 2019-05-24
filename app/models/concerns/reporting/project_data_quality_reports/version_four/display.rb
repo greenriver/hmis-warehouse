@@ -164,10 +164,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         percentages = []
         report_projects.each do |report_project|
           if report_project.average_bed_utilization < completeness_goal
-            project = projects.detect{|p| p.id == report_project.project_id}
             percentages << {
-              project_id: project.id,
-              project_name: project.ProjectName,
+              project_id: report_project.project_id,
+              project_name: report_project.project_name,
               label: 'Bed utilization below acceptable threshold',
               percent: report_project.average_bed_utilization,
             }
@@ -183,10 +182,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         percentages = []
         report_projects.each do |report_project|
           if report_project.average_unit_utilization < completeness_goal
-            project = projects.detect{|p| p.id == report_project.project_id}
             percentages << {
-              project_id: project.id,
-              project_name: project.ProjectName,
+              project_id: report_project.project_id,
+              project_name: report_project.project_name,
               label: 'Unit utilization below acceptable threshold',
               percent: report_project.average_unit_utilization,
             }
@@ -201,85 +199,84 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @project_descriptor ||= begin
         issues = []
         report_projects.each do |report_project|
-          project = projects.detect{|p| p.id == report_project.project_id}
           # some of these are only valid for residential project types
-          if report_project.project_type.in?(project.class::RESIDENTIAL_PROJECT_TYPE_IDS)
+          if report_project.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
             if report_project.bed_inventory.blank? || report_project.bed_inventory.zero?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Bed Inventory',
                 value: report_project.bed_inventory,
               }
             end
             if report_project.unit_inventory.blank? || report_project.unit_inventory.zero?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Unit Inventory',
                 value: report_project.unit_inventory,
               }
             end
             if report_project.coc_code.blank? || report_project.coc_code.length != 6
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing or malformed CoC Code',
                 value: report_project.coc_code,
               }
             end
             if report_project.funder.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Funder',
                 value: report_project.funder,
               }
             end
             if report_project.geocode.blank? || report_project.geocode.length != 6
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing or malformed Geocode',
                 value: report_project.geocode,
               }
             end
             if report_project.geography_type.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Geography Type',
                 value: report_project.geography_type,
               }
             end
             if report_project.housing_type.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Housing Type',
                 value: report_project.housing_type,
               }
             end
             if report_project.inventory_information_dates.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Inventory Information Date',
                 value: report_project.inventory_information_dates,
               }
             end
             if report_project.operating_start_date.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Operation Start Date',
                 value: report_project.operating_start_date,
               }
             end
             if report_project.project_type.blank?
               issues << {
-                project_id: project.id,
-                project_name: project.ProjectName,
+                project_id: report_project.project_id,
+                project_name: report_project.project_name,
                 label: 'Missing Project Type',
                 value: report_project.project_type,
               }
@@ -566,10 +563,39 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
+    # formatted for chartjs
     def bed_census_data
+      @bed_census_data ||= begin
+        dates = report_range.range.to_a
+        data = {}
+        report_projects.each do |report_project|
+          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = report_project.nightly_client_census.values
+        end
+        if report_type == :project_group
+          data['Total'] = report_project_group.nightly_client_census.values
+        end
+        {
+          labels: dates,
+          data: data,
+        }.to_json
+      end
     end
 
     def unit_census_data
+      @unit_census_data ||= begin
+        dates = report_range.range.to_a
+        data = {}
+        report_projects.each do |report_project|
+          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = report_project.nightly_household_census.values
+        end
+        if report_type == :project_group
+          data['Total'] = report_project_group.nightly_household_census.values
+        end
+        {
+          labels: dates,
+          data: data,
+        }.to_json
+      end
     end
 
   end

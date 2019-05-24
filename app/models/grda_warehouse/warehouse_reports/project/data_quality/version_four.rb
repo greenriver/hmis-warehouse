@@ -243,6 +243,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         report_project = Reporting::DataQualityReports::Project.new(
           report_id: self.id,
           project_id: project.id,
+          project_name: project.ProjectName,
+          organization_name: project.organization.OrganizationName,
           project_type: project.computed_project_type,
           operating_start_date: project.OperatingStartDate,
           housing_type: HUD::housing_type(project.HousingType),

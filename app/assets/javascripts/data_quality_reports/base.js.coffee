@@ -9,10 +9,10 @@ class App.DataQualityReports.Base
   build_chart: =>
     if @data['data']?
       @_build_chart()
-    else 
+    else
       $(@chart_selector + '.jChart').append ("<h4 class='text-center'>No Records Found</h4>")
     $('.jLoading').remove()
-    
+
   _colors: (c, d) =>
     key = d
     if key.id?
@@ -30,9 +30,9 @@ class App.DataQualityReports.Base
 
   _format_data: (data) ->
     data
-  
+
   _follow_link: (d, element) =>
     # Do nothing by default
     # console.log(d, element, @support_url)
-    
-  
+
+

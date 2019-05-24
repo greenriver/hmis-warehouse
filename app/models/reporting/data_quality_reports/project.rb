@@ -40,8 +40,14 @@ module Reporting::DataQualityReports
     # Because we'll need to de-dupe these for the project group, we can't rely on the DB
     # to do the counting, we'll store client ids per date
     def calculate_nightly_client_census project:, report_range:
-      services_scope(project: project, report_range: report_range).
-        group(:date).select(:client_id).distinct.count
+      @calculate_nightly_client_census ||= begin
+        counts = services_scope(project: project, report_range: report_range).
+          group(:date).select(:client_id).distinct.count
+        report_range.range.each do |date|
+          counts[date] ||= 0
+        end
+        counts
+      end
     end
 
     # NOTE: this relies on service_history_service, not source data
@@ -49,9 +55,15 @@ module Reporting::DataQualityReports
     # Because we'll need to de-dupe these for the project group, we can't rely on the DB
     # to do the counting, we'll store client ids per date
     def calculate_nightly_household_census project:, report_range:
-      services_scope(project: project, report_range: report_range).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
-        group(:date).select(:client_id).distinct.count
+      @calculate_nightly_household_census ||= begin
+        counts = services_scope(project: project, report_range: report_range).
+          merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
+          group(:date).select(:client_id).distinct.count
+        report_range.range.each do |date|
+          counts[date] ||= 0
+        end
+        counts
+      end
     end
 
     def services_scope project:, report_range:
