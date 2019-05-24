@@ -34,24 +34,18 @@ module Dashboards
           ).pluck(:id, :OrganizationName).to_h
         end
         format.pdf do
+          @pdf = true
           file_name = "#{@report.sub_population_title} Dashboard"
-          render pdf: file_name,
-            layout: 'pdf',
-            page_size: 'Letter',
-            javascript_delay: 20,
-            show_as_html: true
-          #
-          # pdf = dashboard_pdf(file_name)
-
+          dashboard_pdf(file_name)
           # send_data dashboard_pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
         end
       end
     end
 
     def dashboard_pdf file_name
-      render_to_string(
+      render(
         pdf: file_name,
-        template: 'dashboards/index',
+        template: "dashboards/base/index",
         # layout: false,
         encoding: "UTF-8",
         page_size: 'Letter',
