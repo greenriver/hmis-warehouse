@@ -20,8 +20,9 @@ HtmlCellRenderer.prototype.refresh = function(params) {
   if(this.row.comments) {
     wrapper.setAttribute('data-toggle', "tooltip");
     wrapper.setAttribute('data-title', this.row.comments);
-    wrapper.setAttribute('data-placement', 'auto');
+    wrapper.setAttribute('data-placement', 'left');
     wrapper.setAttribute('data-container', 'body');
+    wrapper.setAttribute('data-boundary', 'viewport');
     $(wrapper).tooltip();
 
   }
