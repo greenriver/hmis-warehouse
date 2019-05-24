@@ -546,5 +546,31 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         issues
       end
     end
+
+    def enrollments_with_no_service
+      @enrollments_with_no_service ||= begin
+        issues = []
+        service_issues = enrolled_clients.group(:project_id).
+          where(days_of_service: 0).
+          select(:days_of_service).count
+        service_issues.each do |id, count|
+          next if count.zero?
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: "#{pluralize(count, 'client')}",
+            value: count,
+          }
+        end
+        issues
+      end
+    end
+
+    def bed_census_data
+    end
+
+    def unit_census_data
+    end
+
   end
 end

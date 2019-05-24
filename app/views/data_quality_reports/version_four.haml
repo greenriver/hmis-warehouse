@@ -36,3 +36,20 @@
   = render "data_quality_reports/version_four/#{grouped_as}/overview", support_path: @support_path
   %h3 Data Quality Summary
   = render "data_quality_reports/version_four/#{grouped_as}/summary", support_path: @support_path
+  %h3 Bed Utilization
+  = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization_description"
+  = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization"
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var url = '#{polymorphic_path(@answers_path, @report_keys)}'
+
+      var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data}, '.bed-census-chart',
+      '#{polymorphic_path(@support_path, @report_keys.merge({key: "bed_utilization"}))}');
+      bed_census.build_chart();
+
+      var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data}, '.unit-census-chart',
+      '#{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"}))}');
+      unit_census.build_chart();
+    });

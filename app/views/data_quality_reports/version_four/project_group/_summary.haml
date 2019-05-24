@@ -54,23 +54,7 @@
         %ul.list-unstyled
           = @report.describe_completeness :household_type_mismatch
 
-          -# - individual_total = @report.report['individuals_at_family_projects'].values.sum
-          -# - if individual_total > 0
-          -#   = link_to polymorphic_path(support_path, {key: 'individuals_at_family_projects'}), data: {loads_in_pjax_modal: true} do
-          -#     = "#{individual_total} individuals at family project"
-          -# - family_total = @report.report['families_at_individual_projects'].values.sum
-          -# - if family_total > 0
-          -#   = link_to polymorphic_path(support_path, {key: 'families_at_individual_projects'}), data: {loads_in_pjax_modal: true} do
-          -#     = "#{family_total} families at individual project"
-          -# - if (individual_total + family_total) == 0
-          -#   No issues
-    -#   .col-sm-4
-    -#     %h4 Enrollments with no Service
-    -#     - total = @report.report['enrollments_with_no_service'].values.sum
-    -#     - if total > 0
-    -#       = link_to polymorphic_path(support_path, {key: 'enrollments_with_no_service'}), data: {loads_in_pjax_modal: true} do
-    -#         = "#{total} enrollments with no service"
-    -#     - else
-    -#       No issues
-
-
+      .col-sm-4
+        %h4 Enrollments with no Service
+        %ul.list-unstyled
+          = @report.describe_completeness :enrollments_with_no_service
