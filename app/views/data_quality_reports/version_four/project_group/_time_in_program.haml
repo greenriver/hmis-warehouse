@@ -1,0 +1,17 @@
+%h3.text-center Time in Project
+.row
+  .col-sm-3.text-center
+    %h3 Average Time in Project
+    %ul.list-unstyled
+      = @report.describe_completeness :average_time_in_project
+    %hr
+    %h3 Percent in Project Over One Year
+    %ul.list-unstyled
+      = @report.describe_completeness :percent_in_project_over_one_year
+  -#    - stays =  @report.report['length_of_stay_totals']['buckets'].values.sum
+  -#    - year_plus = @report.report['length_of_stay_totals']['buckets'].values.last
+  -#    - percent_year_plus = (year_plus.to_f / stays * 100).round rescue 0
+  -#    = "#{percent_year_plus}%"
+  -# .col-sm-9
+  -#  .time-in-program-chart.jChart
+  -#    %p.jLoading Loading

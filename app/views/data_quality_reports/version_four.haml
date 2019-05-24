@@ -42,6 +42,14 @@
   %h3 Unit Utilization
   = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization_description", support_path: @support_path
   = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization", support_path: @support_path
+  -# %h3 Completeness
+  -# = render "data_quality_reports/version_four/#{grouped_as}/completeness", support_path: @support_path
+
+  %h3 Timelineness
+  = render "data_quality_reports/version_four/#{grouped_as}/timeliness", support_path: @support_path
+
+  %h3 Outcomes
+  = render "data_quality_reports/version_four/#{grouped_as}/outcomes", support_path: @support_path
 
 = content_for :page_js do
   :javascript
@@ -53,4 +61,10 @@
       var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data}, '.unit-census-chart',
       '#{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"}))}');
       unit_census.build_chart();
+
+      var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"}))}');
+      time_to_enter.build_chart();
+
+      var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"}))}');
+      time_to_exit.build_chart();
     })(jQuery);

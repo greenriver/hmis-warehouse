@@ -294,10 +294,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
         completeness_metrics.each do |key, options|
           options[:measures].each do |measure|
-            # FIXME: this isn't always true
-            denominator = send(options[:denominator])
+
             counts = enrolled_clients.group(:project_id).select("#{key}_#{measure}").count
             counts.each do |id, count|
+              # FIXME: this isn't always true
+              denominator = send(options[:denominator]).where(project_id: id).count
               next if denominator.zero?
               percentage = count.to_f / denominator
               if percentage > mininum_completeness_threshold
@@ -325,7 +326,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
             :partial,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         ssn: {
           measures: [
@@ -334,7 +335,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
             :partial,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         dob: {
           measures: [
@@ -343,7 +344,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
             :partial,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         gender: {
           measures: [
@@ -351,7 +352,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         veteran: {
           measures: [
@@ -359,7 +360,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         ethnicity: {
           measures: [
@@ -367,7 +368,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         race: {
           measures: [
@@ -375,7 +376,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         disabling_condition: {
           measures: [
@@ -383,7 +384,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         prior_living_situation: {
           measures: [
@@ -391,7 +392,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         destination: {
           measures: [
@@ -399,7 +400,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :exiting_client_count,
+          denominator: :exiting_clients,
         },
         income_at_entry: {
           measures: [
@@ -407,7 +408,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_client_count,
+          denominator: :enrolled_clients,
         },
         income_at_exit: {
           measures: [
@@ -415,7 +416,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :exiting_client_count,
+          denominator: :exiting_clients,
         },
       }
     end
@@ -426,7 +427,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         time_to_enter_entry = enrolled_clients.group(:project_id).
           sum(:days_to_add_entry_date)
         time_to_enter_entry.each do |id, count|
-          denominator = enrolled_client_count
+          denominator = enrolled_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
             issues << {
@@ -441,7 +442,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         time_to_enter_exit = enrolled_clients.group(:project_id).
           sum(:days_to_add_exit_date)
         time_to_enter_exit.each do |id, count|
-          denominator = enrolled_client_count
+          denominator = enrolled_clients.where(project_id: id).count
           next if denominator.zero?
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
@@ -597,6 +598,130 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         }.to_json
       end
     end
+
+    def describe_time_to_enter
+      @describe_time_to_enter ||= begin
+        issues = []
+        time_to_enter_by_project_id.each do |id, count|
+          denominator = enrolled_clients.where(project_id: id).count
+          average_timeliness = count.to_f / denominator
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: pluralize(average_timeliness.round, 'day'),
+          }
+        end
+        issues
+      end
+    end
+
+    def time_to_enter_by_project_id
+      @time_to_enter_by_project_id ||= enrolled_clients.group(:project_id).
+        sum(:days_to_add_entry_date)
+    end
+
+    def describe_time_to_exit
+      @describe_time_to_exit ||= begin
+        issues = []
+        report_projects.each do |project|
+          count = time_to_exit_by_project_id[project.id] || 0
+          denominator = exiting_clients.where(project_id: project.project_id).count
+          average_timeliness = (count.to_f / denominator).round rescue 0
+          issues << {
+            project_id: project.id,
+            project_name: project.project_name,
+            label: pluralize(average_timeliness, 'day'),
+          }
+        end
+        issues
+      end
+    end
+
+    def time_to_exit_by_project_id
+      @time_to_exit_by_project_id ||= exiting_clients.group(:project_id).
+        sum(:days_to_add_exit_date)
+    end
+
+    def average_time_to_enter
+      @average_time_to_enter ||= begin
+        # these need to be padded front and back for chart js to correctly show the goal
+        labels = ['', 'Days to Entry', '']
+        data = {}
+        goal = [timeliness_goal, timeliness_goal, timeliness_goal]
+        report_projects.each do |project|
+          count = time_to_enter_by_project_id[project.project_id] || 0
+          denominator = enrolled_clients.where(project_id: project.project_id).count
+          average_timeliness = (count.to_f / denominator).round rescue 0
+          data[project.project_name] = [0, average_timeliness, 0]
+        end
+        data['Goal'] = goal
+        {
+          labels: labels,
+          data: data,
+        }
+      end.to_json
+    end
+
+    def average_time_to_exit
+      @average_time_to_exit ||= begin
+        # these need to be padded front and back for chart js to correctly show the goal
+        labels = ['', 'Days to Exit', '']
+        data = {}
+        goal = [timeliness_goal, timeliness_goal, timeliness_goal]
+        report_projects.each do |project|
+          count = time_to_exit_by_project_id[project.project_id] || 0
+          denominator = exiting_clients.where(project_id: project.project_id).count
+          average_timeliness = (count.to_f / denominator).round rescue 0
+          data[project.project_name] = [0, average_timeliness, 0]
+        end
+        data['Goal'] = goal
+        {
+          labels: labels,
+          data: data,
+        }
+      end.to_json
+    end
+
+    def average_time_in_project
+      @average_time_in_project ||= begin
+        issues = []
+        days_by_project_id = enrolled_clients.group(:project_id).
+          sum(:days_of_service)
+        report_projects.each do |project|
+          count = days_by_project_id[project.project_id]
+          denominator = enrolled_clients.where(project_id: project.project_id).count
+          average = count.to_f / denominator
+          issues << {
+            project_id: project.project_id,
+            project_name: project.project_name,
+            label: pluralize(average.round, 'day'),
+          }
+        end
+        issues
+      end
+    end
+
+    def percent_in_project_over_one_year
+      @percent_in_project_over_one_year ||= begin
+        issues = []
+        more_than_one_year = enrolled_clients.group(:project_id).
+          where(days_of_service: (365..Float::INFINITY)).count
+        report_projects.each do |project|
+          count = more_than_one_year[project.project_id]
+          denominator = enrolled_clients.where(project_id: project.project_id).count
+          percent_over_one_year = ((count.to_f / denominator) * 100).round rescue 0
+          issues << {
+            project_id: project.project_id,
+            project_name: project.project_name,
+            label: pluralize(count, 'client'),
+            percent: percent_over_one_year,
+          }
+        end
+        issues
+      end
+    end
+
+
 
   end
 end
