@@ -1,5 +1,5 @@
 #length-of-stay-accordion.panel-group.panel-collapsible
-  - content_for :panel_collapse_content do
+  - content_for :panel_collapse_content, flush: true do
     %p
       This report displays Length of Stay for enrolled clients at your agency during the covered month, separated into several time increments. The chart at left summarizes the total number of clients in each time increment. This report can help identify clients who should be exited from a program, as well as long-term stayers in a program.
     %p

@@ -1,5 +1,5 @@
 #missing-values-accordion.panel-group.panel-collapsible
-  - content_for :panel_collapse_content do
+  - content_for :panel_collapse_content, flush: true do
     %p
       This report shows the number of clients missing each required Universal Data Element in each program at your agency, along with the percentage of all clients served by that program represented by that number. This report tracks twelve required data elements:
     .row
