@@ -60,7 +60,7 @@ module WarehouseReports::Project
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
-        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
+        # Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 

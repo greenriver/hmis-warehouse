@@ -371,6 +371,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def finish_report
       self.completed_at = Time.now
       save()
+      notify_requestor
     end
 
     def report_type
