@@ -721,6 +721,54 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
+    def enrolled_length_of_stay
+      @enrolled_length_of_stay ||= begin
+        # these need to be padded front and back for chart js to correctly show the goal
+        labels = self.class.length_of_stay_buckets.keys
+        data = {}
+        totals = []
+        self.class.length_of_stay_buckets.values.each_with_index do |range, index|
+          report_projects.each do |project|
+            data[project.project_name] ||= []
+            totals[index] ||= 0
+            count = enrolled_clients.where(
+              project_id: project.project_id,
+              days_of_service: range,
+            ).count
+            data[project.project_name] << count
+            totals[index] += count
+          end
+        end
+        {
+          labels: labels,
+          data: data.merge({'Totals' => totals}),
+          ranges: self.class.length_of_stay_buckets,
+        }
+      end.to_json
+    end
+
+    def ph_destinations
+      @ph_destinations ||= begin
+        data = {}
+        labels = ["","Exit %",""]
+        goal = [ph_destination_increase_goal, ph_destination_increase_goal, ph_destination_increase_goal]
+
+        report_projects.each do |project|
+          denominator = exiting_clients.where(project_id: project.project_id).count
+          count = exiting_clients.where(
+            project_id: project.project_id,
+            destination_id: HUD.permanent_destinations,
+          ).count
+          percentage = ((count / denominator.to_f) * 100).round rescue 0
+          data[project.project_name] = [0, percentage, 0]
+        end
+        data['Goal'] = goal
+        {
+          labels: labels,
+          data: data,
+        }
+      end.to_json
+    end
 
 
   end

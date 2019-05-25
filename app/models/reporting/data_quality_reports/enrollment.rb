@@ -190,10 +190,10 @@ module Reporting::DataQualityReports
     end
 
     def calculate_service_after_exit project:, service_dates:, exit_date:
-      if ! project.bed_night_tracking? || exit_date.blank?
+      if ! project.bed_night_tracking? || exit_date.blank? || service_dates.blank?
         false
       else
-        service_dates.max > exit_date
+        service_dates.max > exit_date rescue false
       end
     end
 
