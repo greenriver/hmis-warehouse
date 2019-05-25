@@ -1,4 +1,11 @@
-.h3.text-center
-	Percentage of Clients Exiting to Permanent Housing
-.ph-destination-chart.jChart
-	%p.jLoading Loading
+.row
+  .col-sm-3
+    %h3.text-center Exiting to PH
+    %ul.list-unstyled
+      = @report.describe_completeness :percent_exiting_to_ph
+    %hr
+  .col-sm-9
+    %h3.text-center Percentage of Clients Exiting to Permanent Housing
+
+    .ph-destination-chart.jChart
+      %p.jLoading Loading

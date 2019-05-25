@@ -739,12 +739,13 @@ module Reporting::DataQualityReports
       return unless income_record.present?
       income = nil
       types.each do |type|
-        income_for_type = income_record[type]
+        income_for_type = income_record[type.to_s]
         if income_for_type.present?
           income ||= 0
           income += income_for_type
         end
       end
+      # binding.pry if income_record.IncomeFromAnySource == 1
       return income
     end
 

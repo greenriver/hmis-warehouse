@@ -55,24 +55,28 @@
     :javascript
       (function($) {
 
-        var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data}, '.bed-census-chart',
+        var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data.to_json}, '.bed-census-chart',
         '#{polymorphic_path(@support_path, @report_keys.merge({key: "bed_utilization"}))}');
         bed_census.build_chart();
-        var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data}, '.unit-census-chart',
+        var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json}, '.unit-census-chart',
         '#{polymorphic_path(@support_path, @report_keys.merge({key: "unit_utilization"}))}');
         unit_census.build_chart();
 
-        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"}))}');
+        var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter.to_json}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_entry"}))}');
         time_to_enter.build_chart();
 
-        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"}))}');
+        var time_to_exit = new App.DataQualityReports.TimeToExit(#{@report.average_time_to_exit.to_json}, '.time-to-exit-chart', '#{polymorphic_path(@support_path, @report_keys.merge({key: "timeliness_of_exit"}))}');
         time_to_exit.build_chart();
 
-        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay}, '.time-in-program-chart',
+        var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.enrolled_length_of_stay.to_json}, '.time-in-program-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({key: "enrolled_length_of_stay"}))}');
             time_in_program.build_chart();
 
-        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations}, '.ph-destination-chart',
+        var income = new App.DataQualityReports.Income(#{@report.retained_income.to_json}, '.income-chart',
+          '#{polymorphic_path(@support_path, @report_keys.merge({key: ""}))}');
+          income.build_chart();
+
+        var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations.to_json}, '.ph-destination-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({key: "ph_destinations"}))}');
             ph_destination.build_chart();
       })(jQuery);

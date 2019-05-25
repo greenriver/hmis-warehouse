@@ -578,7 +578,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: dates,
           data: data,
-        }.to_json
+        }
       end
     end
 
@@ -595,7 +595,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: dates,
           data: data,
-        }.to_json
+        }
       end
     end
 
@@ -659,7 +659,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           labels: labels,
           data: data,
         }
-      end.to_json
+      end
     end
 
     def average_time_to_exit
@@ -679,7 +679,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           labels: labels,
           data: data,
         }
-      end.to_json
+      end
     end
 
     def average_time_in_project
@@ -744,7 +744,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           data: data.merge({'Totals' => totals}),
           ranges: self.class.length_of_stay_buckets,
         }
-      end.to_json
+      end
     end
 
     def ph_destinations
@@ -767,9 +767,89 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           labels: labels,
           data: data,
         }
-      end.to_json
+      end
     end
 
+    def percent_exiting_to_ph
+      @percent_exiting_to_ph ||= begin
+        issues = []
+        report_projects.each do |project|
+          denominator = exiting_clients.where(project_id: project.project_id).count
+          count = exiting_clients.where(
+            project_id: project.project_id,
+            destination_id: HUD.permanent_destinations,
+          ).count
+          percentage = ((count / denominator.to_f) * 100).round rescue 0
+          issues << {
+            project_id: project.project_id,
+            project_name: project.project_name,
+            label: "#{pluralize(count, 'client')}",
+            percent: percentage,
+          }
+        end
+        issues
+      end
+    end
+
+    # NOTE: this is for all participating projects, not broken out by project
+    def retained_income
+      @retained_income ||= begin
+        labels = ['Increased or Retained','20% Increase']
+        # clients with at least two income records
+        included_clients = enrolled_clients.where.not(income_at_later_date_overall: nil)
+        a_t = Reporting::DataQualityReports::Enrollment.arel_table
+        denominator = included_clients.count
+        earned_retained = included_clients.where(
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned])
+        ).count
+        non_cash_retained = included_clients.where(
+          a_t[:income_at_later_date_non_cash].gteq(a_t[:income_at_entry_non_cash])
+        ).count
+        overall_retained = included_clients.where(
+          a_t[:income_at_later_date_overall].gteq(a_t[:income_at_entry_overall])
+        ).count
+
+        earned_retained_20 = included_clients.where(
+          a_t[:income_at_later_date_earned].gt(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+        ).count
+        non_cash_retained_20 = included_clients.where(
+          a_t[:income_at_later_date_non_cash].gt(a_t[:income_at_entry_non_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
+        ).count
+        overall_retained_20 = included_clients.where(
+          a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
+        ).count
+
+        earned_retained_percentage = ((earned_retained / denominator.to_f) * 100).round rescue 0
+        non_cash_retained_percentage = ((non_cash_retained / denominator.to_f) * 100).round rescue 0
+        overall_retained_percentage = ((overall_retained / denominator.to_f) * 100).round rescue 0
+
+        earned_retained_20_percentage = ((earned_retained_20 / denominator.to_f) * 100).round rescue 0
+        non_cash_retained_20_percentage = ((non_cash_retained_20 / denominator.to_f) * 100).round rescue 0
+        overall_retained_20_percentage = ((overall_retained_20 / denominator.to_f) * 100).round rescue 0
+        data = {
+          'Earned Income' => [
+            earned_retained_percentage,
+            earned_retained_20_percentage,
+          ],
+          'Non-Cash Income' => [
+            non_cash_retained_percentage,
+            non_cash_retained_20_percentage,
+          ],
+          'Overall Income' => [
+            overall_retained_percentage,
+            overall_retained_20_percentage,
+          ],
+          'Goal' => [
+            income_increase_goal,
+            income_increase_goal,
+          ]
+        }
+      end
+      {
+        labels: labels,
+        data: data,
+      }
+    end
 
   end
 end
