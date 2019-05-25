@@ -318,6 +318,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def completeness_metrics
+      # FIXME: denominators are probably not all correct
       @completeness_metrics ||= {
         name: {
           measures: [
@@ -327,6 +328,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :partial,
           ],
           denominator: :enrolled_clients,
+          label: 'Name',
         },
         ssn: {
           measures: [
@@ -336,6 +338,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :partial,
           ],
           denominator: :enrolled_clients,
+          label: 'SSN',
         },
         dob: {
           measures: [
@@ -345,6 +348,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :partial,
           ],
           denominator: :enrolled_clients,
+          label: 'DOB',
         },
         gender: {
           measures: [
@@ -353,6 +357,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Gender',
         },
         veteran: {
           measures: [
@@ -361,6 +366,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Veteran Status',
         },
         ethnicity: {
           measures: [
@@ -369,6 +375,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Ethnicity',
         },
         race: {
           measures: [
@@ -377,6 +384,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Race',
         },
         disabling_condition: {
           measures: [
@@ -385,6 +393,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Disabling Condition',
         },
         prior_living_situation: {
           measures: [
@@ -393,6 +402,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Prior Living Situation',
         },
         destination: {
           measures: [
@@ -401,6 +411,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :exiting_clients,
+          label: 'Destination',
         },
         income_at_entry: {
           measures: [
@@ -409,6 +420,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :enrolled_clients,
+          label: 'Income at Entry',
         },
         income_at_exit: {
           measures: [
@@ -417,7 +429,19 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :not_collected,
           ],
           denominator: :exiting_clients,
+          label: 'Income at Exit',
         },
+      }
+    end
+
+    def completeness_type_labels
+      @completeness_type_labels ||= {
+        complete: 'Complete',
+        missing: 'Missing/Null',
+        refused: 'Don\'t Know/Refused',
+        not_collected: 'Not Collected',
+        partial: 'Partial',
+        target: 'Target',
       }
     end
 
@@ -787,6 +811,19 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             percent: percentage,
           }
         end
+        if report_type == :project_group
+          denominator = exiting_clients.count
+          count = exiting_clients.where(
+            destination_id: HUD.permanent_destinations,
+          ).count
+          percentage = ((count / denominator.to_f) * 100).round rescue 0
+          issues << {
+            project_id: nil,
+            project_name: 'Overall',
+            label: "#{pluralize(count, 'client')}",
+            percent: percentage,
+          }
+        end
         issues
       end
     end
@@ -849,6 +886,70 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         labels: labels,
         data: data,
       }
+    end
+
+    def completeness_percentage
+      []
+    end
+
+    def project_group_completeness
+      # {"labels":["Name","DOB","SSN","Race","Ethnicity","Gender","Veteran Status","Disabling Condition","Living Situation","Income At Entry","Income At Exit","Destination"],"data":{"Complete":[100,100,100,100,100,100,100,73,100,88,100,100],"No Exit Interview Completed":[0,0,0,0,0,0,0,0,0,0,0,0],"Don't Know / Refused":[0,0,0,0,0,0,0,21,0,0,0,0],"Missing / Null":[0,0,0,0,0,0,0,6,0,12,0,0],"Target":[90,90,90,90,90,90,90,90,90,90,90,90]}}}
+      # completeness_metrics
+
+      # @project_group_completeness ||= begin
+      #   issues = []
+
+      #   completeness_metrics.each do |key, options|
+      #     ([:complete] + options[:measures]).each do |measure|
+      #       counts = enrolled_clients.group(:project_id).select("#{key}_#{measure}").count
+      #       counts.each do |id, count|
+      #         denominator = send(options[:denominator]).where(project_id: id).count
+      #         next if denominator.zero?
+      #         percentage = count.to_f / denominator
+      #         if percentage > mininum_completeness_threshold
+      #           issues << {
+      #             project_id: id,
+      #             project_name: projects.detect{|p| p.id == id}.ProjectName,
+      #             label: "High #{measure} rate - #{key.to_s.humanize}",
+      #             percent: percentage,
+      #           }
+      #         end
+      #       end
+      #     end
+      #   end
+      #   issues
+      # end
+
+      # target =
+      {
+
+      }
+    end
+
+    def project_completeness id:
+      @project_group_completeness ||= begin
+        labels = completeness_metrics.map{ |_,m| m[:label] }
+        data = completeness_type_labels.map do |_, label|
+          [label, []]
+        end.to_h
+
+        completeness_metrics.each do |key, options|
+          ([:complete] + options[:measures]).each do |measure|
+            count = enrolled_clients.where(project_id: id).select("#{key}_#{measure}").count
+            denominator = send(options[:denominator]).where(project_id: id).count
+            if denominator.zero?
+              percentage = 1
+            else
+              percentage = count.to_f / denominator
+            end
+            data[completeness_type_labels[measure]] << percentage
+          end
+        end
+        {
+          labels: labels,
+          data: data,
+        }
+      end
     end
 
   end

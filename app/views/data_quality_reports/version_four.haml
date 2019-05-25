@@ -42,8 +42,8 @@
   %h3 Unit Utilization
   = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization_description", support_path: @support_path
   = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization", support_path: @support_path
-  -# %h3 Completeness
-  -# = render "data_quality_reports/version_four/#{grouped_as}/completeness", support_path: @support_path
+  %h3 Completeness
+  = render "data_quality_reports/version_four/#{grouped_as}/completeness", support_path: @support_path
 
   %h3 Timelineness
   = render "data_quality_reports/version_four/#{grouped_as}/timeliness", support_path: @support_path
@@ -79,4 +79,25 @@
         var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations.to_json}, '.ph-destination-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({key: "ph_destinations"}))}');
             ph_destination.build_chart();
+
+        // Project group completeness
+        var completeness_project_group = new App.DataQualityReports.Completeness(
+          #{@report.project_group_completeness.to_json},
+          '.completeness-chart-project-group',
+          '#{polymorphic_path(@support_path, @report_keys)}'
+          );
+        completeness_project_group.build_chart();
       })(jQuery);
+    -# Use projects here, not report_projects
+    - @report.projects.each_with_index do |project, index|
+      :javascript
+        (function($) {
+
+          var completeness_#{index} = new App.DataQualityReports.Completeness(
+            #{@report.project_completeness(id: project.id).to_json},
+            '.completeness-chart-#{index}',
+            '#{polymorphic_path(@support_path, @report_keys)}',
+            #{project.id}
+          );
+          completeness_#{index}.build_chart();
+        })(jQuery);
