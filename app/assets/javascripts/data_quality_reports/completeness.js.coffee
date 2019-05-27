@@ -11,11 +11,13 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
       order: "asc",
       groups: [
         [
-          "Complete",
+          'Complete'
+          'Missing / Null'
+          "Don't Know / Refused"
+          'Not Collected'
+          'Partial'
           "Anonymous",
           "No Exit Interview Completed",
-          "Don't Know / Refused",
-          'Missing / Null',
         ]
       ]
     }
@@ -24,7 +26,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
     @chart = bb.generate
       bindto: @chart_selector
       size:
-        height: 250
+        height: 300
       data:
         json: @data['data'],
         type: "bar",
@@ -35,6 +37,8 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
         types:
           "Complete": "bar",
           "No Exit Interview Completed": "bar",
+          'Not Collected': 'bar',
+          'Partial': 'bar'
           "Don't Know / Refused": "bar",
           "Missing / Null": "bar",
           'Target': "line",
@@ -50,6 +54,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
           categories: @data['labels'],
           tick:
             rotate: 60
+            multiline: false,
         range:
           min:
             y: -100

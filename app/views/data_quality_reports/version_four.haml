@@ -92,12 +92,15 @@
     - @report.projects.each_with_index do |project, index|
       :javascript
         (function($) {
-
           var completeness_#{index} = new App.DataQualityReports.Completeness(
-            #{@report.project_completeness(id: project.id).to_json},
+            #{@report.project_completeness(hud_project: project).to_json},
             '.completeness-chart-#{index}',
             '#{polymorphic_path(@support_path, @report_keys)}',
             #{project.id}
           );
           completeness_#{index}.build_chart();
+          // Because these are hidden by default, they need to be re-drawn on show
+          $('#completeness-info').on('shown.bs.collapse', function(e) {
+            completeness_#{index}.chart.flush();
+          });
         })(jQuery);

@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.integer  "report_id"
     t.integer  "client_id"
     t.integer  "project_id"
+    t.string   "project_name"
     t.integer  "project_type"
     t.integer  "enrollment_id"
     t.boolean  "enrolled"
@@ -42,78 +43,99 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.boolean  "service_after_exit"
     t.integer  "days_of_service"
     t.integer  "destination_id"
-    t.boolean  "name_complete",                        default: false
-    t.boolean  "name_missing",                         default: false
-    t.boolean  "name_refused",                         default: false
-    t.boolean  "name_not_collected",                   default: false
-    t.boolean  "name_partial",                         default: false
-    t.boolean  "ssn_complete",                         default: false
-    t.boolean  "ssn_missing",                          default: false
-    t.boolean  "ssn_refused",                          default: false
-    t.boolean  "ssn_not_collected",                    default: false
-    t.boolean  "ssn_partial",                          default: false
-    t.boolean  "gender_complete",                      default: false
-    t.boolean  "gender_missing",                       default: false
-    t.boolean  "gender_refused",                       default: false
-    t.boolean  "gender_not_collected",                 default: false
-    t.boolean  "gender_partial",                       default: false
-    t.boolean  "dob_complete",                         default: false
-    t.boolean  "dob_missing",                          default: false
-    t.boolean  "dob_refused",                          default: false
-    t.boolean  "dob_not_collected",                    default: false
-    t.boolean  "dob_partial",                          default: false
-    t.boolean  "veteran_complete",                     default: false
-    t.boolean  "veteran_missing",                      default: false
-    t.boolean  "veteran_refused",                      default: false
-    t.boolean  "veteran_not_collected",                default: false
-    t.boolean  "veteran_partial",                      default: false
-    t.boolean  "ethnicity_complete",                   default: false
-    t.boolean  "ethnicity_missing",                    default: false
-    t.boolean  "ethnicity_refused",                    default: false
-    t.boolean  "ethnicity_not_collected",              default: false
-    t.boolean  "ethnicity_partial",                    default: false
-    t.boolean  "race_complete",                        default: false
-    t.boolean  "race_missing",                         default: false
-    t.boolean  "race_refused",                         default: false
-    t.boolean  "race_not_collected",                   default: false
-    t.boolean  "race_partial",                         default: false
-    t.boolean  "disabling_condition_complete",         default: false
-    t.boolean  "disabling_condition_missing",          default: false
-    t.boolean  "disabling_condition_refused",          default: false
-    t.boolean  "disabling_condition_not_collected",    default: false
-    t.boolean  "disabling_condition_partial",          default: false
-    t.boolean  "destination_complete",                 default: false
-    t.boolean  "destination_missing",                  default: false
-    t.boolean  "destination_refused",                  default: false
-    t.boolean  "destination_not_collected",            default: false
-    t.boolean  "destination_partial",                  default: false
-    t.boolean  "prior_living_situation_complete",      default: false
-    t.boolean  "prior_living_situation_missing",       default: false
-    t.boolean  "prior_living_situation_refused",       default: false
-    t.boolean  "prior_living_situation_not_collected", default: false
-    t.boolean  "prior_living_situation_partial",       default: false
-    t.boolean  "income_at_entry_complete",             default: false
-    t.boolean  "income_at_entry_missing",              default: false
-    t.boolean  "income_at_entry_refused",              default: false
-    t.boolean  "income_at_entry_not_collected",        default: false
-    t.boolean  "income_at_entry_partial",              default: false
-    t.boolean  "income_at_exit_complete",              default: false
-    t.boolean  "income_at_exit_missing",               default: false
-    t.boolean  "income_at_exit_refused",               default: false
-    t.boolean  "income_at_exit_not_collected",         default: false
-    t.boolean  "income_at_exit_partial",               default: false
+    t.boolean  "name_complete",                             default: false
+    t.boolean  "name_missing",                              default: false
+    t.boolean  "name_refused",                              default: false
+    t.boolean  "name_not_collected",                        default: false
+    t.boolean  "name_partial",                              default: false
+    t.boolean  "ssn_complete",                              default: false
+    t.boolean  "ssn_missing",                               default: false
+    t.boolean  "ssn_refused",                               default: false
+    t.boolean  "ssn_not_collected",                         default: false
+    t.boolean  "ssn_partial",                               default: false
+    t.boolean  "gender_complete",                           default: false
+    t.boolean  "gender_missing",                            default: false
+    t.boolean  "gender_refused",                            default: false
+    t.boolean  "gender_not_collected",                      default: false
+    t.boolean  "gender_partial",                            default: false
+    t.boolean  "dob_complete",                              default: false
+    t.boolean  "dob_missing",                               default: false
+    t.boolean  "dob_refused",                               default: false
+    t.boolean  "dob_not_collected",                         default: false
+    t.boolean  "dob_partial",                               default: false
+    t.boolean  "veteran_complete",                          default: false
+    t.boolean  "veteran_missing",                           default: false
+    t.boolean  "veteran_refused",                           default: false
+    t.boolean  "veteran_not_collected",                     default: false
+    t.boolean  "veteran_partial",                           default: false
+    t.boolean  "ethnicity_complete",                        default: false
+    t.boolean  "ethnicity_missing",                         default: false
+    t.boolean  "ethnicity_refused",                         default: false
+    t.boolean  "ethnicity_not_collected",                   default: false
+    t.boolean  "ethnicity_partial",                         default: false
+    t.boolean  "race_complete",                             default: false
+    t.boolean  "race_missing",                              default: false
+    t.boolean  "race_refused",                              default: false
+    t.boolean  "race_not_collected",                        default: false
+    t.boolean  "race_partial",                              default: false
+    t.boolean  "disabling_condition_complete",              default: false
+    t.boolean  "disabling_condition_missing",               default: false
+    t.boolean  "disabling_condition_refused",               default: false
+    t.boolean  "disabling_condition_not_collected",         default: false
+    t.boolean  "disabling_condition_partial",               default: false
+    t.boolean  "destination_complete",                      default: false
+    t.boolean  "destination_missing",                       default: false
+    t.boolean  "destination_refused",                       default: false
+    t.boolean  "destination_not_collected",                 default: false
+    t.boolean  "destination_partial",                       default: false
+    t.boolean  "prior_living_situation_complete",           default: false
+    t.boolean  "prior_living_situation_missing",            default: false
+    t.boolean  "prior_living_situation_refused",            default: false
+    t.boolean  "prior_living_situation_not_collected",      default: false
+    t.boolean  "prior_living_situation_partial",            default: false
+    t.boolean  "income_at_entry_complete",                  default: false
+    t.boolean  "income_at_entry_missing",                   default: false
+    t.boolean  "income_at_entry_refused",                   default: false
+    t.boolean  "income_at_entry_not_collected",             default: false
+    t.boolean  "income_at_entry_partial",                   default: false
+    t.boolean  "income_at_exit_complete",                   default: false
+    t.boolean  "income_at_exit_missing",                    default: false
+    t.boolean  "income_at_exit_refused",                    default: false
+    t.boolean  "income_at_exit_not_collected",              default: false
+    t.boolean  "income_at_exit_partial",                    default: false
+    t.boolean  "income_at_annual_assessment_complete",      default: false
+    t.boolean  "income_at_annual_assessment_missing",       default: false
+    t.boolean  "income_at_annual_assessment_refused",       default: false
+    t.boolean  "income_at_annual_assessment_not_collected", default: false
+    t.boolean  "income_at_annual_assessment_partial",       default: false
+    t.boolean  "should_have_income_annual_assessment",      default: false
     t.boolean  "include_in_income_change_calculation"
     t.integer  "income_at_entry_earned"
-    t.integer  "income_at_entry_non_cash"
+    t.integer  "income_at_entry_non_employment_cash"
     t.integer  "income_at_entry_overall"
+    t.integer  "income_at_annual_earned"
+    t.integer  "income_at_annual_non_employment_cash"
+    t.integer  "income_at_annual_overall"
     t.integer  "income_at_later_date_earned"
-    t.integer  "income_at_later_date_non_cash"
+    t.integer  "income_at_later_date_non_employment_cash"
     t.integer  "income_at_later_date_overall"
+    t.integer  "days_to_move_in_date"
+    t.integer  "days_ph_before_move_in_date"
+    t.string   "first_name"
+    t.string   "last_name"
+    t.string   "ssn"
+    t.integer  "gender"
     t.integer  "name_data_quality"
     t.integer  "ssn_data_quality"
     t.integer  "dob_data_quality"
-    t.integer  "days_to_move_in_date"
-    t.datetime "calculated_at",                                        null: false
+    t.integer  "veteran_status"
+    t.integer  "disabling_condition"
+    t.integer  "prior_living_situation"
+    t.integer  "ethnicity"
+    t.string   "race"
+    t.date     "enrollment_date_created"
+    t.date     "exit_date_created"
+    t.datetime "calculated_at",                                             null: false
   end
 
   create_table "warehouse_data_quality_report_project_groups", force: :cascade do |t|

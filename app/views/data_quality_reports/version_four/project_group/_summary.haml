@@ -33,13 +33,13 @@
         %h4 DOB on or after entry date
         TODO: Add support links
         %ul.list-unstyled
-          = @report.describe_completeness :dob_after_entry
+          = @report.describe_completeness :dob_after_entry, support_path: @support_path, report_keys: @report_keys
 
       .col-sm-4
         %h4 No service in the final month of enrollment
         TODO: Add support links
         %ul.list-unstyled
-          = @report.describe_completeness :final_month_service
+          = @report.describe_completeness :final_month_service, support_path: @support_path, report_keys: @report_keys
 
       .col-sm-4
         %h4 Service after exit
@@ -49,6 +49,11 @@
 
     .row
       .col-sm-4
+        %h4 Excessive Time in PH Prior to Move-In
+        TODO: Add support links
+        %ul.list-unstyled
+          = @report.describe_completeness :move_in_date_after_threshold
+      .col-sm-4
         %h4 Incorrect Household Type
         TODO: Add support links
         %ul.list-unstyled
@@ -56,5 +61,6 @@
 
       .col-sm-4
         %h4 Enrollments with no Service
+        TODO: Add support links
         %ul.list-unstyled
           = @report.describe_completeness :enrollments_with_no_service

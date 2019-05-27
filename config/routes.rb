@@ -342,6 +342,7 @@ Rails.application.routes.draw do
   resources :source_clients, only: [:edit, :update] do
     member do
       get :image
+      get :destination
     end
   end
   resources :clients do
@@ -394,6 +395,7 @@ Rails.application.routes.draw do
     resources :source_clients, only: [:edit, :update] do
       member do
         get :image
+        get :destination
       end
     end
     resources :clients do

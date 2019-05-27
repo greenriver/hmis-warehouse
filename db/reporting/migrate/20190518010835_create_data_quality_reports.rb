@@ -4,6 +4,7 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.integer :report_id
       t.integer :client_id
       t.integer :project_id
+      t.string :project_name
       t.integer :project_type
       t.integer :enrollment_id
       t.boolean :enrolled
@@ -104,19 +105,44 @@ class CreateDataQualityReports < ActiveRecord::Migration
       t.boolean :income_at_exit_not_collected, default: false
       t.boolean :income_at_exit_partial, default: false
 
+      t.boolean :income_at_annual_assessment_complete, default: false
+      t.boolean :income_at_annual_assessment_missing, default: false
+      t.boolean :income_at_annual_assessment_refused, default: false
+      t.boolean :income_at_annual_assessment_not_collected, default: false
+      t.boolean :income_at_annual_assessment_partial, default: false
+      t.boolean :should_have_income_annual_assessment, default: false
+
       t.boolean :include_in_income_change_calculation
       t.integer :income_at_entry_earned
-      t.integer :income_at_entry_non_cash
+      t.integer :income_at_entry_non_employment_cash
       t.integer :income_at_entry_overall
+      t.integer :income_at_annual_earned
+      t.integer :income_at_annual_non_employment_cash
+      t.integer :income_at_annual_overall
       t.integer :income_at_later_date_earned
-      t.integer :income_at_later_date_non_cash
+      t.integer :income_at_later_date_non_employment_cash
       t.integer :income_at_later_date_overall
 
+      t.integer :days_to_move_in_date
+      t.integer :days_ph_before_move_in_date
+
+      # Supporting info
+      t.string :first_name
+      t.string :last_name
+      t.string :ssn
+      t.date :dob
+      t.integer :gender
       t.integer :name_data_quality
       t.integer :ssn_data_quality
       t.integer :dob_data_quality
-
-      t.integer :days_to_move_in_date
+      t.integer :veteran_status
+      t.string :household_id
+      t.integer :disabling_condition
+      t.integer :prior_living_situation
+      t.integer :ethnicity
+      t.string :race
+      t.date :enrollment_date_created
+      t.date :exit_date_created
 
       t.datetime :calculated_at, null: false
 

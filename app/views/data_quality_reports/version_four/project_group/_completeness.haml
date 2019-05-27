@@ -18,8 +18,8 @@
     %p.jLoading Loading
   #completeness-accordion.panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
-      - @report.report_projects.each_with_index do |project, index|
-        %h4= project.project_name
+      - @report.projects.each_with_index do |project, index|
+        %h4= project.ProjectName
         .completeness-chart.jChart{class: "completeness-chart-#{index}"}
           %p.jLoading Loading
     = render 'common/panel_collapse', id: 'completeness-info', title: 'Project Detail'

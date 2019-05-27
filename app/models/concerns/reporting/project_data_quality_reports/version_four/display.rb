@@ -2,6 +2,8 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
   extend ActiveSupport::Concern
   include ActionView::Helpers
   include ActionView::Context
+  include ActionDispatch::Routing::PolymorphicRoutes
+  include Rails.application.routes.url_helpers
   included do
 
     def self.length_of_stay_buckets
@@ -54,6 +56,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
     def ph_destination_increase_goal
       60
+    end
+
+    def move_in_date_threshold
+      30 # days
     end
 
     def enrolled_clients
@@ -120,6 +126,27 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       exiting_households.count
     end
 
+    def move_in_date_above_threshold
+      enrolled_clients.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
+    end
+
+    def should_have_income_at_annual
+      enrolled_clients.adult.should_calculate_income_annual_completeness
+    end
+
+    def enrolled_adults
+      enrolled_clients.adult
+    end
+
+    def exiting_adults
+      enrolled_clients.exited.adult
+    end
+
+    def heads_of_households_or_adults
+      a_t = Reporting::DataQualityReports::Enrollment.arel_table
+      enrolled_clients.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+    end
+
     def served_percentages
       @served_percentages ||= begin
         percentages = []
@@ -142,7 +169,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       return @served_percentages
     end
 
-    def describe_completeness method, as_percent: false
+    def describe_completeness method, as_percent: false, support_path: nil, report_keys: nil
       served_percentages = self.send(method)
       if served_percentages.any?
         served_percentages.map do |details|
@@ -151,7 +178,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             details_text = "#{details[:label]}"
             details_text << " (#{details[:percent]}%)" if details[:percent]
             details_text << " (#{details[:value].presence || 'blank'})" if details[:value]
-            concat content_tag(:strong, details_text)
+            if support_path.present?
+              concat content_tag(:a, details_text, {href: polymorphic_path(support_path, report_keys.merge(method: method)), data: {'loads-in-pjax-modal' => true}})
+            else
+              concat content_tag(:strong, details_text)
+            end
           end
         end.join.html_safe
       else
@@ -288,27 +319,28 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       return @project_descriptor
     end
 
+    # return where the completeness value is < threshold
     def client_data
       @client_data ||= begin
         percentages = []
 
         completeness_metrics.each do |key, options|
-          options[:measures].each do |measure|
+          measure = :complete
+          counts = send(options[:denominator]).group(:project_id).where("#{key}_#{measure}" => true).select("#{key}_#{measure}").count
+          denominators = send(options[:denominator]).group(:project_id).count
+          denominators.each do |id, denominator|
+            next if denominator.zero?
+            count = counts[id] || 0
+            denominator = send(options[:denominator]).where(project_id: id).count
 
-            counts = enrolled_clients.group(:project_id).select("#{key}_#{measure}").count
-            counts.each do |id, count|
-              # FIXME: this isn't always true
-              denominator = send(options[:denominator]).where(project_id: id).count
-              next if denominator.zero?
-              percentage = count.to_f / denominator
-              if percentage > mininum_completeness_threshold
-                percentages << {
-                  project_id: id,
-                  project_name: projects.detect{|p| p.id == id}.ProjectName,
-                  label: "High #{measure} rate - #{key.to_s.humanize}",
-                  percent: percentage,
-                }
-              end
+            percentage = ((count.to_f / denominator) * 100).round
+            if percentage < completeness_goal
+              percentages << {
+                project_id: id,
+                project_name: projects.detect{|p| p.id == id}.ProjectName,
+                label: "Low #{measure} rate - #{key.to_s.humanize}",
+                percent: percentage,
+              }
             end
           end
         end
@@ -318,7 +350,6 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def completeness_metrics
-      # FIXME: denominators are probably not all correct
       @completeness_metrics ||= {
         name: {
           measures: [
@@ -365,7 +396,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_clients,
+          denominator: :enrolled_adults,
           label: 'Veteran Status',
         },
         ethnicity: {
@@ -401,7 +432,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_clients,
+          denominator: :heads_of_households_or_adults,
           label: 'Prior Living Situation',
         },
         destination: {
@@ -419,8 +450,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :enrolled_clients,
+          denominator: :enrolled_adults,
           label: 'Income at Entry',
+        },
+        income_at_annual_assessment: {
+          measures: [
+            :missing,
+            :refused,
+            :not_collected,
+          ],
+          denominator: :should_have_income_at_annual,
+          label: 'Income Annual Assessment',
         },
         income_at_exit: {
           measures: [
@@ -428,7 +468,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             :refused,
             :not_collected,
           ],
-          denominator: :exiting_clients,
+          denominator: :exiting_adults,
           label: 'Income at Exit',
         },
       }
@@ -437,12 +477,21 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     def completeness_type_labels
       @completeness_type_labels ||= {
         complete: 'Complete',
-        missing: 'Missing/Null',
-        refused: 'Don\'t Know/Refused',
+        missing: 'Missing / Null',
+        refused: "Don't Know / Refused",
         not_collected: 'Not Collected',
         partial: 'Partial',
         target: 'Target',
       }
+    end
+
+    # used to exclude some metrics from the completeness charts
+    def income_chart_keys
+      @income_chart_keys ||= [
+        :income_at_entry,
+        :income_at_annnual,
+        :income_at_exit,
+      ]
     end
 
     def timeliness
@@ -588,7 +637,25 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    # formatted for chartjs
+    def move_in_date_after_threshold
+      @move_in_date_after_threshold ||= begin
+        issues = []
+        move_in_date_issues = move_in_date_above_threshold.group(:project_id).
+          select(:days_ph_before_move_in_date).count
+        move_in_date_issues.each do |id, count|
+          next if count.zero?
+          issues << {
+            project_id: id,
+            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            label: "#{pluralize(count, 'client')}",
+            value: count,
+          }
+        end
+        issues
+      end
+    end
+
+    # formatted for billboardjs
     def bed_census_data
       @bed_census_data ||= begin
         dates = report_range.range.to_a
@@ -829,6 +896,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     # NOTE: this is for all participating projects, not broken out by project
+    # Also NOTE: SPM calculates the change against the two most recent income records, NOT, entry and the most recent
     def retained_income
       @retained_income ||= begin
         labels = ['Increased or Retained','20% Increase']
@@ -839,8 +907,8 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         earned_retained = included_clients.where(
           a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned])
         ).count
-        non_cash_retained = included_clients.where(
-          a_t[:income_at_later_date_non_cash].gteq(a_t[:income_at_entry_non_cash])
+        non_employment_cash_retained = included_clients.where(
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash])
         ).count
         overall_retained = included_clients.where(
           a_t[:income_at_later_date_overall].gteq(a_t[:income_at_entry_overall])
@@ -849,28 +917,28 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         earned_retained_20 = included_clients.where(
           a_t[:income_at_later_date_earned].gt(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
-        non_cash_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_non_cash].gt(a_t[:income_at_entry_non_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
+        non_employment_cash_retained_20 = included_clients.where(
+          a_t[:income_at_later_date_non_employment_cash].gt(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         overall_retained_20 = included_clients.where(
           a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
 
         earned_retained_percentage = ((earned_retained / denominator.to_f) * 100).round rescue 0
-        non_cash_retained_percentage = ((non_cash_retained / denominator.to_f) * 100).round rescue 0
+        non_employment_cash_retained_percentage = ((non_employment_cash_retained / denominator.to_f) * 100).round rescue 0
         overall_retained_percentage = ((overall_retained / denominator.to_f) * 100).round rescue 0
 
         earned_retained_20_percentage = ((earned_retained_20 / denominator.to_f) * 100).round rescue 0
-        non_cash_retained_20_percentage = ((non_cash_retained_20 / denominator.to_f) * 100).round rescue 0
+        non_employment_cash_retained_20_percentage = ((non_employment_cash_retained_20 / denominator.to_f) * 100).round rescue 0
         overall_retained_20_percentage = ((overall_retained_20 / denominator.to_f) * 100).round rescue 0
         data = {
           'Earned Income' => [
             earned_retained_percentage,
             earned_retained_20_percentage,
           ],
-          'Non-Cash Income' => [
-            non_cash_retained_percentage,
-            non_cash_retained_20_percentage,
+          'Non-Employment Cash Income' => [
+            non_employment_cash_retained_percentage,
+            non_employment_cash_retained_20_percentage,
           ],
           'Overall Income' => [
             overall_retained_percentage,
@@ -893,56 +961,49 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def project_group_completeness
-      # {"labels":["Name","DOB","SSN","Race","Ethnicity","Gender","Veteran Status","Disabling Condition","Living Situation","Income At Entry","Income At Exit","Destination"],"data":{"Complete":[100,100,100,100,100,100,100,73,100,88,100,100],"No Exit Interview Completed":[0,0,0,0,0,0,0,0,0,0,0,0],"Don't Know / Refused":[0,0,0,0,0,0,0,21,0,0,0,0],"Missing / Null":[0,0,0,0,0,0,0,6,0,12,0,0],"Target":[90,90,90,90,90,90,90,90,90,90,90,90]}}}
-      # completeness_metrics
-
-      # @project_group_completeness ||= begin
-      #   issues = []
-
-      #   completeness_metrics.each do |key, options|
-      #     ([:complete] + options[:measures]).each do |measure|
-      #       counts = enrolled_clients.group(:project_id).select("#{key}_#{measure}").count
-      #       counts.each do |id, count|
-      #         denominator = send(options[:denominator]).where(project_id: id).count
-      #         next if denominator.zero?
-      #         percentage = count.to_f / denominator
-      #         if percentage > mininum_completeness_threshold
-      #           issues << {
-      #             project_id: id,
-      #             project_name: projects.detect{|p| p.id == id}.ProjectName,
-      #             label: "High #{measure} rate - #{key.to_s.humanize}",
-      #             percent: percentage,
-      #           }
-      #         end
-      #       end
-      #     end
-      #   end
-      #   issues
-      # end
-
-      # target =
-      {
-
-      }
-    end
-
-    def project_completeness id:
       @project_group_completeness ||= begin
         labels = completeness_metrics.map{ |_,m| m[:label] }
         data = completeness_type_labels.map do |_, label|
-          [label, []]
+          [label, Array.new(completeness_metrics.keys.count, 0)]
         end.to_h
-
-        completeness_metrics.each do |key, options|
+        data['Target'] = Array.new(completeness_metrics.keys.count, completeness_goal)
+        completeness_metrics.each_with_index do |(key, options), index|
           ([:complete] + options[:measures]).each do |measure|
-            count = enrolled_clients.where(project_id: id).select("#{key}_#{measure}").count
-            denominator = send(options[:denominator]).where(project_id: id).count
-            if denominator.zero?
-              percentage = 1
+            count = send(options[:denominator]).where("#{key}_#{measure}" => true).count
+            denominator = send(options[:denominator]).count
+            if denominator.zero? && measure == :complete
+              percentage = 100
             else
-              percentage = count.to_f / denominator
+              percentage = ((count.to_f / denominator) * 100).round rescue 0
             end
-            data[completeness_type_labels[measure]] << percentage
+            data[completeness_type_labels[measure]][index] = percentage
+          end
+        end
+        {
+          labels: labels,
+          data: data,
+        }
+      end
+    end
+
+    def project_completeness hud_project:
+      # don't cache this
+      @project_completeness = begin
+        labels = completeness_metrics.map{ |_,m| m[:label] }
+        data = completeness_type_labels.map do |_, label|
+          [label, Array.new(completeness_metrics.keys.count, 0)]
+        end.to_h
+        data['Target'] = Array.new(completeness_metrics.keys.count, completeness_goal)
+        completeness_metrics.each_with_index do |(key, options), index|
+          ([:complete] + options[:measures]).each do |measure|
+            count = send(options[:denominator]).where(project_id: hud_project.id, "#{key}_#{measure}" => true).count
+            denominator = send(options[:denominator]).where(project_id: hud_project.id).count
+            if denominator.zero? && measure == :complete
+              percentage = 100
+            else
+              percentage = ((count.to_f / denominator) * 100).round rescue 0
+            end
+            data[completeness_type_labels[measure]][index] = percentage
           end
         end
         {

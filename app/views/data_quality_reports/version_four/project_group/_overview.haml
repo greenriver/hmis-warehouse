@@ -6,10 +6,10 @@
       %hr
       .h1.text-center.icon-group
       %h3.text-center
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_clients'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :enrolled_clients})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.enrolled_client_count, 'client')}
         = " / "
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_households'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :enrolled_households})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.enrolled_household_count, 'household')}
       %p.text-center were enrolled in the project during the reporting period.
     .col-sm-3
@@ -18,10 +18,10 @@
       %hr
       .h1.text-center.icon-individual
       %h3.text-center
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_active_clients'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :active_clients})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.active_client_count, 'client')}
         = " / "
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_active_households'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :active_households})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.active_household_count, 'household')}
       %p.text-center were active in the project during the reporting period.
     .col-sm-3
@@ -30,10 +30,10 @@
       %hr
       .h1.text-center.icon-enter
       %h3.text-center
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_enterers'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :entering_clients})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.entering_clients_count, 'client')}
         = " / "
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_entering_households'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :entering_households})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.entering_households_count, 'household')}
       %p entered the project during the reporting period.
     .col-sm-3
@@ -42,9 +42,9 @@
       %hr
       .h1.text-center.icon-exit
       %h3.text-center
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_leavers'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :exiting_clients})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.exiting_client_count, 'client')}
         = " / "
-        = link_to polymorphic_path(support_path, @report_keys.merge({key: 'total_exiting_households'})), data: {loads_in_pjax_modal: true} do
+        = link_to polymorphic_path(support_path, @report_keys.merge({method: :exiting_households})), data: {loads_in_pjax_modal: true} do
           #{pluralize(@report.exiting_household_count, 'household')}
       %p.text-center exited the project during the reporting period.
