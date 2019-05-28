@@ -3,16 +3,15 @@
     %header.o-section-card__header
       %h3= file_list_title
     .c-card.c-card--flush.c-card--block
-      .table-responsive
-        %table.table.table-sm
-          %thead
-            %tr
-              %th Document
-          %tbody
-            - @blank_files.each do |file|
-              - if file[:url].present?
-                %tr
-                  %td
-                    = link_to file[:url] do
-                      = file[:title]
-                      %i.pull-right.icon-download2
+      %table.table.table-sm
+        %thead
+          %tr
+            %th Document
+        %tbody
+          - @blank_files.each do |file|
+            - if file[:url].present?
+              %tr
+                %td
+                  = link_to file[:url] do
+                    = file[:title]
+                    %i.pull-right.icon-download2
