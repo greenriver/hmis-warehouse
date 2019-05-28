@@ -1,5 +1,5 @@
 #bed-utilization-accordion.panel-group.panel-collapsible
-  - content_for :panel_collapse_content do
+  - content_for :panel_collapse_content, flush: true do
     %p
       = "Unit utilization percentages are based upon the unit capacities your agency reported for its individual programs in the most recent Point-in-Time Survey (Annual Homeless Census) conducted by #{_('the Boston Emergency Shelter Commission')}. The aggregate number of household-nights over the entire reporting period, divided by the product of unit capacity and nights in the reporting period, gives the percentage utilization for each program for the reporting period. Also, counts of households for each individual program are computed for each night and displayed in the chart below."
     %p

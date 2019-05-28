@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 10.4 (Ubuntu 10.4-2.pgdg16.04+1)
--- Dumped by pg_dump version 10.4 (Ubuntu 10.4-2.pgdg16.04+1)
+-- Dumped from database version 9.5.15
+-- Dumped by pg_dump version 10.5
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -89,7 +89,6 @@ CREATE TABLE public.activity_logs (
 --
 
 CREATE SEQUENCE public.activity_logs_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -150,7 +149,6 @@ CREATE TABLE public.clients_unduplicated (
 --
 
 CREATE SEQUENCE public.clients_unduplicated_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -190,7 +188,6 @@ CREATE TABLE public.delayed_jobs (
 --
 
 CREATE SEQUENCE public.delayed_jobs_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -203,6 +200,83 @@ CREATE SEQUENCE public.delayed_jobs_id_seq
 --
 
 ALTER SEQUENCE public.delayed_jobs_id_seq OWNED BY public.delayed_jobs.id;
+
+
+--
+-- Name: glacier_archives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.glacier_archives (
+    id integer NOT NULL,
+    glacier_vault_id integer NOT NULL,
+    upload_id text NOT NULL,
+    archive_id text,
+    checksum text,
+    location text,
+    status character varying DEFAULT 'initialized'::character varying NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    size_in_bytes bigint,
+    upload_started_at timestamp without time zone,
+    upload_finished_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    notes text,
+    job_id character varying,
+    archive_name character varying
+);
+
+
+--
+-- Name: glacier_archives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.glacier_archives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: glacier_archives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.glacier_archives_id_seq OWNED BY public.glacier_archives.id;
+
+
+--
+-- Name: glacier_vaults; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.glacier_vaults (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    vault_created_at timestamp without time zone,
+    last_upload_attempt_at timestamp without time zone,
+    last_upload_success_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: glacier_vaults_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.glacier_vaults_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: glacier_vaults_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.glacier_vaults_id_seq OWNED BY public.glacier_vaults.id;
 
 
 --
@@ -228,7 +302,6 @@ CREATE TABLE public.imports (
 --
 
 CREATE SEQUENCE public.imports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -241,51 +314,6 @@ CREATE SEQUENCE public.imports_id_seq
 --
 
 ALTER SEQUENCE public.imports_id_seq OWNED BY public.imports.id;
-
-
---
--- Name: index_stats; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.index_stats AS
- WITH table_stats AS (
-         SELECT psut.relname,
-            psut.n_live_tup,
-            ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
-           FROM pg_stat_user_tables psut
-          ORDER BY psut.n_live_tup DESC
-        ), table_io AS (
-         SELECT psiut.relname,
-            sum(psiut.heap_blks_read) AS table_page_read,
-            sum(psiut.heap_blks_hit) AS table_page_hit,
-            (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
-           FROM pg_statio_user_tables psiut
-          GROUP BY psiut.relname
-          ORDER BY (sum(psiut.heap_blks_read)) DESC
-        ), index_io AS (
-         SELECT psiui.relname,
-            psiui.indexrelname,
-            sum(psiui.idx_blks_read) AS idx_page_read,
-            sum(psiui.idx_blks_hit) AS idx_page_hit,
-            ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
-           FROM pg_statio_user_indexes psiui
-          GROUP BY psiui.relname, psiui.indexrelname
-          ORDER BY (sum(psiui.idx_blks_read)) DESC
-        )
- SELECT ts.relname,
-    ts.n_live_tup,
-    ts.index_use_ratio,
-    ti.table_page_read,
-    ti.table_page_hit,
-    ti.table_hit_ratio,
-    ii.indexrelname,
-    ii.idx_page_read,
-    ii.idx_page_hit,
-    ii.idx_hit_ratio
-   FROM ((table_stats ts
-     LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
-     LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
-  ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
 
 
 --
@@ -305,7 +333,6 @@ CREATE TABLE public.letsencrypt_plugin_challenges (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_challenges_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -337,7 +364,6 @@ CREATE TABLE public.letsencrypt_plugin_settings (
 --
 
 CREATE SEQUENCE public.letsencrypt_plugin_settings_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -375,7 +401,6 @@ CREATE TABLE public.messages (
 --
 
 CREATE SEQUENCE public.messages_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -406,7 +431,6 @@ CREATE TABLE public.nicknames (
 --
 
 CREATE SEQUENCE public.nicknames_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -441,7 +465,8 @@ CREATE TABLE public.report_results (
     job_status character varying,
     validations json,
     support json,
-    delayed_job_id integer
+    delayed_job_id integer,
+    file_id integer
 );
 
 
@@ -450,7 +475,6 @@ CREATE TABLE public.report_results (
 --
 
 CREATE SEQUENCE public.report_results_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -484,7 +508,6 @@ CREATE TABLE public.report_results_summaries (
 --
 
 CREATE SEQUENCE public.report_results_summaries_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -519,7 +542,6 @@ CREATE TABLE public.reports (
 --
 
 CREATE SEQUENCE public.reports_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -561,49 +583,55 @@ CREATE TABLE public.roles (
     can_view_organizations boolean DEFAULT false,
     can_edit_organizations boolean DEFAULT false,
     can_edit_data_sources boolean DEFAULT false,
-    can_search_window boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
     can_edit_translations boolean DEFAULT false,
     can_manage_assessments boolean DEFAULT false,
     can_edit_anything_super_user boolean DEFAULT false,
+    can_administer_health boolean DEFAULT false,
+    can_edit_client_health boolean DEFAULT false,
+    can_view_client_health boolean DEFAULT false,
+    health_role boolean DEFAULT false NOT NULL,
+    can_manage_config boolean DEFAULT false,
     can_manage_client_files boolean DEFAULT false,
     can_manage_window_client_files boolean DEFAULT false,
-    can_see_own_file_uploads boolean DEFAULT false,
-    can_manage_config boolean DEFAULT false,
     can_edit_dq_grades boolean DEFAULT false,
     can_view_vspdat boolean DEFAULT false,
     can_edit_vspdat boolean DEFAULT false,
-    can_submit_vspdat boolean DEFAULT false,
     can_create_clients boolean DEFAULT false,
     can_view_client_history_calendar boolean DEFAULT false,
-    can_edit_client_notes boolean DEFAULT false,
-    can_edit_window_client_notes boolean DEFAULT false,
-    can_see_own_window_client_notes boolean DEFAULT false,
-    can_manage_cohorts boolean DEFAULT false,
-    can_edit_cohort_clients boolean DEFAULT false,
-    can_edit_assigned_cohorts boolean DEFAULT false,
-    can_view_assigned_cohorts boolean DEFAULT false,
+    can_view_aggregate_health boolean DEFAULT false,
     can_assign_users_to_clients boolean DEFAULT false,
     can_view_client_user_assignments boolean DEFAULT false,
     can_export_hmis_data boolean DEFAULT false,
+    can_search_window boolean DEFAULT false,
+    can_see_own_file_uploads boolean DEFAULT false,
     can_confirm_housing_release boolean DEFAULT false,
+    can_submit_vspdat boolean DEFAULT false,
+    can_edit_client_notes boolean DEFAULT false,
+    can_edit_window_client_notes boolean DEFAULT false,
+    can_see_own_window_client_notes boolean DEFAULT false,
     can_track_anomalies boolean DEFAULT false,
     can_view_all_reports boolean DEFAULT false,
     can_assign_reports boolean DEFAULT false,
     can_view_assigned_reports boolean DEFAULT false,
-    can_view_project_data_quality_client_details boolean DEFAULT false,
+    can_manage_cohorts boolean DEFAULT false,
+    can_edit_cohort_clients boolean DEFAULT false,
+    can_edit_assigned_cohorts boolean DEFAULT false,
+    can_view_assigned_cohorts boolean DEFAULT false,
     can_manage_organization_users boolean DEFAULT false,
     can_add_administrative_event boolean DEFAULT false,
-    can_administer_health boolean DEFAULT false,
-    can_edit_client_health boolean DEFAULT false,
-    can_view_client_health boolean DEFAULT false,
-    can_view_aggregate_health boolean DEFAULT false,
-    can_manage_health_agency boolean DEFAULT false,
+    can_view_project_data_quality_client_details boolean DEFAULT false,
+    can_see_clients_in_window_for_assigned_data_sources boolean DEFAULT false,
+    can_manage_health_agency boolean DEFAULT false NOT NULL,
+    can_upload_deidentified_hud_hmis_files boolean DEFAULT false,
+    can_upload_whitelisted_hud_hmis_files boolean DEFAULT false,
+    can_edit_warehouse_alerts boolean DEFAULT false,
     can_approve_patient_assignments boolean DEFAULT false,
     can_manage_claims boolean DEFAULT false,
     can_manage_all_patients boolean DEFAULT false,
     can_manage_patients_for_own_agency boolean DEFAULT false,
+    can_manage_care_coordinators boolean DEFAULT false,
     can_approve_cha boolean DEFAULT false,
     can_approve_ssm boolean DEFAULT false,
     can_approve_release boolean DEFAULT false,
@@ -614,9 +642,18 @@ CREATE TABLE public.roles (
     can_view_all_patients boolean DEFAULT false,
     can_view_patients_for_own_agency boolean DEFAULT false,
     can_add_case_management_notes boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
-    can_manage_care_coordinators boolean DEFAULT false,
-    can_see_clients_in_window_for_assigned_data_sources boolean DEFAULT false
+    can_manage_accountable_care_organizations boolean DEFAULT false,
+    can_view_member_health_reports boolean DEFAULT false,
+    can_upload_dashboard_extras boolean DEFAULT false,
+    can_view_all_user_client_assignments boolean DEFAULT false,
+    can_audit_clients boolean DEFAULT false,
+    can_audit_users boolean DEFAULT false,
+    can_view_youth_intake boolean DEFAULT false,
+    can_edit_youth_intake boolean DEFAULT false,
+    can_export_anonymous_hmis_data boolean DEFAULT false,
+    can_view_all_secure_uploads boolean DEFAULT false,
+    can_view_assigned_secure_uploads boolean DEFAULT false,
+    can_unsubmit_submitted_claims boolean DEFAULT false
 );
 
 
@@ -625,7 +662,6 @@ CREATE TABLE public.roles (
 --
 
 CREATE SEQUENCE public.roles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -671,7 +707,6 @@ CREATE TABLE public.similarity_metrics (
 --
 
 CREATE SEQUENCE public.similarity_metrics_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -687,31 +722,36 @@ ALTER SEQUENCE public.similarity_metrics_id_seq OWNED BY public.similarity_metri
 
 
 --
--- Name: todd_stats; Type: VIEW; Schema: public; Owner: -
+-- Name: tokens; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE VIEW public.todd_stats AS
- SELECT pg_stat_all_tables.relname,
-    round((
-        CASE
-            WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
-            ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
-        END * (100.0)::double precision)) AS "Frag %",
-    pg_stat_all_tables.n_live_tup AS "Live rows",
-    pg_stat_all_tables.n_dead_tup AS "Dead rows",
-    pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
-        CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00-05'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00-05'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
-            ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00-05'::timestamp with time zone)
-        END AS last_vacuum,
-        CASE
-            WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00-05'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00-05'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
-            ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00-05'::timestamp with time zone)
-        END AS last_analyze,
-    (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
-    (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
-   FROM pg_stat_all_tables
-  WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+CREATE TABLE public.tokens (
+    id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    token character varying NOT NULL,
+    path character varying NOT NULL,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tokens_id_seq OWNED BY public.tokens.id;
 
 
 --
@@ -731,7 +771,6 @@ CREATE TABLE public.translation_keys (
 --
 
 CREATE SEQUENCE public.translation_keys_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -765,7 +804,6 @@ CREATE TABLE public.translation_texts (
 --
 
 CREATE SEQUENCE public.translation_texts_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -796,7 +834,6 @@ CREATE TABLE public.unique_names (
 --
 
 CREATE SEQUENCE public.unique_names_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -838,7 +875,6 @@ CREATE TABLE public.uploads (
 --
 
 CREATE SEQUENCE public.uploads_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -862,7 +898,8 @@ CREATE TABLE public.user_roles (
     role_id integer,
     user_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -871,7 +908,6 @@ CREATE TABLE public.user_roles (
 --
 
 CREATE SEQUENCE public.user_roles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -929,7 +965,8 @@ CREATE TABLE public.users (
     notify_on_client_added boolean DEFAULT false,
     notify_on_anomaly_identified boolean DEFAULT false NOT NULL,
     coc_codes character varying[] DEFAULT '{}'::character varying[],
-    email_schedule character varying DEFAULT 'immediate'::character varying NOT NULL
+    email_schedule character varying DEFAULT 'immediate'::character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL
 );
 
 
@@ -938,7 +975,6 @@ CREATE TABLE public.users (
 --
 
 CREATE SEQUENCE public.users_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -967,7 +1003,10 @@ CREATE TABLE public.versions (
     created_at timestamp without time zone,
     user_id integer,
     session_id character varying,
-    request_id character varying
+    request_id character varying,
+    object_changes text,
+    referenced_user_id integer,
+    referenced_entity_name character varying
 );
 
 
@@ -976,7 +1015,6 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -989,6 +1027,39 @@ CREATE SEQUENCE public.versions_id_seq
 --
 
 ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
+
+
+--
+-- Name: warehouse_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_alerts (
+    id integer NOT NULL,
+    user_id integer,
+    html character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: warehouse_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: warehouse_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.warehouse_alerts_id_seq OWNED BY public.warehouse_alerts.id;
 
 
 --
@@ -1010,6 +1081,20 @@ ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.delayed_jobs ALTER COLUMN id SET DEFAULT nextval('public.delayed_jobs_id_seq'::regclass);
+
+
+--
+-- Name: glacier_archives id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glacier_archives ALTER COLUMN id SET DEFAULT nextval('public.glacier_archives_id_seq'::regclass);
+
+
+--
+-- Name: glacier_vaults id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glacier_vaults ALTER COLUMN id SET DEFAULT nextval('public.glacier_vaults_id_seq'::regclass);
 
 
 --
@@ -1083,6 +1168,13 @@ ALTER TABLE ONLY public.similarity_metrics ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tokens ALTER COLUMN id SET DEFAULT nextval('public.tokens_id_seq'::regclass);
+
+
+--
 -- Name: translation_keys id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1132,6 +1224,13 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 
 
 --
+-- Name: warehouse_alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
+
+
+--
 -- Name: activity_logs activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1153,6 +1252,22 @@ ALTER TABLE ONLY public.clients_unduplicated
 
 ALTER TABLE ONLY public.delayed_jobs
     ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: glacier_archives glacier_archives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glacier_archives
+    ADD CONSTRAINT glacier_archives_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: glacier_vaults glacier_vaults_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glacier_vaults
+    ADD CONSTRAINT glacier_vaults_pkey PRIMARY KEY (id);
 
 
 --
@@ -1236,6 +1351,14 @@ ALTER TABLE ONLY public.similarity_metrics
 
 
 --
+-- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tokens
+    ADD CONSTRAINT tokens_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: translation_keys translation_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1292,6 +1415,14 @@ ALTER TABLE ONLY public.versions
 
 
 --
+-- Name: warehouse_alerts warehouse_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_alerts
+    ADD CONSTRAINT warehouse_alerts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: delayed_jobs_priority; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1317,6 +1448,27 @@ CREATE INDEX index_activity_logs_on_item_model ON public.activity_logs USING btr
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON public.activity_logs USING btree (user_id);
+
+
+--
+-- Name: index_glacier_archives_on_glacier_vault_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_glacier_archives_on_glacier_vault_id ON public.glacier_archives USING btree (glacier_vault_id);
+
+
+--
+-- Name: index_glacier_archives_on_upload_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_glacier_archives_on_upload_id ON public.glacier_archives USING btree (upload_id);
+
+
+--
+-- Name: index_glacier_vaults_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING btree (name);
 
 
 --
@@ -1359,6 +1511,34 @@ CREATE INDEX index_roles_on_name ON public.roles USING btree (name);
 --
 
 CREATE UNIQUE INDEX index_similarity_metrics_on_type ON public.similarity_metrics USING btree (type);
+
+
+--
+-- Name: index_tokens_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tokens_on_created_at ON public.tokens USING btree (created_at);
+
+
+--
+-- Name: index_tokens_on_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tokens_on_expires_at ON public.tokens USING btree (expires_at);
+
+
+--
+-- Name: index_tokens_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tokens_on_token ON public.tokens USING btree (token);
+
+
+--
+-- Name: index_tokens_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tokens_on_updated_at ON public.tokens USING btree (updated_at);
 
 
 --
@@ -1487,6 +1667,14 @@ ALTER TABLE ONLY public.user_roles
 
 ALTER TABLE ONLY public.user_roles
     ADD CONSTRAINT fk_rails_3369e0d5fc FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: glacier_archives fk_rails_6121d2e55f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glacier_archives
+    ADD CONSTRAINT fk_rails_6121d2e55f FOREIGN KEY (glacier_vault_id) REFERENCES public.glacier_vaults(id);
 
 
 --
@@ -1694,4 +1882,56 @@ INSERT INTO schema_migrations (version) VALUES ('20180601185917');
 INSERT INTO schema_migrations (version) VALUES ('20180612175806');
 
 INSERT INTO schema_migrations (version) VALUES ('20180613133940');
+
+INSERT INTO schema_migrations (version) VALUES ('20180627165639');
+
+INSERT INTO schema_migrations (version) VALUES ('20180629134948');
+
+INSERT INTO schema_migrations (version) VALUES ('20180629135738');
+
+INSERT INTO schema_migrations (version) VALUES ('20180629145712');
+
+INSERT INTO schema_migrations (version) VALUES ('20180710174713');
+
+INSERT INTO schema_migrations (version) VALUES ('20180716141934');
+
+INSERT INTO schema_migrations (version) VALUES ('20180716181011');
+
+INSERT INTO schema_migrations (version) VALUES ('20180722112728');
+
+INSERT INTO schema_migrations (version) VALUES ('20180801164521');
+
+INSERT INTO schema_migrations (version) VALUES ('20180810210623');
+
+INSERT INTO schema_migrations (version) VALUES ('20181001172617');
+
+INSERT INTO schema_migrations (version) VALUES ('20181012132645');
+
+INSERT INTO schema_migrations (version) VALUES ('20181024200910');
+
+INSERT INTO schema_migrations (version) VALUES ('20181024231159');
+
+INSERT INTO schema_migrations (version) VALUES ('20181025123951');
+
+INSERT INTO schema_migrations (version) VALUES ('20181025135153');
+
+INSERT INTO schema_migrations (version) VALUES ('20181030144345');
+
+INSERT INTO schema_migrations (version) VALUES ('20181030203357');
+
+INSERT INTO schema_migrations (version) VALUES ('20181031172440');
+
+INSERT INTO schema_migrations (version) VALUES ('20181105154441');
+
+INSERT INTO schema_migrations (version) VALUES ('20181128180134');
+
+INSERT INTO schema_migrations (version) VALUES ('20181211174411');
+
+INSERT INTO schema_migrations (version) VALUES ('20190129210815');
+
+INSERT INTO schema_migrations (version) VALUES ('20190327174142');
+
+INSERT INTO schema_migrations (version) VALUES ('20190327192234');
+
+INSERT INTO schema_migrations (version) VALUES ('20190417142558');
 

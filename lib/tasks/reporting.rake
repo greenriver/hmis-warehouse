@@ -58,6 +58,16 @@ namespace :reporting do
       end
     end
 
+    namespace :structure do
+      task :load do
+        Rake::Task["db:structure:load"].invoke
+      end
+
+      task :dump do
+        Rake::Task["db:structure:dump"].invoke
+      end
+    end
+
     namespace :test do
       task :prepare do
         Rake::Task["db:test:prepare"].invoke
