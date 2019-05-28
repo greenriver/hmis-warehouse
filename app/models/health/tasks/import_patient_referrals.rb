@@ -41,6 +41,10 @@ module Health::Tasks
             end
             patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
               first_or_initialize
+            # If we have seen this medicaid id previously (e.g., the patient has cycled back into the program), make sure the referral is active
+            if patient_referral.id != 0
+              ensure_referral_active(patient_referral)
+            end
             # attempt to find ACO ID
             aco_id = Health::AccountableCareOrganization.find_by(mco_pid: row[:aco_mco_pid], mco_sl: row[:aco_mco_sl])&.id
             patient_referral.accountable_care_organization_id = aco_id if aco_id.present?
@@ -63,6 +67,14 @@ module Health::Tasks
       end
 
       remove_files()
+    end
+
+    def ensure_referral_active(referral)
+      if referral.rejected
+        referral.rejected = false
+        referral.rejected_reason = 0
+        referral.removal_acknowledged = false
+      end
     end
 
     # Are there any ASSIGNMENT_* files we have not yet processed?
