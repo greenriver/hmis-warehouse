@@ -23,7 +23,7 @@ Dir.chdir APP_ROOT do
   end
   unless File.exist?('.env')
     puts "\n== Creating .env"
-    FileUtils.cp ".env.sample", ".env"
+    FileUtils.cp '.env.sample', '.env'
   end
 
   puts "\n== Preparing Database =="

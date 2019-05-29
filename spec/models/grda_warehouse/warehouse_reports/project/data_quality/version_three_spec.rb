@@ -20,7 +20,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         open_enrollments = GrdaWarehouse::Hud::Enrollment
                            .open_during_range(range)
                            .where(ProjectID: report.project.ProjectID)
-                           .distinct.count(:PersonalID)
+                           .distinct.select(:PersonalID).count
 
         client_count = report.clients.map { |client| client[:destination_id] }.uniq.count
 
@@ -51,7 +51,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           open_enrollments = GrdaWarehouse::Hud::Enrollment
                              .open_during_range(range)
                              .where(ProjectID: report.project.ProjectID)
-                             .distinct.count(:PersonalID)
+                             .distinct.select(:PersonalID).count
 
           aggregate_failures 'counting clients' do
             expect(count).to eq 92
@@ -562,7 +562,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           open_enrollments = GrdaWarehouse::Hud::Enrollment
                              .open_during_range(range)
                              .where(ProjectID: report.projects.pluck(:ProjectID))
-                             .distinct.count(:PersonalID)
+                             .distinct.select(:PersonalID).count
 
           aggregate_failures 'counting clients' do
             expect(count).to eq 112
