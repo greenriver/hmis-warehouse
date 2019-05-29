@@ -55,6 +55,7 @@ module Health::Tasks
               if patient_referral.disenrollment_date.blank?
                 patient_referral.rejected = false
                 patient_referral.rejected_reason = :Remove_Removal
+                patient_referral.removal_acknowledged = false
               end
               patient_referral.save!
             end
