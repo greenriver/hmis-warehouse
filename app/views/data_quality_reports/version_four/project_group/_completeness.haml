@@ -4,13 +4,13 @@
     .col-sm-6.text-center
       %h4 Goal
       %hr
-      %ul.list-unstyled
-        %li #{@report.completeness_goal}% complete
+      %p
+        %strong #{@report.completeness_goal}% complete
     .col-sm-6.text-center
       %h4 Project Group
       %hr
-      %ul.list-unstyled
-        #{@report.describe_completeness :completeness_percentage} complete
+      %p
+        %strong #{@report.completeness_percentage}% complete
 
 
   %h4 Project Group

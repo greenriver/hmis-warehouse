@@ -2,19 +2,17 @@
   .row
     .col-sm-3.text-center
       %br
-      %p Bed Inventory
-      %h3
-        = pluralize(@report.report_project_group.bed_inventory, 'bed')
+      %h3 Bed Inventory
+      %p= pluralize(@report.report_project_group.bed_inventory, 'bed')
       %hr
-      %p Average Daily / Nightly Clients
+      %h3 Average Daily / Nightly Clients
 
-      %h3
-        = pluralize(@report.report_project_group.average_nightly_clients, 'client')
+
+      %p= pluralize(@report.report_project_group.average_nightly_clients, 'client')
       %hr
-      %p Average Bed Utilization
+      %h3 Average Bed Utilization
 
-      %h3
-        #{@report.report_project_group.average_bed_utilization}%
+      %p #{@report.report_project_group.average_bed_utilization}%
 
     .col-sm-9
       %h3.text-center Nightly Client Census

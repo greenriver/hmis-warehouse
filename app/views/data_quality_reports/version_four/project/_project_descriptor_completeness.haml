@@ -1,63 +1,65 @@
-.well.overflow-scroll
-  %h3.text-center Project Descriptor Completeness
+.well.overflow-scroll.text-center
+  %h3 Project Descriptor Completeness
   .row
     .col-sm-3
-      %h4.text-center Operating Start Date
+      %h4 Operating Start Date
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.operating_start_date || 'blank'}
     .col-sm-3
-      %h4.text-center CoC Code
+      %h4 CoC Code
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.coc_code || 'blank'}
     .col-sm-3
-      %h4.text-center Funder
+      %h4 Funder
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.funder.presence || 'blank'}
     .col-sm-3
-      %h4.text-center Inventory Information Date
+      %h4 Inventory Information Date
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.inventory_information_dates.presence || 'blank'}
   .row
     .col-sm-3
-      %h4.text-center Geocode
+      %h4 Geocode
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.geocode.presence || 'blank'}
     .col-sm-3
-      %h4.text-center Geography Type
+      %h4 Geography Type
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{p.geography_type.presence || 'blank'}
     .col-sm-3
-      %h4.text-center Unit Inventory
+      %h4 Unit Inventory
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{pluralize(p.unit_inventory, 'unit')}
     .col-sm-3
-      %h4.text-center Bed Inventory
+      %h4 Bed Inventory
       %ul.list-unstyled
         - @report.report_projects.preload(:project).each do |p|
           %li
             #{pluralize(p.bed_inventory, 'bed')}
-  .text-center
-    %h4 Housing Type
-    %ul.list-unstyled
-      - @report.report_projects.preload(:project).each do |p|
-        %li
-          #{HUD.housing_type p.housing_type.presence}
-    %h4 Project Types
-    %ul.list-unstyled
-      - @report.report_projects.preload(:project).each do |p|
-        %li
-          #{HUD.project_type p.project_type.presence}
+  .row
+    .col-sm-6
+      %h4 Housing Type
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{HUD.housing_type p.housing_type.presence}
+    .col-sm-6
+      %h4 Project Types
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{HUD.project_type p.project_type.presence}

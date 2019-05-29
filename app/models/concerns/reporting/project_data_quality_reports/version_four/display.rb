@@ -749,7 +749,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
-          projects: projects.pluck(:ProjectName, :id).to_h,
+          projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
     end
@@ -770,7 +770,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
-          projects: projects.pluck(:ProjectName, :id).to_h,
+          projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
     end
@@ -784,10 +784,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           count = days_by_project_id[project.project_id]
           denominator = enrolled_clients.where(project_id: project.project_id).count
           average = count.to_f / denominator
+          days = pluralize(average.round, 'day') rescue '0 days'
           issues << {
             project_id: project.project_id,
             project_name: project.project_name,
-            label: pluralize(average.round, 'day'),
+            label: days,
           }
         end
         issues
@@ -836,7 +837,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           labels: labels,
           data: data.merge({'Totals' => totals}),
           ranges: self.class.length_of_stay_buckets,
-          projects: projects.pluck(:ProjectName, :id).to_h,
+          projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
     end
@@ -860,7 +861,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
-          projects: projects.pluck(:ProjectName, :id).to_h,
+          projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
     end
@@ -960,8 +961,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       }
     end
 
+    # an overall completeness based on all completeness metrics
     def completeness_percentage
-      []
+      a_t = Reporting::DataQualityReports::Enrollment.arel_table
+      where = completeness_metrics.keys.map do |m|
+        a_t["#{m}_complete"].eq(false).to_sql
+      end.join(' OR ')
+
+      incomplete = enrolled_clients.where(where).pluck(*completeness_metrics.keys.map{ |m| "#{m}_complete" }).flatten.count(false)
+      denominator = enrolled_clients.count * completeness_metrics.keys.count
+      completeness = (((denominator - incomplete.to_f) / denominator ) * 100).round rescue 100
     end
 
     def project_group_completeness

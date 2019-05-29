@@ -505,7 +505,7 @@ module Reporting::DataQualityReports
 
     def calculate_disabling_condition_missing disabling_condition:, all_indefinite_and_impairs:
       return false unless is_adult?(date: Date.today)
-      disabling_condition.blank? || disabling_condition == 0 && all_indefinite_and_impairs.any?(1)
+      disabling_condition.blank? || disabling_condition == 0 && all_indefinite_and_impairs.present? && all_indefinite_and_impairs.any?(1)
     end
 
     def calculate_disabling_condition_not_collected disabling_condition:
