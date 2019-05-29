@@ -61,7 +61,7 @@ module Health
     phi_attr :snf_discharge, Phi::NeedsReview
     phi_attr :identification, Phi::LicenceNumber #Phi::NeedsReview ??
     # phi_attr :record_status
-    phi_attr :updated_on, Phi::Date
+    phi_attr :record_updated_on, Phi::Date
     phi_attr :exported_on, Phi::Date
     # phi_attr :removal_acknowledge
     phi_attr :disenrollment_date, Phi::Date

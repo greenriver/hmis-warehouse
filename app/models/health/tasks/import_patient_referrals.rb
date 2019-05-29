@@ -56,8 +56,8 @@ module Health::Tasks
           patient_referral.accountable_care_organization_id = aco_id if aco_id.present?
           # if we have a new row or an update
           # save it
-          updated_on = Date.strptime(row[:updated_on].to_s, '%Y%m%d')
-          if patient_referral.updated_on.blank? || updated_on > patient_referral.updated_on
+          updated_on = Date.strptime(row[:record_updated_on].to_s, '%Y%m%d')
+          if patient_referral.record_updated_on.blank? || updated_on > patient_referral.record_updated_on
             patient_referral.assign_attributes(row)
             patient_referral.save!
           end
