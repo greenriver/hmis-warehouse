@@ -5,6 +5,18 @@ module PjaxModalController
     layout ->(c) { pjax_request? ? pjax_layout : nil }
     after_action :set_pjax_url, if: :pjax_request?
 
+    def modal_size
+      case @modal_size
+      when :xl
+        'modal-xl'
+      when :lg
+        'modal-lg'
+      else
+        ''
+      end
+    end
+    helper_method :modal_size
+
     def form_html_options
       Hash.new.tap do |result|
         result['data-submits-to-pjax-modal'] = true if pjax_request?

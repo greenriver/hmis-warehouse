@@ -775,30 +775,30 @@ module Reporting::DataQualityReports
       )
     end
 
-    def calculate_income_at_later_date_earned incomes:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_earned income_record:,  entry_date:, head_of_household:, report_end:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
-      return unless incomes.present?
+      return unless income_record.present?
       income_for_types(
         types: earned_income_types,
-        income_record: later_income(incomes: incomes, report_end: report_end)
+        income_record: income_record
       )
     end
 
-    def calculate_income_at_later_date_non_employment_cash incomes:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
-      return unless incomes.present?
+      return unless income_record.present?
       income_for_types(
         types: non_employment_cash_income_types,
-        income_record: later_income(incomes: incomes, report_end: report_end)
+        income_record: income_record
       )
     end
 
-    def calculate_income_at_later_date_overall incomes:,  entry_date:, head_of_household:, report_end:
+    def calculate_income_at_later_date_overall income_record:,  entry_date:, head_of_household:, report_end:
       return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
-      return unless incomes.present?
+      return unless income_record.present?
       income_for_types(
         types: (earned_income_types + non_employment_cash_income_types),
-        income_record: later_income(incomes: incomes, report_end: report_end)
+        income_record: income_record
       )
     end
 
@@ -843,6 +843,7 @@ module Reporting::DataQualityReports
     end
 
     def later_income incomes:, report_end:
+      return nil unless incomes.present?
       @later_income ||= incomes.select do |income|
         income.DataCollectionStage.in?([3, 2, 5]) && income.InformationDate.present? && income.InformationDate <= report_end
       end.sort_by(&:InformationDate).last
@@ -899,6 +900,13 @@ module Reporting::DataQualityReports
       # if for some odd reason we are running this with a future report_end, use today
       end_date = [move_in_date, report_end, Date.today].compact.min
       (end_date - entry_date).to_i
+    end
+
+    def calculate_incorrect_household_type household_type:, project:
+      return false if project.serves_families? && project.serves_individuals?
+      return false if household_type == 'individual' && project.serves_individuals?
+      return false if household_type == 'family' && project.serves_families?
+      return true
     end
   end
 end

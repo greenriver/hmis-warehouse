@@ -1,5 +1,5 @@
 = content_for :modal_title do
-  = "Project Data Quality Report for #{@project_group.name} - Supporting Data"
+  = "Project Data Quality Report for #{@project_group.name} - #{@details_title}"
 - if @data.any?
   .pull-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto mb-2'}) do

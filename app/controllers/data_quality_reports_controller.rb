@@ -10,6 +10,7 @@ class DataQualityReportsController < ApplicationController
   before_action :set_report_keys, only: [:show]
 
   def show
+    @modal_size = :xl
     @utilization_grades = utilization_grade_scope.
       order(percentage_over_low: :asc)
 
@@ -44,6 +45,7 @@ class DataQualityReportsController < ApplicationController
   def support
     if params[:individual].present?
       @data = @report.support_for(support_params)
+      @details_title = @data[:title] || 'Supporting Data'
       @method = params[:method]
       respond_to do |format|
         format.xlsx do
@@ -119,6 +121,8 @@ class DataQualityReportsController < ApplicationController
       :method,
       :title,
       :layout,
+      :column,
+      :metric,
     )
   end
 

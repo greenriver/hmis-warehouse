@@ -35,4 +35,7 @@ class App.DataQualityReports.Base
     # Do nothing by default
     # console.log(d, element, @support_url)
 
-
+  _over: (d) =>
+    # console.log d
+  _out: (d) =>
+    # console.log 'out'

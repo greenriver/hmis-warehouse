@@ -573,7 +573,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     def service_after_exit_date
       @service_after_exit_date ||= begin
         issues = []
-        service_issues = enrolled_clients.group(:project_id).
+        service_issues = exiting_clients.group(:project_id).
           where(service_after_exit: true).
           select(:service_after_exit).count
         service_issues.each do |id, count|
@@ -592,7 +592,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     def household_type_mismatch
       @household_type_mismatch ||= begin
         issues = []
-        household_type_issues = enrolled_clients.group(:project_id).distinct.
+        household_type_issues = enrolled_clients.where(incorrect_household_type: true).group(:project_id).distinct.
           select(:household_type).count
         household_type_issues.each do |id, count|
           next if count.zero?
@@ -749,6 +749,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
+          projects: projects.pluck(:ProjectName, :id).to_h,
         }
       end
     end
@@ -769,6 +770,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
+          projects: projects.pluck(:ProjectName, :id).to_h,
         }
       end
     end
@@ -834,6 +836,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           labels: labels,
           data: data.merge({'Totals' => totals}),
           ranges: self.class.length_of_stay_buckets,
+          projects: projects.pluck(:ProjectName, :id).to_h,
         }
       end
     end
@@ -857,6 +860,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
+          projects: projects.pluck(:ProjectName, :id).to_h,
         }
       end
     end
@@ -982,6 +986,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
+          columns: completeness_metrics.keys,
         }
       end
     end
@@ -1009,6 +1014,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         {
           labels: labels,
           data: data,
+          columns: completeness_metrics.keys,
         }
       end
     end

@@ -2,7 +2,28 @@
 
 class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
   constructor: (@data, @chart_selector, @support_url, @project_id) ->
+    @_set_columns()
     super(@data, @chart_selector, @support_url)
+
+  _set_columns: =>
+    if @data.columns?
+      @columns = @data.columns
+    else
+      # for backwards compatibility
+      @columns = [
+        "name",
+        "dob",
+        "ssn",
+        "race",
+        "ethnicity",
+        "gender",
+        "veteran",
+        "disabling_condition",
+        "prior_living_situation",
+        "income_at_entry",
+        "income_at_exit",
+        "destination",
+      ]
 
   _format_data: (data) ->
     {
@@ -42,6 +63,8 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
           "Don't Know / Refused": "bar",
           "Missing / Null": "bar",
           'Target': "line",
+        onover: @_over,
+        onout: @_out,
       point:
         show: false
       line:
@@ -71,26 +94,24 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
             "#{v}%"
 
   _follow_link: (d, element) =>
-    column = [
-      "name",
-      "dob",
-      "ssn",
-      "race",
-      "ethnicity",
-      "gender",
-      "veteran",
-      "disabling_condition",
-      "prior_living_situation",
-      "income_at_entry",
-      "income_at_exit",
-      "destination",
-    ][d.x]
+    console.log(@project_id)
+    column = @columns[d.x]
     switch d.id
-      when "Missing / Null" then prefix = "_missing_"
-      when "Don't Know / Refused" then prefix = "_refused_"
-      when "No Exit Interview Completed" then prefix = "_no_interview_"
+      when "Missing / Null" then prefix = "missing"
+      when "Don't Know / Refused" then prefix = "refused"
+      when "No Exit Interview Completed" then prefix = "no_interview"
+      when 'Not Collected' then prefix = "not_collected"
+      when 'Partial' then prefix = "partial"
       else return
-
-    url = @support_url + ".html?layout=false&key=project_missing_" + @project_id + prefix + column
+    if @support_url.includes('individual') # VersionFour support links are different
+      url = @support_url + "&selected_project_id=#{@project_id}&method=project_completeness&metric=#{prefix}&column=#{column}"
+    else
+      url = @support_url + ".html?layout=false&key=project_missing_" + @project_id + '_' + prefix + '_' + column
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
+
+  _over: (d) =>
+    $('html,body').css('cursor', 'pointer')
+
+  _out: (d) =>
+    $('html,body').css('cursor', 'auto')

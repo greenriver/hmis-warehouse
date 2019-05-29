@@ -66,6 +66,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           household_id: hud_enrollment.HouseholdID,
           dob: client.DOB,
           entry_date: hud_enrollment.EntryDate,
+          move_in_date: hud_enrollment.MoveInDate,
           exit_date: hud_exit&.ExitDate,
           destination_id: hud_exit&.Destination,
           name_data_quality: client.NameDataQuality,
@@ -172,25 +173,29 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
       )
+      report_enrollment.income_at_entry_response = income_record_at_entry&.IncomeFromAnySource
+
       # Income at later date
+      later_income_record = report_enrollment.later_income(incomes: hud_enrollment.income_benefits, report_end: report_end)
       report_enrollment.income_at_later_date_earned = report_enrollment.calculate_income_at_later_date_earned(
-        incomes: hud_enrollment.income_benefits,
+        income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_later_date_non_employment_cash = report_enrollment.calculate_income_at_later_date_non_employment_cash(
-        incomes: hud_enrollment.income_benefits,
+        income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_later_date_overall = report_enrollment.calculate_income_at_later_date_overall(
-        incomes: hud_enrollment.income_benefits,
+        income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
+      report_enrollment.income_at_later_date_response = later_income_record&.IncomeFromAnySource
 
       # Income at annual date
       report_enrollment.should_have_income_annual_assessment = report_enrollment.should_calculate_annual_completeness?(
@@ -198,25 +203,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
-
+      annual_income_record = income_at_annual_for_enrollment(hud_enrollment)
       report_enrollment.income_at_annual_earned = report_enrollment.calculate_income_at_annual_earned(
-        income_record: income_at_annual_for_enrollment(hud_enrollment),
+        income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_annual_non_employment_cash = report_enrollment.calculate_income_at_annual_non_employment_cash(
-        income_record: income_at_annual_for_enrollment(hud_enrollment),
+        income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_annual_overall = report_enrollment.calculate_income_at_annual_overall(
-        income_record: income_at_annual_for_enrollment(hud_enrollment),
+        income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
+      report_enrollment.income_at_annual_response = annual_income_record&.IncomeFromAnySource
 
       report_enrollment.days_to_move_in_date = report_enrollment.calculate_days_to_move_in_date(
         entry_date: hud_enrollment.EntryDate,
@@ -228,6 +234,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         entry_date: hud_enrollment.EntryDate,
         move_in_date: hud_enrollment.MoveInDate,
         report_end: report_end,
+      )
+
+      # depends on report_enrollment.household_type calculation from above
+      report_enrollment.incorrect_household_type = report_enrollment.calculate_incorrect_household_type(
+        household_type: report_enrollment.household_type,
+        project: project,
       )
 
       return report_enrollment

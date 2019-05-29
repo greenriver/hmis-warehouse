@@ -113,14 +113,18 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.integer  "income_at_entry_earned"
     t.integer  "income_at_entry_non_employment_cash"
     t.integer  "income_at_entry_overall"
+    t.integer  "income_at_entry_response"
     t.integer  "income_at_annual_earned"
     t.integer  "income_at_annual_non_employment_cash"
     t.integer  "income_at_annual_overall"
+    t.integer  "income_at_later_date_response"
     t.integer  "income_at_later_date_earned"
     t.integer  "income_at_later_date_non_employment_cash"
     t.integer  "income_at_later_date_overall"
+    t.integer  "income_at_annual_response"
     t.integer  "days_to_move_in_date"
     t.integer  "days_ph_before_move_in_date"
+    t.boolean  "incorrect_household_type",                  default: false
     t.string   "first_name"
     t.string   "last_name"
     t.string   "ssn"
@@ -135,6 +139,7 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.string   "race"
     t.date     "enrollment_date_created"
     t.date     "exit_date_created"
+    t.date     "move_in_date"
     t.datetime "calculated_at",                                             null: false
   end
 
