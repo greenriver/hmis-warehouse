@@ -74,7 +74,7 @@ module Health::Tasks
 
     def ensure_referral_active(referral)
       if referral.rejected
-        referral.update(rejected: false, rejected_reason: 0, removal_acknowledged: false)
+        referral.update(rejected: false, rejected_reason: :Remove_Removal, removal_acknowledged: false)
       end
     end
 
