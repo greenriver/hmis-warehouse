@@ -60,7 +60,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # you must manually process these in the test environment since there are no workers
       unless Rails.env.test?
         started = Time.now
-        while Delayed::Job.where(queue: :low_priority, failed_at: nil).count > 0 do
+        # Limit the scope of the check to only rebuilding service history jobs
+        dj_t = Delayed::Job.arel_table
+        while Delayed::Job.where(queue: :low_priority, failed_at: nil).
+            where(dj_t[:handler].matches('%ServiceHistory::RebuildEnrollmentsJob%')).count > 0 do
           break if ((Time.now - started) / 1.hours) > 12
           sleep(interval)
         end

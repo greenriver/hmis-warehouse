@@ -181,9 +181,7 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        Reporting::MonthlyReports::Base.available_types.keys.each do |sub_pop|
-          Reporting::PopulationDashboardPopulateJob.perform_later sub_population: sub_pop.to_s
-        end
+        Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
 
         seconds = ((Time.now - start_time)/1.minute).round * 60
         run_time = distance_of_time_in_words(seconds)

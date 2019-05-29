@@ -1,5 +1,6 @@
 module Reporting
   class PopulationDashboardPopulateJob < BaseJob
+    include ActionView::Helpers::DateHelper
 
     queue_as :low_priority
 
@@ -8,9 +9,27 @@ module Reporting
     end
 
     def perform sub_population:
-      @report = Reporting::MonthlyReports::Base.class_for(sub_population.to_sym)
-      raise "Unrecognized sub-population #{sub_population}" unless @report
-      @report.new.populate!
+      if sub_population == 'all'
+        setup_notifier('PopulationDashboardProcessor')
+        Reporting::MonthlyReports::Base.available_types.keys.reverse.each do |sub_pop|
+          start_time = Time.now
+          send_and_log "*#{sub_pop}* starting..."
+          @report = Reporting::MonthlyReports::Base.class_for(sub_pop)
+          raise "Unrecognized sub-population #{sub_population}" unless @report
+          @report.new.populate!
+          end_time = Time.now
+          send_and_log "*#{sub_pop}* completed in #{distance_of_time_in_words(start_time, end_time)}."
+        end
+      else
+        @report = Reporting::MonthlyReports::Base.class_for(sub_population.to_sym)
+        raise "Unrecognized sub-population #{sub_population}" unless @report
+        @report.new.populate!
+      end
+    end
+
+    def send_and_log msg
+      @notifier.ping(msg) if @send_notifications
+      Rails.logger.info msg
     end
 
   end
