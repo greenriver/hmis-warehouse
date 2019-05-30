@@ -27,6 +27,7 @@ class App.DataQualityReports.TimeInProgram extends App.DataQualityReports.Base
     else
       url = @support_url + "_#{project_id}_#{range}&layout=false"
     if project_id?
+      $('.modal .modal-content').html('Loading...')
       $('.modal').modal('show')
       $('.modal .modal-content').load(url)
 

@@ -33,6 +33,8 @@ class App.DataQualityReports.TimeToExit extends App.DataQualityReports.Base
       url = @support_url + "&selected_project_id=#{project_id}"
     else
       url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
 

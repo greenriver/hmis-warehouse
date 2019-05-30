@@ -263,7 +263,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         enrollment_created_date: hud_enrollment.DateCreated,
       )
       report_enrollment.set_gender_completeness(gender: client.Gender)
-      report_enrollment.set_veteran_completeness(veteran: client.VeteranStatus)
+      report_enrollment.set_veteran_completeness(veteran: client.VeteranStatus, entry_date: hud_enrollment.EntryDate)
       report_enrollment.set_ethnicity_completeness(ethnicity: client.Ethnicity)
       report_enrollment.race = client.race_description
       report_enrollment.set_race_completeness(
@@ -426,7 +426,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def stayers
-      @stayers ||= source_enrollments.where.not(id: @exiters.select(:id))
+      @stayers ||= source_enrollments.where.not(id: exiters.select(:id))
     end
 
     def household_client_counts

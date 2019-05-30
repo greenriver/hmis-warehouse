@@ -555,7 +555,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @final_month_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
-          where(service_within_last_30_days: true).
+          where(service_within_last_30_days: false).
           select(:service_within_last_30_days).count
         service_issues.each do |id, count|
           next if count.zero?
@@ -920,10 +920,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         ).count
 
         earned_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_earned].gt(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         non_employment_cash_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_non_employment_cash].gt(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         overall_retained_20 = included_clients.where(
           a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )

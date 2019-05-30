@@ -41,7 +41,8 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
       url = @support_url + "&selected_project_id=#{project_id}"
     else
       url = @support_url + "&layout=false"
-    console.log url
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
 

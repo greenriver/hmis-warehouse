@@ -112,7 +112,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     def final_month_service_support options
       {
         headers: enrollment_support_columns.keys,
-        counts: enrolled_clients.where(service_within_last_30_days: true).
+        counts: enrolled_clients.where(service_within_last_30_days: false).
           pluck(*enrollment_support_columns.values),
         title: 'No Service in Final Month',
       }

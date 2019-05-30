@@ -107,6 +107,8 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
       url = @support_url + "&selected_project_id=#{@project_id}&method=project_completeness&metric=#{prefix}&column=#{column}"
     else
       url = @support_url + ".html?layout=false&key=project_missing_" + @project_id + '_' + prefix + '_' + column
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
 

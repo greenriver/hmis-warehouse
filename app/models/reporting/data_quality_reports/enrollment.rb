@@ -204,13 +204,12 @@ module Reporting::DataQualityReports
       end
     end
 
-    # NOTE: days served between start and exit, or if no exit and the
-    # project is entry-exit, between start and report_end
+    # NOTE: days served between start and (exit or report_end), whichever is earlier
     def calculate_days_of_service project:, service_dates:, entry_date:, exit_date:,  report_end:
       if project.bed_night_tracking?
-        service_dates.uniq.count
+        service_dates.select{ |d| d <= report_end }.uniq.count
       else
-        if exit_date.present?
+        if exit_date.present? && exit_date <= report_end
           (exit_date - entry_date).to_i
         else
           (report_end - entry_date).to_i
@@ -380,8 +379,8 @@ module Reporting::DataQualityReports
       gender == 99
     end
 
-    def set_veteran_completeness  veteran:
-      if calculate_veteran_refused(veteran: veteran)
+    def set_veteran_completeness  veteran:, entry_date:
+      if calculate_veteran_refused(veteran: veteran, entry_date: entry_date)
         self.veteran_refused = true
         return
       end
@@ -389,20 +388,20 @@ module Reporting::DataQualityReports
         self.veteran_not_collected = true
         return
       end
-      if calculate_veteran_missing(veteran: veteran)
+      if calculate_veteran_missing(veteran: veteran, entry_date: entry_date)
         self.veteran_missing = true
         return
       end
       self.veteran_complete = true
     end
 
-    def calculate_veteran_refused veteran:
-      return false unless is_adult?(date: Date.today)
+    def calculate_veteran_refused veteran:, entry_date:
+      return false unless is_adult?(date: entry_date)
       veteran.in?(REFUSED)
     end
 
-    def calculate_veteran_missing veteran:
-      return false unless is_adult?(date: Date.today)
+    def calculate_veteran_missing veteran:, entry_date:
+      return false unless is_adult?(date: entry_date)
       veteran.blank?
     end
 

@@ -44,6 +44,8 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
       url = @support_url + "&metric=#{key.toLowerCase().replace(/ /g,"_").replace(/-/g, '_')}"
     else
       url = @support_url + key.toLowerCase().replace(/ /g,"_") + "&layout=false"
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
 
