@@ -1151,12 +1151,14 @@ inner join hmis_Enrollment hn on hn.PersonalID = lp.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= lp.LastActive
     --4/23/2019 do not use deleted data in reporting
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
   and x.DateDeleted is null
 inner join (select hhinfo.HouseholdID, min(hhinfo.MoveInDate) as MoveInDate
       , coc.CoCCode
     from hmis_Enrollment hhinfo
     inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
     --4/23/2019 do not use deleted data in reporting
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
     where coc.DateDeleted is null
     group by hhinfo.HouseholdID, coc.CoCCode
   ) hoh on hoh.HouseholdID = hn.HouseholdID and hoh.CoCCode = rpt.ReportCoC
@@ -5497,7 +5499,9 @@ insert into lsa_Household(RowTotal
 select count (distinct HoHID + cast(HHType as nvarchar)), Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5638,7 +5642,9 @@ from tmp_Household
 group by Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5786,7 +5792,9 @@ select count (distinct HoHID + cast(HHType as nvarchar))
   , Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5797,7 +5805,9 @@ from tmp_Exit
 group by Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
