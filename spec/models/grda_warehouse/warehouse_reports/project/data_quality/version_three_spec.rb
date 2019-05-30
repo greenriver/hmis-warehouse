@@ -17,10 +17,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
       let(:range) { ::Filters::DateRange.new(start: report.start, end: report.end) }
 
       it 'loads clients with enrollments open during the report range' do
-        open_enrollments = GrdaWarehouse::Hud::Enrollment
-                           .open_during_range(range)
-                           .where(ProjectID: report.project.ProjectID)
-                           .distinct.select(:PersonalID).count
+        open_enrollments = GrdaWarehouse::Hud::Enrollment.
+          open_during_range(range).
+          where(ProjectID: report.project.ProjectID).
+          distinct.select(:PersonalID).count
 
         client_count = report.clients.map { |client| client[:destination_id] }.uniq.count
 
@@ -48,10 +48,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of total clients' do
           count = report.report['total_clients']
-          open_enrollments = GrdaWarehouse::Hud::Enrollment
-                             .open_during_range(range)
-                             .where(ProjectID: report.project.ProjectID)
-                             .distinct.select(:PersonalID).count
+          open_enrollments = GrdaWarehouse::Hud::Enrollment.
+            open_during_range(range).
+            where(ProjectID: report.project.ProjectID).
+            distinct.select(:PersonalID).count
 
           aggregate_failures 'counting clients' do
             expect(count).to eq 92
@@ -67,18 +67,18 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             NameDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, FirstName: [nil, ''],
-          )
-                                               .where.not(NameDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(NameDataQuality: 9).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, LastName: [nil, ''],
-          )
-                                               .where.not(NameDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(NameDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 35
@@ -93,8 +93,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             NameDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -110,13 +110,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             DOBDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, DOB: [nil, ''],
-          )
-                                               .where.not(DOBDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(DOBDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 33
@@ -131,8 +131,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             DOBDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -148,13 +148,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             SSNDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, SSN: [nil, ''],
-          )
-                                               .where.not(SSNDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(SSNDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 67
@@ -169,8 +169,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             SSNDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -185,17 +185,17 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             RaceNone: [99],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, AmIndAKNative: [0, 99, nil, ''],
             Asian: [0, 99, nil, ''],
             BlackAfAmerican: [0, 99, nil, ''],
             NativeHIOtherPacific: [0, 99, nil, ''],
             White: [0, 99, nil, '']
-          )
-                                               .where.not(RaceNone: 9)
-                                               .pluck(:id)
+          ).
+            where.not(RaceNone: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 65
@@ -210,8 +210,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             RaceNone: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -226,8 +226,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Ethnicity: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 60
@@ -242,8 +242,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Ethnicity: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -258,8 +258,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Gender: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 5
@@ -274,8 +274,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Gender: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -292,9 +292,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             VeteranStatus: [99, nil, ''],
-          )
-                                              .where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)))
-                                              .pluck(:id)
+          ).
+            where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 46
@@ -311,9 +311,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             VeteranStatus: 9,
-          )
-                                              .where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)))
-                                              .pluck(:id)
+          ).
+            where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -332,13 +332,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_disabling_condition']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { DisablingCondition: [99, nil, ''] },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { DisablingCondition: [99, nil, ''] },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 88
@@ -350,13 +350,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_disabling_condition']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { DisablingCondition: 9 },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { DisablingCondition: 9 },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 1
@@ -368,13 +368,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_prior_living_situation']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { LivingSituation: [99, nil, ''] },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { LivingSituation: [99, nil, ''] },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 87
@@ -386,13 +386,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_prior_living_situation']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { LivingSituation: 9 },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { LivingSituation: 9 },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -405,23 +405,23 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
 
-          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                                       .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                                       .where(client_id: client_ids)
-                                                                       .distinct
-                                                                       .pluck(:client_id)
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
-          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                                    .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                                    .includes(enrollment: :income_benefits_at_entry)
-                                                                    .where(
-                                                                      ib_t[:IncomeFromAnySource].in([1, 0])
-                                                                      .and(ib_t[:TotalMonthlyIncome].not_eq(nil))
-                                                                      .or(ib_t[:IncomeFromAnySource].in([8, 9])),
-                                                                    )
-                                                                    .where(client_id: client_ids)
-                                                                    .distinct
-                                                                    .pluck(:client_id)
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: :income_benefits_at_entry).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9])),
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
           missing = expected_client_ids - valid_client_ids
 
@@ -435,11 +435,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_income_at_entry']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          refused = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                           .joins(enrollment: :income_benefits_at_entry_all_sources_refused)
-                                                           .where(client_id: client_ids)
-                                                           .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: :income_benefits_at_entry_all_sources_refused).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -451,23 +451,23 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_income_at_exit']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                                       .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                                       .where(client_id: client_ids)
-                                                                       .distinct
-                                                                       .pluck(:client_id)
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
-          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                                    .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                                    .includes(enrollment: %i[income_benefits_at_exit exit])
-                                                                    .where(
-                                                                      ib_t[:IncomeFromAnySource].in([1, 0])
-                                                                      .and(ib_t[:TotalMonthlyIncome].not_eq(nil))
-                                                                      .or(ib_t[:IncomeFromAnySource].in([8, 9])),
-                                                                    )
-                                                                    .where(client_id: client_ids)
-                                                                    .distinct
-                                                                    .pluck(:client_id)
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: %i[income_benefits_at_exit exit]).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9])),
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
           missing = expected_client_ids - valid_client_ids
 
@@ -481,11 +481,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_income_at_exit']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                           .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                           .joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit])
-                                                           .where(client_id: client_ids)
-                                                           .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit]).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1
@@ -502,12 +502,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               client_ids << enrollment[:destination_id]
             end
           end
-          missing = GrdaWarehouse::ServiceHistoryEnrollment
-                    .where(
-                      client_id: client_ids.uniq,
-                      destination: [99, nil, ''],
-                    )
-                    .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.
+            where(
+              client_id: client_ids.uniq,
+              destination: [99, nil, ''],
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1
@@ -524,12 +524,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               client_ids << enrollment[:destination_id]
             end
           end
-          refused = GrdaWarehouse::ServiceHistoryEnrollment
-                    .where(
-                      client_id: client_ids,
-                      destination: 9,
-                    )
-                    .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.
+            where(
+              client_id: client_ids,
+              destination: 9,
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1
@@ -559,10 +559,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
         it 'has the appropriate number of total clients' do
           count = report.report['total_clients']
-          open_enrollments = GrdaWarehouse::Hud::Enrollment
-                             .open_during_range(range)
-                             .where(ProjectID: report.projects.pluck(:ProjectID))
-                             .distinct.select(:PersonalID).count
+          open_enrollments = GrdaWarehouse::Hud::Enrollment.
+            open_during_range(range).
+            where(ProjectID: report.projects.pluck(:ProjectID)).
+            distinct.select(:PersonalID).count
 
           aggregate_failures 'counting clients' do
             expect(count).to eq 112
@@ -578,18 +578,18 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             NameDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, FirstName: [nil, ''],
-          )
-                                               .where.not(NameDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(NameDataQuality: 9).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, LastName: [nil, ''],
-          )
-                                               .where.not(NameDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(NameDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 35
@@ -604,8 +604,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             NameDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -621,13 +621,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             DOBDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, DOB: [nil, ''],
-          )
-                                               .where.not(DOBDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(DOBDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 33
@@ -642,8 +642,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             DOBDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -659,13 +659,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             SSNDataQuality: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, SSN: [nil, ''],
-          )
-                                               .where.not(SSNDataQuality: 9)
-                                               .pluck(:id)
+          ).
+            where.not(SSNDataQuality: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 67
@@ -680,8 +680,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             SSNDataQuality: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 3
@@ -696,17 +696,17 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             RaceNone: [99],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
             id: client_ids, AmIndAKNative: [0, 99, nil, ''],
             Asian: [0, 99, nil, ''],
             BlackAfAmerican: [0, 99, nil, ''],
             NativeHIOtherPacific: [0, 99, nil, ''],
             White: [0, 99, nil, '']
-          )
-                                               .where.not(RaceNone: 9)
-                                               .pluck(:id)
+          ).
+            where.not(RaceNone: 9).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 65
@@ -721,8 +721,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             RaceNone: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -737,8 +737,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Ethnicity: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 60
@@ -753,8 +753,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Ethnicity: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -769,8 +769,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Gender: [99, nil, ''],
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 5
@@ -785,8 +785,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             Gender: 9,
-          )
-                                              .pluck(:id)
+          ).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -803,9 +803,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             VeteranStatus: [99, nil, ''],
-          )
-                                              .where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)))
-                                              .pluck(:id)
+          ).
+            where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 46
@@ -822,9 +822,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           refused = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
             VeteranStatus: 9,
-          )
-                                              .where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil)))
-                                              .pluck(:id)
+          ).
+            where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
+            pluck(:id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -843,13 +843,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_disabling_condition']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { DisablingCondition: [99, nil, ''] },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { DisablingCondition: [99, nil, ''] },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 89
@@ -861,13 +861,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_disabling_condition']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { DisablingCondition: 9 },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { DisablingCondition: 9 },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 1
@@ -879,13 +879,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['missing_prior_living_situation']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { LivingSituation: [99, nil, ''] },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { LivingSituation: [99, nil, ''] },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 88
@@ -897,13 +897,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_prior_living_situation']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .joins(enrollment: :client)
-                                                           .where(
-                                                             client_id: client_ids,
-                                                             Enrollment: { LivingSituation: 9 },
-                                                           )
-                                                           .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(enrollment: :client).
+            where(
+              client_id: client_ids,
+              Enrollment: { LivingSituation: 9 },
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -916,23 +916,23 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
 
-          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                                       .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                                       .where(client_id: client_ids)
-                                                                       .distinct
-                                                                       .pluck(:client_id)
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
-          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                                    .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                                    .includes(enrollment: :income_benefits_at_entry)
-                                                                    .where(
-                                                                      ib_t[:IncomeFromAnySource].in([1, 0])
-                                                                      .and(ib_t[:TotalMonthlyIncome].not_eq(nil))
-                                                                      .or(ib_t[:IncomeFromAnySource].in([8, 9])),
-                                                                    )
-                                                                    .where(client_id: client_ids)
-                                                                    .distinct
-                                                                    .pluck(:client_id)
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: :income_benefits_at_entry).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9])),
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
           missing = expected_client_ids - valid_client_ids
 
@@ -946,11 +946,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_income_at_entry']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          refused = GrdaWarehouse::ServiceHistoryEnrollment.entry
-                                                           .entry_within_date_range(start_date: report.start, end_date: report.end)
-                                                           .joins(enrollment: :income_benefits_at_entry_all_sources_refused)
-                                                           .where(client_id: client_ids)
-                                                           .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            entry_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: :income_benefits_at_entry_all_sources_refused).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures 'checking counts' do
             expect(count).to eq 2
@@ -963,23 +963,23 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
 
-          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                                       .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                                       .where(client_id: client_ids)
-                                                                       .distinct
-                                                                       .pluck(:client_id)
+          expected_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
-          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                                    .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                                    .includes(enrollment: %i[income_benefits_at_exit exit])
-                                                                    .where(
-                                                                      ib_t[:IncomeFromAnySource].in([1, 0])
-                                                                      .and(ib_t[:TotalMonthlyIncome].not_eq(nil))
-                                                                      .or(ib_t[:IncomeFromAnySource].in([8, 9])),
-                                                                    )
-                                                                    .where(client_id: client_ids)
-                                                                    .distinct
-                                                                    .pluck(:client_id)
+          valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            includes(enrollment: %i[income_benefits_at_exit exit]).
+            where(
+              ib_t[:IncomeFromAnySource].in([1, 0]).
+              and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
+              or(ib_t[:IncomeFromAnySource].in([8, 9])),
+            ).
+            where(client_id: client_ids).
+            distinct.
+            pluck(:client_id)
 
           missing = expected_client_ids - valid_client_ids
 
@@ -993,11 +993,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           count = report.report['refused_income_at_exit']
 
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
-          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit
-                                                           .exit_within_date_range(start_date: report.start, end_date: report.end)
-                                                           .joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit])
-                                                           .where(client_id: client_ids)
-                                                           .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+            exit_within_date_range(start_date: report.start, end_date: report.end).
+            joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit]).
+            where(client_id: client_ids).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1
@@ -1014,12 +1014,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               client_ids << enrollment[:destination_id]
             end
           end
-          missing = GrdaWarehouse::ServiceHistoryEnrollment
-                    .where(
-                      client_id: client_ids.uniq,
-                      destination: [99, nil, ''],
-                    )
-                    .pluck(:client_id)
+          missing = GrdaWarehouse::ServiceHistoryEnrollment.
+            where(
+              client_id: client_ids.uniq,
+              destination: [99, nil, ''],
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1
@@ -1036,12 +1036,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
               client_ids << enrollment[:destination_id]
             end
           end
-          refused = GrdaWarehouse::ServiceHistoryEnrollment
-                    .where(
-                      client_id: client_ids,
-                      destination: 9,
-                    )
-                    .pluck(:client_id)
+          refused = GrdaWarehouse::ServiceHistoryEnrollment.
+            where(
+              client_id: client_ids,
+              destination: 9,
+            ).
+            pluck(:client_id)
 
           aggregate_failures 'compare counts' do
             expect(count).to eq 1

@@ -1,0 +1,3 @@
+InventoryID,ProjectID,CoCCode,InformationDate,HouseholdType,Availability,UnitInventory,BedInventory,CHBedInventory,VetBedInventory,YouthBedInventory,BedType,InventoryStartDate,InventoryEndDate,HMISParticipatingBeds,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,148,XX-500,2017-04-01,1,,20,35,30,2,3,,2017-04-01,,35,2017-04-0113:03:00,2017-04-0113:03:00,cordell,,77ebf652741208fa9a36c52556058416
+2,117,XX-500,2017-04-01,1,,10,20,0,10,10,,2016-04-01,,35,2016-04-0113:03:00,2016-04-0113:03:00,cordell,,77ebf652741208fa9a36c52556058416
