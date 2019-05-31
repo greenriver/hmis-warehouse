@@ -125,6 +125,15 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
         exits = @report.enrollments.exited.where(destination_id: HUD.permanent_destinations)
         expect(source_clients.count).to eq exits.count
       end
+
+      it 'no service in the past month' do
+        source_with_service_count = enrolled_clients.joins(:services).
+          merge(
+            GrdaWarehouse::Hud::Service.where(DateProvided: (@range.end - 30.days..@range.end)),
+          ).count
+        with_service_count = @report.enrollments.where(service_within_last_30_days: true).count
+        expect(source_with_service_count).to eq with_service_count
+      end
     end
 
     def included_enrollments
