@@ -5,8 +5,7 @@ App.init = ->
   $('[data-toggle="popover"]').popover();
   $('.select2').each () ->
     $(this).closest('.form-group').addClass('select2-wrapper')
-    $(this).select2
-      placeholder: $(this).data('placeholder') || ''
+    $(this).select2()
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()
