@@ -1,0 +1,25 @@
+.well.overflow-scroll
+  %h3.text-center Data Completeness
+  .row
+    .col-sm-6.text-center
+      %h4 Goal
+      %hr
+      %p
+        %strong #{@report.completeness_goal}% complete
+    .col-sm-6.text-center
+      %h4 Project Group
+      %hr
+      %p
+        %strong #{@report.completeness_percentage}% complete
+
+
+  %h4 Project Group
+  .completeness-chart.jChart{class: "completeness-chart-project-group"}
+    %p.jLoading Loading
+  #completeness-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      - @report.projects.each_with_index do |project, index|
+        %h4= project.ProjectName
+        .completeness-chart.jChart{class: "completeness-chart-#{index}"}
+          %p.jLoading Loading
+    = render 'common/panel_collapse', id: 'completeness-info', title: 'Project Detail'

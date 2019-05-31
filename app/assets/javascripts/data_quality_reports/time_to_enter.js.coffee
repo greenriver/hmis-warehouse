@@ -12,6 +12,8 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
         type: "bar",
         color: @_colors,
         onclick: @_follow_link
+        onover: @_over,
+        onout: @_out,
         types:
           "Goal": "line",
       point:
@@ -26,6 +28,18 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
           categories: @data['labels'],
 
   _follow_link: (d, element) =>
-    url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
+    if @support_url.includes('individual') # VersionFour support links are different
+      project_id = @data.projects[d.name]
+      url = @support_url + "&selected_project_id=#{project_id}"
+    else
+      url = @support_url + "_#{d.name.toLowerCase().replace(/ /g,"_")}&layout=false"
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
+
+  _over: (d) =>
+    $('html,body').css('cursor', 'pointer')
+
+  _out: (d) =>
+    $('html,body').css('cursor', 'auto')

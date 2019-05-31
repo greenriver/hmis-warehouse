@@ -191,4 +191,8 @@ module ApplicationHelper
     end
   end
 
+  def modal_size
+    ''
+  end
+
 end

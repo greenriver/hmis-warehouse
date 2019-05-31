@@ -60,7 +60,7 @@ module WarehouseReports::Project
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
-        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
+        # Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 
@@ -117,7 +117,7 @@ module WarehouseReports::Project
 
     # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour
     end
 
     def report_base_class

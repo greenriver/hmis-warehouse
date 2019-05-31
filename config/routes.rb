@@ -342,6 +342,7 @@ Rails.application.routes.draw do
   resources :source_clients, only: [:edit, :update] do
     member do
       get :image
+      get :destination
     end
   end
   resources :clients do
@@ -394,6 +395,7 @@ Rails.application.routes.draw do
     resources :source_clients, only: [:edit, :update] do
       member do
         get :image
+        get :destination
       end
     end
     resources :clients do
@@ -529,7 +531,10 @@ Rails.application.routes.draw do
       end
     end
     resources :project_groups, only: [:show] do
-      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group' do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
   end
 

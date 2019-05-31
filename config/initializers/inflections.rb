@@ -16,4 +16,9 @@
 # end
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular 'census', 'censuses'
+
+  inflect.acronym 'SSN'
+  inflect.acronym 'DOB'
+  inflect.acronym 'DND'
+  inflect.acronym 'CoC'
 end
