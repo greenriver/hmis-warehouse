@@ -406,7 +406,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     # we are sticking to source data, including source clients
     def source_enrollments
       @source_enrollments ||= GrdaWarehouse::Hud::Enrollment.open_during_range(report_range).
-        joins(:project).
+        joins(:project, :client).
         preload(:exit, :client, :project, :income_benefits).
         merge(GrdaWarehouse::Hud::Project.where(id: projects.map(&:id)))
     end
