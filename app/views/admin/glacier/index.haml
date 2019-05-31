@@ -100,6 +100,10 @@
         Delete the private key when you're done.
         gpg --delete-private-key
 
+      %li
+        Use something like the following to restore files like tar gzipped and encrypted archives:
+        %tt bundle exec rake glacier:backup:restore_file[32,/home/blackman]
+
 
 
 .row

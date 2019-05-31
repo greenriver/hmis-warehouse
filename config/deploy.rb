@@ -9,7 +9,7 @@ set :whenever_identifier, ->{ "#{fetch(:client)}-#{fetch(:application)}_#{fetch(
 set :cron_user, ENV.fetch('CRON_USER') { 'ubuntu'}
 set :whenever_roles, [:cron, :production_cron, :staging_cron]
 set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && /usr/share/rvm/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
-set :passenger_restart_command, 'sudo passenger-config restart-app'
+set :passenger_restart_command, 'sudo passenger-config restart-app --ignore-passenger-not-running --ignore-app-not-running'
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -33,7 +33,7 @@ set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
 set :rvm_ruby_version, "#{File.read('.ruby-version').strip.split('-')[1]}@global"
 
 task :group_writable_and_owned_by_ubuntu do
-  on roles(:web) do
+  on roles(:app) do
     execute "sudo chmod --quiet g+w -R  #{fetch(:deploy_to)}"
     execute "sudo chown --quiet ubuntu:ubuntu -R #{fetch(:deploy_to)}"
   end
@@ -157,9 +157,9 @@ task :trigger_job_restarts do
 end
 after 'deploy:symlink:release', :trigger_job_restarts
 
-# set this variable on your first deployments to each environment. 
+# set this variable on your first deployments to each environment.
 # remove these lines after all servers are deployed.
-# e.g. 
+# e.g.
 #      MANUAL_SYSTEMD_RESTART=true cap aws_staging deploy
 if ENV['MANUAL_SYSTEMD_RESTART']=='true'
   after 'deploy:symlink:release', 'delayed_job:restart'
