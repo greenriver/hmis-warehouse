@@ -5,6 +5,8 @@
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto mb-2'}) do
       %i.icon-download2
       Download Excel
+  - if @data[:description].present?
+    = @data[:description]
 
   %p Showing #{pluralize(@data[:counts].count, 'row')}
   %table.table.table-sm.table-hover

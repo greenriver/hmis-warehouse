@@ -54,7 +54,12 @@ class DataQualityReportsController < ApplicationController
         format.html do
           set_client_path
           # The view is versioned using the model name
-          render support_render_path, layout: "pjax_modal_content"
+          layout = if request.xhr?
+            "pjax_modal_content"
+          else
+            'application'
+          end
+          render support_render_path, layout: layout
         end
         format.js {}
       end

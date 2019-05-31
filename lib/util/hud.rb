@@ -28,6 +28,26 @@ module HUD
     return true
   end
 
+  def describe_valid_social_rules
+    [
+      'Cannot contain a non-numeric character.',
+      'Must be 9 digits long.',
+      'First three digits cannot be "000," "666," or in the 900 series.',
+      'The second group / 5th and 6th digits cannot be "00".',
+      'The third group / last four digits cannot be "0000".',
+      'There cannot be repetitive (e.g. "333333333") or sequential (e.g. "345678901" "987654321")',
+      'numbers for all 9 digits.',
+    ]
+  end
+
+  def describe_valid_dob_rules
+    [
+      'Prior to 1/1/1915.',
+      'After the [Date Created] for the record.',
+      'Equal to or after the [Entry Date].',
+    ]
+  end
+
   # for fuzzy translation from strings back to their controlled vocabular key
   def forgiving_regex(str)
     Regexp.new '^' + str.strip.gsub( /\W+/, '\W+' ) + '$', 'i'

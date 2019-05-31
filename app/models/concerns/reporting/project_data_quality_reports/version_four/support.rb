@@ -163,11 +163,46 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
         count_scope = count_scope.where(project_id: options[:selected_project_id].to_i)
       end
-      {
+      support = {
         headers: completeness_support_columns(key).keys,
         counts: count_scope.pluck(*completeness_support_columns(key).values),
         title: title,
       }
+      if key == :ssn
+        support[:description] = ssn_warning_html
+      end
+      if key == :dob
+        support[:description] = dob_warning_html
+      end
+      return support
+    end
+
+    def ssn_warning_html
+      content_tag(:div, class: 'alert alert-info display-block') do
+        [
+          content_tag(:h3, 'Please Note'),
+          content_tag(:p, 'SSNs will appear as missing if they meet any of the following rules:', class: 'w-100'),
+          content_tag(:ul) do
+            ::HUD.describe_valid_social_rules.map do |rule|
+              content_tag(:li, rule)
+            end.join.html_safe
+          end
+        ].join.html_safe
+      end
+    end
+
+    def dob_warning_html
+      content_tag(:div, class: 'alert alert-info display-block') do
+        [
+          content_tag(:h3, 'Please Note'),
+          content_tag(:p, 'DOBs will appear as missing if they meet any of the following rules:', class: 'w-100'),
+          content_tag(:ul) do
+            ::HUD.describe_valid_dob_rules.map do |rule|
+              content_tag(:li, rule)
+            end.join.html_safe
+          end
+        ].join.html_safe
+      end
     end
 
     def average_time_to_enter_support options
