@@ -785,6 +785,8 @@ module GrdaWarehouse::Hud
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         window_client_files_path(self)
+      elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
+        window_client_youth_intakes_path(self)
       end
     end
 
