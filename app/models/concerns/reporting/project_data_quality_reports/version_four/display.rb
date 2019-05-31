@@ -743,12 +743,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           count = time_to_enter_by_project_id[project.project_id] || 0
           denominator = enrolled_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
-          data[project.project_name] = [0, average_timeliness, 0]
+          data[project.id] = [0, average_timeliness, 0]
         end
-        data['Goal'] = goal
+        data = re_key_on_project_name(data)
         {
           labels: labels,
-          data: data,
+           data: data.merge({'Goal' => goal}),
           projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
@@ -764,12 +764,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           count = time_to_exit_by_project_id[project.project_id] || 0
           denominator = exiting_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
-          data[project.project_name] = [0, average_timeliness, 0]
+          data[project.id] = [0, average_timeliness, 0]
         end
-        data['Goal'] = goal
+        data = re_key_on_project_name(data)
         {
           labels: labels,
-          data: data,
+          data: data.merge({'Goal' => goal}),
           projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
@@ -815,24 +815,31 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
+    def re_key_on_project_name data
+      # To prevent duplicate names from being counted oddly, we key on id then replace for display
+      data.map do |id, values|
+        [report_projects.where(id: id).first.project_name, values]
+      end.to_h
+    end
+
     def enrolled_length_of_stay
       @enrolled_length_of_stay ||= begin
-        # these need to be padded front and back for chart js to correctly show the goal
         labels = self.class.length_of_stay_buckets.keys
         data = {}
         totals = []
         self.class.length_of_stay_buckets.values.each_with_index do |range, index|
           report_projects.each do |project|
-            data[project.project_name] ||= []
+            data[project.id] ||= []
             totals[index] ||= 0
             count = enrolled_clients.where(
               project_id: project.project_id,
               days_of_service: range,
             ).count
-            data[project.project_name] << count
+            data[project.id] << count
             totals[index] += count
           end
         end
+        data = re_key_on_project_name(data)
         {
           labels: labels,
           data: data.merge({'Totals' => totals}),
@@ -855,12 +862,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             destination_id: HUD.permanent_destinations,
           ).count
           percentage = ((count / denominator.to_f) * 100).round rescue 0
-          data[project.project_name] = [0, percentage, 0]
+          data[project.id] = [0, percentage, 0]
         end
-        data['Goal'] = goal
+        data = re_key_on_project_name(data)
         {
           labels: labels,
-          data: data,
+          data: data.merge({'Goal' => goal}),
           projects: projects.map{ |p| [p.ProjectName, p.id] }.to_h,
         }
       end
