@@ -7,9 +7,11 @@ module Cohorts
     before_action :set_cohort_and_client
 
     def index
+      @modal_size = :lg
     end
 
     def new
+      @modal_size = :lg
       @note = note_source.new(client_id: @cohort_client.client_id)
     end
 

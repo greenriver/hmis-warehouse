@@ -11,11 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190510123307) do
+ActiveRecord::Schema.define(version: 20190531005415) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
   enable_extension "pgcrypto"
 
   create_table "Affiliation", force: :cascade do |t|
@@ -166,7 +167,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Disabilities", ["ExportID"], name: "disabilities_export_id", using: :btree
   add_index "Disabilities", ["PersonalID"], name: "index_Disabilities_on_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true, using: :btree
-  add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_PersonalID", using: :btree
+  add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id"], name: "index_Disabilities_on_data_source_id", using: :btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
@@ -195,7 +196,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "EmploymentEducation", ["ExportID"], name: "employment_education_export_id", using: :btree
   add_index "EmploymentEducation", ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true, using: :btree
-  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_PersonalID", using: :btree
+  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id", using: :btree
 
   create_table "Enrollment", force: :cascade do |t|
@@ -325,7 +326,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
   add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
-  add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_PersonalID", using: :btree
+  add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
 
   create_table "EnrollmentCoC", force: :cascade do |t|
@@ -351,7 +352,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID", using: :btree
   add_index "EnrollmentCoC", ["ExportID"], name: "enrollment_coc_export_id", using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true, using: :btree
-  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_PersonalID", using: :btree
+  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id", using: :btree
 
   create_table "Exit", force: :cascade do |t|
@@ -423,7 +424,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Exit", ["ExportID"], name: "exit_export_id", using: :btree
   add_index "Exit", ["PersonalID"], name: "index_Exit_on_PersonalID", using: :btree
   add_index "Exit", ["data_source_id", "ExitID"], name: "unk_Exit", unique: true, using: :btree
-  add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_PersonalID", using: :btree
+  add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID", using: :btree
   add_index "Exit", ["data_source_id"], name: "index_Exit_on_data_source_id", using: :btree
 
   create_table "Export", force: :cascade do |t|
@@ -536,7 +537,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "HealthAndDV", ["ExportID"], name: "health_and_dv_export_id", using: :btree
   add_index "HealthAndDV", ["PersonalID"], name: "index_HealthAndDV_on_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true, using: :btree
-  add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_PersonalID", using: :btree
+  add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id"], name: "index_HealthAndDV_on_data_source_id", using: :btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
@@ -629,7 +630,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
-  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
 
   create_table "Inventory", force: :cascade do |t|
@@ -840,6 +841,19 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "cas_availabilities", ["available_at"], name: "index_cas_availabilities_on_available_at", using: :btree
   add_index "cas_availabilities", ["client_id"], name: "index_cas_availabilities_on_client_id", using: :btree
   add_index "cas_availabilities", ["unavailable_at"], name: "index_cas_availabilities_on_unavailable_at", using: :btree
+
+  create_table "cas_enrollments", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "enrollment_id"
+    t.date     "entry_date"
+    t.date     "exit_date"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.json     "history"
+  end
+
+  add_index "cas_enrollments", ["client_id"], name: "index_cas_enrollments_on_client_id", using: :btree
+  add_index "cas_enrollments", ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id", using: :btree
 
   create_table "cas_houseds", force: :cascade do |t|
     t.integer "client_id",                     null: false
@@ -1062,7 +1076,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "legal_barriers"
     t.string   "criminal_record_status"
     t.string   "document_ready"
-    t.string   "sif_eligible"
+    t.boolean  "sif_eligible",                                               default: false
     t.string   "sensory_impaired"
     t.date     "housed_date"
     t.string   "destination"
@@ -1072,7 +1086,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.date     "last_group_review_date"
     t.date     "pre_contemplative_last_date_approached"
     t.string   "va_eligible"
-    t.string   "vash_eligible"
+    t.boolean  "vash_eligible",                                              default: false
     t.string   "chapter_115"
     t.date     "first_date_homeless"
     t.date     "last_date_approached"
@@ -1869,15 +1883,15 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.string   "ProjectEntryID",                               limit: 50
+    t.string   "EnrollmentID",                                 limit: 50
     t.string   "PersonalID"
     t.string   "ProjectID",                                    limit: 50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
-    t.integer  "ResidencePrior"
+    t.integer  "LivingSituation"
     t.string   "OtherResidencePrior"
-    t.integer  "ResidencePriorLengthOfStay"
+    t.integer  "LengthOfStay"
     t.integer  "DisablingCondition"
     t.integer  "EntryFromStreetESSH"
     t.date     "DateToStreetESSH"
@@ -1889,7 +1903,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "HousingStatus"
     t.date     "DateOfEngagement"
     t.integer  "InPermanentHousing"
-    t.date     "ResidentialMoveInDate"
+    t.date     "MoveInDate"
     t.date     "DateOfPATHStatus"
     t.integer  "ClientEnrolledInPATH"
     t.integer  "ReasonNotEnrolled"
@@ -1901,7 +1915,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "LastPermanentZIP",                             limit: 10
     t.integer  "AddressDataQuality"
     t.date     "DateOfBCPStatus"
-    t.integer  "FYSBYouth"
+    t.integer  "EligibleForRHY"
     t.integer  "ReasonNoServices"
     t.integer  "SexualOrientation"
     t.integer  "FormerWardChildWelfare"
@@ -1984,6 +1998,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.boolean  "roi_permission"
     t.string   "last_locality"
     t.string   "last_zipcode"
+    t.string   "source_hash"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -3260,6 +3275,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "warehouse_client_service_history", ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type", using: :btree
   add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type", using: :btree
+  add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id", using: :btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
   add_index "warehouse_client_service_history", ["household_id"], name: "index_warehouse_client_service_history_on_household_id", using: :btree
@@ -3500,6 +3516,108 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_foreign_key "warehouse_clients", "data_sources"
   add_foreign_key "warehouse_clients_processed", "\"Client\"", column: "client_id"
 
+  create_view "Site",  sql_definition: <<-SQL
+      SELECT "Geography"."GeographyID",
+      "Geography"."ProjectID",
+      "Geography"."CoCCode",
+      "Geography"."PrincipalSite",
+      "Geography"."Geocode",
+      "Geography"."Address1",
+      "Geography"."City",
+      "Geography"."State",
+      "Geography"."ZIP",
+      "Geography"."DateCreated",
+      "Geography"."DateUpdated",
+      "Geography"."UserID",
+      "Geography"."DateDeleted",
+      "Geography"."ExportID",
+      "Geography".data_source_id,
+      "Geography".id,
+      "Geography"."InformationDate",
+      "Geography"."Address2",
+      "Geography"."GeographyType",
+      "Geography".source_hash
+     FROM "Geography";
+  SQL
+
+  create_view "combined_cohort_client_changes",  sql_definition: <<-SQL
+      SELECT cc.id,
+      cohort_clients.client_id,
+      cc.cohort_client_id,
+      cc.cohort_id,
+      cc.user_id,
+      cc.change AS entry_action,
+      cc.changed_at AS entry_date,
+      cc_ex.change AS exit_action,
+      cc_ex.changed_at AS exit_date,
+      cc_ex.reason
+     FROM (((( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE ((cohort_client_changes.change)::text = ANY (ARRAY[('create'::character varying)::text, ('activate'::character varying)::text]))) cc
+       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE (((cohort_client_changes.change)::text = ANY (ARRAY[('destroy'::character varying)::text, ('deactivate'::character varying)::text])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
+            ORDER BY cohort_client_changes.changed_at
+           LIMIT 1) cc_ex ON (true))
+       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
+       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
+    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
+    ORDER BY cc.id;
+  SQL
+
+  create_view "index_stats",  sql_definition: <<-SQL
+      WITH table_stats AS (
+           SELECT psut.relname,
+              psut.n_live_tup,
+              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
+             FROM pg_stat_user_tables psut
+            ORDER BY psut.n_live_tup DESC
+          ), table_io AS (
+           SELECT psiut.relname,
+              sum(psiut.heap_blks_read) AS table_page_read,
+              sum(psiut.heap_blks_hit) AS table_page_hit,
+              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
+             FROM pg_statio_user_tables psiut
+            GROUP BY psiut.relname
+            ORDER BY (sum(psiut.heap_blks_read)) DESC
+          ), index_io AS (
+           SELECT psiui.relname,
+              psiui.indexrelname,
+              sum(psiui.idx_blks_read) AS idx_page_read,
+              sum(psiui.idx_blks_hit) AS idx_page_hit,
+              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
+             FROM pg_statio_user_indexes psiui
+            GROUP BY psiui.relname, psiui.indexrelname
+            ORDER BY (sum(psiui.idx_blks_read)) DESC
+          )
+   SELECT ts.relname,
+      ts.n_live_tup,
+      ts.index_use_ratio,
+      ti.table_page_read,
+      ti.table_page_hit,
+      ti.table_hit_ratio,
+      ii.indexrelname,
+      ii.idx_page_read,
+      ii.idx_page_hit,
+      ii.idx_hit_ratio
+     FROM ((table_stats ts
+       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
+       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
+    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+  SQL
+
   create_view "report_clients",  sql_definition: <<-SQL
       SELECT "Client"."PersonalID",
       "Client"."FirstName",
@@ -3590,6 +3708,72 @@ ActiveRecord::Schema.define(version: 20190510123307) do
        JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
        JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
     WHERE ("Client"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_disabilities",  sql_definition: <<-SQL
+      SELECT "Disabilities"."DisabilitiesID",
+      "Disabilities"."EnrollmentID" AS "ProjectEntryID",
+      "Disabilities"."PersonalID",
+      "Disabilities"."InformationDate",
+      "Disabilities"."DisabilityType",
+      "Disabilities"."DisabilityResponse",
+      "Disabilities"."IndefiniteAndImpairs",
+      "Disabilities"."DocumentationOnFile",
+      "Disabilities"."ReceivingServices",
+      "Disabilities"."PATHHowConfirmed",
+      "Disabilities"."PATHSMIInformation",
+      "Disabilities"."TCellCountAvailable",
+      "Disabilities"."TCellCount",
+      "Disabilities"."TCellSource",
+      "Disabilities"."ViralLoadAvailable",
+      "Disabilities"."ViralLoad",
+      "Disabilities"."ViralLoadSource",
+      "Disabilities"."DataCollectionStage",
+      "Disabilities"."DateCreated",
+      "Disabilities"."DateUpdated",
+      "Disabilities"."UserID",
+      "Disabilities"."DateDeleted",
+      "Disabilities"."ExportID",
+      "Disabilities".data_source_id,
+      "Disabilities".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Disabilities"
+       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Disabilities"."DateDeleted" IS NULL);
+  SQL
+
+  create_view "report_employment_educations",  sql_definition: <<-SQL
+      SELECT "EmploymentEducation"."EmploymentEducationID",
+      "EmploymentEducation"."EnrollmentID" AS "ProjectEntryID",
+      "EmploymentEducation"."PersonalID",
+      "EmploymentEducation"."InformationDate",
+      "EmploymentEducation"."LastGradeCompleted",
+      "EmploymentEducation"."SchoolStatus",
+      "EmploymentEducation"."Employed",
+      "EmploymentEducation"."EmploymentType",
+      "EmploymentEducation"."NotEmployedReason",
+      "EmploymentEducation"."DataCollectionStage",
+      "EmploymentEducation"."DateCreated",
+      "EmploymentEducation"."DateUpdated",
+      "EmploymentEducation"."UserID",
+      "EmploymentEducation"."DateDeleted",
+      "EmploymentEducation"."ExportID",
+      "EmploymentEducation".data_source_id,
+      "EmploymentEducation".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("EmploymentEducation"
+       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_enrollments",  sql_definition: <<-SQL
@@ -3711,72 +3895,6 @@ ActiveRecord::Schema.define(version: 20190510123307) do
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
     WHERE ("Enrollment"."DateDeleted" IS NULL);
-  SQL
-
-  create_view "report_disabilities",  sql_definition: <<-SQL
-      SELECT "Disabilities"."DisabilitiesID",
-      "Disabilities"."EnrollmentID" AS "ProjectEntryID",
-      "Disabilities"."PersonalID",
-      "Disabilities"."InformationDate",
-      "Disabilities"."DisabilityType",
-      "Disabilities"."DisabilityResponse",
-      "Disabilities"."IndefiniteAndImpairs",
-      "Disabilities"."DocumentationOnFile",
-      "Disabilities"."ReceivingServices",
-      "Disabilities"."PATHHowConfirmed",
-      "Disabilities"."PATHSMIInformation",
-      "Disabilities"."TCellCountAvailable",
-      "Disabilities"."TCellCount",
-      "Disabilities"."TCellSource",
-      "Disabilities"."ViralLoadAvailable",
-      "Disabilities"."ViralLoad",
-      "Disabilities"."ViralLoadSource",
-      "Disabilities"."DataCollectionStage",
-      "Disabilities"."DateCreated",
-      "Disabilities"."DateUpdated",
-      "Disabilities"."UserID",
-      "Disabilities"."DateDeleted",
-      "Disabilities"."ExportID",
-      "Disabilities".data_source_id,
-      "Disabilities".id,
-      "Enrollment".id AS enrollment_id,
-      source_clients.id AS demographic_id,
-      destination_clients.id AS client_id
-     FROM (((("Disabilities"
-       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-    WHERE ("Disabilities"."DateDeleted" IS NULL);
-  SQL
-
-  create_view "report_employment_educations",  sql_definition: <<-SQL
-      SELECT "EmploymentEducation"."EmploymentEducationID",
-      "EmploymentEducation"."EnrollmentID" AS "ProjectEntryID",
-      "EmploymentEducation"."PersonalID",
-      "EmploymentEducation"."InformationDate",
-      "EmploymentEducation"."LastGradeCompleted",
-      "EmploymentEducation"."SchoolStatus",
-      "EmploymentEducation"."Employed",
-      "EmploymentEducation"."EmploymentType",
-      "EmploymentEducation"."NotEmployedReason",
-      "EmploymentEducation"."DataCollectionStage",
-      "EmploymentEducation"."DateCreated",
-      "EmploymentEducation"."DateUpdated",
-      "EmploymentEducation"."UserID",
-      "EmploymentEducation"."DateDeleted",
-      "EmploymentEducation"."ExportID",
-      "EmploymentEducation".data_source_id,
-      "EmploymentEducation".id,
-      "Enrollment".id AS enrollment_id,
-      source_clients.id AS demographic_id,
-      destination_clients.id AS client_id
-     FROM (((("EmploymentEducation"
-       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
   SQL
 
   create_view "report_exits",  sql_definition: <<-SQL
@@ -4090,65 +4208,28 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
 
-  create_view "Site",  sql_definition: <<-SQL
-      SELECT "Geography"."GeographyID",
-      "Geography"."ProjectID",
-      "Geography"."CoCCode",
-      "Geography"."PrincipalSite",
-      "Geography"."Geocode",
-      "Geography"."Address1",
-      "Geography"."City",
-      "Geography"."State",
-      "Geography"."ZIP",
-      "Geography"."DateCreated",
-      "Geography"."DateUpdated",
-      "Geography"."UserID",
-      "Geography"."DateDeleted",
-      "Geography"."ExportID",
-      "Geography".data_source_id,
-      "Geography".id,
-      "Geography"."InformationDate",
-      "Geography"."Address2",
-      "Geography"."GeographyType",
-      "Geography".source_hash
-     FROM "Geography";
-  SQL
-
-  create_view "combined_cohort_client_changes",  sql_definition: <<-SQL
-      SELECT cc.id,
-      cohort_clients.client_id,
-      cc.cohort_client_id,
-      cc.cohort_id,
-      cc.user_id,
-      cc.change AS entry_action,
-      cc.changed_at AS entry_date,
-      cc_ex.change AS exit_action,
-      cc_ex.changed_at AS exit_date,
-      cc_ex.reason
-     FROM (((( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE ((cohort_client_changes.change)::text = ANY ((ARRAY['create'::character varying, 'activate'::character varying])::text[]))) cc
-       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE (((cohort_client_changes.change)::text = ANY ((ARRAY['destroy'::character varying, 'deactivate'::character varying])::text[])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
-            ORDER BY cohort_client_changes.changed_at
-           LIMIT 1) cc_ex ON (true))
-       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
-       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
-    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
-    ORDER BY cc.id;
+  create_view "todd_stats",  sql_definition: <<-SQL
+      SELECT pg_stat_all_tables.relname,
+      round((
+          CASE
+              WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      pg_stat_all_tables.n_live_tup AS "Live rows",
+      pg_stat_all_tables.n_dead_tup AS "Dead rows",
+      pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+              ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+              ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+      (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
 
 end

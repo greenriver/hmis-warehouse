@@ -5,6 +5,21 @@ Dotenv.load('.env', '.env.local')
 
 namespace :reporting do
 
+  desc "Run Project Data Quality Reports"
+  task run_project_data_quality_reports: [:environment] do
+    report_class = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
+    advisory_lock_key = "project_data_quality_reports"
+    if report_class.advisory_lock_exists?(advisory_lock_key)
+      Rails.logger.info 'Exiting, project data quality reports already running'
+      exit
+    end
+
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.with_advisory_lock(advisory_lock_key) do
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.where(completed_at: nil).each(&:run!)
+    end
+  end
+
+
   # DB related, provides reporting:db:migrate etc.
   namespace :db do |ns|
 

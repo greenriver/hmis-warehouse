@@ -14,6 +14,8 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
         types:
           "This Project": "bar",
           "Goal": "line",
+        onover: @_over,
+        onout: @_out,
       point:
         show: false,
       line:
@@ -38,6 +40,17 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
     if x == '20% Increase'
       suffix = ' 20'
     key = d.name + suffix
-    url = @support_url + key.toLowerCase().replace(/ /g,"_") + "&layout=false"
+    if @support_url.includes('individual') # VersionFour support links are different
+      url = @support_url + "&metric=#{key.toLowerCase().replace(/ /g,"_").replace(/-/g, '_')}"
+    else
+      url = @support_url + key.toLowerCase().replace(/ /g,"_") + "&layout=false"
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
+
+  _over: (d) =>
+    $('html,body').css('cursor', 'pointer')
+
+  _out: (d) =>
+    $('html,body').css('cursor', 'auto')

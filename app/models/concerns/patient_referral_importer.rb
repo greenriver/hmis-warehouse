@@ -50,7 +50,7 @@ module PatientReferralImporter
         snf_discharge: 'SNF_Discharge',
         identification: 'Identification_Flag',
         record_status: 'Record_Status',
-        updated_on: 'Record_Update_Date',
+        record_updated_on: 'Record_Update_Date',
         exported_on: 'Export_Date',
       }
     end

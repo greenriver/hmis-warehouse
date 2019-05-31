@@ -221,7 +221,7 @@ module GrdaWarehouse::Hud
 
     end
     def serves_families?
-      if @serves_families.blank?
+      if @serves_families.nil?
         @serves_families = self.class.serves_families.exists?(id)
       else
         @serves_families
@@ -237,7 +237,7 @@ module GrdaWarehouse::Hud
       )
     end
     def serves_individuals?
-      if @serves_individuals.blank?
+      if @serves_individuals.nil?
         @serves_individuals = self.class.serves_individuals.exists?(id)
       else
         @serves_individuals

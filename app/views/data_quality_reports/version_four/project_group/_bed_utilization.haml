@@ -1,0 +1,32 @@
+.well.overflow-scroll
+  .row
+    .col-sm-3.text-center
+      %br
+      %h3 Bed Inventory
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{pluralize(rp.bed_inventory, 'bed')}
+        %li
+          %strong= pluralize(@report.report_project_group.bed_inventory, 'bed')
+      %hr
+      %h3 Average Daily / Nightly Clients
+
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{pluralize(rp.average_nightly_clients, 'client')}
+        %li
+          %strong Overall: #{pluralize(@report.report_project_group.average_nightly_clients, 'client')}
+      %hr
+      %h3 Average Bed Utilization
+
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{rp.average_bed_utilization}%
+
+        %li
+          %strong Overall: #{@report.report_project_group.average_bed_utilization}%
+
+    .col-sm-9
+      %h3.text-center Nightly Client Census
+      .bed-census-chart.jChart
+        %p.jLoading Loading

@@ -6,9 +6,11 @@ class DataQualityReportsController < ApplicationController
 
   before_action :set_project
   before_action :set_report, except: [:index]
-
+  before_action :set_support_path, only: [:show]
+  before_action :set_report_keys, only: [:show]
 
   def show
+    @modal_size = :xl
     @utilization_grades = utilization_grade_scope.
       order(percentage_over_low: :asc)
 
@@ -41,6 +43,62 @@ class DataQualityReportsController < ApplicationController
   end
 
   def support
+    if params[:individual].present?
+      @data = @report.support_for(support_params)
+      @details_title = @data[:title] || 'Supporting Data'
+      @method = params[:method]
+      respond_to do |format|
+        format.xlsx do
+          render support_render_path, filename: "support-#{@method}.xlsx"
+        end
+        format.html do
+          set_client_path
+          # The view is versioned using the model name
+          layout = if request.xhr?
+            "pjax_modal_content"
+          else
+            'application'
+          end
+          render support_render_path, layout: layout
+        end
+        format.js {}
+      end
+    else
+      legacy_support
+    end
+  end
+
+  def set_client_path
+    @client_path = [:destination, :window, :source_client]
+    if can_view_clients?
+      @client_path = [:destination, :source_client]
+    end
+  end
+
+  def support_render_path
+    "data_quality_reports/#{@report.model_name.element}/project/support"
+  end
+
+  def set_report_keys
+    @report_keys = {
+      project_id: @project.id,
+      id: @report.id,
+      individual: true
+    }
+    if notification_id
+      @report_keys[:notification_id] = notification_id
+    end
+  end
+
+  def set_support_path
+    @support_path = [:project, :data_quality_report]
+    if notification_id
+      @support_path = [:notification] + @support_path
+    end
+    @support_path = [:support] + @support_path
+  end
+
+  def legacy_support
     @key = params[:key].to_s
     if @key.blank?
       render json: @report.support
@@ -59,6 +117,18 @@ class DataQualityReportsController < ApplicationController
         format.js {}
       end
     end
+  end
+
+  def support_params
+    params.permit(
+      :selected_project_group_id,
+      :selected_project_id,
+      :method,
+      :title,
+      :layout,
+      :column,
+      :metric,
+    )
   end
 
   def report_scope

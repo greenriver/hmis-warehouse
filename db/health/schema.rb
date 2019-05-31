@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190513173709) do
+ActiveRecord::Schema.define(version: 20190529182702) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -719,7 +719,7 @@ ActiveRecord::Schema.define(version: 20190513173709) do
     t.string   "snf_discharge"
     t.string   "identification"
     t.string   "record_status"
-    t.date     "updated_on"
+    t.date     "record_updated_on"
     t.date     "exported_on"
     t.boolean  "removal_acknowledged",             default: false
     t.datetime "effective_date"

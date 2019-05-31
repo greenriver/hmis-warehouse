@@ -232,10 +232,18 @@ button.close {
   background: $white;
   border-color: $brand-primary;
   color: $brand-primary-d;
+  [class^="icon-"],
+    [class*=" icon-"] {
+      color: $brand-primary-d;
+    }
   &:hover {
     background: darken($brand-primary-l, 25%);
     border-color: $brand-primary-d;
     color: $white;
+    [class^="icon-"],
+    [class*=" icon-"] {
+      color: $white;
+    }
   }
   &:disabled,
   &.disabled {

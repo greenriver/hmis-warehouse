@@ -17,4 +17,9 @@ FactoryBot.define do
   trait :project_group do
     association :project_group, factory: :dq_project_group
   end
+
+  factory :data_quality_report_version_four, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour' do
+    start { '2016-01-01'.to_date }
+    add_attribute(:end) { '2016-12-31'.to_date }
+  end
 end

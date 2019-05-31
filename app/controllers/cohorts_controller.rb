@@ -27,6 +27,7 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @modal_size = :lg
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
