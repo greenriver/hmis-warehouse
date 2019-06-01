@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/Glacier/_client.html#upload_archive-instance_method
 
 module Glacier

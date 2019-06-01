@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DataQualityReportsProjectGroupController < DataQualityReportsController
   include PjaxModalController
   # Authorize by either access to projects OR access by token

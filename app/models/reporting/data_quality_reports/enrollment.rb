@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # A reporting table to power the enrollment related answers for project data quality reports.
 
 # Some notes on completeness from the HUD Glossary

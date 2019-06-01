@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Record the number of source exits for all homeless clients
 # on the day this is run, we don't have any way to look back to how many
 # we had on a given day, so we'll just look for spikes

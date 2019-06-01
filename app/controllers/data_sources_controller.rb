@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects_or_everything!, only: [:update]
   before_action :require_can_edit_data_sources_or_everything!, only: [:new, :create, :destroy]

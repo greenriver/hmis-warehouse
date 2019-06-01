@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ProjectGroupsController < ApplicationController
   before_action :require_can_edit_project_groups!
   before_action :set_project_group, only: [:edit, :update]
