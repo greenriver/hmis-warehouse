@@ -5,6 +5,7 @@ namespace :code do
     if previous_text == current_text
       puts 'Adding license text in all .rb files that don\'t already have it'
       puts current_text
+      @modified = 0
       files.each do |path|
         add_copyright_to_file(path)
       end
@@ -15,6 +16,7 @@ namespace :code do
       puts 'changing to:'
       puts current_text
     end
+    puts "Modified #{@modified} #{'record'.pluralize()}"
 
   end
 
@@ -40,9 +42,11 @@ namespace :code do
 
   def add_copyright_to_file path
     puts ">>> Prepending copyright to #{path}"
+    @modified += 1
     lines =File.open(path).readlines
     if lines.slice(0,previous_text.lines.count).join == previous_text
       puts 'Found existing copyright, ignoring'
+      @modified -= 1
     else
       tempfile = Tempfile.new('with_copyright')
       line=''
