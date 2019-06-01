@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Export::HMISSixOneOne
   class IncomeBenefit < GrdaWarehouse::Import::HMISSixOneOne::IncomeBenefit
     include ::Export::HMISSixOneOne::Shared

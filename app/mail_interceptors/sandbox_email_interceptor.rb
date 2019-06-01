@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class SandboxEmailInterceptor
   # TODO: list recipients who will always be BCC'd when application is running in sandbox mode
   RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(';') || []

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class MonthAndOrganization < ::Filters::DateRange::MonthDefault
     attribute :org, Integer, default: -> (s,_) {s.default_org}

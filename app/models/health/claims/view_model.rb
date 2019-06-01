@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: View model. Refers to PHI related models thru their documents public interfaces.
 # Controls should be implemented there

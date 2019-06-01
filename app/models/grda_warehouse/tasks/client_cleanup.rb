@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # NOTE: To force a rebuild that includes data that isn't the dates involved, you need to 
 # also set the processed_hash on the enrollment to nil
 

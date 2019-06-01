@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::SystemPerformance::Fy2015
   class MeasureOne
     # TODO: 2016 report only needs measure 1a, in 2017 we need to build Measure 1b

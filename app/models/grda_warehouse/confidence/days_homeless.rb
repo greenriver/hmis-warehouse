@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Confidence
   class DaysHomeless < Base
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: :resource_id

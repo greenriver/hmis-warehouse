@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class StepRange < ::ModelForm
     attribute :first,  String, lazy: true, default: -> (o,_) { o.ordered_steps&.first&.first }
