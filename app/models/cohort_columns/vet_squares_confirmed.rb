@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class VetSquaresConfirmed < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :vet_squares_confirmed

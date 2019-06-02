@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DatePickerInput < SimpleForm::Inputs::StringInput
   def input(wrapper_options)
     set_html_options

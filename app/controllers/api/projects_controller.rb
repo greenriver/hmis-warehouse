@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Provides a list of projects that belong to to the selected
 # data sources and organizations
 # optionally, limits the list to only those a user can see

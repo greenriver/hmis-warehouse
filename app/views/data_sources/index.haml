@@ -21,7 +21,7 @@
             %th
         %tbody
           - @data_sources.each do |data_source|
-            - most_recently_completed = data_source.import_logs.maximum(:completed_at)
+            - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
             %tr
               %td
                 = link_to data_source.name, data_source_path(data_source)
