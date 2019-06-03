@@ -550,7 +550,7 @@ module Health
       return unless potential_team.any?
       potential_team.each do |epic_member|
         if epic_member.name.include?(',')
-          (last_name, first_name) = epic_member.name.split(', ', 2)
+          (last_name, first_name) = epic_member.name.split(',', 2).map(&:strip)
         else
           (first_name, last_name) = epic_member.name.split(' ', 2)
         end
