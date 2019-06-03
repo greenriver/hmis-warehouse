@@ -1,0 +1,40 @@
+@import '../helpers';
+
+.crumbs a {
+  margin-right: 12px;
+}
+
+.action-row {
+  padding-bottom: 12px;
+}
+
+.add-another {
+  margin-top: 24px;
+  margin-bottom: 36px;
+  text-align: right;
+}
+
+.how-to-popover:focus {
+  outline: none;
+}
+
+.home-intro {
+  @include poppins-normal;
+  font-size: 1.2em;
+  margin-bottom: 40px;
+  @include media-breakpoint-up(sm) {
+    width: 80%;
+    margin: 60px auto 0;
+  }
+}
+
+.no-data {
+  padding: space(3);
+  margin: 0;
+}
+
+@each $direction, $name in $directions {
+  .border-#{$direction} {
+    border-#{$name}: 1px solid $gray-015;
+  }
+}

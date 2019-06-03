@@ -14,6 +14,8 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
         onclick: @_follow_link
         types:
           "Goal": "line",
+        onover: @_over,
+        onout: @_out,
       point:
         show: false,
       line:
@@ -24,11 +26,28 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
         x:
           type: "category",
           categories: @data['labels'],
+        y:
+          padding: 0
+          min: 0
+          max: 100
       tooltip:
         format:
           value: (v) ->
             "#{v}%"
    _follow_link: (d, element) =>
-    url = @support_url + "&layout=false"
+    console.log @data
+    project_id = @data.projects[d.name]
+    if @support_url.includes('individual') # VersionFour support links are different
+      url = @support_url + "&selected_project_id=#{project_id}"
+    else
+      url = @support_url + "&layout=false"
+
+    $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
     $('.modal .modal-content').load(url)
+
+  _over: (d) =>
+    $('html,body').css('cursor', 'pointer')
+
+  _out: (d) =>
+    $('html,body').css('cursor', 'auto')

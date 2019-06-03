@@ -25,7 +25,7 @@
     tab_dropdowns = {'Health' => health}
   end
 - if can_see_tabs
-  %ul.nav.nav-tabs.margin-bottom-02
+  %ul.nav.nav-tabs
     - expanded_tabs.each do |action, details|
       - current_tab = action == current
       - item_classes = []
@@ -35,8 +35,8 @@
         - if details[:permission]
           - current_tab = current.include? details[:title].downcase
           - item_classes << 'active' if current_tab
-          %li.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
-            %a.dropdown-toggle{data: {toggle: 'dropdown'}}
+          %li.nav-item.dropdown.dropdown--hover.dropdown--nav{class: item_classes}
+            %a.nav-link.dropdown-toggle{data: {toggle: 'dropdown'}, href: '#'}
               = details[:title]
               %span.caret
             %ul.dropdown-menu
@@ -51,11 +51,10 @@
       - else
         - if details[:permission]
           - item_classes << 'active' if current_tab
-          %li{class: item_classes}
-            = link_to action do
+          %li.nav-item{class: item_classes}
+            = link_to action, class: 'nav-link' do
               = details[:title]
               - if details[:title] == 'Notes'
                 - if @note_count > 0
                   .label.label-info
                     = @note_count
-

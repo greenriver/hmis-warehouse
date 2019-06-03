@@ -2,7 +2,7 @@
 
 - if can_assign_users_to_clients?
   = simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
-    %table.table.table-condensed
+    %table.table.table-sm
       %col{width: 200}
       %col{width: 200}
       %col{width: 200}
@@ -44,7 +44,7 @@
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
 - @user_clients.each do |user_client|
   - user = user_client.user
-  %table.table.table-condensed
+  %table.table.table-sm
     %col{width: 200}
     %col{width: 200}
     %col{width: 200}

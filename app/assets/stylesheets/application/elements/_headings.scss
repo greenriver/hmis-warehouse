@@ -1,0 +1,19 @@
+@import '../helpers';
+
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
+  margin-top: space(3);
+  margin-bottom: space(3);
+}
+
+h1,h2,h3,h4,h5 {
+  &:empty {
+    display: none;
+    margin: 0;
+    padding: 0;
+  }
+}

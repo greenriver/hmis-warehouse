@@ -1,8 +1,10 @@
-.pull-right
+.ml-auto
   .d-flex.align-items-center
     .form-group.form-check.mr-4.mb-0
-      %label.mb-0{for: 'select_all'} Select All
-      = check_box_tag :select_all, 'all', false
+      .c-checkbox.c-checkbox--round.mr-4
+        = check_box_tag :select_all, 'all', false
+        %label{for: 'select_all'}
+          %span Select All
     .dropdown{style: 'display:inline-block;'}
       %button.btn.btn-secondary{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup: true, expanded: false}}
         Actions

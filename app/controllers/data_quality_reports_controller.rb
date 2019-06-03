@@ -1,12 +1,22 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DataQualityReportsController < ApplicationController
   include PjaxModalController
-  # Authorize by either access to projects OR access by token
-  skip_before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: [:show, :answers]
+  before_action :require_valid_token_or_report_access!, except: [:index]
   before_action :require_valid_token_or_project_access!
-  before_action :set_report, only: [:show, :answers, :support]
-  before_action :set_project, only: [:show, :support]
+
+  before_action :set_project
+  before_action :set_report, except: [:index]
+  before_action :set_support_path, only: [:show]
+  before_action :set_report_keys, only: [:show]
 
   def show
+    @modal_size = :xl
     @utilization_grades = utilization_grade_scope.
       order(percentage_over_low: :asc)
 
@@ -18,7 +28,6 @@ class DataQualityReportsController < ApplicationController
   end
 
   def index
-    @project = project_source.find(params[:project_id].to_i)
     @reports = @project.data_quality_reports.order(started_at: :desc)
   end
 
@@ -40,6 +49,62 @@ class DataQualityReportsController < ApplicationController
   end
 
   def support
+    if params[:individual].present?
+      @data = @report.support_for(support_params)
+      @details_title = @data[:title] || 'Supporting Data'
+      @method = params[:method]
+      respond_to do |format|
+        format.xlsx do
+          render support_render_path, filename: "support-#{@method}.xlsx"
+        end
+        format.html do
+          set_client_path
+          # The view is versioned using the model name
+          layout = if request.xhr?
+            "pjax_modal_content"
+          else
+            'application'
+          end
+          render support_render_path, layout: layout
+        end
+        format.js {}
+      end
+    else
+      legacy_support
+    end
+  end
+
+  def set_client_path
+    @client_path = [:destination, :window, :source_client]
+    if can_view_clients?
+      @client_path = [:destination, :source_client]
+    end
+  end
+
+  def support_render_path
+    "data_quality_reports/#{@report.model_name.element}/project/support"
+  end
+
+  def set_report_keys
+    @report_keys = {
+      project_id: @project.id,
+      id: @report.id,
+      individual: true
+    }
+    if notification_id
+      @report_keys[:notification_id] = notification_id
+    end
+  end
+
+  def set_support_path
+    @support_path = [:project, :data_quality_report]
+    if notification_id
+      @support_path = [:notification] + @support_path
+    end
+    @support_path = [:support] + @support_path
+  end
+
+  def legacy_support
     @key = params[:key].to_s
     if @key.blank?
       render json: @report.support
@@ -60,12 +125,28 @@ class DataQualityReportsController < ApplicationController
     end
   end
 
+  def support_params
+    params.permit(
+      :selected_project_group_id,
+      :selected_project_id,
+      :method,
+      :title,
+      :layout,
+      :column,
+      :metric,
+    )
+  end
+
   def report_scope
     GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
   end
 
+  def project_scope
+   project_source.viewable_by current_user
+  end
+
   def project_source
-    GrdaWarehouse::Hud::Project.viewable_by current_user
+    GrdaWarehouse::Hud::Project
   end
 
   def set_report
@@ -73,7 +154,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def set_project
-    @project = @report.project
+    @project = project_source.find(params[:project_id].to_i)
   end
 
   def notification_id
@@ -81,13 +162,31 @@ class DataQualityReportsController < ApplicationController
   end
   helper_method :notification_id
 
+  def require_valid_token_or_report_access!
+    if notification_id.present?
+      token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
+      raise ActionController::RoutingError.new('Not Found') if token.blank?
+      return true if token.valid?
+    else
+      set_report
+      report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
+      return true if report_viewable
+      not_authorized!
+      return
+    end
+    raise ActionController::RoutingError.new('Not Found')
+  end
+
   def require_valid_token_or_project_access!
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError.new('Not Found') if token.blank?
       return true if token.valid?
     else
-      require_can_view_client_level_details!
+      set_project
+      project_viewable = project_scope.where(id: @project.id).exists?
+      return true if project_viewable
+      not_authorized!
       return
     end
     raise ActionController::RoutingError.new('Not Found')

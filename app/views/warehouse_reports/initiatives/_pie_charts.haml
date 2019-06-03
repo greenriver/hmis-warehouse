@@ -3,7 +3,7 @@
     %h4= title
   - empty = buckets[:data].keys.map{|k| buckets[:data][k].values}.flatten.map{|d| d.nil? ? 0 : d}.inject(0, :+) == 0
   .row{style: 'margin-top: 40px;'}
-    .col-xs-12.col-md-7
+    .col-sm-12.col-md-7
       - if empty
         %p No Data
       - else
@@ -23,7 +23,7 @@
                 }
               });
             });
-    .col-xs-12.col-md-5
+    .col-sm-12.col-md-5
       - unless empty
         - total = buckets[:data].keys.map{|bk| buckets[:data][bk][:total] || 0}.inject(0, :+)
         %h4= "#{outer_legend} (crust)"
@@ -39,8 +39,8 @@
         .loso__legend-pie
           %h4= "#{by.to_s.humanize.titleize} (filling)"
           .clearfix{id: legend_id}
-  .loso-footer.clearfix
-    %button.btn.btn-secondary.btn-sm.pull-left{data: {toggle: 'collapse', target: "##{collapse_id}"}}
+  .loso-footer
+    %button.btn.btn-secondary.btn-sm{data: {toggle: 'collapse', target: "##{collapse_id}"}}
       Show Details
   .collapse.loso-collapse{id: collapse_id}
     %table.table.loso-table{id: "#{table_id}-more-details"}
@@ -53,10 +53,3 @@
           %th{data: {d3_key: k}}= k
           - buckets[:data].each do |key, values|
             %td.text-center= values[k] || 0
-
-
-
-
-                
-
-

@@ -1,5 +1,5 @@
-.c-card.sm-2
-  .c-card__content.jPatientReferral{class: "pr-#{pr.id}"}
+.c-card.mb-2
+  .c-card__content.jPatientReferral
     .row
       .col-sm-2
         .patient-name.mb-2
@@ -8,8 +8,9 @@
           - else
             = pr.name
         .edit-button
-          = link_to edit_admin_health_patient_referral_path(pr), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
+          = link_to edit_admin_health_patient_referral_path(pr), class: ['btn', 'btn-sm', 'btn-secondary'] do
             %i.icon-pencil
+            %span Edit
       .col-sm-3
         %div
           %strong DOB:

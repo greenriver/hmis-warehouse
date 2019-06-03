@@ -1,31 +1,30 @@
-%table.table.table-condensed
+%table.table.table-sm
   %thead
     %tr
       %th
         Client
-      %th
+      %th{style: 'width: 15%'}
         Release on file?
-      %th
+      %th{style: 'width: 23.333333333%'}
         Relationship
-      %th
+      %th{style: 'width: 23.333333333%'}
         Expires On
-      %th
+      %th{style: 'width: 15%'}
         Confidential?
-      %th
   %tbody
     - clients.each do |uc|
       - client = uc.client
       %tr
-        %td
+        %td{style: 'width: 23.333333333%'}
           - if @client_path && (client.release_valid? || can_view_clients?)
             = link_to client.name, send(@client_path, id: client.id)
           - else
             = client.name
-        %td
+        %td{style: 'width: 15%'}
           = checkmark(client.release_valid?)
-        %td
+        %td{style: 'width: 23.333333333%'}
           = uc.relationship
-        %td
+        %td{style: 'width: 23.333333333%'}
           = uc.end_date || 'No Expiration'
-        %td
+        %td{style: 'width: 15%'}
           = checkmark(uc.confidential)

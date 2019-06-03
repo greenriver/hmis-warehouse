@@ -1,0 +1,42 @@
+@import '../../helpers';
+
+th .fa {
+  padding-left: 4px;
+  color: $cas-blue;
+}
+
+.info a {
+  color: white;
+}
+
+.info {
+  color: black;
+}
+
+a.icon-cross:link {
+  text-decoration: none;
+}
+
+.active-tab a {
+  font-weight: 800;
+}
+
+.control-label.required {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  abbr {
+    color: $brand-danger;
+    text-decoration: none;
+    margin-left: space(1);
+    border-bottom: 0;
+  }
+}
+
+.label {
+  @include tag-pill;
+}
+
+.dropdown-menu
+{
+  z-index: 1500;
+}

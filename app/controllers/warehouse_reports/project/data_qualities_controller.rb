@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     include WarehouseReportAuthorization
@@ -27,7 +33,7 @@ module WarehouseReports::Project
       begin
         @project_ids = project_params rescue []
         # filter by viewability
-        @project_ids = current_user.projects.where( id: @project_ids ).pluck(:id)
+        @project_ids = project_scope.where( id: @project_ids ).pluck(:id)
         @project_group_ids = project_group_params rescue []
         if @project_ids.empty? && @project_group_ids.empty?
           raise ActionController::ParameterMissing, 'Parameters missing'
@@ -60,7 +66,7 @@ module WarehouseReports::Project
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
-        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
+        # Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 
@@ -117,7 +123,7 @@ module WarehouseReports::Project
 
     # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThree
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour
     end
 
     def report_base_class

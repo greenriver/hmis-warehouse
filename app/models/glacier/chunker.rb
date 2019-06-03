@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # https://docs.aws.amazon.com/amazonglacier/latest/dev/checksum-calculations.html
 #
 # Large backups get broken into individual files and uploaded individually.

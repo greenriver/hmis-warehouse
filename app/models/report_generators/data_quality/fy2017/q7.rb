@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::DataQuality::Fy2017
   class Q7 < Base
     # ES = [1]
@@ -137,8 +143,8 @@ module ReportGenerators::DataQuality::Fy2017
         data_source_id: she_t[:data_source_id].to_sql,
         enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
       }
-      
-      all_client_scope.
+
+      active_client_scope.
         hud_project_type(project_types).
         bed_night.
         includes(:enrollment).

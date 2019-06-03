@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module PatientReferralRefreshImporter
   extend ActiveSupport::Concern
   included do
@@ -22,7 +28,7 @@ module PatientReferralRefreshImporter
         disenrollment_date: 'Disenrollment_Date',
         stop_reason_description: 'Stop_Reason_Desc',
         record_status: 'Record_Status',
-        updated_on: 'Record_Update_Date',
+        record_updated_on: 'Record_Update_Date',
         exported_on: 'Export_Date',
       }
     end

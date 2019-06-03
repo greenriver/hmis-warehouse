@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Figure out who is chronically homeless under the adjusted DMH rules
 # Our working definition of DMH chronic homelessness is:
 # 1. Currently Homeless in one of the DMH projects

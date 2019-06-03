@@ -1,11 +1,13 @@
-%h1
-  .pull-right
+.o-page__header
+  .o-page__title
+    %h1= content_for :title
+  .o-page__action
     - if @client.vispdats.in_progress.none?
       .btn-group
         %button.btn.btn-default.dropdown-toggle(type='button' data-toggle='dropdown')
           New VI-SPDAT
           %span.caret
-        %ul.dropdown-menu
+        %ul.dropdown-menu.dropdown-menu-right
           %li
             = link_to polymorphic_path(vispdats_path_generator, client_id: @client.id, type: 'GrdaWarehouse::Vispdat::Youth'), data: { method: :post } do
               %i.icon-child
@@ -22,9 +24,6 @@
       %button.btn.btn-primary(title="#{@client.full_name} already has a VI-SPDAT in progress. Please complete that one or delete it before starting a new VI-SPDAT" data-toggle='tooltip')
         %span.icon-plus
 
-  = content_for :title
-  .clearfix
-%hr
 
 %table.table.vispdat-table
   %thead

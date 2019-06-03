@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects_or_everything!, only: [:update]
   before_action :require_can_edit_data_sources_or_everything!, only: [:new, :create, :destroy]
@@ -53,28 +59,6 @@ class DataSourcesController < ApplicationController
         visible_in_window = data_source_params[:visible_in_window] || false
         import_paused = data_source_params[:import_paused] || false
         @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused)
-        data_source_params.try(:[], :projects_attributes)&.each do |_, project_attributes|
-          id = project_attributes[:id]
-          if project_attributes[:act_as_project_type].present?
-            act_as_project_type = project_attributes[:act_as_project_type].to_i
-          end
-          project = GrdaWarehouse::Hud::Project.find(id.to_i)
-          project.act_as_project_type = act_as_project_type
-          project.hud_continuum_funded = project_attributes[:hud_continuum_funded]
-          project.confidential = project_attributes[:confidential] || false
-          project.housing_type_override = project_attributes[:housing_type_override].presence
-          project.uses_move_in_date = project_attributes[:uses_move_in_date].presence || false
-
-          project.project_cocs.update_all(hud_coc_code: project_attributes[:hud_coc_code])
-          project.geographies.update_all(
-            geocode_override: project_attributes[:geocode_override].presence,
-            geography_type_override: project_attributes[:geography_type_override].presence,
-          )
-
-          if ! project.save
-            error = true
-          end
-        end
       end
     rescue StandardError => e
       error = true

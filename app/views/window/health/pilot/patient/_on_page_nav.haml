@@ -1,4 +1,4 @@
-%ul.nav.sub-nav-tabs
+%ul.nav.nav-tabs.sub-nav-tabs
   %li.nav-item{role: :presentation}= link_to 'Patient Summary', '#summary', class: 'nav-link'
   %li.nav-item{role: :presentation}= link_to 'Cost', '#cost', class: 'nav-link'
   %li.nav-item{role: :presentation}= link_to 'Appointments', '#appointments-list', class: 'nav-link'
@@ -7,7 +7,9 @@
 
 - content_for :page_js do
   :javascript
-    $(function(){
-      var $tabs = $('.sub-nav-tabs');
-      $tabs.affix({offset: {top: $tabs.offset().top} });
+    var tabs = document.querySelector('.sub-nav-tabs')
+    new App.Affix({
+      element: tabs,
+      offset: tabs.offsetTop,
+      elementToPad: tabs.parentElement.nextElementSibling
     })

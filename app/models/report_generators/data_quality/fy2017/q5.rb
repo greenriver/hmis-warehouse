@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::DataQuality::Fy2017
   class Q5 < Base
     ADULT = 18
@@ -294,7 +300,7 @@ module ReportGenerators::DataQuality::Fy2017
         PreviousStreetESSH: e_t[:PreviousStreetESSH].to_sql,
       }
 
-      all_client_scope.
+      active_client_scope.
         hud_project_type(project_types).
         includes(:enrollment).
         joins(:project).

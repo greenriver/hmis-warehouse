@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ApplicationHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
@@ -189,6 +195,10 @@ module ApplicationHelper
     content_tag :p, :class => "navbar-text" do
       content_tag :span, branch_name, :class => "label label-warning"
     end
+  end
+
+  def modal_size
+    ''
   end
 
 end

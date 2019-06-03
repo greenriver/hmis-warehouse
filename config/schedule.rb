@@ -38,6 +38,10 @@ every 1.hour do
   rake "jobs:check_queue"
 end
 
+every 5.minutes do
+  rake 'reporting:run_project_data_quality_reports'
+end
+
 every 4.hours do
   rake "grda_warehouse:save_service_history_snapshots"
 end

@@ -1,19 +1,18 @@
 - title = "Clients in a Project for a Given Date Range"
 - content_for :title, title
-%h1= title
+.row
+  .col-sm-8
+    %h1= title
+  .col-sm-4.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
 
 .warehouse-reports__chronic
-  .row
-    .col-sm-8
-      %p
-        = page_entries_info @clients, entry_name: 'Client'
-    .col-sm-4
-      .pull-right
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
-  %table.table.table-condensed.table-hover
+  %p= page_entries_info @clients, entry_name: 'Client'
+
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name

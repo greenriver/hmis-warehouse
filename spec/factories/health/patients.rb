@@ -4,10 +4,12 @@ FactoryBot.define do
     last_name { 'Last' }
     birthdate { Date.today }
     sequence(:medicaid_id)
+    enrollment_start_date { Date.today }
   end
 
   factory :patient, class: 'Health::Patient' do
     sequence(:id_in_source)
     patient_referral
+    sequence(:client_id)
   end
 end

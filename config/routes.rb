@@ -13,6 +13,15 @@ Rails.application.routes.draw do
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'users/invitations/confirm', via: :post
+  end
+
+  namespace :users do
+    resources :invitations do
+      collection do
+        post :confirm
+      end
+    end
   end
 
   def healthcare_routes(window:)
@@ -333,6 +342,7 @@ Rails.application.routes.draw do
   resources :source_clients, only: [:edit, :update] do
     member do
       get :image
+      get :destination
     end
   end
   resources :clients do
@@ -385,6 +395,7 @@ Rails.application.routes.draw do
     resources :source_clients, only: [:edit, :update] do
       member do
         get :image
+        get :destination
       end
     end
     resources :clients do
@@ -520,7 +531,10 @@ Rails.application.routes.draw do
       end
     end
     resources :project_groups, only: [:show] do
-      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group' do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
   end
 
@@ -561,6 +575,7 @@ Rails.application.routes.draw do
         resources :top_providers, only: [:index]
       end
     end
+    resources :projects, only: [:index]
   end
 
   namespace :admin do

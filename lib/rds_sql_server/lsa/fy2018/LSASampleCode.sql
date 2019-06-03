@@ -812,7 +812,8 @@ where hg.DateDeleted is null and
 **********************************************************************/
 delete from active_Household
 
-insert into active_Household (HouseholdID, HoHID, MoveInDate
+insert into active_Household (HouseholdID, HoHID
+  --5/9/2019 set MoveInDate split out to UPDATE statement below
   , ProjectID, ProjectType, TrackingMethod)
 select distinct hn.HouseholdID
   , coalesce ((select min(PersonalID)
@@ -821,16 +822,6 @@ select distinct hn.HouseholdID
     , (select min(PersonalID)
       from hmis_Enrollment
       where HouseholdID = hn.HouseholdID))
-  , case when p.ProjectType in (3,13) then
-  -- CHANGE 4/23/2019 DO NOT INCLUDE MOVE-IN DATES AFTER REPORT END
-  -- AND DO NOT INCLUDE INVALID MOVE-IN DATES (i.e. before EntryDate or after ExitDate)
-      (select min(movein.MoveInDate)
-      from hmis_Enrollment movein
-      where movein.HouseholdID = hn.HouseholdID
-        and movein.MoveInDate <= rpt.ReportEnd
-        and movein.MoveInDate >= hn.EntryDate
-        and (x.ExitDate is null or movein.MoveInDate <= x.ExitDate))
-    else null end
   , p.ProjectID, p.ProjectType, p.TrackingMethod
 from lsa_Report rpt
 inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
@@ -842,7 +833,6 @@ left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
 left outer join hmis_Services bn on bn.EnrollmentID = hn.EnrollmentID
   and bn.DateProvided between rpt.ReportStart and rpt.ReportEnd
   and bn.RecordType = 200
-  --4/23/2019 do not use deleted data in reporting
   and bn.DateDeleted is null
 where
   /* CHANGE 11/19/2018
@@ -870,6 +860,16 @@ where
   --4/23/2019 do not use deleted data in reporting
   and hn.DateDeleted is null
 
+-- 5/9/2019 new UPDATE statement / MoveInDate was previously inserted in statement above
+update ahh
+set ahh.MoveInDate = hn.MoveInDate
+from active_Household ahh
+inner join hmis_Enrollment hn on hn.HouseholdID = ahh.HouseholdID
+  and hn.PersonalID = ahh.HoHID and hn.MoveInDate is not null
+inner join lsa_Report rpt on rpt.ReportEnd >= hn.MoveInDate
+where ahh.ProjectType in (3,13)
+  and hn.MoveInDate >= hn.EntryDate
+
 /*************************************************************************
 4.8 Get Active Enrollments and Associated AgeDates
 **********************************************************************/
@@ -883,15 +883,11 @@ insert into active_Enrollment
 select distinct hn.EnrollmentID, hn.PersonalID, hn.HouseholdID
   , case when hn.PersonalID = hhid.HoHID then 1
     when hn.RelationshipToHoH = 1 and hn.PersonalID <> hhid.HoHID then 99
-    -- set any non-valid RelationshipToHoH value (including NULL) to 99
     when hn.RelationshipToHoH in (1,2,3,4,5) then hn.RelationshipToHoH
     else 99 end
   , case when hn.EntryDate >= rpt.ReportStart then hn.EntryDate
     else rpt.ReportStart end
   , hn.EntryDate
-  -- CHANGE 4/23/2019 MoveInDate from active_Household as is IF it occurs between HH member's Entry/ExitDates.  Otherwise:
-  --  If HoH is housed prior to HH member EntryDate, HH member MoveInDate is their own EntryDate;
-  --  If HH member exits prior to HoH MoveInDate, HH member MoveInDate is NULL.
   , case
     when hhid.MoveInDate >= hn.EntryDate
       and (hhid.MoveInDate <= x.ExitDate or x.ExitDate is null) then hhid.MoveInDate
@@ -903,21 +899,15 @@ select distinct hn.EnrollmentID, hn.PersonalID, hn.HouseholdID
   , hhid.ProjectID, hhid.ProjectType, hhid.TrackingMethod
 from lsa_Report rpt
 inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
+  and hn.DateDeleted is null
 inner join active_Household hhid on hhid.HouseholdID = hn.HouseholdID
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
-  and x.ExitDate <= rpt.ReportEnd
-  --4/23/2019 do not use deleted data in reporting
-  and x.DateDeleted is null
---CHANGE 9/28/2018: where ExitDate >= ReportStart (was just >)
---CHANGE 11/27/2018:  Include enrollments where ExitDate = EntryDate
--- under some circumstances (see note with 11/19 change in section 4.7).
+  and x.ExitDate <= rpt.ReportEnd and x.DateDeleted is null
 where (x.ExitDate is null
     or (x.ExitDate >= rpt.ReportStart
       and (x.ExitDate > hn.EntryDate or
         (x.ExitDate = hn.EntryDate and hhid.MoveInDate is null and hhid.ProjectType in (3,13))))
-  )
-  --4/23/2019 do not use deleted data in reporting
-  and hn.DateDeleted is null
+    )
 
 /*************************************************************************
 4.9 Set Age Group for Each Active Enrollment
@@ -1157,16 +1147,18 @@ inner join lsa_Report rpt on rpt.ReportID = lp.ReportID
 inner join hmis_Enrollment hn on hn.PersonalID = lp.PersonalID
   and hn.EntryDate <= lp.LastActive
   --4/23/2019 do not use deleted data in reporting
-  and hn.DateDeleted is null --4/25/2019 -- correct 'is not null' to 'is null'
+  and hn.DateDeleted is null
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= lp.LastActive
     --4/23/2019 do not use deleted data in reporting
-  and x.DateDeleted is null --4/25/2019 -- correct 'is not null' to 'is null'
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
+  and x.DateDeleted is null
 inner join (select hhinfo.HouseholdID, min(hhinfo.MoveInDate) as MoveInDate
       , coc.CoCCode
     from hmis_Enrollment hhinfo
     inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
     --4/23/2019 do not use deleted data in reporting
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
     where coc.DateDeleted is null
     group by hhinfo.HouseholdID, coc.CoCCode
   ) hoh on hoh.HouseholdID = hn.HouseholdID and hoh.CoCCode = rpt.ReportCoC
@@ -4320,7 +4312,6 @@ where cd.Cohort > 0
      --for RRH and PSH, count only people who are housed in period
     (p.ProjectType in (3,13) and an.MoveInDate <= cd.CohortEnd)
     --for night-by-night ES, count only people with bednights in period
-    --  4/23/2019 correct ProjectType/TrackingMethod combinations for ES/SH/TH
     or (p.TrackingMethod = 3 and p.ProjectType = 1
       and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
     or (p.TrackingMethod = 0 and p.ProjectType = 1)
@@ -5215,20 +5206,20 @@ insert into dq_Enrollment (EnrollmentID, PersonalID, HouseholdID, RelationshipTo
 select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
   , p.ProjectType, n.EntryDate, hhinfo.MoveInDate, ExitDate
   , case when c.DOBDataQuality in (8,9)
-    or c.DOB is null
-    or c.DOB = '1/1/1900'
-    or c.DOB > n.EntryDate
-    or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
-    or dateadd(yy, 105, c.DOB) <= n.EntryDate
-    or c.DOBDataQuality is null
-    or c.DOBDataQuality not in (1,2) then 99
-  when dateadd(yy, 18, c.DOB) <= n.EntryDate then 1
-  -- 5/7/2019 Counting clients who turned 18 between EntryDate and [ReportStart-2 years] as adults.
-  --  The is not explicit in the specs -- section 4.70 is fuzzy -- but adding the final WHEN below
-  --  will clear some false positives in the QC reports.
-  when n.EntryDate < dateadd(yy, -2, rpt.ReportStart) and
-    dateadd(yy, 18, c.DOB) <= dateadd(yy, -2, rpt.ReportStart) then 1
-  else 0 end
+      or c.DOB is null
+      or c.DOB = '1/1/1900'
+      or c.DOB > n.EntryDate
+      or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
+      or dateadd(yy, 105, c.DOB) <= n.EntryDate
+      or c.DOBDataQuality is null
+      or c.DOBDataQuality not in (1,2) then 99
+    when dateadd(yy, 18, c.DOB) <= n.EntryDate then 1
+    -- 5/7/2019 Counting clients who turned 18 between EntryDate and [ReportStart-2 years] as adults.
+    --  The is not explicit in the specs -- section 4.70 is fuzzy -- but adding the final WHEN below
+    --  will clear some false positives in the QC reports.
+    when n.EntryDate < dateadd(yy, -2, rpt.ReportStart) and
+      dateadd(yy, 18, c.DOB) <= dateadd(yy, -2, rpt.ReportStart) then 1
+    else 0 end
 , case when c.SSNDataQuality in (8,9) then null
     when SUBSTRING(c.SSN,1,3) in ('000','666')
         or LEN(c.SSN) <> 9
@@ -5508,7 +5499,9 @@ insert into lsa_Household(RowTotal
 select count (distinct HoHID + cast(HHType as nvarchar)), Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5649,7 +5642,9 @@ from tmp_Household
 group by Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5797,7 +5792,9 @@ select count (distinct HoHID + cast(HHType as nvarchar))
   , Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5808,7 +5805,9 @@ from tmp_Exit
 group by Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730

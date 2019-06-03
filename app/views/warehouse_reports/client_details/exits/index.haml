@@ -23,7 +23,7 @@
   = @clients.map{ |row| row[:client_id]}.uniq.count
   unique clients.
 = render 'warehouse_reports/limited_by_project_note'
-%table.table.table-condensed
+%table.table.table-sm
   %thead
     %tr
       %th
@@ -45,7 +45,7 @@
         = @buckets.values.sum
 - if can_view_clients?
   %h2 Exit Details
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th

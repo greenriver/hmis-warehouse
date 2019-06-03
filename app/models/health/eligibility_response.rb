@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
@@ -29,6 +35,18 @@ module Health
 
     def managed_care_ids
       @manageds ||= subscribers.select{|s| managed_care(s).present?}.map{|s| TRN(s)}
+    end
+
+    def aco_names
+      @aco_names ||= begin
+        results = {}
+        subscribers.select{|s| managed_care(s).present?}.each do |s|
+          names = EBNM1(s)
+          name = names['MC'] || names['L']
+          results[TRN(s)] = name
+        end
+        results
+      end
     end
 
     def ineligible_ids
@@ -81,12 +99,34 @@ module Health
           detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
           select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
         each do |info|
-          ebs = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+          eb = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
             detect{|h| h.keys.include? :EB}[:EB]
-          codes << ebs.detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
-          text << ebs.detect{|h| h.keys.include? :E1204}[:E1204][:value][:raw]
+          codes << eb.detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
+          text << eb.detect{|h| h.keys.include? :E1204}[:E1204][:value][:raw]
         end
       return codes.zip(text)
+    end
+
+    def EBNM1(subscriber)
+      names = {}
+      subscriber["2000C SUBSCRIBER LEVEL"].
+        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"].
+        select{|h| h.keys.include? "2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"}.
+        each do |info|
+          eb = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+            detect{|h| h.keys.include? :EB}[:EB]
+          code = eb.detect{|h| h.keys.include? :E1390}[:E1390][:value][:raw]
+          loop = info["2110C SUBSCRIBER ELIGIBILITY OR BENEFIT INFORMATION"].
+            detect{|h| h.keys.include? "2120C LOOP HEADER"}
+          if loop
+            text = loop["2120C LOOP HEADER"].
+              detect{|h| h.keys.include? "2120C SUBSCRIBER BENEFIT RELATED ENTITY NAME"}["2120C SUBSCRIBER BENEFIT RELATED ENTITY NAME"].
+              detect{|h| h.keys.include? :NM1}[:NM1].
+              detect{|h| h.keys.include? :E1035}[:E1035][:value][:raw]
+            names[code] = text if text
+          end
+        end
+      return names
     end
 
     def subscribers

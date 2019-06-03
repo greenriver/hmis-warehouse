@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # these are also sometimes called agencies
 module GrdaWarehouse::Hud
   class Organization < Base
@@ -84,6 +90,7 @@ module GrdaWarehouse::Hud
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -96,6 +103,10 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
+              AND
+              #{organization_table}.#{qc.(GrdaWarehouse::Hud::Organization.paranoia_column)} IS NULL
         )
 
       SQL
@@ -105,6 +116,7 @@ module GrdaWarehouse::Hud
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       organization_table = quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -119,6 +131,8 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
               #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
         )
@@ -130,6 +144,7 @@ module GrdaWarehouse::Hud
       viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
+      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
       <<-SQL.squish
 
@@ -144,6 +159,8 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
               AND
               #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              AND
+              #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
               #{project_table}.#{qc.('data_source_id')} = #{organization_table}.#{qc.('data_source_id')}
               AND

@@ -51,17 +51,9 @@
   ]
 
 - if GrdaWarehouse::Config.get(:healthcare_available)
-  %ul.nav.nav-tabs.mb-2
+  %ul.nav.nav-tabs
     - tabs.each do |tab|
       - if tab[:visible]
         %li.nav-item{role: 'presentation', class: tab[:controllers].include?(controller_name) ? 'active' : ''}
-          = link_to tab[:path] do
+          = link_to tab[:path], class: 'nav-link' do
             = tab[:title].html_safe
-
-
-
-
-
-
-
-

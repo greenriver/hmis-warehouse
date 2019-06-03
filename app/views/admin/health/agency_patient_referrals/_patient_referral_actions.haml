@@ -2,11 +2,11 @@
 .col-sm-3
   - cb = pr.display_claimed_by_other(@user_agencies)
   - if cb.present?
-    %div.margin-bottom-02
+    %div.mb-2
       %strong Known by:
       %div= cb
 .col-sm-4
-  %div.jClaimButtons
+  %div.jClaimButtons.mb-2
     - @display_claim_buttons_for.each do |a|
       = render 'claim_buttons', agency: a, pr: pr
 
@@ -22,4 +22,4 @@
       - else
         - collection = relationship.claimed? ? [['Not Our Patient', false]] : [['Our Patient', true]]
       - collection.each do |c|
-        = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: 'padding-right-02 btn btn-secondary btn-sm mb-2'
+        = link_to c.first, '#', data: {behavior: 'claim patient', value: c.last.to_s}, class: 'pr-2 btn btn-secondary btn-sm mb-2'

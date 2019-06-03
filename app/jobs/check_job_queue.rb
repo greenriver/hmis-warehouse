@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # This is not actually a Job -- it is located here since it reasons about them...
 class CheckJobQueue
   include NotifierConfig

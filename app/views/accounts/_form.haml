@@ -11,5 +11,4 @@
         = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.'
 
       .form-actions
-        = f.button :submit, value: 'Update Account'
-
+        = f.button :submit, value: 'Update Account', class: 'btn btn-primary'

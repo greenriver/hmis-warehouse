@@ -14,10 +14,7 @@
       = render 'parameters', report: @report
   .row
     .col-sm-12
-      %h4
-        .pull-left
-          Chronic Clients
-      .clearfix
+      %h4 Chronic Clients
       %p.text-muted
         Chart does not take into account "Received Homeless Service After."
       .jCharts
@@ -37,7 +34,7 @@
           Age:
           =client['age']
       .row
-        .col-xs-3
+        .col-sm-3
           %dl
             %dt Homeless since
             %dd= chronic['homeless_since']
@@ -61,7 +58,7 @@
               %dd= checkmark(so_enrolled)
             %dt Data Source
             %dd= client['source_clients'].map { |sc| sc['data_source_short_name'] }.join(', ')
-        .col-xs-9
+        .col-sm-9
           .rollup{data: {partial: :residential_enrollments, rollup_path: rollup_client_path(id: client['id']), clients: source_clients.each_with_index.map{ |c, i| [ c['id'], [ i, c['uuid'], c['data_source_short_name'] ] ] }.to_h.to_json, many_clients: source_clients.many?.to_json, high: client['source_clients'].size + 1, client_id: client['id']}, class: "jClientID-#{client['id']}"}
             .rollup-content
               - if client['chronic_project_names'].present?

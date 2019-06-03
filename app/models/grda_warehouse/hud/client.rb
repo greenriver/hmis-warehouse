@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
@@ -785,6 +791,8 @@ module GrdaWarehouse::Hud
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         window_client_files_path(self)
+      elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
+        window_client_youth_intakes_path(self)
       end
     end
 

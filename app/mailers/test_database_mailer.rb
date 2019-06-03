@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # bundle exec rails runner 'TestDatabaseMailer.ping("somebody@greenriver.com").deliver_now'
 
 class TestDatabaseMailer < DatabaseMailer

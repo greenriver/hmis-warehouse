@@ -1,0 +1,61 @@
+.well.overflow-scroll
+  - if @report.no_clients?
+    %p No clients enrolled during range
+  - else
+    .row
+      .col-sm-4
+        %h4 Percent of Enrolled Clients Active
+        %ul.list-unstyled
+          = @report.describe_completeness :served_percentages, as_percent: true
+      .col-sm-4
+        %h4 Bed Utilization
+        %ul.list-unstyled
+          = @report.describe_completeness :bed_utilization_percentages, as_percent: true
+      .col-sm-4
+        %h4 Unit Utilization
+        %ul.list-unstyled
+          = @report.describe_completeness :unit_utilization_percentages, as_percent: true
+    .row
+      .col-sm-4
+        %h4 Project Descriptor Completeness
+        %ul.list-unstyled
+          = @report.describe_completeness :project_descriptor
+      .col-sm-4
+        %h4 Data Completeness
+        %ul.list-unstyled
+          = @report.describe_completeness :client_data
+      .col-sm-4
+        %h4 Timeliness
+        %ul.list-unstyled
+          = @report.describe_completeness :timeliness
+    .row
+      .col-sm-4
+        %h4 DOB on or after entry date
+        %ul.list-unstyled
+          = @report.describe_completeness :dob_after_entry, support_path: @support_path, report_keys: @report_keys
+
+      .col-sm-4
+        %h4 No service in the final month of enrollment
+        %ul.list-unstyled
+          = @report.describe_completeness :final_month_service, support_path: @support_path, report_keys: @report_keys
+
+      .col-sm-4
+        %h4 Service after exit
+        %ul.list-unstyled
+          = @report.describe_completeness :service_after_exit_date, support_path: @support_path, report_keys: @report_keys
+
+    .row
+      .col-sm-4
+        %h4 Excessive Time in PH Prior to Move-In
+        %ul.list-unstyled
+          = @report.describe_completeness :move_in_date_after_threshold, support_path: @support_path, report_keys: @report_keys
+
+      .col-sm-4
+        %h4 Incorrect Household Type
+        %ul.list-unstyled
+          = @report.describe_completeness :household_type_mismatch, support_path: @support_path, report_keys: @report_keys
+
+      .col-sm-4
+        %h4 Enrollments with no Service
+        %ul.list-unstyled
+          = @report.describe_completeness :enrollments_with_no_service, support_path: @support_path, report_keys: @report_keys

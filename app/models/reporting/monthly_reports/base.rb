@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # A reporting table to power the population dash boards.
 # One row per client per sub-population per month.
 
@@ -7,6 +13,8 @@ module Reporting::MonthlyReports
     include ::Reporting::MonthlyReports::MonthlyReportCharts
 
     self.table_name = :warehouse_monthly_reports
+
+    LOOKBACK_START = '2014-07-01'
 
     after_initialize :set_dates
     attr_accessor :date_range
@@ -30,7 +38,7 @@ module Reporting::MonthlyReports
     end
 
     def set_dates
-      @date_range ||= '2014-07-01'.to_date..Date.yesterday
+      @date_range ||= LOOKBACK_START.to_date..Date.yesterday
       @start_date = @date_range.first
       @end_date = @date_range.last
     end
@@ -80,7 +88,7 @@ module Reporting::MonthlyReports
             household_id: enrollment.household_id.presence || "c_#{client_id}",
             destination_id: enrollment.destination,
             enrolled: true, # everyone will be enrolled
-            active: active_in_month?(client_id: client_id, month: month, year: year),
+            active: active_in_month?(client_id: client_id, project_type: enrollment.computed_project_type, month: month, year: year),
             entered: entered_in_month,
             exited: exited_in_month,
             project_id: project_id(enrollment.project_id, enrollment.data_source_id),
@@ -152,13 +160,16 @@ module Reporting::MonthlyReports
                   en.prior_exit_project_type = max_exit_enrollment.project_type
                   en.prior_exit_destination_id = max_exit_enrollment.destination_id
                 end
+              elsif other_enrollments_in_current_month.present? && other_enrollments_in_current_month.all?(&:entered)
+                min_entry_date = other_enrollments_in_current_month.sort_by(&:entry_date).first.entry_date
+                next if min_entry_date < entry_date
               end
               next if en.days_since_last_exit.present?
 
               # short circuit if prior month contains ongoing enrollments
               prev = previous_month(current_year, current_month)
               previous_enrollments = grouped_enrollments[[prev.year, prev.month]]
-              next unless previous_enrollments.blank? || previous_enrollments.all?(&:exited)
+              next if previous_enrollments.present? && ! previous_enrollments.all?(&:exited)
 
               # Check back through time
               while(current_year >= first_year && current_month >= first_month) do
@@ -208,18 +219,19 @@ module Reporting::MonthlyReports
         distinct.
         pluck(
           :client_id,
+          :project_type,
           cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
           cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
-        ).each do |id, month, year|
+        ).each do |id, project_type, month, year|
           acitives[id] ||= []
-          acitives[id] << [year, month]
+          acitives[id] << [year, month, project_type]
         end
         acitives
       end
     end
 
-    def active_in_month? client_id:, month:, year:
-      actives_in_month[client_id]&.include?([year, month]) || false
+    def active_in_month? client_id:, project_type:, month:, year:
+      actives_in_month[client_id]&.include?([year, month, project_type]) || false
     end
 
     def first_record? enrollment

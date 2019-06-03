@@ -1,4 +1,4 @@
 .ho-container.text-center
-  = link_to({action: :index, format: :xlsx}, {class: 'btn btn-secondary btn-sm'}) do
+  = link_to({action: :index, format: :xlsx}.merge(params), {class: 'btn btn-secondary btn-sm'}) do
     %i.icon-download2
     Download Supporting Data

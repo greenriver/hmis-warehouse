@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class HudChronic < ::ModelForm
     attribute :on, Date, default: -> (r,_) { GrdaWarehouse::HudChronic.most_recent_day }

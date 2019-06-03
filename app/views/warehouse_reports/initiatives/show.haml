@@ -5,23 +5,23 @@
 %h1= content_for :title
 = render 'token_access'
 %ul.nav.nav-tabs{role: :tablist}
-  %li{role: :presentation, class: 'active'}
-    %a{href: "#outcomes", role: :tab, data: {toggle: :tab}, aria: {controls: 'outcomes'}}
+  %li.nav-item{role: :presentation}
+    %a.active.nav-link{href: "#outcomes", role: :tab, data: {toggle: :tab}, aria: {controls: 'outcomes', selected: 'true'}}
       Outcomes
-  %li{role: :presentation}
-    %a{href: "#details", role: :tab, data: {toggle: :tab}, aria: {controls: 'details'}}
+  %li.nav-item{role: :presentation}
+    %a.nav-link{href: "#details", role: :tab, data: {toggle: :tab}, aria: {controls: 'details'}}
       Details
-  %li{role: :presentation}
-    %a{href: "#settings", role: :tab, data: {toggle: :tab}, aria: {controls: 'settings'}}
+  %li.nav-item{role: :presentation}
+    %a.nav-link{href: "#settings", role: :tab, data: {toggle: :tab}, aria: {controls: 'settings'}}
       Chosen Options
 
 .tab-content
-  %div{role: :tabpanel, class: 'tab-pane', id: 'settings'}
+  %div.tab-pane.active.show.fade{role: :tabpanel, id: 'settings', aria:{labelledby:"settings"}}
     = render 'settings'
-  %div{role: :tabpanel, class: 'active tab-pane', id: 'outcomes'}
+  %div.tab-pane.fade{role: :tabpanel, id: 'outcomes', aria:{labelledby:"outcomes"}}
     .warehouse-reports__initiatives
       = render 'outcomes'
-  %div{role: :tabpanel, class: 'tab-pane', id: 'details'}
+  %div.tab-pane.fade{role: :tabpanel, id: 'details', aria:{labelledby:"details"}}
     .warehouse-reports__initiatives
       - show_view_partials.each do |p|
         - if ['breakdown','client_counts'].include?(p[:partial])

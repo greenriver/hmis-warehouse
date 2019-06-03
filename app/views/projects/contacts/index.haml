@@ -3,13 +3,13 @@
 = render 'breadcrumbs'
 .row
   .col-sm-12
-    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary pull-right margin-bottom-02' do
+    = link_to new_project_contact_path(@entity), data: { loads_in_pjax_modal: true }, class: 'btn btn-primary pull-right mb-2' do
       %span.icon-plus
       Add a Contact
 .row
   .col-sm-12
     - if @contacts.present?
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th

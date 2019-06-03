@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Role < ActiveRecord::Base
   has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :users, through: :user_roles

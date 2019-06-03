@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class CohortsController < ApplicationController
   include PjaxModalController
   include CohortAuthorization
@@ -27,6 +33,7 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @modal_size = :lg
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)

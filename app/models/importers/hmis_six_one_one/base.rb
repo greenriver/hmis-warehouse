@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
@@ -359,7 +365,10 @@ module Importers::HMISSixOneOne
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
-      csv.each do |row|
+      # Reopen the file with corrected headers
+      csv = CSV.new(read_from, headers: header)
+      # since we're providing headers, skip the header row
+      csv.drop(1).each do |row|
         begin
           # remove any internal newlines
           row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
@@ -402,8 +411,11 @@ module Importers::HMISSixOneOne
 
     # make sure we have an ExportID in every file that
     # reflects the start date of the export
+    # NOTE: The white-listing process seems to add extra commas to the CSV
+    # These can break the useful export_id, so we need to remove any
+    # from the existing row before tacking on the new value
     def set_useful_export_id(row:, export_id:)
-      row['ExportID'] = "#{row['ExportID']}_#{export_id_addition}"
+      row['ExportID'] = "#{row['ExportID'].chomp(', ')}_#{export_id}"
       row
     end
 

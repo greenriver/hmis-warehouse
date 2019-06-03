@@ -1,0 +1,12 @@
+@import '../helpers';
+
+.datepicker {
+  padding: 0;
+  // Above header
+  // Use Important flag because z-index is strangely added inline by library
+  z-index: $zIndex-10+1 !important;
+}
+
+.datepicker input {
+  padding: $input-padding-y $input-padding-x;
+}

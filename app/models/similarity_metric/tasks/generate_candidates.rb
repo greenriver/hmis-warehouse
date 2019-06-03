@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module SimilarityMetric::Tasks
   class GenerateCandidates
    def initialize batch_size:10000, threshold:-1.45, run_length:240

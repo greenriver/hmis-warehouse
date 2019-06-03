@@ -10,12 +10,12 @@
 
 .row
   %h2 A. Core Services
-  %table.table.table-condensed
+  %table.table
     %tbody
       %tr
-        %th.col-md-4{rowspan: 2} 1.Street Outreach/Collaboration
-        %th.col-md-4 a. Unduplicated number of outreach contacts with YYA experiencing homelessness
-        %td.col-md-4= @report.one_a.count
+        %th{rowspan: 2} 1.Street Outreach/Collaboration
+        %th a. Unduplicated number of outreach contacts with YYA experiencing homelessness
+        %td= @report.one_a.count
       %tr
         %th b. Unduplicated number of outreach contacts with YYA considered “at-risk” of homelessness
         %td= @report.one_b.count
@@ -172,15 +172,15 @@
 
 .row
   %h2 F. Demographics
-  %table.table.table-condensed
+  %table.table.table-sm
     %tbody
       %tr
-        %th.col-md-4{rowspan: 5} 1. Age and Gender
-        %th.col-md-4
+        %th{rowspan: 5} 1. Age and Gender
+        %th
           a. Number of YYA served who were Under 18
           %br
           %i at start of reporting period
-        %td.col-md-4= @report.f_one_a.count
+        %td= @report.f_one_a.count
       %tr
         %th b. Number of YYA  served who identified as Male
         %td= @report.f_one_b.count
@@ -198,9 +198,9 @@
         %td= @report.f_one_e.count
 
     %tr
-      %th.col-md-4{rowspan: 9} 2. Race, Ethnicity and Language
-      %th.col-md-4 a. Number of YYA  served who identified as White (race)
-      %td.col-md-4= @report.f_two_a.count
+      %th{rowspan: 9} 2. Race, Ethnicity and Language
+      %th a. Number of YYA  served who identified as White (race)
+      %td= @report.f_two_a.count
     %tr
       %th b. Number of YYA  served who identified as African American (race)
       %td= @report.f_two_b.count
@@ -227,9 +227,9 @@
       %td= @report.f_two_i.count
 
     %tr
-      %th.col-md-4{rowspan: 3} 3. Disability
-      %th.col-md-4 a. Number of YYA served who reported having a Mental/Emotional Disability (disability)
-      %td.col-md-4= @report.f_three_a.count
+      %th{rowspan: 3} 3. Disability
+      %th a. Number of YYA served who reported having a Mental/Emotional Disability (disability)
+      %td= @report.f_three_a.count
     %tr
       %th b. Number of YYA served who reported having a Medical/Physical Disability (disability)
       %td= @report.f_three_b.count
@@ -238,9 +238,9 @@
       %td= @report.f_three_c.count
 
     %tr
-      %th.col-md-4{rowspan: 8} 4. Other
-      %th.col-md-4 a. Number of YYA served who were Pregnant or Parenting
-      %td.col-md-4= @report.f_four_a.count
+      %th{rowspan: 8} 4. Other
+      %th a. Number of YYA served who were Pregnant or Parenting
+      %td= @report.f_four_a.count
     %tr
       %th b. Number of YYA served who were LGBTQ+
       %td= @report.f_four_b.count

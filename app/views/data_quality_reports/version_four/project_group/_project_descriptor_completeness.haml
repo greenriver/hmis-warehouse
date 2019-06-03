@@ -1,0 +1,81 @@
+.well.overflow-scroll.text-center
+  %h3 Project Descriptor Completeness
+  .row
+    .col-sm-3
+      %h4 Operating Start Date
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.operating_start_date || 'blank'}
+    .col-sm-3
+      %h4 CoC Code
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.coc_code || 'blank'}
+    .col-sm-3
+      %h4 Funder
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.funder.presence || 'blank'}
+    .col-sm-3
+      %h4 Inventory Information Date
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.inventory_information_dates.presence || 'blank'}
+  .row
+    .col-sm-3
+      %h4 Geocode
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.geocode.presence || 'blank'}
+    .col-sm-3
+      %h4 Geography Type
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{p.geography_type.presence || 'blank'}
+    .col-sm-3
+      %h4 Unit Inventory
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{pluralize(p.unit_inventory, 'unit')}
+        %li
+          Total:
+          %strong  #{pluralize(@report.report_project_group.unit_inventory, 'unit')}
+    .col-sm-3
+      %h4 Bed Inventory
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{pluralize(p.bed_inventory, 'bed')}
+        %li
+          Total:
+          %strong  #{pluralize(@report.report_project_group.bed_inventory, 'bed')}
+  .row
+    .col-sm-6
+      %h4 Housing Type
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{HUD.housing_type(p.housing_type.presence) || 'blank'}
+    .col-sm-6
+      %h4 Project Types
+      %ul.list-unstyled
+        - @report.report_projects.preload(:project).each do |p|
+          %li
+            #{p.project.ProjectName}:
+            %strong #{HUD.project_type p.project_type.presence}

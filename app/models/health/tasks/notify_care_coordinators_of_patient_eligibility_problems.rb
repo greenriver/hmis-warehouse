@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Health::Tasks
   class NotifyCareCoordinatorsOfPatientEligibilityProblems
     def notify!
@@ -7,19 +13,21 @@ module Health::Tasks
         pluck(:care_coordinator_id)
 
       User.where(id: care_coordinator_ids).each do |user|
-        ineligible_patient_ids = patient_scope.
+        ineligible_patients = patient_scope.
           no_coverage.
           where(care_coordinator_id: user.id).
-          pluck(:id)
+          pluck(:id, :client_id).to_h
 
-        no_aco_patient_ids = patient_scope.
+        no_aco_patients = patient_scope.
           standard_coverage.
           where(care_coordinator_id: user.id).
-          pluck(:id)
+          pluck(:id, :client_id).to_h
 
-        IneligiblePatientMailer.patients_with_eligibility_problems(user.email, ineligible_patient_ids, no_aco_patient_ids).deliver_now
+        IneligiblePatientMailer.patients_with_eligibility_problems(care_coordinator_email: user.email,
+          ineligible_patient_ids: ineligible_patients.values,
+          non_aco_patient_ids: no_aco_patients.values).deliver_now
 
-        Health::Patient.find(ineligible_patient_ids + no_aco_patient_ids).each do |patient|
+        Health::Patient.find(ineligible_patients.keys + no_aco_patients.keys).each do |patient|
           patient.update!(eligibility_notification: Time.now)
         end
       end

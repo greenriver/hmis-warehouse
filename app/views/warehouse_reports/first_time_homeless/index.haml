@@ -21,7 +21,7 @@
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name

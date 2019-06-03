@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::DataQuality::Fy2017
   class Q3 < Base
     ADULT = 18
@@ -49,8 +55,8 @@ module ReportGenerators::DataQuality::Fy2017
         CoCCode: ec_t[:CoCCode].to_sql,
         DisablingCondition: e_t[:DisablingCondition].to_sql,
       }
-      
-      all_client_scope.
+
+      active_client_scope.
         includes(enrollment: :enrollment_coc_at_entry).
         joins(:project).
         order(date: :asc).
