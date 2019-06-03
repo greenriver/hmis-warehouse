@@ -18,9 +18,10 @@ module Dashboards
     before_action :set_project_and_organization_ids
     before_action :set_start_date
     before_action :set_end_date
+    before_action :set_limit_to_vispdat
 
     def index
-      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes)
+      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes, limit_to_vispdat: @limit_to_vispdat)
 
       respond_to do |format|
         format.html do
@@ -111,6 +112,10 @@ module Dashboards
           map(&:to_sym).
           select{|m| m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)}
       end
+    end
+
+    def set_limit_to_vispdat
+      @limit_to_vispdat = params[:choose_report][:limit_to_vispdat] == '1' rescue false
     end
 
   end

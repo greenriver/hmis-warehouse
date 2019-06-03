@@ -18,6 +18,7 @@ module Reporting::MonthlyReports
 
     after_initialize :set_dates
     attr_accessor :date_range
+    attr_accessor :limit_to_vispdat
 
     def self.available_types
       {

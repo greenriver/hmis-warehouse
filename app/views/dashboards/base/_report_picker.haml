@@ -13,6 +13,8 @@
         = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
       .w-20.mr-2
         = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
+    - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
+      = f.input :limit_to_vispdat, as: :boolean, label: 'Only include clients with VI-SPDAT assessments'
     .w-20
       = f.button :submit, 'Update View'
 
