@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190531005415) do
+ActiveRecord::Schema.define(version: 20190603192544) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1322,6 +1322,34 @@ ActiveRecord::Schema.define(version: 20190531005415) do
   end
 
   add_index "eto_api_configs", ["data_source_id"], name: "index_eto_api_configs_on_data_source_id", using: :btree
+
+  create_table "eto_client_lookups", force: :cascade do |t|
+    t.integer  "data_source_id",              null: false
+    t.string   "enterprise_guid",             null: false
+    t.integer  "participant_site_identifier", null: false
+    t.integer  "site_id",                     null: false
+    t.integer  "subject_id",                  null: false
+    t.datetime "last_updated"
+  end
+
+  add_index "eto_client_lookups", ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_touch_point_lookups", force: :cascade do |t|
+    t.integer  "data_source_id", null: false
+    t.integer  "subject_id",     null: false
+    t.integer  "assessment_id",  null: false
+    t.integer  "response_id",    null: false
+    t.datetime "last_updated"
+  end
+
+  add_index "eto_touch_point_lookups", ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_touch_point_response_times", force: :cascade do |t|
+    t.integer  "touch_point_unique_identifier", null: false
+    t.integer  "response_unique_identifier",    null: false
+    t.datetime "response_last_updated",         null: false
+    t.integer  "subject_unique_identifier",     null: false
+  end
 
   create_table "exports", force: :cascade do |t|
     t.string   "export_id"
