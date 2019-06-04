@@ -807,6 +807,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             label: days,
           }
         end
+        if report_type == :project_group
+          numerator = enrolled_clients.sum(:days_of_service)
+          denominator = enrolled_clients.count
+          average = numerator.to_f / denominator
+          days = pluralize(average.round, 'day') rescue '0 days'
+          issues << {
+            project_id: nil,
+            project_name: 'Overall',
+            label: days,
+          }
+        end
         issues
       end
     end
@@ -824,6 +835,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             project_id: project.project_id,
             project_name: project.project_name,
             label: pluralize(count, 'client'),
+            percent: percent_over_one_year,
+          }
+        end
+        if report_type == :project_group
+          numerator = enrolled_clients.where(days_of_service: (365..Float::INFINITY)).count
+          denominator = enrolled_clients.count
+          percent_over_one_year = ((numerator.to_f / denominator) * 100).round rescue 0
+          issues << {
+            project_id: nil,
+            project_name: 'Overall',
+            label: pluralize(numerator, 'client'),
             percent: percent_over_one_year,
           }
         end
@@ -933,23 +955,23 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         a_t = Reporting::DataQualityReports::Enrollment.arel_table
         denominator = included_clients.count
         earned_retained = included_clients.where(
-          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned])
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned])
         ).count
         non_employment_cash_retained = included_clients.where(
-          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash])
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_penultimate_non_employment_cash])
         ).count
         overall_retained = included_clients.where(
-          a_t[:income_at_later_date_overall].gteq(a_t[:income_at_entry_overall])
+          a_t[:income_at_later_date_overall].gteq(a_t[:income_at_penultimate_overall])
         ).count
 
         earned_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         non_employment_cash_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_penultimate_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         overall_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_overall].gt(a_t[:income_at_penultimate_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
 
         earned_retained_percentage = ((earned_retained / denominator.to_f) * 100).round rescue 0
