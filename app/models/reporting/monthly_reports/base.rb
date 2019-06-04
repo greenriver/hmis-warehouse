@@ -18,7 +18,6 @@ module Reporting::MonthlyReports
 
     after_initialize :set_dates
     attr_accessor :date_range
-    attr_accessor :limit_to_vispdat
 
     def self.available_types
       {
@@ -271,18 +270,7 @@ module Reporting::MonthlyReports
     end
 
     def enrollment_source
-      source = GrdaWarehouse::ServiceHistoryEnrollment.homeless
-      case limit_to_vispdat
-        when :with_vispdat
-          source = source.
-            joins(client: :vispdats).
-            merge(GrdaWarehouse::Vispdat::Base.completed)
-        when :without_vispdat
-          source = source.where.not(id: GrdaWarehouse::Vispdat::Base.select(:client_id))
-        else # :all_clients
-
-      end
-      source
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless
     end
 
   end
