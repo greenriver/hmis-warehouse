@@ -133,7 +133,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def move_in_date_above_threshold
-      enrolled_clients.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
+      enrolled_household_heads.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
     end
 
     def should_have_income_at_annual
