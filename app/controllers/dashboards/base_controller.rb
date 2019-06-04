@@ -114,8 +114,20 @@ module Dashboards
       end
     end
 
+    def vispdat_limits
+      {
+        'All clients' => :all_clients,
+        'Only clients with VI-SPDATs' => :with_vispdat,
+        'Only clients without VI-SPDATs' => :without_vispdat,
+      }
+    end
+    helper_method :vispdat_limits
+
     def set_limit_to_vispdat
-      @limit_to_vispdat = params[:choose_report][:limit_to_vispdat] == '1' rescue false
+      # Whitelist values
+      @limit_to_vispdat = vispdat_limits.values.detect do |v|
+        v == params[:choose_report][:limit_to_vispdat].to_sym
+      end rescue :all_clients
     end
 
   end

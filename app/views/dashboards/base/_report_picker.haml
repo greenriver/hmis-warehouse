@@ -9,12 +9,14 @@
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jOrganizations'}, selected: @organization_ids, label: 'Organizations', required: false
       .w-20.mr-2
         = f.input :project_ids, collection: [], as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jProjects'}, selected: @project_ids, label: 'Projects', required: false
+      - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
+        .w-20.mr-2
+          = f.input :limit_to_vispdat, collection: vispdat_limits, selected: @limit_to_vispdat, label: 'Limit Clients',input_html: { class: :select2 }, required: false
       .w-20.mr-2
         = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
       .w-20.mr-2
         = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
-    - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
-      = f.input :limit_to_vispdat, as: :boolean, label: 'Only include clients with VI-SPDAT assessments', input_html: { checked: @limit_to_vispdat }
+
     .w-20
       = f.button :submit, 'Update View'
 

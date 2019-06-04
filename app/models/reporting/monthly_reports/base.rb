@@ -272,8 +272,15 @@ module Reporting::MonthlyReports
 
     def enrollment_source
       source = GrdaWarehouse::ServiceHistoryEnrollment.homeless
-      if limit_to_vispdat
-        source = source.joins(client: :vispdats)
+      case limit_to_vispdat
+        when :with_vispdat
+          source = source.
+            joins(client: :vispdats).
+            merge(GrdaWarehouse::Vispdat::Base.completed)
+        when :without_vispdat
+          source = source.where.not(id: GrdaWarehouse::Vispdat::Base.select(:client_id))
+        else # :all_clients
+
       end
       source
     end
