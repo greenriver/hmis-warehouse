@@ -18,96 +18,24 @@ module Bo
 
     end
 
-    # def fetch_client_modifications
-    #   wsdl_url = ENV['BO_WSDL_URL_1']
-    #   params = {
-    #     wsdl: 1,
-    #     cuid: ENV['BO_HMIS_PARTICIPANTS'],
-    #   }
-    #   url = wsdl_url + params.to_query
-
-    #   client = Savon.client(wsdl: url)
-
-    #   # client.operations
-    #   # => [:run_query_as_a_service, :run_query_as_a_service_ex, :values_of_site_name]
-
-    #   response = client.call(:run_query_as_a_service, message: { login: ENV['BO_USER_1'], password: ENV['BO_PASS_1'], Cms: ENV['BO_SERVER_1']});
-    #   # Return the individual rows
-    #   response.body[:run_query_as_a_service_response][:table][:row]
-    # end
-
-    # This can be *very* slow
-    # def guid_lookup
-    #   @guid_lookup ||= begin
-    #     wsdl_url = ENV['BO_WSDL_URL_1']
-    #     url = wsdl_url + params = { cuid: ENV['BO_GUID_LOOKUP_1'] }.to_query
-    #     client = Savon.client(
-    #       wsdl: url,
-    #       read_timeout: 2_400,
-    #       log_level: :debug
-    #     )
-    #     response = client.call(
-    #       :run_query_as_a_service,
-    #       message: { login: ENV['BO_USER_1'],
-    #         password: ENV['BO_PASS_1'],
-    #         Cms: ENV['BO_SERVER_1']
-    #       }
-    #     )
-    #     response.body[:run_query_as_a_service_response][:table][:row]
-    #   end
-    # end
-
-    # def sites_and_participant_ids_by_guid
-    #   @sites_and_participant_ids_by_guid ||= guid_lookup.map do |row|
-    #     [row[:participant_enterprise_identifier], row]
-    #   end.to_h
-    # end
-
-    # def site_id_for guid
-    #   site_name = sites_and_participant_ids_by_guid[guid].try(:[], :site_name)
-    #   site_id_from_name(site_name)
-    # end
-
-    # def touch_point_responses
-    #   wsdl_url = ENV['BO_WSDL_URL_1']
-    #   url = wsdl_url + { cuid: ENV['BO_TPRESPONSES'] }.to_query
-    #   client = Savon.client(
-    #     wsdl: url,
-    #     read_timeout: 2_400,
-    #     log_level: :debug,
-    #     log: true,
-    #     filters: [:password]
-    #   )
-
-    #   puts client.operations
-    #   # => [:run_query_as_a_service, :run_query_as_a_service_ex, :values_of_site_name]
-
-    #   response = client.call(
-    #     :run_query_as_a_service,
-    #     message: {
-    #       login: ENV['BO_USER_1'],
-    #       password: ENV['BO_PASS_1'],
-    #       Cms: ENV['BO_SERVER_1'],
-    #       TouchPoint_Unique_Identifier: 143,
-    #     }
-    #   )
-    #   # response.body
-    # end
-
     # Try a few times, re-try if we get some specific errors or the body is empty
     def call_with_retry client, options
       response = ''
       failures = 0
-      while failures < 10
+      while failures < 25
         begin
           puts "attempting to call #{client.wsdl.document}"
           response = client.call(*options)
         rescue NoMethodError => e
           failures += 1
-          Rails.logger.info "failed to call #{client.wsdl.document}"
+          Rails.logger.info "failed with NoMethodError, #{failures} failures; #{client.wsdl.document}"
+          Rails.logger.debug e.inspect
+          sleep 5
         rescue Savon::InvalidResponseError => e
           failures += 1
-          Rails.logger.info "failed to call #{client.wsdl.document}"
+          Rails.logger.info "failed with Savon::InvalidResponseError, #{failures} failures; #{client.wsdl.document}"
+          Rails.logger.debug e.inspect
+          sleep 5
         end
         if response.present? && response.body.present?
           break
@@ -121,6 +49,7 @@ module Bo
       url = wsdl_url + { cuid: ENV['BO_CLIENT_LOOKUP_WSDL_1'] }.to_query
       client = Savon.client(
         wsdl: url,
+        open_timeout: 5,
         read_timeout: 2_400,
         log_level: :debug,
         log: true,
@@ -130,20 +59,43 @@ module Bo
       response = call_with_retry(client, [
         :run_query_as_a_service,
           message: {
-            login: ENV['BO_USER_1'],
-            password: ENV['BO_PASS_1'],
-            Cms: ENV['BO_SERVER_1'],
-            TouchPoint_Unique_Identifier: 143,
+            'login' => ENV['BO_USER_1'],
+            'password' => ENV['BO_PASS_1'],
+            'Cms' => ENV['BO_SERVER_1'],
           }
         ]
       )
     end
 
-    def fetch_touch_point_modification_dates start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
+    def fetch_client_lookup_manual start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
       wsdl_url = ENV['BO_WSDL_URL_1']
-      url = wsdl_url + { cuid: ENV['BO_TOUCHPOINT_RESPONSE_MODIFICATION_DATES_1'] }.to_query
+      url = wsdl_url + { cuid: ENV['BO_CLIENT_LOOKUP_STANDARD_1'], timeout: 600 }.to_query
       client = Savon.client(
         wsdl: url,
+        open_timeout: 5,
+        read_timeout: 2_400,
+        log_level: :debug,
+        log: true,
+        filters: [:password]
+      )
+      response = client.call(
+        :run_query_as_a_service,
+        message: {
+          'login' => ENV['BO_USER_1'],
+          'password' => ENV['BO_PASS_1'],
+          'Cms' => ENV['BO_SERVER_1'],
+          'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
+          'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
+        }
+      )
+    end
+
+    def fetch_touch_point_modification_dates start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
+      wsdl_url = ENV['BO_WSDL_URL_1']
+      url = wsdl_url + { cuid: ENV['BO_DISTINCT_TOUCH_POINT_RESPONSE_MODIFICATION_DATES_1'] }.to_query
+      client = Savon.client(
+        wsdl: url,
+        open_timeout: 5,
         read_timeout: 2_400,
         log_level: :debug,
         log: true,
@@ -153,9 +105,9 @@ module Bo
       response = call_with_retry(client, [
         :run_query_as_a_service,
         message: {
-          login: ENV['BO_USER_1'],
-          password: ENV['BO_PASS_1'],
-          Cms: ENV['BO_SERVER_1'],
+         'login' => ENV['BO_USER_1'],
+          'password' => ENV['BO_PASS_1'],
+          'Cms' => ENV['BO_SERVER_1'],
           'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
           'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
           # FIXME:
@@ -166,18 +118,50 @@ module Bo
       ])
     end
 
+    def fetch_touch_point_modification_dates_manual start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
+      wsdl_url = ENV['BO_WSDL_URL_1']
+      url = wsdl_url + { cuid: ENV['BO_DISTINCT_TOUCH_POINT_RESPONSE_MODIFICATION_DATES_1'] }.to_query
+      client = Savon.client(
+        wsdl: url,
+        open_timeout: 5,
+        read_timeout: 2_400,
+        log_level: :debug,
+        log: true,
+        filters: [:password]
+      )
+
+       response = client.call(
+        :run_query_as_a_service,
+        message: {
+          'login' => ENV['BO_USER_1'],
+          'password' => ENV['BO_PASS_1'],
+          'Cms' => ENV['BO_SERVER_1'],
+          'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
+          'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
+          # FIXME:
+          'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
+          # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
+          TouchPoint_Unique_Identifier: 143,
+        }
+      )
+
+    end
+
     def rebuild_eto_client_lookups
       response = fetch_client_lookup
       rows = response.body[:run_query_as_a_service_response][:table][:row]
       new_clients = []
-      @errors = []
       rows.each do |row|
         site_id = site_id_from_name(row[:site_name])
-        @errors << row
         next if site_id.blank?
+        guid = row[:participant_enterprise_identifier].gsub('-', '')
+        client_id = client_ids_by_guid[guid]
+        next if client_id.blank?
+
         new_clients << GrdaWarehouse::EtoQaaws::ClientLookup.new(
           data_source_id: @data_source_id,
-          enterprise_guid: row[:participant_enterprise_identifier].gsub('-', ''),
+          client_id: client_id,
+          enterprise_guid: guid,
           participant_site_identifier: row[:participant_site_identifier].to_i,
           site_id: site_id_from_name(row[:site_name]),
           subject_id: row[:subject_unique_identifier].to_i,
@@ -195,7 +179,6 @@ module Bo
       rows = response.body[:run_query_as_a_service_response][:table][:row]
       new_rows = []
       existing_rows = []
-      @errors = []
       # TODO: figure out match to existing and which we don't already have
       # remove any we already have, then insert both batches
       # uniq one data_source_id, subject_id, response_id
@@ -204,11 +187,20 @@ module Bo
       end
     end
 
+    def existing_eto_touch_point_lookups
+      @existing_eto_touch_point_lookups ||= GrdaWarehouse::EtoQaaws::TouchPointLookup.where(data_source_id: @data_source_id).distinct.pluck(:subject_id, :response_id)
+    end
+
     def touch_point_ids
-      GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).
+      @touch_point_ids ||= GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).
         distinct.
         pluck(:assessment_id)
-   end
+    end
+
+    def client_ids_by_guid
+      @client_ids_by_guid ||= GrdaWarehouse::Hud::Client.
+        where(data_source_id: @data_source_id).pluck(:PersonalID, :id).to_h
+    end
 
     def sites
       @sites ||= @api.sites

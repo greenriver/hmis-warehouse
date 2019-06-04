@@ -1325,6 +1325,7 @@ ActiveRecord::Schema.define(version: 20190603192544) do
 
   create_table "eto_client_lookups", force: :cascade do |t|
     t.integer  "data_source_id",              null: false
+    t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
     t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
@@ -1332,16 +1333,19 @@ ActiveRecord::Schema.define(version: 20190603192544) do
     t.datetime "last_updated"
   end
 
+  add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
   add_index "eto_client_lookups", ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
 
   create_table "eto_touch_point_lookups", force: :cascade do |t|
     t.integer  "data_source_id", null: false
+    t.integer  "client_id",      null: false
     t.integer  "subject_id",     null: false
     t.integer  "assessment_id",  null: false
     t.integer  "response_id",    null: false
     t.datetime "last_updated"
   end
 
+  add_index "eto_touch_point_lookups", ["client_id"], name: "index_eto_touch_point_lookups_on_client_id", using: :btree
   add_index "eto_touch_point_lookups", ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id", using: :btree
 
   create_table "eto_touch_point_response_times", force: :cascade do |t|
