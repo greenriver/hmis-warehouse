@@ -94,6 +94,28 @@ module Bo
     #   # response.body
     # end
 
+    # Try a few times, re-try if we get some specific errors or the body is empty
+    def call_with_retry client, options
+      response = ''
+      failures = 0
+      while failures < 10
+        begin
+          puts "attempting to call #{client.wsdl.document}"
+          response = client.call(*options)
+        rescue NoMethodError => e
+          failures += 1
+          Rails.logger.info "failed to call #{client.wsdl.document}"
+        rescue Savon::InvalidResponseError => e
+          failures += 1
+          Rails.logger.info "failed to call #{client.wsdl.document}"
+        end
+        if response.present? && response.body.present?
+          break
+        end
+      end
+      return response
+    end
+
     def fetch_client_lookup
       wsdl_url = ENV['BO_WSDL_URL_1']
       url = wsdl_url + { cuid: ENV['BO_CLIENT_LOOKUP_WSDL_1'] }.to_query
@@ -105,21 +127,19 @@ module Bo
         filters: [:password]
       )
 
-      response = client.call(
+      response = call_with_retry(client, [
         :run_query_as_a_service,
-        message: {
-          login: ENV['BO_USER_1'],
-          password: ENV['BO_PASS_1'],
-          Cms: ENV['BO_SERVER_1'],
-          TouchPoint_Unique_Identifier: 143,
-        }
+          message: {
+            login: ENV['BO_USER_1'],
+            password: ENV['BO_PASS_1'],
+            Cms: ENV['BO_SERVER_1'],
+            TouchPoint_Unique_Identifier: 143,
+          }
+        ]
       )
     end
 
-    # TODO: need to rescue
-    # NoMethodError: undefined method `element_children' for nil:NilClass
-    # also rescue from body = ''
-    def fetch_touch_point_modification_dates
+    def fetch_touch_point_modification_dates start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
       wsdl_url = ENV['BO_WSDL_URL_1']
       url = wsdl_url + { cuid: ENV['BO_TOUCHPOINT_RESPONSE_MODIFICATION_DATES_1'] }.to_query
       client = Savon.client(
@@ -130,18 +150,20 @@ module Bo
         filters: [:password]
       )
 
-      response = client.call(
+      response = call_with_retry(client, [
         :run_query_as_a_service,
         message: {
           login: ENV['BO_USER_1'],
           password: ENV['BO_PASS_1'],
           Cms: ENV['BO_SERVER_1'],
-          'Enter_value_s__for__Date_Last_Updated___Start_' => 1.weeks.ago.strftime('%FT%T.%L'),
-          'Enter_value_s__for__Date_Last_Updated___End_' => Time.now.strftime('%FT%T.%L'),
-          'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186], #touch_point_ids,
+          'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
+          'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
+          # FIXME:
+          'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
+          # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
           TouchPoint_Unique_Identifier: 143,
         }
-      )
+      ])
     end
 
     def rebuild_eto_client_lookups
@@ -165,6 +187,20 @@ module Bo
       GrdaWarehouse::EtoQaaws::ClientLookup.transaction do
         GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id).delete_all
         GrdaWarehouse::EtoQaaws::ClientLookup.import(new_clients)
+      end
+    end
+
+    def rebuild_eto_touch_point_lookups
+      response = fetch_touch_point_modification_dates
+      rows = response.body[:run_query_as_a_service_response][:table][:row]
+      new_rows = []
+      existing_rows = []
+      @errors = []
+      # TODO: figure out match to existing and which we don't already have
+      # remove any we already have, then insert both batches
+      # uniq one data_source_id, subject_id, response_id
+      rows.uniq.each do |row|
+
       end
     end
 
