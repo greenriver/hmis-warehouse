@@ -393,8 +393,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Last Name' => :last_name,
         'Entry Date' => :entry_date,
         'Entry Date Entered' => :enrollment_date_created,
+        'Days to Enter' => :days_to_add_entry_date,
         'Exit Date' => :exit_date,
         'Exit Date Entered' => :exit_date_created,
+        'Days to Exit' => :days_to_add_exit_date,
         'Project' => :project_name,
       }
     end

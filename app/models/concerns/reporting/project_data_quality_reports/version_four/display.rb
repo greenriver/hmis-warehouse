@@ -731,7 +731,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @describe_time_to_exit ||= begin
         issues = []
         report_projects.each do |project|
-          count = time_to_exit_by_project_id[project.id] || 0
+          count = time_to_exit_by_project_id[project.project_id] || 0
           denominator = exiting_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
           issues << {
