@@ -953,7 +953,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         # clients with at least two income records
         included_clients = enrolled_clients.where.not(income_at_later_date_overall: nil)
         a_t = Reporting::DataQualityReports::Enrollment.arel_table
-        denominator = included_clients.count
+        denominator = enrolled_household_heads.count
         earned_retained = included_clients.where(
           a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned])
         ).count
