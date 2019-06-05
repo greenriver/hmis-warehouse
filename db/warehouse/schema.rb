@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190604164934) do
+ActiveRecord::Schema.define(version: 20190605153143) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -828,6 +828,18 @@ ActiveRecord::Schema.define(version: 20190604164934) do
     t.boolean  "full_release",             default: false, null: false
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
+  end
+
+  create_table "bo_configs", force: :cascade do |t|
+    t.integer "data_source_id"
+    t.string  "user"
+    t.string  "encrypted_pass"
+    t.string  "encrypted_pass_iv"
+    t.string  "url"
+    t.string  "server"
+    t.string  "client_lookup_cuid"
+    t.string  "touch_point_lookup_cuid"
+    t.string  "subject_response_lookup_cuid"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
