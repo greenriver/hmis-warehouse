@@ -123,14 +123,14 @@ module ReportGenerators::Lsa::Fy2018
           directive: 2,
           hash_status:1,
           include_deleted: false,
-        ).where("project_ids @> ?", system_wide_project_ids.to_json)
+        ).where("project_ids @> ?", @project_ids.to_json)
         &.first
       return existing_export if existing_export.present?
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
-        projects: system_wide_project_ids,
+        projects: @project_ids,
         period_type: 3,
         directive: 2,
         hash_status:1,

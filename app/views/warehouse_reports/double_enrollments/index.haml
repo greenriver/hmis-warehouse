@@ -1,0 +1,35 @@
+- title = "Clients Enrolled in Multiple Projects of the Same Type"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+
+= simple_form_for :double_enrollments, url: warehouse_reports_double_enrollments_path, html: {method: :get} do |f|
+  .row.mb-4
+    .col-sm-3
+      .input-group.date{'data-provide' => 'datepicker'}
+        = f.input_field :date, name: :date, class: 'form-control', value: @date
+        .input-group-append
+          %button.icon-calendar.btn.btn-secondary{type: 'button'}
+    .col-sm-3
+      = f.button :submit, value: 'Update View'
+%p LSA checks enrollments on the following dates: October 31, January 31, April 30, and July 31.
+= render 'warehouse_reports/limited_by_project_note'
+.warehouse-reports__double_enrollments
+
+  %table.table.table-sm.table-hover
+    %thead
+      %tr
+        %th Last Name
+        %th First Name
+        %th Enrollment Count
+        %th Project Type
+    %tbody
+      - st = GrdaWarehouse::Hud::Enrollment.arel_table
+      - @counts.each do |client_id, data|
+        - client = @clients[client_id]
+        - data.each do |client_id, project_type, count|
+          %tr
+            %td= link_to client.LastName, client_path(client)
+            %td= link_to client.FirstName, client_path(client)
+            %td= count
+            %td= HUD.project_type project_type
