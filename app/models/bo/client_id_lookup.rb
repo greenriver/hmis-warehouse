@@ -29,7 +29,7 @@ module Bo
         password: @config.pass,
         endpoint: @config.url,
         cuid: @config.subject_response_lookup_cuid,
-        url_options: {authType: 'secEnterprise', locale: 'en_US', ConvertAnyType: 'false'},
+        # url_options: {authType: 'secEnterprise', locale: 'en_US', ConvertAnyType: 'false'},
       }
        message = {
         'login' => @config.user,
@@ -113,8 +113,24 @@ module Bo
       return rows
     end
 
+    def fetch_batches_of_touch_point_dates
+      rows = []
+      week_ranges.each do |start_time, end_time|
+        response = fetch_touch_point_modification_dates(
+          start_time: start_time,
+          end_time: end_time
+        )
+        response_rows = response.raw_table if response.present?
+        if response_rows.present?
+          rows += response_rows
+        end
+      end
+      return rows
+    end
+
     def rebuild_subject_response_lookups
-      @subject_rows = fetch_subject_response_lookup
+      @subject_rows = fetch_subject_response_lookup&.raw_table
+      return unless @subject_rows.present?
       new_subjects = []
       @subject_rows.each do |row|
         new_subjects << GrdaWarehouse::EtoQaaws::SubjectResponseLookup.new(
@@ -138,6 +154,9 @@ module Bo
         next if site_id.blank?
         guid = row[:participant_enterprise_identifier].gsub('-', '')
         client_id = client_ids_by_guid[guid]
+        if Rails.env.development?
+          client_id = client_ids_by_guid.values.sample
+        end
         next if client_id.blank?
 
         new_clients << GrdaWarehouse::EtoQaaws::ClientLookup.new(
@@ -158,15 +177,28 @@ module Bo
 
     # Maintain the last 6 months of touch points
     def rebuild_eto_touch_point_lookups
-      response = fetch_touch_point_modification_dates
-      rows = response.raw_table
+      @touch_point_lookups = fetch_batches_of_touch_point_dates
       new_rows = []
-      existing_rows = []
-      # TODO: figure out match to existing and which we don't already have
-      # remove any we already have, then insert both batches
-      # uniq one data_source_id, subject_id, response_id
-      rows.uniq.each do |row|
-
+      # new_rows should be authoritative for anything in this data source
+      @touch_point_lookups.uniq.each do |row|
+        guid = row[:participant_enterprise_identifier].gsub('-', '')
+        client_id = client_ids_by_guid[guid]
+        if Rails.env.development?
+          client_id = client_ids_by_guid.values.sample
+        end
+        next if client_id.blank?
+        new_rows << GrdaWarehouse::EtoQaaws::TouchPointLookup.new(
+          data_source_id: @data_source_id,
+          client_id: client_id,
+          subject_id: row[:subject_unique_identifier].to_i,
+          assessment_id: row[:touch_point_unique_identifier].to_i,
+          response_id: row[:response_unique_identifier].to_i,
+          last_updated: row[:date_last_updated],
+        )
+      end
+       GrdaWarehouse::EtoQaaws::TouchPointLookup.transaction do
+        GrdaWarehouse::EtoQaaws::TouchPointLookup.where(data_source_id: @data_source_id).delete_all
+        GrdaWarehouse::EtoQaaws::TouchPointLookup.import(new_rows)
       end
     end
 
@@ -176,21 +208,20 @@ module Bo
       failures = 0
       while failures < 25
         begin
-          client = Qaaws.new(client_options)
-          response = client.request(message)
+          response = Qaaws.new(client_options).request(message)
         rescue NoMethodError => e
           failures += 1
-          Rails.logger.info "failed with NoMethodError, #{failures} failures; #{client.wsdl_location}"
+          Rails.logger.info "failed with NoMethodError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
         rescue Savon::InvalidResponseError => e
           failures += 1
-          Rails.logger.info "failed with Savon::InvalidResponseError, #{failures} failures; #{client.wsdl_location}"
+          Rails.logger.info "failed with Savon::InvalidResponseError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
         rescue Qaaws::QaawsError => e
           failures += 1
-          Rails.logger.info "failed with Qaaws::QaawsError, #{failures} failures; #{client.wsdl_location}"
+          Rails.logger.info "failed with Qaaws::QaawsError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
         end
