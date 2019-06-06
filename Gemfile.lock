@@ -1,4 +1,16 @@
 GIT
+  remote: https://github.com/greenriver/eis-ruby-qaaws.git
+  revision: 5c536ffdd21768e3cd16eac0a07337922cd38057
+  branch: master
+  specs:
+    qaaws (0.17.0)
+      activesupport
+      i18n
+      json (~> 1.7)
+      nokogiri (= 1.10.3)
+      savon (= 2.12.0)
+
+GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 60f4a4ce37bc4ad25a75f93c596a850bcf9fbb7e
   branch: 820
@@ -16,16 +28,6 @@ GIT
       mimemagic (~> 0.3)
       nokogiri (~> 1.8, >= 1.8.2)
       rubyzip (~> 1.2, >= 1.2.1)
-
-PATH
-  remote: /Users/elliot/Sites/eis-ruby-qaaws
-  specs:
-    qaaws (0.17.0)
-      activesupport
-      i18n
-      json (~> 1.7)
-      nokogiri (= 1.10.3)
-      savon (= 2.12.0)
 
 GEM
   remote: https://rubygems.org/

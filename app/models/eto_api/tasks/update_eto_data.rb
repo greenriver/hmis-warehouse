@@ -169,10 +169,9 @@ module EtoApi::Tasks
           consent_expires_on: hmis_client&.consent_expires_on,
         }
 
-        if hmis_client.changed?
-          hmis_client.updated_at = @api.parse_date(api_response['AuditDate'])
-          hmis_client.save
-        end
+        hmis_client.updated_at = @api.parse_date(api_response['AuditDate'])
+        hmis_client.save
+
       end
       hmis_client
     end
@@ -293,6 +292,8 @@ module EtoApi::Tasks
       hmis_form.api_response = api_response
       hmis_form.answers = answers
       hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
+      # Persist updated date from ETO
+      hmis_form.updated_at = @api.parse_date(api_response['AuditDate'])
       begin
         hmis_form.save
         hmis_form.create_qualifying_activity!

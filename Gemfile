@@ -74,7 +74,7 @@ gem 'htmlentities'
 gem "rest-client", "~> 2.0"
 gem "gmail", require: false
 gem 'savon'
-gem 'qaaws', require: false, path: '/Users/elliot/Sites/eis-ruby-qaaws'#, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
+gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
 gem 'stupidedi', require: false, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 

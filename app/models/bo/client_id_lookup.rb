@@ -84,7 +84,7 @@ module Bo
         # 'Cms' => @config.server,
         'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
         'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
-        # FIXME: DEBUGGING line
+        # DEBUGGING line
         # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
         'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
       }
