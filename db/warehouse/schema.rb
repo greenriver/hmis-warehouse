@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190605153143) do
+ActiveRecord::Schema.define(version: 20190606000839) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1339,14 +1339,22 @@ ActiveRecord::Schema.define(version: 20190605153143) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
-    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
   end
 
   add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
   add_index "eto_client_lookups", ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_subject_response_lookups", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.integer "subject_id",     null: false
+    t.integer "response_id",    null: false
+  end
+
+  add_index "eto_subject_response_lookups", ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id", using: :btree
 
   create_table "eto_touch_point_lookups", force: :cascade do |t|
     t.integer  "data_source_id", null: false
@@ -1355,6 +1363,7 @@ ActiveRecord::Schema.define(version: 20190605153143) do
     t.integer  "assessment_id",  null: false
     t.integer  "response_id",    null: false
     t.datetime "last_updated"
+    t.integer  "site_id"
   end
 
   add_index "eto_touch_point_lookups", ["client_id"], name: "index_eto_touch_point_lookups_on_client_id", using: :btree

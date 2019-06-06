@@ -3,12 +3,20 @@ module Bo
   class ClientIdLookup
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize api_site_identifier:
+    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago
       @api_site_identifier = api_site_identifier
+      @start_time = start_time
+      @debug = debug
       @api_config = api_config_from_site_identifier @api_site_identifier
       @data_source_id = @api_config['data_source_id']
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
       api_connect()
+    end
+
+    def update_all!
+      rebuild_eto_client_lookups
+      rebuild_eto_touch_point_lookups
+      # rebuild_subject_response_lookups
     end
 
     def api_config_from_site_identifier site_identifier
@@ -76,9 +84,9 @@ module Bo
         # 'Cms' => @config.server,
         'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
         'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
-        # FIXME:
-        'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
-        # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
+        # FIXME: DEBUGGING line
+        # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
+        'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
       }
       if one_off
         response = Qaaws.new(client_config).request(message)
@@ -88,7 +96,7 @@ module Bo
     end
 
     def week_ranges
-      start_time = 1.months.ago
+      start_time = @start_time
       weeks = []
       while start_time < Date.today
         end_time = [start_time + 1.week, Time.now].min
@@ -100,7 +108,9 @@ module Bo
 
     def fetch_batches_of_clients
       rows = []
-      week_ranges.each do |start_time, end_time|
+      Rails.logger.info "Fetching #{week_ranges.count} batches of clients. From #{week_ranges.first.first} to #{week_ranges.last.last}" if @debug
+      week_ranges.each_with_index do |(start_time, end_time), index|
+        Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_client_lookup(
           start_time: start_time,
           end_time: end_time
@@ -115,7 +125,9 @@ module Bo
 
     def fetch_batches_of_touch_point_dates
       rows = []
-      week_ranges.each do |start_time, end_time|
+      Rails.logger.info "Fetching #{week_ranges.count} batches of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}" if @debug
+      week_ranges.each_with_index do |(start_time, end_time), index|
+        Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_touch_point_modification_dates(
           start_time: start_time,
           end_time: end_time
@@ -190,7 +202,8 @@ module Bo
         new_rows << GrdaWarehouse::EtoQaaws::TouchPointLookup.new(
           data_source_id: @data_source_id,
           client_id: client_id,
-          subject_id: row[:subject_unique_identifier].to_i,
+          subject_id: row[:subject_identifier].to_i,
+          site_id: site_id_from_name(row[:site_name]),
           assessment_id: row[:touch_point_unique_identifier].to_i,
           response_id: row[:response_unique_identifier].to_i,
           last_updated: row[:date_last_updated],
