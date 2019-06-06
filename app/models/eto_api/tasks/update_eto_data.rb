@@ -19,7 +19,7 @@ module EtoApi::Tasks
       @stop_time = Time.now + run_time
       @one_off = one_off
 
-      setup_notifier('ETO API Importer')
+      setup_notifier('ETO API Importer -- QaaWS based')
     end
 
     def run!
@@ -42,9 +42,9 @@ module EtoApi::Tasks
       # If the hmis_client is older, fetch
       # if the hmis_client doesn't exist, fetch
       existing_hmis_clients = GrdaWarehouse::HmisClient.
-        pluck(:client_id, :subject_id, :updated_at).
-        map do |client_id, subject_id, updated_at|
-          [[client_id, subject_id], updated_at]
+        pluck(:client_id, :subject_id, :eto_last_updated).
+        map do |client_id, subject_id, eto_last_updated|
+          [[client_id, subject_id], eto_last_updated]
         end.to_h
       eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.pluck(
         :client_id,
@@ -61,6 +61,11 @@ module EtoApi::Tasks
           to_fetch << [client_id, participant_site_identifier, site_id]
         end
       end
+
+      msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
+      Rails.logger.info msg
+      @notifier.ping msg
+
       to_fetch.each do |client_id, participant_site_identifier, site_id|
         fetch_demographics(
           client_id: client_id,
@@ -68,6 +73,9 @@ module EtoApi::Tasks
           site_id: site_id
         )
       end
+      msg = "Fetched #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
+      Rails.logger.info msg
+      @notifier.ping msg
     end
 
     def update_touch_points!
@@ -77,9 +85,9 @@ module EtoApi::Tasks
         :assessment_id,
         :subject_id,
         :response_id,
-        :updated_at,
-      ).map do |client_id, site_id, assessment_id, subject_id, response_id, updated_at|
-        [[client_id, site_id, assessment_id, subject_id, response_id], updated_at]
+        :eto_last_updated,
+      ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated|
+        [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
       end.to_h
 
       eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.pluck(
@@ -99,6 +107,10 @@ module EtoApi::Tasks
         end
       end
 
+      msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
+      Rails.logger.info msg
+      @notifier.ping msg
+
       to_fetch.each do |client_id, site_id, assessment_id, subject_id, response_id|
         api_response = @api.touch_point_response(
           site_id: site_id,
@@ -113,6 +125,9 @@ module EtoApi::Tasks
           subject_id: subject_id
         )
       end
+      msg = "Fetched #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
+      Rails.logger.info msg
+      @notifier.ping msg
     end
 
     def fetch_demographics client_id:, participant_site_identifier:, site_id:
@@ -169,7 +184,7 @@ module EtoApi::Tasks
           consent_expires_on: hmis_client&.consent_expires_on,
         }
 
-        hmis_client.updated_at = @api.parse_date(api_response['AuditDate'])
+        hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         hmis_client.save
 
       end
@@ -293,7 +308,7 @@ module EtoApi::Tasks
       hmis_form.answers = answers
       hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
       # Persist updated date from ETO
-      hmis_form.updated_at = @api.parse_date(api_response['AuditDate'])
+      hmis_form.eto_last_updated = @api.parse_date(api_response['AuditDate'])
       begin
         hmis_form.save
         hmis_form.create_qualifying_activity!

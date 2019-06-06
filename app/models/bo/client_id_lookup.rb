@@ -1,6 +1,9 @@
 require 'qaaws'
 module Bo
   class ClientIdLookup
+    include NotifierConfig
+    attr_accessor :send_notifications, :notifier_config, :notifier
+
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
     def initialize api_site_identifier:, debug: true, start_time: 6.months.ago
@@ -10,6 +13,7 @@ module Bo
       @api_config = api_config_from_site_identifier @api_site_identifier
       @data_source_id = @api_config['data_source_id']
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
+      setup_notifier('ETO QaaWS Importer')
       api_connect()
     end
 
@@ -108,7 +112,9 @@ module Bo
 
     def fetch_batches_of_clients
       rows = []
-      Rails.logger.info "Fetching #{week_ranges.count} batches of clients. From #{week_ranges.first.first} to #{week_ranges.last.last}" if @debug
+      msg = "Fetching #{week_ranges.count} #{'batch'.pluralize(week_ranges.count)} of clients. From #{week_ranges.first.first} to #{week_ranges.last.last}"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
       week_ranges.each_with_index do |(start_time, end_time), index|
         Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_client_lookup(
@@ -120,12 +126,17 @@ module Bo
           rows += response_rows
         end
       end
+      msg = "Fetched batches of clients."
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
       return rows
     end
 
     def fetch_batches_of_touch_point_dates
       rows = []
-      Rails.logger.info "Fetching #{week_ranges.count} batches of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}" if @debug
+      msg = "Fetching #{week_ranges.count} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
       week_ranges.each_with_index do |(start_time, end_time), index|
         Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_touch_point_modification_dates(
@@ -137,6 +148,9 @@ module Bo
           rows += response_rows
         end
       end
+      msg = "Fetched batches of touch points."
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
       return rows
     end
 
@@ -166,9 +180,11 @@ module Bo
         next if site_id.blank?
         guid = row[:participant_enterprise_identifier].gsub('-', '')
         client_id = client_ids_by_guid[guid]
-        if Rails.env.development?
-          client_id = client_ids_by_guid.values.sample
-        end
+        # debugging
+        # if Rails.env.development?
+        #   client_id = client_ids_by_guid.values.sample
+        # end
+        # end debugging
         next if client_id.blank?
 
         new_clients << GrdaWarehouse::EtoQaaws::ClientLookup.new(
@@ -178,7 +194,7 @@ module Bo
           participant_site_identifier: row[:participant_site_identifier].to_i,
           site_id: site_id_from_name(row[:site_name]),
           subject_id: row[:subject_unique_identifier].to_i,
-          last_updated: row[:date_last_updated],
+          last_updated: row[:date_last_updated].localtime,
         )
       end
       GrdaWarehouse::EtoQaaws::ClientLookup.transaction do
@@ -206,7 +222,7 @@ module Bo
           site_id: site_id_from_name(row[:site_name]),
           assessment_id: row[:touch_point_unique_identifier].to_i,
           response_id: row[:response_unique_identifier].to_i,
-          last_updated: row[:date_last_updated],
+          last_updated: row[:date_last_updated].localtime,
         )
       end
        GrdaWarehouse::EtoQaaws::TouchPointLookup.transaction do
@@ -227,19 +243,26 @@ module Bo
           Rails.logger.info "failed with NoMethodError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
+          next
         rescue Savon::InvalidResponseError => e
           failures += 1
           Rails.logger.info "failed with Savon::InvalidResponseError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
+          next
         rescue Qaaws::QaawsError => e
           failures += 1
           Rails.logger.info "failed with Qaaws::QaawsError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
+          next
         end
         if response.present?
           break
+        else
+          msg "FAILURE: unable to successfully fetch #{Qaaws.new(client_options).wsdl_location}"
+          Rails.logger.info msg
+          @notifier.ping msg if send_notifications && msg.present?
         end
       end
       return response
