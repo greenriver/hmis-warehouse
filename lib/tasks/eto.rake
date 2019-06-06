@@ -40,6 +40,7 @@ namespace :eto do
         end
 
       GrdaWarehouse::HmisForm.where(eto_last_updated: nil).
+        where(assessment_id: GrdaWarehouse::HMIS::Assessment.where(fetch: true).select(:assessment_id)).
         where.not(api_response: nil).select(:id, :api_response).
         find_each(batch_size: 250) do |form|
           form.update(eto_last_updated: EtoApi::Base.parse_date(form.api_response['AuditDate']))
