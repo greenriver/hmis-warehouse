@@ -59,10 +59,12 @@ module GrdaWarehouse::HMIS
     end
 
     def self.update_touch_points
+      Rails.logger.info 'Fetching Touch Points'
       touch_points = fetch_touch_points()
       assessments = fetch_assessments()
       add_missing(touch_points: touch_points, assessments: assessments)
       deactivate_inactive(touch_points: touch_points, assessments: assessments)
+      Rails.logger.info 'Touch Points Fetched'
     end
 
     def self.add_missing touch_points:, assessments:
@@ -135,8 +137,10 @@ module GrdaWarehouse::HMIS
         api = EtoApi::Base.new(trace: false, api_connection: connection_key)
         api.connect
         api.sites.each do |site_id, name|
+          Rails.logger.info "fetching for site #{name}"
           touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name, config: config))
           api.programs(site_id: site_id).each do |program_id, program_name|
+            Rails.logger.info "fetching for program #{program_name}"
             api.set_program(site_id: site_id, program_id: program_id)
             begin
               api.touch_points(site_id: site_id, program_id: program_id).each do |touch_point|

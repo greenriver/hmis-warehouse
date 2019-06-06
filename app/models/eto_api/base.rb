@@ -212,7 +212,7 @@ module EtoApi
     #     api_post_json "#{@endpoints[:forms]}/Forms/POS/GetAllActorPOS", {programid: program_id, actorType: actor_type}, creds
     #   end
     # end
-     
+
     def get_client_efforts staff_id:, program_id:, client_id:, site_id:
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/Effort/#{staff_id}/#{program_id}/#{client_id}", creds
@@ -427,13 +427,17 @@ module EtoApi
       api_post_json "#{@endpoints[:search]}/Search/AdvancedSearch/", search_params, creds
     end
 
-    def parse_date(str)
+    def self.parse_date(str)
       if md = %r|\A\/Date\((?<ms>-?[\d]+)(?<h>[-+]\d\d)(?<m>\d\d)\)\/\z|.match(str)
         tz = ActiveSupport::TimeZone.all.detect do |z|
           z.utc_offset == (md[:h].to_i*60*60)+(md[:m].to_i*60)
         end
         tz.at(md[:ms].to_f/1000)
       end
+    end
+
+    def parse_date(str)
+      self.class.parse_date(str)
     end
   end
 end
