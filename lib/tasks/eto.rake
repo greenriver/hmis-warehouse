@@ -34,14 +34,14 @@ namespace :eto do
     desc "Add eto_last_updated to any hmis_clients and hmis_forms where missing"
     task maintain_eto_last_updated: [:environment, "log:info_to_stdout"] do
       GrdaWarehouse::HmisClient.where(eto_last_updated: nil).
-        where.not(response: nil).
-        find_each do |client|
+        where.not(response: nil).select(:id, :response).
+        find_each(batch_size: 250) do |client|
           client.update(eto_last_updated: EtoApi::Base.parse_date(JSON.parse(client.response)['AuditDate']))
         end
 
       GrdaWarehouse::HmisForm.where(eto_last_updated: nil).
-        where.not(api_response: nil).
-        find_each do |form|
+        where.not(api_response: nil).select(:id, :api_response).
+        find_each(batch_size: 250) do |form|
           form.update(eto_last_updated: EtoApi::Base.parse_date(form.api_response['AuditDate']))
         end
     end
