@@ -71,7 +71,7 @@ module EtoApi::Tasks
 
         new_count = (to_fetch.map{|m| [m[:client_id], m[:subject_id]]}.uniq - existing_hmis_clients.keys.uniq).count
         update_count = to_fetch.count - new_count
-        msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates, via the ETO API"
+        msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         @notifier.ping msg
         to_fetch.each do |row|
           fetch_demographics(
@@ -142,7 +142,7 @@ module EtoApi::Tasks
         end
         new_count = (to_fetch.map(&:values).uniq - existing_touch_points.keys.uniq).count
         update_count = to_fetch.count - new_count
-        msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates, via the ETO API"
+        msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         Rails.logger.info msg
         @notifier.ping msg
 
