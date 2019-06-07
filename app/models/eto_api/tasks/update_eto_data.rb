@@ -85,6 +85,8 @@ module EtoApi::Tasks
         Rails.logger.info msg
         @notifier.ping msg
       end
+      # prevent returning the config
+      return true
     end
 
     private def eto_client_lookup_columns
@@ -167,6 +169,8 @@ module EtoApi::Tasks
         Rails.logger.info msg
         @notifier.ping msg
       end
+      # prevent returning the config
+      return true
     end
 
     private def eto_touch_point_lookup_columns
