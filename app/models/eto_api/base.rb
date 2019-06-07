@@ -12,6 +12,8 @@ require 'memoist'
 module EtoApi
   class Base
     extend Memoist
+    include NotifierConfig
+    attr_accessor :send_notifications, :notifier_config, :notifier
     attr_accessor :trace
 
     def initialize(trace: false, api_connection: 'dnd_eto')
@@ -37,6 +39,8 @@ module EtoApi
         }
       }
       @enterprise = api_config[api_connection]['enterprise']
+      @failures = 0
+      setup_notifier('ETO API')
     end
 
     def self.api_configs
@@ -76,7 +80,17 @@ module EtoApi
     private def api_get_body(url, headers={})
       connect unless connected?
       debug_log "=> GET #{url}"
-      body = RestClient.get(url, headers).body
+      begin
+        body = RestClient.get(url, headers).body
+      rescue RestClient::Unauthorized => e
+        @failures += 1
+        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
+        sleep(@failures * 10)
+      rescue RestClient::InternalServerError => e
+        @failures += 1
+        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
+        sleep(@failures * 10)
+      end
       debug_log "<= #{body}"
       body
     end

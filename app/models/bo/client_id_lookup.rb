@@ -75,7 +75,7 @@ module Bo
       end
     end
 
-    def fetch_touch_point_modification_dates one_off: false, start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
+    def fetch_touch_point_modification_dates one_off: false, start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L'), tp_ids: touch_point_ids
       client_config = {
         username: @config.user,
         password: @config.pass,
@@ -90,7 +90,7 @@ module Bo
         'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
         # DEBUGGING line
         # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
-        'Enter_value_s__for__TouchPoint_Unique_Identifier_' => touch_point_ids,
+        'Enter_value_s__for__TouchPoint_Unique_Identifier_' => tp_ids,
       }
       if one_off
         response = Qaaws.new(client_config).request(message)
@@ -134,18 +134,23 @@ module Bo
 
     def fetch_batches_of_touch_point_dates
       rows = []
-      msg = "Fetching #{week_ranges.count} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}"
+      total_batches = week_ranges.count * touch_point_ids.count
+      msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       week_ranges.each_with_index do |(start_time, end_time), index|
-        Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
-        response = fetch_touch_point_modification_dates(
-          start_time: start_time,
-          end_time: end_time
-        )
-        response_rows = response.raw_table if response.present?
-        if response_rows.present?
-          rows += response_rows
+        # fetch responses for one touch point at a time to avoid timeouts
+        touch_point_ids.each_with_index do |tp_id, tp_index|
+          Rails.logger.info "Fetching batch #{(index + 1) * (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
+          response = fetch_touch_point_modification_dates(
+            start_time: start_time,
+            end_time: end_time,
+            tp_ids: [tp_id]
+          )
+          response_rows = response.raw_table if response.present?
+          if response_rows.present?
+            rows += response_rows
+          end
         end
       end
       msg = "Fetched batches of touch points."

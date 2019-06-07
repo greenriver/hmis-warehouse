@@ -47,14 +47,18 @@ namespace :eto do
         end
     end
 
+    # bin/rake eto:import:demographics_and_touch_points[start_date='2019-06-06']
     desc "Fetch ETO data via QaaWS and API"
-    task demographics_and_touch_points: [:environment, "log:info_to_stdout"] do
+    task :demographics_and_touch_points, [:start_date] => [:environment, "log:info_to_stdout"] do |t, args|
+      start_date = args.start_date&.to_date || 6.months.ago
+
       # Ensure we know about all the available touch points
       GrdaWarehouse::HMIS::Assessment.update_touch_points
+
       # somewhat hackish, but figure out which sites we have access to
       ENV.select{|k,v| k.include?('ETO_API_SITE') && v.presence != 'unknown' }.each do |k,v|
         identifier = k.sub('ETO_API_SITE', '')
-        Bo::ClientIdLookup.new(api_site_identifier: identifier, start_time: 1.years.ago).update_all!
+        Bo::ClientIdLookup.new(api_site_identifier: identifier, start_time: start_date).update_all!
       end
       EtoApi::Tasks::UpdateEtoData.new.run!
     end
