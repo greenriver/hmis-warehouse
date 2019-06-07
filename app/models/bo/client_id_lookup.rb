@@ -127,19 +127,16 @@ module Bo
       week_ranges.each_with_index do |(start_time, end_time), index|
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
-          Rails.logger.info "Fetching batch #{(index + 1) * (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
+          Rails.logger.info "Fetching batch #{(index * week_ranges.count) * (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
           response = fetch_touch_point_modification_dates(
             start_time: start_time,
             end_time: end_time,
             tp_id: tp_id
           )
-          response_rows = response if response.present?
-          if response_rows.present?
-            rows += response_rows
-          end
+          rows += response if response.present?
         end
       end
-      msg = "Fetched batches of touch points."
+      msg = "Fetched batches of touch points. Found #{rows.count} touch point responses"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       return rows
@@ -200,18 +197,22 @@ module Bo
       new_rows = []
       # new_rows should be authoritative for anything in this data source
       @touch_point_lookups.uniq.each do |row|
+        next if row[:participant_enterprise_identifier].blank?
         guid = row[:participant_enterprise_identifier].gsub('-', '')
         client_id = client_ids_by_guid[guid]
+        # Debugging
         if Rails.env.development?
           client_id = client_ids_by_guid.values.sample
         end
+        # END Debugging
         next if client_id.blank?
+        next if row[:date_last_updated].blank?
         new_rows << GrdaWarehouse::EtoQaaws::TouchPointLookup.new(
           data_source_id: @data_source_id,
           client_id: client_id,
           subject_id: row[:subject_identifier].to_i,
           site_id: site_id_from_name(row[:site_name]),
-          assessment_id: row[:touch_point_unique_identifier].to_i,
+          assessment_id: row[:touchpoint_unique_identifier].to_i,
           response_id: row[:response_unique_identifier].to_i,
           last_updated: row[:date_last_updated].to_time.localtime,
         )

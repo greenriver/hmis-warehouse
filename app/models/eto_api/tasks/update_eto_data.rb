@@ -205,7 +205,7 @@ module EtoApi::Tasks
           end
 
           @custom_config.demographic_fields_with_attributes.each do |key,details|
-            data = entity(client: client, response: api_response, entity_label: details['entity_label'])
+            data = entity(site_id: site_id, response: api_response, entity_label: details['entity_label'])
             if data.present?
               hmis_client[key] = data.try(:[], 'EntityName')
               hmis_client[details['attributes']] = data if hmis_client[key].present?
