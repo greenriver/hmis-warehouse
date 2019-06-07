@@ -28,13 +28,17 @@ module Bo
         raise RequestFailed, "Failed to request #{url}; #{response.response_code} http code"
       end
       begin
+        if parsed_result["Envelope"]['Body']['runQueryAsAServiceResponse']['table'].blank?
+          return []
+        end
         parsed_result["Envelope"]['Body']['runQueryAsAServiceResponse']['table']['row'].map do |row|
           row.map do |k,v|
             [k.downcase.underscore.to_sym, v]
           end.to_h
         end
       rescue
-        raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code #{xml} #{parsed_result}"
+        # raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code #{xml} #{parsed_result}"
+        raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code"
       end
     end
 

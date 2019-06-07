@@ -240,9 +240,10 @@ module Bo
         if response.present?
           break
         else
-          msg "FAILURE: unable to successfully fetch #{settings[:url]}"
+          msg = "FAILURE: unable to successfully fetch #{settings[:url]}; response blank; options: #{message_options.inspect}"
           Rails.logger.info msg
           @notifier.ping msg if send_notifications && msg.present?
+          break
         end
       end
       return response
