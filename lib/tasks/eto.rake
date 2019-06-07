@@ -53,7 +53,7 @@ namespace :eto do
       start_date = args.start_date&.to_date || 6.months.ago
 
       # Ensure we know about all the available touch points
-      GrdaWarehouse::HMIS::Assessment.update_touch_points
+      # GrdaWarehouse::HMIS::Assessment.update_touch_points
 
       # somewhat hackish, but figure out which sites we have access to
       ENV.select{|k,v| k.include?('ETO_API_SITE') && v.presence != 'unknown' }.each do |k,v|

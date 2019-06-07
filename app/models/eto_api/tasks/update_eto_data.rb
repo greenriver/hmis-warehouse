@@ -41,43 +41,60 @@ module EtoApi::Tasks
         @api.connect
         existing_hmis_clients = GrdaWarehouse::HmisClient.joins(:client).
           merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id)).
-          pluck(:client_id, :subject_id, :eto_last_updated).
+          pluck(
+            :client_id,
+            :subject_id,
+            :eto_last_updated,
+          ).
           map do |client_id, subject_id, eto_last_updated|
             [[client_id, subject_id], eto_last_updated]
           end.to_h
-        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id).pluck(
-          :client_id,
-          :subject_id,
-          :last_updated,
-          :site_id,
-          :participant_site_identifier
-        )
+
+        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id).pluck(*eto_client_lookup_columns).
+          map do |row|
+            Hash[eto_client_lookup_columns.zip(row)]
+          end
         to_fetch = []
-        eto_client_lookups.each do |client_id, subject_id, last_updated, site_id, participant_site_identifier|
-          existing_updated = existing_hmis_clients[[client_id, subject_id]]
+
+        eto_client_lookups.each do |row|
+          existing_updated = existing_hmis_clients[[row[:client_id], row[:subject_id]]]
           # timezones seem to get very confused, just check the date.
-          if existing_updated.blank? || existing_updated.to_date < last_updated.to_date
-            binding.pry if existing_updated.present?
-            to_fetch << [client_id, participant_site_identifier, site_id, subject_id]
+          if existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
+            to_fetch << {
+              client_id: row[:client_id],
+              participant_site_identifier: row[:participant_site_identifier],
+              site_id: row[:site_id],
+              subject_id: row[:subject_id],
+            }
           end
         end
-        new_client_count = (to_fetch.map(&:first).uniq - existing_hmis_clients.keys.map(&:first).uniq).count
-        update_client_count = to_fetch.count - new_client_count
-        msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_client_count} new, #{update_client_count} updates, via the ETO API"
-        @notifier.ping msg
 
-        to_fetch.each do |client_id, participant_site_identifier, site_id, subject_id|
+        new_count = (to_fetch.map{|m| [m[:client_id], m[:subject_id]]}.uniq - existing_hmis_clients.keys.uniq).count
+        update_count = to_fetch.count - new_count
+        msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates, via the ETO API"
+        @notifier.ping msg
+        to_fetch.each do |row|
           fetch_demographics(
-            client_id: client_id,
-            participant_site_identifier: participant_site_identifier,
-            site_id: site_id,
-            subject_id: subject_id
+            client_id: row[:client_id],
+            participant_site_identifier: row[:participant_site_identifier],
+            site_id: row[:site_id],
+            subject_id: row[:subject_id]
           )
         end
         msg = "Fetched #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
         @notifier.ping msg
       end
+    end
+
+    private def eto_client_lookup_columns
+      @eto_client_lookup_columns ||= [
+        :client_id,
+        :subject_id,
+        :last_updated,
+        :site_id,
+        :participant_site_identifier,
+      ]
     end
 
     def update_touch_points!
@@ -102,45 +119,65 @@ module EtoApi::Tasks
 
         eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.
           where(data_source_id: @data_source_id).
-          pluck(
-            :client_id,
-            :site_id,
-            :assessment_id,
-            :subject_id,
-            :response_id,
-            :last_updated,
-          )
+          pluck(*eto_touch_point_lookup_columns).
+          map do |row|
+            Hash[eto_touch_point_lookup_columns.zip(row)]
+          end
         to_fetch = []
-        eto_touch_point_lookups.each do |client_id, site_id, assessment_id, subject_id, response_id, last_updated|
-          existing_updated = existing_touch_points[[client_id, site_id, assessment_id, subject_id, response_id]]
+        eto_touch_point_lookups.each do |row|
+          key = [row[:client_id], row[:site_id], row[:assessment_id], row[:subject_id], row[:response_id]]
+          existing_updated = existing_touch_points[key]
           # timezones seem to get very confused, just check the date.
-          if existing_updated.blank? || existing_updated.to_date < last_updated.to_date
-            to_fetch << [client_id, site_id, assessment_id, subject_id, response_id]
+          if existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
+            to_fetch << {
+              client_id: row[:client_id],
+              site_id: row[:site_id],
+              assessment_id: row[:assessment_id],
+              subject_id: row[:subject_id],
+              response_id: row[:response_id],
+            }
           end
         end
-
-        msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
+        new_count = (to_fetch.map(&:values).uniq - existing_touch_points.keys.uniq).count
+        update_count = to_fetch.count - new_count
+        msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates, via the ETO API"
         Rails.logger.info msg
         @notifier.ping msg
 
-        to_fetch.each do |client_id, site_id, assessment_id, subject_id, response_id|
+        touch_points_saved = 0
+        to_fetch.each do |row|
+          # puts "Trying: client_id: #{row[:client_id]}, site_id: #{row[:site_id]}, assessment_id: #{row[:assessment_id]}, subject_id: #{row[:subject_id]}, response_id: #{row[:response_id]}"
           api_response = @api.touch_point_response(
-            site_id: site_id,
-            response_id: response_id,
-            touch_point_id: assessment_id
+            site_id: row[:site_id],
+            response_id: row[:response_id],
+            touch_point_id: row[:assessment_id]
           )
-          save_touch_point(
-            site_id: site_id,
-            touch_point_id: assessment_id,
-            api_response: api_response,
-            client_id: client_id,
-            subject_id: subject_id
-          )
+          if api_response.present?
+            save_touch_point(
+              site_id: row[:site_id],
+              touch_point_id: row[:assessment_id],
+              api_response: api_response,
+              client_id: row[:client_id],
+              subject_id: row[:subject_id]
+            )
+            touch_points_saved += 1
+          end
         end
-        msg = "Fetched #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
+        msg = "Fetched #{touch_points_saved} of #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
         @notifier.ping msg
       end
+    end
+
+    private def eto_touch_point_lookup_columns
+      @eto_touch_point_lookup_columns ||= [
+        :client_id,
+        :site_id,
+        :assessment_id,
+        :subject_id,
+        :response_id,
+        :last_updated,
+      ]
     end
 
     def fetch_demographics client_id:, participant_site_identifier:, site_id:, subject_id:
