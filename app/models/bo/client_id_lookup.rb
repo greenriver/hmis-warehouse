@@ -1,4 +1,3 @@
-require 'qaaws'
 module Bo
   class ClientIdLookup
     include NotifierConfig
@@ -36,66 +35,53 @@ module Bo
     end
 
     def fetch_subject_response_lookup one_off: false
-      client_config = {
-        username: @config.user,
-        password: @config.pass,
-        endpoint: @config.url,
-        cuid: @config.subject_response_lookup_cuid,
-        # url_options: {authType: 'secEnterprise', locale: 'en_US', ConvertAnyType: 'false'},
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.subject_response_lookup_cuid}",
+        method: :response_lookup,
       }
-       message = {
-        'login' => @config.user,
-        'password' => @config.pass,
-      }
+      message_options = {}
       if one_off
-        response = Qaaws.new(client_config).request(message)
+        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+        response = soap.response_lookup settings[:url]
       else
-        response = call_with_retry(client_config, message)
+        response = call_with_retry(settings, message_options)
       end
     end
 
-    def fetch_client_lookup one_off: false, start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L')
-      client_config = {
-        username: @config.user,
-        password: @config.pass,
-        endpoint: @config.url,
-        cuid: @config.client_lookup_cuid,
+    def fetch_client_lookup one_off: false, start_time: 1.weeks.ago, end_time: Time.now
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.client_lookup_cuid}",
+        method: :client_lookup_standard,
       }
-      message = {
-        'login' => @config.user,
-        'password' => @config.pass,
-        # 'Cms' => @config.server,
-        'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
-        'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
+      message_options = {
+        start_time: start_time,
+        end_time: end_time,
       }
+
       if one_off
-        response = Qaaws.new(client_config).request(message)
+        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+        response = soap.client_lookup_standard settings[:url]
       else
-        response = call_with_retry(client_config, message)
+        response = call_with_retry(settings, message_options)
       end
     end
 
-    def fetch_touch_point_modification_dates one_off: false, start_time: 1.weeks.ago.strftime('%FT%T.%L'), end_time: Time.now.strftime('%FT%T.%L'), tp_ids: touch_point_ids
-      client_config = {
-        username: @config.user,
-        password: @config.pass,
-        endpoint: @config.url,
-        cuid: @config.touch_point_lookup_cuid,
+    def fetch_touch_point_modification_dates one_off: false, start_time: 1.weeks.ago, end_time: Time.now, tp_id:
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.touch_point_lookup_cuid}",
+        method: :distinct_touch_point_lookup,
       }
-      message = {
-        'login' => @config.user,
-        'password' => @config.pass,
-        # 'Cms' => @config.server,
-        'Enter_value_s__for__Date_Last_Updated___Start_' => start_time,
-        'Enter_value_s__for__Date_Last_Updated___End_' => end_time,
-        # DEBUGGING line
-        # 'Enter_value_s__for__TouchPoint_Unique_Identifier_' => [186],
-        'Enter_value_s__for__TouchPoint_Unique_Identifier_' => tp_ids,
+      message_options = {
+        start_time: start_time,
+        end_time: end_time,
+        touch_point_id: tp_id,
       }
+
       if one_off
-        response = Qaaws.new(client_config).request(message)
+        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+        response = soap.distinct_touch_point_lookup settings[:url]
       else
-        response = call_with_retry(client_config, message)
+        response = call_with_retry(settings, message_options)
       end
     end
 
@@ -121,7 +107,7 @@ module Bo
           start_time: start_time,
           end_time: end_time
         )
-        response_rows = response.raw_table if response.present?
+        response_rows = response if response.present?
         if response_rows.present?
           rows += response_rows
         end
@@ -145,9 +131,9 @@ module Bo
           response = fetch_touch_point_modification_dates(
             start_time: start_time,
             end_time: end_time,
-            tp_ids: [tp_id]
+            tp_id: tp_id
           )
-          response_rows = response.raw_table if response.present?
+          response_rows = response if response.present?
           if response_rows.present?
             rows += response_rows
           end
@@ -160,7 +146,7 @@ module Bo
     end
 
     def rebuild_subject_response_lookups
-      @subject_rows = fetch_subject_response_lookup&.raw_table
+      @subject_rows = fetch_subject_response_lookup
       return unless @subject_rows.present?
       new_subjects = []
       @subject_rows.each do |row|
@@ -199,7 +185,7 @@ module Bo
           participant_site_identifier: row[:participant_site_identifier].to_i,
           site_id: site_id_from_name(row[:site_name]),
           subject_id: row[:subject_unique_identifier].to_i,
-          last_updated: row[:date_last_updated].localtime,
+          last_updated: row[:date_last_updated].to_time.localtime,
         )
       end
       GrdaWarehouse::EtoQaaws::ClientLookup.transaction do
@@ -227,7 +213,7 @@ module Bo
           site_id: site_id_from_name(row[:site_name]),
           assessment_id: row[:touch_point_unique_identifier].to_i,
           response_id: row[:response_unique_identifier].to_i,
-          last_updated: row[:date_last_updated].localtime,
+          last_updated: row[:date_last_updated].to_time.localtime,
         )
       end
        GrdaWarehouse::EtoQaaws::TouchPointLookup.transaction do
@@ -237,27 +223,16 @@ module Bo
     end
 
     # Try a few times, re-try if we get some specific errors or the body is empty
-    def call_with_retry client_options, message
+    def call_with_retry settings, message_options
       response = ''
       failures = 0
       while failures < 25
         begin
-          response = Qaaws.new(client_options).request(message)
+          soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+          response = soap.send(settings[:method], settings[:url], message_options)
         rescue NoMethodError => e
           failures += 1
-          Rails.logger.info "failed with NoMethodError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
-          Rails.logger.debug e.inspect
-          sleep (1..5).to_a.sample
-          next
-        rescue Savon::InvalidResponseError => e
-          failures += 1
-          Rails.logger.info "failed with Savon::InvalidResponseError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
-          Rails.logger.debug e.inspect
-          sleep (1..5).to_a.sample
-          next
-        rescue Qaaws::QaawsError => e
-          failures += 1
-          Rails.logger.info "failed with Qaaws::QaawsError, #{failures} failures; #{Qaaws.new(client_options).wsdl_location}"
+          Rails.logger.info "failed with NoMethodError, #{failures} failures; #{settings[:url]}"
           Rails.logger.debug e.inspect
           sleep (1..5).to_a.sample
           next
@@ -265,7 +240,7 @@ module Bo
         if response.present?
           break
         else
-          msg "FAILURE: unable to successfully fetch #{Qaaws.new(client_options).wsdl_location}"
+          msg "FAILURE: unable to successfully fetch #{settings[:url]}"
           Rails.logger.info msg
           @notifier.ping msg if send_notifications && msg.present?
         end

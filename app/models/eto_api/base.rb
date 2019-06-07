@@ -90,6 +90,10 @@ module EtoApi
         @failures += 1
         @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
         sleep(@failures * 10)
+      rescue RestClient::BadGateway => e
+        @failures += 1
+        @notifier.ping "Failed to fetch #{url}: #{e.inspect}"
+        sleep(@failures * 10)
       end
       debug_log "<= #{body}"
       body
