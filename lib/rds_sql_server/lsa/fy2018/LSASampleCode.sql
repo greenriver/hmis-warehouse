@@ -2614,7 +2614,9 @@ inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
   and cal.theDate > lhh.LastInactive
-  and cal.theDate < coalesce(sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time housed on housed.HoHID = sn.HoHID and housed.HHType = sn.HHType
   and housed.sysDate = cal.theDate
 where housed.sysDate is null and sn.ProjectType = 2
@@ -2627,7 +2629,9 @@ inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
-  and cal.theDate < coalesce(sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
 where (cal.theDate > lhh.LastInactive)
@@ -2665,7 +2669,9 @@ inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
-  and cal.theDate < coalesce(sn.MoveInDate, sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active and not housed at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.MoveInDate), dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
 where cal.theDate > lhh.LastInactive
@@ -4426,7 +4432,7 @@ group by cd.Cohort, pop.PopID
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ProjectID, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, 10
   , coalesce(pop.HHType, 0)
   , pop.PopID, -1, 54
@@ -4476,7 +4482,7 @@ group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, case p.ProjectType
     when 1 then 11
     when 8 then 12
@@ -4532,7 +4538,7 @@ group by cd.Cohort, pop.PopID, case p.ProjectType
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, 16 as Universe
   , coalesce(pop.HHType, 0) as HHType
   , pop.PopID, -1, 54
