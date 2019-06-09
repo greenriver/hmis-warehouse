@@ -106,18 +106,17 @@ module Importers::HMISSixOneOne
     def delete_remaining_pending_deletes()
       # If a pending delete is still present, the associated record is not in the import, and should be
       # marked as deleted
-      importable_files.values do |source|
-        source.where.not(pending_soft_delete: nil).select(:pending_soft_delete).find_each do |row|
-          row.update(DeletedAt: row.pending_soft_delete, pending_soft_delete: nil)
+      soft_deletable_sources.each do |source|
+        source.where.not(pending_date_deleted: nil).select(:id, :pending_date_deleted).find_each do |row|
+          row.update(DateDeleted: row.pending_date_deleted, pending_date_deleted: nil)
         end
-        # TODO
       end
     end
 
     def cleanup_any_pending_deletes
       # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
-      importable_files.values do |source|
-        source.update_all(pending_soft_delete: nil)
+      soft_deletable_sources.each do |source|
+        source.update_all(pending_date_deleted: nil)
       end
     end
 
@@ -483,6 +482,10 @@ module Importers::HMISSixOneOne
         lines_restored: 0,
         total_errors: 0,
       }
+    end
+
+    def soft_deletable_sources
+      importable_files.values - [ export_source ]
     end
 
     def importable_files
