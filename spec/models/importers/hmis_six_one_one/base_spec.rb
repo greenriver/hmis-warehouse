@@ -115,6 +115,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     it 'the effective export end date is 2017-09-19' do
       expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-19'.to_date)
     end
+    it 'will clean up the pending deletes' do
+      described_class.soft_deletable_sources.each do |source|
+        expect(source.where.not(pending_date_deleted: nil).count).to eq 0
+      end
+    end
     describe 'each client\'s counts will match expected counts' do
       clients = {
         '2f4b963171644a8b9902bdfe79a4b403' => {

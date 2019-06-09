@@ -488,6 +488,10 @@ module Importers::HMISSixOneOne
       importable_files.values - [ export_source ]
     end
 
+    def self.soft_deletable_sources
+      importable_files.values - [ export_source ]
+    end
+
     def importable_files
       self.class.importable_files
     end
