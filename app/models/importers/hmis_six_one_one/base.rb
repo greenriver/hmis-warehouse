@@ -91,14 +91,34 @@ module Importers::HMISSixOneOne
           @import.save
           import_services()
 
+          delete_remaining_pending_deletes()
           complete_import()
           match_clients()
           project_cleanup()
           log("Import complete")
         ensure
+          cleanup_any_pending_deletes()
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
+    end
+
+    def delete_remaining_pending_deletes()
+      # If a pending delete is still present, the associated record is not in the import, and should be
+      # marked as deleted
+      importable_files.values do |source|
+        source.where.not(pending_soft_delete: nil).select(:pending_soft_delete).find_each do |row|
+          row.update(DeletedAt: row.pending_soft_delete, pending_soft_delete: nil)
+        end
+        # TODO
+      end
+    end
+
+    def cleanup_any_pending_deletes
+      # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
+      importable_files.values do |source|
+        source.update_all(pending_soft_delete: nil)
+      end
     end
 
     def remove_import_files
