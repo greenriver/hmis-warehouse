@@ -109,7 +109,7 @@ module Import::HMISSixOneOne::Shared
         if self.date_provided_column.present?
           del_scope = del_scope.where(arel_table[date_provided_column].lteq(range.end))
         end
-        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
+        deleted_count += del_scope.update_all(pending_date_deleted: deleted_at)
       end
       deleted_count
     end
