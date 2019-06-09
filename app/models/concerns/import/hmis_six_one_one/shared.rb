@@ -66,7 +66,7 @@ module Import::HMISSixOneOne::Shared
     end
 
     def should_restore? row:, existing:, soft_delete_time:
-      soft_deleted_this_time = existing.deleted_at.present? && existing.deleted_at.to_i == soft_delete_time.to_i
+      soft_deleted_this_time = existing.pending_date_deleted.present?
       exists_in_incoming_file = row[:DateDeleted].blank?
 
       soft_deleted_this_time && exists_in_incoming_file
@@ -168,7 +168,7 @@ module Import::HMISSixOneOne::Shared
           to_restore.each_slice(1000) do |ids|
             # Make sure to update the export id when restoring to help with service history
             # generation
-            self.with_deleted.where(id: ids).update_all(DateDeleted: nil, ExportID: export_id)
+            self.with_deleted.where(id: ids).update_all(pending_date_deleted: nil, DateDeleted: nil, ExportID: export_id)
             stats[:lines_restored] += ids.size
           end
           if to_add.any?
