@@ -18,7 +18,8 @@ module Dashboards
 
       respond_to do |format|
         format.html do
-          @html = true
+          @pdf = true
+          render "dashboards/base/index", layout: false
         end
         format.xlsx do
           require_can_view_clients!
@@ -46,9 +47,14 @@ module Dashboards
       render(
         pdf: file_name,
         template: "dashboards/base/index",
-        # layout: false,
+        layout: false,
         encoding: "UTF-8",
         page_size: 'Letter',
+        javascript_delay: 10000,
+        lowquality: false,
+        dpi: 75,
+        view_as_html: true,
+        window_status: 'PDF'
         # header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
         # footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
         # Show table of contents by providing the 'toc' property

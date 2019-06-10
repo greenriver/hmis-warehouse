@@ -1,10 +1,80 @@
-- @show_census = false
--# = render 'index_title'
--# = render 'housed_overall'
--#
--# = render 'overview'
--# = render 'censuses'
--# = render 'entry'
--#
--# = render 'exit'
--# = render 'download'
+!!!
+%html
+  %head
+    = javascript_include_tag 'application'
+    = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
+    :sass
+      body
+        background: #FFF
+
+      h1
+        font-size: 42px
+        text-transform: uppercase
+        margin-bottom: 0
+
+      .chunk
+        border: 0 !important
+        width: 50%
+        margin: 0 0 20px 0 !important
+        padding: 0 0 0 0 !important
+        float: left
+        &:only-child
+          width: 100%
+          text-align: left !important
+        [class*=icon]
+          font-size: 50px
+        .title
+          margin: 0
+          font-size: 14px
+          color: #777
+          font-family: 'Open sans'
+        .description
+          margin: 0
+          color: #999
+          font-size: 12px
+        .metric
+          font-size: 18px
+          font-weight: 700
+          &,
+          a
+            color: #457687
+
+      .ho-container
+        box-shadow: none
+        padding: 0
+        page-break-inside: avoid
+
+      .ho-container__header
+        margin-bottom: 20px
+
+      .ho-container__header h3
+        font-size: 26px
+
+      .ho-container__summary
+        &::after
+          clear: both
+
+      .description
+        margin-top: 5px
+        margin-bottom: 5px
+
+      section
+        margin-bottom: 50px
+
+
+  %body
+    - @show_census = true
+    = render 'index_title'
+    %section
+      = render 'housed_overall'
+    %section
+      = render 'overview'
+    %section
+      = render 'censuses'
+    %section
+    = render 'entry'
+    %section
+    = render 'exit'
+    -# = render 'download'
+
+  = yield :page_js

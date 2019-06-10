@@ -1,7 +1,7 @@
 .ho-container.rrh
   .ho-container__header
-    %h3.mb-0 #{@report.sub_population_title} Exits to Permanent Housing
-  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    %h3 #{@report.sub_population_title} Exits to Permanent Housing
+  .ho-container__summary
     .rrh__enrolled.chunk.pr-4.mr-4.mb-4
       %h4.title
         #{@report.sub_population_title.pluralize} Housed to Date
@@ -18,6 +18,7 @@
         number of #{@report.sub_population_title.pluralize.downcase} housed during reporting period
 
   .jHoused
+    %h1 TEST
 
 
 = content_for :page_js do
