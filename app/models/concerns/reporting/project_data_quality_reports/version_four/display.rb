@@ -162,9 +162,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           active_count = active[id] || 0
           percent = (active_count / enrolled_count.to_f) * 100
           if percent < completeness_goal
+            project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             percentages << {
               project_id: id,
-              project_name: projects.detect{|p| p.id == id}.ProjectName,
+              project_name: project_name,
               label: 'Percent of enrolled clients with a service in the reporting period below acceptable threshold',
               percent: percent,
             }
@@ -341,9 +342,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
             percentage = ((count.to_f / denominator) * 100).round
             if percentage < completeness_goal
+              project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
               percentages << {
                 project_id: id,
-                project_name: projects.detect{|p| p.id == id}.ProjectName,
+                project_name: project_name,
                 label: "Low #{measure} rate - #{key.to_s.humanize}",
                 percent: percentage,
               }
@@ -509,9 +511,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           denominator = enrolled_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
+            project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             issues << {
               project_id: id,
-              project_name: projects.detect{|p| p.id == id}.ProjectName,
+              project_name: project_name,
               label: "Average time to enter exceeds acceptable threshold",
               value: average_timeliness.round,
             }
@@ -525,9 +528,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           next if denominator.zero?
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
+            project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             issues << {
               project_id: id,
-              project_name: projects.detect{|p| p.id == id}.ProjectName,
+              project_name: project_name,
               label: "Average time to enter exceeds acceptable threshold",
               value: average_timeliness.round,
             }
@@ -546,9 +550,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           select(:dob_after_entry_date).count
         dob_issues.each do |id, count|
           next if count.zero?
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: "#{pluralize(count, 'client')}",
             value: count,
           }
@@ -565,9 +570,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           select(:service_within_last_30_days).count
         service_issues.each do |id, count|
           next if count.zero?
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: "#{pluralize(count, 'client')}",
             value: count,
           }
@@ -584,9 +590,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           select(:service_after_exit).count
         service_issues.each do |id, count|
           next if count.zero?
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: "#{pluralize(count, 'client')}",
             value: count,
           }
@@ -632,9 +639,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           select(:days_of_service).count
         service_issues.each do |id, count|
           next if count.zero?
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: "#{pluralize(count, 'client')}",
             value: count,
           }
@@ -650,9 +658,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           select(:days_ph_before_move_in_date).count
         move_in_date_issues.each do |id, count|
           next if count.zero?
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: "#{pluralize(count, 'client')}",
             value: count,
           }
@@ -702,9 +711,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         time_to_enter_by_project_id.each do |id, count|
           denominator = enrolled_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
+          project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
             project_id: id,
-            project_name: projects.detect{|p| p.id == id}.ProjectName,
+            project_name: project_name,
             label: pluralize(average_timeliness.round, 'day'),
           }
         end
@@ -721,7 +731,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @describe_time_to_exit ||= begin
         issues = []
         report_projects.each do |project|
-          count = time_to_exit_by_project_id[project.id] || 0
+          count = time_to_exit_by_project_id[project.project_id] || 0
           denominator = exiting_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
           issues << {
@@ -797,6 +807,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             label: days,
           }
         end
+        if report_type == :project_group
+          numerator = enrolled_clients.sum(:days_of_service)
+          denominator = enrolled_clients.count
+          average = numerator.to_f / denominator
+          days = pluralize(average.round, 'day') rescue '0 days'
+          issues << {
+            project_id: nil,
+            project_name: 'Overall',
+            label: days,
+          }
+        end
         issues
       end
     end
@@ -814,6 +835,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             project_id: project.project_id,
             project_name: project.project_name,
             label: pluralize(count, 'client'),
+            percent: percent_over_one_year,
+          }
+        end
+        if report_type == :project_group
+          numerator = enrolled_clients.where(days_of_service: (365..Float::INFINITY)).count
+          denominator = enrolled_clients.count
+          percent_over_one_year = ((numerator.to_f / denominator) * 100).round rescue 0
+          issues << {
+            project_id: nil,
+            project_name: 'Overall',
+            label: pluralize(numerator, 'client'),
             percent: percent_over_one_year,
           }
         end
@@ -923,23 +955,23 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         a_t = Reporting::DataQualityReports::Enrollment.arel_table
         denominator = included_clients.count
         earned_retained = included_clients.where(
-          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned])
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned])
         ).count
         non_employment_cash_retained = included_clients.where(
-          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash])
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_penultimate_non_employment_cash])
         ).count
         overall_retained = included_clients.where(
-          a_t[:income_at_later_date_overall].gteq(a_t[:income_at_entry_overall])
+          a_t[:income_at_later_date_overall].gteq(a_t[:income_at_penultimate_overall])
         ).count
 
         earned_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         non_employment_cash_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_penultimate_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
         overall_retained_20 = included_clients.where(
-          a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
+          a_t[:income_at_later_date_overall].gt(a_t[:income_at_penultimate_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
         ).count
 
         earned_retained_percentage = ((earned_retained / denominator.to_f) * 100).round rescue 0

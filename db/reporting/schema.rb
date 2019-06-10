@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190518010835) do
+ActiveRecord::Schema.define(version: 20190604195547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -141,6 +141,10 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.date     "exit_date_created"
     t.date     "move_in_date"
     t.datetime "calculated_at",                                             null: false
+    t.integer  "income_at_penultimate_earned"
+    t.integer  "income_at_penultimate_non_employment_cash"
+    t.integer  "income_at_penultimate_overall"
+    t.integer  "income_at_penultimate_response"
   end
 
   create_table "warehouse_data_quality_report_project_groups", force: :cascade do |t|
@@ -232,7 +236,7 @@ ActiveRecord::Schema.define(version: 20190518010835) do
     t.integer  "prior_exit_project_type"
     t.integer  "prior_exit_destination_id"
     t.datetime "calculated_at",                             null: false
-    t.integer  "enrollment_id",                             null: false
+    t.integer  "enrollment_id"
   end
 
   add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
