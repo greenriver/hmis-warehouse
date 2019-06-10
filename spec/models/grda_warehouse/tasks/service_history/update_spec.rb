@@ -23,12 +23,6 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
     it 'the database will have two source clients' do
       expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
     end
-    it 'the destination client will have two source clients' do
-      expect(GrdaWarehouse::Hud::Client.destination.first.source_clients.count).to eq(2)
-    end
-    it 'the destination client will have two source enrollments' do
-      expect(GrdaWarehouse::Hud::Client.destination.first.source_enrollments.count).to eq(3)
-    end
 
     describe 'updating should...' do
       it 'the destination client will have two source clients' do
