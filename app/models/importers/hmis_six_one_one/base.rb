@@ -107,9 +107,7 @@ module Importers::HMISSixOneOne
       # If a pending delete is still present, the associated record is not in the import, and should be
       # marked as deleted
       soft_deletable_sources.each do |source|
-        source.where.not(pending_date_deleted: nil).select(:id, :pending_date_deleted).find_each do |row|
-          row.update(DateDeleted: row.pending_date_deleted, pending_date_deleted: nil)
-        end
+        source.where.not(pending_date_deleted: nil).update_all(DateDeleted: @soft_delete_time, pending_date_deleted: nil)
       end
     end
 
@@ -485,7 +483,8 @@ module Importers::HMISSixOneOne
     end
 
     def soft_deletable_sources
-      importable_files.values - [ export_source ]
+      self.class.soft_deletable_sources
+      # importable_files.values - [ export_source ]
     end
 
     def self.soft_deletable_sources
