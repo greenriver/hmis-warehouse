@@ -46,6 +46,6 @@
     - active_class = ''
     - if active == key
       - active_class = 'active'
-    %li.nav-item{role: :presentation, class: active_class}
+    %li.nav-item{role: :presentation}
       - tab_title = sub_population[:title]
-      = link_to tab_title, sub_population[:path], role: :tab, aria: {controls: tab_title}, class: 'nav-link'
+      = link_to tab_title, sub_population[:path], role: :tab, aria: {controls: tab_title}, class: "nav-link #{active_class}"
