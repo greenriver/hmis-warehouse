@@ -73,7 +73,9 @@ module Reporting::DataQualityReports
     end
 
     def services_scope project:, report_range:
-      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).
+      # Explicitly ignore extrapolated SO since we're reporting on data collected
+      GrdaWarehouse::ServiceHistoryService.where(record_type: :service).
+        joins(service_history_enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: project.id)).
         where(date: report_range.range)
     end
