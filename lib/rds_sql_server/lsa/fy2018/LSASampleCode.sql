@@ -1135,9 +1135,14 @@ select distinct lp.PersonalID, hn.EnrollmentID, p.ProjectType
     when p.TrackingMethod = 3 then null
     when hn.EntryDate < lp.CHStart then lp.CHStart
     else hn.EntryDate end
-  , case when p.ProjectType in (3,13) and hoh.MoveInDate >= hn.EntryDate
-    and hoh.MoveInDate < coalesce(x.ExitDate, lp.LastActive)
-    then hoh.MoveInDate else null end
+  -- 6/10/2019 for RRH/PSH enrollments where EntryDate is > than the HoH MoveInDate,
+  --  use EntryDate as MoveInDate (consistent with 5/9/2019 update to section 4.7)
+  , case when p.ProjectType not in (3,13) or hoh.MoveInDate is null then null
+    when hoh.MoveInDate >= hn.EntryDate
+      and hoh.MoveInDate < coalesce(x.ExitDate, lp.LastActive)
+      then hoh.MoveInDate
+    when hoh.MoveInDate < hn.EntryDate then hn.EntryDate
+    else null end
   , case
     when p.TrackingMethod = 3 then null
     when x.ExitDate is null then lp.LastActive
