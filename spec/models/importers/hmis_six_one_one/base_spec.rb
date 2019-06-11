@@ -214,6 +214,26 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
   end # End describe projects
 
+  describe 'When importing enrollments with restores' do
+    before(:all) do
+      @delete_later = []
+      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files'
+      import(file_path, data_source)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files'
+      import(file_path, data_source)
+    end
+    after(:all) do
+      # Because we are only running the import once, we have to do our own DB and file cleanup
+      GrdaWarehouse::Utility.clear!
+      cleanup_files
+    end
+
+    it 'has two enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+    end
+  end
+
   def import(file_path, data_source)
     source_file_path = File.join(file_path, 'source')
     import_path = File.join(file_path, data_source.id.to_s)
