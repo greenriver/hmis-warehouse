@@ -10,7 +10,7 @@
   = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
   = f.input :show_on_client_dashboard, label: 'Show cohort in client dashboard?'
   = f.input :visible_in_cas, label: 'Show cohort in CAS?'
-  = f.input :tag_id, collection: Cas::Tag.available_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', input_html: {class: :select2}
+  = f.input :tag_id, collection: Cas::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', input_html: {class: :select2}
   = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
   - hint = "The cohort will be sorted by the first column".html_safe
   - if @cohort.column_state.present?

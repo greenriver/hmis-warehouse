@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190606111838) do
+ActiveRecord::Schema.define(version: 20190611020510) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1227,6 +1227,8 @@ ActiveRecord::Schema.define(version: 20190606111838) do
     t.boolean "infer_family_from_household_id",            default: false,                    null: false
     t.string  "chronic_definition",                        default: "chronics",               null: false
     t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
+    t.boolean "show_vispdats_on_dashboards",               default: false
+    t.boolean "rrh_cas_readiness",                         default: false
   end
 
   create_table "contacts", force: :cascade do |t|

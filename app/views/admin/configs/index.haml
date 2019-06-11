@@ -30,7 +30,9 @@
       -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zipcodes', hint: 'comma separated.  eg. 02108, 02109'
       = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', input_html: {class: :select2}
       = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
+      = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
       = f.input :vispdat_prioritization_scheme, collection: GrdaWarehouse::Config.available_vispdat_prioritization_schemes, label: 'How should we prioritize VI-SPDAT scores for CAS', include_blank: false, input_html: {class: :select2}
+      = f.input :show_vispdats_on_dashboards, label: "Show VI-SPDAT as a filter on the dashboards?"
       = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)', input_html: {class: :select2}
       = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
       = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }

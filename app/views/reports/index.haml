@@ -4,8 +4,8 @@
 
 %ul.nav.nav-tabs{role: :tablist}
   - @reports.each_with_index do |(category,_), index|
-    %li.nav-item{role: :presentation, class: (index == 0 ? 'active' : '')}
-      %a{href: "##{category.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{category}'}, class: 'nav-link'}
+    %li.nav-item{role: :presentation}
+      %a{href: "##{category.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{category}'}, class: ['nav-link', (index == 0 ? 'active' : '')]}
         #{category}
 
 .tab-content

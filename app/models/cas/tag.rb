@@ -8,6 +8,10 @@ module Cas
   class Tag < CasBase
     acts_as_paranoid
 
+    def self.available_cohort_tags
+      where(rrh_assessment_trigger: false)
+    end
+
     def self.available_tags
       all
     end
