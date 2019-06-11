@@ -11,11 +11,12 @@
         %th Client
         %th Collection Date
         %th Interested in RRH?
+        %th Interested in Youth RRH?
         %th Assessor
         %th Assessor's Email
     %tbody
       - @clients.each do |client|
-        - assessment = client.source_hmis_forms.max_by{ |f| f.collected_at }
+        - assessment = client.source_hmis_forms.rrh_assessment.max_by{ |f| f.collected_at }
         %tr
           %td
             = link_to(client_path(client)) do
@@ -23,6 +24,7 @@
               = client.LastName
           %td= assessment.collected_at.to_date
           %td= yes_no client.rrh_desired
+          %td= yes_no client.youth_rrh_desired
           %td= assessment.staff
           %td= assessment.staff_email
 - else
