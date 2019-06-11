@@ -8,7 +8,7 @@
       .col-4
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jOrganizations'}, selected: @organization_ids, label: 'Organizations', required: false
       .col-4
-        = f.input :project_ids, collection: [], as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jProjects'}, selected: @project_ids, label: 'Projects', required: false
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jProjects'}, selected: @project_ids, label: 'Projects', required: false
     .row
       - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
         .col-4
@@ -30,9 +30,11 @@
           project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json}
         }
         var organization_ids = $('.jOrganizations').val();
+        var selected_project_ids = $('.jProjects').val();
         $.get('#{api_projects_path()}', {
           project_types: project_types,
-          organization_ids: organization_ids
+          organization_ids: organization_ids,
+          selected_project_ids: selected_project_ids
         }, function(data){
           $('.jProjects').html(data);
         });

@@ -19,6 +19,7 @@ module Api
       respond_to do |format|
         format.html do
           @data = {}
+          selected_project_ids = params[:selected_project_ids]&.map(&:to_i)&.compact || []
           project_scope.
             pluck(
               :id,
@@ -27,7 +28,11 @@ module Api
               o_t[:OrganizationName].to_sql
             ).each do |id, p_name, type, o_name|
               @data[o_name] ||= []
-              @data[o_name] << ["#{p_name} (#{HUD.project_type_brief(type)})", id]
+              @data[o_name] << [
+                "#{p_name} (#{HUD.project_type_brief(type)})",
+                id,
+                selected_project_ids.include?(id),
+              ]
             end
           render layout: false
         end
