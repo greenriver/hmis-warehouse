@@ -807,6 +807,33 @@ module Reporting::DataQualityReports
       )
     end
 
+    def calculate_income_at_penultimate_earned income_record:,  entry_date:, head_of_household:, report_end:
+      return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
+      return unless income_record.present?
+      income_for_types(
+        types: earned_income_types,
+        income_record: income_record
+      )
+    end
+
+    def calculate_income_at_penultimate_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end:
+      return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
+      return unless income_record.present?
+      income_for_types(
+        types: non_employment_cash_income_types,
+        income_record: income_record
+      )
+    end
+
+    def calculate_income_at_penultimate_overall income_record:,  entry_date:, head_of_household:, report_end:
+      return unless should_calculate_income_change?(entry_date: entry_date, head_of_household: head_of_household)
+      return unless income_record.present?
+      income_for_types(
+        types: (earned_income_types + non_employment_cash_income_types),
+        income_record: income_record
+      )
+    end
+
     # Only calculate this for adults or heads of household who have been enrolled for
     # more than one year since the report end
     def should_calculate_annual_completeness? entry_date:, head_of_household:, report_end:
@@ -852,6 +879,14 @@ module Reporting::DataQualityReports
       @later_income ||= incomes.select do |income|
         income.DataCollectionStage.in?([3, 2, 5]) && income.InformationDate.present? && income.InformationDate <= report_end
       end.sort_by(&:InformationDate).last
+    end
+
+    def penultimate_income incomes:, report_end:
+      return nil unless incomes.present?
+      return nil unless incomes.count > 1
+      @penultimate_income ||= incomes.select do |income|
+        income.InformationDate.present? && income.InformationDate <= report_end
+      end.sort_by(&:InformationDate).last(2).first
     end
 
     def income_for_types types:, income_record:
