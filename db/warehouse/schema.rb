@@ -25,12 +25,11 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ResProjectID"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",               limit: 100
+    t.string   "UserID",         limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Affiliation", ["DateCreated"], name: "affiliation_date_created", using: :btree
@@ -38,7 +37,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Affiliation", ["ExportID"], name: "affiliation_export_id", using: :btree
   add_index "Affiliation", ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true, using: :btree
   add_index "Affiliation", ["data_source_id"], name: "index_Affiliation_on_data_source_id", using: :btree
-  add_index "Affiliation", ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted", using: :btree
 
   create_table "Client", force: :cascade do |t|
     t.string   "PersonalID"
@@ -123,7 +121,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "verified_veteran_status"
     t.boolean  "interested_in_set_asides",                           default: false
     t.date     "consent_expires_on"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -134,7 +131,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Client", ["PersonalID"], name: "client_personal_id", using: :btree
   add_index "Client", ["creator_id"], name: "index_Client_on_creator_id", using: :btree
   add_index "Client", ["data_source_id"], name: "index_Client_on_data_source_id", using: :btree
-  add_index "Client", ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted", using: :btree
 
   create_table "Disabilities", force: :cascade do |t|
     t.string   "DisabilitiesID"
@@ -162,7 +158,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
@@ -174,7 +169,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true, using: :btree
   add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id"], name: "index_Disabilities_on_data_source_id", using: :btree
-  add_index "Disabilities", ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted", using: :btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
     t.string   "EmploymentEducationID"
@@ -194,7 +188,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "EmploymentEducation", ["DateCreated"], name: "employment_education_date_created", using: :btree
@@ -205,7 +198,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true, using: :btree
   add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id", using: :btree
-  add_index "EmploymentEducation", ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted", using: :btree
 
   create_table "Enrollment", force: :cascade do |t|
     t.string   "EnrollmentID",                                 limit: 50
@@ -323,7 +315,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "last_locality"
     t.string   "last_zipcode"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
@@ -337,7 +328,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
-  add_index "Enrollment", ["pending_date_deleted"], name: "index_Enrollment_on_pending_date_deleted", using: :btree
 
   create_table "EnrollmentCoC", force: :cascade do |t|
     t.string   "EnrollmentCoCID"
@@ -345,17 +335,16 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ProjectID"
     t.string   "PersonalID"
     t.date     "InformationDate"
-    t.string   "CoCCode",              limit: 50
+    t.string   "CoCCode",             limit: 50
     t.integer  "DataCollectionStage"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",               limit: 100
+    t.string   "UserID",              limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
-    t.string   "HouseholdID",          limit: 32
+    t.string   "HouseholdID",         limit: 32
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "EnrollmentCoC", ["DateCreated"], name: "enrollment_coc_date_created", using: :btree
@@ -365,7 +354,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "EnrollmentCoC", ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true, using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id", using: :btree
-  add_index "EnrollmentCoC", ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted", using: :btree
 
   create_table "Exit", force: :cascade do |t|
     t.string   "ExitID"
@@ -426,7 +414,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.integer  "InPersonGroup"
     t.integer  "CMExitReason"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Exit", ["DateCreated"], name: "exit_date_created", using: :btree
@@ -439,7 +426,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Exit", ["data_source_id", "ExitID"], name: "unk_Exit", unique: true, using: :btree
   add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID", using: :btree
   add_index "Exit", ["data_source_id"], name: "index_Exit_on_data_source_id", using: :btree
-  add_index "Exit", ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted", using: :btree
 
   create_table "Export", force: :cascade do |t|
     t.string   "ExportID"
@@ -477,12 +463,11 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.date     "EndDate"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",               limit: 100
+    t.string   "UserID",         limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Funder", ["DateCreated"], name: "funder_date_created", using: :btree
@@ -490,7 +475,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Funder", ["ExportID"], name: "funder_export_id", using: :btree
   add_index "Funder", ["data_source_id", "FunderID"], name: "unk_Funder", unique: true, using: :btree
   add_index "Funder", ["data_source_id"], name: "index_Funder_on_data_source_id", using: :btree
-  add_index "Funder", ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted", using: :btree
 
   create_table "Geography", force: :cascade do |t|
     t.string   "GeographyID"
@@ -515,7 +499,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "geocode_override",          limit: 6
     t.integer  "geography_type_override"
     t.date     "information_date_override"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
@@ -524,7 +507,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true, using: :btree
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Site", unique: true, using: :btree
   add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
-  add_index "Geography", ["pending_date_deleted"], name: "index_Geography_on_pending_date_deleted", using: :btree
 
   create_table "HealthAndDV", force: :cascade do |t|
     t.string   "HealthAndDVID"
@@ -547,7 +529,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "HealthAndDV", ["DateCreated"], name: "health_and_dv_date_created", using: :btree
@@ -558,7 +539,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true, using: :btree
   add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id"], name: "index_HealthAndDV_on_data_source_id", using: :btree
-  add_index "HealthAndDV", ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted", using: :btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
     t.string   "IncomeBenefitsID"
@@ -642,7 +622,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "OtherInsuranceIdentify",       limit: 50
     t.integer  "ConnectionWithSOAR"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
@@ -653,7 +632,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
-  add_index "IncomeBenefits", ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted", using: :btree
 
   create_table "Inventory", force: :cascade do |t|
     t.string   "InventoryID"
@@ -679,7 +657,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Inventory", ["DateCreated"], name: "inventory_date_created", using: :btree
@@ -688,7 +665,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Inventory", ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id", using: :btree
   add_index "Inventory", ["data_source_id", "InventoryID"], name: "unk_Inventory", unique: true, using: :btree
   add_index "Inventory", ["data_source_id"], name: "index_Inventory_on_data_source_id", using: :btree
-  add_index "Inventory", ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted", using: :btree
 
   create_table "Organization", force: :cascade do |t|
     t.string   "OrganizationID",         limit: 50
@@ -702,13 +678,11 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.integer  "data_source_id"
     t.boolean  "dmh",                                default: false, null: false
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Organization", ["ExportID"], name: "organization_export_id", using: :btree
   add_index "Organization", ["data_source_id", "OrganizationID"], name: "unk_Organization", unique: true, using: :btree
   add_index "Organization", ["data_source_id"], name: "index_Organization_on_data_source_id", using: :btree
-  add_index "Organization", ["pending_date_deleted"], name: "index_Organization_on_pending_date_deleted", using: :btree
 
   create_table "Project", force: :cascade do |t|
     t.string   "ProjectID",                     limit: 50
@@ -740,7 +714,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.integer  "housing_type_override"
     t.boolean  "uses_move_in_date",                         default: false, null: false
     t.date     "operating_start_date_override"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
@@ -751,21 +724,19 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Project", ["computed_project_type"], name: "index_Project_on_computed_project_type", using: :btree
   add_index "Project", ["data_source_id", "ProjectID"], name: "unk_Project", unique: true, using: :btree
   add_index "Project", ["data_source_id"], name: "index_Project_on_data_source_id", using: :btree
-  add_index "Project", ["pending_date_deleted"], name: "index_Project_on_pending_date_deleted", using: :btree
 
   create_table "ProjectCoC", force: :cascade do |t|
-    t.string   "ProjectCoCID",         limit: 50
+    t.string   "ProjectCoCID",   limit: 50
     t.string   "ProjectID"
-    t.string   "CoCCode",              limit: 50
+    t.string   "CoCCode",        limit: 50
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",               limit: 100
+    t.string   "UserID",         limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "hud_coc_code"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "ProjectCoC", ["DateCreated"], name: "project_coc_date_created", using: :btree
@@ -773,7 +744,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "ProjectCoC", ["ExportID"], name: "project_coc_export_id", using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true, using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode", using: :btree
-  add_index "ProjectCoC", ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted", using: :btree
 
   create_table "Services", force: :cascade do |t|
     t.string   "ServicesID"
@@ -788,12 +758,11 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.integer  "ReferralOutcome"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",               limit: 100
+    t.string   "UserID",            limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
   end
 
   add_index "Services", ["DateCreated"], name: "services_date_created", using: :btree
@@ -806,7 +775,6 @@ ActiveRecord::Schema.define(version: 20190611020510) do
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
   add_index "Services", ["data_source_id", "ServicesID"], name: "unk_Services", unique: true, using: :btree
   add_index "Services", ["data_source_id"], name: "index_Services_on_data_source_id", using: :btree
-  add_index "Services", ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted", using: :btree
 
   create_table "administrative_events", force: :cascade do |t|
     t.integer  "user_id",     null: false
@@ -860,6 +828,18 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.boolean  "full_release",             default: false, null: false
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
+  end
+
+  create_table "bo_configs", force: :cascade do |t|
+    t.integer "data_source_id"
+    t.string  "user"
+    t.string  "encrypted_pass"
+    t.string  "encrypted_pass_iv"
+    t.string  "url"
+    t.string  "server"
+    t.string  "client_lookup_cuid"
+    t.string  "touch_point_lookup_cuid"
+    t.string  "subject_response_lookup_cuid"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
@@ -1357,6 +1337,47 @@ ActiveRecord::Schema.define(version: 20190611020510) do
 
   add_index "eto_api_configs", ["data_source_id"], name: "index_eto_api_configs_on_data_source_id", using: :btree
 
+  create_table "eto_client_lookups", force: :cascade do |t|
+    t.integer  "data_source_id",              null: false
+    t.integer  "client_id",                   null: false
+    t.string   "enterprise_guid",             null: false
+    t.integer  "site_id",                     null: false
+    t.integer  "subject_id",                  null: false
+    t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
+  end
+
+  add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
+  add_index "eto_client_lookups", ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_subject_response_lookups", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.integer "subject_id",     null: false
+    t.integer "response_id",    null: false
+  end
+
+  add_index "eto_subject_response_lookups", ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id", using: :btree
+
+  create_table "eto_touch_point_lookups", force: :cascade do |t|
+    t.integer  "data_source_id", null: false
+    t.integer  "client_id",      null: false
+    t.integer  "subject_id",     null: false
+    t.integer  "assessment_id",  null: false
+    t.integer  "response_id",    null: false
+    t.datetime "last_updated"
+    t.integer  "site_id"
+  end
+
+  add_index "eto_touch_point_lookups", ["client_id"], name: "index_eto_touch_point_lookups_on_client_id", using: :btree
+  add_index "eto_touch_point_lookups", ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_touch_point_response_times", force: :cascade do |t|
+    t.integer  "touch_point_unique_identifier", null: false
+    t.integer  "response_unique_identifier",    null: false
+    t.datetime "response_last_updated",         null: false
+    t.integer  "subject_unique_identifier",     null: false
+  end
+
   create_table "exports", force: :cascade do |t|
     t.string   "export_id"
     t.integer  "user_id"
@@ -1499,6 +1520,7 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.jsonb    "processed_fields"
     t.date     "consent_confirmed_on"
     t.date     "consent_expires_on"
+    t.datetime "eto_last_updated"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree
@@ -1526,6 +1548,7 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.float    "vispdat_months_homeless"
     t.float    "vispdat_times_homeless"
     t.string   "staff_email"
+    t.datetime "eto_last_updated"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree

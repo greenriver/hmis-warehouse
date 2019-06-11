@@ -48,7 +48,8 @@ module Admin
         :chronic_definition,
         :vispdat_prioritization_scheme,
         :rrh_cas_readiness,
-        client_details: []
+        :show_vispdats_on_dashboards,
+        client_details: [],
       )
     end
 
