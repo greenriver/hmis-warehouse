@@ -47,8 +47,9 @@ module Admin
         :infer_family_from_household_id,
         :chronic_definition,
         :vispdat_prioritization_scheme,
+        :rrh_cas_readiness,
         :show_vispdats_on_dashboards,
-        client_details: []
+        client_details: [],
       )
     end
 

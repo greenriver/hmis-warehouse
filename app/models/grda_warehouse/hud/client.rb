@@ -1379,6 +1379,8 @@ module GrdaWarehouse::Hud
         :vispdat_prioritization_days_homeless,
         :verified_veteran_status,
         :interested_in_set_asides,
+        :rrh_desired,
+        :youth_rrh_desired,
         :neighborhood_interests => [],
       ]
     end
