@@ -269,6 +269,7 @@ module GrdaWarehouse
         ::CohortColumns::SchoolDistrict.new(),
         ::CohortColumns::AssessmentScore.new(),
         ::CohortColumns::VispdatScoreManual.new(),
+        ::CohortColumns::DaysOnCohort.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),
