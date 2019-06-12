@@ -7,7 +7,7 @@
 module CohortColumns
   class DaysOnCohort < ReadOnly
     attribute :column, String, lazy: true, default: :days_on_cohort
-    attribute :translation_key, String, lazy: true, default: 'Days on Cohort*'
+    attribute :translation_key, String, lazy: true, default: 'Days on Cohort'
     attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
 
