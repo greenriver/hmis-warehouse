@@ -248,6 +248,7 @@ module GrdaWarehouse
         ::CohortColumns::ConsentConfirmed.new(),
         ::CohortColumns::DisabilityVerificationDate.new(),
         ::CohortColumns::AvailableForMatchingInCas.new(),
+        ::CohortColumns::DaysSinceCasMatch.new(),
         ::CohortColumns::Sober.new(),
         ::CohortColumns::OriginalChronic.new(),
         ::CohortColumns::NotAVet.new(),
