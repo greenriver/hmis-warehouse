@@ -68,7 +68,7 @@ module Import::HMISSixOneOne::Shared
     def should_restore? row:, existing:, soft_delete_time:
       soft_deleted_this_time = existing.pending_date_deleted.present?
       exists_in_incoming_file = row[:DateDeleted].blank?
-      soft_deleted_this_time && exists_in_incoming_file && row[:data_source_id] == existing.data_source_id
+      soft_deleted_this_time && exists_in_incoming_file
     end
 
     def needs_update? row:, existing:, soft_delete_time: nil
@@ -172,12 +172,10 @@ module Import::HMISSixOneOne::Shared
               to_add << clean_row
             elsif needs_update?(row: row, existing: existing, soft_delete_time: soft_delete_time)
               row[:pending_date_deleted] = nil
-              # binding.pry if row[:EnrollmentID].present?
               self.with_deleted.where(id: existing.id).update_all(row)
               stats[:lines_updated] += 1
               stats[:lines_restored] += 1 if existing.deleted_at.present? && row[:DateDeleted].blank?
             elsif should_restore?(row: row, existing: existing, soft_delete_time: soft_delete_time)
-              # binding.pry if row[:EnrollmentID].present?
               to_restore << existing.id
             end
           end

@@ -211,12 +211,12 @@ module Importers::HMISSixOneOne
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
       involved_exit_ids = exit_source.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
-        exit_source.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        exit_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
       end
       @import.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
       involved_enrollment_ids = enrollment_source.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_enrollment_ids.each_slice(1000) do |ids|
-        enrollment_source.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        enrollment_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
       end
       @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
     end
