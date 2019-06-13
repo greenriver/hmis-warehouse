@@ -8,10 +8,12 @@
   align-self: stretch;
   background-color: $cob-sg-charles-blue;
   overflow: auto;
-  z-index: 500;
   padding: space(6) space(4) space(4);
   border-top: 2px solid $black;
   border-bottom: 2px solid $black;
+  &.on-canvas {
+    z-index: $zIndex-1/2;
+  }
   @include media-breakpoint-down(md) {
     width: 45vw;
     position: fixed;
@@ -68,7 +70,7 @@
   right: $nav-side-width / 2;
   transform: translateX(50%);
   color: $white;
-  z-index: 2000;
+  z-index: $zIndex-10*2;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

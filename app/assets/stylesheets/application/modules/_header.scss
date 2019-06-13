@@ -9,7 +9,7 @@
   height: $header-height;
   display: flex;
   align-items: stretch;
-  z-index: 1000;
+  z-index: $page-z-index;
 }
 
 .o-header__nav {
