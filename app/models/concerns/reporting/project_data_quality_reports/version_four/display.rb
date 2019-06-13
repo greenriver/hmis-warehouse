@@ -133,7 +133,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def move_in_date_above_threshold
-      enrolled_clients.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
+      enrolled_household_heads.ph.where(days_ph_before_move_in_date: (move_in_date_threshold..Float::INFINITY))
     end
 
     def should_have_income_at_annual
@@ -953,7 +953,21 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         # clients with at least two income records
         included_clients = enrolled_clients.where.not(income_at_later_date_overall: nil)
         a_t = Reporting::DataQualityReports::Enrollment.arel_table
-        denominator = included_clients.count
+
+        heads_with_a_year_enrollment = enrolled_clients.where(
+          include_in_income_change_calculation: true
+        ).
+        where(
+          a_t[:entry_date].lt(report_end - 1.years)
+        ).pluck(:client_id)
+
+        two_income_assessments = enrolled_clients.where(
+          include_in_income_change_calculation: true
+        ).where.not(income_at_later_date_response: nil).
+        pluck(:client_id)
+
+        denominator = (heads_with_a_year_enrollment + two_income_assessments).uniq.count
+
         earned_retained = included_clients.where(
           a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned])
         ).count

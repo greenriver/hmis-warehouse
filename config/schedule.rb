@@ -55,6 +55,9 @@ if ENV['ETO_API_SITE1'] != 'unknown'
   every 1.day, at: '4:00 pm' do
     rake "eto:import:update_ids_and_demographics"
   end
+  every 1.day, at: '6:00 am' do
+    rake "eto:import:demographics_and_touch_points"
+  end
 end
 
 if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''

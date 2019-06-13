@@ -306,6 +306,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Last Name' => :last_name,
         'Entry Date' => :entry_date,
         'Move-in-Date' => :move_in_date,
+        'Days to Move-in' => :days_to_move_in_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
         'Most Recent Service' => :most_recent_service_within_range,

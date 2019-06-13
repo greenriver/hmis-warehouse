@@ -30,5 +30,37 @@ namespace :eto do
     task maintain_client_consent: [:environment, "log:info_to_stdout"] do
       GrdaWarehouse::HmisClient.maintain_client_consent
     end
+
+    desc "Add eto_last_updated to any hmis_clients and hmis_forms where missing"
+    task maintain_eto_last_updated: [:environment, "log:info_to_stdout"] do
+      GrdaWarehouse::HmisClient.where(eto_last_updated: nil).
+        where.not(response: nil).select(:id, :response).
+        find_each(batch_size: 250) do |client|
+          client.update(eto_last_updated: EtoApi::Base.parse_date(JSON.parse(client.response)['AuditDate']))
+        end
+
+      GrdaWarehouse::HmisForm.where(eto_last_updated: nil).
+        where(assessment_id: GrdaWarehouse::HMIS::Assessment.where(fetch: true).select(:assessment_id)).
+        where.not(api_response: nil).select(:id, :api_response).
+        find_each(batch_size: 250) do |form|
+          form.update(eto_last_updated: EtoApi::Base.parse_date(form.api_response['AuditDate']))
+        end
+    end
+
+    # bin/rake eto:import:demographics_and_touch_points[start_date='2019-06-06']
+    desc "Fetch ETO data via QaaWS and API"
+    task :demographics_and_touch_points, [:start_date] => [:environment, "log:info_to_stdout"] do |t, args|
+      start_date = args.start_date&.to_date || 6.months.ago
+
+      # Ensure we know about all the available touch points
+      GrdaWarehouse::HMIS::Assessment.update_touch_points
+
+      # somewhat hackish, but figure out which sites we have access to
+      ENV.select{|k,v| k.include?('ETO_API_SITE') && v.presence != 'unknown' }.each do |k,v|
+        identifier = k.sub('ETO_API_SITE', '')
+        Bo::ClientIdLookup.new(api_site_identifier: identifier, start_time: start_date).update_all!
+      end
+      EtoApi::Tasks::UpdateEtoData.new.run!
+    end
   end
 end

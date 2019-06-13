@@ -84,9 +84,10 @@ module Dashboards
     end
 
     def set_report_months
-      start_index = @available_months.keys.index(JSON.parse(@start_month))
-      end_index = @available_months.keys.index(JSON.parse(@end_month))
-      @report_months = @available_months.keys.slice(end_index, start_index) rescue []
+      all_months_array = @available_months.keys
+      start_index = all_months_array.index(JSON.parse(@start_month))
+      end_index = all_months_array.index(JSON.parse(@end_month))
+      @report_months = all_months_array[end_index..start_index] rescue []
     end
 
     def set_start_date
