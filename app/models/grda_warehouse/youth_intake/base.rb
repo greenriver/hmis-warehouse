@@ -170,7 +170,7 @@ module GrdaWarehouse::YouthIntake
     end
 
     def other_referral?
-      how_hear.include? 'Other'
+      how_hear.include? 'Other' rescue false
     end
 
     def stable_housing_options
