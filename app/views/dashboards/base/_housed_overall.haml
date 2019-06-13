@@ -2,6 +2,7 @@
   .text-center
     %h3.mt-0
       %i.icon-house
-      #{pluralize(@report.all_housed_client_count, @report.sub_population_title)} housed to date
+      = link_to warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Veteran::LOOKBACK_START.to_date, end: Date.today, sub_population: @report.sub_population}, ph: 'true'), target: :_blank do
+        #{pluralize(@report.all_housed_client_count, @report.sub_population_title)} housed to date
     .description
       (#{@report.date_range.first} to #{@report.date_range.last})

@@ -12,6 +12,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     attr_accessor :project_ids
     attr_accessor :months
     attr_accessor :project_types
+    attr_accessor :filter
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -74,15 +75,32 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       where(head_of_household: 1)
     end
 
+    scope :filtered, -> (filter) do
+      return all if filter.nil?
+      if filter[:vispdat].presence == :without_vispdat
+        client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
+        return where.not(client_id: client_ids)
+      elsif filter[:vispdat].presence == :with_vispdat
+        client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
+        return where(client_id: client_ids)
+      end
+      return all
+    end
+
     def months_in_dates
       @months_in_dates ||= months.map{|year, month| Date.new(year, month, 1) }
     end
 
-    def enrolled_clients
-      self.class.enrolled.in_months(months).
+    def clients_for_report
+      self.class.in_months(months).
         for_organizations(organization_ids).
         for_projects(project_ids).
-        for_project_types(project_types)
+        for_project_types(project_types).
+        filtered(filter)
+
+    end
+    def enrolled_clients
+      clients_for_report.enrolled
     end
 
     def enrolled_client_count
@@ -101,10 +119,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def active_clients
-      self.class.active.in_months(months).
-        for_organizations(organization_ids).
-        for_projects(project_ids).
-        for_project_types(project_types)
+      clients_for_report.active
     end
 
     def active_client_count
@@ -132,10 +147,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def exited_clients
-      self.class.exited.in_months(months).
-        for_organizations(organization_ids).
-        for_projects(project_ids).
-        for_project_types(project_types)
+      clients_for_report.exited
     end
 
     def exited_client_count

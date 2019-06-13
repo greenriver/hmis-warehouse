@@ -171,6 +171,7 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
+    resources :double_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]

@@ -1233,6 +1233,7 @@ ActiveRecord::Schema.define(version: 20190604164934) do
     t.boolean "infer_family_from_household_id",            default: false,                    null: false
     t.string  "chronic_definition",                        default: "chronics",               null: false
     t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
+    t.boolean "show_vispdats_on_dashboards",               default: false
   end
 
   create_table "contacts", force: :cascade do |t|
