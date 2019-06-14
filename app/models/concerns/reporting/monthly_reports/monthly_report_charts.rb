@@ -77,11 +77,13 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     scope :filtered, -> (filter) do
       return all if filter.nil?
+      client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
+      client_ids += GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(
+        GrdaWarehouse::HmisForm.vispdat.where.not(vispdat_total_score: nil)
+      ).distinct.pluck(:id)
       if filter[:vispdat].presence == :without_vispdat
-        client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
         return where.not(client_id: client_ids)
       elsif filter[:vispdat].presence == :with_vispdat
-        client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
         return where(client_id: client_ids)
       end
       return all
