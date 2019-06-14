@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190611020510) do
+ActiveRecord::Schema.define(version: 20190614132143) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -124,6 +124,7 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.boolean  "interested_in_set_asides",                           default: false
     t.date     "consent_expires_on"
     t.datetime "pending_date_deleted"
+    t.date     "cas_match_override"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -872,6 +873,7 @@ ActiveRecord::Schema.define(version: 20190611020510) do
     t.string  "client_lookup_cuid"
     t.string  "touch_point_lookup_cuid"
     t.string  "subject_response_lookup_cuid"
+    t.string  "site_touch_point_map_cuid"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
