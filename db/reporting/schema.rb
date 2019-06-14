@@ -248,7 +248,7 @@ ActiveRecord::Schema.define(version: 20190614190744) do
   add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
   add_index "warehouse_monthly_reports", ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
   add_index "warehouse_monthly_reports", ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year"], name: "index_warehouse_monthly_reports_on_type_and_month_and_year", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type"], name: "idx_monthly_rep_on_type_and_month_and_year_and_p_type", using: :btree
   add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
   add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
