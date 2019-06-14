@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190604195547) do
+ActiveRecord::Schema.define(version: 20190614190744) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -236,7 +236,7 @@ ActiveRecord::Schema.define(version: 20190604195547) do
     t.integer  "prior_exit_project_type"
     t.integer  "prior_exit_destination_id"
     t.datetime "calculated_at",                             null: false
-    t.integer  "enrollment_id",                             null: false
+    t.integer  "enrollment_id"
   end
 
   add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
@@ -248,6 +248,7 @@ ActiveRecord::Schema.define(version: 20190604195547) do
   add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
   add_index "warehouse_monthly_reports", ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
   add_index "warehouse_monthly_reports", ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year"], name: "index_warehouse_monthly_reports_on_type_and_month_and_year", using: :btree
   add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
   add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
