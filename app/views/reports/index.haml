@@ -38,3 +38,21 @@
                   - if status = report.last_result.try(:last_run_status)
                     = link_to status, report_report_result_path(report, report.last_result)
                 %td= report.last_result.try(:completed_in)
+
+= content_for :page_js do
+  :javascript
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.nav-tabs li:first-child a").tab('show')
+    }
+    $('.nav-tabs a').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
+    });
+    $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      window.location.hash = id;
+    });
+    var hash = window.location.hash;
+    $('.nav-tabs a[href="' + hash + '"]').tab('show');
