@@ -1374,10 +1374,10 @@ ActiveRecord::Schema.define(version: 20190612194424) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
-    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
   end
 
   add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree

@@ -3,20 +3,15 @@ require 'rails_helper'
 RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
+      @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files'
-      @source_file_path = File.join(@file_path, 'source')
-      @import_path = File.join(@file_path, @data_source.id.to_s)
-      # duplicate the fixture file as it gets manipulated
-      FileUtils.cp_r(@source_file_path, @import_path)
-
-      importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
-      importer.import!
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_files'
+      import(file_path, @data_source)
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      FileUtils.rm_rf(@import_path) unless @import_path == @file_path
+      cleanup_files
     end
 
     it 'the database will have three clients' do
@@ -60,17 +55,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
     describe 'when importing updated enrollment data' do
       before(:all) do
-        @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files'
-        @source_file_path = File.join(@file_path, 'source')
-        @import_path = File.join(@file_path, @data_source.id.to_s)
-        # duplicate the fixture file as it gets manipulated
-        FileUtils.cp_r(@source_file_path, @import_path)
-
-        importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
-        importer.import!
+        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_change_files'
+        import(file_path, @data_source)
       end
       after(:all) do
-        FileUtils.rm_rf(@import_path) unless @import_path == @file_path
+        cleanup_files
       end
 
       it 'it doesn\'t import enrollments that changed but have an earlier modification date' do
@@ -87,20 +76,15 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing enrollments with deletes' do
     before(:all) do
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files'
-      @source_file_path = File.join(@file_path, 'source')
-      @import_path = File.join(@file_path, @data_source.id.to_s)
-      # duplicate the fixture file as it gets manipulated
-      FileUtils.cp_r(@source_file_path, @import_path)
-
-      importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
-      importer.import!
+      @delete_later = []
+      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_with_deletes_test_files'
+      import(file_path, data_source)
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      FileUtils.rm_rf(@import_path) unless @import_path == @file_path
+      cleanup_files
     end
 
     it 'the database will have two clients' do
@@ -114,6 +98,11 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
     it 'the effective export end date is 2017-09-19' do
       expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-19'.to_date)
+    end
+    it 'will clean up the pending deletes' do
+      described_class.soft_deletable_sources.each do |source|
+        expect(source.where.not(pending_date_deleted: nil).count).to eq 0
+      end
     end
     describe 'each client\'s counts will match expected counts' do
       clients = {
@@ -168,20 +157,15 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
   describe 'When importing projects' do
     before(:all) do
-      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_test_files'
-      @source_file_path = File.join(@file_path, 'source')
-      @import_path = File.join(@file_path, @data_source.id.to_s)
-      # duplicate the fixture file as it gets manipulated
-      FileUtils.cp_r(@source_file_path, @import_path)
-
-      importer = Importers::HMISSixOneOne::Base.new(file_path: @file_path, data_source_id: @data_source.id, remove_files: false)
-      importer.import!
+      @delete_later = []
+      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_test_files'
+      import(file_path, data_source)
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
-      FileUtils.rm_rf(@import_path) unless @import_path == @file_path
+      cleanup_files
     end
 
     it 'the database will have five projects' do
@@ -229,4 +213,41 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       end
     end
   end # End describe projects
+
+  describe 'When importing enrollments with restores' do
+    before(:all) do
+      @delete_later = []
+      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_initial_files'
+      import(file_path, data_source)
+      file_path = 'spec/fixtures/files/importers/hmis_six_on_one/enrollment_test_with_restores_update_files'
+      import(file_path, data_source)
+    end
+    after(:all) do
+      # Because we are only running the import once, we have to do our own DB and file cleanup
+      GrdaWarehouse::Utility.clear!
+      cleanup_files
+    end
+
+    it 'has two enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+    end
+  end
+
+  def import(file_path, data_source)
+    source_file_path = File.join(file_path, 'source')
+    import_path = File.join(file_path, data_source.id.to_s)
+    # duplicate the fixture file as it gets manipulated
+    FileUtils.cp_r(source_file_path, import_path)
+    @delete_later << import_path unless import_path == source_file_path
+
+    importer = Importers::HMISSixOneOne::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
+    importer.import!
+  end
+
+  def cleanup_files
+    @delete_later.each do |path|
+      FileUtils.rm_rf(path)
+    end
+  end
 end

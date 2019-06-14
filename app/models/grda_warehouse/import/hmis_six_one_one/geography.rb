@@ -20,7 +20,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
       deleted_count = 0
       projects.each do |project|
         del_scope = self.where(ProjectID: project.ProjectID, data_source_id: data_source_id)
-        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
+        deleted_count += del_scope.update_all(pending_date_deleted: deleted_at)
       end
       deleted_count
     end
