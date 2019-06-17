@@ -3,15 +3,15 @@
 .row
   .col-sm-8
     %h1= title
-  .col-sm-4.text-right
-    - if can_view_clients?
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
 = render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
 
-%h2 Summary
+.row
+  .col.text-right
+    - if can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
 %p
   The following is last permanent zip code information for clients with open enrollments between
   = @range.start
