@@ -412,8 +412,9 @@ module Importers::HMISSixOneOne
     end
 
     def header_valid?(line, klass)
-      # just make sure we don't have anything we don't know how to process
-      (line&.map(&:downcase)&.map(&:to_sym) - klass.hud_csv_headers.map(&:downcase)).blank?
+      incoming_headers = line&.map(&:downcase)&.map(&:to_sym)
+      hud_headers = klass.hud_csv_headers.map(&:downcase)
+      (hud_headers & incoming_headers).count == hud_headers.count
     end
 
     def short_line?(line, comma_count)
