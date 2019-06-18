@@ -1,5 +1,5 @@
 = simple_form_for :filter, method: :get do |f|
-  .well
+  - content_for :filters_col_full do
     .row
       - if params[:agency_id]
         = hidden_field_tag(:agency_id, params[:agency_id].to_i)
@@ -9,4 +9,8 @@
         = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
     %p
       Selected date range limits missing Qualifying Activity column.  Only patients enrolled before the end date are included.  All other columns include all patients.
+
+  - content_for :filter_actions do
     = f.submit 'Update Date Range', class: 'btn btn-primary mt-no-label'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
