@@ -21,10 +21,10 @@ module Health::Tasks
       @unprocessed ||= hashed(Health::Patient.pilot.unprocessed.pluck(*patient_columns), patient_columns)
     end
 
-    # This is only valid for pilot patients
+    # This is only valid for pilot patients, so this is commented out
     def unmatched
       {
-        unmatched: Health::Patient.pilot.unprocessed.count
+        unmatched: 0 # Health::Patient.pilot.unprocessed.count
       }
     end
 
