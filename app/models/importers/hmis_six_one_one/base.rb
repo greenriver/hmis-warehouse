@@ -107,14 +107,16 @@ module Importers::HMISSixOneOne
       # If a pending delete is still present, the associated record is not in the import, and should be
       # marked as deleted
       soft_deletable_sources.each do |source|
-        source.where.not(pending_date_deleted: nil).update_all(DateDeleted: @soft_delete_time, pending_date_deleted: nil)
+        source.where(data_source_id: @data_source.id).
+          where.not(pending_date_deleted: nil).
+          update_all(DateDeleted: @soft_delete_time, pending_date_deleted: nil)
       end
     end
 
     def cleanup_any_pending_deletes
       # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
       soft_deletable_sources.each do |source|
-        source.update_all(pending_date_deleted: nil)
+        source.where(data_source_id: @data_source.id).update_all(pending_date_deleted: nil)
       end
     end
 
@@ -410,8 +412,9 @@ module Importers::HMISSixOneOne
     end
 
     def header_valid?(line, klass)
-      # just make sure we don't have anything we don't know how to process
-      (line&.map(&:downcase)&.map(&:to_sym) - klass.hud_csv_headers.map(&:downcase)).blank?
+      incoming_headers = line&.map(&:downcase)&.map(&:to_sym)
+      hud_headers = klass.hud_csv_headers.map(&:downcase)
+      (hud_headers & incoming_headers).count == hud_headers.count
     end
 
     def short_line?(line, comma_count)

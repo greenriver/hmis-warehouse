@@ -16,6 +16,10 @@ module Bo
       data_from url, distinct_touch_point_lookup_xml(start_time: start_time, end_time: end_time, touch_point_id: touch_point_id)
     end
 
+    def site_touch_point_lookup url, options: {}
+      data_from url, site_touch_point_lookup_xml
+    end
+
     def response_lookup url
       raise NotImplementedError
     end
@@ -106,6 +110,33 @@ module Bo
                <!--Zero or more repetitions:-->
                <dis:Enter_value_s__for__TouchPoint_Unique_Identifier_>#{touch_point_id}</dis:Enter_value_s__for__TouchPoint_Unique_Identifier_>
                <dis:Enter_value_s__for__Date_Last_Updated___Start_>#{start_time.strftime('%FT%T.%L')}</dis:Enter_value_s__for__Date_Last_Updated___Start_>
+            </dis:runQueryAsAService>
+         </soapenv:Body>
+      </soapenv:Envelope>
+      HEREDOC
+    end
+
+    def site_touch_point_lookup_xml
+      <<~HEREDOC
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dis="SiteTouchPointLookup">
+         <soapenv:Header>
+            <dis:QaaWSHeader>
+               <!--Optional:-->
+               <dis:sessionID>?</dis:sessionID>
+               <!--Optional:-->
+               <dis:serializedSession>?</dis:serializedSession>
+               <!--Optional:-->
+               <dis:ClientType>?</dis:ClientType>
+               <!--Optional:-->
+               <dis:AuditingObjectID>?</dis:AuditingObjectID>
+               <!--Optional:-->
+               <dis:AuditingObjectName>?</dis:AuditingObjectName>
+            </dis:QaaWSHeader>
+         </soapenv:Header>
+         <soapenv:Body>
+            <dis:runQueryAsAService>
+               <dis:login>#{@username}</dis:login>
+               <dis:password>#{@password}</dis:password>
             </dis:runQueryAsAService>
          </soapenv:Body>
       </soapenv:Envelope>
