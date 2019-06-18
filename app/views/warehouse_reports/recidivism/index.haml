@@ -7,9 +7,6 @@
 = render 'form'
 
 - if @clients.present?
-  .text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-      Download Excel
   %p
     The following clients have an open PH enrollment between
     = @filter.start
@@ -17,9 +14,13 @@
     = @filter.end
     and received service within at an emergency shelter or had a street outreach contact during the same time frame.
 
-  .mb-2
-    = page_entries_info @clients, entry_name: 'Clients'
-  = paginate(@clients)
+  .text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
+  .row
+    .col-sm-12.d-flex.align-items-center.mb-4
+      %p.mr-4= page_entries_info @clients, entry_name: 'Clients'
+      = paginate(@clients)
 
   - @clients.each do |client|
     .warehouse-reports__client
