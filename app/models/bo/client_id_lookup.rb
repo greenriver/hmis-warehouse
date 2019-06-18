@@ -22,6 +22,21 @@ module Bo
       # rebuild_subject_response_lookups
     end
 
+    def fetch_site_touch_point_map one_off: false
+      return unless @config.site_touch_point_map_cuid.present?
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.site_touch_point_map_cuid}",
+        method: :site_touch_point_lookup,
+      }
+      message_options = {}
+      if one_off
+        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+        response = soap.site_touch_point_lookup settings[:url]
+      else
+        response = call_with_retry(settings, message_options)
+      end
+    end
+
     def api_config_from_site_identifier site_identifier
       key = ENV.fetch("ETO_API_SITE#{site_identifier}")
       EtoApi::Base.api_configs[key]
