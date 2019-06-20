@@ -1,8 +1,9 @@
-.c-card
-  .c-card__header
+= simple_form_for @file, url: warehouse_reports_health_premium_payments_path do |f|
+  - content_for :filters_col_full do
     %h3 Upload 820 File
-  .c-card__content
-    = simple_form_for @file, url: warehouse_reports_health_premium_payments_path do |f|
-      = f.input :content, as: :file, label: false
-      .text-right
-        = f.submit 'Upload', class: 'btn btn-primary'
+    = f.input :content, as: :file, label: false
+
+  - content_for :filter_actions do
+    = f.submit 'Upload', class: 'btn btn-primary'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
