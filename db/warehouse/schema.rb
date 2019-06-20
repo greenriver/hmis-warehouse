@@ -3447,6 +3447,7 @@ ActiveRecord::Schema.define(version: 20190617154412) do
     t.integer  "vispdat_score"
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
+    t.integer  "days_since_cas_match"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree

@@ -296,6 +296,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         vispdat_score: client.most_recent_vispdat_score,
         active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
         last_exit_destination: client.last_exit_destination,
+        days_since_cas_match: client.cas_reports.maximum(:match_started_at),
       }
     end
 
