@@ -1,33 +1,34 @@
-.row
-  .col-sm-6
-    .c-card.c-card--padded.c-card--flex
-      .c-card__content
-        %h3.mt-0 Go Forward
-        = simple_form_for :report, url: generate_claims_file_warehouse_reports_health_claim_path(@report) do |f|
-          %p
-            Please review the following qualifying activities that occurred between 
-            %strong
-              #{@report.start_date} 
-            and 
-            %strong
-              #{@report.max_date}.
-          %p
-            After reviewing, generate a claims file for submission to #{@sender.receiver_name}.  Clicking the button below will lock all payable (and force-payable) claims and prevent changes to them in the warehouse.
-          %p
-            The claims file will be generated for the following PID/SL:
-            %strong #{@sender.pid}#{@sender.sl}
-          %p
-            - if @recent_report
-              (The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.)
-          = f.submit 'Generate Claims File', class: "btn btn-primary"
-  .col-sm-6
-    .c-card.c-card--padded.c-card--flex
-      .c-card__content
-        %h3.mt-0 Go Back
-        %p If changes need to be made to Qualifying Activities, you must unlock them, make the changes and return here to re-calculate payability.
-        = link_to warehouse_reports_health_claim_path(@report), method: :delete, class: 'btn btn-danger ml-2' do
-          %i.icon-cross
-          Allow Edits to Qualifying Activities
+.well
+  .row
+    .col-sm-6
+      .c-card.c-card--padded.c-card--flex
+        .c-card__content
+          %h3.mt-0 Go Forward
+          = simple_form_for :report, url: generate_claims_file_warehouse_reports_health_claim_path(@report) do |f|
+            %p
+              Please review the following qualifying activities that occurred between
+              %strong
+                #{@report.start_date}
+              and
+              %strong
+                #{@report.max_date}.
+            %p
+              After reviewing, generate a claims file for submission to #{@sender.receiver_name}.  Clicking the button below will lock all payable (and force-payable) claims and prevent changes to them in the warehouse.
+            %p
+              The claims file will be generated for the following PID/SL:
+              %strong #{@sender.pid}#{@sender.sl}
+            %p
+              - if @recent_report
+                (The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.)
+            = f.submit 'Generate Claims File', class: "btn btn-primary"
+    .col-sm-6
+      .c-card.c-card--padded.c-card--flex
+        .c-card__content
+          %h3.mt-0 Go Back
+          %p If changes need to be made to Qualifying Activities, you must unlock them, make the changes and return here to re-calculate payability.
+          = link_to warehouse_reports_health_claim_path(@report), method: :delete, class: 'btn btn-danger ml-2' do
+            %i.icon-cross
+            Allow Edits to Qualifying Activities
 
 #jPrecalculated
   .alert.alert-info.jLoading

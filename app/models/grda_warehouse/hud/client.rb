@@ -1353,16 +1353,17 @@ module GrdaWarehouse::Hud
         required_number_of_bedrooms: _('Minimum number of bedrooms'),
         required_minimum_occupancy: _('Minimum occupancy'),
         requires_elevator_access: _('Requires ground floor unit or elevator access'),
+        cas_match_override: _('Override CAS Match Date'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
         keys
     end
 

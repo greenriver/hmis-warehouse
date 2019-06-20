@@ -5,7 +5,7 @@
 ###
 
 module WarehouseReports
-  class DobEntrySameController < ApplicationController
+  class DOBEntrySameController < ApplicationController
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
     def index
