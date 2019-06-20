@@ -74,12 +74,12 @@ module Import::HMISSixOneOne::Shared
     def needs_update? row:, existing:, soft_delete_time: nil
       # Incoming is newer
       return false if row[:DateUpdated].blank?
-      incoming_newer = row[:DateUpdated].to_time > existing.updated_at #MAYBE rescue return false
+      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
       if incoming_newer
         # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
         return true
       end
-      deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
+      deleted_previously = existing.deleted_at.present?
       exists_in_incoming_file = row[:DateDeleted].blank?
       incoming_updated_on_same_date = row[:DateUpdated].utc.to_date == existing.updated_at.utc.to_date
       # Should be restored
@@ -174,7 +174,7 @@ module Import::HMISSixOneOne::Shared
               row[:pending_date_deleted] = nil
               self.with_deleted.where(id: existing.id).update_all(row)
               stats[:lines_updated] += 1
-              stats[:lines_restored] += 1 if existing.deleted_at.present? && row[:DateDeleted].blank?
+              stats[:lines_restored] += 1 if existing.pending_date_deleted.present? && row[:DateDeleted].blank?
             elsif should_restore?(row: row, existing: existing, soft_delete_time: soft_delete_time)
               to_restore << existing.id
             end

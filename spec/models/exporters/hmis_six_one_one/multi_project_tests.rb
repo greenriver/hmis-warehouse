@@ -30,7 +30,7 @@ RSpec.shared_context 'multi-project tests', shared_context: :metadata do
         csv_project_names = csv.map { |m| m['ProjectName'] }.sort
         source_names = GrdaWarehouse::Hud::Project.where(id: involved_project_ids).pluck(:ProjectName)
         # source_ids = projects.first(3).map(&:ProjectName).sort
-        expect(csv_project_names).to eq source_names
+        expect(csv_project_names.sort).to eq source_names.sort
       end
       it 'ProjectID from CSV should contain first three project IDs' do
         csv = CSV.read(csv_file_path(@project_class), headers: true)

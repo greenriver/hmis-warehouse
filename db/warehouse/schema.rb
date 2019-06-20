@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190612194424) do
+ActiveRecord::Schema.define(version: 20190617154412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Affiliation", ["DateCreated"], name: "affiliation_date_created", using: :btree
+  add_index "Affiliation", ["DateDeleted", "data_source_id"], name: "index_Affiliation_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Affiliation", ["DateUpdated"], name: "affiliation_date_updated", using: :btree
   add_index "Affiliation", ["ExportID"], name: "affiliation_export_id", using: :btree
   add_index "Affiliation", ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true, using: :btree
@@ -128,6 +129,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
+  add_index "Client", ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Client", ["DateUpdated"], name: "client_date_updated", using: :btree
   add_index "Client", ["ExportID"], name: "client_export_id", using: :btree
   add_index "Client", ["FirstName"], name: "client_first_name", using: :btree
@@ -167,6 +169,10 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "Disabilities", ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
   add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
@@ -199,6 +205,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "EmploymentEducation", ["DateCreated"], name: "employment_education_date_created", using: :btree
+  add_index "EmploymentEducation", ["DateDeleted", "data_source_id"], name: "index_EmploymentEducation_on_DateDeleted_and_data_source_id", using: :btree
   add_index "EmploymentEducation", ["DateUpdated"], name: "employment_education_date_updated", using: :btree
   add_index "EmploymentEducation", ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID", using: :btree
   add_index "EmploymentEducation", ["ExportID"], name: "employment_education_export_id", using: :btree
@@ -328,6 +335,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
+  add_index "Enrollment", ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Enrollment", ["DateDeleted"], name: "index_Enrollment_on_DateDeleted", using: :btree
   add_index "Enrollment", ["DateUpdated"], name: "enrollment_date_updated", using: :btree
   add_index "Enrollment", ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID", using: :btree
@@ -360,6 +368,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "EnrollmentCoC", ["DateCreated"], name: "enrollment_coc_date_created", using: :btree
+  add_index "EnrollmentCoC", ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id", using: :btree
   add_index "EnrollmentCoC", ["DateUpdated"], name: "enrollment_coc_date_updated", using: :btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID", using: :btree
   add_index "EnrollmentCoC", ["ExportID"], name: "enrollment_coc_export_id", using: :btree
@@ -431,6 +440,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Exit", ["DateCreated"], name: "exit_date_created", using: :btree
+  add_index "Exit", ["DateDeleted", "data_source_id"], name: "index_Exit_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Exit", ["DateDeleted"], name: "index_Exit_on_DateDeleted", using: :btree
   add_index "Exit", ["DateUpdated"], name: "exit_date_updated", using: :btree
   add_index "Exit", ["EnrollmentID"], name: "index_Exit_on_EnrollmentID", using: :btree
@@ -487,6 +497,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Funder", ["DateCreated"], name: "funder_date_created", using: :btree
+  add_index "Funder", ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Funder", ["DateUpdated"], name: "funder_date_updated", using: :btree
   add_index "Funder", ["ExportID"], name: "funder_export_id", using: :btree
   add_index "Funder", ["data_source_id", "FunderID"], name: "unk_Funder", unique: true, using: :btree
@@ -520,6 +531,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
+  add_index "Geography", ["DateDeleted", "data_source_id"], name: "index_Geography_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
   add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true, using: :btree
@@ -552,6 +564,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "HealthAndDV", ["DateCreated"], name: "health_and_dv_date_created", using: :btree
+  add_index "HealthAndDV", ["DateDeleted", "data_source_id"], name: "index_HealthAndDV_on_DateDeleted_and_data_source_id", using: :btree
   add_index "HealthAndDV", ["DateUpdated"], name: "health_and_dv_date_updated", using: :btree
   add_index "HealthAndDV", ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID", using: :btree
   add_index "HealthAndDV", ["ExportID"], name: "health_and_dv_export_id", using: :btree
@@ -647,10 +660,14 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -684,6 +701,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Inventory", ["DateCreated"], name: "inventory_date_created", using: :btree
+  add_index "Inventory", ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Inventory", ["DateUpdated"], name: "inventory_date_updated", using: :btree
   add_index "Inventory", ["ExportID"], name: "inventory_export_id", using: :btree
   add_index "Inventory", ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id", using: :btree
@@ -706,6 +724,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
     t.datetime "pending_date_deleted"
   end
 
+  add_index "Organization", ["DateDeleted", "data_source_id"], name: "index_Organization_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Organization", ["ExportID"], name: "organization_export_id", using: :btree
   add_index "Organization", ["data_source_id", "OrganizationID"], name: "unk_Organization", unique: true, using: :btree
   add_index "Organization", ["data_source_id"], name: "index_Organization_on_data_source_id", using: :btree
@@ -745,6 +764,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
+  add_index "Project", ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Project", ["DateUpdated"], name: "project_date_updated", using: :btree
   add_index "Project", ["ExportID"], name: "project_export_id", using: :btree
   add_index "Project", ["ProjectID", "data_source_id", "OrganizationID"], name: "index_proj_proj_id_org_id_ds_id", using: :btree
@@ -770,6 +790,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "ProjectCoC", ["DateCreated"], name: "project_coc_date_created", using: :btree
+  add_index "ProjectCoC", ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id", using: :btree
   add_index "ProjectCoC", ["DateUpdated"], name: "project_coc_date_updated", using: :btree
   add_index "ProjectCoC", ["ExportID"], name: "project_coc_export_id", using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true, using: :btree
@@ -798,6 +819,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
   end
 
   add_index "Services", ["DateCreated"], name: "services_date_created", using: :btree
+  add_index "Services", ["DateDeleted", "data_source_id"], name: "index_Services_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Services", ["DateDeleted"], name: "index_Services_on_DateDeleted", using: :btree
   add_index "Services", ["DateProvided"], name: "index_Services_on_DateProvided", using: :btree
   add_index "Services", ["DateUpdated"], name: "services_date_updated", using: :btree
@@ -873,6 +895,7 @@ ActiveRecord::Schema.define(version: 20190612194424) do
     t.string  "client_lookup_cuid"
     t.string  "touch_point_lookup_cuid"
     t.string  "subject_response_lookup_cuid"
+    t.string  "site_touch_point_map_cuid"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
