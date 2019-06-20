@@ -116,7 +116,9 @@ module Importers::HMISSixOneOne
     def cleanup_any_pending_deletes
       # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
       soft_deletable_sources.each do |source|
-        source.where(data_source_id: @data_source.id).update_all(pending_date_deleted: nil)
+        source.where(data_source_id: @data_source.id).
+          where.not(pending_date_deleted: nil). # Note, postgres won't index nulls, this speeds this up tremendously
+          update_all(pending_date_deleted: nil)
       end
     end
 
