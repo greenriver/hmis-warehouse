@@ -40,6 +40,11 @@ $zIndex-8:   800;
 $zIndex-9:   900;
 $zIndex-10: 1000;
 
+$page-z-index: $zIndex-1;
+$dropdown-z-index: $zIndex-6;
+$fixed-nav-z-index: $zIndex-1;
+$loader-z-index: $zIndex-10*2;
+
 // Z-index applications Assigning specific and listing here as handy reference
 $zIndex-2--site-name: $zIndex-2;
 $zIndex-3--notice: $zIndex-3;

@@ -36,7 +36,6 @@ a.icon-cross:link {
   @include tag-pill;
 }
 
-.dropdown-menu
-{
-  z-index: 1500;
+.dropdown-menu {
+  z-index: $dropdown-z-index;
 }

@@ -16,7 +16,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: $fixed-nav-z-index;
     padding: 0 30px;
     margin: 0;
   }

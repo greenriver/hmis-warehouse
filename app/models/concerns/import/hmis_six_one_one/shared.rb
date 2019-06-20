@@ -66,21 +66,20 @@ module Import::HMISSixOneOne::Shared
     end
 
     def should_restore? row:, existing:, soft_delete_time:
-      soft_deleted_this_time = existing.deleted_at.present? && existing.deleted_at.to_i == soft_delete_time.to_i
+      soft_deleted_this_time = existing.pending_date_deleted.present?
       exists_in_incoming_file = row[:DateDeleted].blank?
-
       soft_deleted_this_time && exists_in_incoming_file
     end
 
     def needs_update? row:, existing:, soft_delete_time: nil
       # Incoming is newer
       return false if row[:DateUpdated].blank?
-      incoming_newer = row[:DateUpdated].to_time > existing.updated_at #MAYBE rescue return false
+      incoming_newer = row[:DateUpdated].to_time > existing.updated_at
       if incoming_newer
         # puts "incoming newer #{row.inspect} #{existing.updated_at.inspect}"
         return true
       end
-      deleted_previously = soft_delete_time.present? && existing.deleted_at.present? && existing.deleted_at.to_i != soft_delete_time.to_i
+      deleted_previously = existing.deleted_at.present?
       exists_in_incoming_file = row[:DateDeleted].blank?
       incoming_updated_on_same_date = row[:DateUpdated].utc.to_date == existing.updated_at.utc.to_date
       # Should be restored
@@ -109,7 +108,7 @@ module Import::HMISSixOneOne::Shared
         if self.date_provided_column.present?
           del_scope = del_scope.where(arel_table[date_provided_column].lteq(range.end))
         end
-        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
+        deleted_count += del_scope.update_all(pending_date_deleted: deleted_at)
       end
       deleted_count
     end
@@ -123,8 +122,23 @@ module Import::HMISSixOneOne::Shared
     def fetch_existing_for_batch data_source_id:, keys:
       self.with_deleted.where(data_source_id: data_source_id).
         where(self.hud_key => keys).
-        pluck(self.hud_key, :DateUpdated, :DateDeleted, :id, :source_hash).map do |key, updated_at, deleted_at, id, source_hash|
-          [key, OpenStruct.new({updated_at: updated_at, deleted_at: deleted_at, id: id, source_hash: source_hash})]
+        pluck(
+          self.hud_key,
+          :DateUpdated,
+          :DateDeleted,
+          :id,
+          :source_hash,
+          :pending_date_deleted,
+          :data_source_id
+        ).map do |key, updated_at, deleted_at, id, source_hash, pending_date_deleted, data_source_id|
+          [key, OpenStruct.new(
+            updated_at: updated_at,
+            deleted_at: deleted_at,
+            id: id,
+            source_hash: source_hash,
+            pending_date_deleted: pending_date_deleted,
+            data_source_id: data_source_id,
+            )]
         end.to_h
     end
 
@@ -157,9 +171,10 @@ module Import::HMISSixOneOne::Shared
               headers ||= clean_row.keys
               to_add << clean_row
             elsif needs_update?(row: row, existing: existing, soft_delete_time: soft_delete_time)
+              row[:pending_date_deleted] = nil
               self.with_deleted.where(id: existing.id).update_all(row)
               stats[:lines_updated] += 1
-              stats[:lines_restored] += 1 if existing.deleted_at.present? && row[:DateDeleted].blank?
+              stats[:lines_restored] += 1 if existing.pending_date_deleted.present? && row[:DateDeleted].blank?
             elsif should_restore?(row: row, existing: existing, soft_delete_time: soft_delete_time)
               to_restore << existing.id
             end
@@ -168,7 +183,7 @@ module Import::HMISSixOneOne::Shared
           to_restore.each_slice(1000) do |ids|
             # Make sure to update the export id when restoring to help with service history
             # generation
-            self.with_deleted.where(id: ids).update_all(DateDeleted: nil, ExportID: export_id)
+            self.with_deleted.where(id: ids).update_all(pending_date_deleted: nil, DateDeleted: nil, ExportID: export_id)
             stats[:lines_restored] += ids.size
           end
           if to_add.any?
