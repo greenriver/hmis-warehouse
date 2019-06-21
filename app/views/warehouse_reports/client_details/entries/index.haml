@@ -4,12 +4,15 @@
 .row
   .col-sm-8
     %h1= title
-  .col-sm-4.text-right
+
+= render 'filter'
+
+.row
+  .col-sm-12.text-right
     - if  can_view_clients?
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
 
-= render 'filter'
 %p
   = @enrollments.count
   Clients have entries in
@@ -20,14 +23,13 @@
   = "#{@end_date}."
 = render 'warehouse_reports/limited_by_project_note'
 
-
 - @buckets.each do |group, clients|
-  .row
+  .row.mb-1
     .col-sm-12
       %h3
         = @data[group][:label]
         = "(#{clients.count})"
-      %table.table.table-sm
+      %table.table
         %thead
           %tr
             %th

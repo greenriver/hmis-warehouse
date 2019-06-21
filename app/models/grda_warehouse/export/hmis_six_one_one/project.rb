@@ -43,10 +43,29 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
+      # TrackingMethod override is dependent on the original ProjectType, this must come before the ProjectType override
+      override = tracking_method_override_for(project: row, data_source_id: data_source_id)
+      row[:TrackingMethod] = override if override.present?
+
       override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
       row[:ProjectType] = override if override.present?
 
       return row
+    end
+
+    # If we are not ES and overriding to ES, we need a tracking method of 1
+    def tracking_method_override_for project:, data_source_id:
+      return nil unless GrdaWarehouse::Config.get(:project_type_override)
+      project_id = project[:ProjectID].to_i
+      project_type = project[:ProjectType].to_i
+      project_type_override = project_type_overrides[[data_source_id, project_id]]
+      return nil unless project_type_override.present?
+      es_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
+      return nil if es_types.include?(project_type)
+      if es_types.include?(project_type_override)
+        return 1
+      end
+      return nil
     end
 
     def housing_type_override_for project_id:, data_source_id:
@@ -94,6 +113,10 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     def project_type_override_for project_id:, data_source_id:
       return nil unless GrdaWarehouse::Config.get(:project_type_override)
+      project_type_overrides[[data_source_id, project_id]]
+    end
+
+    def project_type_overrides
       @project_type_overrides ||= self.class.where.not(computed_project_type: nil).
         pluck(:data_source_id, :id, :computed_project_type).
         map do |data_source_id, project_id, computed_project_type|
@@ -103,7 +126,6 @@ module GrdaWarehouse::Export::HMISSixOneOne
             nil
           end
         end.compact.to_h
-      @project_type_overrides[[data_source_id, project_id]]
     end
   end
 end

@@ -31,9 +31,8 @@
       = f.input :s3_bucket, label: 'Bucket'
     .col-sm-4
       = f.input :s3_prefix, label: "Optional prefix"
-  .d-flex
-    .ml-auto
-      = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
+  .row
+    = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
 
 = content_for :page_js do
   :javascript

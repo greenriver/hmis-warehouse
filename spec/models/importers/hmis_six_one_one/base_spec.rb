@@ -234,6 +234,139 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
   end
 
+  describe 'When restoring geographies' do
+    let!(:data_source) { create :data_source_fixed_id }
+    let!(:fixed_date) { Date.parse('2019-01-01') }
+
+    let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
+    let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
+    let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, ProjectID: project_2.ProjectID }
+
+    it 'has one deleted geography record' do
+      expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(1)
+    end
+
+    it 'has two projects' do
+      expect(GrdaWarehouse::Hud::Project.count).to eq(2)
+    end
+
+    describe 'with both projects' do
+      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
+      before do
+        @delete_later = []
+        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_both_projects_files'
+        import(file_path, data_source)
+      end
+      after do
+        # Because we are only running the import once, we have to do our own DB and file cleanup
+        GrdaWarehouse::Utility.clear!
+        cleanup_files
+      end
+
+      it 'restores and updates the deleted geography record' do
+        expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(0)
+
+        geography.reload
+        expect(geography.CoCCode).to eq('KY-500')
+        expect(geography.ProjectID).to eq(project_1.ProjectID)
+      end
+
+      it 'has two projects' do
+        expect(GrdaWarehouse::Hud::Project.count).to eq(2)
+      end
+
+      it 'connects the geography record to project_1' do
+        expect(project_2.geographies.count).to be(0)
+        expect(project_1.geographies.count).to be(1)
+      end
+    end
+
+    describe 'with project 1' do
+      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
+      before do
+        @delete_later = []
+        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
+        import(file_path, data_source)
+      end
+      after do
+        # Because we are only running the import once, we have to do our own DB and file cleanup
+        GrdaWarehouse::Utility.clear!
+        cleanup_files
+      end
+
+      it 'restores and updates the deleted geography record' do
+        expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(0)
+
+        geography.reload
+        expect(geography.CoCCode).to eq('KY-500')
+        expect(geography.ProjectID).to eq(project_1.ProjectID)
+      end
+
+      it 'has two projects' do
+        expect(GrdaWarehouse::Hud::Project.count).to eq(2)
+      end
+
+      it 'connects the geography record to project_1' do
+        expect(project_2.geographies.count).to be(0)
+        expect(project_1.geographies.count).to be(1)
+      end
+    end
+  end
+
+  describe 'When processing geographies with older updates' do
+    let!(:data_source) { create :data_source_fixed_id }
+    let!(:fixed_date) { Date.parse('2019-01-01') }
+
+    let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
+    let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
+    let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: Date.today, ProjectID: project_2.ProjectID }
+
+    describe 'with project 1' do
+      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
+      before do
+        @delete_later = []
+        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
+        import(file_path, data_source)
+      end
+      after do
+        # Because we are only running the import once, we have to do our own DB and file cleanup
+        GrdaWarehouse::Utility.clear!
+        cleanup_files
+      end
+
+      it "it doesn't restore the geography record" do
+        expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(1)
+      end
+    end
+  end
+
+  describe 'When processing geographies with updates on the date of the last updated timestamp' do
+    let!(:data_source) { create :data_source_fixed_id }
+    let!(:fixed_date) { Date.parse('2019-01-01') }
+
+    let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
+    let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
+    let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: fixed_date + 1.day, ProjectID: project_2.ProjectID }
+
+    describe 'with project 1' do
+      # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
+      before do
+        @delete_later = []
+        file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_and_geography_restore_by_one_project_files'
+        import(file_path, data_source)
+      end
+      after do
+        # Because we are only running the import once, we have to do our own DB and file cleanup
+        GrdaWarehouse::Utility.clear!
+        cleanup_files
+      end
+
+      it 'it restores the geography record' do
+        expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(0)
+      end
+    end
+  end
+
   def import(file_path, data_source)
     source_file_path = File.join(file_path, 'source')
     import_path = File.join(file_path, data_source.id.to_s)

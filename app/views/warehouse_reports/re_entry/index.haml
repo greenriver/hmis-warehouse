@@ -2,24 +2,26 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs'
-%p
-  Clients re-entered homelessness between
-  = @range.start
-  and
-  = @range.end
-  after a break of 60 days or more.
 
 = render 'filter'
 = render 'warehouse_reports/limited_by_project_note'
 
 - if @enrollments.any?
+
   .row
-    .col-sm-10
-      %p
-        The following #{pluralize(@enrollments.distinct.select(:client_id).count, 'client')} had #{@enrollments.count} re-entries between #{@range.start} and #{@range.end}.
-    .col-sm-2.text-right
+    .col.text-right
       = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
+  .row
+    .col-sm-12
+      %p
+        Clients re-entered homelessness between
+        = @range.start
+        and
+        = @range.end
+        after a break of 60 days or more.
+      %p
+        The following #{pluralize(@enrollments.distinct.select(:client_id).count, 'client')} had #{@enrollments.count} re-entries between #{@range.start} and #{@range.end}.
 
   %table.table.table-condensed.table-hover
     %thead

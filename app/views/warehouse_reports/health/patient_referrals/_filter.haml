@@ -1,7 +1,10 @@
 = simple_form_for :filter, method: :get do |f|
-  .well
+  - content_for :filters_col_l do
     .row
       .col-sm-4
-        = f.input :referral_date, collection: @referral_dates, selected: @referral_date&.to_date
-      .col-sm-4
-        = f.submit 'Show Referrals', class: 'btn btn-primary mt-no-label'
+        = f.input :referral_date, collection: @referral_dates, selected: @referral_date&.to_date, input_html: { class: :select2 }
+
+  - content_for :filter_actions do
+    = f.submit 'Show Referrals', class: 'btn btn-primary mt-no-label'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil

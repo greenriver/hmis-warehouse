@@ -3,15 +3,18 @@
 .row
   .col-sm-8
     %h1= title
-  .col-sm-4.text-right
-    - if can_view_clients?
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+
 = render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
 
-%h2 Summary
+.row
+  .col-sm-12.text-right
+    - if can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+
+%h3 Summary
 %p
   The following is exit data for veteran who exited homelessness between
   = @range.start
@@ -23,7 +26,7 @@
   = @clients.map{ |row| row[:client_id]}.uniq.count
   unique clients.
 = render 'warehouse_reports/limited_by_project_note'
-%table.table.table-sm
+%table.table.table-sm.table-hover
   %thead
     %tr
       %th
@@ -44,8 +47,8 @@
       %th
         = @buckets.values.sum
 - if can_view_clients?
-  %h2 Exit Details
-  %table.table.table-sm
+  %h3 Exit Details
+  %table.table.table-hover
     %thead
       %tr
         %th

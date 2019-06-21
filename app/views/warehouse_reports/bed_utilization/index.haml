@@ -3,9 +3,7 @@
   .o-page__header
     - content_for :title, title
     %h1.o-page__title= content_for :title
-    .o-page__action
-      = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
-        Download Excel
+
   = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
   = simple_form_for @mo, as: :mo, url: warehouse_reports_bed_utilization_index_path, html: { method: :get } do |f|
@@ -34,6 +32,10 @@
     .warn-about-percent {
       color: red;
     }
+
+  .text-right.mb-2
+    = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+      Download Excel
 
   %table.table.table-sm.table-hover.bed-table
     %thead
