@@ -1,11 +1,6 @@
 # ### HIPPA Risk Assessment
 # NOT ASSESSED
 
-require "stupidedi"
-stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir
-json_dir = "#{stupidedi_dir}/notes/json_writer/"
-Dir["#{json_dir}/json/*.rb"].each{ |file| require file }
-require "#{json_dir}/json"
 module Health
   class TransactionAcknowledgement  < HealthBase
     acts_as_paranoid
@@ -78,7 +73,7 @@ module Health
 
     def parse_999
       config = Stupidedi::Config.hipaa
-      parser = Stupidedi::Builder::StateMachine.build(config)
+      parser = Stupidedi::Parser::StateMachine.build(config)
       parsed, result = parser.read(Stupidedi::Reader.build(content))
       if result.fatal?
         result.explain{|reason| raise reason + " at #{result.position.inspect}" }
