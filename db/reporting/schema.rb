@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190614190744) do
+ActiveRecord::Schema.define(version: 20190621150718) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -248,7 +248,15 @@ ActiveRecord::Schema.define(version: 20190614190744) do
   add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
   add_index "warehouse_monthly_reports", ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
   add_index "warehouse_monthly_reports", ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type"], name: "idx_monthly_rep_on_type_and_month_and_year_and_p_type", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "destination_id", "enrolled"], name: "idx_dest_type_enr", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "active", "entered", "head_of_household"], name: "idx_year_month_type_act_ent", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "active", "exited", "head_of_household"], name: "idx_year_month_type_act_ext", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "enrolled"], name: "idx_year_month_type_enr", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "head_of_household"], name: "idx_year_month_type_head", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "active", "entered", "head_of_household"], name: "idx_year_month_type_proj_act_ent", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "active", "exited", "head_of_household"], name: "idx_year_month_type_proj_act_ext", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "enrolled"], name: "idx_year_month_type_proj_enr", using: :btree
+  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "head_of_household"], name: "idx_year_month_type_proj_head", using: :btree
   add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
   add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
