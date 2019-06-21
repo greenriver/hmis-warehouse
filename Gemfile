@@ -72,7 +72,10 @@ gem 'htmlentities'
 
 # ETO API related
 gem "rest-client", "~> 2.0"
+gem "curb", require: false
 gem "gmail", require: false
+# gem 'savon'
+# gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
 gem 'stupidedi', require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
@@ -149,7 +152,7 @@ end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
+  # gem 'spring'
   gem 'html2haml'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'

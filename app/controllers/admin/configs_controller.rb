@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Admin
   class ConfigsController < ApplicationController
     before_action :require_can_manage_config!
@@ -41,7 +47,9 @@ module Admin
         :infer_family_from_household_id,
         :chronic_definition,
         :vispdat_prioritization_scheme,
-        client_details: []
+        :rrh_cas_readiness,
+        :show_vispdats_on_dashboards,
+        client_details: [],
       )
     end
 

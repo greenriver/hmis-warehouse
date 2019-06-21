@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Users::InvitationsController < Devise::InvitationsController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
   include ViewableEntities

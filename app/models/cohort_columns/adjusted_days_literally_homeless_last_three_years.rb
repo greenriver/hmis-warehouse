@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class AdjustedDaysLiterallyHomelessLastThreeYears < ::CohortColumns::Integer
     attribute :column, String, lazy: true, default: :adjusted_days_literally_homeless_last_three_years

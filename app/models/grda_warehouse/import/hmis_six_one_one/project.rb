@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Import::HMISSixOneOne
   class Project < GrdaWarehouse::Hud::Project
     include ::Import::HMISSixOneOne::Shared
@@ -37,7 +43,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     end
 
     def existing_is_newer
-      existing.to_h.present? && existing.updated_at > date_updated
+      existing.to_h.present? && existing.updated_at > self.DateUpdated
     end
 
     def project_type_unchanged

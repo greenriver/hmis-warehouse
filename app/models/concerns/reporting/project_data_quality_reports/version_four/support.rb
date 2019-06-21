@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting::ProjectDataQualityReports::VersionFour::Support
   extend ActiveSupport::Concern
   include ActionView::Helpers
@@ -260,17 +266,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
       where = case options[:metric].to_sym
       when :earned_income
-        a_t[:income_at_later_date_earned].gteq(a_t[:income_at_entry_earned])
+        a_t[:income_at_later_date_earned].gteq(a_t[:income_at_penultimate_earned])
       when :non_employment_cash_income
-        a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_entry_non_employment_cash])
+        a_t[:income_at_later_date_non_employment_cash].gteq(a_t[:income_at_penultimate_non_employment_cash])
       when :overall_income
-        a_t[:income_at_later_date_overall].gteq(a_t[:income_at_entry_overall])
+        a_t[:income_at_later_date_overall].gteq(a_t[:income_at_penultimate_overall])
       when :earned_income_20
-        a_t[:income_at_later_date_earned].gt(a_t[:income_at_entry_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+        a_t[:income_at_later_date_earned].gt(a_t[:income_at_penultimate_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
       when :non_employment_cash_income_20
-        a_t[:income_at_later_date_non_employment_cash].gt(a_t[:income_at_entry_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20'))
+        a_t[:income_at_later_date_non_employment_cash].gt(a_t[:income_at_penultimate_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20'))
       when :overall_income_20
-        a_t[:income_at_later_date_overall].gt(a_t[:income_at_entry_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
+        a_t[:income_at_later_date_overall].gt(a_t[:income_at_penultimate_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
       end
       {
         headers: income_support_columns.keys,
@@ -300,6 +306,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Last Name' => :last_name,
         'Entry Date' => :entry_date,
         'Move-in-Date' => :move_in_date,
+        'Days to Move-in' => :days_to_move_in_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,
         'Most Recent Service' => :most_recent_service_within_range,
@@ -373,9 +380,13 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Entry Earned' => :income_at_entry_earned,
         'Entry Non-Employment' => :income_at_entry_non_employment_cash,
         'Entry Overall' => :income_at_entry_overall,
+        'Penultimate Earned' => :income_at_penultimate_earned,
+        'Penultimate Non-Employment' => :income_at_penultimate_non_employment_cash,
+        'Penultimate Overall' => :income_at_penultimate_overall,
         'Later Earned' => :income_at_later_date_earned,
         'Later Non-Employment' => :income_at_later_date_non_employment_cash,
         'Later Overall' => :income_at_later_date_overall,
+
       }
 
     end
@@ -387,8 +398,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Last Name' => :last_name,
         'Entry Date' => :entry_date,
         'Entry Date Entered' => :enrollment_date_created,
+        'Days to Enter' => :days_to_add_entry_date,
         'Exit Date' => :exit_date,
         'Exit Date Entered' => :exit_date_created,
+        'Days to Exit' => :days_to_add_exit_date,
         'Project' => :project_name,
       }
     end

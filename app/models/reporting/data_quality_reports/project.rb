@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting::DataQualityReports
   class Project < ReportingBase
     include ArelHelper
@@ -67,7 +73,9 @@ module Reporting::DataQualityReports
     end
 
     def services_scope project:, report_range:
-      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).
+      # Explicitly ignore extrapolated SO since we're reporting on data collected
+      GrdaWarehouse::ServiceHistoryService.where(record_type: :service).
+        joins(service_history_enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: project.id)).
         where(date: report_range.range)
     end

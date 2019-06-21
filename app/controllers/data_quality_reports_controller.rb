@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class DataQualityReportsController < ApplicationController
   include PjaxModalController
   skip_before_action :authenticate_user!, only: [:show, :answers]

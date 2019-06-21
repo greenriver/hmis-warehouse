@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
   belongs_to :file, class_name: GrdaWarehouse::DashboardExportFile.name

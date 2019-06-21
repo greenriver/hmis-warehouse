@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class HmisExportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -59,7 +65,7 @@ module WarehouseReports
 
     def show
       # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
-      send_data @export.content, filename: "HMIS_export_#{Time.now.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
+      send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
     def cancel

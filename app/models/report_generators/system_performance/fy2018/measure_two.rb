@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::SystemPerformance::Fy2018
   class MeasureTwo < Base
     LOOKBACK_STOP_DATE = '2012-10-01'

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
     include ArelHelper
@@ -174,6 +180,28 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         head_of_household: report_enrollment.head_of_household,
       )
       report_enrollment.income_at_entry_response = income_record_at_entry&.IncomeFromAnySource
+
+      # Penultimate Income
+      penultimate_income_record = report_enrollment.penultimate_income(incomes: hud_enrollment.income_benefits, report_end: report_end)
+      report_enrollment.income_at_penultimate_earned = report_enrollment.calculate_income_at_penultimate_earned(
+        income_record: penultimate_income_record,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.income_at_penultimate_non_employment_cash = report_enrollment.calculate_income_at_penultimate_non_employment_cash(
+        income_record: penultimate_income_record,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.income_at_penultimate_overall = report_enrollment.calculate_income_at_penultimate_overall(
+        income_record: penultimate_income_record,
+        entry_date: hud_enrollment.EntryDate,
+        head_of_household: report_enrollment.head_of_household,
+        report_end: report_end,
+      )
+      report_enrollment.income_at_penultimate_response = penultimate_income_record&.IncomeFromAnySource
 
       # Income at later date
       later_income_record = report_enrollment.later_income(incomes: hud_enrollment.income_benefits, report_end: report_end)

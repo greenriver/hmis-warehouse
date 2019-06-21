@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ClientsController < ApplicationController
   include PjaxModalController
   include ClientController
   include ArelHelper
-  include ClientPathGenerator   
+  include ClientPathGenerator
 
   helper ClientMatchHelper
   helper ClientHelper
@@ -23,7 +29,7 @@ class ClientsController < ApplicationController
     @clients = if params[:q].present?
       client_source.text_search(params[:q], client_scope: client_source)
     else
-      client_scope
+      client_scope.none
     end
     @clients = @clients.preload(:processed_service_history)
     sort_filter_index()
@@ -41,7 +47,7 @@ class ClientsController < ApplicationController
   end
 
   def update
-    
+
   end
 
   # display an assessment form in a modal

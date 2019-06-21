@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Notes: see https://www.pivotaltracker.com/file_attachments/68760691/download for spec
 # For each of the SUB_TYPES we need to answer the GLOBAL_QUESTIONS and the specific questions.
 # In addition, we need to answer the summary questions as their own category

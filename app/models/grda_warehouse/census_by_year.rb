@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # holds aggregated data similar to that from the census table -- see the census rake tasks
 class GrdaWarehouse::CensusByYear < GrdaWarehouseBase
   self.table_name = :censuses_averaged_by_year

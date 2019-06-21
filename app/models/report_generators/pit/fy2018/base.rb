@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # https://www.hudexchange.info/resources/documents/Notice-CPD-16-060-2017-HIC-PIT-Data-Collection-Notice.pdf
 #
 # https://www.hudexchange.info/resources/documents/2016-HIC-PIT-Combined-Data-Submission-Guidance.pdf

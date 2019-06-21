@@ -3,14 +3,29 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 
-%table.table.table-condensed
-  %thead
-    %tr
-      %th Client
-  %tbody
-    - @clients.each do |client|
+- if @clients.exists?
+  %p The following clients have completed a #{_('Coordinated Entry Assessment')} but do not have a confirmed consent on file.
+  %table.table.table-condensed
+    %thead
       %tr
-        %td
-          = link_to(client_path(client)) do
-            = client.FirstName
-            = client.LastName
+        %th Client
+        %th Collection Date
+        %th Interested in RRH?
+        %th Interested in Youth RRH?
+        %th Assessor
+        %th Assessor's Email
+    %tbody
+      - @clients.each do |client|
+        - assessment = client.source_hmis_forms.rrh_assessment.max_by{ |f| f.collected_at }
+        %tr
+          %td
+            = link_to(client_path(client)) do
+              = client.FirstName
+              = client.LastName
+          %td= assessment.collected_at.to_date
+          %td= yes_no client.rrh_desired
+          %td= yes_no client.youth_rrh_desired
+          %td= assessment.staff
+          %td= assessment.staff_email
+- else
+  %p None found.
