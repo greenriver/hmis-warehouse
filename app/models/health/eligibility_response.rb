@@ -122,8 +122,8 @@ module Health
       @json_subs ||= as_json[:interchanges].
         detect{|h| h.keys.include? :functional_groups}[:functional_groups].
         detect{|h| h.keys.include? :transactions}[:transactions].
-        select{|h| h.keys.include? "Table 2 - Subscriber Detail"}.
-          map{|h| h["Table 2 - Subscriber Detail"]}.flatten
+        select{|h| h.keys.include? "2 - Subscriber Detail"}.
+          map{|h| h["2 - Subscriber Detail"]}.flatten
     end
 
     def sender

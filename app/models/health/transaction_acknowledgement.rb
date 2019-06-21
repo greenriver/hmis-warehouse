@@ -14,7 +14,7 @@ module Health
         data = as_json[:interchanges].
             detect{|h| h.keys.include? :functional_groups}[:functional_groups].
             detect{|h| h.keys.include? :transactions}[:transactions].
-            detect{|h| h.keys.include? "Table 1 - Header"}["Table 1 - Header"].
+            detect{|h| h.keys.include? "1 - Header"}["1 - Header"].
             detect{|h| h.keys.include? :AK9}[:AK9]
 
         status = data.detect{|h| h.keys.include? :E715}[:E715][:value][:description]
@@ -29,7 +29,7 @@ module Health
         data = as_json[:interchanges].
             detect{|h| h.keys.include? :functional_groups}[:functional_groups].
             detect{|h| h.keys.include? :transactions}[:transactions].
-            detect{|h| h.keys.include? "Table 1 - Header"}["Table 1 - Header"].
+            detect{|h| h.keys.include? "1 - Header"}["1 - Header"].
             detect{|h| h.keys.include? :AK9}[:AK9]
 
         included = data.detect{|h| h.keys.include? :E97}[:E97]
@@ -51,7 +51,7 @@ module Health
         as_json[:interchanges].
             detect{|h| h.keys.include? :functional_groups}[:functional_groups].
             detect{|h| h.keys.include? :transactions}[:transactions].
-            detect{|h| h.keys.include? "Table 1 - Header"}["Table 1 - Header"].
+            detect{|h| h.keys.include? "1 - Header"}["1 - Header"].
             detect{|h| h.keys.include? "2000 TRANSACTION SET RESPONSE HEADER"}["2000 TRANSACTION SET RESPONSE HEADER"].
             detect{|h| h.keys.include? :IK5}[:IK5].
             select{|h| h.keys.include? :E618}.

@@ -102,7 +102,8 @@ module Health
     def details
       @details ||= begin
         details = []
-        data = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].detect{|h| h.keys.include? :transactions}[:transactions].select{|h| h.keys.include? "Table 2 - Detail"}
+        data = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].
+          detect{|h| h.keys.include? :transactions}[:transactions].select{|h| h.keys.include? "2 - Detail"}
         data.each do |h|
           patient = h.values.first
 
