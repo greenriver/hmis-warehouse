@@ -9,9 +9,9 @@
 class WarehouseReport::PshReport
   include ArelHelper
 
-  attr_accessor :project_id, :start_date, :end_date, :subpopulation, :household_type
-  def initialize project_id:, start_date:, end_date:, subpopulation:, household_type:
-    @project_id = project_id
+  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type
+  def initialize project_ids:, start_date:, end_date:, subpopulation:, household_type:
+    @project_ids = project_ids
     @start_date = start_date
     @end_date = end_date
     @subpopulation = Reporting::Housed.psh.subpopulation(subpopulation)
@@ -330,32 +330,9 @@ class WarehouseReport::PshReport
       pluck(:id, :FirstName, :LastName)
   end
 
-  # See if this project has a residential_project, if it does, use that ID
-  # NOTE: the spec supports the possibility of more than one affiliation
-  # we're assuming one for now
-  def stabilization_project
-    @stabilization_project ||= if project.residential_projects.exists?
-      project.residential_projects.first
-    else
-      project
-    end
-  end
-
-  def pre_placement_project
-    @pre_placement_project ||= if project.affiliated_projects.exists?
-      project.affiliated_projects.first
-    else
-      project
-    end
-  end
-
-  def two_project_setup?
-    @two_project_setup ||= stabilization_project.id != pre_placement_project.id
-  end
-
   # selected project
-  def project
-    @project ||= project_source.find(@project_id)
+  def projects
+    @projects ||= project_source.where(id: @project_ids)
   end
 
   def project_source
@@ -372,14 +349,14 @@ class WarehouseReport::PshReport
 
   def housed_scope
     if ! all_projects
-      housed_source.where(project_id: @project_id).send(@subpopulation).send(@household_type)
+      housed_source.where(project_id: @project_ids).send(@subpopulation).send(@household_type)
     else
       housed_source.all.send(@subpopulation).send(@household_type)
     end
   end
 
   def all_projects
-    @project_id == :all
+    @project_ids == :all
   end
 
   def ho_t

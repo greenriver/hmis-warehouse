@@ -1,7 +1,20 @@
 .ho-container.rrh
-  .ho-container__header 
+  .ho-container__header
     %h3 Time in Program
-  .d-flex.text-center.justify-content-center.mb-6
+  .rrh__time-in-pre-placement.chunk.pr-4.mr-4
+    .metric.text-center
+      #jTimeInProgramChart.rrh__time-in-program-chart
+      .rrh__time-in-program-chart-legend
+    .title
+      Average Time in Pre-Placment for the Reporting Period
+    .metric
+      = pluralize(@report.average_days_in_pre_placement, 'day')
+    .title
+      Average Time in Stabilization for the Reporting Period
+    .metric
+      = pluralize(@report.average_days_in_stabilization, 'day')
+- if false
+  .foo
     .rrh__time-in-pre-placement.chunk.pr-4.mr-4.w-50
       .title
         Time in Pre-Placement for Leavers

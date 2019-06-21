@@ -9,9 +9,9 @@
 class WarehouseReport::RrhReport
   include ArelHelper
 
-  attr_accessor :project_id, :start_date, :end_date, :subpopulation, :household_type
-  def initialize project_id:, start_date:, end_date:, subpopulation:, household_type:
-    @project_id = project_id
+  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type
+  def initialize project_ids:, start_date:, end_date:, subpopulation:, household_type:
+    @project_ids = project_ids
     @start_date = start_date
     @end_date = end_date
     @subpopulation = Reporting::Housed.rrh.subpopulation(subpopulation)
@@ -42,9 +42,9 @@ class WarehouseReport::RrhReport
   end
 
   def project_names
-    @project_names ||= 
+    @project_names ||=
     (
-      pre_placement_project_name.split(', ') + 
+      pre_placement_project_name.split(', ') +
       stabilization_project_name.split(', ')
     ).uniq.
       join(', ')
@@ -77,32 +77,75 @@ class WarehouseReport::RrhReport
       pluck(:client_id)
   end
 
-  def leavers_days_in_pre_placement
-    @leavers_days_in_pre_placement ||= housed_scope.
-      leavers_pre_placement(start_date: start_date, end_date: end_date).
+  def days_in_pre_placement
+    @days_in_pre_placement ||= housed_scope.
+      enrolled_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:search_start, :search_end)
   end
 
-  def leavers_average_days_in_pre_placement
-    days = leavers_days_in_pre_placement.map do |entry_date, exit_date| 
+  def average_days_in_pre_placement
+    days = days_in_pre_placement.map do |entry_date, exit_date|
+      exit_date ||= end_date
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
-    (days.to_f / leavers_days_in_pre_placement.count).round
+    (days.to_f / days_in_pre_placement.count).round
+  end
+
+  def days_in_stabilization
+    @days_in_stabilization ||= housed_scope.
+      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      distinct.
+      pluck(:housed_date, :housing_exit)
+  end
+
+  def average_days_in_stabilization
+    days = days_in_stabilization.map do |entry_date, exit_date|
+      exit_date ||= end_date
+      (exit_date - entry_date).to_i
+    end.sum
+    return days if days == 0
+    (days.to_f / days_in_stabilization.count).round
+  end
+
+  def leavers_pre_placement
+    @leavers_pre_placement ||= housed_scope.
+      leavers_pre_placement(start_date: start_date, end_date: end_date).
+      distinct
+  end
+
+  def leavers_pre_placement_exit_to_stabilization
+    @leavers_pre_placement_exit_to_stabilization ||= housed_scope.
+      exited_pre_placement_to_stabilization(start_date: start_date, end_date: end_date).
+      distinct
+  end
+
+  def leavers_pre_placement_exit_no_stabilization
+    @leavers_pre_placement_exit_no_stabilization ||= housed_scope.
+      exited_pre_placement_no_stabilization(start_date: start_date, end_date: end_date).
+      distinct
+  end
+
+  def leavers_average_pre_placement
+    days = leavers_pre_placement.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+      (exit_date - entry_date).to_i
+    end.sum
+    return days if days == 0
+    (days.to_f / leavers_pre_placement.count).round
   end
 
   def stayers_days_in_pre_placement
     @stayers_days_in_pre_placement ||= housed_scope.
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date| 
-        [entry_date, end_date] 
+      pluck(:search_start).compact.map do |entry_date|
+        [entry_date, end_date]
       end
   end
 
   def stayers_average_days_in_pre_placement
-    days = stayers_days_in_pre_placement.map do |entry_date, exit_date| 
+    days = stayers_days_in_pre_placement.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -117,7 +160,7 @@ class WarehouseReport::RrhReport
   end
 
   def leavers_average_days_in_stabilization
-    days = leavers_days_in_stabilization.map do |entry_date, exit_date| 
+    days = leavers_days_in_stabilization.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -129,17 +172,23 @@ class WarehouseReport::RrhReport
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
       where.not(housed_date: nil).
-      pluck(:housed_date).compact.map do |entry_date| 
+      pluck(:housed_date).compact.map do |entry_date|
         [entry_date, end_date]
       end
   end
 
   def stayers_average_days_in_stabilization
-    days = stayers_days_in_stabilization.map do |entry_date, exit_date| 
+    days = stayers_days_in_stabilization.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / stayers_days_in_stabilization.count).round
+  end
+
+  def in_stabilization
+    @in_stabilization ||= housed_scope.
+      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      distinct
   end
 
   def leavers_days
@@ -150,7 +199,7 @@ class WarehouseReport::RrhReport
   end
 
   def leavers_average_days
-    days = leavers_days.map do |entry_date, exit_date| 
+    days = leavers_days.map do |entry_date, exit_date|
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -161,13 +210,13 @@ class WarehouseReport::RrhReport
     @stayers_days ||= housed_scope.
       stayers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date| 
-        [entry_date, end_date] 
+      pluck(:search_start).compact.map do |entry_date|
+        [entry_date, end_date]
       end
   end
 
   def stayers_average_days
-    days = stayers_days.map do |entry_date, exit_date| 
+    days = stayers_days.map do |entry_date, exit_date|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -268,8 +317,104 @@ class WarehouseReport::RrhReport
     }
   end
 
+  def time_in_pre_placement_leavers_data
+    {
+      labels: months_for(start_date: start_date, end_date: end_date),
+      data: pre_placement_average_stay_by_month(leavers_pre_placement),
+    }
+  end
+
+  def time_in_pre_placement_exit_to_stabilization_data
+    {
+      labels: months_for(start_date: start_date, end_date: end_date),
+      data: pre_placement_average_stay_by_month(leavers_pre_placement_exit_to_stabilization),
+    }
+  end
+
+  def time_in_pre_placement_exit_no_stabilization_data
+    {
+      labels: months_for(start_date: start_date, end_date: end_date),
+      data: pre_placement_average_stay_by_month(leavers_pre_placement_exit_no_stabilization),
+    }
+  end
+
+  def time_in_stabilization_data
+    {
+      labels: months_for(start_date: start_date, end_date: end_date),
+      data: pre_placement_average_stay_by_month(in_stabilization),
+    }
+  end
+
   # Supporting methods
-  
+
+  def months_for start_date:, end_date:
+    (start_date..end_date).map{ |m| m.strftime('%b %Y') }.uniq
+  end
+
+  def pre_placement_average_stay_by_month client_scope
+    leavers = client_scope.pluck(:search_start, :search_end, :service_project, :project_id)
+    month_data ={}
+    months_for(start_date: start_date, end_date: end_date).each do |month_year|
+      beginning_of_month = Date.parse "#{month_year} 01"
+      end_of_month = beginning_of_month.end_of_month
+      leavers.each do |search_start, search_end, project_name, project_id|
+        if search_end > end_of_month
+          use_end_date = end_of_month
+        else
+          use_end_date = search_end
+        end
+        next if search_start >= use_end_date
+        month_data[month_year] ||= {}
+        month_data[month_year]["#{project_name} - (#{project_id})"] ||= {}
+        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] ||= []
+        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] << (use_end_date - search_start).to_i
+        month_data[month_year]['All'] ||= {}
+        month_data[month_year]['All']['data'] ||= []
+        month_data[month_year]['All']['data'] << (use_end_date - search_start).to_i
+      end
+    end
+    month_data.each do |month_year, counts|
+      counts.each do |project_name, project_data|
+        month_data[month_year][project_name]['count'] = project_data['data'].count
+        month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2) rescue 0
+      end
+    end
+
+    return month_data
+  end
+
+  def stabilization_average_stay_by_month client_scope
+    clients = client_scope.pluck(:housed_date, :housing_exit, :service_project, :project_id)
+    month_data ={}
+    months_for(start_date: start_date, end_date: end_date).each do |month_year|
+      beginning_of_month = Date.parse "#{month_year} 01"
+      end_of_month = beginning_of_month.end_of_month
+      clients.each do |housed_date, housing_exit, project_name, project_id|
+        if housing_exit > end_of_month
+          use_end_date = end_of_month
+        else
+          use_end_date = housing_exit
+        end
+        next if housed_date >= use_end_date
+        month_data[month_year] ||= {}
+        month_data[month_year]["#{project_name} - (#{project_id})"] ||= {}
+        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] ||= []
+        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] << (use_end_date - housed_date).to_i
+        month_data[month_year]['All'] ||= {}
+        month_data[month_year]['All']['data'] ||= []
+        month_data[month_year]['All']['data'] << (use_end_date - housed_date).to_i
+      end
+    end
+    month_data.each do |month_year, counts|
+      counts.each do |project_name, project_data|
+        month_data[month_year][project_name]['count'] = project_data['data'].count
+        month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2) rescue 0
+      end
+    end
+
+    return month_data
+  end
+
   def enrolled_client_ids
     housed_scope.
       enrolled(start_date: start_date, end_date: end_date).
@@ -330,32 +475,9 @@ class WarehouseReport::RrhReport
       pluck(:id, :FirstName, :LastName)
   end
 
-  # See if this project has a residential_project, if it does, use that ID
-  # NOTE: the spec supports the possibility of more than one affiliation
-  # we're assuming one for now 
-  def stabilization_project
-    @stabilization_project ||= if project.residential_projects.exists?
-      project.residential_projects.first
-    else
-      project
-    end
-  end
-
-  def pre_placement_project
-    @pre_placement_project ||= if project.affiliated_projects.exists?
-      project.affiliated_projects.first
-    else
-      project
-    end
-  end
-
-  def two_project_setup?
-    @two_project_setup ||= stabilization_project.id != pre_placement_project.id
-  end
-
-  # selected project
-  def project
-    @project ||= project_source.find(@project_id)
+  # selected projects
+  def projects
+    @projects ||= project_source.where(id: @project_ids)
   end
 
   def project_source
@@ -372,14 +494,14 @@ class WarehouseReport::RrhReport
 
   def housed_scope
     if ! all_projects
-      housed_source.where(project_id: @project_id).send(@subpopulation).send(@household_type)
+      housed_source.where(project_id: @project_ids).send(@subpopulation).send(@household_type)
     else
       housed_source.all.send(@subpopulation).send(@household_type)
     end
   end
 
   def all_projects
-    @project_id == :all
+    @project_ids == :all
   end
 
   def ho_t

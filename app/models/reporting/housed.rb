@@ -80,6 +80,16 @@ module Reporting
       exiting_pre_placement(start_date: start_date, end_date: end_date)
     end
 
+    scope :exited_pre_placement_to_stabilization, -> (start_date:, end_date:) do
+      leavers_pre_placement(start_date: start_date, end_date: end_date).
+      where.not(housed_date: nil)
+    end
+
+    scope :exited_pre_placement_no_stabilization, -> (start_date:, end_date:) do
+      leavers_pre_placement(start_date: start_date, end_date: end_date).
+      where(housed_date: nil)
+    end
+
     # Stabilization
     scope :enrolled_stabilization, ->(start_date:, end_date:) do
       where(
