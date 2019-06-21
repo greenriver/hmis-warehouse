@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190621150718) do
+ActiveRecord::Schema.define(version: 20190621154429) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -147,6 +147,9 @@ ActiveRecord::Schema.define(version: 20190621150718) do
     t.integer  "income_at_penultimate_response"
   end
 
+  add_index "warehouse_data_quality_report_enrollments", ["report_id", "active", "entered", "head_of_household", "enrolled"], name: "pdq_rep_act_ent_head_enr", using: :btree
+  add_index "warehouse_data_quality_report_enrollments", ["report_id", "active", "exited", "head_of_household", "enrolled"], name: "pdq_rep_act_ext_head_enr", using: :btree
+
   create_table "warehouse_data_quality_report_project_groups", force: :cascade do |t|
     t.integer  "report_id"
     t.integer  "unit_inventory"
@@ -159,6 +162,8 @@ ActiveRecord::Schema.define(version: 20190621150718) do
     t.jsonb    "nightly_household_census"
     t.datetime "calculated_at",              null: false
   end
+
+  add_index "warehouse_data_quality_report_project_groups", ["report_id"], name: "pdq_p_groups_report_id", using: :btree
 
   create_table "warehouse_data_quality_report_projects", force: :cascade do |t|
     t.integer  "report_id"
@@ -183,6 +188,8 @@ ActiveRecord::Schema.define(version: 20190621150718) do
     t.jsonb    "nightly_household_census"
     t.datetime "calculated_at",               null: false
   end
+
+  add_index "warehouse_data_quality_report_projects", ["report_id", "project_id"], name: "pdq_projects_report_id_project_id", using: :btree
 
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
