@@ -40,6 +40,8 @@ with an exit record and the `ExitDate` during the reporting period.
 
 ## Bed Utilization
 
+*NOTE:* Calculated from computed service records and does not include extrapolated Street Outreach data.
+
 ### Bed Inventory
 
 The sum of the `BedInventory` fields for project inventories with inventory covering any
@@ -47,24 +49,20 @@ part of the reporting period.
 
 ### Average Daily / Nightly Clients
 
-*NOTE:* Calculated from computed service records.
-
 The sum of the number of service entries on each day of the reporting period divided by
 the number of days.
 
 ### Average Bed Utilization
 
-*NOTE:* Calculated from computed service records.
-
 The average daily clients from above divided by the bed inventory from above.
 
 ### Graph
 
-*NOTE:* Calculated from computed service records.
-
 The sum of the number of service entries on each day of the reporting period.
 
 ## Unit Utilization
+
+*NOTE:* Calculated from computed service records and does not include extrapolated Street Outreach data.
 
 ### Unit Inventory
 
@@ -73,20 +71,14 @@ part of the reporting period.
 
 ### Average Daily / Nightly Clients
 
-*NOTE:* Calculated from computed service records.
-
 The sum of the number of service entries for heads of households on each day of the reporting period divided by
 the number of days.
 
 ### Average Unit Utilization
 
-*NOTE:* Calculated from computed service records.
-
 The average daily clients from above divided by the unit inventory from above.
 
 ### Graph
-
-*NOTE:* Calculated from computed service records.
 
 The sum of the number of service entries for heads of households on each day of the reporting period.
 
@@ -97,8 +89,9 @@ refused, not collected, missing, partial, complete.
 
 ### Completeness Percentage
 
-Denominator: The number of enrollments * the number of completeness metrics)
-Numerator: Denominator - The number of metrics not marked _complete_.
+The total number of metrics (the number of enrollments * the number of
+completeness metrics) minus he number of metrics not marked _complete_
+divided by the total number of metrics.
 
 ### Name
 
