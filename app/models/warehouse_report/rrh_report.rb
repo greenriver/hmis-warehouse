@@ -87,7 +87,7 @@ class WarehouseReport::RrhReport
   def average_days_in_pre_placement
     days = days_in_pre_placement.map do |entry_date, exit_date|
       exit_date ||= end_date
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / days_in_pre_placement.count).round
@@ -103,7 +103,7 @@ class WarehouseReport::RrhReport
   def average_days_in_stabilization
     days = days_in_stabilization.map do |entry_date, exit_date|
       exit_date ||= end_date
-      (exit_date - entry_date).to_i
+      (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
     (days.to_f / days_in_stabilization.count).round
@@ -318,42 +318,67 @@ class WarehouseReport::RrhReport
   end
 
   def time_in_pre_placement_leavers_data
+    support = pre_placement_average_stay_by_month(leavers_pre_placement)
+    months = months_for(start_date: start_date, end_date: end_date)
     {
-      labels: months_for(start_date: start_date, end_date: end_date),
-      data: pre_placement_average_stay_by_month(leavers_pre_placement),
+      labels: ['x'] + months,
+      data: [['x'] + months] + data_from(months, support),
+      support: support,
     }
   end
 
   def time_in_pre_placement_exit_to_stabilization_data
+    support = pre_placement_average_stay_by_month(leavers_pre_placement_exit_to_stabilization)
+    months = months_for(start_date: start_date, end_date: end_date)
     {
-      labels: months_for(start_date: start_date, end_date: end_date),
-      data: pre_placement_average_stay_by_month(leavers_pre_placement_exit_to_stabilization),
+      labels: ['x'] + months,
+      data: data_from(months, support),
+      support: support,
     }
   end
 
   def time_in_pre_placement_exit_no_stabilization_data
+    support = pre_placement_average_stay_by_month(leavers_pre_placement_exit_no_stabilization)
+    months = months_for(start_date: start_date, end_date: end_date)
     {
-      labels: months_for(start_date: start_date, end_date: end_date),
-      data: pre_placement_average_stay_by_month(leavers_pre_placement_exit_no_stabilization),
+      labels: ['x'] + months,
+      data: data_from(months, support),
+      support: support,
     }
   end
 
   def time_in_stabilization_data
+    support = pre_placement_average_stay_by_month(in_stabilization)
+    months = months_for(start_date: start_date, end_date: end_date)
     {
-      labels: months_for(start_date: start_date, end_date: end_date),
-      data: pre_placement_average_stay_by_month(in_stabilization),
+      labels: ['x'] + months,
+      data: data_from(months, support),
+      support: support,
     }
   end
 
   # Supporting methods
 
+  def data_from months, support
+    data = {}
+    project_names = support.values.map(&:keys).flatten.uniq
+    project_names.each do |project_name|
+      months.each do |month|
+        d = support[month][project_name]
+        data[project_name] ||= [project_name]
+        data[project_name] << d.try(:[], 'average') || 0
+      end
+    end
+    return data.values
+  end
+
   def months_for start_date:, end_date:
-    (start_date..end_date).map{ |m| m.strftime('%b %Y') }.uniq
+    (start_date.to_date..end_date.to_date).map{ |m| m.strftime('%b %Y') }.uniq
   end
 
   def pre_placement_average_stay_by_month client_scope
     leavers = client_scope.pluck(:search_start, :search_end, :service_project, :project_id)
-    month_data ={}
+    month_data = {}
     months_for(start_date: start_date, end_date: end_date).each do |month_year|
       beginning_of_month = Date.parse "#{month_year} 01"
       end_of_month = beginning_of_month.end_of_month
@@ -385,7 +410,7 @@ class WarehouseReport::RrhReport
 
   def stabilization_average_stay_by_month client_scope
     clients = client_scope.pluck(:housed_date, :housing_exit, :service_project, :project_id)
-    month_data ={}
+    month_data = {}
     months_for(start_date: start_date, end_date: end_date).each do |month_year|
       beginning_of_month = Date.parse "#{month_year} 01"
       end_of_month = beginning_of_month.end_of_month

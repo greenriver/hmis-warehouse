@@ -10,8 +10,10 @@ module WarehouseReports
     include ArelHelper
     include PjaxModalController
     before_action :available_projects
+    before_action :set_months
     before_action :set_filter
     before_action :set_report
+
 
     respond_to :html, :js
 
@@ -21,6 +23,17 @@ module WarehouseReports
 
     def clients
       @clients = @report.support_for(params[:metric]&.to_sym)
+    end
+
+    private def set_months
+      start_date = ::Reporting::Housed.rrh.minimum(:search_start)
+      end_date = ::Reporting::Housed.rrh.maximum(:housing_exit)
+      @start_months = (start_date.to_date..end_date.to_date).map do |m|
+        [m.strftime('%b %Y'), m.beginning_of_month]
+      end.uniq.reverse.drop(1).to_h
+      @end_months = (start_date.to_date..end_date.to_date).map do |m|
+        [m.strftime('%b %Y'), m.end_of_month]
+      end.uniq.reverse.to_h
     end
 
     private def set_report
@@ -35,8 +48,12 @@ module WarehouseReports
 
     private def set_filter
       @filter = OpenStruct.new()
-      @filter.start_date = report_params[:start_date]&.to_date rescue 1.months.ago.beginning_of_month
-      @filter.end_date = report_params[:end_date]&.to_date rescue @filter.start_date.end_of_month
+      @filter.start_date = report_params[:start_date]&.to_date rescue @start_months.values[5]
+      @filter.end_date = report_params[:end_date]&.to_date rescue @end_months.values[0]
+      # force at least a 2 month coverage
+      if @filter.start_date > @filter.end_date - 1.months
+        @filter.start_date = (@filter.end_date - 1.months).beginning_of_month
+      end
       @filter.subpopulation = report_params[:subpopulation]&.to_sym || :all rescue :all
       @filter.household_type = report_params[:household_type]&.to_sym || :all rescue :all
       p_ids = report_params[:project_ids].select(&:present?).map(&:to_i) rescue nil

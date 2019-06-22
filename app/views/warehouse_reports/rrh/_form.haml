@@ -7,9 +7,9 @@
       .col-sm-3
         = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, input_html: {class: :select2}, include_blank: 'All'
       .col-sm-3
-        = f.input :start_date, as: :date_picker
+        = f.input :start_date, collection: @start_months, label: 'Start', input_html: {class: :select2}
       .col-sm-3
-        = f.input :end_date, as: :date_picker
+        = f.input :end_date, collection: @end_months, label: 'End', input_html: {class: :select2}
 
   - content_for :filter_actions do
     = f.submit 'Update', class: ['btn', 'btn-primary']
