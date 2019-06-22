@@ -2,84 +2,25 @@
   .ho-container__header
     %h3 Time in Program
   .rrh__time-in-pre-placement.chunk.pr-4.mr-4
-    .metric.text-center
-      #jTimeInProgramChart.rrh__time-in-program-chart
-      .rrh__time-in-program-chart-legend
-    .title
-      Average Time in Pre-Placment for the Reporting Period
-    .metric
-      = pluralize(@report.average_days_in_pre_placement, 'day')
-
-    %h4 Exited to Stabilization
-    .jTimeInPrePlacementExitToStabilizationChart
-    %h4 Did not Exit to Stabilization
-    .jTimeInPrePlacementExitNoStabilizationChart
-    %h4 Exited to Any Destination
-    .jTimeInPrePlacementChart
-
-    .title
-      Average Time in Stabilization for the Reporting Period
-    .metric
-      = pluralize(@report.average_days_in_stabilization, 'day')
-
-    %h4 Time in Stabilization
-    .jTimeInStabilizationChart
-
-- if false
-  .foo
-    .rrh__time-in-pre-placement.chunk.pr-4.mr-4.w-50
-      .title
-        Time in Pre-Placement for Leavers
-      .metric
-        - days = @report.leavers_average_days_in_pre_placement
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Pre-Placement
-    .rrh__time-in-pre-placement.chunk.w-50
-      .title
-        Time in Pre-Placement for Stayers
-      .metric
-        - days = @report.stayers_average_days_in_pre_placement
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Pre-Placement.
-  .d-flex.text-center.justify-content-center.mb-6
-    .rrh__time-in-stabilization.chunk.pr-4.mr-4.w-50
-      .title
-        Time in Stabilization for Leavers
-      .metric
-        - days = @report.leavers_average_days_in_stabilization
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Stabilization
-    .rrh__time-in-stabilization.chunk.w-50
-      .title
-        Time in Stabilization for Stayers
-      .metric
-        - days = @report.stayers_average_days_in_stabilization
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Stabilization.
-  .d-flex.text-center.justify-content-center.mb-6
-    .rrh__time-in-program.chunk.pr-4.mr-4.w-50
-      .title
-        Overall Time for Leavers
-      .metric
-        - days = @report.leavers_average_days
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in program
-    .rrh__time-in-program.chunk.w-50
-      .title
-        Overall Time for Stayers
-      .metric
-        - days = @report.stayers_average_days
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in program.
+    .row
+      .col-sm-9
+        %h4 Exited to Stabilization
+        .jTimeInPrePlacementExitToStabilizationChart
+        %h4 Did not Exit to Stabilization
+        .jTimeInPrePlacementExitNoStabilizationChart
+        %h4 Exited to Any Destination
+        .jTimeInPrePlacementChart
+      .col-sm-3.metric.text-center
+        .title
+          Average Time in Pre-Placment for the Reporting Period
+        .metric
+          = pluralize(@report.average_days_in_pre_placement, 'day')
+    .row
+      .col-sm-9
+        %h4 Time in Stabilization
+        .jTimeInStabilizationChart
+      .col-sm-3.metric.text-center
+        .title
+          Average Time in Stabilization for the Reporting Period
+        .metric
+          = pluralize(@report.average_days_in_stabilization, 'day')

@@ -33,7 +33,8 @@ class App.WarehouseReports.Rrh.Time
           show: true
           ticks: 4
       legend:
-        show: false
+        show: true
+        position: 'right'
       size:
         height: 200
       bindto: @chart_selector
