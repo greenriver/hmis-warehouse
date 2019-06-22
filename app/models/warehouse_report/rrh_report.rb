@@ -332,7 +332,7 @@ class WarehouseReport::RrhReport
     months = months_for(start_date: start_date, end_date: end_date)
     {
       labels: ['x'] + months,
-      data: data_from(months, support),
+      data: [['x'] + months] + data_from(months, support),
       support: support,
     }
   end
@@ -342,7 +342,7 @@ class WarehouseReport::RrhReport
     months = months_for(start_date: start_date, end_date: end_date)
     {
       labels: ['x'] + months,
-      data: data_from(months, support),
+      data: [['x'] + months] + data_from(months, support),
       support: support,
     }
   end
@@ -352,7 +352,7 @@ class WarehouseReport::RrhReport
     months = months_for(start_date: start_date, end_date: end_date)
     {
       labels: ['x'] + months,
-      data: data_from(months, support),
+      data: [['x'] + months] + data_from(months, support),
       support: support,
     }
   end
@@ -366,7 +366,7 @@ class WarehouseReport::RrhReport
       months.each do |month|
         d = support[month][project_name]
         data[project_name] ||= [project_name]
-        data[project_name] << d.try(:[], 'average') || 0
+        data[project_name] << (d.try(:[], 'average') || 0)
       end
     end
     return data.values

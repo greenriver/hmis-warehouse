@@ -10,14 +10,21 @@
     .metric
       = pluralize(@report.average_days_in_pre_placement, 'day')
 
-    .jTimeInPrePlacementChart
+    %h4 Exited to Stabilization
     .jTimeInPrePlacementExitToStabilizationChart
+    %h4 Did not Exit to Stabilization
     .jTimeInPrePlacementExitNoStabilizationChart
+    %h4 Exited to Any Destination
+    .jTimeInPrePlacementChart
 
     .title
       Average Time in Stabilization for the Reporting Period
     .metric
       = pluralize(@report.average_days_in_stabilization, 'day')
+
+    %h4 Time in Stabilization
+    .jTimeInStabilizationChart
+
 - if false
   .foo
     .rrh__time-in-pre-placement.chunk.pr-4.mr-4.w-50

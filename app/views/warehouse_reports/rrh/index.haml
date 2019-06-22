@@ -12,10 +12,11 @@
     var pre_placement_leavers_chart_data = #{@report.time_in_pre_placement_leavers_data.to_json}
     var pre_placement_leavers_to_stabilization_chart_data = #{@report.time_in_pre_placement_exit_to_stabilization_data.to_json}
     var pre_placement_leavers_no_stabilization_chart_data = #{@report.time_in_pre_placement_exit_no_stabilization_data.to_json}
-    var TimeInPrePlacementChart = App.WarehouseReports.Rrh.TimeChart('.jTimeInPrePlacementChart', pre_placement_leavers_chart_data)
-    var TimeInPrePlacementChart = App.WarehouseReports.Rrh.TimeChart('.jTimeInPrePlacementExitToStabilizationChart', pre_placement_leavers_to_stabilization_chart_data)
-    var TimeInPrePlacementChart = App.WarehouseReports.Rrh.TimeChart('.jTimeInPrePlacementExitNoStabilizationChart', pre_placement_leavers_no_stabilization_chart_data)
-
+    var stabilization_chart_data = #{@report.time_in_stabilization_data.to_json}
+    var timeInPrePlacementChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementChart', pre_placement_leavers_chart_data);
+    var timeInPrePlacementExitToStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitToStabilizationChart', pre_placement_leavers_to_stabilization_chart_data);
+    var timeInPrePlacementExitNoStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitNoStabilizationChart', pre_placement_leavers_no_stabilization_chart_data);
+    var timeInStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInStabilizationChart', stabilization_chart_data);
     var destination_chart_data = #{@report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json}
     var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
     var returns_data = #{@report.returns_for_chart.to_json}
