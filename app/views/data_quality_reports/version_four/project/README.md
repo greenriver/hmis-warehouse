@@ -118,7 +118,7 @@ DOB is missing if it is:
 - Incomplete (which implies that DOB's will never be reported as partial)
 - Is before Jan 1, 1915
 - Is after the `DateCreated` of the associated enrollment
-- If the client is an adult on the report date or head of household, and the DOB is on or after the `EntryDate`
+- If the client is an adult on the on the date the report was generated or head of household, and the DOB is on or after the `EntryDate`
 
 ### Gender
 
@@ -143,32 +143,32 @@ are all blank.
 
 ### Disabling Condition
 
-Computed for enrollments using `DisablingCondition` if the client is an adult on the report date.
+Computed for enrollments using `DisablingCondition` if the client is an adult on the on the date the report was generated.
 Disabling Condition is missing if `DisablinghCondition` is blank, or if it is '0', and if any of the most
 recent disability responses are '1'.
 
 ### Prior Living Situation
 
 Computed for enrollments where the client is either the head of household, or an adult on
-the report date, using`LivingSituation`.  
+the on the date the report was generated, using`LivingSituation`.  
 Prior Living Situation is missing if it is blank.
 
 
 ### Destination
 
 Computed for enrollments with an exit and the client is either the head of household, or an adult on
-the report date, using`Destination`.  
+the on the date the report was generated, using`Destination`.  
 Destination is missing if it is blank.
 
 ### Income At Entry
 
 Computed for enrollments where the client is either the head of household, or an adult on
-the report date using `IncomeFromAnySource`.
+the on the date the report was generated using `IncomeFromAnySource`.
 Income At Entry is missing if there is no income benefit at entry.
 
 ### Income Annual Assessment
 
-Computed for enrollments where the client is either the head of household or an adult on the report date,
+Computed for enrollments where the client is either the head of household or an adult on the on the date the report was generated,
 and have been enrolled for more than one year since the report end date.
 Income Annual Assessment is missing if there is no annual assessment for the enrollment before the report end
 date.
@@ -177,7 +177,7 @@ date.
 ### Income At Exit
 
 Computed for enrollments where the client is either the head of household or an adult on
-the report date, and exited during the reporting period.
+the on the date the report was generated, and exited during the reporting period.
 Income At Entry is missing if there is no income benefit at exit.
 
 ## Timeliness
