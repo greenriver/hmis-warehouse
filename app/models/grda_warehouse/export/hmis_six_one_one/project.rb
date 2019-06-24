@@ -63,7 +63,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       es_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
       return nil if es_types.include?(project_type)
       if es_types.include?(project_type_override)
-        return 1
+        return 0
       end
       return nil
     end
