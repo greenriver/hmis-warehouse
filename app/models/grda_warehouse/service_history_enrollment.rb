@@ -109,43 +109,47 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do
+    ph_scopes = [
+      entry.ongoing(on_date: date).
+        ph_move_in_after(date).
+        select(:client_id).
+        distinct.to_sql]
+
     if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      ph_scopes << entry.ongoing(on_date: date).
+        in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+        select(:client_id).
+        distinct.to_sql
     end
-    # non-homeless includes TH if we only want chronic, so don't subtract it
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
+
+    negate_with_housed = Arel.sql(ph_scopes.join(' OR '))
 
     entry.
       ongoing(on_date: date).
       homeless(chronic_types_only: chronic_types_only).
-      where.not(
-        client_id: entry.ongoing(on_date: date).
-          in_project_type(non_homeless).
-          select(:client_id).
-          distinct
-      )
+      where(arel_table[:client_id].not_in(negate_with_housed))
   end
 
   scope :hud_currently_homeless, -> (date: Date.today, chronic_types_only: false) do
+    ph_scopes = [
+      entry.ongoing(on_date: date).
+        ph_move_in_after(date).
+        select(:client_id).
+        distinct.to_sql]
+
     if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      ph_scopes << entry.ongoing(on_date: date).
+        hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+        select(:client_id).
+        distinct.to_sql
     end
-    # non-homeless includes TH if we only want chronic, so don't subtract it
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - project_types
+
+    negate_with_housed = Arel.sql(ph_scopes.join(' OR '))
 
     entry.
       ongoing(on_date: date).
       hud_homeless.
-      where.not(
-        client_id: entry.ongoing(on_date: date).
-          hud_project_type(non_homeless).
-          select(:client_id).
-          distinct
-      )
+      where(arel_table[:client_id].not_in(negate_with_housed))
   end
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do
@@ -252,6 +256,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :visible_in_window_to, -> (user) do
     joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+  end
+
+  scope :ph_move_in_after, -> (date) do
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+    joins(:enrollment).where(e_t[:MoveInDate].lt(date).or(e_t[:MoveInDate].eq(nil)))
   end
 
   #################################
