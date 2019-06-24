@@ -50,6 +50,14 @@ class WarehouseReport::RrhReport
       join(', ')
   end
 
+  def service_project_names
+    @service_project_names ||= housed_scope.distinct.pluck(:service_project)
+  end
+
+  def residential_project_names
+    @residential_project_names ||= housed_scope.distinct.pluck(:residential_project)
+  end
+
   # newly enrolled during date range
   def entering_pre_placement
     housed_scope.entering_pre_placement(start_date: start_date, end_date: end_date).
@@ -121,10 +129,28 @@ class WarehouseReport::RrhReport
       distinct
   end
 
+  def average_days_leavers_pre_placement_exit_to_stabilization
+    days = leavers_pre_placement_exit_to_stabilization.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+      exit_date ||= end_date
+      (exit_date.to_date - entry_date).to_i
+    end.sum
+    return days if days == 0
+    (days.to_f / leavers_pre_placement_exit_to_stabilization.count).round
+  end
+
   def leavers_pre_placement_exit_no_stabilization
     @leavers_pre_placement_exit_no_stabilization ||= housed_scope.
       exited_pre_placement_no_stabilization(start_date: start_date, end_date: end_date).
       distinct
+  end
+
+  def average_days_leavers_pre_placement_exit_no_stabilization
+    days = leavers_pre_placement_exit_no_stabilization.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+      exit_date ||= end_date
+      (exit_date.to_date - entry_date).to_i
+    end.sum
+    return days if days == 0
+    (days.to_f / leavers_pre_placement_exit_no_stabilization.count).round
   end
 
   def leavers_average_pre_placement
@@ -365,7 +391,7 @@ class WarehouseReport::RrhReport
     project_names.each do |project_name|
       months.each do |month|
         d = support[month][project_name]
-        data[project_name] ||= [project_name]
+        data[project_name] ||= [project_name.gsub(/ - \(\d+\)$/, '')]
         data[project_name] << (d.try(:[], 'average') || 0)
       end
     end
@@ -377,31 +403,54 @@ class WarehouseReport::RrhReport
   end
 
   def pre_placement_average_stay_by_month client_scope
-    leavers = client_scope.pluck(:search_start, :search_end, :service_project, :project_id)
+    columns = [:search_start, :search_end, :service_project, :project_id]
+    leavers = client_scope.pluck(*columns).map do |row|
+      Hash[columns.zip(row)]
+    end.group_by do |row|
+      row[:service_project]
+    end
     month_data = {}
     months_for(start_date: start_date, end_date: end_date).each do |month_year|
       beginning_of_month = Date.parse "#{month_year} 01"
       end_of_month = beginning_of_month.end_of_month
-      leavers.each do |search_start, search_end, project_name, project_id|
-        if search_end > end_of_month
-          use_end_date = end_of_month
-        else
-          use_end_date = search_end
+
+      month_data[month_year] ||= {}
+      month_data[month_year]['All'] ||= {}
+      month_data[month_year]['All']['data'] ||= []
+      service_project_names.each do |project_name|
+        if @project_ids != :all
+          month_data[month_year][project_name] ||= {}
+          month_data[month_year][project_name]['data'] ||= []
         end
-        next if search_start >= use_end_date
-        month_data[month_year] ||= {}
-        month_data[month_year]["#{project_name} - (#{project_id})"] ||= {}
-        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] ||= []
-        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] << (use_end_date - search_start).to_i
-        month_data[month_year]['All'] ||= {}
-        month_data[month_year]['All']['data'] ||= []
-        month_data[month_year]['All']['data'] << (use_end_date - search_start).to_i
+        if leavers[project_name].blank?
+          # comment this out to remove blanks from the average
+          month_data[month_year]['All']['data'] << 0
+          month_data[month_year][project_name]['data'] << 0 if @project_ids != :all
+        else
+          leavers[project_name].each do |row|
+            if row[:search_end] > end_of_month
+              use_end_date = end_of_month
+            else
+              use_end_date = row[:search_end]
+            end
+            next if row[:search_start] >= use_end_date
+            month_data[month_year]['All']['data'] << (use_end_date - row[:search_start]).to_i
+
+            if @project_ids != :all
+              month_data[month_year][project_name]['data'] << (use_end_date - row[:search_start]).to_i
+            end
+          end
+        end
       end
     end
     month_data.each do |month_year, counts|
       counts.each do |project_name, project_data|
         month_data[month_year][project_name]['count'] = project_data['data'].count
-        month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2) rescue 0
+        if project_data['data'].count.zero?
+          month_data[month_year][project_name]['average'] = 0
+        else
+          month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2)
+        end
       end
     end
 
@@ -409,31 +458,55 @@ class WarehouseReport::RrhReport
   end
 
   def stabilization_average_stay_by_month client_scope
-    clients = client_scope.pluck(:housed_date, :housing_exit, :service_project, :project_id)
+    columns = [:housed_date, :housing_exit, :residential_project, :project_id]
+    clients = client_scope.pluck(*columns).map do |row|
+      Hash[columns.zip(row)]
+    end.group_by do |row|
+      row[:residential_project]
+    end
     month_data = {}
     months_for(start_date: start_date, end_date: end_date).each do |month_year|
       beginning_of_month = Date.parse "#{month_year} 01"
       end_of_month = beginning_of_month.end_of_month
-      clients.each do |housed_date, housing_exit, project_name, project_id|
-        if housing_exit > end_of_month
-          use_end_date = end_of_month
-        else
-          use_end_date = housing_exit
+      month_data[month_year] ||= {}
+      month_data[month_year]['All'] ||= {}
+      month_data[month_year]['All']['data'] ||= []
+      residential_project_names.each do |project_name|
+        if @project_ids != :all
+          month_data[month_year][project_name] ||= {}
+          month_data[month_year][project_name]['data'] ||= []
         end
-        next if housed_date >= use_end_date
-        month_data[month_year] ||= {}
-        month_data[month_year]["#{project_name} - (#{project_id})"] ||= {}
-        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] ||= []
-        month_data[month_year]["#{project_name} - (#{project_id})"]['data'] << (use_end_date - housed_date).to_i
-        month_data[month_year]['All'] ||= {}
-        month_data[month_year]['All']['data'] ||= []
-        month_data[month_year]['All']['data'] << (use_end_date - housed_date).to_i
+
+        if clients[project_name].blank?
+          # comment this out to remove blanks from the average
+          month_data[month_year]['All']['data'] << 0
+          month_data[month_year][project_name]['data'] << 0 if @project_ids != :all
+        else
+          clients[project_name].each do |row|
+            if row[:housing_exit] > end_of_month
+              use_end_date = end_of_month
+            else
+              use_end_date = ow[:housing_exit]
+            end
+            next if row[:housed_date] >= use_end_date
+
+            month_data[month_year]['All']['data'] << (use_end_date - row[:housed_date]).to_i
+
+            if @project_ids != :all
+              month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i
+            end
+          end
+        end
       end
     end
     month_data.each do |month_year, counts|
       counts.each do |project_name, project_data|
         month_data[month_year][project_name]['count'] = project_data['data'].count
-        month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2) rescue 0
+        if project_data['data'].count.zero?
+          month_data[month_year][project_name]['average'] = 0
+        else
+          month_data[month_year][project_name]['average'] = (project_data['data'].sum.to_f / project_data['data'].count).round(2)
+        end
       end
     end
 
@@ -478,7 +551,7 @@ class WarehouseReport::RrhReport
   end
 
   # returns array of clients with id, first name, last name who match the metric
-  def support_for metric
+  def support_for metric, params=nil
     case metric
     when :enrolled_clients
       client_ids = enrolled_client_ids
@@ -494,6 +567,8 @@ class WarehouseReport::RrhReport
       client_ids = entering_stabilization
     when :exiting_stabilization
       client_ids = exiting_stabilization
+    when :pre_placement_any_exit
+      client_ids = exiting_pre_placement
     end
     client_source.where(id: client_ids).
       order(:LastName, :FirstName).

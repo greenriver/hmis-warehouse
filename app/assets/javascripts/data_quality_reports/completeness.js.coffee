@@ -94,7 +94,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
             "#{v}%"
 
   _follow_link: (d, element) =>
-    console.log(@project_id)
+    # console.log(@project_id)
     column = @columns[d.x]
     switch d.id
       when "Missing / Null" then prefix = "missing"

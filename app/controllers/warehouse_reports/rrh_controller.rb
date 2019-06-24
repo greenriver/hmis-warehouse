@@ -22,7 +22,8 @@ module WarehouseReports
     end
 
     def clients
-      @clients = @report.support_for(params[:metric]&.to_sym)
+      @clients = @report.support_for(params[:metric]&.to_sym, params)
+      render layout: 'pjax_modal_content'
     end
 
     private def set_months

@@ -1,18 +1,22 @@
 #= require ./namespace
 
 class App.WarehouseReports.Rrh.Time
-  constructor: (@chart_selector, @data) ->
+  constructor: (@chart_selector, @data, @support_url) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
-    console.log @data
     @_build_chart()
 
   _build_chart: () =>
     @chart = bb.generate({
       data:
         x: 'x'
-        columns: @data.data,
+        columns: @data.data
+        color: @_colors
+        onclick: @_follow_link
+      tooltip:
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
+          @_toolip(d, defaultTitleFormat, defaultValueFormat, color)
       axis:
         x:
           type: 'category'
@@ -39,14 +43,43 @@ class App.WarehouseReports.Rrh.Time
         height: 200
       bindto: @chart_selector
     })
+  _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
+    # Somewhat reverse engineered from here:
+    # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
+    # console.log(d, defaultValueFormat(d[0].value), @data)
+    tooltip_title = defaultTitleFormat(d[0].x)
+    html = "<table class='bb-tooltip'>"
+    html += "<thead>"
+    html += "<tr><th colspan='4'>#{tooltip_title}</th></tr>"
+    html += "<tr><th>Project</th><th>Average Days</th><th>Client Count</th></tr>"
+    html += "</thead>"
+    html += "<tbody>"
+    $(d).each (i) =>
+      row = d[i]
+
+      if row?
+        bg_color = color(row.id)
+        html += "<tr class='bb-tooltip-name-#{@chart.internal.getTargetSelectorSuffix(row.id)}'>"
+        box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
+        value = "<td>#{row.value}</td>"
+        client_count = @data.support[tooltip_title][row.id].count
+        count = "<td>#{client_count}</td>"
+        html += box
+        html += value
+        html += count
+        html += "</tr>"
+
+    html += "</tbody>"
+    html += '</table>'
+    html
 
   _colors: (c, d) =>
     key = d
     if key.id?
       key = key.id
     colors = [ '#091f2f', '#fb4d42', '#288be4', '#d2d2d2' ]
-    if key in ['Goal', 'Average', 'Target']
-      color = 'rgb(228, 228, 228)'
+    if key in ['All']
+      color = '#288BEE'
     else
       color = @color_map[key]
       if !color?
@@ -55,8 +88,16 @@ class App.WarehouseReports.Rrh.Time
         @next_color = @next_color % colors.length
     return color
 
-  # _follow_link: (d, e) =>
-  #   month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
-  #   url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
-  #   url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
-  #   window.open url
+
+  _follow_link: (d, e) =>
+    console.log(d, @support_url)
+    if d.name != 'All'
+      url = @support_url + encodeURI("&selected_project=#{d.name}")
+
+      $('.modal .modal-content').html('Loading...')
+      $('.modal').modal('show')
+      $('.modal .modal-content').load(url)
+    # window.open url
+    # month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
+    # url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
+    # url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))

@@ -4,14 +4,16 @@
   %table.table.table-sm
     %thead
       %tr
+        %th Warehouse ID
         %th First Name
         %th Last Name
     %tbody
       - @clients.each do |id, first_name, last_name|
+        - if current_user.can_view_clients? || current_user.can_edit_clients?
+          - url = client_path(id: id)
+        - elsif current_user.can_view_client_window?
+          - url = window_client_path(id: id)
         %tr
-          - if current_user.can_view_clients? || current_user.can_edit_clients?
-            %td= link_to first_name, client_path(id: id), target: '_blank'
-            %td= link_to last_name, client_path(id: id), target: '_blank'
-          - elsif current_user.can_view_client_window?
-            %td= link_to first_name, window_client_path(id: id), target: '_blank'
-            %td= link_to last_name, window_client_path(id: id), target: '_blank'
+          %td= link_to_if url.present?, id, url, target: '_blank'
+          %td= link_to_if url.present?, first_name, url, target: '_blank'
+          %td= link_to_if url.present?, last_name, url, target: '_blank'
