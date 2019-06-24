@@ -1,5 +1,7 @@
 = content_for :modal_title do
-  = "Supporting Data"
+  - title = "Supporting Data"
+  - if params[:selected_project].present?
+    - title += " for #{@report.valid_project_name(params[:selected_project])}"
 - if @clients.any?
   %table.table.table-sm
     %thead

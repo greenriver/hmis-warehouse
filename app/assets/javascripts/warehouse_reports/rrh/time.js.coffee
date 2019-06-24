@@ -92,7 +92,8 @@ class App.WarehouseReports.Rrh.Time
   _follow_link: (d, e) =>
     console.log(d, @support_url)
     if d.name != 'All'
-      url = @support_url + encodeURI("&selected_project=#{d.name}")
+      month = @data.labels[d.index + 1]
+      url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
 
       $('.modal .modal-content').html('Loading...')
       $('.modal').modal('show')
