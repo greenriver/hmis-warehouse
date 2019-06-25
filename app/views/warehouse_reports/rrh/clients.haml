@@ -2,20 +2,23 @@
   - title = "Supporting Data"
   - if params[:selected_project].present?
     - title += " for #{@report.valid_project_name(params[:selected_project])}"
-- if @clients.any?
+  - title
+- if @clients.support_rows.any?
   %table.table.table-sm
     %thead
       %tr
-        %th Warehouse ID
-        %th First Name
-        %th Last Name
+        - @clients.headers.each do |h|
+          %th= h
     %tbody
-      - @clients.each do |id, first_name, last_name|
-        - if current_user.can_view_clients? || current_user.can_edit_clients?
-          - url = client_path(id: id)
-        - elsif current_user.can_view_client_window?
-          - url = window_client_path(id: id)
+      - @clients.support_rows.each do |row|
+        - client_id = row['Warehouse ID']
         %tr
-          %td= link_to_if url.present?, id, url, target: '_blank'
-          %td= link_to_if url.present?, first_name, url, target: '_blank'
-          %td= link_to_if url.present?, last_name, url, target: '_blank'
+          - row.each do |header, v|
+            - if @clients.client_headers.include?(header)
+              - if current_user.can_view_clients? || current_user.can_edit_clients?
+                - url = client_path(id: client_id)
+              - elsif current_user.can_view_client_window?
+                - url = window_client_path(id: client_id)
+              %td= link_to_if url.present?, v, url, target: '_blank'
+            - else
+              %td= v

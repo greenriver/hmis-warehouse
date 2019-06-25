@@ -9,11 +9,12 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     include PjaxModalController
+
     before_action :available_projects
     before_action :set_months
     before_action :set_filter
     before_action :set_report
-
+    before_action :set_modal_size
 
     respond_to :html, :js
 
@@ -24,6 +25,10 @@ module WarehouseReports
     def clients
       @clients = @report.support_for(params[:metric]&.to_sym, params)
       render layout: 'pjax_modal_content'
+    end
+
+    private def set_modal_size
+      @modal_size = :xl
     end
 
     private def set_months

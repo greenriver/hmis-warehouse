@@ -23,7 +23,7 @@
           .metric
             = pluralize(@report.average_days_leavers_pre_placement_exit_no_stabilization, 'day')
           %p.description For clients exiting to anywhere except stabilization.
-    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitNoStabilizationChart', title: 'Time in Pre-Placement with an Exit not to Stabilization'
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitNoStabilizationChart', title: 'Time in Pre-Placement with an Exit not to Stabilization', default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
@@ -34,7 +34,7 @@
           .metric
             = pluralize(@report.leavers_average_pre_placement, 'day')
           %p.description For clients exiting to anywhere destination.
-    = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: 'Time in Pre-Placement with an Exit to Any Destination'
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: 'Time in Pre-Placement with an Exit to Any Destination', default_open: 'yes'
 
     - content_for :panel_collapse_content, flush: true do
       .row
