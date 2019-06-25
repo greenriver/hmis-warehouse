@@ -323,6 +323,7 @@ module Exporters::HmisSixOneOne
       ).exists
     end
 
+
     def project_exists_for_enrollment
       project_scope.where(
         p_t[:ProjectID].eq(e_t[:ProjectID]).

@@ -98,7 +98,7 @@ module Export::HMISSixOneOne::Shared
       row[:EnrollmentID] = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
     end
     if row[:PersonalID].present?
-      row[:PersonalID] = client_export_id(row[:PersonalID])
+      row[:PersonalID] = client_export_id(row[:PersonalID], data_source_id)
     end
     if row[:ProjectID].present?
       row[:ProjectID] = project_export_id(row[:ProjectID], data_source_id)
@@ -247,29 +247,29 @@ module Export::HMISSixOneOne::Shared
     @organization_lookup[[organization_id, data_source_id]]
   end
 
-  def client_export_id personal_id
+  def client_export_id personal_id, data_source_id
     # lookup by warehouse client connection
     if self.is_a? GrdaWarehouse::Hud::Client
       @dest_client_lookup ||= begin
        GrdaWarehouse::WarehouseClient.
-        pluck(:source_id, :destination_id).
-        map do |source_id, destination_id|
-          [source_id.to_s, destination_id.to_s]
+        pluck(:source_id, :destination_id, :data_source_id).
+        map do |source_id, destination_id, data_source_id|
+          [[source_id.to_s, data_source_id], destination_id.to_s]
         end.to_h
       end
-      return @dest_client_lookup[personal_id]
+      return @dest_client_lookup[[personal_id, data_source_id]]
     else
       # lookup by personal id
       @client_lookup ||= begin
         GrdaWarehouse::Hud::Client.source.
           joins(:warehouse_client_source).
-          pluck(
-            :PersonalID,
-            wc_t[:destination_id].as('destination_id').to_sql
-          ).to_h
+          pluck(:PersonalID, wc_t[:data_source_id].to_sql, wc_t[:destination_id].to_sql).
+          map do |source_id, destination_id, data_source_id|
+            [[source_id.to_s, data_source_id], destination_id.to_s]
+          end.to_h
       end
     end
-    @client_lookup[personal_id]
+    @client_lookup[[personal_id, data_source_id]]
   end
 
   def project_exits_for_model project_scope
