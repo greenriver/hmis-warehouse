@@ -4,7 +4,7 @@
       Enrolled Clients
     %i.icon-group.metric
     .metric
-      - client_count = @report.enrolled_client_ids.count
+      - client_count = @report.enrolled_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_psh_index_path(params.merge(metric: :enrolled_clients)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
@@ -20,16 +20,16 @@
         %em= @report.project_names
   .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
     %h4.title
-      Clients Enrolled in Pre-Placement
+      Clients in Search
     %i.icon-file-text.metric
     .metric
-      - client_count = @report.pre_placement_client_ids.count
+      - client_count = @report.pre_placement_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_psh_index_path(params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were enrolled in the pre-placement
+        were in search
       - else
-        was enrolled in the pre-placement
+        was in search
       - if @filter.project_id.present?
         project
       - else
@@ -39,16 +39,16 @@
         %em= @report.pre_placement_project_name
   .rrh__enrolled.chunk.-stabilization
     %h4.title
-      Clients Enrolled in Stabilization
+      Clients in Housing
     %i.icon-house.metric
     .metric
-      - client_count = @report.stabilization_client_ids.count
+      - client_count = @report.stabilization_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_psh_index_path(params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were enrolled in the stabilization
+        were enrolled in housing
       - else
-        was enrolled in the stabilization
+        was enrolled in housing
       - if @filter.project_id.present?
         project
       - else

@@ -31,6 +31,17 @@ module WarehouseReports
       @modal_size = :xl
     end
 
+    private def set_months
+      start_date = ::Reporting::Housed.rrh.minimum(:search_start)
+      end_date = ::Reporting::Housed.rrh.maximum(:housing_exit)
+      @start_months = (start_date.to_date..end_date.to_date).map do |m|
+        [m.strftime('%b %Y'), m.beginning_of_month]
+      end.uniq.reverse.drop(1).to_h
+      @end_months = (start_date.to_date..end_date.to_date).map do |m|
+        [m.strftime('%b %Y'), m.end_of_month]
+      end.uniq.reverse.to_h
+    end
+
     private def set_report
       @report = WarehouseReport::PshReport.new(
         project_ids: @filter.project_ids,
