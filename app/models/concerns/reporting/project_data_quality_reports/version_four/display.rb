@@ -676,10 +676,20 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         dates = report_range.range.to_a
         data = {}
         report_projects.each do |report_project|
-          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = report_project.nightly_client_census.values
+          # For some unknown reason nightly_client_census gets sorted alphabetically when stored
+          # use the dates from above to correctly order them
+          counts = []
+          dates.each do |date|
+            counts << report_project.nightly_client_census[date.to_s] || 0
+          end
+          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = counts
         end
         if report_type == :project_group
-          data['Total'] = report_project_group.nightly_client_census.values
+          counts = []
+          dates.each do |date|
+            counts << report_project_group.nightly_client_census[date.to_s] || 0
+          end
+          data['Total'] = counts
         end
         {
           labels: dates,
@@ -693,10 +703,20 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         dates = report_range.range.to_a
         data = {}
         report_projects.each do |report_project|
-          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = report_project.nightly_household_census.values
+          # For some unknown reason nightly_client_census gets sorted alphabetically when stored
+          # use the dates from above to correctly order them
+          counts = []
+          dates.each do |date|
+            counts << report_project.nightly_household_census[date.to_s] || 0
+          end
+          data[projects.detect{|p| p.id == report_project.project_id}.ProjectName] = counts
         end
         if report_type == :project_group
-          data['Total'] = report_project_group.nightly_household_census.values
+          counts = []
+          dates.each do |date|
+            counts << report_project_group.nightly_household_census[date.to_s] || 0
+          end
+          data['Total'] = counts
         end
         {
           labels: dates,

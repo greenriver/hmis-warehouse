@@ -8,6 +8,7 @@ footer {
   /* box-shadow: inset 0 0 0 2px rgba(0,0,0,0.50); */
   color: #fff;
   z-index: $page-z-index;
+  padding-bottom: 200px; /* for sticky footer */
 }
 
 footer p {

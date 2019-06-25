@@ -798,7 +798,6 @@ module HUD
       21 => 'Owned by client, with ongoing housing subsidy',
       22 => 'Staying or living with family, permanent tenure',
       23 => 'Staying or living with friends, permanent tenure',
-      24 => 'Deceased',
       26 => 'Moved from one HOPWA funded project to HOPWA PH',
       28 => 'Rental by client, with GPD TIP housing subsidy',
       31 => 'Rental by client, with RRH or equivalent subsidy',
@@ -836,6 +835,7 @@ module HUD
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       17 => 'Other',
+      24 => 'Deceased',
       30 => 'No exit interview completed',
       99 => 'Data not collected',
     }.keys

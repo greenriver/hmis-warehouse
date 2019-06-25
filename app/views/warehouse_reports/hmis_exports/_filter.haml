@@ -1,15 +1,14 @@
-.well
-  = simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-    = f.error_notification
+= simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
     .row
       .col-sm-3
         = f.input :start_date, as: :date_picker
       .col-sm-3
         = f.input :end_date, as: :date_picker
       .col-sm-3
-        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false
+        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, input_html: {class: 'select2'}
       .col-sm-3
-        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false
+        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, input_html: {class: 'select2'}
         %p.muted
 
     .row
@@ -28,9 +27,10 @@
           Export Directive
         %p Full Refresh
       .col-sm-3
-        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
+        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, input_html: {class: 'select2'}
       - if can_export_anonymous_hmis_data?
         .col-sm-6
+          %p
           = f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked? This can be used to export data useful for developers.'
     .row
       .col-sm-12
@@ -44,6 +44,7 @@
           %strong Reporting period
           and additionally includes any records associated with enrollments that changed during the selected time range.
 
+  - content_for :filter_actions do
     .d-flex
       .ml-auto
         %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse'}, href: '#recurrence_options'}
@@ -52,3 +53,5 @@
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
     #recurrence_options.collapse
       = render 'recurrence_options', f: f
+
+  = render 'warehouse_reports/filters', f:f
