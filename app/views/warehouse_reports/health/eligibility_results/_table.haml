@@ -1,4 +1,4 @@
-%table.table.table-condensed
+%table.table.table-sm
   %thead
     %tr
       %th Name
@@ -9,14 +9,15 @@
       %th Care Coordinator
   %tbody
     - patients.each do |patient|
-      %tr
+      - aco_changed = 'table-warning' if patient.previous_aco_name.present? && patient.previous_aco_name != patient.aco_name
+      %tr{class: aco_changed}
         %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(client_id: patient.client_id)
         %td= patient.birthdate
         %td
           -if has_managed_care(patient)
             %i.icon-checkmark
         %td
-          - if patient.previous_aco_name.present? && patient.previous_aco_name != patient.aco_name
+          - if aco_changed
             %i.icon-warning{data: {toggle: :tooltip, title: "Previously: #{patient.previous_aco_name}"}}
           = patient.aco_name
         %td= patient.health_agency&.name

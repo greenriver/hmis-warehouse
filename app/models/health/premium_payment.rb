@@ -8,11 +8,6 @@
 # Risk: Attached content contains EDI serialized PHI
 # Control: PHI attributes documented
 
-require "stupidedi"
-stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir
-json_dir = "#{stupidedi_dir}/notes/json_writer/"
-Dir["#{json_dir}/json/*.rb"].each{ |file| require file }
-require "#{json_dir}/json"
 module Health
   class PremiumPayment < HealthBase
     acts_as_paranoid
@@ -113,7 +108,8 @@ module Health
     def details
       @details ||= begin
         details = []
-        data = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].detect{|h| h.keys.include? :transactions}[:transactions].select{|h| h.keys.include? "Table 2 - Detail"}
+        data = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].
+          detect{|h| h.keys.include? :transactions}[:transactions].select{|h| h.keys.include? "2 - Detail"}
         data.each do |h|
           patient = h.values.first
 
@@ -200,7 +196,7 @@ module Health
     def parse_820
       @parse_820 ||= begin
         config = Stupidedi::Config.contrib
-        parser = Stupidedi::Builder::StateMachine.build(config)
+        parser = Stupidedi::Parser::StateMachine.build(config)
         # .gsub('~', "~\n")
         parsed, result = parser.read(Stupidedi::Reader.build(content))
         if result.fatal?
