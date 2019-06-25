@@ -94,6 +94,7 @@ Name is missing if the `FirstName` or `LastName` are blank.
 
 Computed for all enrollments using `SSNDataQuality`.
 SSN is missing if it is blank, or is not a valid SSN:
+
 - Cannot contain a non-numeric character
 - Must be 9 digits long
 - First three digits cannot be "000," "666," or in the 900 series
@@ -106,6 +107,7 @@ SSN is missing if it is blank, or is not a valid SSN:
 
 Computed for all enrollments using `DOBDataQuality`.
 DOB is missing if it is:
+
 - Blank
 - Incomplete (which implies that DOB's will never be reported as partial)
 - Is before Jan 1, 1915
