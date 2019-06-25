@@ -9,9 +9,12 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     include PjaxModalController
+
+    before_action :set_months
     before_action :available_projects
     before_action :set_filter
     before_action :set_report
+    before_action :set_modal_size
 
     respond_to :html, :js
 
@@ -20,7 +23,12 @@ module WarehouseReports
     end
 
     def clients
-      @clients = @report.support_for(params[:metric]&.to_sym)
+      @clients = @report.support_for(params[:metric]&.to_sym, params)
+      render layout: 'pjax_modal_content'
+    end
+
+    private def set_modal_size
+      @modal_size = :xl
     end
 
     private def set_report
@@ -35,8 +43,12 @@ module WarehouseReports
 
     private def set_filter
       @filter = OpenStruct.new()
-      @filter.start_date = report_params[:start_date]&.to_date rescue 1.months.ago.beginning_of_month
-      @filter.end_date = report_params[:end_date]&.to_date rescue @filter.start_date.end_of_month
+      @filter.start_date = report_params[:start_date]&.to_date rescue @start_months.values[5]
+      @filter.end_date = report_params[:end_date]&.to_date rescue @end_months.values[0]
+      # force at least a 2 month coverage
+      if @filter.start_date > @filter.end_date - 1.months
+        @filter.start_date = (@filter.end_date - 1.months).beginning_of_month
+      end
       @filter.subpopulation = report_params[:subpopulation]&.to_sym || :all rescue :all
       @filter.household_type = report_params[:household_type]&.to_sym || :all rescue :all
       p_ids = report_params[:project_ids].select(&:present?).map(&:to_i) rescue nil
@@ -47,9 +59,9 @@ module WarehouseReports
       params.require(:filter).permit(
         :start_date,
         :end_date,
-        :project_ids,
         :subpopulation,
         :household_type,
+        project_ids: [],
       )
     end
 

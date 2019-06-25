@@ -98,7 +98,3 @@ class App.WarehouseReports.Rrh.Time
       $('.modal .modal-content').html('Loading...')
       $('.modal').modal('show')
       $('.modal .modal-content').load(url)
-    # window.open url
-    # month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
-    # url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
-    # url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
