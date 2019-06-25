@@ -12,13 +12,11 @@ The number of enrollments with `RelationshipToHoH` blank or '1' for the project 
 
 ### Active Clients
 
-The number of enrollments for the project during the reporting period for entry/exit projects,
-or with service during the reporting period for night-by-night projects.
+The number of enrollments for the project during the reporting period for entry/exit projects, or with service during the reporting period for night-by-night projects.
 
 ### Active Households
 
-The number of enrollments with `RelationshipToHoH` blank or '1' for the project during the reporting period for
-entry/exit projects, or with service during the reporting period for night-by-night projects.
+The number of enrollments with `RelationshipToHoH` blank or '1' for the project during the reporting period for entry/exit projects, or with service during the reporting period for night-by-night projects.
 
 ### Entering Clients
 
@@ -26,8 +24,7 @@ The number of enrollments for the project during the reporting period with an `E
 
 ### Entering Households
 
-The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and
-with an exit record and the `EntryDate` during the reporting period.
+The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and with an exit record and the `EntryDate` during the reporting period.
 
 ### Exiting Clients
 
@@ -35,8 +32,7 @@ The number of enrollments for the project during the reporting period with an `E
 
 ### Exiting Households
 
-The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and
-with an exit record and the `ExitDate` during the reporting period.
+The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and with an exit record and the `ExitDate` during the reporting period.
 
 ## Bed Utilization
 
@@ -44,13 +40,11 @@ with an exit record and the `ExitDate` during the reporting period.
 
 ### Bed Inventory
 
-The sum of the `BedInventory` fields for project inventories with inventory covering any
-part of the reporting period.
+The sum of the `BedInventory` fields for project inventories with inventory covering any part of the reporting period.
 
 ### Average Daily / Nightly Clients
 
-The sum of the number of service entries on each day of the reporting period divided by
-the number of days.
+The sum of the number of service entries on each day of the reporting period divided by the number of days.
 
 ### Average Bed Utilization
 
@@ -66,13 +60,11 @@ The sum of the number of service entries on each day of the reporting period.
 
 ### Unit Inventory
 
-The sum of the `UnitInventory` fields for project inventories with inventory covering any
-part of the reporting period.
+The sum of the `UnitInventory` fields for project inventories with inventory covering any part of the reporting period.
 
 ### Average Daily / Nightly Clients
 
-The sum of the number of service entries for heads of households on each day of the reporting period divided by
-the number of days.
+The sum of the number of service entries for heads of households on each day of the reporting period divided by the number of days.
 
 ### Average Unit Utilization
 
@@ -144,71 +136,60 @@ are all blank.
 ### Disabling Condition
 
 Computed for enrollments using `DisablingCondition` if the client is an adult on the on the date the report was generated.
-Disabling Condition is missing if `DisablinghCondition` is blank, or if it is '0', and if any of the most
+Disabling Condition is missing if `DisablingCondition` is blank, or if it is '0', and if any of the most
 recent disability responses are '1'.
 
 ### Prior Living Situation
 
-Computed for enrollments where the client is either the head of household, or an adult on
-the on the date the report was generated, using`LivingSituation`.  
+Computed for enrollments where the client is either the head of household, or an adult on the on the date the report was generated, using`LivingSituation`.
 Prior Living Situation is missing if it is blank.
 
 
 ### Destination
 
-Computed for enrollments with an exit and the client is either the head of household, or an adult on
-the on the date the report was generated, using`Destination`.  
+Computed for enrollments with an exit and the client is either the head of household, or an adult on the on the date the report was generated, using `Destination`.
 Destination is missing if it is blank.
 
 ### Income At Entry
 
-Computed for enrollments where the client is either the head of household, or an adult on
-the on the date the report was generated using `IncomeFromAnySource`.
+Computed for enrollments where the client is either the head of household, or an adult on the on the date the report was generated using `IncomeFromAnySource`.
 Income At Entry is missing if there is no income benefit at entry.
 
 ### Income Annual Assessment
 
-Computed for enrollments where the client is either the head of household or an adult on the on the date the report was generated,
-and have been enrolled for more than one year since the report end date.
-Income Annual Assessment is missing if there is no annual assessment for the enrollment before the report end
-date.
+Computed for enrollments where the client is either the head of household or an adult on the on the date the report was generated, and have been enrolled for more than one year since the report end date.
+Income Annual Assessment is missing if there is no annual assessment for the enrollment before the report end date.
 
 
 ### Income At Exit
 
-Computed for enrollments where the client is either the head of household or an adult on
-the on the date the report was generated, and exited during the reporting period.
+Computed for enrollments where the client is either the head of household or an adult on the on the date the report was generated, and exited during the reporting period.
 Income At Entry is missing if there is no income benefit at exit.
 
 ## Timeliness
 
 ### Time To Enter
 
-The number of days between the `EntryDate` and the `DateCreated` for each enrollment divided by the number
-of enrollments.
+The number of days between the `EntryDate` and the `DateCreated` for each enrollment divided by the number of enrollments.
 
 ### Time To Exit
 
-The number of days between the `EntryDate` and the `DateCreated` for each exit divided by the number
-of exits.
+The number of days between the `EntryDate` and the `DateCreated` for each exit divided by the number of exits.
 
 ## Outcomes
 
 ### Time In Project
 
-The time-in-project for an enrollment is the number of service days through the end of the reporting period
-for a night-by-night project, otherwise, the number of days enrolled if the enrollment has an exit during the
-reporting period, or the number of days enrolled through the last day of the reporting period for an entry/exit
+The time-in-project for an enrollment is the number of service days through the end of the reporting period for a night-by-night project, otherwise, the number of days enrolled if the enrollment has an exit during the reporting period, or the number of days enrolled through the last day of the reporting period for an entry/exit
 program.
 
 #### Average Time in Project
 
-The sum of the times-in-project as described aove divided by the number of enrollments in the reporting period.
+The sum of the times-in-project as described above divided by the number of enrollments in the reporting period.
 
 #### Percent in Project Over One Year
 
-The number of enrollments with 356+ days of service as described above, divided by the number of
-enrollments in the reporting period.
+The number of enrollments with 356+ days of service as described above, divided by the number of enrollments in the reporting period.
 
 #### Chart
 
@@ -216,13 +197,10 @@ Counts of the number of enrollments in each group, calculated as described above
 
 ### Percentage of Clients Increasing or Retaining Income
 
-Computed for clients that were adults at `EntryDate` or head of household, using the last two income
-assessments at or before the report end for each enrollment with _at least_ two.
+Computed for clients that were adults at `EntryDate` or head of household, using the last two income assessments at or before the report end for each enrollment with _at least_ two.
 
-Non-earned income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA,
-Social Security retirement, pensions, child support, alimony, or other unclassified income.
+Non-earned income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA, Social Security retirement, pensions, child support, alimony, or other unclassified income.
 
 ### Exiting to PH / Percentage of Clients Exiting to Permanent Housing
 
-The number of enrollments with an exit in the reporting period with a `Destination` of one of the HUD-defined
-permanent housing destinations divided by the number enrollments with an exit in the reporting period.
+The number of enrollments with an exit in the reporting period with a `Destination` of one of the HUD-defined permanent housing destinations divided by the number enrollments with an exit in the reporting period.
