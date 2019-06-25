@@ -24,7 +24,7 @@ The number of enrollments for the project during the reporting period with an `E
 
 ### Entering Households
 
-The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and with an exit record and the `EntryDate` during the reporting period.
+The number of enrollments for the project during the reporting period with `RelationshipToHoH` blank or '1', and with the `EntryDate` during the reporting period.
 
 ### Exiting Clients
 
