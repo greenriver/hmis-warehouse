@@ -8,12 +8,6 @@
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
 
-require "stupidedi"
-stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir
-json_dir = "#{stupidedi_dir}/notes/json_writer/"
-Dir["#{json_dir}/json/*.rb"].each{ |file| require file }
-require "#{json_dir}/json"
-
 module Health
   class EligibilityResponse < HealthBase
     acts_as_paranoid
@@ -134,8 +128,8 @@ module Health
       @json_subs ||= as_json[:interchanges].
         detect{|h| h.keys.include? :functional_groups}[:functional_groups].
         detect{|h| h.keys.include? :transactions}[:transactions].
-        select{|h| h.keys.include? "Table 2 - Subscriber Detail"}.
-          map{|h| h["Table 2 - Subscriber Detail"]}.flatten
+        select{|h| h.keys.include? "2 - Subscriber Detail"}.
+          map{|h| h["2 - Subscriber Detail"]}.flatten
     end
 
     def sender
@@ -156,7 +150,7 @@ module Health
     def parse_271
       return nil unless response.present?
       config = Stupidedi::Config.hipaa
-      parser = Stupidedi::Builder::StateMachine.build(config)
+      parser = Stupidedi::Parser::StateMachine.build(config)
       parsed, result = parser.read(Stupidedi::Reader.build(response))
       if result.fatal?
         result.explain{|reason| raise reason + " at #{result.position.inspect}" }

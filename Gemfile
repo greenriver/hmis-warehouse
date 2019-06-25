@@ -77,7 +77,7 @@ gem "gmail", require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', require: false, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
+gem 'stupidedi', require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
 # for de-duping clients
 gem 'redcarpet'
