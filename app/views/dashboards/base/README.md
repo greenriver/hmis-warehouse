@@ -44,7 +44,7 @@ The number of distinct households, as described above, with an exit from a proje
 
 The number of distinct active clients in the universe by month.
 
-## Entry and Re-Entring
+## Entry and Re-Entry
 
 ### Newly Homeless During Time Period
 
