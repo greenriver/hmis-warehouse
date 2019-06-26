@@ -272,7 +272,7 @@ def leavers_average_pre_placement
   end
 
   def destination_bucket client_id, dest_id
-    return 'returned to shelter' if returns_to_shelter.keys.include?(client_id)
+    return 'returned to shelter' if returns_to_shelter(ph_leavers).keys.include?(client_id)
     return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
@@ -280,16 +280,21 @@ def leavers_average_pre_placement
   end
 
   def ph_leavers
-    housed_scope.
-      exiting_stabilization(start_date: start_date, end_date: end_date).
-      ph_destinations.
-      distinct
+    exiting_stabilization.ph_destinations
+  end
+
+  def returns_to_shelter_after_ph
+    returns_to_shelter(ph_leavers)
+  end
+
+  def returns_to_shelter_after_exit
+    returns_to_shelter(exiting_stabilization)
   end
 
   # returns to shelter after exiting to permanent housing
-  def returns_to_shelter
-    @returns_to_shelter ||= begin
-      leavers_with_date = ph_leavers.pluck(:client_id, :housing_exit).to_h
+ def returns_to_shelter leaver_scope
+    @returns_to_shelter = begin
+      leavers_with_date = leaver_scope.pluck(:client_id, :housing_exit).to_h
       return {} unless leavers_with_date.present?
       returner_ids = Reporting::Return.where(client_id: leavers_with_date.keys).distinct.pluck(:client_id)
       rr_t = Reporting::Return.arel_table
@@ -315,20 +320,46 @@ def leavers_average_pre_placement
     end
   end
 
-  def percent_returns_to_shelter
-    return 0 unless ph_leavers.exists?
-    (returns_to_shelter.uniq.count.to_f/ph_leavers.select(:client_id).count * 100).round(2)
+  def percent_returns_to_shelter leaver_scope
+    return 0 unless leaver_scope.exists?
+    (returns_to_shelter(leaver_scope).uniq.count.to_f/leaver_scope.select(:client_id).count * 100).round(2)
+  end
+
+  def percent_returns_to_shelter_after_ph_exit
+    percent_returns_to_shelter(ph_leavers)
+  end
+
+  def percent_returns_to_shelter_after_any_exit
+    percent_returns_to_shelter(exiting_stabilization)
   end
 
   def bucketed_returns
     @bucketed_returns ||= {}
-    grouped_returns = returns_to_shelter.values.group_by{|m| m[:bucket]}
+    grouped_returns = returns_to_shelter(exiting_stabilization).values.group_by{|m| m[:bucket]}
     length_of_time_buckets.each do |_, bucket_text|
       if grouped_returns[bucket_text].present?
         @bucketed_returns[bucket_text] = grouped_returns[bucket_text].count
       end
     end
     return @bucketed_returns.to_a
+  end
+
+  def ph_bucketed_returns
+    @ph_bucketed_returns ||= {}
+    grouped_returns = returns_to_shelter(ph_leavers).values.group_by{|m| m[:bucket]}
+    length_of_time_buckets.each do |_, bucket_text|
+      if grouped_returns[bucket_text].present?
+        @ph_bucketed_returns[bucket_text] = grouped_returns[bucket_text].count
+      end
+    end
+    return @ph_bucketed_returns.to_a
+  end
+
+  def ph_returns_for_chart
+    {
+      labels: ph_bucketed_returns.map(&:first),
+      data: [['Client count'] + ph_bucketed_returns.map(&:last)],
+    }
   end
 
   def returns_for_chart

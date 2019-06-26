@@ -19,8 +19,10 @@
     var timeInStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInStabilizationChart', stabilization_chart_data, '#{clients_warehouse_reports_rrh_index_path(params.merge(metric: :time_in_stabilization))}');
     var destination_chart_data = #{@report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json}
     var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
+    var ph_returns_data = #{@report.ph_returns_for_chart.to_json}
+    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data);
     var returns_data = #{@report.returns_for_chart.to_json}
-    var returns_chart = new App.WarehouseReports.Rrh.Returns('.rrh__returns-chart', returns_data);
+    var returns_chart = new App.WarehouseReports.Rrh.Returns('#jReturnsChart', returns_data);
     // These collapse blocks need to be open by default to set the correct sizing for the chart
     // Close them here.
     $(document).ready(function(){
