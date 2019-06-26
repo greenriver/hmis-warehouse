@@ -29,6 +29,11 @@ RSpec.shared_context 'single-enrollment tests', shared_context: :metadata do
         csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
         expect(csv.first['EnrollmentID']).to eq enrollments.first.id.to_s
       end
+
+      it 'PersonalID from CSV file is not blank' do
+        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+        expect(csv.first['PersonalID']).to_not be_empty
+      end
     end
     describe 'when exporting clients' do
       before(:each) do
@@ -71,6 +76,12 @@ RSpec.shared_context 'single-enrollment tests', shared_context: :metadata do
           it 'EnrollmentID from CSV file match the id of first enrollment' do
             csv = CSV.read(csv_file_path(item[:klass]), headers: true)
             expect(csv.first['EnrollmentID']).to eq enrollments.first.id.to_s
+          end
+        end
+        if item[:klass].column_names.include?('PersonalID')
+          it 'PersonalID from CSV file match the id of first client' do
+            csv = CSV.read(csv_file_path(item[:klass]), headers: true)
+            expect(csv.first['PersonalID']).to_not be_empty
           end
         end
       end
