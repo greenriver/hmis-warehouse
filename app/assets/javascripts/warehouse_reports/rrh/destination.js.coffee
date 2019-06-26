@@ -2,21 +2,56 @@
 class App.WarehouseReports.Rrh.Destination
   constructor: (@wrapper, @legend_wrapper, @data) ->
     @plot()
+    console.log(@data)
 
   plot: =>
-    tt = bb.generate
-      data: {
-        columns: @data,
-        type: "pie",
-      },
-      pie: 
+    @chart = bb.generate
+      data:
+        columns: @data.data
+        type: "pie"
+      tooltip:
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
+          @_toolip(d, defaultTitleFormat, defaultValueFormat, color)
+      pie:
         label:
           format: (value, ratio, id) ->
             "#{value} (#{d3.format(".0%")(ratio)})"
-      tooltip:
-        format:
-          value: (value, ratio, id, index) ->
-            "#{value} (#{d3.format(".0%")(ratio)})"
+      # tooltip:
+      #   format:
+      #     value: (value, ratio, id, index) ->
+      #       "#{value} (#{d3.format(".0%")(ratio)})"
       color:
         pattern: ["#fb4d42", "#288be4", "#091f2f", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
       bindto: @wrapper
+
+  _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
+    # Somewhat reverse engineered from here:
+    # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
+    # console.log(d, defaultValueFormat(d[0].value), @data)
+    tooltip_title = defaultTitleFormat(d[0].x)
+    html = "<table class='bb-tooltip'>"
+    html += "<thead>"
+    html += "<tr><th>Destination Bucket</th><th>Clients</th><th>Destinations</th></tr>"
+    html += "</thead>"
+    html += "<tbody>"
+    $(d).each (i) =>
+      row = d[i]
+
+      if row?
+        bg_color = color(row.id)
+        box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
+        value = "<td>#{row.value} (#{d3.format(".0%")(row.ratio)})</td>"
+        console.log @data.support[row.value], row.name
+        details = "<td>"
+        for k in @data.support[row.name].detailed_destinations
+          console.log k
+          details += "#{k} (#{v})<br />"
+        details +="</td>"
+        html += box
+        html += value
+        html += details
+        html += "</tr>"
+
+    html += "</tbody>"
+    html += '</table>'
+    html

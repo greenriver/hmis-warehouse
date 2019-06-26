@@ -247,7 +247,8 @@ def leavers_average_pre_placement
 
   def destinations
     @destinations ||= begin
-      @destinations = {
+      @destinations = {}
+      destinations = {
         'returned to shelter' => {},
         'exited to other institution' => {},
         'successful exit to PH' => {},
@@ -260,14 +261,20 @@ def leavers_average_pre_placement
         distinct.
         pluck(:client_id, :destination).map do |client_id, dest_id|
           destination = destination_bucket(client_id, dest_id)
-          @destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
-          @destinations[destination][:count] ||= 0
-          @destinations[destination][:client_ids] ||= Set.new
+          destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
+          destinations[destination][:count] ||= 0
+          destinations[destination][:client_ids] ||= Set.new
           # Only count each client once per bucket
-          @destinations[destination][:count] += 1 unless @destinations[destination][:client_ids].include?(client_id)
-          @destinations[destination][:client_ids] << client_id
+          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(client_id)
+          destinations[destination][:client_ids] << client_id
+          destinations[destination][:detailed_destinations] ||= {}
+          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] ||= 0
+          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] += 1
         end
-      @destinations.delete_if{|_,v| v == {} }
+      destinations.delete_if{|_,v| v == {} }
+      @destinations[:support] = destinations
+      @destinations[:data] = destinations.map{|_, row| [row[:destination], row[:count]]}
+      @destinations
     end
   end
 
