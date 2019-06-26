@@ -20,9 +20,9 @@
     var destination_chart_data = #{@report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json}
     var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
     var ph_returns_data = #{@report.ph_returns_for_chart.to_json}
-    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data);
+    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :return_after_exit_to_ph))}');
     var returns_data = #{@report.returns_for_chart.to_json}
-    var returns_chart = new App.WarehouseReports.Rrh.Returns('#jReturnsChart', returns_data);
+    var returns_chart = new App.WarehouseReports.Rrh.Returns('#jReturnsChart', returns_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :return_after_exit_to_any))}');
     // These collapse blocks need to be open by default to set the correct sizing for the chart
     // Close them here.
     $(document).ready(function(){

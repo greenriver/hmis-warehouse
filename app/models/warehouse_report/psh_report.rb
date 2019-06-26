@@ -359,6 +359,7 @@ def leavers_average_pre_placement
     {
       labels: ph_bucketed_returns.map(&:first),
       data: [['Client count'] + ph_bucketed_returns.map(&:last)],
+      projects_selected: ! all_projects,
     }
   end
 
@@ -366,6 +367,7 @@ def leavers_average_pre_placement
     {
       labels: bucketed_returns.map(&:first),
       data: [['Client count'] + bucketed_returns.map(&:last)],
+      projects_selected: ! all_projects,
     }
   end
 
@@ -620,13 +622,50 @@ def leavers_average_pre_placement
       rows = in_stabilization.where(residential_project: project_name).
         enrolled_stabilization(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
+    when :return_after_exit_to_ph
+      columns = {
+        housed_date: 'Date Housed',
+        housing_exit: 'Housing Exit',
+        days_to_return: 'Days to Return',
+      }
+      bucket = length_of_time_buckets.values.detect do |label|
+        params[:bucket] == label
+      end
+      rows = returns_to_shelter(ph_leavers).select do |_, row|
+        row[:bucket] == bucket
+      end.map do |_, row|
+        [
+          row[:client_id],
+          row[:entry_date],
+          row[:exit_date],
+          row[:days_to_return],
+        ]
+      end
+    when :return_after_exit_to_any
+      columns = {
+        housed_date: 'Date Housed',
+        housing_exit: 'Housing Exit',
+        days_to_return: 'Days to Return',
+      }
+      bucket = length_of_time_buckets.values.detect do |label|
+        params[:bucket] == label
+      end
+      rows = returns_to_shelter(exiting_stabilization).select do |_, row|
+        row[:bucket] == bucket
+      end.map do |_, row|
+        [
+          row[:client_id],
+          row[:entry_date],
+          row[:exit_date],
+          row[:days_to_return],
+        ]
+      end
     end
 
     clients = client_source.where(id: rows.map(&:first)).
         order(:LastName, :FirstName).
         pluck(:id, :FirstName, :LastName)
     Support.new(clients: clients, rows: rows, headers: columns.values)
-
   end
 
   def valid_project_name name
