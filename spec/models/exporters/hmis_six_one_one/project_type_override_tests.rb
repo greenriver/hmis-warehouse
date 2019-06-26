@@ -87,7 +87,7 @@ RSpec.shared_context 'project type override tests', shared_context: :metadata do
       aggregate_failures 'checking exported project' do
         project = csv.detect { |p| p['ProjectID'] == @project.id.to_s }
         expect(project['TrackingMethod']).to_not be_empty
-        expect(project['TrackingMethod']).to eq '1'
+        expect(project['TrackingMethod']).to eq '0'
       end
     end
     it 'if the tracking method is 3 it is not overridden' do

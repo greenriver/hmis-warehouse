@@ -301,6 +301,9 @@ module GrdaWarehouse::Hud
     scope :hud_non_residential, -> do
       joins(:project).merge(Project.hud_non_residential)
     end
+    scope :with_project_type, -> (project_types) do
+      joins(:project).merge(Project.with_project_type(project_types))
+    end
 
     scope :visible_in_window_to, -> (user) do
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
