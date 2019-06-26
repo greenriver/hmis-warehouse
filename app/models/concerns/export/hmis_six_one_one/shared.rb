@@ -263,7 +263,7 @@ module Export::HMISSixOneOne::Shared
       @client_lookup ||= begin
         GrdaWarehouse::Hud::Client.source.
           joins(:warehouse_client_source).
-          pluck(:PersonalID, wc_t[:data_source_id].to_sql, wc_t[:destination_id].to_sql).
+          pluck(:PersonalID, wc_t[:destination_id].to_sql, wc_t[:data_source_id].to_sql).
           map do |source_id, destination_id, data_source_id|
             [[source_id.to_s, data_source_id], destination_id.to_s]
           end.to_h

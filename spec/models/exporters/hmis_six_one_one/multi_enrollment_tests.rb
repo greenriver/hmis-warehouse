@@ -48,6 +48,10 @@ RSpec.shared_context 'multi-enrollment tests', shared_context: :metadata do
         source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
         expect(csv_ids).to eq source_ids
       end
+      it 'PersonalID from CSV should not be blank' do
+        csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+        expect(csv.first['PersonalID']).to_not be_empty
+      end
     end
     describe 'when exporting clients' do
       before(:each) do
@@ -102,6 +106,13 @@ RSpec.shared_context 'multi-enrollment tests', shared_context: :metadata do
             csv_ids = csv.map { |m| m['EnrollmentID'] }.sort
             source_ids = involved_enrollments.map(&:id).map(&:to_s).sort.first(3)
             expect(csv_ids).to eq source_ids
+          end
+        end
+        if item[:klass].column_names.include?('PersonalID')
+          it 'PersonalID from CSV should not be blank' do
+            # binding.pry if item[:list] == :exits
+            csv = CSV.read(csv_file_path(item[:klass]), headers: true)
+            expect(csv.first['PersonalID']).to_not be_empty
           end
         end
       end
