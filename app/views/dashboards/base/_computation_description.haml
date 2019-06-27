@@ -1,0 +1,5 @@
+#computation-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = describe_computations.html_safe
+
+  = render 'common/panel_collapse', id: 'computation-info', title: 'How this Data is Computed'
