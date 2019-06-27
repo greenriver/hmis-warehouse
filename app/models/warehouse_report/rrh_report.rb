@@ -438,6 +438,68 @@ class WarehouseReport::RrhReport
     (start_date.to_date..end_date.to_date).map{ |m| m.strftime('%b %Y') }.uniq
   end
 
+  # Denominator: count enrolled in pre-placement
+  def percent_exiting_pre_placement_to_stabilization_by_month
+    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
+
+    denominators = {}
+    pre_placement_clients.group_by{|m| m[:service_project]}.map do |project_name, rows|
+      months_for(start_date: start_date, end_date: end_date).each do |month_year|
+        beginning_of_month = Date.parse "#{month_year} 01"
+        end_of_month = beginning_of_month.end_of_month
+        denominators[month_year] ||= {}
+        denominators[month_year][project_name] = rows.count do |row|
+          row.search_start <= end_of_month && (row.search_end.blank? || row.search_end >= beginning_of_month)
+        end
+      end
+    end
+
+    client_scope = leavers_pre_placement_exit_to_stabilization
+    clients = client_scope.pluck(*columns).map do |row|
+      Hash[columns.zip(row)]
+    end.group_by do |row|
+      row[:service_project]
+    end
+    month_data = {}
+    months_for(start_date: start_date, end_date: end_date).each do |month_year|
+      beginning_of_month = Date.parse "#{month_year} 01"
+      end_of_month = beginning_of_month.end_of_month
+
+      month_data[month_year] ||= {}
+      month_data[month_year]['All'] ||= {}
+      month_data[month_year]['All']['data'] ||= []
+      service_project_names.each do |project_name|
+        if @project_ids != :all
+          month_data[month_year][project_name] ||= {}
+          month_data[month_year][project_name]['data'] ||= []
+        end
+        if clients[project_name].present?
+          clients[project_name].each do |row|
+            # Only count clients who exited in this month
+            next unless (beginning_of_month..end_of_month).include?(row[:search_end])
+            month_data[month_year]['All']['data'] << row
+            if @project_ids != :all
+              month_data[month_year][project_name]['data'] << row
+            end
+          end
+        end
+      end
+      month_data.each do |month_year, counts|
+        counts.each do |project_name, project_data|
+          data = project_data['data'].compact
+          denominator = denominators[month_year][project_name] || 0
+          if denominator.zero? || data.count.zero?
+            month_data[month_year][project_name]['percentage'] = 0
+          else
+            month_data[month_year][project_name]['percentage'] = ((data.count.to_f / denominator) * 100).round(2)
+          end
+        end
+      end
+    end
+
+    return month_data
+  end
+
   def pre_placement_average_stay_by_month client_scope
     columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
     clients = client_scope.pluck(*columns).map do |row|
