@@ -245,7 +245,6 @@ class WarehouseReport::RrhReport
     (days.to_f / stayers_days.count).round
   end
 
-
   def destinations
     @destinations ||= begin
       @destinations = {}
@@ -419,16 +418,46 @@ class WarehouseReport::RrhReport
     }
   end
 
+  def percent_exiting_pre_placement_data
+    support = percent_exiting_pre_placement_to_stabilization_by_month
+    months = months_for(start_date: start_date, end_date: end_date)
+    {
+      labels: ['x'] + months,
+      data: [['x'] + months] + data_from(months, support, 'percentage'),
+      support: support,
+    }
+  end
+
+  def percent_in_stabilization_data
+    support = percent_in_stabilization_by_month
+    months = months_for(start_date: start_date, end_date: end_date)
+    {
+      labels: ['x'] + months,
+      data: [['x'] + months] + data_from(months, support, 'percentage'),
+      support: support,
+    }
+  end
+
+  def percent_exiting_stabilization_data
+    support = percent_exiting_stabilization_to_housing_by_month
+    months = months_for(start_date: start_date, end_date: end_date)
+    {
+      labels: ['x'] + months,
+      data: [['x'] + months] + data_from(months, support, 'percentage'),
+      support: support,
+    }
+  end
+
   # Supporting methods
 
-  def data_from months, support
+  def data_from months, support, key='average'
     data = {}
     project_names = support.values.map(&:keys).flatten.uniq
     project_names.each do |project_name|
       months.each do |month|
         d = support[month][project_name]
         data[project_name] ||= [project_name.gsub(/ - \(\d+\)$/, '')]
-        data[project_name] << (d.try(:[], 'average') || 0)
+        data[project_name] << (d.try(:[], key) || 0)
       end
     end
     return data.values
@@ -440,7 +469,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in pre-placement
   def percent_exiting_pre_placement_to_stabilization_by_month
-    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
+    columns = [:search_start, :search_end, :service_project, :housed_date]
 
     denominators = {}
     pre_placement_clients.group_by{|m| m[:service_project]}.map do |project_name, rows|
@@ -505,7 +534,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in stabilization
   def percent_exiting_stabilization_to_housing_by_month
-    columns = [:housed_date, :housing_exit, :residential_project, :project_id]
+    columns = [:housed_date, :housing_exit, :residential_project]
 
     denominators = {}
     in_stabilization.group_by{|m| m[:residential_project]}.map do |project_name, rows|
@@ -570,7 +599,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in either pre-placement or stabilization
   def percent_in_stabilization_by_month
-    columns = [:housed_date, :housing_exit, :residential_project, :search_start, :search_end, :service_project, :project_id]
+    columns = [:search_start, :search_end, :service_project, :housed_date, :housing_exit, :residential_project]
 
     denominators = {}
     enrolled_clients.group_by{|m| m[:residential_project]}.map do |project_name, rows|
@@ -944,7 +973,5 @@ class WarehouseReport::RrhReport
         Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
       end
     end
-
   end
-
 end
