@@ -16,10 +16,6 @@ class App.WarehouseReports.Rrh.Destination
         label:
           format: (value, ratio, id) ->
             "#{value} (#{d3.format(".0%")(ratio)})"
-      # tooltip:
-      #   format:
-      #     value: (value, ratio, id, index) ->
-      #       "#{value} (#{d3.format(".0%")(ratio)})"
       color:
         pattern: ["#fb4d42", "#288be4", "#091f2f", "#58585b", "#9E788F", "#A4B494", "#F3B3A6", "#F18F01", "#E59F71", "#ACADBC", "#D0F1BF"]
       bindto: @wrapper
@@ -31,7 +27,7 @@ class App.WarehouseReports.Rrh.Destination
     tooltip_title = defaultTitleFormat(d[0].x)
     html = "<table class='bb-tooltip'>"
     html += "<thead>"
-    html += "<tr><th>Destination Bucket</th><th>Clients</th><th>Destinations</th></tr>"
+    html += "<tr><th>Destination Group</th><th>Clients</th><th>Destinations</th></tr>"
     html += "</thead>"
     html += "<tbody>"
     $(d).each (i) =>
@@ -41,10 +37,8 @@ class App.WarehouseReports.Rrh.Destination
         bg_color = color(row.id)
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
         value = "<td>#{row.value} (#{d3.format(".0%")(row.ratio)})</td>"
-        console.log @data.support[row.value], row.name
-        details = "<td>"
-        for k in @data.support[row.name].detailed_destinations
-          console.log k
+        details = "<td class='text-left'>"
+        for k, v of @data.support[row.name].detailed_destinations
           details += "#{k} (#{v})<br />"
         details +="</td>"
         html += box
