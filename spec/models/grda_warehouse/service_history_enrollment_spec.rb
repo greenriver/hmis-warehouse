@@ -5,43 +5,72 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
   let(:start_date) { Date.today }
   let(:end_date) { Date.tomorrow }
 
-  let!(:start_in_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date, last_date_in_program: end_date }
-  let!(:start_before_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
-  let!(:start_after_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: end_date + 1.day, last_date_in_program: end_date + 2.days }
+  describe 'by range' do
+    let!(:start_in_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:start_before_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
+    let!(:start_after_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: end_date + 1.day, last_date_in_program: end_date + 2.days }
 
-  let!(:end_in_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
-  let!(:end_before_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 2.days, last_date_in_program: start_date - 1.day }
-  let!(:end_after_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date, last_date_in_program: end_date + 1.day }
+    let!(:end_in_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 1.day, last_date_in_program: end_date }
+    let!(:end_before_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date - 2.days, last_date_in_program: start_date - 1.day }
+    let!(:end_after_range) { create :grda_warehouse_service_history, :service_history_exit, first_date_in_program: start_date, last_date_in_program: end_date + 1.day }
 
-  describe 'entry_within_date_range' do
-    let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.entry_within_date_range(start_date: start_date, end_date: end_date) }
+    describe 'entry_within_date_range' do
+      let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.entry_within_date_range(start_date: start_date, end_date: end_date) }
 
-    it 'includes entry started within range' do
-      expect(scope).to include start_in_range
+      it 'includes entry started within range' do
+        expect(scope).to include start_in_range
+      end
+
+      it 'excludes entry started before range' do
+        expect(scope).not_to include start_before_range
+      end
+
+      it 'excludes entry started after range' do
+        expect(scope).not_to include start_after_range
+      end
     end
 
-    it 'excludes entry started before range' do
-      expect(scope).not_to include start_before_range
-    end
+    describe 'exit_within_date_range' do
+      let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.exit_within_date_range(start_date: start_date, end_date: end_date) }
 
-    it 'excludes entry started after range' do
-      expect(scope).not_to include start_after_range
+      it 'includes exit ended within range' do
+        expect(scope).to include(end_in_range)
+      end
+
+      it 'excludes exit ended before range' do
+        expect(scope).not_to include end_before_range
+      end
+
+      it 'excludes exit ended after range' do
+        expect(scope).not_to include end_after_range
+      end
     end
   end
 
-  describe 'exit_within_date_range' do
-    let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.exit_within_date_range(start_date: start_date, end_date: end_date) }
+  describe 'currently homeless' do
+    let!(:data_source) { create :data_source_fixed_id }
 
-    it 'includes exit ended within range' do
-      expect(scope).to include(end_in_range)
+    let!(:no_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:no_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+
+    let!(:future_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 2, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:future_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
+
+    let!(:past_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 3, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:past_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 3, data_source_id: 1, move_in_date: Date.yesterday, first_date_in_program: start_date, last_date_in_program: end_date }
+
+    let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today) }
+
+    it 'includes no move in' do
+      expect(scope).to include no_move_in
     end
 
-    it 'excludes exit ended before range' do
-      expect(scope).not_to include end_before_range
+    it 'includes future move in' do
+      expect(scope).to include future_move_in
     end
 
-    it 'excludes exit ended after range' do
-      expect(scope).not_to include end_after_range
+    it 'does not include past move in' do
+      expect(scope).not_to include past_move_in
     end
   end
 end
