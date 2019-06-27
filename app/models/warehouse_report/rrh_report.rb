@@ -469,7 +469,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in pre-placement
   def percent_exiting_pre_placement_to_stabilization_by_month
-    columns = [:search_start, :search_end, :service_project, :housed_date]
+    columns = [:search_start, :search_end, :service_project, :housed_date, :client_id]
 
     denominators = {}
     pre_placement_clients.group_by{|m| m[:service_project]}.map do |project_name, rows|
@@ -534,7 +534,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in stabilization
   def percent_exiting_stabilization_to_housing_by_month
-    columns = [:housed_date, :housing_exit, :residential_project]
+    columns = [:housed_date, :housing_exit, :residential_project, :client_id]
 
     denominators = {}
     in_stabilization.group_by{|m| m[:residential_project]}.map do |project_name, rows|
@@ -599,7 +599,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count enrolled in either pre-placement or stabilization
   def percent_in_stabilization_by_month
-    columns = [:search_start, :search_end, :service_project, :housed_date, :housing_exit, :residential_project]
+    columns = [:search_start, :search_end, :service_project, :housed_date, :housing_exit, :residential_project, :client_id]
 
     denominators = {}
     enrolled_clients.group_by{|m| m[:residential_project]}.map do |project_name, rows|
@@ -892,6 +892,64 @@ class WarehouseReport::RrhReport
           row[:entry_date],
           row[:exit_date],
           row[:days_to_return],
+        ]
+      end
+    when :percent_exiting_pre_placement
+      columns = {
+        service_project: 'Pre-Placement Project',
+        search_start: 'Search Start',
+        search_end: 'Search End',
+        housed_date: 'Date Housed',
+      }
+      project_name = valid_project_name(params[:selected_project])
+      month = params[:month]
+      support = percent_exiting_pre_placement_data[:support][month][project_name]['data']
+      rows = support.map do |row|
+        [
+          row[:client_id],
+          row[:search_start],
+          row[:search_end],
+          row[:housed_date],
+        ]
+      end
+    when :percent_in_stabilization
+      columns = {
+        service_project: 'Pre-Placement Project',
+        search_start: 'Search Start',
+        search_end: 'Search End',
+        residential_project: 'Stabilization Project',
+        housed_date: 'Date Housed',
+        housing_exit: 'Housing Exit',
+      }
+      project_name = valid_project_name(params[:selected_project])
+      month = params[:month]
+      support = percent_in_stabilization_data[:support][month][project_name]['data']
+      rows = support.map do |row|
+        [
+          row[:client_id],
+          row[:service_project],
+          row[:search_start],
+          row[:search_end],
+          row[:residential_project],
+          row[:housed_date],
+          row[:housing_exit],
+        ]
+      end
+    when :percent_exiting_stabilization
+      columns = {
+        residential_project: 'Stabilization Project',
+        housed_date: 'Date Housed',
+        housing_exit: 'Housing Exit',
+      }
+      project_name = valid_project_name(params[:selected_project])
+      month = params[:month]
+      support = percent_exiting_stabilization_data[:support][month][project_name]['data']
+      rows = support.map do |row|
+        [
+          row[:client_id],
+          row[:residential_project],
+          row[:housed_date],
+          row[:housing_exit],
         ]
       end
     end

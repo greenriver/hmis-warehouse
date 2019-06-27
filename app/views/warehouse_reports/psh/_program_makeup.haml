@@ -1,0 +1,13 @@
+.ho-container.rrh.jProgramMakeup
+  .ho-container__header
+    %h3 Program Makeup
+  .rrh__exiting_pre-placement.chunk.pr-4.mr-4
+    - content_for :panel_collapse_content, flush: true do
+      .percentExitingPrePlacementChart
+    = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: 'Percentage Exiting Search to Housing', default_open: 'yes'
+    - content_for :panel_collapse_content, flush: true do
+      .percentInStabilizationChart
+    = render 'common/panel_collapse', id: 'percentInStabilizationChart', title: 'Percentage of Participants Enrolled in Housing', default_open: 'yes'
+    - content_for :panel_collapse_content, flush: true do
+      .percentExitingStabilizationChart
+    = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: 'Percentage Exiting Housing', default_open: 'yes'
