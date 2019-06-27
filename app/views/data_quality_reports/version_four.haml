@@ -50,6 +50,8 @@
   %h3 Outcomes
   = render "data_quality_reports/version_four/#{grouped_as}/outcomes", support_path: @support_path
 
+  = render "data_quality_reports/version_four/#{grouped_as}/computation_description"
+
   = content_for :page_js do
     :javascript
       (function($) {

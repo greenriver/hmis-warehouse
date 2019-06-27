@@ -69,6 +69,14 @@ module Dashboards
       )
     end
 
+    def describe_computations
+      path = "app/views/dashboards/base/README.md"
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
+
     def set_available_months
       @available_months ||= active_report_class.distinct.order(year: :desc, month: :desc).
         pluck(:year, :month).map do |year, month|
