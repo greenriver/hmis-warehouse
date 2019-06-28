@@ -519,7 +519,8 @@ class WarehouseReport::RrhReport
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
           denominator = denominators[month_year][project_name] || 0
-          month_data[month_year][project_name]['enrolled'] = denominator
+          month_data[month_year][project_name]['denominator'] = denominator
+          month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
             month_data[month_year][project_name]['percentage'] = 0
           else
@@ -584,7 +585,8 @@ class WarehouseReport::RrhReport
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
           denominator = denominators[month_year][project_name] || 0
-          month_data[month_year][project_name]['enrolled'] = denominator
+          month_data[month_year][project_name]['denominator'] = denominator
+          month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
             month_data[month_year][project_name]['percentage'] = 0
           else
@@ -637,7 +639,6 @@ class WarehouseReport::RrhReport
         if clients[project_name].present?
           clients[project_name].each do |row|
             # Only count clients enrolled during the month
-            puts row.inspect
             next unless row[:housed_date].present? && row[:housed_date] <= end_of_month && (row[:housing_exit].blank? || row[:housing_exit] >= beginning_of_month)
             month_data[month_year]['All']['data'] << row
             if @project_ids != :all
@@ -650,7 +651,8 @@ class WarehouseReport::RrhReport
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
           denominator = denominators[month_year][project_name] || 0
-          month_data[month_year][project_name]['enrolled'] = denominator
+          month_data[month_year][project_name]['denominator'] = denominator
+          month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
             month_data[month_year][project_name]['percentage'] = 0
           else

@@ -62,8 +62,9 @@ class App.WarehouseReports.Rrh.Makeup
         html += "<tr class='bb-tooltip-name-#{@chart.internal.getTargetSelectorSuffix(row.id)}'>"
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
         value = "<td>#{row.value}%</td>"
-        client_count = @data.support[tooltip_title][row.id].enrolled
-        count = "<td>#{client_count}</td>"
+        numerator = @data.support[tooltip_title][row.id].numerator
+        denominator = @data.support[tooltip_title][row.id].denominator
+        count = "<td>#{numerator} of #{denominator}</td>"
         html += box
         html += value
         html += count

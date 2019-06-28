@@ -93,9 +93,9 @@ module Reporting
     # Stabilization
     scope :enrolled_stabilization, ->(start_date:, end_date:) do
       where(
-        arel_table[:housed_date].lt(end_date).
+        arel_table[:housed_date].lteq(end_date).
         and(
-          arel_table[:housing_exit].gt(start_date).
+          arel_table[:housing_exit].gteq(start_date).
           or(arel_table[:housing_exit].eq(nil))
         )
       )
@@ -122,17 +122,10 @@ module Reporting
     # Combined
     scope :enrolled, -> (start_date:, end_date:) do
       where(
-        arel_table[:client_id].in(
-          Arel::Nodes::SqlLiteral.new(enrolled_pre_placement(start_date: start_date, end_date: end_date).
-          distinct.
-          select(:client_id).to_sql)
-        ).
-        or(
-          arel_table[:client_id].in(
-            Arel::Nodes::SqlLiteral.new(enrolled_stabilization(start_date: start_date, end_date: end_date).
-            distinct.
-            select(:client_id).to_sql)
-          )
+        arel_table[:search_start].lteq(end_date).
+        and(
+          arel_table[:housing_exit].gteq(start_date).
+          or(arel_table[:housing_exit].eq(nil))
         )
       )
     end
