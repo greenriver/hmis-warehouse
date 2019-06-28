@@ -518,7 +518,7 @@ class WarehouseReport::RrhReport
       month_data.each do |month_year, counts|
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
-          denominator = denominators[month_year][project_name] || 0
+          denominator = denominators[month_year].try(:[], project_name) || 0
           month_data[month_year][project_name]['denominator'] = denominator
           month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
