@@ -49,6 +49,10 @@ module WarehouseReports
         end_date: @filter.end_date,
         subpopulation: @filter.subpopulation,
         household_type: @filter.household_type,
+        race: @filter.race,
+        ethnicity: @filter.ethnicity,
+        gender: @filter.gender,
+        veteran_status: @filter.veteran_status,
       )
     end
 
@@ -60,8 +64,12 @@ module WarehouseReports
       if @filter.start_date > @filter.end_date - 1.months
         @filter.start_date = (@filter.end_date - 1.months).beginning_of_month
       end
-      @filter.subpopulation = report_params[:subpopulation]&.to_sym || :all rescue :all
-      @filter.household_type = report_params[:household_type]&.to_sym || :all rescue :all
+      @filter.subpopulation = report_params[:subpopulation]&.to_sym&.presence || :all rescue :all
+      @filter.household_type = report_params[:household_type]&.to_sym&.presence || :all rescue :all
+      @filter.race = report_params[:race]&.to_sym&.presence || :all rescue :all
+      @filter.ethnicity = report_params[:ethnicity]&.to_sym&.presence || :all rescue :all
+      @filter.gender = report_params[:gender]&.to_sym&.presence || :all rescue :all
+      @filter.veteran_status = report_params[:veteran_status]&.to_sym&.presence || :all rescue :all
       p_ids = report_params[:project_ids].select(&:present?).map(&:to_i) rescue nil
       @filter.project_ids = project_ids(p_ids)
     end
@@ -72,6 +80,10 @@ module WarehouseReports
         :end_date,
         :subpopulation,
         :household_type,
+        :race,
+        :ethnicity,
+        :gender,
+        :veteran_status,
         project_ids: [],
       )
     end

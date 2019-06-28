@@ -3,13 +3,22 @@
     = f.input :project_ids, collection: @available_projects, input_html: {class: :select2, multiple: true, data: {placeholder: 'All' }}, include_blank: false, label: 'Projects'
     .row
       .col-sm-3
-        = f.input :subpopulation, collection: Reporting::Housed.available_subpopulations.invert, input_html: {class: :select2}, include_blank: 'All'
-      .col-sm-3
-        = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, input_html: {class: :select2}, include_blank: 'All'
-      .col-sm-3
         = f.input :start_date, collection: @start_months, label: 'Start', input_html: {class: :select2}
       .col-sm-3
         = f.input :end_date, collection: @end_months, label: 'End', input_html: {class: :select2}
+      .col-sm-3
+        = f.input :subpopulation, collection: Reporting::Housed.available_subpopulations.invert, input_html: {class: :select2}, include_blank: 'All'
+      .col-sm-3
+        = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, input_html: {class: :select2}, include_blank: 'All'
+    .row
+      .col-sm-3
+        = f.input :race, collection: Reporting::Housed.available_races.invert, input_html: {class: :select2}, include_blank: 'All'
+      .col-sm-3
+        = f.input :ethnicity, collection: Reporting::Housed.available_ethnicities.invert, input_html: {class: :select2}, include_blank: 'All'
+      .col-sm-3
+        = f.input :gender, collection: Reporting::Housed.available_genders.invert, input_html: {class: :select2}, include_blank: 'All'
+      .col-sm-3
+        = f.input :veteran_status, collection: Reporting::Housed.available_veteran_stati.invert, input_html: {class: :select2}, include_blank: 'All'
 
   - content_for :filter_actions do
     = f.submit 'Update', class: ['btn', 'btn-primary']

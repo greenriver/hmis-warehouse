@@ -159,6 +159,23 @@ module Reporting
       }
     end
 
+    def self.available_races
+      HUD.races
+    end
+
+    def self.available_ethnicities
+      HUD.ethnicities
+    end
+
+    def self.available_genders
+      HUD.genders
+    end
+
+    def self.available_veteran_stati
+      HUD.no_yes_reasons_for_missing_data_options
+    end
+
+
     def self.subpopulation(key)
       if available_subpopulations[key].present?
         key
@@ -169,6 +186,42 @@ module Reporting
 
     def self.household_type(key)
       if available_household_types[key].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
+    def self.race(key)
+      return :current_scope if key == :all
+      if available_races[key&.to_s].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
+    def self.ethnicity(key)
+      return :current_scope if key == :all
+      if available_ethnicities[key&.to_s&.to_i].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
+    def self.gender(key)
+      return :current_scope if key == :all
+      if available_genders[key&.to_s&.to_i].present?
+        key
+      else
+        :current_scope
+      end
+    end
+
+    def self.veteran_status(key)
+      return :current_scope if key == :all
+      if available_veteran_stati[key&.to_s&.to_i].present?
         key
       else
         :current_scope

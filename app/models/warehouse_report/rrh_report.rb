@@ -9,13 +9,17 @@
 class WarehouseReport::RrhReport
   include ArelHelper
 
-  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type
-  def initialize project_ids:, start_date:, end_date:, subpopulation:, household_type:
+  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
+  def initialize project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:
     @project_ids = project_ids
     @start_date = start_date
     @end_date = end_date
-    @subpopulation = Reporting::Housed.rrh.subpopulation(subpopulation)
-    @household_type = Reporting::Housed.rrh.household_type(household_type)
+    @subpopulation = Reporting::Housed.subpopulation(subpopulation)
+    @household_type = Reporting::Housed.household_type(household_type)
+    @race = Reporting::Housed.race(race)
+    @ethnicity = Reporting::Housed.ethnicity(ethnicity)
+    @gender = Reporting::Housed.gender(gender)
+    @veteran_status = Reporting::Housed.veteran_status(veteran_status)
   end
 
   def pre_placement_project_name
@@ -584,7 +588,7 @@ class WarehouseReport::RrhReport
       month_data.each do |month_year, counts|
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
-          denominator = denominators[month_year][project_name] || 0
+          denominator = denominators[month_year].try(:[], project_name) || 0
           month_data[month_year][project_name]['denominator'] = denominator
           month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
@@ -650,7 +654,7 @@ class WarehouseReport::RrhReport
       month_data.each do |month_year, counts|
         counts.each do |project_name, project_data|
           data = project_data['data'].compact
-          denominator = denominators[month_year][project_name] || 0
+          denominator = denominators[month_year].try(:[], project_name) || 0
           month_data[month_year][project_name]['denominator'] = denominator
           month_data[month_year][project_name]['numerator'] = data.count
           if denominator.zero? || data.count.zero?
@@ -984,11 +988,20 @@ class WarehouseReport::RrhReport
   end
 
   def housed_scope
-    if ! all_projects
-      housed_source.where(project_id: @project_ids).send(@subpopulation).send(@household_type)
+    scope = if ! all_projects
+      housed_source.where(project_id: @project_ids)
     else
-      housed_source.all.send(@subpopulation).send(@household_type)
+      housed_source.all
     end
+    scope.
+      send(@subpopulation).
+      send(@household_type)
+
+    scope = scope.where(race: @race&.to_s) unless @race == :current_scope
+    scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
+    scope = scope.where(gender: @gender&.to_s&.to_i) unless @gender == :current_scope
+    scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
+    return scope
   end
 
   def all_projects

@@ -17,6 +17,10 @@ module WarehouseReports
         end_date: @filter.end_date,
         subpopulation: @filter.subpopulation,
         household_type: @filter.household_type,
+        race: @filter.race,
+        ethnicity: @filter.ethnicity,
+        gender: @filter.gender,
+        veteran_status: @filter.veteran_status,
       )
     end
 

@@ -9,15 +9,6 @@
 class WarehouseReport::PshReport < WarehouseReport::RrhReport
   include ArelHelper
 
-  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type
-  def initialize project_ids:, start_date:, end_date:, subpopulation:, household_type:
-    @project_ids = project_ids
-    @start_date = start_date
-    @end_date = end_date
-    @subpopulation = Reporting::Housed.psh.subpopulation(subpopulation)
-    @household_type = Reporting::Housed.psh.household_type(household_type)
-  end
-
   def support_for metric, params=nil
     columns = {
       service_project: 'Housing Search',
