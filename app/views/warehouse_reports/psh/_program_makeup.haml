@@ -4,10 +4,16 @@
   .rrh__exiting_pre-placement.chunk.pr-4.mr-4
     - content_for :panel_collapse_content, flush: true do
       .percentExitingPrePlacementChart
+      %p.mb-4.text-center.description
+        Percentage of clients exiting search to housing out of those who exited search.
     = render 'common/panel_collapse', id: 'percentExitingPrePlacementChart', title: 'Percentage Exiting Search to Housing', default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentInStabilizationChart
+      %p.mb-4.text-center.description
+        Percentage of clients enrolled in housing out of those enrolled in either search or housing.
     = render 'common/panel_collapse', id: 'percentInStabilizationChart', title: 'Percentage of Participants Enrolled in Housing', default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .percentExitingStabilizationChart
+      %p.mb-4.text-center.description
+        Percentage of clients exiting housing out of those who were enrolled in housing.
     = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: 'Percentage Exiting Housing', default_open: 'yes'

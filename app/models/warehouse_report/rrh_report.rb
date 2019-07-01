@@ -471,12 +471,12 @@ class WarehouseReport::RrhReport
     (start_date.to_date..end_date.to_date).map{ |m| m.strftime('%b %Y') }.uniq
   end
 
-  # Denominator: count enrolled in pre-placement
+  # Denominator: count exiting pre-placement
   def percent_exiting_pre_placement_to_stabilization_by_month
     columns = [:search_start, :search_end, :service_project, :housed_date, :client_id]
 
     denominators = {}
-    pre_placement_clients.group_by{|m| m[:service_project]}.map do |project_name, rows|
+    exiting_pre_placement.group_by{|m| m[:service_project]}.map do |project_name, rows|
       months_for(start_date: start_date, end_date: end_date).each do |month_year|
         beginning_of_month = Date.parse "#{month_year} 01"
         end_of_month = beginning_of_month.end_of_month
@@ -537,7 +537,7 @@ class WarehouseReport::RrhReport
     return month_data
   end
 
-  # Denominator: count enrolled in stabilization
+  # Denominator: count exiting stabilization
   def percent_exiting_stabilization_to_housing_by_month
     columns = [:housed_date, :housing_exit, :residential_project, :client_id]
 
