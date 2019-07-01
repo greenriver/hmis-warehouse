@@ -5,6 +5,7 @@
 ###
 
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
+require 'newrelic_rpm'
 module EtoApi::Tasks
   class UpdateEtoData
     include ActionView::Helpers::DateHelper
@@ -73,14 +74,19 @@ module EtoApi::Tasks
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         @notifier.ping msg
+        # Rails.logger.info "Pre fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         to_fetch.each do |row|
+          # Rails.logger.info "Fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
+          GC.start
           fetch_demographics(
             client_id: row[:client_id],
             participant_site_identifier: row[:participant_site_identifier],
             site_id: row[:site_id],
             subject_id: row[:subject_id]
           )
+          # Rails.logger.info "Fetched demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         end
+        # Rails.logger.info "All demo fetched demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         msg = "Fetched #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
         @notifier.ping msg
@@ -120,12 +126,15 @@ module EtoApi::Tasks
           end.to_h
 
         eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.
+          joins(:hmis_assessment).
+          merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
           where(data_source_id: @data_source_id).
           pluck(*eto_touch_point_lookup_columns).
           map do |row|
             Hash[eto_touch_point_lookup_columns.zip(row)]
           end
         to_fetch = []
+        # Rails.logger.info "Pre-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         eto_touch_point_lookups.each do |row|
           key = [row[:client_id], row[:site_id], row[:assessment_id], row[:subject_id], row[:response_id]]
           existing_updated = existing_touch_points[key]
@@ -140,6 +149,7 @@ module EtoApi::Tasks
             }
           end
         end
+        # Rails.logger.info "Post-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         new_count = (to_fetch.map(&:values).uniq - existing_touch_points.keys.uniq).count
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
@@ -148,12 +158,15 @@ module EtoApi::Tasks
 
         touch_points_saved = 0
         to_fetch.each do |row|
+          GC.start
+          # Rails.logger.info "Before fetch: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
           # puts "Trying: client_id: #{row[:client_id]}, site_id: #{row[:site_id]}, assessment_id: #{row[:assessment_id]}, subject_id: #{row[:subject_id]}, response_id: #{row[:response_id]}"
           api_response = @api.touch_point_response(
             site_id: row[:site_id],
             response_id: row[:response_id],
             touch_point_id: row[:assessment_id]
           )
+          # Rails.logger.info "After fetch: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
           if api_response.present?
             save_touch_point(
               site_id: row[:site_id],
@@ -163,6 +176,7 @@ module EtoApi::Tasks
               subject_id: row[:subject_id]
             )
             touch_points_saved += 1
+            # Rails.logger.info "After save: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
           end
         end
         msg = "Fetched #{touch_points_saved} of #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
@@ -239,7 +253,6 @@ module EtoApi::Tasks
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
         }
-
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         hmis_client.save
 
@@ -258,6 +271,8 @@ module EtoApi::Tasks
       # Fetch assessment structure
       assessment = @api.touch_point(site_id: site_id, id: touch_point_id)
       assessment_name = assessment['TouchPointName']
+
+      # Rails.logger.info "Loading TP: #{assessment_name}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
 
       response_id = api_response["TouchPointResponseID"]
       program_id = api_response["ProgramID"]

@@ -5,11 +5,48 @@
 = render 'form'
 = render 'overview'
 = render 'time_in_program'
+= render 'program_makeup'
 = render 'outcomes'
 = render 'returns'
 - content_for :page_js do
   :javascript
-    var destination_chart_data = #{@report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json}
+    var pre_placement_leavers_chart_data = #{@report.time_in_pre_placement_leavers_data.to_json}
+    var pre_placement_leavers_to_stabilization_chart_data = #{@report.time_in_pre_placement_exit_to_stabilization_data.to_json}
+    var pre_placement_leavers_no_stabilization_chart_data = #{@report.time_in_pre_placement_exit_no_stabilization_data.to_json}
+    var stabilization_chart_data = #{@report.time_in_stabilization_data.to_json}
+    var timeInPrePlacementExitToStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitToStabilizationChart', pre_placement_leavers_to_stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :pre_placement_stabilization_exit))}');
+    var timeInPrePlacementExitNoStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitNoStabilizationChart', pre_placement_leavers_no_stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :pre_placement_no_stabilization_exit))}');
+    var timeInPrePlacementChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementChart', pre_placement_leavers_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :pre_placement_any_exit))}');
+    var timeInStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInStabilizationChart', stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :time_in_stabilization))}');
+    var destination_chart_data = #{@report.destinations.to_json}
     var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
+    var ph_returns_data = #{@report.ph_returns_for_chart.to_json}
+    var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :return_after_exit_to_ph))}');
     var returns_data = #{@report.returns_for_chart.to_json}
-    var returns_chart = new App.WarehouseReports.Rrh.Returns('.rrh__returns-chart', returns_data);
+    var returns_chart = new App.WarehouseReports.Rrh.Returns('#jReturnsChart', returns_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :return_after_exit_to_any))}');
+    var percent_exiting_pre_placement_data = #{@report.percent_exiting_pre_placement_data.to_json}
+    var percent_exiting_pre_placement_chart = new App.WarehouseReports.Rrh.Makeup('.percentExitingPrePlacementChart', percent_exiting_pre_placement_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :percent_exiting_pre_placement))}')
+    var percent_in_stabilization_data = #{@report.percent_in_stabilization_data.to_json}
+    var percent_in_stabilization_chart = new App.WarehouseReports.Rrh.Makeup('.percentInStabilizationChart', percent_in_stabilization_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :percent_in_stabilization))}')
+    var percent_exiting_stabilization_data = #{@report.percent_exiting_stabilization_data.to_json}
+    var percent_exiting_stabilization_chart = new App.WarehouseReports.Rrh.Makeup('.percentExitingStabilizationChart', percent_exiting_stabilization_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :percent_exiting_stabilization))}')
+
+    // These collapse blocks need to be open by default to set the correct sizing for the chart
+    // Close them here.
+    $(document).ready(function(){
+      $('a[href="#jTimeInPrePlacementExitNoStabilizationChart"]').trigger('click');
+      $('a[href="#jTimeInPrePlacementChart"]').trigger('click');
+    });
+    // Because these are hidden by default, they need to be re-drawn on show
+    $('#jTimeInPrePlacementChart').on('shown.bs.collapse', function(e) {
+      timeInPrePlacementChart.chart.flush();
+    });
+    $('#jTimeInPrePlacementExitToStabilizationChart').on('shown.bs.collapse', function(e) {
+      timeInPrePlacementExitToStabilizationChart.chart.flush();
+    });
+    $('#jTimeInPrePlacementExitNoStabilizationChart').on('shown.bs.collapse', function(e) {
+      timeInPrePlacementExitNoStabilizationChart.chart.flush();
+    });
+    $('#jTimeInStabilizationChart').on('shown.bs.collapse', function(e) {
+      timeInStabilizationChart.chart.flush();
+    });
