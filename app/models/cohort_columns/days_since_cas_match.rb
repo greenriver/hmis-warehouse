@@ -11,7 +11,7 @@ module CohortColumns
     attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
 
     def value(cohort_client)
-      match_started_time = cohort_client.client.processed_service_history&.days_since_cas_match
+      match_started_time = cohort_client.client.processed_service_history&.last_cas_match_date
       override_date = cohort_client.client.cas_match_override
 
       if override_date.present?
