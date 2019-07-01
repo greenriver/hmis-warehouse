@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190617154412) do
+ActiveRecord::Schema.define(version: 20190701203738) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -3447,7 +3447,7 @@ ActiveRecord::Schema.define(version: 20190617154412) do
     t.integer  "vispdat_score"
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
-    t.integer  "days_since_cas_match"
+    t.datetime "last_cas_match_date"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
