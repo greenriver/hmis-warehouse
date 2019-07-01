@@ -97,20 +97,19 @@ class App.Census.Base
     chart = bb.generate($.extend chart_options, options)
     @charts[chart_id] = chart
 
-
   _tooltip_contents: (chart_id, d, defaultTitleFormat, defaultValueFormat, color) =>
     # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
     chart = @charts[chart_id]
     date = d[0].x.toISOString().split('T')[0]
     tooltip_title = moment(date).format('ll')
-    html = "<table class='#{chart.internal.CLASS.tooltip}'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
+    html = "<table class='bb-tooltip'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
     $(d).each (i) =>
       row = d[i]
 
       if row?
         bg_color = color(row.id)
-        html += "<tr class='#{chart.internal.CLASS.tooltipName}#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
+        html += "<tr class='bb-tooltip-name-#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
         value = "<td>#{row.value}</td>"
         html += box

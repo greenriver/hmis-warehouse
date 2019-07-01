@@ -1,17 +1,17 @@
 .ho-container.rrh
-  .ho-container__header 
+  .ho-container__header
     %h3 Outcomes
   .d-flex
     .rrh__outcomes-destination.mr-4.mb-4
       %h4.title
-        Destination at Stabilization Exit
+        Destination at Housing Exit
       %p.description
-        A 
+        A
         %strong successful exit to a permanent housing
         is defined as an exit to a permanent destination with no subsequent returns to homelessness.
         A
         %strong return to homelessness
-        is defined as any subsequent night in an Emergency Shelter or on the street, either directly after exiting Stabilization, or after exiting to a permanent destination. 
+        is defined as any subsequent night in an Emergency Shelter or on the street, either directly after exiting Housing, or after exiting to a permanent destination.
         An
         %strong exit to another institution
         is defined as an exit to another institution such as a hospital or detox center with no subsequent returns to homelessness.
@@ -22,6 +22,5 @@
         #jDestinationChart.rrh__destination-chart
         .rrh__destination-chart-legend
         =# debug @report.destinations.map{|_, row| [row[:destination], row[:count]]}.to_json
-        
-      
-        
+
+
