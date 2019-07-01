@@ -736,8 +736,15 @@ module GrdaWarehouse::Hud
       @deceased_on ||= source_exits.where(Destination: ::HUD.valid_destinations.invert['Deceased']).pluck(:ExitDate).last
     end
 
+    def moved_in_with_ph?
+      enrollments.
+        open_on_date.
+        with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.today)).exists?
+    end
+
     def active_in_cas?
-      return false if deceased?
+      return false if deceased? || moved_in_with_ph?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas

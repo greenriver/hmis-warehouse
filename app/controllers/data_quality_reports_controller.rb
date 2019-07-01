@@ -74,6 +74,14 @@ class DataQualityReportsController < ApplicationController
     end
   end
 
+  def describe_computations
+    path = "app/views/data_quality_reports/#{@report.model_name.element}/project/README.md"
+    description = File.read(path)
+    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+    markdown.render(description)
+  end
+  helper_method :describe_computations
+
   def set_client_path
     @client_path = [:destination, :window, :source_client]
     if can_view_clients?
