@@ -1040,6 +1040,26 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       }
     end
 
+    def no_income
+      included_clients = enrolled_clients
+
+      clients_with_no_income_overall = included_clients.where(income_at_later_date_overall: 0).count
+      clients_with_no_earned_income = included_clients.where(income_at_later_date_earned: 0).count
+      clients_with_no_non_cash_income = included_clients.where(income_at_later_date_non_employment_cash: 0).count
+
+      denominator = included_clients.count
+      overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0
+      earned_percentage = ((clients_with_no_earned_income / denominator.to_f) * 100).round rescue 0
+      non_cash_percentage = ((clients_with_no_non_cash_income / denominator.to_f) * 100).round rescue 0
+
+      {
+        labels: [ 'No Earned Income', 'No Non-Cash Income', 'No Income Overall' ],
+        data: {
+          'Total' => [ earned_percentage, non_cash_percentage, overall_percentage ],
+        }
+      }
+    end
+
     # an overall completeness based on all completeness metrics
     def completeness_percentage
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
