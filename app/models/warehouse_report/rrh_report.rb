@@ -283,7 +283,7 @@ class WarehouseReport::RrhReport
   end
 
   def destination_bucket client_id, dest_id
-    return 'returned to shelter' if returns_to_shelter(ph_leavers).keys.include?(client_id)
+    return 'returned to shelter' if returns_to_shelter_after_ph.keys.include?(client_id)
     return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
@@ -295,11 +295,11 @@ class WarehouseReport::RrhReport
   end
 
   def returns_to_shelter_after_ph
-    returns_to_shelter(ph_leavers)
+    @returns_to_shelter_after_ph ||= returns_to_shelter(ph_leavers)
   end
 
   def returns_to_shelter_after_exit
-    returns_to_shelter(exiting_stabilization)
+    @returns_to_shelter_after_exit ||= returns_to_shelter(exiting_stabilization)
   end
 
   # returns to shelter after exiting to permanent housing
@@ -312,9 +312,7 @@ class WarehouseReport::RrhReport
       returns = {}
       returner_ids.each do |id|
         # find the first start date after the exit to PH
-        first_return = Reporting::Return.where(client_id: id).
-          where(rr_t[:first_date_in_program].gt(leavers_with_date[id])).
-          minimum(:first_date_in_program)
+        first_return = min_return_date_for_client_after(id, leavers_with_date[id])
         if first_return.present?
           exit_date = leavers_with_date[id]
           days_to_return = (first_return - exit_date).to_i.abs
@@ -329,6 +327,21 @@ class WarehouseReport::RrhReport
       end
       returns
     end
+  end
+
+  def min_return_date_for_client_after client_id, date
+    @entry_dates_by_client ||= begin
+      dates_by_client = {}
+      Reporting::Return.distinct.
+        order(first_date_in_program: :asc).
+        pluck(:client_id, :first_date_in_program).
+        each do |id, date|
+          dates_by_client[id] ||= []
+          dates_by_client[id] << date
+        end
+      dates_by_client
+    end
+    @entry_dates_by_client[client_id]&.detect{|d| d > date}
   end
 
   def percent_returns_to_shelter leaver_scope
@@ -346,7 +359,7 @@ class WarehouseReport::RrhReport
 
   def bucketed_returns
     @bucketed_returns ||= {}
-    grouped_returns = returns_to_shelter(exiting_stabilization).values.group_by{|m| m[:bucket]}
+    grouped_returns = returns_to_shelter_after_exit.values.group_by{|m| m[:bucket]}
     length_of_time_buckets.each do |_, bucket_text|
       if grouped_returns[bucket_text].present?
         @bucketed_returns[bucket_text] = grouped_returns[bucket_text].count
@@ -357,7 +370,7 @@ class WarehouseReport::RrhReport
 
   def ph_bucketed_returns
     @ph_bucketed_returns ||= {}
-    grouped_returns = returns_to_shelter(ph_leavers).values.group_by{|m| m[:bucket]}
+    grouped_returns = returns_to_shelter_after_ph.values.group_by{|m| m[:bucket]}
     length_of_time_buckets.each do |_, bucket_text|
       if grouped_returns[bucket_text].present?
         @ph_bucketed_returns[bucket_text] = grouped_returns[bucket_text].count
@@ -871,7 +884,7 @@ class WarehouseReport::RrhReport
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
-      rows = returns_to_shelter(ph_leavers).select do |_, row|
+      rows = returns_to_shelter_after_ph.select do |_, row|
         row[:bucket] == bucket
       end.map do |_, row|
         [
@@ -890,7 +903,7 @@ class WarehouseReport::RrhReport
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
-      rows = returns_to_shelter(exiting_stabilization).select do |_, row|
+      rows = returns_to_shelter_after_exit.select do |_, row|
         row[:bucket] == bucket
       end.map do |_, row|
         [
