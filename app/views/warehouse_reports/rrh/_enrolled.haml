@@ -46,9 +46,9 @@
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were enrolled in the stabilization
+        were enrolled in the #{_('stabilization')}
       - else
-        was enrolled in the stabilization
+        was enrolled in the #{_('stabilization')}
       - if @filter.project_id.present?
         project
       - else
