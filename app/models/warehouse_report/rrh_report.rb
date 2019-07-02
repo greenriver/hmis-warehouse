@@ -811,12 +811,12 @@ class WarehouseReport::RrhReport
   # returns array of clients with id, first name, last name who match the metric
   def support_for metric, params=nil
     columns = {
-      service_project: 'Pre-Placement Project',
-      search_start: 'Search Start',
-      search_end: 'Search End',
-      residential_project: 'Stabilization Project',
-      housed_date: 'Date Housed',
-      housing_exit: 'Housing Exit',
+      service_project: _('Pre-Placement Project'),
+      search_start: _('Search Start'),
+      search_end: _('Search End'),
+      residential_project: _('Stabilization Project'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
     }
 
     case metric
@@ -864,9 +864,9 @@ class WarehouseReport::RrhReport
         pluck(*([:client_id] + columns.keys))
     when :return_after_exit_to_ph
       columns = {
-        housed_date: 'Date Housed',
-        housing_exit: 'Housing Exit',
-        days_to_return: 'Days to Return',
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
+        days_to_return: _('Days to Return'),
       }
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
@@ -883,9 +883,9 @@ class WarehouseReport::RrhReport
       end
     when :return_after_exit_to_any
       columns = {
-        housed_date: 'Date Housed',
-        housing_exit: 'Housing Exit',
-        days_to_return: 'Days to Return',
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
+        days_to_return: _('Days to Return'),
       }
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
@@ -902,10 +902,10 @@ class WarehouseReport::RrhReport
       end
     when :percent_exiting_pre_placement
       columns = {
-        service_project: 'Pre-Placement Project',
-        search_start: 'Search Start',
-        search_end: 'Search End',
-        housed_date: 'Date Housed',
+        service_project: _('Pre-Placement Project'),
+        search_start: _('Search Start'),
+        search_end: _('Search End'),
+        housed_date: _('Date Housed'),
       }
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
@@ -920,12 +920,12 @@ class WarehouseReport::RrhReport
       end
     when :percent_in_stabilization
       columns = {
-        service_project: 'Pre-Placement Project',
-        search_start: 'Search Start',
-        search_end: 'Search End',
-        residential_project: 'Stabilization Project',
-        housed_date: 'Date Housed',
-        housing_exit: 'Housing Exit',
+        service_project: _('Pre-Placement Project'),
+        search_start: _('Search Start'),
+        search_end: _('Search End'),
+        residential_project: _('Stabilization Project'),
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
       }
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
@@ -943,9 +943,9 @@ class WarehouseReport::RrhReport
       end
     when :percent_exiting_stabilization
       columns = {
-        residential_project: 'Stabilization Project',
-        housed_date: 'Date Housed',
-        housing_exit: 'Housing Exit',
+        residential_project: _('Stabilization Project'),
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
       }
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
