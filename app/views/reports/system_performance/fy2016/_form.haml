@@ -21,6 +21,7 @@
             %abbr{data: {original_title: "required"}} *
             End Date
           = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
+    %hr
     .row
       .col-sm-12.margin-bottom-12
         .form-actions
