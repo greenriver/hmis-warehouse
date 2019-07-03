@@ -76,15 +76,18 @@
         var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations.to_json}, '.ph-destination-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({method: "ph_destinations"}))}');
             ph_destination.build_chart();
-
-        // Project group completeness
-        var completeness_project_group = new App.DataQualityReports.Completeness(
-          #{@report.project_group_completeness.to_json},
-          '.completeness-chart-project-group',
-          '#{polymorphic_path(@support_path, @report_keys)}'
-          );
-        completeness_project_group.build_chart();
       })(jQuery);
+    - if grouped_as == :project_group
+      :javascript
+        (function($) {
+          // Project group completeness
+          var completeness_project_group = new App.DataQualityReports.Completeness(
+            #{@report.project_group_completeness.to_json},
+            '.completeness-chart-project-group',
+            '#{polymorphic_path(@support_path, @report_keys)}'
+            );
+          completeness_project_group.build_chart();
+        })(jQuery);
     - if ! hide_beds_and_units
       :javascript
         (function($) {
