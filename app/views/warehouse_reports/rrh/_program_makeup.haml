@@ -16,5 +16,5 @@
     - content_for :panel_collapse_content, flush: true do
       .percentExitingStabilizationChart
       %p.mb-4.text-center.description
-        Percentage of clients exiting #{_('stabilization')} to housing out of those who were enrolled in #{_('stabilization')}.
+        Percentage of clients exiting #{_('stabilization')} to a permanent destination out of those who exited #{_('stabilization')}.
     = render 'common/panel_collapse', id: 'percentExitingStabilizationChart', title: "Percentage Exiting #{_('Stabilization')} to Housing", default_open: 'yes'
