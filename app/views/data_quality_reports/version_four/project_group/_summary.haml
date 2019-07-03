@@ -7,14 +7,15 @@
         %h4 Percent of Enrolled Clients Active
         %ul.list-unstyled
           = @report.describe_completeness :served_percentages, as_percent: true
-      .col-sm-4
-        %h4 Bed Utilization
-        %ul.list-unstyled
-          = @report.describe_completeness :bed_utilization_percentages, as_percent: true
-      .col-sm-4
-        %h4 Unit Utilization
-        %ul.list-unstyled
-          = @report.describe_completeness :unit_utilization_percentages, as_percent: true
+      - if ! hide_beds_and_units
+        .col-sm-4
+          %h4 Bed Utilization
+          %ul.list-unstyled
+            = @report.describe_completeness :bed_utilization_percentages, as_percent: true
+        .col-sm-4
+          %h4 Unit Utilization
+          %ul.list-unstyled
+            = @report.describe_completeness :unit_utilization_percentages, as_percent: true
     .row
       .col-sm-4
         %h4 Project Descriptor Completeness
