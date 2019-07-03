@@ -494,8 +494,9 @@ class WarehouseReport::RrhReport
         beginning_of_month = Date.parse "#{month_year} 01"
         end_of_month = beginning_of_month.end_of_month
         denominators[month_year] ||= {}
+        # limit to those who exited in the month
         denominators[month_year][project_name] = rows.count do |row|
-          row.search_start <= end_of_month && (row.search_end.blank? || row.search_end >= beginning_of_month)
+          row.search_end.present? && row.search_end >= beginning_of_month && row.search_end <= end_of_month
         end
         denominators[month_year]['All'] ||= 0
         denominators[month_year]['All'] += denominators[month_year][project_name]
@@ -552,7 +553,7 @@ class WarehouseReport::RrhReport
 
   # Denominator: count exiting stabilization
   def percent_exiting_stabilization_to_housing_by_month
-    columns = [:housed_date, :housing_exit, :residential_project, :client_id]
+    columns = [:housed_date, :housing_exit, :residential_project, :destination, :client_id]
 
     denominators = {}
     in_stabilization.group_by{|m| m[:residential_project]}.map do |project_name, rows|
@@ -561,7 +562,7 @@ class WarehouseReport::RrhReport
         end_of_month = beginning_of_month.end_of_month
         denominators[month_year] ||= {}
         denominators[month_year][project_name] = rows.count do |row|
-          row.housed_date <= end_of_month && (row.housing_exit.blank? || row.housing_exit >= beginning_of_month)
+          row.housing_exit.present? && row.housing_exit >= beginning_of_month && row.housing_exit <= end_of_month
         end
         denominators[month_year]['All'] ||= 0
         denominators[month_year]['All'] += denominators[month_year][project_name]
@@ -589,7 +590,8 @@ class WarehouseReport::RrhReport
         end
         if clients[project_name].present?
           clients[project_name].each do |row|
-            # Only count clients who exited in this month
+            # Only count clients who exited in this month to a permanent destination
+            next unless HUD.permanent_destinations.include?(row[:destination])
             next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
             month_data[month_year]['All']['data'] << row
             if @project_ids != :all
@@ -957,6 +959,7 @@ class WarehouseReport::RrhReport
     when :percent_exiting_stabilization
       columns = {
         residential_project: _('Stabilization Project'),
+        destination: _('Destination'),
         housed_date: _('Date Housed'),
         housing_exit: _('Housing Exit'),
       }
@@ -967,6 +970,7 @@ class WarehouseReport::RrhReport
         [
           row[:client_id],
           row[:residential_project],
+          HUD.destination(row[:destination]),
           row[:housed_date],
           row[:housing_exit],
         ]

@@ -13,7 +13,7 @@
         of the #{@report.ph_leavers.select(:client_id).count} who exited to a permanent destination from the reference program
   .rrh__returned.mr-4.mb-4
     %h4.title.text-center
-      Length of Return to Homelessness
+      Time to Return to Homelessness
     .metric
       #jPhReturnsChart.rrh__returns-chart
       =# debug @report.bucketed_returns.to_json
@@ -33,7 +33,7 @@
         of the #{@report.exiting_stabilization.select(:client_id).count} who exited from the reference program
   .rrh__returned.mr-4.mb-4
     %h4.title.text-center
-      Length of Return to Homelessness
+      Time to Return to Homelessness
     .metric
       #jReturnsChart.rrh__returns-chart
       =# debug @report.bucketed_returns.to_json
