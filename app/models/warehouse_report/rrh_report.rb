@@ -815,7 +815,7 @@ class WarehouseReport::RrhReport
       (8..30) => '1 week to one month',
       (31..91) => '1 month to 3 months',
       (92..182) => '3 months to 6 months',
-      (183..364) => '3 months to 1 year',
+      (183..364) => '6 months to 1 year',
       (365..728) => '1 year to 2 years',
       (729..Float::INFINITY) => '2 years or more',
     }
