@@ -20,6 +20,8 @@ module GrdaWarehouse::YouthIntake
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
 
+    after_save :update_destination_client
+
     scope :visible_by?, -> (user) do
       if user.can_edit_anything_super_user?
         all
@@ -181,6 +183,34 @@ module GrdaWarehouse::YouthIntake
         'No',
         'Unknown',
       ]
+    end
+
+    def update_destination_client
+      authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
+      return unless authoritative_clients.exists?
+
+      authoritative_clients.update_all(
+        DOB: client_dob,
+        DOBDataQuality: 1,
+        Gender: client_gender,
+        Ethnicity: client_ethnicity,
+        AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
+        Asian: client_race.include?('Asian') ? 1 : 0,
+        BlackAfAmerican: client_race.includes?('BlackAfAmerican') ? 1 : 0,
+        NativeaHIOtherPacific: client_race.include?('NativeaHIOtherPacific') ? 1 : 0,
+        White: client_race.include?('White') ? 1 : 0,
+        RaceNone: compute_race_none,
+
+        # Education, Health, and Disability information are also collected, but not processed
+
+        DateUpdated: Time.now,
+      )
+    end
+
+    def compute_race_none
+      return 9 if client_race.include?('RaceNone')
+      return 99 if client_race.select { |race| ! race.empty? }.empty?
+      return nil
     end
 
   end
