@@ -78,7 +78,11 @@ module Health
     end
 
     def eligible(subscriber)
-      EB(subscriber).detect{ |eb| eb.first == '1' }
+      ebs = EB(subscriber)
+      masshealth = ebs.detect{ |eb| eb.first == '1' }
+      medicare = ebs.detect{ |eb| eb.first == 'R' && eb.last.include?('MEDICARE') }
+
+      masshealth && !medicare
     end
 
     def managed_care(subscriber)
