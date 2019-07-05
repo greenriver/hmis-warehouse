@@ -82,6 +82,15 @@ class DataSourcesController < ApplicationController
     redirect_to action: :index
   end
 
+  def authoritative_types
+    {
+      "Youth" => :youth,
+      "VI-SPDAT" => :vispdat,
+      "Health" => :health,
+    }
+  end
+  helper_method :authoritative_types
+
   private def data_source_params
     params.require(:grda_warehouse_data_source).
       permit(
@@ -112,6 +121,7 @@ class DataSourcesController < ApplicationController
         :source_type,
         :visible_in_window,
         :authoritative,
+        :authoritative_type,
         :after_create_path,
         :import_paused,
       )
