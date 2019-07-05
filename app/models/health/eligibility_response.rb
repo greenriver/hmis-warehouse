@@ -87,7 +87,9 @@ module Health
 
     def managed_care(subscriber)
       ebs = EB(subscriber)
-      ebs.detect{ |eb| eb.first == 'MC' } || ebs.detect{ |eb| eb.first == 'L' && eb.last.include?('ACO') }
+      managed_care = ebs.detect{ |eb| eb.first == 'MC' }
+
+      managed_care
     end
 
     def EB(subscriber)
