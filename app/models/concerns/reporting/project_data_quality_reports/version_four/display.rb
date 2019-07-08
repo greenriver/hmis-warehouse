@@ -1056,7 +1056,8 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         labels: [ 'No Earned Income', 'No Non-Cash Income', 'No Income Overall' ],
         data: {
           'Total' => [ earned_percentage, non_cash_percentage, overall_percentage ],
-        }
+        },
+        counts: [clients_with_no_earned_income, clients_with_no_non_cash_income, clients_with_no_income_overall ]
       }
     end
 

@@ -121,6 +121,10 @@ module Reporting::DataQualityReports
       where head_of_household: true
     end
 
+    scope :adult_or_head, -> do
+      where :include_in_income_change_calculation
+    end
+
     scope :ph, -> do
       where project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
     end
