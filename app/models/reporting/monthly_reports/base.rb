@@ -69,17 +69,20 @@ module Reporting::MonthlyReports
     def populate_used_client_ids
       ids = enrollment_scope(start_date: @start_date, end_date: @end_date).
         joins(:project, :organization).
-        distinct.pluck(:client_id).map{ |id| [self.class.name, id] }
-        self.class.transaction do
-          Reporting::MonthlyClientIds.where(report_type: self.class.name).delete_all
-          Reporting::MonthlyClientIds.import([:report_type, :client_id], ids)
-        end
+        distinct.
+        pluck(:client_id).
+        map{ |id| [self.class.name, id] }
+      self.class.transaction do
+        Reporting::MonthlyClientIds.where(report_type: self.class.name).delete_all
+        Reporting::MonthlyClientIds.import([:report_type, :client_id], ids)
+      end
     end
 
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
     def set_enrollments_by_client ids
       @enrollments_by_client = {}
+      # Cleanup RAM before starting the next batch
       GC.start
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
         # fetch open enrollments for the given month
