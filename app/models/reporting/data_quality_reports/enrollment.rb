@@ -121,6 +121,11 @@ module Reporting::DataQualityReports
       where head_of_household: true
     end
 
+    scope :adult_or_head_of_household, -> do
+      a_t = Reporting::DataQualityReports::Enrollment.arel_table
+      enrolled.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+    end
+
     scope :ph, -> do
       where project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
     end

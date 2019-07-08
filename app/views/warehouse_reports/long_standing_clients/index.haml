@@ -7,10 +7,15 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 = simple_form_for(:clients, url: warehouse_reports_long_standing_clients_path, html: {method: :get}) do |f|
-  %label{for: :years}
-    Years ago
-    = select_tag(:years, options_for_select((3..15), @years), {value: @years})
+  - content_for :filters_col_full do
+    %label{for: :years}
+      Years ago
+      = select_tag(:years, options_for_select((3..15), @years), {value: @years, class: :select2})
+
+  - content_for :filter_actions do
     = f.button :submit, value: 'Update View', class: 'ml-2'
+
+  = render 'warehouse_reports/filters', f:f
 
 .warehouse-reports__long-standing-clients
   %p= page_entries_info @entries, entry_name: _('client')
