@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190621154429) do
+ActiveRecord::Schema.define(version: 20190702005535) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -218,6 +218,9 @@ ActiveRecord::Schema.define(version: 20190621154429) do
   add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree
   add_index "warehouse_houseds", ["housed_date"], name: "index_warehouse_houseds_on_housed_date", using: :btree
   add_index "warehouse_houseds", ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
+  add_index "warehouse_houseds", ["project_type", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_h_dates_p_id", using: :btree
+  add_index "warehouse_houseds", ["project_type", "search_start", "search_end", "service_project", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_s_dates_h_dates_p_id", using: :btree
+  add_index "warehouse_houseds", ["project_type", "search_start", "search_end", "service_project", "project_id"], name: "housed_p_type_s_dates_p_id", using: :btree
   add_index "warehouse_houseds", ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
   add_index "warehouse_houseds", ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
 
