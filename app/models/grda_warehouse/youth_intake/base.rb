@@ -196,8 +196,8 @@ module GrdaWarehouse::YouthIntake
         Ethnicity: client_ethnicity,
         AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
         Asian: client_race.include?('Asian') ? 1 : 0,
-        BlackAfAmerican: client_race.includes?('BlackAfAmerican') ? 1 : 0,
-        NativeaHIOtherPacific: client_race.include?('NativeaHIOtherPacific') ? 1 : 0,
+        BlackAfAmerican: client_race.include?('BlackAfAmerican') ? 1 : 0,
+        NativeHIOtherPacific: client_race.include?('NativeHIOtherPacific') ? 1 : 0,
         White: client_race.include?('White') ? 1 : 0,
         RaceNone: compute_race_none,
 
