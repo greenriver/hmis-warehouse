@@ -29,7 +29,8 @@ RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
 
   describe 'setting enrollments' do
     before :each do
-      @enrollments_by_client = report.set_enrollments_by_client
+      ids = [veteran.id, non_vet.id]
+      @enrollments_by_client = report.set_enrollments_by_client ids
       @months_for_vet = @enrollments_by_client[veteran.id]
     end
     it 'returns 1 client' do
