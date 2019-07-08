@@ -98,7 +98,7 @@
           var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json}, '.unit-census-chart',
           '#{polymorphic_path(@support_path, @report_keys.merge({method: "unit_utilization"}))}');
           unit_census.build_chart();
-      })(jQuery);
+        })(jQuery);
     -# Use projects here, not report_projects
     - @report.projects.each_with_index do |project, index|
       :javascript
