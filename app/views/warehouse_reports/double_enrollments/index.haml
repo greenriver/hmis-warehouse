@@ -4,14 +4,19 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 = simple_form_for :double_enrollments, url: warehouse_reports_double_enrollments_path, html: {method: :get} do |f|
-  .row.mb-4
-    .col-sm-3
-      .input-group.date{'data-provide' => 'datepicker'}
-        = f.input_field :date, name: :date, class: 'form-control', value: @date
-        .input-group-append
-          %button.icon-calendar.btn.btn-secondary{type: 'button'}
-    .col-sm-3
-      = f.button :submit, value: 'Update View'
+  - content_for :filters_col_full do
+    .row.mb-4
+      .col-sm-3
+        .input-group.date{'data-provide' => 'datepicker'}
+          = f.input_field :date, name: :date, class: 'form-control', value: @date
+          .input-group-append
+            %button.icon-calendar.btn.btn-secondary{type: 'button'}
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update View'
+
+  = render 'warehouse_reports/filters', f:f
+
 %p LSA checks enrollments on the following dates: October 31, January 31, April 30, and July 31.
 = render 'warehouse_reports/limited_by_project_note'
 .warehouse-reports__double_enrollments
