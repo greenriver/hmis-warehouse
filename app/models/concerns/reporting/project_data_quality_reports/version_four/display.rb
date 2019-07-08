@@ -1041,7 +1041,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def no_income
-      included_clients = enrolled_clients
+      included_clients = enrolled_clients.adult_or_head_of_household
 
       clients_with_no_income_overall = included_clients.where(income_at_later_date_overall: 0).count
       clients_with_no_earned_income = included_clients.where(income_at_later_date_earned: 0).count
@@ -1053,7 +1053,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       non_cash_percentage = ((clients_with_no_non_cash_income / denominator.to_f) * 100).round rescue 0
 
       {
-        labels: [ 'No Earned Income', 'No Non-Cash Income', 'No Income Overall' ],
+        labels: [ 'No Earned Income', 'No Non-Employment Cash Income', 'No Income Overall' ],
         data: {
           'Total' => [ earned_percentage, non_cash_percentage, overall_percentage ],
         },
