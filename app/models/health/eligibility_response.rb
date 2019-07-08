@@ -44,7 +44,7 @@ module Health
     end
 
     def ineligible_ids
-      @ineligibles ||= subscribers.select{|s| eligible(s).nil?}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.reject{|s| eligible(s)}.map{|s| TRN(s)}
     end
 
     def eligible_clients
@@ -79,8 +79,8 @@ module Health
 
     def eligible(subscriber)
       ebs = EB(subscriber)
-      masshealth = ebs.detect{ |eb| eb.first == '1' }
-      medicare = ebs.detect{ |eb| eb.first == 'R' && eb.last.include?('MEDICARE') }
+      masshealth = ebs.detect{ |eb| eb.first == '1' } || false
+      medicare = ebs.detect{ |eb| eb.first == 'R' && eb.last.include?('MEDICARE') } || false
 
       masshealth && !medicare
     end
