@@ -103,7 +103,7 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
-    ALL_PROJECT_TYPES = (1..14).to_a - [5]
+    ALL_PROJECT_TYPES = ::HUD.project_types.keys
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
 
