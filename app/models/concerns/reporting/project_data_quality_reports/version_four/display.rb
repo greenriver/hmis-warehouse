@@ -68,6 +68,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       30 # days
     end
 
+    def hide_beds_and_units
+      project_types = report_projects.pluck(:project_type).uniq
+      project_types.all? { |type| GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITHOUT_INVENTORY.include?(type) }
+    end
+
     def enrolled_clients
       enrollments.enrolled
     end
@@ -149,8 +154,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def heads_of_households_or_adults
-      a_t = Reporting::DataQualityReports::Enrollment.arel_table
-      enrolled_clients.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+      enrolled_clients.adult_or_head_of_household
     end
 
     def served_percentages
@@ -160,7 +164,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         active = active_clients.group(:project_id).select(:active).count
         enrolled.each do |id, enrolled_count|
           active_count = active[id] || 0
-          percent = (active_count / enrolled_count.to_f) * 100
+          percent = ((active_count / enrolled_count.to_f) * 100).round(2)
           if percent < completeness_goal
             project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             percentages << {
@@ -1037,6 +1041,27 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       {
         labels: labels,
         data: data,
+      }
+    end
+
+    def no_income
+      included_clients = enrolled_clients.adult_or_head_of_household
+
+      clients_with_no_income_overall = included_clients.where(income_at_later_date_overall: 0).count
+      clients_with_no_earned_income = included_clients.where(income_at_later_date_earned: 0).count
+      clients_with_no_non_cash_income = included_clients.where(income_at_later_date_non_employment_cash: 0).count
+
+      denominator = included_clients.count
+      overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0
+      earned_percentage = ((clients_with_no_earned_income / denominator.to_f) * 100).round rescue 0
+      non_cash_percentage = ((clients_with_no_non_cash_income / denominator.to_f) * 100).round rescue 0
+
+      {
+        labels: [ 'No Earned Income', 'No Non-Employment Cash Income', 'No Income Overall' ],
+        data: {
+          'Total' => [ earned_percentage, non_cash_percentage, overall_percentage ],
+        },
+        counts: [clients_with_no_earned_income, clients_with_no_non_cash_income, clients_with_no_income_overall ]
       }
     end
 
