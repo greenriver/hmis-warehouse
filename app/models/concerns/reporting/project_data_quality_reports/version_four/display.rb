@@ -149,8 +149,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def heads_of_households_or_adults
-      a_t = Reporting::DataQualityReports::Enrollment.arel_table
-      enrolled_clients.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+      enrolled_clients.adult_or_head_of_household
     end
 
     def served_percentages

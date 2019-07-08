@@ -287,7 +287,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def no_income_support options
-      included_clients = enrolled_clients
+      included_clients = enrolled_clients.adult_or_head_of_household
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
       where = case options[:metric].to_sym
         when :no_earned_income
