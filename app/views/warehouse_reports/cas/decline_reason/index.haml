@@ -3,17 +3,17 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
-  .col-sm-10
-    %p
-      Limit to matches created within a date range.
+  .col-sm-12
     = render 'filter'
-  .col-sm-2.ml-auto
+
+.row
+  .col-sm-2.ml-auto.mb-2
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
       Download Excel
 .row
   .col-sm-12
     .warehouse-reports
-      %table.table.table-sm.table-hover
+      %table.table.table-hover
         %thead
           %tr
             %th Reason

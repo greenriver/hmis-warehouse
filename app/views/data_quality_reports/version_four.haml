@@ -35,12 +35,13 @@
   = render "data_quality_reports/version_four/#{grouped_as}/overview", support_path: @support_path
   %h3 Data Quality Summary
   = render "data_quality_reports/version_four/#{grouped_as}/summary", support_path: @support_path
-  %h3 Bed Utilization
-  = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization_description", support_path: @support_path
-  = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization", support_path: @support_path
-  %h3 Unit Utilization
-  = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization_description", support_path: @support_path
-  = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization", support_path: @support_path
+  - if ! @report.hide_beds_and_units
+    %h3 Bed Utilization
+    = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization_description", support_path: @support_path
+    = render "data_quality_reports/version_four/#{grouped_as}/bed_utilization", support_path: @support_path
+    %h3 Unit Utilization
+    = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization_description", support_path: @support_path
+    = render "data_quality_reports/version_four/#{grouped_as}/unit_utilization", support_path: @support_path
   %h3 Completeness
   = render "data_quality_reports/version_four/#{grouped_as}/completeness", support_path: @support_path
 
@@ -55,14 +56,6 @@
   = content_for :page_js do
     :javascript
       (function($) {
-
-        var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data.to_json}, '.bed-census-chart',
-        '#{polymorphic_path(@support_path, @report_keys.merge({method: "bed_utilization"}))}');
-        bed_census.build_chart();
-        var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json}, '.unit-census-chart',
-        '#{polymorphic_path(@support_path, @report_keys.merge({method: "unit_utilization"}))}');
-        unit_census.build_chart();
-
         var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter.to_json}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"}))}');
         time_to_enter.build_chart();
 
@@ -77,18 +70,35 @@
           '#{polymorphic_path(@support_path, @report_keys.merge({method: "retained_income"}))}');
           income.build_chart();
 
+        var no_income = new App.DataQualityReports.NoIncome(#{@report.no_income.to_json}, '.no-income-chart',
+          '#{polymorphic_path(@support_path, @report_keys.merge({method: "no_income"}))}');
+          no_income.build_chart();
+
         var ph_destination = new App.DataQualityReports.PHDestination(#{@report.ph_destinations.to_json}, '.ph-destination-chart',
             '#{polymorphic_path(@support_path, @report_keys.merge({method: "ph_destinations"}))}');
             ph_destination.build_chart();
-
-        // Project group completeness
-        var completeness_project_group = new App.DataQualityReports.Completeness(
-          #{@report.project_group_completeness.to_json},
-          '.completeness-chart-project-group',
-          '#{polymorphic_path(@support_path, @report_keys)}'
-          );
-        completeness_project_group.build_chart();
       })(jQuery);
+    - if grouped_as == :project_group
+      :javascript
+        (function($) {
+          // Project group completeness
+          var completeness_project_group = new App.DataQualityReports.Completeness(
+            #{@report.project_group_completeness.to_json},
+            '.completeness-chart-project-group',
+            '#{polymorphic_path(@support_path, @report_keys)}'
+            );
+          completeness_project_group.build_chart();
+        })(jQuery);
+    - if ! @report.hide_beds_and_units
+      :javascript
+        (function($) {
+          var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data.to_json}, '.bed-census-chart',
+          '#{polymorphic_path(@support_path, @report_keys.merge({method: "bed_utilization"}))}');
+          bed_census.build_chart();
+          var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json}, '.unit-census-chart',
+          '#{polymorphic_path(@support_path, @report_keys.merge({method: "unit_utilization"}))}');
+          unit_census.build_chart();
+        })(jQuery);
     -# Use projects here, not report_projects
     - @report.projects.each_with_index do |project, index|
       :javascript

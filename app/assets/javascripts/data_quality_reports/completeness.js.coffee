@@ -44,6 +44,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
     }
 
   _build_chart: ->
+    return if $(@chart_selector).length == 0
     @chart = bb.generate
       bindto: @chart_selector
       size:
