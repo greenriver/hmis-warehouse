@@ -7,7 +7,7 @@
         %h4 Percent of Enrolled Clients Active
         %ul.list-unstyled
           = @report.describe_completeness :served_percentages, as_percent: true
-      - if ! hide_beds_and_units
+      - if ! @report.hide_beds_and_units
         .col-sm-4
           %h4 Bed Utilization
           %ul.list-unstyled

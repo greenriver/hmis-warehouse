@@ -103,6 +103,10 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
+    ALL_PROJECT_TYPES = (1..14).to_a - [5]
+    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
+    PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
+
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects

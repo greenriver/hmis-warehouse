@@ -68,6 +68,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       30 # days
     end
 
+    def hide_beds_and_units
+      project_types = report_projects.pluck(:project_type).uniq
+      project_types.all? { |type| GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITHOUT_INVENTORY.include?(type) }
+    end
+
     def enrolled_clients
       enrollments.enrolled
     end

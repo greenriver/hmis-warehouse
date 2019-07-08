@@ -26,7 +26,7 @@
           %li
             #{p.inventory_information_dates.presence || 'blank'}
   .row
-    - if ! hide_beds_and_units
+    - if ! @report.hide_beds_and_units
       .col-sm-3
         %h4 Geocode
         %ul.list-unstyled
