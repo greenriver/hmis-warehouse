@@ -6,7 +6,7 @@
 - content ||= ''
 - default_open ||= 'no'
 
-.c-card.mb-4
+.c-card.mb-4.panel-group.panel-collapsible
   .panel.panel-default.c-card__content.c-card__content--flush
     %a.panel-heading.py-0.px-4.d-block{**heading_attrs}
       - if content_for?(:panel_collapse_heading)

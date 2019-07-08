@@ -1,60 +1,49 @@
-.ho-container.rrh
-  .ho-container__header 
+.ho-container.rrh.jTimeInProgram
+  .ho-container__header
     %h3 Time in Program
-  .d-flex.text-center.justify-content-center.mb-6
-    .rrh__time-in-pre-placement.chunk.pr-4.mr-4.w-50
-      .title
-        Time in Pre-Placement for Leavers
-      .metric
-        - days = @report.leavers_average_days_in_pre_placement
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Pre-Placement
-    .rrh__time-in-pre-placement.chunk.w-50
-      .title
-        Time in Pre-Placement for Stayers
-      .metric
-        - days = @report.stayers_average_days_in_pre_placement
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Pre-Placement.
-  .d-flex.text-center.justify-content-center.mb-6
-    .rrh__time-in-stabilization.chunk.pr-4.mr-4.w-50
-      .title
-        Time in Stabilization for Leavers
-      .metric
-        - days = @report.leavers_average_days_in_stabilization
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Stabilization
-    .rrh__time-in-stabilization.chunk.w-50
-      .title
-        Time in Stabilization for Stayers
-      .metric
-        - days = @report.stayers_average_days_in_stabilization
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in Stabilization.
-  .d-flex.text-center.justify-content-center.mb-6
-    .rrh__time-in-program.chunk.pr-4.mr-4.w-50
-      .title
-        Overall Time for Leavers
-      .metric
-        - days = @report.leavers_average_days
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in program
-    .rrh__time-in-program.chunk.w-50
-      .title
-        Overall Time for Stayers
-      .metric
-        - days = @report.stayers_average_days
-        = pluralize(days, 'day')
-        in project
-      .description
-        average days in program.
+  .rrh__time-in-pre-placement.chunk.pr-4.mr-4
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-9.rrh__time.chunk
+          .jTimeInPrePlacementExitToStabilizationChart
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %i.icon-calendar.metric
+          .metric
+            = pluralize(@report.average_days_leavers_pre_placement_exit_to_stabilization, 'day')
+          %p.description For clients exiting to stabilization.
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitToStabilizationChart', title: 'Time in Pre-Placement with Exits to Stabilization', default_open: 'yes'
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-9.rrh__time.chunk
+          .jTimeInPrePlacementExitNoStabilizationChart
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %i.icon-calendar.metric
+          .metric
+            = pluralize(@report.average_days_leavers_pre_placement_exit_no_stabilization, 'day')
+          %p.description For clients exiting to anywhere except stabilization.
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitNoStabilizationChart', title: 'Time in Pre-Placement with an Exit not to Stabilization', default_open: 'yes'
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-9.rrh__time.chunk
+          .jTimeInPrePlacementChart
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %i.icon-calendar.metric
+          .metric
+            = pluralize(@report.leavers_average_pre_placement, 'day')
+          %p.description For clients exiting to anywhere destination.
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: 'Time in Pre-Placement with an Exit to Any Destination', default_open: 'yes'
+
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-9.rrh__time.chunk
+          .jTimeInStabilizationChart
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title
+            Average Time in Stabilization for the Reporting Period
+          %i.icon-calendar.metric
+          .metric
+            = pluralize(@report.average_days_in_stabilization, 'day')
+    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: 'Time in Stabilization', default_open: 'yes'

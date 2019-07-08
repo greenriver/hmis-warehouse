@@ -4,7 +4,7 @@
       Enrolled Clients
     %i.icon-group.metric
     .metric
-      - client_count = @report.enrolled_client_ids.count
+      - client_count = @report.enrolled_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_clients)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
@@ -23,7 +23,7 @@
       Clients Enrolled in Pre-Placement
     %i.icon-file-text.metric
     .metric
-      - client_count = @report.pre_placement_client_ids.count
+      - client_count = @report.pre_placement_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
@@ -42,7 +42,7 @@
       Clients Enrolled in Stabilization
     %i.icon-house.metric
     .metric
-      - client_count = @report.stabilization_client_ids.count
+      - client_count = @report.stabilization_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
