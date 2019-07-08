@@ -20,16 +20,16 @@
         %em= @report.project_names
   .rrh__enrolled.chunk.-pre-placement.pr-4.mr-4
     %h4.title
-      Clients in Search
+      Clients in #{_('Search')}
     %i.icon-file-text.metric
     .metric
       - client_count = @report.pre_placement_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_psh_index_path(params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were in search
+        were in #{_('search')}
       - else
-        was in search
+        was in #{_('search')}
       - if @filter.project_id.present?
         project
       - else
@@ -39,16 +39,16 @@
         %em= @report.pre_placement_project_name
   .rrh__enrolled.chunk.-stabilization
     %h4.title
-      Clients in Housing
+      Clients in #{_('Housing')}
     %i.icon-house.metric
     .metric
       - client_count = @report.stabilization_clients.count
       = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_psh_index_path(params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
-        were enrolled in housing
+        were enrolled in #{_('housing')}
       - else
-        was enrolled in housing
+        was enrolled in #{_('housing')}
       - if @filter.project_id.present?
         project
       - else
