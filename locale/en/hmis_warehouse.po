@@ -3467,6 +3467,12 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
+msgid "Date Housed"
+msgstr ""
+
+msgid "Days to Return"
+msgstr ""
+
 msgid "Delete"
 msgstr ""
 
@@ -3509,10 +3515,19 @@ msgstr ""
 msgid "Health Report"
 msgstr ""
 
+msgid "Housing"
+msgstr ""
+
 msgid "Housing Authority Eligible"
 msgstr ""
 
+msgid "Housing Exit"
+msgstr ""
+
 msgid "Housing Release Status"
+msgstr ""
+
+msgid "Housing Search"
 msgstr ""
 
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
@@ -3590,6 +3605,12 @@ msgstr ""
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
+msgid "Pre-Placement"
+msgstr ""
+
+msgid "Pre-Placement Project"
+msgstr ""
+
 msgid "Process Duplicates"
 msgstr ""
 
@@ -3620,7 +3641,22 @@ msgstr ""
 msgid "Requires wheelchair accessible unit"
 msgstr ""
 
+msgid "Search"
+msgstr ""
+
+msgid "Search End"
+msgstr ""
+
+msgid "Search Start"
+msgstr ""
+
 msgid "Shelter Agency Contacts"
+msgstr ""
+
+msgid "Stabilization"
+msgstr ""
+
+msgid "Stabilization Project"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
@@ -3695,7 +3731,13 @@ msgstr ""
 msgid "cohort enrollment"
 msgstr ""
 
+msgid "housing"
+msgstr ""
+
 msgid "patient"
+msgstr ""
+
+msgid "pre-placement"
 msgstr ""
 
 msgid "qualifying activities"
@@ -3705,6 +3747,12 @@ msgid "report"
 msgstr ""
 
 msgid "role"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "stabilization"
 msgstr ""
 
 msgid "the Boston Emergency Shelter Commission"
