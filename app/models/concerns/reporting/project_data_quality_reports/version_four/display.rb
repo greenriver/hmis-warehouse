@@ -160,7 +160,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         active = active_clients.group(:project_id).select(:active).count
         enrolled.each do |id, enrolled_count|
           active_count = active[id] || 0
-          percent = (active_count / enrolled_count.to_f) * 100
+          percent = ((active_count / enrolled_count.to_f) * 100).round(2)
           if percent < completeness_goal
             project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             percentages << {
