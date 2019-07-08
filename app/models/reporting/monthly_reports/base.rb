@@ -44,29 +44,48 @@ module Reporting::MonthlyReports
     end
 
     def populate!
-      set_enrollments_by_client
-      set_prior_enrollments
-      self.class.transaction do
-        _clear!
-        self.class.import @enrollments_by_client.values.flatten
-      end
+      remove_unused_client_ids
+      populate_used_client_ids
+      Reporting::MonthlyClientIds.where(report_type: self.class.name).
+        distinct.
+        pluck_in_batches(:client_id, batch_size: 5_000) do |batch|
+          set_enrollments_by_client batch.flatten
+          set_prior_enrollments
+          self.class.transaction do
+            _clear!(batch)
+            self.class.import @enrollments_by_client.values.flatten
+          end
+        end
     end
 
-    def _clear!
-      self.class.delete_all
+    def _clear! ids
+      self.class.where(client_id: ids).delete_all
+    end
+
+    def remove_unused_client_ids
+      self.class.where.not(client_id: Reporting::MonthlyClientIds.distinct.select(:client_id)).delete_all
+    end
+
+    def populate_used_client_ids
+      ids = enrollment_scope(start_date: @start_date, end_date: @end_date).
+        joins(:project, :organization).
+        distinct.pluck(:client_id).map{ |id| [self.class.name, id] }
+        self.class.transaction do
+          Reporting::MonthlyClientIds.where(report_type: self.class.name).delete_all
+          Reporting::MonthlyClientIds.import([:report_type, :client_id], ids)
+        end
     end
 
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
-    def set_enrollments_by_client
+    def set_enrollments_by_client ids
       @enrollments_by_client = {}
+      GC.start
       @date_range.map{|d| [d.year, d.month]}.uniq.each do |year, month|
         # fetch open enrollments for the given month
-        enrollment_scope(
-            start_date: Date.new(year, month, 1),
-            end_date: Date.new(year, month, -1)
-          ).
+        enrollment_scope(start_date: Date.new(year, month, 1), end_date: Date.new(year, month, -1)).
           joins(:project, :organization).
+          where(client_id: ids).
           pluck(*enrollment_columns).map do |row|
             OpenStruct.new(enrollment_columns.zip(row).to_h)
           end.each do |enrollment|
