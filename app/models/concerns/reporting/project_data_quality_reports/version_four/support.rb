@@ -287,26 +287,19 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def no_income_support options
-      included_clients = enrollments_with_no_income
+      included_clients = enrollments.enrolled.adult_or_head_of_household
 
-      a_t = Reporting::DataQualityReports::Enrollment.arel_table
-      where = case options[:metric].to_sym
+      ids = case options[:metric].to_sym
         when :no_earned_income
-          a_t[:income_at_later_date_earned].eq(0).
-            or(a_t[:income_at_later_date_response].eq(0).
-              and(a_t[:income_at_entry_earned].eq(0)))
+          clients_with_no_income[:earned]
         when :no_non_cash_income
-          a_t[:income_at_later_date_non_employment_cash].eq(0).
-            or(a_t[:income_at_later_date_response].eq(0).
-              and(a_t[:income_at_entry_non_employment_cash].eq(0)))
+          clients_with_no_income[:non_employment_cash]
         when :no_overall_income
-          a_t[:income_at_later_date_overall].eq(0).
-            or(a_t[:income_at_later_date_response].eq(0).
-              and(a_t[:income_at_entry_overall].eq(0)))
+          clients_with_no_income[:overall]
       end
       {
         headers: no_income_support_columns.keys,
-        counts: included_clients.where(where).pluck(*no_income_support_columns.values),
+        counts: included_clients.where(client_id: ids).pluck(*no_income_support_columns.values),
         title: 'No Income',
       }
     end

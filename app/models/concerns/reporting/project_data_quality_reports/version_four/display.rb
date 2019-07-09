@@ -1040,23 +1040,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def no_income
-      included_clients = enrollments_with_no_income
+      clients_with_no_income_overall = clients_with_no_income[:overall].count
+      clients_with_no_earned_income = clients_with_no_income[:earned].count
+      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash].count
+      denominator = clients_with_no_income[:clients].count
 
-      a_t = Reporting::DataQualityReports::Enrollment.arel_table
-
-      clients_with_no_income_overall = included_clients.where(
-        a_t[:income_at_later_date_overall].eq(0).
-        or(a_t[:income_at_later_date_response].eq(0).
-          and(a_t[:income_at_entry_overall].eq(0))).to_sql).count
-      clients_with_no_earned_income = included_clients.where(
-        a_t[:income_at_later_date_earned].eq(0).
-          or(a_t[:income_at_later_date_response].eq(0).
-            and(a_t[:income_at_entry_earned].eq(0))).to_sql).count
-      clients_with_no_non_cash_income = included_clients.where(
-        a_t[:income_at_later_date_non_employment_cash].eq(0).
-          or(a_t[:income_at_later_date_response].eq(0).
-            and(a_t[:income_at_entry_non_employment_cash].eq(0))).to_sql).count
-      denominator = included_clients.count
       overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0
       earned_percentage = ((clients_with_no_earned_income / denominator.to_f) * 100).round rescue 0
       non_cash_percentage = ((clients_with_no_non_cash_income / denominator.to_f) * 100).round rescue 0
