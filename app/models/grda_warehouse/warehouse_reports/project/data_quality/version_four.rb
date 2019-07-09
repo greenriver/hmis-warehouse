@@ -571,5 +571,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       incomes_at_annual_by_enrollment[enrollment.id]
     end
 
+    def enrollments_with_no_income
+      a_t = Reporting::DataQualityReports::Enrollment.arel_table
+      enrollments.enrolled.adult_or_head_of_household.
+        where(a_t[:income_at_later_date_overall].eq(0).
+          or(a_t[:income_at_later_date_response].eq(0).
+            and(a_t[:income_at_entry_overall].eq(0))).to_sql)
+    end
+
   end
 end

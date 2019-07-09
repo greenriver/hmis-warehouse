@@ -287,15 +287,22 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def no_income_support options
-      included_clients = enrolled_clients.adult_or_head_of_household
+      included_clients = enrollments_with_no_income
+
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
       where = case options[:metric].to_sym
         when :no_earned_income
-          a_t[:income_at_later_date_earned].eq(0)
+          a_t[:income_at_later_date_earned].eq(0).
+            or(a_t[:income_at_later_date_response].eq(0).
+              and(a_t[:income_at_entry_earned].eq(0)))
         when :no_non_cash_income
-          a_t[:income_at_later_date_non_employment_cash].eq(0)
+          a_t[:income_at_later_date_non_employment_cash].eq(0).
+            or(a_t[:income_at_later_date_response].eq(0).
+              and(a_t[:income_at_entry_non_employment_cash].eq(0)))
         when :no_overall_income
-          a_t[:income_at_later_date_overall].eq(0)
+          a_t[:income_at_later_date_overall].eq(0).
+            or(a_t[:income_at_later_date_response].eq(0).
+              and(a_t[:income_at_entry_overall].eq(0)))
       end
       {
         headers: no_income_support_columns.keys,
@@ -409,16 +416,13 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def no_income_support_columns
-      @income_support_columns ||= {
+      @no_income_support_columns ||= {
           'Client ID' => :client_id,
           'First Name' => :first_name,
           'Last Name' => :last_name,
           'Entry Date' => :entry_date,
           'Exit Date' => :exit_date,
           'Project' => :project_name,
-          'Earned' => :income_at_later_date_earned,
-          'Non-Employment' => :income_at_later_date_non_employment_cash,
-          'Overall' => :income_at_later_date_overall,
         }
     end
 
