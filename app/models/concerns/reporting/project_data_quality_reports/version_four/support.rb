@@ -292,9 +292,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       ids = case options[:metric].to_sym
         when :no_earned_income
           clients_with_no_income[:earned]
-        when :no_non_cash_income
+        when :no_non_employment_cash_income
           clients_with_no_income[:non_employment_cash]
-        when :no_overall_income
+        when :no_income_overall
           clients_with_no_income[:overall]
       end
       {
