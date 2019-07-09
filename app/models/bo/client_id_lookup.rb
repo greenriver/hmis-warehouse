@@ -20,6 +20,7 @@ module Bo
       rebuild_eto_client_lookups
       rebuild_eto_touch_point_lookups
       # rebuild_subject_response_lookups
+      set_disability_verifications
     end
 
     def fetch_site_touch_point_map one_off: false
@@ -263,6 +264,69 @@ module Bo
         end
       end
       return response
+    end
+
+    def fetch_disability_verifications one_off: false
+      return unless @config.disability_verification_cuid.present?
+      msg = "Fetching disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.disability_verification_cuid}",
+        method: :disability_lookup,
+      }
+      message_options = {
+        touch_point_id: @config.disability_touch_point_id,
+        touch_point_question_id: @config.disability_touch_point_question_id,
+      }
+      if one_off
+        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+        response = soap.disability_lookup(
+          settings[:url],
+          touch_point_id: @config.disability_touch_point_id,
+          touch_point_question_id: @config.disability_touch_point_question_id
+        )
+      else
+        response = call_with_retry(settings, message_options)
+      end
+    end
+
+    def set_disability_verifications
+      return unless @config.disability_verification_cuid.present?
+      @disability_verifications = fetch_disability_verifications.
+        group_by{ |row| row[:participant_enterprise_identifier].gsub('-', '') }
+      personal_ids = @disability_verifications.keys
+      source_clients = GrdaWarehouse::Hud::Client.source.where(
+        data_source_id: @data_source_id,
+        PersonalID: personal_ids
+        ).select(:id, :PersonalID, :disability_verified_on)
+      updated_source = 0
+      updated_destination = 0
+      source_clients.each do |client|
+        verifications = @disability_verifications[client.PersonalID]
+        max_date = verifications.map{ |row| row[:date_last_updated].to_time }.max
+        # only set the verification date if it was blank before or is newer
+        # then, check the destination client and update that as well
+        # We could batch this to improve performance if necessary, but after the first load
+        # this should only be a handful of clients each day
+        if client.disability_verified_on.blank? || max_date > client.disability_verified_on
+          client.update(disability_verified_on: max_date)
+          updated_source += 1
+          dest_client = client.destination_client
+          # if the source client changed, reflect changes on the destination client
+          if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on
+            dest_client.update(disability_verified_on: max_date)
+            updated_destination += 1
+          end
+        end
+      end
+      msg = "Updated #{updated_source} source disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+      msg = "Updated #{updated_destination} destination disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+
     end
 
     def existing_eto_touch_point_lookups
