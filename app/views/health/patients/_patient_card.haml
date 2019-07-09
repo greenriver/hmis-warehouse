@@ -11,7 +11,7 @@
         %hr
         - if patient.client.present?
           = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
-            = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator]}
+            = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}
         - else
           Patient record is not correctly assigned
     .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
