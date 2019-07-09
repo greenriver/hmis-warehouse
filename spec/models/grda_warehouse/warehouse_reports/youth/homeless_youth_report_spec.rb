@@ -1,7 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type: :model do
-  let!(:existing_intake) { create :intake, :existing_intake }
+  let!(:warehouse_client) { create :authoritative_warehouse_client }
+  let(:initial_dob) { warehouse_client.destination.DOB }
+
+  let!(:existing_intake) { create :intake, :existing_intake, client_id: warehouse_client.destination_id }
   let!(:new_intake) { create :intake, :new_intake }
   let!(:closed_intake) { create :intake, engagement_date: Date.parse('2018-12-01'), exit_date: Date.parse('2018-12-31') }
 
@@ -27,6 +30,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_referral_out) { create :referral_out, :new_referral_out, client_id: existing_intake.client_id }
 
   let(:report) { build :homeless_youth_report }
+
+  describe 'when an intake is associated with a client' do
+    it 'updates the source client DOB' do
+      expect(initial_dob).not_to eq(existing_intake.client.source_clients.first.DOB)
+    end
+  end
 
   describe 'when a report is generated' do
     it 'counts clients with services in the period' do

@@ -108,6 +108,17 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   end
 
+  def self.set_part_of_a_family
+    # This could be done as one query, but as these are small
+    # and don't tend to take long, this is easier to troubleshoot and reason about.
+    source_client_ids = vispdat.where.not(vispdat_family_score: nil).
+      distinct.
+      pluck(:client_id)
+    destination_client_ids = GrdaWarehouse::WarehouseClient.where(source_id: source_client_ids).distinct.pluck(:destination_id)
+    GrdaWarehouse::Hud::Client.where(id: destination_client_ids, family_member: false).
+      update_all(family_member: true)
+  end
+
   def primary_language
     return 'Unknown' unless answers.present?
     answers = self.answers.with_indifferent_access
