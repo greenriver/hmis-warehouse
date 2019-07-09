@@ -26,30 +26,44 @@
           %li
             #{p.inventory_information_dates.presence || 'blank'}
   .row
-    .col-sm-3
-      %h4 Geocode
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{p.geocode.presence || 'blank'}
-    .col-sm-3
-      %h4 Geography Type
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{p.geography_type.presence || 'blank'}
-    .col-sm-3
-      %h4 Unit Inventory
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{pluralize(p.unit_inventory, 'unit')}
-    .col-sm-3
-      %h4 Bed Inventory
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{pluralize(p.bed_inventory, 'bed')}
+    - if ! @report.hide_beds_and_units
+      .col-sm-3
+        %h4 Geocode
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{p.geocode.presence || 'blank'}
+      .col-sm-3
+        %h4 Geography Type
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{p.geography_type.presence || 'blank'}
+      .col-sm-3
+        %h4 Unit Inventory
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{pluralize(p.unit_inventory, 'unit')}
+      .col-sm-3
+        %h4 Bed Inventory
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{pluralize(p.bed_inventory, 'bed')}
+    - else
+      .col-sm-6
+        %h4 Geocode
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{p.geocode.presence || 'blank'}
+      .col-sm-6
+        %h4 Geography Type
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{p.geography_type.presence || 'blank'}
   .row
     .col-sm-6
       %h4 Housing Type
