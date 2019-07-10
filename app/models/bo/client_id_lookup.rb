@@ -31,8 +31,7 @@ module Bo
       }
       message_options = {}
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.site_touch_point_lookup settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -57,8 +56,7 @@ module Bo
       }
       message_options = {}
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.response_lookup settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -75,8 +73,7 @@ module Bo
       }
 
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.client_lookup_standard settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -239,6 +236,11 @@ module Bo
       end
     end
 
+    def call_once settings, message_options
+      soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+      soap.send(settings[:method], settings[:url], message_options)
+    end
+
     # Try a few times, re-try if we get some specific errors or the body is empty
     def call_with_retry settings, message_options
       response = ''
@@ -280,12 +282,7 @@ module Bo
         touch_point_question_id: @config.disability_touch_point_question_id,
       }
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.disability_lookup(
-          settings[:url],
-          touch_point_id: @config.disability_touch_point_id,
-          touch_point_question_id: @config.disability_touch_point_question_id
-        )
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
