@@ -28,7 +28,11 @@ Rails.application.routes.draw do
     namespace :health do
       resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
-      resources :appointments, only: [:index]
+      resources :appointments, only: [:index] do
+        collection do
+          get :upcoming
+        end
+      end
       resources :medications, only: [:index]
       resources :problems, only: [:index]
       resources :self_sufficiency_matrix_forms do
