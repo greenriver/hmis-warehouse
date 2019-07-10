@@ -7,10 +7,12 @@
         %thead
           %tr
             %th Tag
-            %th Rank
+            %th.text-center Value
+            %th.text-center From Assessment?
         %tbody
           - @client.cas_tags.each do |id, rank|
             - tag = Cas::Tag.find(id)
             %tr
               %td= tag&.name || 'Unknown'
-              %td= rank
+              %td.text-center= rank
+              %td.text-center= checkmark tag&.rrh_assessment_trigger
