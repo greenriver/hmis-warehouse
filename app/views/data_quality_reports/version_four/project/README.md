@@ -205,7 +205,7 @@ Non-employment cash income is defined as any of unemployment, SSI, SSDI, VA or p
 
 ### Percentage of Clients With No Income
 
-Computed for clients that were adults at `EntryDate` or head of household, using the last income assessment at or before the report end.
+Computed for clients that were adults at `EntryDate` or head of household, using the most recent available income assessment at or before the report end.
 
 Non-employment cash income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA, Social Security retirement, pensions, child support, alimony, or other unclassified income.
 
