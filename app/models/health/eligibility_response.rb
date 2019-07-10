@@ -24,17 +24,17 @@ module Health
     end
 
     def eligible_ids
-      @eligibles ||= subscribers.select{|s| eligible(s).present?}.map{|s| TRN(s)}
+      @eligibles ||= subscribers.select{|s| eligible(s)}.map{|s| TRN(s)}
     end
 
     def managed_care_ids
-      @manageds ||= subscribers.select{|s| managed_care(s).present?}.map{|s| TRN(s)}
+      @manageds ||= subscribers.select{|s| managed_care(s)}.map{|s| TRN(s)}
     end
 
     def aco_names
       @aco_names ||= begin
         results = {}
-        subscribers.select{|s| managed_care(s).present?}.each do |s|
+        subscribers.select{|s| managed_care(s)}.each do |s|
           names = EBNM1(s)
           name = names['MC'] || names['L']
           results[TRN(s)] = name
@@ -44,7 +44,7 @@ module Health
     end
 
     def ineligible_ids
-      @ineligibles ||= subscribers.select{|s| eligible(s).nil?}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.reject{|s| eligible(s)}.map{|s| TRN(s)}
     end
 
     def eligible_clients
@@ -78,12 +78,18 @@ module Health
     end
 
     def eligible(subscriber)
-      EB(subscriber).detect{ |eb| eb.first == '1' }
+      ebs = EB(subscriber)
+      masshealth = ebs.any?{ |eb| eb.first == '1' } || false
+      medicare = ebs.any?{ |eb| eb.first == 'R' && eb.last.include?('MEDICARE') } || false
+
+      masshealth && !medicare
     end
 
     def managed_care(subscriber)
       ebs = EB(subscriber)
-      ebs.detect{ |eb| eb.first == 'MC' } || ebs.detect{ |eb| eb.first == 'L' && eb.last.include?('ACO') }
+      managed_care = ebs.any?{ |eb| eb.first == 'MC' } || false
+
+      managed_care
     end
 
     def EB(subscriber)
