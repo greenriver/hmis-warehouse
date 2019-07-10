@@ -14,10 +14,25 @@
 
     = f.input :source_type, as: :hidden, value: 'manual'
 
-    = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually'
+    = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually', input_html: { class: 'jAuthoritativeTrigger' }
+
+    .jAuthoritativeType
+      = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, input_html: {class: :select2}
 
     = f.input :import_paused, label: 'Pause imports for this data source?'
 
 
   .form-actions
     = f.button :submit, value: 'Create Data Source', class: 'btn btn-primary'
+
+= content_for :page_js do
+  :javascript
+    $('.jAuthoritativeTrigger').on('change', function(e){
+      if($(this).is(":checked")){
+        $('.jAuthoritativeType').show();
+      }
+      else {
+        $('.jAuthoritativeType').hide();
+      }
+    });
+    $('.jAuthoritativeTrigger').trigger('change');

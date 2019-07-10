@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190701203738) do
+ActiveRecord::Schema.define(version: 20190709170452) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -896,6 +896,9 @@ ActiveRecord::Schema.define(version: 20190701203738) do
     t.string  "touch_point_lookup_cuid"
     t.string  "subject_response_lookup_cuid"
     t.string  "site_touch_point_map_cuid"
+    t.string  "disability_verification_cuid"
+    t.integer "disability_touch_point_id"
+    t.integer "disability_touch_point_question_id"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
@@ -1343,6 +1346,7 @@ ActiveRecord::Schema.define(version: 20190701203738) do
     t.boolean  "authoritative",      default: false
     t.string   "after_create_path"
     t.boolean  "import_paused",      default: false, null: false
+    t.string   "authoritative_type"
   end
 
   create_table "direct_financial_assistances", force: :cascade do |t|

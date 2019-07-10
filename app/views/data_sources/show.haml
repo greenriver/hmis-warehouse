@@ -50,6 +50,9 @@
             %tr
               %th After Create Path
               %td= @data_source.after_create_path
+            %tr
+              %th Authoritative Type
+              %td= GrdaWarehouse::DataSource.authoritative_types.invert[@data_source.authoritative_type&.to_sym] || 'blank'
         %tr
           %th Viewable by the following users, regardless of visibility in window
           %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
