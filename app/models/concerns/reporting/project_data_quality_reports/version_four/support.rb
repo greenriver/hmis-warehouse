@@ -299,7 +299,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       end
       {
         headers: no_income_support_columns.keys,
-        counts: included_clients.where(client_id: ids).pluck(*no_income_support_columns.values),
+        counts: included_clients.where(id: ids.to_a).pluck(*no_income_support_columns.values),
         title: 'No Income',
       }
     end
@@ -410,13 +410,21 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
 
     def no_income_support_columns
       @no_income_support_columns ||= {
-          'Client ID' => :client_id,
-          'First Name' => :first_name,
-          'Last Name' => :last_name,
-          'Entry Date' => :entry_date,
-          'Exit Date' => :exit_date,
-          'Project' => :project_name,
-        }
+        'Client ID' => :client_id,
+        'First Name' => :first_name,
+        'Last Name' => :last_name,
+        'Entry Date' => :entry_date,
+        'Exit Date' => :exit_date,
+        'Project' => :project_name,
+        'Entry Response' => :income_at_entry_response,
+        'Entry Earned' => :income_at_entry_earned,
+        'Entry Non-Employment' => :income_at_entry_non_employment_cash,
+        'Entry Overall' => :income_at_entry_overall,
+        'Later Response' => :income_at_later_date_response,
+        'Later Earned' => :income_at_later_date_earned,
+        'Later Non-Employment' => :income_at_later_date_non_employment_cash,
+        'Later Overall' => :income_at_later_date_overall,
+      }
     end
 
     def timeliness_support_columns

@@ -1130,5 +1130,82 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
+    def clients_with_no_income
+      @clients_with_no_income ||= begin
+        counts = {
+          clients: Set.new,
+          earned: Set.new,
+          earned_client_ids: Set.new,
+          non_employment_cash: Set.new,
+          non_employment_cash_client_ids: Set.new,
+          overall: Set.new,
+          overall_client_ids: Set.new,
+        }
+        columns = [
+          :id,
+          :client_id,
+          :income_at_entry_response,
+          :income_at_later_date_response,
+          :income_at_entry_earned,
+          :income_at_later_date_earned,
+          :income_at_entry_non_employment_cash,
+          :income_at_later_date_non_employment_cash,
+          :income_at_entry_overall,
+          :income_at_later_date_overall,
+        ]
+        data = enrollments.enrolled.adult_or_head_of_household.pluck(*columns).map{|row| Hash[columns.zip(row)]}
+
+        data.each do |row|
+          counts[:clients] << row[:client_id]
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_earned],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_earned]
+          )
+            counts[:earned] << row[:id]
+            counts[:earned_client_ids] << row[:client_id]
+          end
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_overall],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_overall]
+          )
+            counts[:overall] << row[:id]
+            counts[:overall_client_ids] << row[:client_id]
+          end
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_non_employment_cash],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_non_employment_cash]
+          )
+            counts[:non_employment_cash] << row[:id]
+            counts[:non_employment_cash_client_ids] << row[:client_id]
+          end
+        end
+        counts
+      end
+    end
+
+    def count_income_as_zero? later_response:, later_value:, earlier_response:, earlier_value:
+      if later_response == 0
+        return true
+      elsif later_response == 1
+        return true if later_value.nil? || later_value.zero?
+      elsif later_response.nil?
+        if earlier_response == 0 || earlier_response.nil?
+          return true
+        elsif earlier_response == 1
+          return true if earlier_value.nil? || earlier_value.zero?
+        end
+      end
+      return false
+    end
+
   end
 end
