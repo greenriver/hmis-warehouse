@@ -30,7 +30,7 @@ module Health
           end
 
           # Set the eligibility level for managed care patients
-          patient_scope(response.managed_care_ids).find_each do |patient|
+          patient_scope(response.managed_care_ids - response.ineligible_ids).find_each do |patient|
             aco = response.aco_names[patient.medicaid_id]
             if patient.aco_name.present? && patient.aco_name != aco
               previous_aco = patient.aco_name
