@@ -9,22 +9,22 @@ module Bo
     end
 
     def client_lookup_standard url, start_time:, end_time:
-      data_from url, client_lookup_standard_xml(start_time: start_time, end_time: end_time)
+      data_from(url, client_lookup_standard_xml(start_time: start_time, end_time: end_time))
     end
 
     def distinct_touch_point_lookup url, start_time:, end_time:, touch_point_id:
-      data_from url, distinct_touch_point_lookup_xml(start_time: start_time, end_time: end_time, touch_point_id: touch_point_id)
+      data_from(url, distinct_touch_point_lookup_xml(start_time: start_time, end_time: end_time, touch_point_id: touch_point_id))
     end
 
     def site_touch_point_lookup url, options: {}
-      data_from url, site_touch_point_lookup_xml
+      data_from(url, site_touch_point_lookup_xml)
     end
 
     def disability_lookup url, touch_point_id:, touch_point_question_id:
-      data_from url, disability_lookup_xml(
+      data_from(url, disability_lookup_xml(
         touch_point_id: touch_point_id,
         touch_point_question_id: touch_point_question_id
-      )
+      ))
     end
 
     def response_lookup url

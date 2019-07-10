@@ -297,8 +297,8 @@ module Bo
         data_source_id: @data_source_id,
         PersonalID: personal_ids
         ).select(:id, :PersonalID, :disability_verified_on)
-      updated_source = 0
-      updated_destination = 0
+      updated_source_counts = 0
+      updated_destination_counts = 0
       source_clients.each do |client|
         verifications = @disability_verifications[client.PersonalID]
         max_date = verifications.map{ |row| row[:date_last_updated].to_time }.max
@@ -308,19 +308,19 @@ module Bo
         # this should only be a handful of clients each day
         if client.disability_verified_on.blank? || max_date > client.disability_verified_on
           client.update(disability_verified_on: max_date)
-          updated_source += 1
+          updated_source_counts += 1
           dest_client = client.destination_client
-          # if the source client changed, reflect changes on the destination client
+          # reflect changes on the destination client if the changes to the source client data are newer
           if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on
-            dest_client.update(disability_verified_on: max_date)
-            updated_destination += 1
+            dest_client.update(disability_verified_on: client.disability_verified_on)
+            updated_destination_counts += 1
           end
         end
       end
-      msg = "Updated #{updated_source} source disability verifications"
+      msg = "Updated #{updated_source_counts} source disability verifications"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
-      msg = "Updated #{updated_destination} destination disability verifications"
+      msg = "Updated #{updated_destination_counts} destination disability verifications"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
 
