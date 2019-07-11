@@ -1010,7 +1010,7 @@ class WarehouseReport::RrhReport
     else
       housed_source.all
     end
-    scope.
+    scope = scope.
       send(@subpopulation).
       send(@household_type)
 
@@ -1018,6 +1018,7 @@ class WarehouseReport::RrhReport
     scope = scope.where(ethnicity: @ethnicity&.to_s&.to_i) unless @ethnicity == :current_scope
     scope = scope.where(gender: @gender&.to_s&.to_i) unless @gender == :current_scope
     scope = scope.where(veteran_status: @veteran_status&.to_s&.to_i) unless @veteran_status == :current_scope
+
     return scope
   end
 
