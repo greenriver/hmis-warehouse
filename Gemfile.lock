@@ -1309,7 +1309,7 @@ GEM
     with_advisory_lock (3.1.0)
       activerecord (>= 3.2)
       thread_safe
-    wkhtmltopdf-binary (0.12.3.1)
+    wkhtmltopdf-binary (0.12.4)
     xpath (2.0.0)
       nokogiri (~> 1.3)
 

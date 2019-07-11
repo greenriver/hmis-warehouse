@@ -10,8 +10,5 @@
 
   = content_for :page_js do
     :javascript
-      (function($){
-        var chart = $('#active-chart');
-        var active_chart = new App.Dashboards.Clients.Active(chart, chart.data('labels'), chart.data('data'));
-
-      })(jQuery);
+      var chart = $('#active-chart');
+      new App.Dashboards.Clients.Active(chart, chart.data('labels'), chart.data('data'));

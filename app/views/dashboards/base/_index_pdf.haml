@@ -1,8 +1,8 @@
 !!!
 %html
   %head
-    = javascript_include_tag 'application'
     = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
+    = wicked_pdf_javascript_include_tag 'pdf'
     :sass
       body
         background: #FFF
@@ -61,6 +61,21 @@
       section
         margin-bottom: 50px
 
+      svg
+        border: 3px solid #333
+
+      .o-chart
+        position: relative
+
+      svg,
+      .o-chart
+        width: 800px !important
+        overflow: visible !important
+
+      // svg g
+      //   outline: red 1px solid
+      // #test-chart
+      //   outline: blue 2px solid
 
   %body
     - @show_census = true
@@ -76,5 +91,4 @@
     %section
     = render 'exit'
     -# = render 'download'
-
-  = yield :page_js
+    = yield :page_js

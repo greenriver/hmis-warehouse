@@ -18,19 +18,17 @@
 
 = content_for :page_js do
   :javascript
-    (function($){
-      $('.jProjectTypes, .jOrganizations').on('change', function(e){
-        var project_types = $('.jProjectTypes').val();
-        if(project_types == null) {
-          project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json}
-        }
-        var organization_ids = $('.jOrganizations').val();
-        $.get('#{api_projects_path()}', {
-          project_types: project_types,
-          organization_ids: organization_ids
-        }, function(data){
-          $('.jProjects').html(data);
-        });
+    $('.jProjectTypes, .jOrganizations').on('change', function(e){
+      var project_types = $('.jProjectTypes').val();
+      if(project_types == null) {
+        project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json}
+      }
+      var organization_ids = $('.jOrganizations').val();
+      $.get('#{api_projects_path()}', {
+        project_types: project_types,
+        organization_ids: organization_ids
+      }, function(data){
+        $('.jProjects').html(data);
       });
-      $('.jProjectTypes, .jOrganizations').trigger('change');
-    })(jQuery);
+    });
+    $('.jProjectTypes, .jOrganizations').trigger('change');

@@ -18,8 +18,8 @@ module Dashboards
 
       respond_to do |format|
         format.html do
-          @pdf = true
-          render "dashboards/base/index", layout: false
+          @html = true
+          render "dashboards/base/index"
         end
         format.xlsx do
           require_can_view_clients!
@@ -38,7 +38,7 @@ module Dashboards
           @pdf = true
           file_name = "#{@report.sub_population_title} Dashboard"
           dashboard_pdf(file_name)
-          # send_data dashboard_pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+          # send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
         end
       end
     end
@@ -46,15 +46,14 @@ module Dashboards
     def dashboard_pdf file_name
       render(
         pdf: file_name,
-        template: "dashboards/base/index",
+        template: 'dashboards/base/index',
         layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter',
+        encoding: 'UTF-8',
         javascript_delay: 10000,
         lowquality: false,
         dpi: 75,
-        view_as_html: true,
-        window_status: 'PDF'
+        show_as_html: false
+
         # header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
         # footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
         # Show table of contents by providing the 'toc' property
