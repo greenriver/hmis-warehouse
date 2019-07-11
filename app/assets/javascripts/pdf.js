@@ -7,3 +7,5 @@
 
 //= require_directory ./dashboards
 //= require_directory ./dashboards/clients
+
+//= require puppeteer
