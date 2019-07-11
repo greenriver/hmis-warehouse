@@ -37,24 +37,26 @@ module GrdaWarehouse::WarehouseReports
       @clients_to_stabilization ||= (psh_clients_to_stabilization + rrh_clients_to_stabilization).uniq
     end
 
+    # Clients with an open enrollment in the reporting period and service between the LOOKBACK date
+    # and the start date, but no service in the reporting period.
     def clients_without_recent_service
       @clients_without_recent_service ||= begin
-        open_enrollments = entries_scope.
-          bed_night
-        service_in_period = entries_scope.
+        open_enrollments_no_service = entries_scope.
           bed_night.
-          with_service_between(start_date: @filter.start, end_date: @filter.end)
-        open_enrollments_no_service = open_enrollments - service_in_period
+          merge(GrdaWarehouse::Hud::Project.es).
+          where.not(id:  entries_scope.
+            bed_night.
+            with_service_between(start_date: @filter.start, end_date: @filter.end).select(:id))
 
         most_recent_service = service_history_service_source.
-          where(service_history_enrollment_id: open_enrollments_no_service.map(&:id)).
-          where(date: (LOOKBACK_DATE..@filter.end)).
+          where(service_history_enrollment_id: open_enrollments_no_service.select(:id)).
+          where(date: (LOOKBACK_DATE..@filter.start)).
           group(:service_history_enrollment_id).
           maximum(:date)
 
-        open_enrollments_no_service.select do |enrollment|
-          most_recent_service[enrollment.id].present?
-        end.map(&:id)
+        open_enrollments_no_service.pluck(:id, :client_id).select do |enrollment_id, client_id|
+          most_recent_service[enrollment_id].present?
+        end.map(&:last).uniq
       end
     end
 
@@ -66,13 +68,13 @@ module GrdaWarehouse::WarehouseReports
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @filter.start, end_date: @filter.end).
-        send(@filter.sub_population)
+        send(@filter.sub_population).
+        joins(:project)
     end
 
     def exits_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
-        exit.
-        open_between(start_date: @filter.start, end_date: @filter.end).
+        exit_within_date_range(start_date: @filter.start, end_date: @filter.end).
         send(@filter.sub_population)
     end
 
