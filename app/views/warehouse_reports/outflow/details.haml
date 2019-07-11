@@ -1,0 +1,16 @@
+= content_for :crumbs do
+  = link_to warehouse_reports_outflow_index_path(filter: params[:filter]) do
+    = "« Client Outflow Report"
+
+%h1= metrics[@key]
+
+%table.table.table-sm.table-hover.mt-4
+  %thead
+    %tr
+      %th
+      %th Name
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td= link_to client.id, client_path(client.id)
+        %td= client.name

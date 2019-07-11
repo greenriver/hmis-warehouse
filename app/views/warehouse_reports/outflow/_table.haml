@@ -1,0 +1,10 @@
+%table.table.table-hover
+  %thead
+    %tr
+      %th Metric
+      %th Clients
+  %tbody
+    - metrics.each do |key, label|
+      %tr
+        %td= link_to label, details_warehouse_reports_outflow_index_path(filter: params[:filter], key: key)
+        %td= @report.send(key).count
