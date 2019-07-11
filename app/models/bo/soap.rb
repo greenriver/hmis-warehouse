@@ -9,15 +9,22 @@ module Bo
     end
 
     def client_lookup_standard url, start_time:, end_time:
-      data_from url, client_lookup_standard_xml(start_time: start_time, end_time: end_time)
+      data_from(url, client_lookup_standard_xml(start_time: start_time, end_time: end_time))
     end
 
     def distinct_touch_point_lookup url, start_time:, end_time:, touch_point_id:
-      data_from url, distinct_touch_point_lookup_xml(start_time: start_time, end_time: end_time, touch_point_id: touch_point_id)
+      data_from(url, distinct_touch_point_lookup_xml(start_time: start_time, end_time: end_time, touch_point_id: touch_point_id))
     end
 
     def site_touch_point_lookup url, options: {}
-      data_from url, site_touch_point_lookup_xml
+      data_from(url, site_touch_point_lookup_xml)
+    end
+
+    def disability_lookup url, touch_point_id:, touch_point_question_id:
+      data_from(url, disability_lookup_xml(
+        touch_point_id: touch_point_id,
+        touch_point_question_id: touch_point_question_id
+      ))
     end
 
     def response_lookup url
@@ -137,6 +144,35 @@ module Bo
             <dis:runQueryAsAService>
                <dis:login>#{@username}</dis:login>
                <dis:password>#{@password}</dis:password>
+            </dis:runQueryAsAService>
+         </soapenv:Body>
+      </soapenv:Envelope>
+      HEREDOC
+    end
+
+    def disability_lookup_xml touch_point_id:, touch_point_question_id:
+      <<~HEREDOC
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dis="DisabilityVerifications">
+         <soapenv:Header>
+            <dis:QaaWSHeader>
+               <!--Optional:-->
+               <dis:sessionID>?</dis:sessionID>
+               <!--Optional:-->
+               <dis:serializedSession>?</dis:serializedSession>
+               <!--Optional:-->
+               <dis:ClientType>?</dis:ClientType>
+               <!--Optional:-->
+               <dis:AuditingObjectID>?</dis:AuditingObjectID>
+               <!--Optional:-->
+               <dis:AuditingObjectName>?</dis:AuditingObjectName>
+            </dis:QaaWSHeader>
+         </soapenv:Header>
+         <soapenv:Body>
+            <dis:runQueryAsAService>
+               <dis:login>#{@username}</dis:login>
+               <dis:password>#{@password}</dis:password>
+               <dis:Enter_value_s__for__TouchPoint_Unique_Identifier_>#{touch_point_id}</dis:Enter_value_s__for__TouchPoint_Unique_Identifier_>
+               <dis:Enter_value_s__for__Question_Unique_Identifier_>#{touch_point_question_id}</dis:Enter_value_s__for__Question_Unique_Identifier_>
             </dis:runQueryAsAService>
          </soapenv:Body>
       </soapenv:Envelope>

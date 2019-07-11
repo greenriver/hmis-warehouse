@@ -112,6 +112,7 @@ class DataSourcesController < ApplicationController
         :source_type,
         :visible_in_window,
         :authoritative,
+        :authoritative_type,
         :after_create_path,
         :import_paused,
       )

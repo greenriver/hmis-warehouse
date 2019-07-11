@@ -24,6 +24,8 @@ class App.DataQualityReports.NoIncome extends App.DataQualityReports.Base
       tooltip:
         contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
           @_toolip(d, defaultTitleFormat, defaultValueFormat, color)
+      legend:
+        hide: true
   _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
     # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
@@ -31,7 +33,8 @@ class App.DataQualityReports.NoIncome extends App.DataQualityReports.Base
     tooltip_title = defaultTitleFormat(d[0].x)
     html = "<table class='bb-tooltip'>"
     html += "<thead>"
-    html += "<tr><th>#{tooltip_title}</th><th>Percent</th><th>Clients</th></tr>"
+    # html += "<tr><th>#{tooltip_title}</th><th>Percent</th><th>Clients</th></tr>"
+    html += "<tr><th>Percent</th><th>Clients</th></tr>"
     html += "</thead>"
     html += "<tbody>"
     $(d).each (i) =>
@@ -42,9 +45,9 @@ class App.DataQualityReports.NoIncome extends App.DataQualityReports.Base
         html += "<tr class='bb-tooltip-name-#{@chart.internal.getTargetSelectorSuffix(row.id)}'>"
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
         value = "<td>#{row.value}%</td>"
-        client_count = @data.counts[i]
+        client_count = @data.counts[row.x]
         count = "<td>#{client_count}</td>"
-        html += box
+        # html += box
         html += value
         html += count
         html += "</tr>"
@@ -54,7 +57,7 @@ class App.DataQualityReports.NoIncome extends App.DataQualityReports.Base
     html
 
   _follow_link: (d, element) =>
-    key = d.name
+    key = this.chart.categories()[d.index]
     if @support_url.includes('individual') # VersionFour support links are different
       url = @support_url + "&metric=#{key.toLowerCase().replace(/ /g,"_").replace(/-/g, '_')}"
     else
