@@ -257,7 +257,7 @@ class WarehouseReport::RrhReport
         'exited to other institution' => {},
         'successful exit to PH' => {},
         'exited to temporary destination' => {},
-        'unknown outcome' => {},
+        'other or unknown outcome' => {},
       }
       housed_scope.
         exiting_stabilization(start_date: start_date, end_date: end_date).
@@ -287,7 +287,7 @@ class WarehouseReport::RrhReport
     return 'exited to other institution' if HUD.institutional_destinations.include?(dest_id)
     return 'successful exit to PH' if HUD.permanent_destinations.include?(dest_id)
     return 'exited to temporary destination' if HUD.temporary_destinations.include?(dest_id)
-    return 'unknown outcome'
+    return 'other or unknown outcome'
   end
 
   def ph_leavers
