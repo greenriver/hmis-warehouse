@@ -165,4 +165,11 @@
   [class^=icon] {
     color: $gray-700;
   }
+  .icon-svg,
+  svg {
+    fill: $gray-700;
+  }
+  .icon-svg {
+    margin-bottom: space(2);
+  }
 }

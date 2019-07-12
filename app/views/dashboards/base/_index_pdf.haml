@@ -9,20 +9,32 @@
   %body
     - @show_census = true
     - chart_options = { size: { height: 300, width: 1200 } }
+
     = render 'index_title'
+
     %section
       = render 'housed_overall', chart_options: chart_options
+
     %section
       = render 'overview', chart_options: chart_options
+
     %section
       = render 'censuses', chart_options: chart_options
-    .page-break{style: 'page-break-before: always; page-break-after: always;'}
-    %section
-    = render 'entry', chart_options: chart_options
-    .page-break{style: 'page-break-before: always; page-break-after: always;'}
-    %section
-    = render 'exit', chart_options: chart_options
 
-    -# = render 'download'
+    .page-break
 
+    %section
+      = render 'entry', chart_options: chart_options
+
+    .page-break
+
+    %section
+      = render 'exit', chart_options: chart_options
+
+    .page-break
+
+    %section.l-page__secondary-content
+      = render 'computation_description'
+
+    = svg 'symbol-defs'
     = yield :page_js

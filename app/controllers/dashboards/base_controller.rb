@@ -63,15 +63,21 @@ module Dashboards
         display_url: root_url,
         displayHeaderFooter: false,
         printBackground: true,
-        timeout: 10000,
+        timeout: 50000,
         format: 'Letter',
+        emulate_media: 'print',
         margin: {
           top: '.5in',
           bottom: '.5in',
           left: '.4in',
           right: '.4in',
         },
+        debug: {
+          # headless: false,
+          # devtools: true
+        }
       }
+
       html = render_to_string('dashboards/base/index')
       Grover.new(html, grover_options).to_pdf
     end

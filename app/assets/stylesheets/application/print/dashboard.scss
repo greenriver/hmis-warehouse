@@ -1,6 +1,12 @@
 @import '../helpers';
 
 @media print {
+  p,
+  .ho-container,
+  .o-chart {
+    page-break-inside: avoid !important;
+  }
+
   body {
     background: #FFF;
   }
@@ -17,10 +23,6 @@
     color: #457687;
   }
 
-  [class^=icon] {
-    display: none;
-  }
-
   h3 {
     font-size: .25in;
     line-height: 1.1;
@@ -35,12 +37,41 @@
     font-size: .25in;
   }
 
+  .l-page__secondary-content {
+    page-break-before: always;
+    h1 {
+      font-size: .35in;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: .275in;
+      border: 0;
+      color: #457687;
+    }
+
+    h3 {
+      font-size: .2in;
+      line-height: 1.1;
+    }
+
+    h4.title {
+      font-size: .2in;
+    }
+
+    p {
+      font-size: .175in;
+    }
+  }
+
   .metric {
     font-size: .5in;
   }
 
   .description {
     font-size: .125in;
+    line-height: 1.25;
   }
 
   .chunk {
@@ -81,9 +112,9 @@
   .ho-container {
     box-shadow: none;
     padding: 0;
-    page-break-inside: avoid !important;
     border: 0 !important;
     border-radius: 0;
+    page-break-before: always;
   }
 
   .ho-container__summary {
@@ -91,7 +122,8 @@
   }
 
   .ho-container__header {
-    margin-bottom: 20px;
+    margin-bottom: space(4);
+    padding-bottom: space(1);
   }
 
   .ho-container__header h3 {
@@ -132,13 +164,19 @@
 
   .o-chart {
     position: relative;
-    page-break-inside: avoid !important;
     svg {
       font-size: .15in;
     }
   }
 
-  .page-break {
-    page-break-after: always !important;
+  [class^="icon-"], [class*=" icon-"] {
+    vertical-align: top;
   }
+
+  .icon-svg {
+    svg {
+      vertical-align: top;
+    }
+  }
+
 }
