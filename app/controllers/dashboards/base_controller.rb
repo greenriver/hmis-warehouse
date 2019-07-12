@@ -61,8 +61,9 @@ module Dashboards
     private def dashboard_pdf file_name
       grover_options = {
         display_url: root_url,
-        displayHeaderFooter: false,
-        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
         timeout: 50000,
         format: 'Letter',
         emulate_media: 'print',

@@ -37,6 +37,10 @@
     font-size: .25in;
   }
 
+  a {
+    text-decoration: none;
+  }
+
   .l-page__secondary-content {
     page-break-before: always;
     h1 {
@@ -49,6 +53,9 @@
       font-size: .275in;
       border: 0;
       color: #457687;
+      &:not(:first-child) {
+        margin-top: space(6);
+      }
     }
 
     h3 {
@@ -56,6 +63,7 @@
       line-height: 1.1;
     }
 
+    h4,
     h4.title {
       font-size: .2in;
     }
@@ -164,8 +172,8 @@
 
   .o-chart {
     position: relative;
-    svg {
-      font-size: .15in;
+    text {
+      font-size: .125in;
     }
   }
 
