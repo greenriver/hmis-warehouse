@@ -5,7 +5,7 @@ class AddOutflowReport < ActiveRecord::Migration
         url: 'warehouse_reports/outflow',
         name: 'Client Outflow',
         description: 'Clients who have exited the system',
-        limitable: false,
+        limitable: true,
       },
     ],
   }

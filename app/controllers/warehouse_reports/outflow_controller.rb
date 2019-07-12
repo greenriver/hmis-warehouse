@@ -42,18 +42,20 @@ module WarehouseReports
     helper_method :describe_computations
 
     private def set_report
-      @filter = ::Filters::DateRangeWithSubPopulation.new(filter_options)
-      @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter)
+      @filter = ::Filters::DateRangeWithSourcesAndSubPopulation.new(filter_options)
+      @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter, current_user)
     end
 
     private def filter_options
       if params[:filter].present?
-        opts = params.require(:filter).permit(:start, :end, :sub_population)
+        opts = params.require(:filter).permit(:start, :end, :sub_population, organization_ids: [], project_ids: [])
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
           opts[:end] = opts[:start]
           opts[:start] = start
         end
+        opts[:project_ids] = cleanup_ids(opts[:project_ids])
+        opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
         opts
       else
         {
@@ -61,6 +63,10 @@ module WarehouseReports
           end: default_end.to_date,
         }
       end
+    end
+
+    private def cleanup_ids(array)
+      array.select{ |id| id.present? }.map{ |id| id.to_i }
     end
 
     private def default_start
@@ -72,10 +78,8 @@ module WarehouseReports
     end
 
     def enrollment_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
+      @report.entries_scope.
         joins(:client).
-        open_between(start_date: @filter.start, end_date: @filter.end).
         order(c_t[:LastName], c_t[:FirstName])
     end
   end

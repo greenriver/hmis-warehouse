@@ -6,10 +6,13 @@
 
 module GrdaWarehouse::WarehouseReports
   class OutflowReport
+    include ArelHelper
+
     LOOKBACK_DATE = Date.parse('2018-10-01')
 
-    def initialize(filter)
+    def initialize(filter, user)
       @filter = filter
+      @user = user
     end
 
     def clients_to_ph
@@ -65,21 +68,33 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def entries_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.
+      service_history_enrollment_scope.
         entry.
-        open_between(start_date: @filter.start, end_date: @filter.end).
-        send(@filter.sub_population).
-        joins(:project)
+        open_between(start_date: @filter.start, end_date: @filter.end)
     end
 
     def exits_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.
-        exit_within_date_range(start_date: @filter.start, end_date: @filter.end).
-        send(@filter.sub_population)
+      service_history_enrollment_scope.
+        exit_within_date_range(start_date: @filter.start, end_date: @filter.end)
     end
 
     def housed_scope
-      Reporting::Housed.where(client_id: entries_scope.pluck(:client_id))
+      Reporting::Housed.
+      where(client_id: entries_scope.pluck(:client_id)).
+      viewable_by(@user)
+    end
+
+    def service_history_enrollment_scope
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        send(@filter.sub_population).
+        joins(:project).
+        joins(:organization).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
+
+      scope = scope.where(p_t[:id].in @filter.project_ids) unless @filter.project_ids.empty?
+      scope = scope.where(o_t[:id].in @filter.organization_ids) unless @filter.organization_ids.empty?
+
+      return scope
     end
 
     def service_history_service_source
