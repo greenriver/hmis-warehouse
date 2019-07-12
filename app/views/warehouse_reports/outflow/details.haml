@@ -1,8 +1,11 @@
 = content_for :crumbs do
   = link_to warehouse_reports_outflow_index_path(filter: params[:filter]) do
     = "« Client Outflow Report"
+- title = metrics[@key]
+- content_for :title, title
+= content_for :modal_title, title
 
-%h1= metrics[@key]
+%h1= title
 
 %table.table.table-sm.mt-4
   %thead
