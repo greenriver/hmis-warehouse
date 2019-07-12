@@ -36,20 +36,27 @@ module Dashboards
           ).pluck(:id, :OrganizationName).to_h
         end
         format.pdf do
-          @pdf = true
-          file_name = "#{@report.sub_population_title} Dashboard"
-          # dashboard_pdf(file_name)
-          send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
+          render_pdf!
         end
       end
     end
 
-    def dashboard_pdf file_name
+    def pdf
+      render_pdf!
+    end
+
+    private def render_pdf!
+      @pdf = true
+      file_name = "#{@report.sub_population_title} Dashboard"
+      send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
+    end
+
+    private def dashboard_pdf file_name
       grover_options = {
         display_url: root_url,
         displayHeaderFooter: false,
         printBackground: true,
-        timeout: 35000,
+        timeout: 10000,
         format: 'Letter',
         margin: {
           top: '.5in',
@@ -57,10 +64,6 @@ module Dashboards
           left: '.4in',
           right: '.4in',
         },
-        debug: {
-          # headless: false,
-          # devtools: true
-        }
       }
       html = render_to_string('dashboards/base/index')
       Grover.new(html, grover_options).to_pdf

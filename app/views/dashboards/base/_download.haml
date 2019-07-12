@@ -1,4 +1,10 @@
-.ho-container.text-center
-  = link_to({action: :index, format: :xlsx}.merge(params), {class: 'btn btn-secondary btn-sm'}) do
+.ho-container
+  .ho-container__header
+    %h3 Downloads
+  = link_to({action: :index, format: :xlsx}.merge(params), {class: 'btn btn-secondary mr-4'}) do
     %i.icon-download2
-    Download Supporting Data
+    Supporting Data
+
+  = link_to({action: :index, format: :pdf}.merge(params), {class: 'btn btn-secondary'}) do
+    %i.icon-download2
+    Report as PDF
