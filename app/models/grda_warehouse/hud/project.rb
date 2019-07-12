@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # these are also sometimes called programs
 module GrdaWarehouse::Hud
   class Project < Base
@@ -96,6 +102,10 @@ module GrdaWarehouse::Hud
       so: 'rgba(132, 26, 7, 0.5)',
       sh: 'rgba(61, 99, 130, 0.5)',
     }
+
+    ALL_PROJECT_TYPES = ::HUD.project_types.keys
+    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
+    PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
@@ -205,7 +215,7 @@ module GrdaWarehouse::Hud
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
-        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil)).
+        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil).or(arel_table[:hud_continuum_funded].eq(true))).
         or(arel_table[:hud_continuum_funded].eq(true).and(arel_table[:ContinuumProject].eq(0)))
       )
     end
@@ -221,7 +231,7 @@ module GrdaWarehouse::Hud
 
     end
     def serves_families?
-      if @serves_families.blank?
+      if @serves_families.nil?
         @serves_families = self.class.serves_families.exists?(id)
       else
         @serves_families
@@ -237,7 +247,7 @@ module GrdaWarehouse::Hud
       )
     end
     def serves_individuals?
-      if @serves_individuals.blank?
+      if @serves_individuals.nil?
         @serves_individuals = self.class.serves_individuals.exists?(id)
       else
         @serves_individuals

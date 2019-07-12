@@ -38,6 +38,10 @@ every 1.hour do
   rake "jobs:check_queue"
 end
 
+every 5.minutes do
+  rake 'reporting:run_project_data_quality_reports'
+end
+
 every 4.hours do
   rake "grda_warehouse:save_service_history_snapshots"
 end
@@ -51,6 +55,9 @@ if ENV['ETO_API_SITE1'] != 'unknown'
   every 1.day, at: '4:00 pm' do
     rake "eto:import:update_ids_and_demographics"
   end
+  every 1.day, at: '6:00 am' do
+    rake "eto:import:demographics_and_touch_points"
+  end
 end
 
 if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
@@ -61,7 +68,7 @@ if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
 end
 
 if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
-  every 1.day, at: '10:00 am' do
+  every 1.day, at: '11:00 am' do
     rake "health:daily"
   end
 end

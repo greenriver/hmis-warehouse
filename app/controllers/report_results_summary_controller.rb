@@ -1,7 +1,13 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ReportResultsSummaryController < ApplicationController
   before_action :require_can_view_all_reports!
   before_action :set_report_results_summary, :set_report_results, only: [:show]
-  
+
   def show
     @all_results = @results.map{|m| m.results}.reduce({}, :merge).deep_symbolize_keys!
     respond_to do |format|

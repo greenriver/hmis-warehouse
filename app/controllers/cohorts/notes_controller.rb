@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Cohorts
   class NotesController < ApplicationController
     include PjaxModalController
@@ -6,11 +12,13 @@ module Cohorts
     before_action :set_note, only: [:destroy]
 
     def index
+      @modal_size = :lg
       @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id].to_i)
       @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
     end
 
     def new
+      @modal_size = :lg
       @note = note_source.new(cohort_client_id: params[:cohort_client_id].to_i)
     end
 
@@ -25,7 +33,7 @@ module Cohorts
       rescue
         @note = {error: 'Failed to create a note.'}
       end
-      
+
     end
 
     def destroy

@@ -2,12 +2,11 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
+
+= render 'filter'
+
 .row
-  .col-sm-10
-    %p
-      Limit to matches canceled within a date range.
-    = render 'filter'
-  .col-sm-2.ml-auto
+  .col-sm-2.ml-auto.mb-2
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
       Download Excel
 .row

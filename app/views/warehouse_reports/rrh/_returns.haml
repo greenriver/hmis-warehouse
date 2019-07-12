@@ -1,19 +1,39 @@
 .ho-container.rrh
-  .ho-container__header 
+  .ho-container__header
     %h3 Returns to Homelessness from Permanent Housing
   .rrh__returned.mb-6
-    .description  
+    .description
       %p Clients that returned to homelessness some point after successfully exiting Rapid Rehousing to a permanent housing destination.
   .d-flex.justify-content-center.mb-6
     .rrh__returned.chunk.mr-4.mb-4
       .metric
-        #{pluralize(@report.returns_to_shelter.count, 'client')} (#{@report.percent_returns_to_shelter}%)
+        #{pluralize(@report.returns_to_shelter_after_ph.count, 'client')} (#{@report.percent_returns_to_shelter_after_ph_exit}%)
         returned to homelessness
       .description
         of the #{@report.ph_leavers.select(:client_id).count} who exited to permanent housing from the reference program
   .rrh__returned.mr-4.mb-4
     %h4.title.text-center
-      Length of Return to Homelessness
+      Time to Return to Homelessness
+    .metric
+      #jPhReturnsChart.rrh__returns-chart
+      =# debug @report.bucketed_returns.to_json
+
+.ho-container.rrh
+  .ho-container__header
+    %h3 Returns to Homelessness after Exit
+  .rrh__returned.mb-6
+    .description
+      %p Clients that returned to homelessness some point after successfully exiting Rapid Rehousing to any destination.
+  .d-flex.justify-content-center.mb-6
+    .rrh__returned.chunk.mr-4.mb-4
+      .metric
+        #{pluralize(@report.returns_to_shelter_after_exit.count, 'client')} (#{@report.percent_returns_to_shelter_after_any_exit}%)
+        returned to homelessness
+      .description
+        of the #{@report.exiting_stabilization.select(:client_id).count} who exited from the reference program
+  .rrh__returned.mr-4.mb-4
+    %h4.title.text-center
+      Time to Return to Homelessness
     .metric
       #jReturnsChart.rrh__returns-chart
       =# debug @report.bucketed_returns.to_json

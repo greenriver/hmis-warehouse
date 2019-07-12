@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Window::Health
   class AppointmentsController < HealthController
     # This controller serves both BH CP data and pilot data, so it can't use the BH CP permissions
@@ -16,6 +22,24 @@ module Window::Health
       @appointments = @patient.appointments.order(appointment_time: :desc)
       @upcoming = @appointments.limited.where(a_t[:appointment_time].gt(Time.now)).order(appointment_time: :asc)
       @past = @appointments.where(a_t[:appointment_time].lteq(Time.now)).order(appointment_time: :desc)
+      render layout: !request.xhr?
+    end
+
+    def upcoming
+      set_hpc_patient
+      if @patient.blank?
+        set_patient
+      end
+      start_date = Date.today.to_time
+      if params[:end_date].present?
+        end_date = params[:end_date]&.to_date rescue start_date + 1.week
+      else
+        end_date = start_date + 1.week
+      end
+      @appointments = @patient.appointments.
+        limited.
+        where(appointment_time: (start_date..end_date)).
+        order(appointment_time: :asc)
       render layout: !request.xhr?
     end
 

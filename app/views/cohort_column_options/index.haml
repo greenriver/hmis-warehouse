@@ -13,7 +13,7 @@
   .col-sm-12
     #cohort-column-options.table-responsive.panel-group.panel-collapsible
       - @cohort_column_options.group_by(&:cohort_column).each do |column, options|
-        - content_for :panel_collapse_content do
+        - content_for :panel_collapse_content, flush: true do
           %table.table.table-sm
             %thead
               %th{style: "width: 35%;"} Value

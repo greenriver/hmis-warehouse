@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Import::HMISSixOneOne
   class Affiliation < GrdaWarehouse::Hud::Affiliation
     include ::Import::HMISSixOneOne::Shared
@@ -14,7 +20,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
       deleted_count = 0
       projects.each do |project|
         del_scope = self.where(ProjectID: project.ProjectID, data_source_id: data_source_id)
-        deleted_count += del_scope.update_all(DateDeleted: deleted_at)
+        deleted_count += del_scope.update_all(pending_date_deleted: deleted_at)
       end
       deleted_count
     end

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Importing
   class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper
@@ -42,6 +48,8 @@ module Importing
         if GrdaWarehouse::HmisForm.vispdat.exists?
           GrdaWarehouse::HmisForm.set_missing_vispdat_scores
           @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+          GrdaWarehouse::HmisForm.set_part_of_a_family
+          @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
         end
 
         # Disable CAS for anyone who's been housed in CAS
@@ -181,9 +189,7 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        Reporting::MonthlyReports::Base.available_types.keys.each do |sub_pop|
-          Reporting::PopulationDashboardPopulateJob.perform_later sub_population: sub_pop.to_s
-        end
+        Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
 
         seconds = ((Time.now - start_time)/1.minute).round * 60
         run_time = distance_of_time_in_words(seconds)

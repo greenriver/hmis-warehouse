@@ -11,13 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190510123307) do
+ActiveRecord::Schema.define(version: 20190709170452) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "fuzzystrmatch"
-  enable_extension "pgcrypto"
   enable_extension "hstore"
+  enable_extension "pgcrypto"
 
   create_table "Affiliation", force: :cascade do |t|
     t.string   "AffiliationID"
@@ -25,18 +25,21 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ResProjectID"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",         limit: 100
+    t.string   "UserID",               limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Affiliation", ["DateCreated"], name: "affiliation_date_created", using: :btree
+  add_index "Affiliation", ["DateDeleted", "data_source_id"], name: "index_Affiliation_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Affiliation", ["DateUpdated"], name: "affiliation_date_updated", using: :btree
   add_index "Affiliation", ["ExportID"], name: "affiliation_export_id", using: :btree
   add_index "Affiliation", ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true, using: :btree
   add_index "Affiliation", ["data_source_id"], name: "index_Affiliation_on_data_source_id", using: :btree
+  add_index "Affiliation", ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted", using: :btree
 
   create_table "Client", force: :cascade do |t|
     t.string   "PersonalID"
@@ -117,13 +120,16 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "required_number_of_bedrooms",                        default: 1
     t.integer  "required_minimum_occupancy",                         default: 1
     t.boolean  "requires_elevator_access",                           default: false
-    t.string   "verified_veteran_status"
     t.jsonb    "neighborhood_interests",                             default: [],    null: false
+    t.string   "verified_veteran_status"
     t.boolean  "interested_in_set_asides",                           default: false
     t.date     "consent_expires_on"
+    t.datetime "pending_date_deleted"
+    t.date     "cas_match_override"
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
+  add_index "Client", ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Client", ["DateUpdated"], name: "client_date_updated", using: :btree
   add_index "Client", ["ExportID"], name: "client_export_id", using: :btree
   add_index "Client", ["FirstName"], name: "client_first_name", using: :btree
@@ -131,6 +137,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Client", ["PersonalID"], name: "client_personal_id", using: :btree
   add_index "Client", ["creator_id"], name: "index_Client_on_creator_id", using: :btree
   add_index "Client", ["data_source_id"], name: "index_Client_on_data_source_id", using: :btree
+  add_index "Client", ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted", using: :btree
 
   create_table "Disabilities", force: :cascade do |t|
     t.string   "DisabilitiesID"
@@ -158,18 +165,23 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "Disabilities", ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
   add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
   add_index "Disabilities", ["ExportID"], name: "disabilities_export_id", using: :btree
   add_index "Disabilities", ["PersonalID"], name: "index_Disabilities_on_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true, using: :btree
-  add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID", using: :btree
   add_index "Disabilities", ["data_source_id"], name: "index_Disabilities_on_data_source_id", using: :btree
+  add_index "Disabilities", ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted", using: :btree
 
   create_table "EmploymentEducation", force: :cascade do |t|
     t.string   "EmploymentEducationID"
@@ -189,17 +201,19 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "EmploymentEducation", ["DateCreated"], name: "employment_education_date_created", using: :btree
+  add_index "EmploymentEducation", ["DateDeleted", "data_source_id"], name: "index_EmploymentEducation_on_DateDeleted_and_data_source_id", using: :btree
   add_index "EmploymentEducation", ["DateUpdated"], name: "employment_education_date_updated", using: :btree
   add_index "EmploymentEducation", ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID", using: :btree
   add_index "EmploymentEducation", ["ExportID"], name: "employment_education_export_id", using: :btree
   add_index "EmploymentEducation", ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true, using: :btree
-  add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID", using: :btree
   add_index "EmploymentEducation", ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id", using: :btree
+  add_index "EmploymentEducation", ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted", using: :btree
 
   create_table "Enrollment", force: :cascade do |t|
     t.string   "EnrollmentID",                                 limit: 50
@@ -317,9 +331,11 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "last_locality"
     t.string   "last_zipcode"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Enrollment", ["DateCreated"], name: "enrollment_date_created", using: :btree
+  add_index "Enrollment", ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Enrollment", ["DateDeleted"], name: "index_Enrollment_on_DateDeleted", using: :btree
   add_index "Enrollment", ["DateUpdated"], name: "enrollment_date_updated", using: :btree
   add_index "Enrollment", ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID", using: :btree
@@ -328,9 +344,9 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
   add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
-  add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
+  add_index "Enrollment", ["pending_date_deleted"], name: "index_Enrollment_on_pending_date_deleted", using: :btree
 
   create_table "EnrollmentCoC", force: :cascade do |t|
     t.string   "EnrollmentCoCID"
@@ -338,26 +354,28 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ProjectID"
     t.string   "PersonalID"
     t.date     "InformationDate"
-    t.string   "CoCCode",             limit: 50
+    t.string   "CoCCode",              limit: 50
     t.integer  "DataCollectionStage"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",              limit: 100
+    t.string   "UserID",               limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
-    t.string   "HouseholdID",         limit: 32
+    t.string   "HouseholdID",          limit: 32
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "EnrollmentCoC", ["DateCreated"], name: "enrollment_coc_date_created", using: :btree
+  add_index "EnrollmentCoC", ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id", using: :btree
   add_index "EnrollmentCoC", ["DateUpdated"], name: "enrollment_coc_date_updated", using: :btree
   add_index "EnrollmentCoC", ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID", using: :btree
   add_index "EnrollmentCoC", ["ExportID"], name: "enrollment_coc_export_id", using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true, using: :btree
-  add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID", using: :btree
   add_index "EnrollmentCoC", ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id", using: :btree
+  add_index "EnrollmentCoC", ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted", using: :btree
 
   create_table "Exit", force: :cascade do |t|
     t.string   "ExitID"
@@ -418,9 +436,11 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "InPersonGroup"
     t.integer  "CMExitReason"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Exit", ["DateCreated"], name: "exit_date_created", using: :btree
+  add_index "Exit", ["DateDeleted", "data_source_id"], name: "index_Exit_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Exit", ["DateDeleted"], name: "index_Exit_on_DateDeleted", using: :btree
   add_index "Exit", ["DateUpdated"], name: "exit_date_updated", using: :btree
   add_index "Exit", ["EnrollmentID"], name: "index_Exit_on_EnrollmentID", using: :btree
@@ -428,9 +448,9 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Exit", ["ExportID"], name: "exit_export_id", using: :btree
   add_index "Exit", ["PersonalID"], name: "index_Exit_on_PersonalID", using: :btree
   add_index "Exit", ["data_source_id", "ExitID"], name: "unk_Exit", unique: true, using: :btree
-  add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_PersonalID", using: :btree
   add_index "Exit", ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID", using: :btree
   add_index "Exit", ["data_source_id"], name: "index_Exit_on_data_source_id", using: :btree
+  add_index "Exit", ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted", using: :btree
 
   create_table "Export", force: :cascade do |t|
     t.string   "ExportID"
@@ -468,18 +488,21 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.date     "EndDate"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",         limit: 100
+    t.string   "UserID",               limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Funder", ["DateCreated"], name: "funder_date_created", using: :btree
+  add_index "Funder", ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Funder", ["DateUpdated"], name: "funder_date_updated", using: :btree
   add_index "Funder", ["ExportID"], name: "funder_export_id", using: :btree
   add_index "Funder", ["data_source_id", "FunderID"], name: "unk_Funder", unique: true, using: :btree
   add_index "Funder", ["data_source_id"], name: "index_Funder_on_data_source_id", using: :btree
+  add_index "Funder", ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted", using: :btree
 
   create_table "Geography", force: :cascade do |t|
     t.string   "GeographyID"
@@ -504,14 +527,17 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "geocode_override",          limit: 6
     t.integer  "geography_type_override"
     t.date     "information_date_override"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Geography", ["DateCreated"], name: "site_date_created", using: :btree
+  add_index "Geography", ["DateDeleted", "data_source_id"], name: "index_Geography_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Geography", ["DateUpdated"], name: "site_date_updated", using: :btree
   add_index "Geography", ["ExportID"], name: "site_export_id", using: :btree
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true, using: :btree
   add_index "Geography", ["data_source_id", "GeographyID"], name: "unk_Site", unique: true, using: :btree
   add_index "Geography", ["data_source_id"], name: "index_Geography_on_data_source_id", using: :btree
+  add_index "Geography", ["pending_date_deleted"], name: "index_Geography_on_pending_date_deleted", using: :btree
 
   create_table "HealthAndDV", force: :cascade do |t|
     t.string   "HealthAndDVID"
@@ -534,17 +560,19 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "HealthAndDV", ["DateCreated"], name: "health_and_dv_date_created", using: :btree
+  add_index "HealthAndDV", ["DateDeleted", "data_source_id"], name: "index_HealthAndDV_on_DateDeleted_and_data_source_id", using: :btree
   add_index "HealthAndDV", ["DateUpdated"], name: "health_and_dv_date_updated", using: :btree
   add_index "HealthAndDV", ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID", using: :btree
   add_index "HealthAndDV", ["ExportID"], name: "health_and_dv_export_id", using: :btree
   add_index "HealthAndDV", ["PersonalID"], name: "index_HealthAndDV_on_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true, using: :btree
-  add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID", using: :btree
   add_index "HealthAndDV", ["data_source_id"], name: "index_HealthAndDV_on_data_source_id", using: :btree
+  add_index "HealthAndDV", ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted", using: :btree
 
   create_table "IncomeBenefits", force: :cascade do |t|
     t.string   "IncomeBenefitsID"
@@ -628,17 +656,22 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "OtherInsuranceIdentify",       limit: 50
     t.integer  "ConnectionWithSOAR"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
-  add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
+  add_index "IncomeBenefits", ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted", using: :btree
 
   create_table "Inventory", force: :cascade do |t|
     t.string   "InventoryID"
@@ -664,14 +697,17 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Inventory", ["DateCreated"], name: "inventory_date_created", using: :btree
+  add_index "Inventory", ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Inventory", ["DateUpdated"], name: "inventory_date_updated", using: :btree
   add_index "Inventory", ["ExportID"], name: "inventory_export_id", using: :btree
   add_index "Inventory", ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id", using: :btree
   add_index "Inventory", ["data_source_id", "InventoryID"], name: "unk_Inventory", unique: true, using: :btree
   add_index "Inventory", ["data_source_id"], name: "index_Inventory_on_data_source_id", using: :btree
+  add_index "Inventory", ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted", using: :btree
 
   create_table "Organization", force: :cascade do |t|
     t.string   "OrganizationID",         limit: 50
@@ -685,11 +721,14 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "data_source_id"
     t.boolean  "dmh",                                default: false, null: false
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
+  add_index "Organization", ["DateDeleted", "data_source_id"], name: "index_Organization_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Organization", ["ExportID"], name: "organization_export_id", using: :btree
   add_index "Organization", ["data_source_id", "OrganizationID"], name: "unk_Organization", unique: true, using: :btree
   add_index "Organization", ["data_source_id"], name: "index_Organization_on_data_source_id", using: :btree
+  add_index "Organization", ["pending_date_deleted"], name: "index_Organization_on_pending_date_deleted", using: :btree
 
   create_table "Project", force: :cascade do |t|
     t.string   "ProjectID",                     limit: 50
@@ -721,9 +760,11 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "housing_type_override"
     t.boolean  "uses_move_in_date",                         default: false, null: false
     t.date     "operating_start_date_override"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
+  add_index "Project", ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Project", ["DateUpdated"], name: "project_date_updated", using: :btree
   add_index "Project", ["ExportID"], name: "project_export_id", using: :btree
   add_index "Project", ["ProjectID", "data_source_id", "OrganizationID"], name: "index_proj_proj_id_org_id_ds_id", using: :btree
@@ -731,26 +772,30 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Project", ["computed_project_type"], name: "index_Project_on_computed_project_type", using: :btree
   add_index "Project", ["data_source_id", "ProjectID"], name: "unk_Project", unique: true, using: :btree
   add_index "Project", ["data_source_id"], name: "index_Project_on_data_source_id", using: :btree
+  add_index "Project", ["pending_date_deleted"], name: "index_Project_on_pending_date_deleted", using: :btree
 
   create_table "ProjectCoC", force: :cascade do |t|
-    t.string   "ProjectCoCID",   limit: 50
+    t.string   "ProjectCoCID",         limit: 50
     t.string   "ProjectID"
-    t.string   "CoCCode",        limit: 50
+    t.string   "CoCCode",              limit: 50
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",         limit: 100
+    t.string   "UserID",               limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "hud_coc_code"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "ProjectCoC", ["DateCreated"], name: "project_coc_date_created", using: :btree
+  add_index "ProjectCoC", ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id", using: :btree
   add_index "ProjectCoC", ["DateUpdated"], name: "project_coc_date_updated", using: :btree
   add_index "ProjectCoC", ["ExportID"], name: "project_coc_export_id", using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true, using: :btree
   add_index "ProjectCoC", ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode", using: :btree
+  add_index "ProjectCoC", ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted", using: :btree
 
   create_table "Services", force: :cascade do |t|
     t.string   "ServicesID"
@@ -765,14 +810,16 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "ReferralOutcome"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",            limit: 100
+    t.string   "UserID",               limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.string   "source_hash"
+    t.datetime "pending_date_deleted"
   end
 
   add_index "Services", ["DateCreated"], name: "services_date_created", using: :btree
+  add_index "Services", ["DateDeleted", "data_source_id"], name: "index_Services_on_DateDeleted_and_data_source_id", using: :btree
   add_index "Services", ["DateDeleted"], name: "index_Services_on_DateDeleted", using: :btree
   add_index "Services", ["DateProvided"], name: "index_Services_on_DateProvided", using: :btree
   add_index "Services", ["DateUpdated"], name: "services_date_updated", using: :btree
@@ -782,6 +829,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "Services", ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date", using: :btree
   add_index "Services", ["data_source_id", "ServicesID"], name: "unk_Services", unique: true, using: :btree
   add_index "Services", ["data_source_id"], name: "index_Services_on_data_source_id", using: :btree
+  add_index "Services", ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted", using: :btree
 
   create_table "administrative_events", force: :cascade do |t|
     t.integer  "user_id",     null: false
@@ -835,6 +883,22 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.boolean  "full_release",             default: false, null: false
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
+  end
+
+  create_table "bo_configs", force: :cascade do |t|
+    t.integer "data_source_id"
+    t.string  "user"
+    t.string  "encrypted_pass"
+    t.string  "encrypted_pass_iv"
+    t.string  "url"
+    t.string  "server"
+    t.string  "client_lookup_cuid"
+    t.string  "touch_point_lookup_cuid"
+    t.string  "subject_response_lookup_cuid"
+    t.string  "site_touch_point_map_cuid"
+    t.string  "disability_verification_cuid"
+    t.integer "disability_touch_point_id"
+    t.integer "disability_touch_point_question_id"
   end
 
   create_table "cas_availabilities", force: :cascade do |t|
@@ -1222,6 +1286,8 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.boolean "infer_family_from_household_id",            default: false,                    null: false
     t.string  "chronic_definition",                        default: "chronics",               null: false
     t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
+    t.boolean "show_vispdats_on_dashboards",               default: false
+    t.boolean "rrh_cas_readiness",                         default: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1280,6 +1346,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.boolean  "authoritative",      default: false
     t.string   "after_create_path"
     t.boolean  "import_paused",      default: false, null: false
+    t.string   "authoritative_type"
   end
 
   create_table "direct_financial_assistances", force: :cascade do |t|
@@ -1329,6 +1396,47 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   end
 
   add_index "eto_api_configs", ["data_source_id"], name: "index_eto_api_configs_on_data_source_id", using: :btree
+
+  create_table "eto_client_lookups", force: :cascade do |t|
+    t.integer  "data_source_id",              null: false
+    t.integer  "client_id",                   null: false
+    t.string   "enterprise_guid",             null: false
+    t.integer  "site_id",                     null: false
+    t.integer  "subject_id",                  null: false
+    t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
+  end
+
+  add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
+  add_index "eto_client_lookups", ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_subject_response_lookups", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.integer "subject_id",     null: false
+    t.integer "response_id",    null: false
+  end
+
+  add_index "eto_subject_response_lookups", ["subject_id"], name: "index_eto_subject_response_lookups_on_subject_id", using: :btree
+
+  create_table "eto_touch_point_lookups", force: :cascade do |t|
+    t.integer  "data_source_id", null: false
+    t.integer  "client_id",      null: false
+    t.integer  "subject_id",     null: false
+    t.integer  "assessment_id",  null: false
+    t.integer  "response_id",    null: false
+    t.datetime "last_updated"
+    t.integer  "site_id"
+  end
+
+  add_index "eto_touch_point_lookups", ["client_id"], name: "index_eto_touch_point_lookups_on_client_id", using: :btree
+  add_index "eto_touch_point_lookups", ["data_source_id"], name: "index_eto_touch_point_lookups_on_data_source_id", using: :btree
+
+  create_table "eto_touch_point_response_times", force: :cascade do |t|
+    t.integer  "touch_point_unique_identifier", null: false
+    t.integer  "response_unique_identifier",    null: false
+    t.datetime "response_last_updated",         null: false
+    t.integer  "subject_unique_identifier",     null: false
+  end
 
   create_table "exports", force: :cascade do |t|
     t.string   "export_id"
@@ -1472,6 +1580,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.jsonb    "processed_fields"
     t.date     "consent_confirmed_on"
     t.date     "consent_expires_on"
+    t.datetime "eto_last_updated"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree
@@ -1499,6 +1608,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.float    "vispdat_months_homeless"
     t.float    "vispdat_times_homeless"
     t.string   "staff_email"
+    t.datetime "eto_last_updated"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree
@@ -1890,15 +2000,15 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
-    t.string   "ProjectEntryID",                               limit: 50
+    t.string   "EnrollmentID",                                 limit: 50
     t.string   "PersonalID"
     t.string   "ProjectID",                                    limit: 50
     t.date     "EntryDate"
     t.string   "HouseholdID"
     t.integer  "RelationshipToHoH"
-    t.integer  "ResidencePrior"
+    t.integer  "LivingSituation"
     t.string   "OtherResidencePrior"
-    t.integer  "ResidencePriorLengthOfStay"
+    t.integer  "LengthOfStay"
     t.integer  "DisablingCondition"
     t.integer  "EntryFromStreetESSH"
     t.date     "DateToStreetESSH"
@@ -1910,7 +2020,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "HousingStatus"
     t.date     "DateOfEngagement"
     t.integer  "InPermanentHousing"
-    t.date     "ResidentialMoveInDate"
+    t.date     "MoveInDate"
     t.date     "DateOfPATHStatus"
     t.integer  "ClientEnrolledInPATH"
     t.integer  "ReasonNotEnrolled"
@@ -1922,7 +2032,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.string   "LastPermanentZIP",                             limit: 10
     t.integer  "AddressDataQuality"
     t.date     "DateOfBCPStatus"
-    t.integer  "FYSBYouth"
+    t.integer  "EligibleForRHY"
     t.integer  "ReasonNoServices"
     t.integer  "SexualOrientation"
     t.integer  "FormerWardChildWelfare"
@@ -2002,6 +2112,10 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "RunawayYouth"
     t.string   "processed_hash"
     t.string   "processed_as"
+    t.boolean  "roi_permission"
+    t.string   "last_locality"
+    t.string   "last_zipcode"
+    t.string   "source_hash"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -3240,27 +3354,37 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "vispdats", ["user_id"], name: "index_vispdats_on_user_id", using: :btree
 
   create_table "warehouse_client_service_history", force: :cascade do |t|
-    t.integer "client_id",                           null: false
+    t.integer "client_id",                                                   null: false
     t.integer "data_source_id"
-    t.date    "date",                                null: false
-    t.date    "first_date_in_program",               null: false
+    t.date    "date",                                                        null: false
+    t.date    "first_date_in_program",                                       null: false
     t.date    "last_date_in_program"
-    t.string  "enrollment_group_id",     limit: 50
+    t.string  "enrollment_group_id",             limit: 50
     t.integer "age"
     t.integer "destination"
-    t.string  "head_of_household_id",    limit: 50
-    t.string  "household_id",            limit: 50
-    t.string  "project_id",              limit: 50
-    t.string  "project_name",            limit: 150
+    t.string  "head_of_household_id",            limit: 50
+    t.string  "household_id",                    limit: 50
+    t.string  "project_id",                      limit: 50
+    t.string  "project_name",                    limit: 150
     t.integer "project_type"
     t.integer "project_tracking_method"
-    t.string  "organization_id",         limit: 50
-    t.string  "record_type",             limit: 50,  null: false
+    t.string  "organization_id",                 limit: 50
+    t.string  "record_type",                     limit: 50,                  null: false
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type"
     t.integer "computed_project_type"
     t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25",                       default: 0,     null: false
+    t.integer "other_clients_under_18",                      default: 0,     null: false
+    t.integer "other_clients_between_18_and_25",             default: 0,     null: false
+    t.boolean "unaccompanied_youth",                         default: false, null: false
+    t.boolean "parenting_youth",                             default: false, null: false
+    t.boolean "parenting_juvenile",                          default: false, null: false
+    t.boolean "children_only",                               default: false, null: false
+    t.boolean "individual_adult",                            default: false, null: false
+    t.boolean "individual_elder",                            default: false, null: false
+    t.boolean "head_of_household",                           default: false, null: false
   end
 
   add_index "warehouse_client_service_history", ["client_id"], name: "index_service_history_on_client_id", using: :btree
@@ -3269,7 +3393,6 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_index "warehouse_client_service_history", ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id", using: :btree
   add_index "warehouse_client_service_history", ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type", using: :btree
   add_index "warehouse_client_service_history", ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv", using: :btree
-  add_index "warehouse_client_service_history", ["date"], name: "date_index", using: :btree
   add_index "warehouse_client_service_history", ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id", using: :btree
   add_index "warehouse_client_service_history", ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program", using: :btree
   add_index "warehouse_client_service_history", ["household_id"], name: "index_warehouse_client_service_history_on_household_id", using: :btree
@@ -3328,6 +3451,7 @@ ActiveRecord::Schema.define(version: 20190510123307) do
     t.integer  "vispdat_score"
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
+    t.datetime "last_cas_match_date"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
@@ -3510,6 +3634,108 @@ ActiveRecord::Schema.define(version: 20190510123307) do
   add_foreign_key "warehouse_clients", "data_sources"
   add_foreign_key "warehouse_clients_processed", "\"Client\"", column: "client_id"
 
+  create_view "Site",  sql_definition: <<-SQL
+      SELECT "Geography"."GeographyID",
+      "Geography"."ProjectID",
+      "Geography"."CoCCode",
+      "Geography"."PrincipalSite",
+      "Geography"."Geocode",
+      "Geography"."Address1",
+      "Geography"."City",
+      "Geography"."State",
+      "Geography"."ZIP",
+      "Geography"."DateCreated",
+      "Geography"."DateUpdated",
+      "Geography"."UserID",
+      "Geography"."DateDeleted",
+      "Geography"."ExportID",
+      "Geography".data_source_id,
+      "Geography".id,
+      "Geography"."InformationDate",
+      "Geography"."Address2",
+      "Geography"."GeographyType",
+      "Geography".source_hash
+     FROM "Geography";
+  SQL
+
+  create_view "combined_cohort_client_changes",  sql_definition: <<-SQL
+      SELECT cc.id,
+      cohort_clients.client_id,
+      cc.cohort_client_id,
+      cc.cohort_id,
+      cc.user_id,
+      cc.change AS entry_action,
+      cc.changed_at AS entry_date,
+      cc_ex.change AS exit_action,
+      cc_ex.changed_at AS exit_date,
+      cc_ex.reason
+     FROM (((( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE ((cohort_client_changes.change)::text = ANY (ARRAY[('create'::character varying)::text, ('activate'::character varying)::text]))) cc
+       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE (((cohort_client_changes.change)::text = ANY (ARRAY[('destroy'::character varying)::text, ('deactivate'::character varying)::text])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
+            ORDER BY cohort_client_changes.changed_at
+           LIMIT 1) cc_ex ON (true))
+       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
+       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
+    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
+    ORDER BY cc.id;
+  SQL
+
+  create_view "index_stats",  sql_definition: <<-SQL
+      WITH table_stats AS (
+           SELECT psut.relname,
+              psut.n_live_tup,
+              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
+             FROM pg_stat_user_tables psut
+            ORDER BY psut.n_live_tup DESC
+          ), table_io AS (
+           SELECT psiut.relname,
+              sum(psiut.heap_blks_read) AS table_page_read,
+              sum(psiut.heap_blks_hit) AS table_page_hit,
+              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
+             FROM pg_statio_user_tables psiut
+            GROUP BY psiut.relname
+            ORDER BY (sum(psiut.heap_blks_read)) DESC
+          ), index_io AS (
+           SELECT psiui.relname,
+              psiui.indexrelname,
+              sum(psiui.idx_blks_read) AS idx_page_read,
+              sum(psiui.idx_blks_hit) AS idx_page_hit,
+              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
+             FROM pg_statio_user_indexes psiui
+            GROUP BY psiui.relname, psiui.indexrelname
+            ORDER BY (sum(psiui.idx_blks_read)) DESC
+          )
+   SELECT ts.relname,
+      ts.n_live_tup,
+      ts.index_use_ratio,
+      ti.table_page_read,
+      ti.table_page_hit,
+      ti.table_hit_ratio,
+      ii.indexrelname,
+      ii.idx_page_read,
+      ii.idx_page_hit,
+      ii.idx_hit_ratio
+     FROM ((table_stats ts
+       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
+       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
+    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+  SQL
+
   create_view "report_clients",  sql_definition: <<-SQL
       SELECT "Client"."PersonalID",
       "Client"."FirstName",
@@ -3600,195 +3826,6 @@ ActiveRecord::Schema.define(version: 20190510123307) do
        JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
        JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
     WHERE ("Client"."DateDeleted" IS NULL);
-  SQL
-
-  create_view "service_history",  sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.client_id,
-      service_history_enrollments.data_source_id,
-      service_history_services.date,
-      service_history_enrollments.first_date_in_program,
-      service_history_enrollments.last_date_in_program,
-      service_history_enrollments.enrollment_group_id,
-      service_history_enrollments.project_id,
-      service_history_services.age,
-      service_history_enrollments.destination,
-      service_history_enrollments.head_of_household_id,
-      service_history_enrollments.household_id,
-      service_history_enrollments.project_name,
-      service_history_services.project_type,
-      service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_services.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_services.service_type,
-      service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household
-     FROM (service_history_services
-       JOIN service_history_enrollments ON ((service_history_services.service_history_enrollment_id = service_history_enrollments.id)))
-  UNION
-   SELECT service_history_enrollments.id,
-      service_history_enrollments.client_id,
-      service_history_enrollments.data_source_id,
-      service_history_enrollments.date,
-      service_history_enrollments.first_date_in_program,
-      service_history_enrollments.last_date_in_program,
-      service_history_enrollments.enrollment_group_id,
-      service_history_enrollments.project_id,
-      service_history_enrollments.age,
-      service_history_enrollments.destination,
-      service_history_enrollments.head_of_household_id,
-      service_history_enrollments.household_id,
-      service_history_enrollments.project_name,
-      service_history_enrollments.project_type,
-      service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_enrollments.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_enrollments.service_type,
-      service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household
-     FROM service_history_enrollments;
-  SQL
-
-  create_view "service_history_services_materialized", materialized: true,  sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type
-     FROM service_history_services;
-  SQL
-
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
-  add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
-
-  create_view "Site",  sql_definition: <<-SQL
-      SELECT "Geography"."GeographyID",
-      "Geography"."ProjectID",
-      "Geography"."CoCCode",
-      "Geography"."PrincipalSite",
-      "Geography"."Geocode",
-      "Geography"."Address1",
-      "Geography"."City",
-      "Geography"."State",
-      "Geography"."ZIP",
-      "Geography"."DateCreated",
-      "Geography"."DateUpdated",
-      "Geography"."UserID",
-      "Geography"."DateDeleted",
-      "Geography"."ExportID",
-      "Geography".data_source_id,
-      "Geography".id,
-      "Geography"."InformationDate",
-      "Geography"."Address2",
-      "Geography"."GeographyType",
-      "Geography".source_hash
-     FROM "Geography";
-  SQL
-
-  create_view "combined_cohort_client_changes",  sql_definition: <<-SQL
-      SELECT cc.id,
-      cohort_clients.client_id,
-      cc.cohort_client_id,
-      cc.cohort_id,
-      cc.user_id,
-      cc.change AS entry_action,
-      cc.changed_at AS entry_date,
-      cc_ex.change AS exit_action,
-      cc_ex.changed_at AS exit_date,
-      cc_ex.reason
-     FROM (((( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE ((cohort_client_changes.change)::text = ANY ((ARRAY['create'::character varying, 'activate'::character varying])::text[]))) cc
-       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE (((cohort_client_changes.change)::text = ANY ((ARRAY['destroy'::character varying, 'deactivate'::character varying])::text[])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
-            ORDER BY cohort_client_changes.changed_at
-           LIMIT 1) cc_ex ON (true))
-       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
-       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
-    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
-    ORDER BY cc.id;
-  SQL
-
-  create_view "index_stats",  sql_definition: <<-SQL
-      WITH table_stats AS (
-           SELECT psut.relname,
-              psut.n_live_tup,
-              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
-             FROM pg_stat_user_tables psut
-            ORDER BY psut.n_live_tup DESC
-          ), table_io AS (
-           SELECT psiut.relname,
-              sum(psiut.heap_blks_read) AS table_page_read,
-              sum(psiut.heap_blks_hit) AS table_page_hit,
-              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
-             FROM pg_statio_user_tables psiut
-            GROUP BY psiut.relname
-            ORDER BY (sum(psiut.heap_blks_read)) DESC
-          ), index_io AS (
-           SELECT psiui.relname,
-              psiui.indexrelname,
-              sum(psiui.idx_blks_read) AS idx_page_read,
-              sum(psiui.idx_blks_hit) AS idx_page_hit,
-              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
-             FROM pg_statio_user_indexes psiui
-            GROUP BY psiui.relname, psiui.indexrelname
-            ORDER BY (sum(psiui.idx_blks_read)) DESC
-          )
-   SELECT ts.relname,
-      ts.n_live_tup,
-      ts.index_use_ratio,
-      ti.table_page_read,
-      ti.table_page_hit,
-      ti.table_hit_ratio,
-      ii.indexrelname,
-      ii.idx_page_read,
-      ii.idx_page_hit,
-      ii.idx_hit_ratio
-     FROM ((table_stats ts
-       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
-       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
-    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
   SQL
 
   create_view "report_disabilities",  sql_definition: <<-SQL
@@ -4201,6 +4238,93 @@ ActiveRecord::Schema.define(version: 20190510123307) do
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
     WHERE ("Services"."DateDeleted" IS NULL);
   SQL
+
+  create_view "service_history",  sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_services.date,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.enrollment_group_id,
+      service_history_enrollments.project_id,
+      service_history_services.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_services.project_type,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.organization_id,
+      service_history_services.record_type,
+      service_history_enrollments.housing_status_at_entry,
+      service_history_enrollments.housing_status_at_exit,
+      service_history_services.service_type,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.presented_as_individual,
+      service_history_enrollments.other_clients_over_25,
+      service_history_enrollments.other_clients_under_18,
+      service_history_enrollments.other_clients_between_18_and_25,
+      service_history_enrollments.unaccompanied_youth,
+      service_history_enrollments.parenting_youth,
+      service_history_enrollments.parenting_juvenile,
+      service_history_enrollments.children_only,
+      service_history_enrollments.individual_adult,
+      service_history_enrollments.individual_elder,
+      service_history_enrollments.head_of_household
+     FROM (service_history_services
+       JOIN service_history_enrollments ON ((service_history_services.service_history_enrollment_id = service_history_enrollments.id)))
+  UNION
+   SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.date,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.enrollment_group_id,
+      service_history_enrollments.project_id,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_type,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.organization_id,
+      service_history_enrollments.record_type,
+      service_history_enrollments.housing_status_at_entry,
+      service_history_enrollments.housing_status_at_exit,
+      service_history_enrollments.service_type,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.presented_as_individual,
+      service_history_enrollments.other_clients_over_25,
+      service_history_enrollments.other_clients_under_18,
+      service_history_enrollments.other_clients_between_18_and_25,
+      service_history_enrollments.unaccompanied_youth,
+      service_history_enrollments.parenting_youth,
+      service_history_enrollments.parenting_juvenile,
+      service_history_enrollments.children_only,
+      service_history_enrollments.individual_adult,
+      service_history_enrollments.individual_elder,
+      service_history_enrollments.head_of_household
+     FROM service_history_enrollments;
+  SQL
+
+  create_view "service_history_services_materialized", materialized: true,  sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type
+     FROM service_history_services;
+  SQL
+
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
+  add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
 
   create_view "todd_stats",  sql_definition: <<-SQL
       SELECT pg_stat_all_tables.relname,

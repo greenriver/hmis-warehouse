@@ -1,64 +1,13 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "0e2738a50620498968d2275b712e368310e9bf01f9a545072ec84688f33ee76a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/dashboards/base/_censuses.haml",
-      "line": 12,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.slice(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s))), active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s)))) rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end))).sub_population_title",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Dashboards::BaseController",
-          "method": "index",
-          "line": 38,
-          "file": "app/controllers/dashboards/base_controller.rb",
-          "rendered": {
-            "name": "dashboards/base/index",
-            "file": "app/views/dashboards/base/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/index",
-          "line": 1,
-          "file": "app/views/dashboards/base/index.haml",
-          "rendered": {
-            "name": "dashboards/base/_index",
-            "file": "app/views/dashboards/base/_index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/_index",
-          "line": 10,
-          "file": "app/views/dashboards/base/_index.haml",
-          "rendered": {
-            "name": "dashboards/base/_censuses",
-            "file": "app/views/dashboards/base/_censuses.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "dashboards/base/_censuses"
-      },
-      "user_input": "params[:choose_report][:end_month]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "183d6735294c38b8c0b0611b9ad3b005663982697937cb37c89c72f00df84e1f",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/importers/hmis_six_one_one/sftp.rb",
-      "line": 76,
+      "line": 82,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"atool --repack -q #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\"} #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\".gsub(\".7z\", \".zip\")}\")",
       "render_path": null,
@@ -78,7 +27,7 @@
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/application_controller.rb",
-      "line": 52,
+      "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
       "code": "redirect_to(request.env[\"HTTP_REFERER\"], *args.dup)",
       "render_path": null,
@@ -98,7 +47,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/censuses/index.haml",
-      "line": 14,
+      "line": 13,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "(Censuses::Base.available_census_types.detect do\n (m.to_s == params[:type])\n end or Censuses::CensusBedNightProgram).new.class.name.split(\"::\").last",
       "render_path": [
@@ -106,7 +55,7 @@
           "type": "controller",
           "class": "CensusesController",
           "method": "index",
-          "line": 12,
+          "line": 18,
           "file": "app/controllers/censuses_controller.rb",
           "rendered": {
             "name": "censuses/index",
@@ -137,7 +86,7 @@
           "type": "controller",
           "class": "Window::PrintController",
           "method": "index",
-          "line": 11,
+          "line": 17,
           "file": "app/controllers/window/print_controller.rb",
           "rendered": {
             "name": "window/print/index",
@@ -170,7 +119,7 @@
       "check_name": "Render",
       "message": "Render path contains parameter value",
       "file": "app/controllers/data_quality_reports_controller.rb",
-      "line": 17,
+      "line": 27,
       "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
       "code": "render(action => report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element.to_sym, {})",
       "render_path": null,
@@ -190,7 +139,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/controllers/imports_controller.rb",
-      "line": 12,
+      "line": 18,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "import_scope.select(:id, :data_source_id, :completed_at, :created_at, :updated_at).order(\"#{sort_column} #{sort_direction}\")",
       "render_path": null,
@@ -229,6 +178,26 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/window/clients_controller.rb",
+      "line": 85,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Window::ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/window/clients_controller.rb",
       "line": 54,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
@@ -249,47 +218,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/window/clients_controller.rb",
-      "line": 48,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Window::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/window/clients_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Window::ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/window/clients_controller.rb",
-      "line": 79,
+      "line": 60,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -323,13 +252,53 @@
       "note": ""
     },
     {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "53fbe8253749c9c2a3ee28338ddd1377b2a53e2420fc8341e90980699150c99e",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/window/clients_controller.rb",
+      "line": 81,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Window::ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "560654d4119023b98ace9aa621f8578d4bbf9842e89acc251bda37a3ca2476ab",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
+      "line": 1064,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "send(options[:denominator]).where(\"#{key}_#{measure}\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::ProjectDataQualityReports::VersionFour::Display",
+        "method": "project_group_completeness"
+      },
+      "user_input": "key",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5ba96031ca661709aeb963da5bac9041de9ec50a0dbbe0495500dad0d3318d4d",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/importers/hmis_five_one/sftp.rb",
-      "line": 77,
+      "line": 83,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"atool --repack -q #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\"} #{\"#{Rails.root.to_s}/#{@local_path}/#{file}\".gsub(\".7z\", \".zip\")}\")",
       "render_path": null,
@@ -345,11 +314,62 @@
     {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
+      "fingerprint": "68a41227ec4ed238a95c860cae88a8b78be6411dea3a9b997ec56ccdccc63136",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/dashboards/base/_censuses.haml",
+      "line": 12,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys[(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s)))..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s))))] rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end)), :filter => ({ :vispdat => (vispdat_limits.values.detect do\n (v == params[:choose_report][:limit_to_vispdat].to_sym)\n end rescue :all_clients) })).sub_population_title",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Dashboards::BaseController",
+          "method": "index",
+          "line": 45,
+          "file": "app/controllers/dashboards/base_controller.rb",
+          "rendered": {
+            "name": "dashboards/base/index",
+            "file": "app/views/dashboards/base/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/index",
+          "line": 1,
+          "file": "app/views/dashboards/base/index.haml",
+          "rendered": {
+            "name": "dashboards/base/_index",
+            "file": "app/views/dashboards/base/_index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/_index",
+          "line": 10,
+          "file": "app/views/dashboards/base/_index.haml",
+          "rendered": {
+            "name": "dashboards/base/_censuses",
+            "file": "app/views/dashboards/base/_censuses.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/_censuses"
+      },
+      "user_input": "params[:choose_report][:end_month]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
       "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/warehouse_reports/chronic_housed/index.haml",
-      "line": 39,
+      "line": 42,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "site_chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
       "render_path": [
@@ -357,7 +377,7 @@
           "type": "controller",
           "class": "WarehouseReports::ChronicHousedController",
           "method": "index",
-          "line": 11,
+          "line": 17,
           "file": "app/controllers/warehouse_reports/chronic_housed_controller.rb",
           "rendered": {
             "name": "warehouse_reports/chronic_housed/index",
@@ -374,21 +394,385 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/glacier/runner.rb",
+      "line": 36,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"psql -d postgres --username=#{db_user} --no-password --host=#{(provided_db_host or db_host)} -c 'create database #{database_name}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Glacier::Runner",
+        "method": "restore_database!"
+      },
+      "user_input": "db_user",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "7c66a105e2dc82603b638726429867081fd7bdfc09b716d4699dcf62401a11e6",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
+      "line": 1092,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "send(options[:denominator]).where(:project_id => hud_project.id, \"#{key}_#{measure}\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::ProjectDataQualityReports::VersionFour::Display",
+        "method": "project_completeness"
+      },
+      "user_input": "key",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "82350b8b46a3e14aa66aa74397914f4f5d00cec43bbf1c02beadb1dc0a79a82c",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/window/health/goals/edit.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Window::Health::GoalsController",
+          "method": "edit",
+          "line": 34,
+          "file": "app/controllers/concerns/health_goal.rb",
+          "rendered": {
+            "name": "window/health/goals/edit",
+            "file": "app/views/window/health/goals/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "window/health/goals/edit"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "85283b166eb4bcf02cc87be10e06c2d8433300155419b05dc24758732632d3ce",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/organization.rb",
+      "line": 59,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Organization",
+        "method": null
+      },
+      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "88ba6947358eb613f838a50fc8a1b137f655dda08126594643d90dca1df7daa9",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/organization.rb",
+      "line": 44,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Organization",
+        "method": null
+      },
+      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 81,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 85,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 54,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 60,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 75,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
-      "fingerprint": "716f6ace10cc227af68162cf4a9de08a029fb6414df9aa6660b31015a3503d86",
+      "fingerprint": "91a0110b4d22fef018751f0bd5d101efb8d349145f2bb084aaf0729dd89667d9",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
-      "file": "app/views/dashboards/base/_exit.haml",
-      "line": 27,
+      "file": "app/views/dashboards/base/_entry.haml",
+      "line": 35,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.slice(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s))), active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s)))) rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end))).sub_population_title",
+      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys[(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s)))..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s))))] rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end)), :filter => ({ :vispdat => (vispdat_limits.values.detect do\n (v == params[:choose_report][:limit_to_vispdat].to_sym)\n end rescue :all_clients) })).sub_population_title",
       "render_path": [
         {
           "type": "controller",
           "class": "Dashboards::BaseController",
           "method": "index",
-          "line": 38,
+          "line": 45,
+          "file": "app/controllers/dashboards/base_controller.rb",
+          "rendered": {
+            "name": "dashboards/base/index",
+            "file": "app/views/dashboards/base/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/index",
+          "line": 1,
+          "file": "app/views/dashboards/base/index.haml",
+          "rendered": {
+            "name": "dashboards/base/_index",
+            "file": "app/views/dashboards/base/_index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/_index",
+          "line": 11,
+          "file": "app/views/dashboards/base/_index.haml",
+          "rendered": {
+            "name": "dashboards/base/_entry",
+            "file": "app/views/dashboards/base/_entry.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/_entry"
+      },
+      "user_input": "params[:choose_report][:end_month]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "91a0110b4d22fef018751f0bd5d101efb8d349145f2bb084aaf0729dd89667d9",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/dashboards/base/_entry.haml",
+      "line": 37,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys[(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s)))..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s))))] rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end)), :filter => ({ :vispdat => (vispdat_limits.values.detect do\n (v == params[:choose_report][:limit_to_vispdat].to_sym)\n end rescue :all_clients) })).sub_population_title",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Dashboards::BaseController",
+          "method": "index",
+          "line": 45,
+          "file": "app/controllers/dashboards/base_controller.rb",
+          "rendered": {
+            "name": "dashboards/base/index",
+            "file": "app/views/dashboards/base/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/index",
+          "line": 1,
+          "file": "app/views/dashboards/base/index.haml",
+          "rendered": {
+            "name": "dashboards/base/_index",
+            "file": "app/views/dashboards/base/_index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/_index",
+          "line": 11,
+          "file": "app/views/dashboards/base/_index.haml",
+          "rendered": {
+            "name": "dashboards/base/_entry",
+            "file": "app/views/dashboards/base/_entry.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/_entry"
+      },
+      "user_input": "params[:choose_report][:end_month]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "91a0110b4d22fef018751f0bd5d101efb8d349145f2bb084aaf0729dd89667d9",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/dashboards/base/_entry.haml",
+      "line": 33,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys[(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s)))..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s))))] rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end)), :filter => ({ :vispdat => (vispdat_limits.values.detect do\n (v == params[:choose_report][:limit_to_vispdat].to_sym)\n end rescue :all_clients) })).sub_population_title",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Dashboards::BaseController",
+          "method": "index",
+          "line": 45,
+          "file": "app/controllers/dashboards/base_controller.rb",
+          "rendered": {
+            "name": "dashboards/base/index",
+            "file": "app/views/dashboards/base/index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/index",
+          "line": 1,
+          "file": "app/views/dashboards/base/index.haml",
+          "rendered": {
+            "name": "dashboards/base/_index",
+            "file": "app/views/dashboards/base/_index.haml"
+          }
+        },
+        {
+          "type": "template",
+          "name": "dashboards/base/_index",
+          "line": 11,
+          "file": "app/views/dashboards/base/_index.haml",
+          "rendered": {
+            "name": "dashboards/base/_entry",
+            "file": "app/views/dashboards/base/_entry.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "dashboards/base/_entry"
+      },
+      "user_input": "params[:choose_report][:end_month]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "929dfaf901c5f1961df80a5661d440bd24171177a260b2e415cd5f6921a992c2",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/dashboards/base/_exit.haml",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys[(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s)))..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s))))] rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end)), :filter => ({ :vispdat => (vispdat_limits.values.detect do\n (v == params[:choose_report][:limit_to_vispdat].to_sym)\n end rescue :all_clients) })).sub_population_title",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Dashboards::BaseController",
+          "method": "index",
+          "line": 45,
           "file": "app/controllers/dashboards/base_controller.rb",
           "rendered": {
             "name": "dashboards/base/index",
@@ -425,204 +809,13 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/glacier/runner.rb",
-      "line": 30,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"psql -d postgres --username=#{db_user} --no-password --host=#{(provided_db_host or db_host)} -c 'create database #{database_name}'\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Glacier::Runner",
-        "method": "restore_database!"
-      },
-      "user_input": "db_user",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "82350b8b46a3e14aa66aa74397914f4f5d00cec43bbf1c02beadb1dc0a79a82c",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/views/window/health/goals/edit.haml",
-      "line": 4,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => ::Health::Goal::Hpc.find(params[:id].to_i), { :readonly => false })",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Window::Health::GoalsController",
-          "method": "edit",
-          "line": 28,
-          "file": "app/controllers/concerns/health_goal.rb",
-          "rendered": {
-            "name": "window/health/goals/edit",
-            "file": "app/views/window/health/goals/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "window/health/goals/edit"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "85283b166eb4bcf02cc87be10e06c2d8433300155419b05dc24758732632d3ce",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 53,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Organization",
-        "method": null
-      },
-      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "88ba6947358eb613f838a50fc8a1b137f655dda08126594643d90dca1df7daa9",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 38,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Organization",
-        "method": null
-      },
-      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 69,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 48,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 54,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 75,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 79,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "94405d01e70f156a675d811cc9892bd155c6e6b77c4b13259e882e14af159b80",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_six.rb",
-      "line": 709,
+      "line": 715,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'exit'\\n        and last_date_in_program <= '#{(\"2015-09-30\".to_date - 730.days).strftime(\"%Y-%m-%d\")}'\\n        and last_date_in_program >= '#{(\"2012-10-01\" or (\"2014-10-01\".to_date - 730.days).strftime(\"%Y-%m-%d\"))}'\\n        and (housing_status_at_entry = 5 or housing_status_at_exit = 5) -- Limit to Category 3 --\\n        and program_type in (#{[2, 8, 3, 9, 10, 13].compact.join(\", \")})\")",
       "render_path": null,
@@ -642,7 +835,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 58,
+      "line": 64,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -662,7 +855,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/importers/sftp.rb",
-      "line": 129,
+      "line": 135,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"atool --force -q --extract-to=#{extract_path(:data_source => data_source)} #{\"#{Rails.root.to_s}/#{\"#{\"tmp/hmis_sftp\"}/#{data_source.short_name}\"}/#{[entry.name].max}\"}\")",
       "render_path": null,
@@ -682,7 +875,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_two.rb",
-      "line": 489,
+      "line": 495,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'entry'\\n                and first_date_in_program = '#{day.strftime(\"%Y-%m-%d\")}'\\n                and unduplicated_client_id = #{p_exit[:unduplicated_client_id]}\\n                and program_type in (#{\"3,9,10,13\"})\\n                \")",
       "render_path": null,
@@ -702,7 +895,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 302,
+      "line": 307,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -722,7 +915,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 378,
+      "line": 384,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -742,7 +935,7 @@
       "check_name": "FileAccess",
       "message": "Parameter value used in file name",
       "file": "app/controllers/window/clients/history_controller.rb",
-      "line": 62,
+      "line": 68,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{client_scope.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -770,7 +963,7 @@
           "type": "controller",
           "class": "MessagesController",
           "method": "show",
-          "line": 28,
+          "line": 34,
           "file": "app/controllers/messages_controller.rb",
           "rendered": {
             "name": "messages/show",
@@ -793,7 +986,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_two.rb",
-      "line": 352,
+      "line": 358,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'exit'\\n        and last_date_in_program <= '#{(\"2015-09-30\".to_date - 730.days).strftime(\"%Y-%m-%d\")}'\\n        and last_date_in_program >= '#{(\"2012-10-01\" or (\"2014-10-01\".to_date - 730.days).strftime(\"%Y-%m-%d\"))}'\\n        and program_type in (#{[4, 1, 2, 8, 3, 9, 10, 13].compact.join(\", \")})\")",
       "render_path": null,
@@ -807,166 +1000,13 @@
       "note": ""
     },
     {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "c5db0ab76f416b9dce338a06fec56dbe0065bcab25b3ba2005f8ff3c7ff9699a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/dashboards/base/_entry.haml",
-      "line": 35,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.slice(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s))), active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s)))) rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end))).sub_population_title",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Dashboards::BaseController",
-          "method": "index",
-          "line": 38,
-          "file": "app/controllers/dashboards/base_controller.rb",
-          "rendered": {
-            "name": "dashboards/base/index",
-            "file": "app/views/dashboards/base/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/index",
-          "line": 1,
-          "file": "app/views/dashboards/base/index.haml",
-          "rendered": {
-            "name": "dashboards/base/_index",
-            "file": "app/views/dashboards/base/_index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/_index",
-          "line": 11,
-          "file": "app/views/dashboards/base/_index.haml",
-          "rendered": {
-            "name": "dashboards/base/_entry",
-            "file": "app/views/dashboards/base/_entry.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "dashboards/base/_entry"
-      },
-      "user_input": "params[:choose_report][:end_month]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "c5db0ab76f416b9dce338a06fec56dbe0065bcab25b3ba2005f8ff3c7ff9699a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/dashboards/base/_entry.haml",
-      "line": 33,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.slice(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s))), active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s)))) rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end))).sub_population_title",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Dashboards::BaseController",
-          "method": "index",
-          "line": 38,
-          "file": "app/controllers/dashboards/base_controller.rb",
-          "rendered": {
-            "name": "dashboards/base/index",
-            "file": "app/views/dashboards/base/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/index",
-          "line": 1,
-          "file": "app/views/dashboards/base/index.haml",
-          "rendered": {
-            "name": "dashboards/base/_index",
-            "file": "app/views/dashboards/base/_index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/_index",
-          "line": 11,
-          "file": "app/views/dashboards/base/_index.haml",
-          "rendered": {
-            "name": "dashboards/base/_entry",
-            "file": "app/views/dashboards/base/_entry.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "dashboards/base/_entry"
-      },
-      "user_input": "params[:choose_report][:end_month]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "c5db0ab76f416b9dce338a06fec56dbe0065bcab25b3ba2005f8ff3c7ff9699a",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/dashboards/base/_entry.haml",
-      "line": 37,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "active_report_class.new(:months => (active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.slice(active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s rescue [1.months.ago.year, 1.months.ago.month].to_s))), active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n date = Date.new(year, month, 1)\n[[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n end.to_h.keys.index(JSON.parse((JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s rescue [6.months.ago.year, 6.months.ago.month].to_s)))) rescue []), :organization_ids => (params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_ids => (params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i) rescue []), :project_types => ((GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys or params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end))).sub_population_title",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Dashboards::BaseController",
-          "method": "index",
-          "line": 38,
-          "file": "app/controllers/dashboards/base_controller.rb",
-          "rendered": {
-            "name": "dashboards/base/index",
-            "file": "app/views/dashboards/base/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/index",
-          "line": 1,
-          "file": "app/views/dashboards/base/index.haml",
-          "rendered": {
-            "name": "dashboards/base/_index",
-            "file": "app/views/dashboards/base/_index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "dashboards/base/_index",
-          "line": 11,
-          "file": "app/views/dashboards/base/_index.haml",
-          "rendered": {
-            "name": "dashboards/base/_entry",
-            "file": "app/views/dashboards/base/_entry.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "dashboards/base/_entry"
-      },
-      "user_input": "params[:choose_report][:end_month]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Request Forgery",
       "warning_code": 7,
       "fingerprint": "ce992db4f95112f496552ef023508b0c90940679ef5aa41aa122b91cd2eb0a14",
       "check_name": "ForgerySetting",
       "message": "`protect_from_forgery` should be called in `HelloSignController`",
       "file": "app/controllers/hello_sign_controller.rb",
-      "line": 1,
+      "line": 7,
       "link": "https://brakemanscanner.org/docs/warning_types/cross-site_request_forgery/",
       "code": null,
       "render_path": null,
@@ -985,7 +1025,7 @@
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/admin/translation_keys_controller.rb",
-      "line": 47,
+      "line": 53,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
       "code": "redirect_to(TranslationKey.find(params[:id].to_i))",
       "render_path": null,
@@ -995,6 +1035,26 @@
         "method": "update"
       },
       "user_input": "params[:id].to_i",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "d9bb80d17d9ee8ce21f0fe7e5f5e15446eaa406057bd5f8f08540740ec295f07",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/data_quality_reports_controller.rb",
+      "line": 79,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.read(\"app/views/data_quality_reports/#{report_scope.where(:project_id => params[:project_id].to_i).find(params[:id].to_i).model_name.element}/project/README.md\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataQualityReportsController",
+        "method": "describe_computations"
+      },
+      "user_input": "params[:id]",
       "confidence": "Weak",
       "note": ""
     },
@@ -1013,7 +1073,7 @@
           "type": "controller",
           "class": "Census::ProjectTypesController",
           "method": "index",
-          "line": 10,
+          "line": 16,
           "file": "app/controllers/census/project_types_controller.rb",
           "rendered": {
             "name": "census/project_types/index",
@@ -1036,7 +1096,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_six.rb",
-      "line": 838,
+      "line": 844,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'entry'\\n                and first_date_in_program = '#{day}'\\n                and unduplicated_client_id = #{p_exit[:unduplicated_client_id]}\\n                and program_type in #{\"3,9,10,13\"}\\n                \")",
       "render_path": null,
@@ -1056,7 +1116,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_two.rb",
-      "line": 410,
+      "line": 416,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'entry'\\n          and first_date_in_program <= '#{\"2015-09-30\"}'\\n          and first_date_in_program > '#{p_exit[:last_date_in_program].strftime(\"%Y-%m-%d\")}'\\n          and unduplicated_client_id = #{p_exit[:unduplicated_client_id]}\")",
       "render_path": null,
@@ -1076,7 +1136,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/concerns/client_controller.rb",
-      "line": 48,
+      "line": 54,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -1092,11 +1152,51 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "ec2a88a0a4dbf17f841d1ed086b8c4e0132b485f2ceea48c39e2fa1715aa2c9a",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
+      "line": 336,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "send(options[:denominator]).group(:project_id).where(\"#{key}_#{:complete}\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::ProjectDataQualityReports::VersionFour::Display",
+        "method": "client_data"
+      },
+      "user_input": "key",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "ec3e12873a47baa3681d97c10127ea6269f92e67c8eb04a70947cf79685943da",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/support.rb",
+      "line": 168,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "send(completeness_metrics[options[:column].to_sym][:denominator]).where(\"#{options[:column].to_sym}_#{options[:metric].to_sym}\" => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::ProjectDataQualityReports::VersionFour::Support",
+        "method": "project_completeness_support"
+      },
+      "user_input": "options[:column].to_sym",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "f1d7dc074d4f29af2dc89ece8f7ba8c1bb41f8406eab90a52af87f165ced9608",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/report_generators/system_performance/fy2015/measure_six.rb",
-      "line": 762,
+      "line": 768,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouse::ClientHousingHistory.where(\"record_type = 'entry'\\n          and first_date_in_program <= '#{\"2015-09-30\"}'\\n          and first_date_in_program > '#{p_exit[:last_date_in_program].strftime(\"%Y-%m-%d\")}'\\n          and unduplicated_client_id = #{p_exit[:unduplicated_client_id]}\")",
       "render_path": null,
@@ -1129,6 +1229,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-05-15 14:13:04 -0400",
+  "updated": "2019-06-26 09:53:40 -0400",
   "brakeman_version": "4.5.1"
 }

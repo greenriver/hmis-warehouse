@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'util/hud'
 
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
@@ -290,6 +296,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         vispdat_score: client.most_recent_vispdat_score,
         active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
         last_exit_destination: client.last_exit_destination,
+        last_cas_match_date: client.cas_reports.maximum(:match_started_at),
       }
     end
 

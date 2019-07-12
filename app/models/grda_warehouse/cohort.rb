@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
@@ -242,6 +248,7 @@ module GrdaWarehouse
         ::CohortColumns::ConsentConfirmed.new(),
         ::CohortColumns::DisabilityVerificationDate.new(),
         ::CohortColumns::AvailableForMatchingInCas.new(),
+        ::CohortColumns::DaysSinceCasMatch.new(),
         ::CohortColumns::Sober.new(),
         ::CohortColumns::OriginalChronic.new(),
         ::CohortColumns::NotAVet.new(),
@@ -263,6 +270,7 @@ module GrdaWarehouse
         ::CohortColumns::SchoolDistrict.new(),
         ::CohortColumns::AssessmentScore.new(),
         ::CohortColumns::VispdatScoreManual.new(),
+        ::CohortColumns::DaysOnCohort.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),

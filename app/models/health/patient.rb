@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Risk: Describes a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -544,7 +550,7 @@ module Health
       return unless potential_team.any?
       potential_team.each do |epic_member|
         if epic_member.name.include?(',')
-          (last_name, first_name) = epic_member.name.split(', ', 2)
+          (last_name, first_name) = epic_member.name.split(',', 2).map(&:strip)
         else
           (first_name, last_name) = epic_member.name.split(' ', 2)
         end

@@ -3,19 +3,30 @@ set :rails_env, "production"
 
 raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
 
-
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 set :branch, 'master'
 
-puts "Allowable hosts: #{ENV['HOSTS']}"
-puts "Hosts specified for deployment: #{ENV['HOST_WITH_CRON']} #{ENV['HOST2']} #{ENV['HOST3']}"
-
-server ENV['HOST_WITH_CRON'], user: ENV['DEPLOY_USER'], roles: %w{app db web job cron}, port: fetch(:ssh_port)
-if ENV['HOST2'] != nil
-  server ENV['HOST2'], user: ENV['DEPLOY_USER'], roles: %w{app web job}, port: fetch(:ssh_port)
+if !ENV['HOSTS'].nil?
+  puts "Allowable hosts: #{ENV['HOSTS']}"
 end
-if ENV['HOST3'] != nil
-  server ENV['HOST3'], user: ENV['DEPLOY_USER'], roles: %w{app web job}, port: fetch(:ssh_port)
+
+web_hosts = ENV['HOSTS_WEB'].to_s.split(/,/)
+utility_hosts = ENV['HOSTS_UTILITY'].to_s.split(/,/)
+cron_host = ENV['HOST_WITH_CRON']
+
+hosts = (web_hosts + utility_hosts + [cron_host]).uniq.sort
+
+puts "Hosts specified for deployment: #{hosts}"
+
+hosts.each do |host|
+  roles = ['app']
+
+  roles << 'web' if web_hosts.include?(host)
+  roles << 'job' if utility_hosts.include?(host)
+  roles << 'db' if cron_host == host
+  roles << 'cron' if cron_host == host
+
+  server host, user: ENV['DEPLOY_USER'], roles: roles, port: fetch(:ssh_port)
 end
 
 set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_known', 'challenge')

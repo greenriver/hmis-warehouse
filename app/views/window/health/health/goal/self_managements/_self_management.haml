@@ -1,7 +1,7 @@
 - wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
 - goal = self_management
 .panel-group.panel-collapsible.goal__self-management.goal.jGoal{id: "goal-#{goal.id}", data: {goal: goal.id}}
-  - content_for :panel_collapse_heading do
+  - content_for :panel_collapse_heading, flush: true do
     .toggle.ml-auto.d-flex.align-items-center
       %h4.panel-title= goal.name
       .section-expander-block__expander-region.ml-4
@@ -15,7 +15,7 @@
         .ml-auto
           %i.icon-arrow-circled-right.j-toggle-arrow
 
-  - content_for :panel_collapse_content do
+  - content_for :panel_collapse_content, flush: true do
     .row
       .col-sm-12
         .goal-form

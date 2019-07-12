@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Window::Health
   class MedicationsController < HealthController
     # This controller serves both BH CP data and pilot data, so it can't use the BH CP permissions

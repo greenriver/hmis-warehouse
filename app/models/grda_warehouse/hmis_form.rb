@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
@@ -100,6 +106,17 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       end
     end
 
+  end
+
+  def self.set_part_of_a_family
+    # This could be done as one query, but as these are small
+    # and don't tend to take long, this is easier to troubleshoot and reason about.
+    source_client_ids = vispdat.where.not(vispdat_family_score: nil).
+      distinct.
+      pluck(:client_id)
+    destination_client_ids = GrdaWarehouse::WarehouseClient.where(source_id: source_client_ids).distinct.pluck(:destination_id)
+    GrdaWarehouse::Hud::Client.where(id: destination_client_ids, family_member: false).
+      update_all(family_member: true)
   end
 
   def primary_language

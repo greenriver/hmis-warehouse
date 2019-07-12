@@ -1135,9 +1135,14 @@ select distinct lp.PersonalID, hn.EnrollmentID, p.ProjectType
     when p.TrackingMethod = 3 then null
     when hn.EntryDate < lp.CHStart then lp.CHStart
     else hn.EntryDate end
-  , case when p.ProjectType in (3,13) and hoh.MoveInDate >= hn.EntryDate
-    and hoh.MoveInDate < coalesce(x.ExitDate, lp.LastActive)
-    then hoh.MoveInDate else null end
+  -- 6/10/2019 for RRH/PSH enrollments where EntryDate is > than the HoH MoveInDate,
+  --  use EntryDate as MoveInDate (consistent with 5/9/2019 update to section 4.7)
+  , case when p.ProjectType not in (3,13) or hoh.MoveInDate is null then null
+    when hoh.MoveInDate >= hn.EntryDate
+      and hoh.MoveInDate < coalesce(x.ExitDate, lp.LastActive)
+      then hoh.MoveInDate
+    when hoh.MoveInDate < hn.EntryDate then hn.EntryDate
+    else null end
   , case
     when p.TrackingMethod = 3 then null
     when x.ExitDate is null then lp.LastActive
@@ -1151,12 +1156,14 @@ inner join hmis_Enrollment hn on hn.PersonalID = lp.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = hn.EnrollmentID
   and x.ExitDate <= lp.LastActive
     --4/23/2019 do not use deleted data in reporting
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
   and x.DateDeleted is null
 inner join (select hhinfo.HouseholdID, min(hhinfo.MoveInDate) as MoveInDate
       , coc.CoCCode
     from hmis_Enrollment hhinfo
     inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hhinfo.EnrollmentID
     --4/23/2019 do not use deleted data in reporting
+    --4/25/2019 correct DateDeleted IS NOT NULL to IS NULL
     where coc.DateDeleted is null
     group by hhinfo.HouseholdID, coc.CoCCode
   ) hoh on hoh.HouseholdID = hn.HouseholdID and hoh.CoCCode = rpt.ReportCoC
@@ -2612,7 +2619,9 @@ inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
   and cal.theDate > lhh.LastInactive
-  and cal.theDate < coalesce(sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time housed on housed.HoHID = sn.HoHID and housed.HHType = sn.HHType
   and housed.sysDate = cal.theDate
 where housed.sysDate is null and sn.ProjectType = 2
@@ -2625,7 +2634,9 @@ inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
-  and cal.theDate < coalesce(sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
 where (cal.theDate > lhh.LastInactive)
@@ -2663,7 +2674,9 @@ inner join tmp_Household lhh on lhh.HoHID = sn.HoHID and lhh.HHType = sn.HHType
 inner join lsa_Report rpt on rpt.ReportEnd >= sn.EntryDate
 inner join ref_Calendar cal on
   cal.theDate >= sn.EntryDate
-  and cal.theDate < coalesce(sn.MoveInDate, sn.ExitDate, rpt.ReportEnd)
+  -- 6/5/2019 correct join criteria to include the last day of the report period
+  --   (it was being excluded) for enrollments still active and not housed at ReportEnd
+  and cal.theDate <= coalesce(dateadd(dd, -1, sn.MoveInDate), dateadd(dd, -1, sn.ExitDate), rpt.ReportEnd)
 left outer join sys_Time other on other.HoHID = sn.HoHID and other.HHType = sn.HHType
   and other.sysDate = cal.theDate
 where cal.theDate > lhh.LastInactive
@@ -4424,7 +4437,7 @@ group by cd.Cohort, pop.PopID
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ProjectID, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, 10
   , coalesce(pop.HHType, 0)
   , pop.PopID, -1, 54
@@ -4474,7 +4487,7 @@ group by cd.Cohort, pop.PopID, p.ProjectID, p.ExportID
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, case p.ProjectType
     when 1 then 11
     when 8 then 12
@@ -4530,7 +4543,7 @@ group by cd.Cohort, pop.PopID, case p.ProjectType
 insert into lsa_Calculated
   (Value, Cohort, Universe, HHType
   , Population, SystemPath, ReportRow, ReportID)
-select count (distinct ahh.HoHID + cast(ahh.HHType as nvarchar))
+select count (distinct cast(ahh.HoHID as nvarchar) + cast(ahh.HHType as nvarchar))
   , cd.Cohort, 16 as Universe
   , coalesce(pop.HHType, 0) as HHType
   , pop.PopID, -1, 54
@@ -5497,7 +5510,9 @@ insert into lsa_Household(RowTotal
 select count (distinct HoHID + cast(HHType as nvarchar)), Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5638,7 +5653,9 @@ from tmp_Household
 group by Stat
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5786,7 +5803,9 @@ select count (distinct HoHID + cast(HHType as nvarchar))
   , Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730
@@ -5797,7 +5816,9 @@ from tmp_Exit
 group by Cohort, Stat, ExitFrom, ExitTo
   , case when ReturnTime between 15 and 30 then 30
     when ReturnTime between 31 and 60 then 60
-    when ReturnTime between 61 and 180 then 180
+    --5/28/2019 split ReturnTime between 61 and 180 to include category 90 and 180
+    when ReturnTime between 61 and 90 then 90
+    when ReturnTime between 91 and 180 then 180
     when ReturnTime between 181 and 365 then 365
     when ReturnTime between 366 and 547 then 547
     when ReturnTime >= 548 then 730

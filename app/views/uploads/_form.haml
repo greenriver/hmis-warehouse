@@ -1,7 +1,7 @@
 .row
   .col-sm-10
     #hud-zip-upload.panel-group.panel-collapsible
-      - content_for :panel_collapse_content do
+      - content_for :panel_collapse_content, flush: true do
         %p
           Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in the
           = link_to 'https://hudhdx.info/Resources/Vendors/5_1_2/HMISCSVSpecifications6_12.pdf' do
@@ -28,4 +28,5 @@
 
       = render 'common/panel_collapse',
         id: 'hmis_611',
-        title: 'HMIS 6.12 format'
+        title: 'HMIS 6.12 format',
+        default_open: 'yes'

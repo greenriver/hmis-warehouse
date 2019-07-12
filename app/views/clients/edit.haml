@@ -2,7 +2,7 @@
 - content_for :title, title
 = render 'breadcrumbs'
 
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 = render 'tab_navigation', current: edit_client_path(@client)
 %h1= title
 - if @client.source_clients.size > 1

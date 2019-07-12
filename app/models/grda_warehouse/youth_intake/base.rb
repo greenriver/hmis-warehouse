@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
     include ArelHelper
@@ -13,6 +19,8 @@ module GrdaWarehouse::YouthIntake
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
+
+    after_save :update_destination_client
 
     scope :visible_by?, -> (user) do
       if user.can_edit_anything_super_user?
@@ -164,7 +172,7 @@ module GrdaWarehouse::YouthIntake
     end
 
     def other_referral?
-      how_hear.include? 'Other'
+      how_hear.include? 'Other' rescue false
     end
 
     def stable_housing_options
@@ -175,6 +183,34 @@ module GrdaWarehouse::YouthIntake
         'No',
         'Unknown',
       ]
+    end
+
+    def update_destination_client
+      authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
+      return unless authoritative_clients.exists?
+
+      authoritative_clients.update_all(
+        DOB: client_dob,
+        DOBDataQuality: 1,
+        Gender: client_gender,
+        Ethnicity: client_ethnicity,
+        AmIndAKNative: client_race.include?('AmIndAKNative') ? 1 : 0,
+        Asian: client_race.include?('Asian') ? 1 : 0,
+        BlackAfAmerican: client_race.include?('BlackAfAmerican') ? 1 : 0,
+        NativeHIOtherPacific: client_race.include?('NativeHIOtherPacific') ? 1 : 0,
+        White: client_race.include?('White') ? 1 : 0,
+        RaceNone: compute_race_none,
+
+        # Education, Health, and Disability information are also collected, but not processed
+
+        DateUpdated: Time.now,
+      )
+    end
+
+    def compute_race_none
+      return 9 if client_race.include?('RaceNone')
+      return 99 if client_race.select { |race| ! race.empty? }.empty?
+      return nil
     end
 
   end

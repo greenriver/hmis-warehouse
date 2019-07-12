@@ -1,12 +1,12 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
-
-require "stupidedi"
-stupidedi_dir = Gem::Specification.find_by_name("stupidedi").gem_dir
-json_dir = "#{stupidedi_dir}/notes/json_writer/"
-Dir["#{json_dir}/json/*.rb"].each{ |file| require file }
-require "#{json_dir}/json"
 
 module Health
   class EligibilityResponse < HealthBase
@@ -24,17 +24,17 @@ module Health
     end
 
     def eligible_ids
-      @eligibles ||= subscribers.select{|s| eligible(s).present?}.map{|s| TRN(s)}
+      @eligibles ||= subscribers.select{|s| eligible(s)}.map{|s| TRN(s)}
     end
 
     def managed_care_ids
-      @manageds ||= subscribers.select{|s| managed_care(s).present?}.map{|s| TRN(s)}
+      @manageds ||= subscribers.select{|s| managed_care(s)}.map{|s| TRN(s)}
     end
 
     def aco_names
       @aco_names ||= begin
         results = {}
-        subscribers.select{|s| managed_care(s).present?}.each do |s|
+        subscribers.select{|s| managed_care(s)}.each do |s|
           names = EBNM1(s)
           name = names['MC'] || names['L']
           results[TRN(s)] = name
@@ -44,7 +44,7 @@ module Health
     end
 
     def ineligible_ids
-      @ineligibles ||= subscribers.select{|s| eligible(s).nil?}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.reject{|s| eligible(s)}.map{|s| TRN(s)}
     end
 
     def eligible_clients
@@ -78,12 +78,18 @@ module Health
     end
 
     def eligible(subscriber)
-      EB(subscriber).detect{ |eb| eb.first == '1' }
+      ebs = EB(subscriber)
+      masshealth = ebs.any?{ |eb| eb.first == '1' } || false
+      medicare = ebs.any?{ |eb| eb.first == 'R' && eb.last.include?('MEDICARE') } || false
+
+      masshealth && !medicare
     end
 
     def managed_care(subscriber)
       ebs = EB(subscriber)
-      ebs.detect{ |eb| eb.first == 'MC' } || ebs.detect{ |eb| eb.first == 'L' && eb.last.include?('ACO') }
+      managed_care = ebs.any?{ |eb| eb.first == 'MC' } || false
+
+      managed_care
     end
 
     def EB(subscriber)
@@ -128,8 +134,8 @@ module Health
       @json_subs ||= as_json[:interchanges].
         detect{|h| h.keys.include? :functional_groups}[:functional_groups].
         detect{|h| h.keys.include? :transactions}[:transactions].
-        select{|h| h.keys.include? "Table 2 - Subscriber Detail"}.
-          map{|h| h["Table 2 - Subscriber Detail"]}.flatten
+        select{|h| h.keys.include? "2 - Subscriber Detail"}.
+          map{|h| h["2 - Subscriber Detail"]}.flatten
     end
 
     def sender
@@ -150,7 +156,7 @@ module Health
     def parse_271
       return nil unless response.present?
       config = Stupidedi::Config.hipaa
-      parser = Stupidedi::Builder::StateMachine.build(config)
+      parser = Stupidedi::Parser::StateMachine.build(config)
       parsed, result = parser.read(Stupidedi::Reader.build(response))
       if result.fatal?
         result.explain{|reason| raise reason + " at #{result.position.inspect}" }

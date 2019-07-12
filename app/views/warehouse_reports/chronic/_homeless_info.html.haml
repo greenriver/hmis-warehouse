@@ -1,5 +1,5 @@
 #chronic-accordion.panel-group.panel-collapsible
-  - content_for :panel_collapse_content do
+  - content_for :panel_collapse_content, flush: true do
     .row
       .col-sm-6
         %p
@@ -25,5 +25,5 @@
           %li A single Street Outreach day within a month counts the entire month of days toward the days homeless
 
   = render 'common/panel_collapse',
-    id: '#chronic-info',
+    id: 'chronic-info',
     title: 'Clients are considered chronically homeless if they...'

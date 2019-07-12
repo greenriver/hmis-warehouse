@@ -5,19 +5,20 @@
 .row
   .col-sm-8
     %h1= title
-  .col-sm-4.text-right
-    - if  can_view_clients?
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
 
 = render 'filter'
 
+.row
+  .col-sm-12.text-right
+    - if  can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
 .row.mt-4
   .col-sm-12.d-flex.align-items-center.mb-4
     %p.mr-4= page_entries_info @enrollments, entry_name: _('client')
     %p= paginate @enrollments
   .col-sm-12
-    %table.table.table-sm
+    %table.table.table-hover
       %thead
         %tr
           %th

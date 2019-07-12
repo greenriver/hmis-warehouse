@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   require 'memoist'
   include ArelHelper
@@ -92,6 +98,26 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     else
       where(visible_in_window: true)
     end
+  end
+
+  scope :youth, -> do
+    where(authoritative_type: 'youth')
+  end
+
+  scope :health, -> do
+    where(authoritative_type: 'health')
+  end
+
+  scope :vispdat, -> do
+    where(authoritative_type: 'vispdat')
+  end
+
+  def self.authoritative_types
+    {
+      "Youth" => :youth,
+      "VI-SPDAT" => :vispdat,
+      "Health" => :health,
+    }
   end
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)

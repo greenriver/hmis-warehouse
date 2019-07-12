@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Window
   class SourceClientsController < ApplicationController
     include PjaxModalController
     include WindowClientPathGenerator
-    
+
     before_action :require_can_create_clients!
     before_action :set_client
     before_action :set_destination_client
@@ -22,7 +28,7 @@ module Window
       valid_params = validate_new_client_params(clean_params)
       if valid_params
         @client.update(clean_params)
-        # also update the destination client, we're assuming this is authoritative 
+        # also update the destination client, we're assuming this is authoritative
         # for this bit of data
         @destination_client.update(clean_params)
         flash[:notice] = "Client saved successfully"
@@ -46,6 +52,10 @@ module Window
       if image
         send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
       end
+    end
+
+    def destination
+      redirect_to redirect_to_path
     end
 
     def redirect_to_path

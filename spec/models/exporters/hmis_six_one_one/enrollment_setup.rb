@@ -4,8 +4,8 @@ RSpec.shared_context 'enrollment setup', shared_context: :metadata do
   let!(:destination_data_source) { create :grda_warehouse_data_source }
   let!(:destination_clients) do
     clients.map do |client|
-      client.data_source_id = destination_data_source.id
       attributes = client.attributes
+      attributes['data_source_id'] = destination_data_source.id
       attributes['id'] = nil
       dest_client = GrdaWarehouse::Hud::Client.create(attributes)
       GrdaWarehouse::WarehouseClient.create(

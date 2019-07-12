@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
@@ -49,7 +55,6 @@ module GrdaWarehouse::Hud
         :RaceNone,
         :Ethnicity,
         :Gender,
-        :OtherGender,
         :VeteranStatus,
         :YearEnteredService,
         :YearSeparated,
@@ -731,8 +736,15 @@ module GrdaWarehouse::Hud
       @deceased_on ||= source_exits.where(Destination: ::HUD.valid_destinations.invert['Deceased']).pluck(:ExitDate).last
     end
 
+    def moved_in_with_ph?
+      enrollments.
+        open_on_date.
+        with_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.today)).exists?
+    end
+
     def active_in_cas?
-      return false if deceased?
+      return false if deceased? || moved_in_with_ph?
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas
@@ -785,6 +797,8 @@ module GrdaWarehouse::Hud
         window_client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         window_client_files_path(self)
+      elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
+        window_client_youth_intakes_path(self)
       end
     end
 
@@ -1346,16 +1360,17 @@ module GrdaWarehouse::Hud
         required_number_of_bedrooms: _('Minimum number of bedrooms'),
         required_minimum_occupancy: _('Minimum occupancy'),
         requires_elevator_access: _('Requires ground floor unit or elevator access'),
+        cas_match_override: _('Override CAS Match Date'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
         keys
     end
 
@@ -1371,6 +1386,8 @@ module GrdaWarehouse::Hud
         :vispdat_prioritization_days_homeless,
         :verified_veteran_status,
         :interested_in_set_asides,
+        :rrh_desired,
+        :youth_rrh_desired,
         :neighborhood_interests => [],
       ]
     end

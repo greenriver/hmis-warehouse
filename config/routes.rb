@@ -28,7 +28,11 @@ Rails.application.routes.draw do
     namespace :health do
       resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
-      resources :appointments, only: [:index]
+      resources :appointments, only: [:index] do
+        collection do
+          get :upcoming
+        end
+      end
       resources :medications, only: [:index]
       resources :problems, only: [:index]
       resources :self_sufficiency_matrix_forms do
@@ -171,6 +175,7 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
+    resources :double_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
@@ -342,6 +347,7 @@ Rails.application.routes.draw do
   resources :source_clients, only: [:edit, :update] do
     member do
       get :image
+      get :destination
     end
   end
   resources :clients do
@@ -394,6 +400,7 @@ Rails.application.routes.draw do
     resources :source_clients, only: [:edit, :update] do
       member do
         get :image
+        get :destination
       end
     end
     resources :clients do
@@ -529,7 +536,10 @@ Rails.application.routes.draw do
       end
     end
     resources :project_groups, only: [:show] do
-      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group' do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
   end
 

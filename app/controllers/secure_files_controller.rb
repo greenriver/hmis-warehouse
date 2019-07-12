@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class SecureFilesController < ApplicationController
   before_action :require_can_view_some_secure_files!, only: [:show]
   before_action :set_file, only: [:show, :destroy]

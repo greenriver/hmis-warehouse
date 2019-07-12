@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class Enrollment < Base
     include ArelHelper
@@ -294,6 +300,9 @@ module GrdaWarehouse::Hud
     end
     scope :hud_non_residential, -> do
       joins(:project).merge(Project.hud_non_residential)
+    end
+    scope :with_project_type, -> (project_types) do
+      joins(:project).merge(Project.with_project_type(project_types))
     end
 
     scope :visible_in_window_to, -> (user) do

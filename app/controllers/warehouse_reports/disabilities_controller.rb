@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
@@ -6,7 +12,7 @@ module WarehouseReports
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      @filter = DisabilityProjectTypeFilter.new(filter_params)
+      @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
 
       if params[:commit].present?
         WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
@@ -51,6 +57,9 @@ module WarehouseReports
     def filter_params
       filter_params = begin
         f_params = params.require(:filter).permit(
+          :start,
+          :end,
+          :sub_population,
           disabilities: [],
           project_types: [],
         )
@@ -67,6 +76,15 @@ module WarehouseReports
       GrdaWarehouse::WarehouseReports::EnrolledDisabledReport
     end
 
+    def available_sub_populations
+      {
+        'All Clients' => :all_clients,
+        'Youth' => :youth,
+        'Veterans' => :veteran,
+      }
+    end
+    helper_method :available_sub_populations
+
     def available_disabilities
       exclude = []
       exclude << 'HIV/AIDS' unless can_view_hiv_status?
@@ -79,11 +97,6 @@ module WarehouseReports
       ::HUD.project_types.invert
     end
     helper_method :available_project_types
-
-    class DisabilityProjectTypeFilter < ModelForm
-      attribute :disabilities, Array, lazy: true, default: []
-      attribute :project_types, Array, lazy: true, default: []
-    end
 
     def flash_interpolation_options
       { resource_name: 'Enrolled Clients with Disabilities Report' }

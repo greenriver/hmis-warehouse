@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ApplicationHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
@@ -193,6 +199,10 @@ module ApplicationHelper
 
   def current_url(new_params)
     url_for :params => params.merge(new_params)
+  end
+
+  def modal_size
+    ''
   end
 
 end

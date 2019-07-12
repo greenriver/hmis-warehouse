@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class RunEnrolledDisabledJob < BaseJob
 
@@ -23,10 +29,22 @@ module WarehouseReports
       if filter_params[:disabilities].empty?
         clients = client_source.none
       else
+        start_date = filter_params[:start].to_date
+        end_date = filter_params[:end].to_date
+
+        enrollment_scope = service_history_enrollment_source.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          in_project_type(filter_params[:project_types])
+
+        population = service_history_enrollment_source.know_standard_cohorts.detect{|m| m.to_s == filter_params[:sub_population]}
+        if population.present?
+          enrollment_scope = enrollment_scope.send(population)
+        end
+
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           where(Disabilities: {DisabilityType: filter_params[:disabilities], DisabilityResponse: [1,2,3]}).
-          where(Project: {project_source.project_type_column => filter_params[:project_types]}).
-          merge(service_history_enrollment_source.entry.ongoing.in_project_type(filter_params[:project_types])).
+          where(Project: { project_source.project_type_column => filter_params[:project_types] }).
+            merge(enrollment_scope).
           distinct.
           includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           order(LastName: :asc, FirstName: :asc)

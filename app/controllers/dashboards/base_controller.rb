@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
@@ -13,9 +19,10 @@ module Dashboards
     before_action :set_project_and_organization_ids
     before_action :set_start_date
     before_action :set_end_date
+    before_action :set_limit_to_vispdat
 
     def index
-      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes)
+      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes, filter: { vispdat: @limit_to_vispdat })
 
       respond_to do |format|
         format.html do
@@ -69,6 +76,14 @@ module Dashboards
       Grover.new(html, grover_options).to_pdf
     end
 
+    def describe_computations
+      path = "app/views/dashboards/base/README.md"
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
+
     def set_available_months
       @available_months ||= active_report_class.distinct.order(year: :desc, month: :desc).
         pluck(:year, :month).map do |year, month|
@@ -84,9 +99,10 @@ module Dashboards
     end
 
     def set_report_months
-      start_index = @available_months.keys.index(JSON.parse(@start_month))
-      end_index = @available_months.keys.index(JSON.parse(@end_month))
-      @report_months = @available_months.keys.slice(end_index, start_index) rescue []
+      all_months_array = @available_months.keys
+      start_index = all_months_array.index(JSON.parse(@start_month))
+      end_index = all_months_array.index(JSON.parse(@end_month))
+      @report_months = all_months_array[end_index..start_index] rescue []
     end
 
     def set_start_date
@@ -112,6 +128,22 @@ module Dashboards
           map(&:to_sym).
           select{|m| m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)}
       end
+    end
+
+    def vispdat_limits
+      {
+        'All clients' => :all_clients,
+        'Only clients with VI-SPDATs' => :with_vispdat,
+        'Only clients without VI-SPDATs' => :without_vispdat,
+      }
+    end
+    helper_method :vispdat_limits
+
+    def set_limit_to_vispdat
+      # Whitelist values
+      @limit_to_vispdat = vispdat_limits.values.detect do |v|
+        v == params[:choose_report][:limit_to_vispdat].to_sym
+      end rescue :all_clients
     end
 
   end

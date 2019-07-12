@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # 1. Generate a consistently annonimized data set from production
 # 2. Store the map in production so that you can re-create a consistent export but not 
 #     reverse engineer the algorithm to get back to the real dataset

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Some testing code:
 # Most recent LSA needs these options: Report Start: Oct 1, 2016; Report End: Sep 30, 2017; CoC-Code: XX-500
 #
@@ -117,14 +123,14 @@ module ReportGenerators::Lsa::Fy2018
           directive: 2,
           hash_status:1,
           include_deleted: false,
-        ).where("project_ids @> ?", system_wide_project_ids.to_json)
+        ).where("project_ids @> ?", @project_ids.to_json)
         &.first
       return existing_export if existing_export.present?
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
-        projects: system_wide_project_ids,
+        projects: @project_ids,
         period_type: 3,
         directive: 2,
         hash_status:1,

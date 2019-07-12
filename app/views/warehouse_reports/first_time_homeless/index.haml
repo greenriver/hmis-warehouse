@@ -2,16 +2,16 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs'
-%p
-  Clients who first received a residential service in the period from
-  = @range.start
-  to
-  = @range.end
 
-=render 'filter'
+= render 'filter'
 = render 'warehouse_reports/limited_by_project_note'
 
 - if @clients.any?
+  %p
+    Clients who first received a residential service in the period from
+    = @range.start
+    to
+    = @range.end
   %h4 All Clients Added
   .row
     .col-sm-10

@@ -43,8 +43,8 @@
       %tr
         %th
         %td
-          -# using length > 100 instead of present?  present? doesn't like 
-          -# some UTF-8/binary 
+          -# using length > 100 instead of present?  present? doesn't like
+          -# some UTF-8/binary
           - image_exists = client_a.image_for_source_client.length > 100 rescue false
           - if image_exists
             = image_tag(polymorphic_path(source_client_image_path_generator, id: client_a.id), style: 'width: 125px;')
@@ -100,15 +100,17 @@
       %tr
         %th Active enrollments
         %td
-          - enrollments = @ongoing_enrollments[client_a.destination_client.id]
-          - if enrollments.any?
-            = enrollments.join('<br />').html_safe
+          - if @ongoing_enrollments.present?
+            - enrollments = @ongoing_enrollments[client_a.destination_client.id] rescue []
+            - if enrollments.any?
+              = enrollments.join('<br />').html_safe
         %td
         %td
         %td
-          - enrollments = @ongoing_enrollments[client_b.destination_client.id]
-          - if enrollments.any?
-            = enrollments.join('<br />').html_safe
+          - if @ongoing_enrollments.present?
+            - enrollments = @ongoing_enrollments[client_b.destination_client.id] rescue []
+            - if enrollments.any?
+              = enrollments.join('<br />').html_safe
   .client-match--actions
     - if match.candidate?
       = link_to('Accept', client_match_path(match, format: :json, client_match: {status: 'accepted'}), {remote: true, data: {disable_with: 'Saving...', toggle: :tooltip, title: "Merge proposed: <br />#{client_b.full_name} #{client_b.uuid} <br />into existing: <br />#{client_a.full_name} #{client_a.uuid}".html_safe, placement: :right, html: :true}, method: :patch, class: 'btn btn-xs btn-success pull-left'})

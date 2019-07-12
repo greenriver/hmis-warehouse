@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'memoist'
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
@@ -371,6 +377,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def finish_report
       self.completed_at = Time.now
       save()
+      notify_requestor
+    end
+
+    def report_type
+      if projects.count == 1
+        :project
+      else
+        :project_group
+      end
     end
 
     def status
@@ -394,9 +409,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def notify_requestor
-      return unless requestor_id.present?
-      contact = User.find(requestor_id)
-      ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
+      return unless requestor.present?
+      ProjectDataQualityReportMailer.report_complete(projects, self, requestor).deliver
+    end
+
+    def requestor
+      return nil unless requestor_id.present?
+      @requestor ||= User.find(requestor_id)
     end
 
     def notifications_sent
@@ -528,8 +547,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def projects
-      return project_group.projects if self.project_group_id.present?
-      return [project]
+      @projects ||= begin
+        if self.project_group_id.present?
+          project_group.projects
+        else
+          [project]
+        end
+      end
     end
 
     def self.length_of_stay_buckets
@@ -558,5 +582,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def disability_source
       GrdaWarehouse::Hud::Disability
     end
+
   end
 end

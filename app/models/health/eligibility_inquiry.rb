@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPAA Risk Assessment
 # Risk: Describes an insurance eligibility inquiry and contains PHI
 # Control: PHI attributes documented
