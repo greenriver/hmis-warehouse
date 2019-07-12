@@ -6,6 +6,7 @@
 
 module WarehouseReports
   class OutflowController < ApplicationController
+    include PjaxModalController
     include WarehouseReportAuthorization
     include ArelHelper
 
