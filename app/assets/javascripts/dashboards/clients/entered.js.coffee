@@ -1,8 +1,8 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.Entered extends App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @columns, @sub_population, @support_url) ->
-    super(@chart_selector, @data, @sub_population, @support_url)
+  constructor: (@chart_selector, @data, @columns, @sub_population, @support_url, options) ->
+    super(@chart_selector, @data, @sub_population, @support_url, options)
 
 
   _build_chart: () =>
@@ -31,8 +31,7 @@ class App.Dashboards.Clients.Entered extends App.Dashboards.Clients.Base
           value: (v) ->
             "#{v}%"
       legend:
-        position: 'right'
-      size:
-        height: 200
+        position: @options.legend.position
+      size: @options.size
       bindto: @chart_selector
     })

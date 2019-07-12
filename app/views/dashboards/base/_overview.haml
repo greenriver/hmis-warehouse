@@ -6,7 +6,7 @@
         .ml-auto
           %i.icon-info{data: {toggle: :tooltip, title: "Households are calculated as unique heads of household.  This differs from HMIS, which would count each enrollment of a group of people as a new household."}}
   .ho-container__summary
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %i.icon-group.metric
       %h4.title
         Enrolled Clients
@@ -16,7 +16,7 @@
         = pluralize(@report.enrolled_household_count, 'households')
       .description
         had open enrollments during this time period
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %i.icon-user.metric
       %h4.title
         Active Clients
@@ -26,7 +26,7 @@
         = pluralize(@report.active_household_count, 'households')
       .description
         had a service during this time period
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %i.icon-enter.metric
       %h4.title
         Enterers
@@ -36,7 +36,7 @@
         = pluralize(@report.entered_household_count, 'households')
       .description
         started enrollments during the reporting period
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %i.icon-exit.metric
       %h4.title
         Exiters

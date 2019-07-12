@@ -1,6 +1,7 @@
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
+    include Rails.application.routes.url_helpers
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -37,28 +38,31 @@ module Dashboards
         format.pdf do
           @pdf = true
           file_name = "#{@report.sub_population_title} Dashboard"
-          dashboard_pdf(file_name)
-          # send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
+          # dashboard_pdf(file_name)
+          send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
         end
       end
     end
 
     def dashboard_pdf file_name
-      render(
-        pdf: file_name,
-        template: 'dashboards/base/index',
-        layout: false,
-        encoding: 'UTF-8',
-        javascript_delay: 10000,
-        lowquality: false,
-        dpi: 75,
-        show_as_html: false
-
-        # header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        # footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
-      )
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: false,
+        printBackground: true,
+        timeout: 35000,
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.5in',
+          right: '.5in',
+        },
+        debug: {
+          # headless: false,
+          # devtools: true
+        }
+      }
+      html = render_to_string('dashboards/base/index')
+      Grover.new(html, grover_options).to_pdf
     end
 
     def set_available_months

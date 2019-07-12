@@ -42,6 +42,20 @@ h2.ho-sub__h2 {
   }
 }
 
+.ho-container__summary {
+  display: flex;
+  justify-content: space-evenly;
+  padding: space(6) 0;
+  flex-wrap: wrap;
+}
+
+.chunk {
+  margin-bottom: space(6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 #rrh-report__loading {
   position: fixed;
   top: 0;

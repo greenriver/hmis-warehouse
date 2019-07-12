@@ -925,6 +925,10 @@ GEM
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
     grosser-pomo (0.5.1)
+    grover (0.7.4)
+      combine_pdf (~> 1.0)
+      nokogiri (~> 1.0)
+      schmooze (~> 0.2)
     guard (2.14.2)
       formatador (>= 0.2.4)
       listen (>= 2.7, < 4.0)
@@ -1225,6 +1229,7 @@ GEM
     scenic (1.4.0)
       activerecord (>= 4.0.0)
       railties (>= 4.0.0)
+    schmooze (0.2.0)
     sdoc (0.4.2)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
@@ -1366,6 +1371,7 @@ DEPENDENCIES
   gettext_i18n_rails
   gmail
   grosser-pomo
+  grover
   guard-rspec
   haml-rails
   handlebars_assets

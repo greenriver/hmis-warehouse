@@ -1,15 +1,17 @@
+- chart_options ||= {}
+
 .ho-container.rrh
   .ho-container__header
     %h3 #{@report.sub_population_title} Exits to Permanent Housing
   .ho-container__summary
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %h4.title
         #{@report.sub_population_title.pluralize} Housed to Date
       .metric
         = link_to pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Veteran::LOOKBACK_START.to_date, end: Date.today, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
       .description
         total #{@report.sub_population_title.pluralize.downcase} housed to date
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
+    .rrh__enrolled.chunk
       %h4.title
         #{@report.sub_population_title.pluralize} Housed During Reporting Period
       .metric
@@ -22,4 +24,5 @@
 = content_for :page_js do
   :javascript
     var support_link = '#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}'
-    new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json}, '#{@report.sub_population_title}', support_link);
+
+    new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json}, '#{@report.sub_population_title}', support_link, #{chart_options.to_json});

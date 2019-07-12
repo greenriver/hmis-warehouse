@@ -3,14 +3,32 @@
   %head
     = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
     = wicked_pdf_javascript_include_tag 'pdf'
+    -# = stylesheet_link_tag 'dashboard_pdf', media: 'all'
+    -# = javascript_include_tag 'pdf'
     :sass
       body
         background: #FFF
 
       h1
-        font-size: 42px
+        font-size: .5in
         text-transform: uppercase
-        margin-bottom: 0
+        margin: 0
+
+      h2
+        font-size: .35in
+
+      h3
+        font-size: .25in
+
+      h4
+        &.title
+          font-size: .35in
+
+      .metric
+        font-size: .5in
+
+      .description
+        font-size: .125in
 
       .chunk
         border: 0 !important
@@ -22,18 +40,16 @@
           width: 100%
           text-align: left !important
         [class*=icon]
-          font-size: 50px
+          font-size: 1in
         .title
-          margin: 0
-          font-size: 14px
+          font-size: .25in
           color: #777
           font-family: 'Open sans'
         .description
           margin: 0
           color: #999
-          font-size: 12px
         .metric
-          font-size: 18px
+          font-size: .35in
           font-weight: 700
           &,
           a
@@ -58,37 +74,30 @@
         margin-top: 5px
         margin-bottom: 5px
 
-      section
-        margin-bottom: 50px
+      .ho-container .description
+        font-size: .2in
 
-      svg
-        border: 3px solid #333
+      section
+        margin-bottom: .25in
 
       .o-chart
         position: relative
-
-      svg,
-      .o-chart
-        width: 800px !important
-        overflow: visible !important
-
-      // svg g
-      //   outline: red 1px solid
-      // #test-chart
-      //   outline: blue 2px solid
+        width: 100%
 
   %body
     - @show_census = true
     = render 'index_title'
     %section
-      = render 'housed_overall'
+      = render 'housed_overall', chart_size: {height: 500, width: 1000}
     %section
-      = render 'overview'
+      = render 'overview', chart_size: {height: 500, width: 1000}
     %section
-      = render 'censuses'
+      = render 'censuses', chart_size: {height: 500, width: 1000}
     %section
-    = render 'entry'
+    = render 'entry', chart_size: {height: 500, width: 1000}
     %section
-    = render 'exit'
+    = render 'exit', chart_size: {height: 500, width: 1000}
+
     -# = render 'download'
+
     = yield :page_js

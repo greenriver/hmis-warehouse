@@ -135,27 +135,34 @@
   stroke-dasharray: 3 4; stroke-width: 3px;
 }
 
-[class^=rrh__]
-{
-  .title
-  {
-
+.chunk {
+  &:only-child {
+    margin-bottom: 0;
   }
-  .metric
-  {
-    font-size: 1.6rem;
+  .title {
+    margin: 0 0 space(4) 0;
+    font-size: rem(20px);
+    line-height: (24/20);
+  }
+  .metric {
+    font-size: rem(22px);
     font-weight: 700;
+    line-height: (26/22);
+    margin-bottom: space(2);
   }
-  .metric a
-  {
-    color: $cob-sg-charles-blue;
-  }
-  .description
-  {
+  .description {
     font-size: 1rem;
+    line-height: (18/16);
+    color: $gray-600;
   }
-  &.chunk:not(:last-child)
-  {
-    border-right: 1px solid $gray-034;
+  [class^=icon] {
+    margin-bottom: space(2);
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: normal;
+  }
+  .title,
+  [class^=icon] {
+    color: $gray-700;
   }
 }

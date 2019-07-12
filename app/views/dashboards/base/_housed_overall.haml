@@ -1,7 +1,8 @@
 .ho-container
-  .chunk.text-center
-    %i.icon-house
-    .metric
-      #{pluralize(@report.all_housed_client_count, @report.sub_population_title)} housed to date
-    .description
-      (#{@report.date_range.first} to #{@report.date_range.last})
+  .ho-container__summary
+    .chunk
+      %i.icon-house
+      .metric
+        #{pluralize(@report.all_housed_client_count, @report.sub_population_title)} housed to date
+      .description
+        (#{@report.date_range.first} to #{@report.date_range.last})

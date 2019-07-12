@@ -1,11 +1,12 @@
+- chart_options ||= {}
+
 .ho-container.rrh
   .ho-container__header
     %h3 Census
-  .ho-container__summary
-    .rrh__enrolled.chunk.pr-4.mr-4.mb-4
-      %h4.title Monthly Census by Project Type
-  .o-chart.jMonthlyCensus
+  .o-chart
+    %h4.o-chart__title Monthly Census by Project Type
+    .jMonthlyCensus
 
 = content_for :page_js do
   :javascript
-    new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json}, '#{@report.sub_population_title}', '');
+    new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json}, '#{@report.sub_population_title}', '', #{chart_options.to_json});

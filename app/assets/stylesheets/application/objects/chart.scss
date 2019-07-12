@@ -1,0 +1,12 @@
+@import '../helpers';
+
+.o-chart {
+  margin-bottom: space(6);
+}
+
+.o-chart__title {
+  text-align: center;
+  font-size: rem(20px);
+  line-height: (24/20);
+  margin-bottom: space(4);
+}

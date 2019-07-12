@@ -1,10 +1,18 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @sub_population, @support_url) ->
+  constructor: (@chart_selector, @data, @sub_population, @support_url, options={}) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
+    @options = Object.assign({
+      legend:
+        show: true
+        position: 'bottom'
+      size:
+        height: 200
+        width: null
+    }, options)
     @_build_chart()
 
   _colors: (c, d) =>
