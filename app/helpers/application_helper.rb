@@ -197,10 +197,6 @@ module ApplicationHelper
     end
   end
 
-  def current_url(new_params)
-    url_for :params => params.merge(new_params)
-  end
-
   def modal_size
     ''
   end
