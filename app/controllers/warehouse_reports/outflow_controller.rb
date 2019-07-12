@@ -33,6 +33,14 @@ module WarehouseReports
     end
     helper_method :metrics
 
+    def describe_computations
+      path = "app/views/warehouse_reports/outflow/README.md"
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
+
     private def set_report
       @filter = ::Filters::DateRangeWithSubPopulation.new(filter_options)
       @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter)
