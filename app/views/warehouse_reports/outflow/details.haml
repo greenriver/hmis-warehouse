@@ -4,13 +4,28 @@
 
 %h1= metrics[@key]
 
-%table.table.table-sm.table-hover.mt-4
+%table.table.table-sm.mt-4
   %thead
     %tr
-      %th
+      %th Warehouse ID
       %th Name
+      %th Project Name
+      %th First Date In Program
+      %th Last Date In Program
+      %th Destination
   %tbody
-    - @clients.each do |client|
+    - @enrollments.keys.each do |client_id|
+    - enrollments = @enrollments[client_id]
       %tr
-        %td= link_to client.id, client_path(client.id)
-        %td= client.name
+        - client = @enrollments[client_id].first.client
+        %td{rowspan: enrollments.count+1}
+          = link_to client.id, client_path(client.id)
+        %td{rowspan: enrollments.count+1}
+          = link_to client.name, client_path(client.id)
+        - @enrollments[client_id].each do |enrollment|
+          %tr
+            %td= enrollment.project_name
+            %td= enrollment.first_date_in_program
+            %td= enrollment.last_date_in_program
+            %td= HUD.destination(enrollment.destination)
+

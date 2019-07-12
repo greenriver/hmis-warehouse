@@ -7,6 +7,8 @@
 module WarehouseReports
   class OutflowController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
+
     before_action :set_report
 
     def index
@@ -16,7 +18,7 @@ module WarehouseReports
     def details
       raise 'Key required' if params[:key].blank?
       @key = metrics.keys.detect { |key| key.to_s == params[:key] }
-      @clients = client_scope.where(id: @report.send(@key))
+      @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by{ |e| e.client_id }
     end
 
     def metrics
@@ -61,8 +63,12 @@ module WarehouseReports
       1.months.ago.end_of_month
     end
 
-    def client_scope
-      GrdaWarehouse::Hud::Client
+    def enrollment_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
+        joins(:client).
+        open_between(start_date: @filter.start, end_date: @filter.end).
+        order(c_t[:LastName], c_t[:FirstName])
     end
   end
 end
