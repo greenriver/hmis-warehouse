@@ -24,4 +24,5 @@
 //= require_tree ./application/overrides
 //= require_tree ./application/utilities
 
-//= require_tree ./application/print
+//= require ./application/print/base
+//= require ./application/print/dashboard

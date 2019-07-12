@@ -15,10 +15,7 @@ $ho-housed: #57CC9B;
 
 @mixin ho-container {
   padding: $ho-padding;
-  background-color: #FFFFFF;
-  -webkit-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
-  -moz-box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
-  box-shadow: 0px 0px 5px 0px rgba(119,119,119,0.3);
+  @include card-content;
 }
 
 h2.ho-head__h2 {

@@ -50,11 +50,12 @@ module Dashboards
         displayHeaderFooter: false,
         printBackground: true,
         timeout: 35000,
+        format: 'Letter',
         margin: {
           top: '.5in',
           bottom: '.5in',
-          left: '.5in',
-          right: '.5in',
+          left: '.4in',
+          right: '.4in',
         },
         debug: {
           # headless: false,

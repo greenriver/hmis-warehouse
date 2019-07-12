@@ -11,7 +11,6 @@ class App.Dashboards.Clients.Base
         position: 'bottom'
       size:
         height: 200
-        width: null
     }, options)
     @_build_chart()
 

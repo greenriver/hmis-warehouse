@@ -5,3 +5,20 @@
 body {
   font-family: $font-family-sans-serif;
 }
+
+.l-page__w-100 {
+  max-width: 100%;
+  text-align: left;
+}
+
+.l-page__w-50 {
+  max-width: 50%;
+}
+
+.l-page__no-margin {
+  margin: 0;
+}
+
+.l-page__no-padding-b {
+  padding-bottom: 0;
+}
