@@ -30,7 +30,7 @@ module Importers
       @data_source_id = @upload.data_source.id
       @data_sources = GrdaWarehouse::DataSource.where(id: @data_source_id)
       # Process the oldest upload file for this datasource
-      
+
       @rm_files = rm_files
     end
 
@@ -47,8 +47,10 @@ module Importers
         GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{d.id}") do
           setup_import(data_source: d)
           @import.zip = "#{d.manual_import_path}"
-          unzip()
-          
+          unzipped_files = unzip()
+          @upload.update({percent_complete: 0.01, unzipped_files: unzipped_files, import_errors: []})
+          @upload.save!
+
           # Keep track of changed projects for this data source
           @changed_projects = []
           load_file_locations()
@@ -60,7 +62,7 @@ module Importers
           load()
           # Update service history for any projects that have changed
           update_service_history()
-          
+
           @import.completed_at = Time.now
           @import.save
 
@@ -112,12 +114,11 @@ module Importers
       # archive_path = File.dirname(@upload.file.current_path.sub(Rails.root.to_s + '/tmp/', "var/upload_archive/#{Date.today.strftime("%Y-%m-%d")}/"))
       # FileUtils.mkdir_p(archive_path) unless File.directory?(archive_path)
       # FileUtils.mv(@upload.file.current_path, archive_path) if File.exist?(@upload.file.current_path)
-      @upload.update({percent_complete: 0.01, unzipped_files: unzipped_files, import_errors: []})
-      @upload.save!
+      return unzipped_files
     end
 
     # We've already placed the files appropriately, just make note of that
-    def load_file_locations 
+    def load_file_locations
       files = []
       @logger.info "Looking in #{extract_path}/* for files..."
       Dir["#{extract_path}/*"].each do |f|
@@ -125,7 +126,7 @@ module Importers
         files << [model_for_filename(entry.name).name, extract_path(entry)] if f.include?('.csv')
       end
       logger.info "Found #{files.count} files"
-      @import.files = files    
+      @import.files = files
     end
   end
 end
