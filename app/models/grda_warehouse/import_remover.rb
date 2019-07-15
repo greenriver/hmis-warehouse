@@ -15,35 +15,56 @@ module GrdaWarehouse
       @import_log.update(zip: @import_log.upload.file.to_s)
 
       @data_source_id = @import_log.data_source_id
+
+      @upload = Importers::HMISSixOneOne::UploadedZip.new(
+        data_source_id: @data_source_id,
+        upload_id: @import_log.upload_id,
+      )
+
       self.logger = Rails.logger
       self.dry_run = dry_run
     end
 
     def run!
       logger.info "Removing import #{@import_id}"
-      file_locations = reconstitute_import
-      remove_imported_data(file_locations)
+      directory = reconstitute_import
+      puts directory
+      remove_imported_data(directory, @upload.export_id_addition)
+    end
+
+    def export_id_extra
+
+
+    end
+
+    def export_id_addition
+      @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
     def reconstitute_import
-      upload = Importers::UploadedZip.new(upload_id: @import_log.upload_id)
-      upload.import = @import_log
-      upload.unzip
+      @upload.import = @import_log
+      file_path = @upload.reconstitute_upload
+      @upload.expand(file_path: file_path)
+      @upload.load_export_file
+      @upload.range = @upload.set_date_range
+      return ::File.dirname(file_path)
     end
 
-    def remove_imported_data files
-      files.each do |class_name, path|
-        klass = class_name.constantize
+    def remove_imported_data directory, export_id_addition
+      files = @upload.class.importable_files.map do |filename, klass|
+        [::File.join(directory, filename), klass]
+      end
+      files.each do |path, klass|
         hud_keys = []
         hud_key = klass.hud_key
         export_id = nil
         CSV.foreach(path, headers: true) do |row|
           hud_keys << row[hud_key.to_s]
-          export_id ||= row['ExportID']
+          export_id ||= @upload.set_useful_export_id(row: row, export_id: export_id_addition)['ExportID']
         end
 
         if klass.column_names.include?('DateDeleted')
-          logger.info "Attempting to remove #{hud_keys.count} #{class_name}.  Data Source: #{@data_source_id}, ExportID #{export_id}..."
+          logger.info "Attempting to remove #{hud_keys.count} #{klass.name}.  Data Source: #{@data_source_id}, ExportID #{export_id}..."
           removed = 0
           if dry_run
             hud_keys.each_slice(10_000) do |slice|
