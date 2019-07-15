@@ -37,14 +37,28 @@ The application uses [postgres](https://www.postgresql.org/) for application dat
 
 We've developed locally on OSX using [homebrew](http://brew.sh/) and deployed to Ubuntu 16.04 using `apt` for dependencies.
 
-### Developer Prequisites
+## Third-party Service Dependencies
 
-If you are unfamilar with contributing to open source projects on github you may first want to read some of the guides at:  https://guides.github.com/
+- Amazon Web Services provides cloud hosting services. Configured via various env variables.  Services used outside of hosting are S3 and Glacier.
+  Terms: https://aws.amazon.com/service-terms/
+
+- ETO API and QaaWS - HMIS and ancillary data can be fetched via various endpoints.  OpenPath accesses Social Solutions ETO in a variety of ways, custom configured for each installation. [https://www.socialsolutions.com/software/eto/]
+
+- Nominatim - an API service for open street map data [https://nominatim.openstreetmap.org]. Only zip codes are sent to the service, used to display a map on client dashboards of last permanent destinations.
+  Terms: https://operations.osmfoundation.org/policies/nominatim/
+
+- NOAA Weather - Weather for individual dates and one location per installation are fetched on-demand from NOAA [https://www.ncdc.noaa.gov/cdo-web/webservices/v2]
+
+- ExceptionNotification can send exceptions to a slack channel. Configuration is done via env `EXCEPTION_WEBHOOK*`
+
+### Developer Prerequisites
+
+If you are unfamiliar with contributing to open source projects on Github you may first want to read some of the guides at:  https://guides.github.com/
 
 There is a simple script to setup a development environment in `bin/setup`. To make it run smoothly you should have:
 
 * A running Ruby 2.3+ environment with bundler 1.11+ installed.
-* A local install of postgresql 9.4+ allowing your user to create new databases.
+* A local install of postgresql 9.5+ allowing your user to create new databases.
 * A local install of redis for caching. redis-server should be running on the default port
 * libmagic
 
@@ -75,14 +89,14 @@ We use the following common rails gems and conventions:
 
 # Multiple databases
 
-The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs and structures for each database. Health care data is configured in config/database_health.yml and database resources are in db/health. Warehouse data is configured in config/database_warehouse.yml and resources are in db/warehouse. When running migrations, use the custom generators. 
+The project reads/writes from several different databases. We keep track of these different environments by setting up parallel db configs and structures for each database. Health care data is configured in config/database_health.yml and database resources are in db/health. Warehouse data is configured in config/database_warehouse.yml and resources are in db/warehouse. When running migrations, use the custom generators.
 
 App migrations can be created with:
 
 ```
 rails generate migration foo
 ```
-and run with 
+and run with
 ```
 rake db:migrate
 ```
@@ -90,7 +104,7 @@ Warehouse migrations can be created with:
 ```
 rails generate warehouse_migration foo
 ```
-and run with 
+and run with
 ```
 rake warehouse:db:migrate
 ```
@@ -100,7 +114,7 @@ Health migrations can be created with
 ```
 rails generate health_migration foo
 ```
-and run with 
+and run with
 ```
 rake health:db:migrate
 ```
