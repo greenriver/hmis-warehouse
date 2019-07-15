@@ -25,8 +25,7 @@ module Window::Health
       if @patient.comprehensive_health_assessments.incomplete.exists?
         @cha = @patient.comprehensive_health_assessments.incomplete.recent.last
       else
-        @cha = @patient.comprehensive_health_assessments.build(user: current_user)
-        Health::ChaSaver.new(cha: @cha, user: current_user).create
+        @cha = create_cha
       end
       redirect_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id)
     end
@@ -71,6 +70,21 @@ module Window::Health
     helper_method :upload_url
 
     private
+
+    def create_cha
+      last_cha = @patient.comprehensive_health_assessments.completed.recent.last
+      if last_cha.present?
+        cha = @patient.comprehensive_health_assessments.build(user: current_user, answers: last_cha.answers)
+        # Save requires the answers be attributes, so associate them with the new cha
+        Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
+          cha.assign_attributes(section_question => last_cha.answer(section_question))
+        end
+      else
+        cha = @patient.comprehensive_health_assessments.build(user: current_user)
+      end
+      Health::ChaSaver.new(cha: cha, user: current_user).create
+      return cha
+    end
 
     def flash_interpolation_options
       { resource_name: 'Comprehensive Health Assessment' }
