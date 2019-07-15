@@ -554,7 +554,7 @@ module Reporting::DataQualityReports
 
     def calculate_destination_not_collected destination:, head_of_household:
       return false unless is_adult?(date: Date.today) || head_of_household
-      destination == 99
+      destination.in? [30, 99]
     end
 
     def set_prior_living_situation_completeness  prior_living_situation:, head_of_household:

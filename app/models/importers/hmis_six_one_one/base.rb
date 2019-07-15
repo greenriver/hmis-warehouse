@@ -20,7 +20,7 @@ module Importers::HMISSixOneOne
     include TsqlImport
     include NotifierConfig
 
-    attr_accessor :logger, :notifier_config
+    attr_accessor :logger, :notifier_config, :import, :range
 
     def initialize(
       file_path: 'var/hmis_import',

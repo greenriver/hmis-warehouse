@@ -103,6 +103,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
       when "No Exit Interview Completed" then prefix = "no_interview"
       when 'Not Collected' then prefix = "not_collected"
       when 'Partial' then prefix = "partial"
+      when 'Complete' then prefix = "complete"
       else return
     if @support_url.includes('individual') # VersionFour support links are different
       url = @support_url + "&selected_project_id=#{@project_id}&method=project_completeness&metric=#{prefix}&column=#{column}"
