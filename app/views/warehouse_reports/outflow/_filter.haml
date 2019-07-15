@@ -1,0 +1,31 @@
+= simple_form_for :filter, url: warehouse_reports_outflow_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-4
+        = f.input :start, label: 'Start date', as: :date_picker, input_html: {value: @filter.start}
+      .col-sm-4
+        = f.input :end, label: 'End date', as: :date_picker, input_html: {value: @filter.end}
+      .col-sm-4
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, input_html: {class: 'select2'}
+    .row
+      .col-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.organization_ids, label: 'Organizations', required: false
+      .col-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.project_ids, label: 'Projects', required: false
+
+  - content_for :filter_actions do
+    .row
+      .col-sm-2.mt-no-label
+        = f.button :submit, value: 'Update View'
+
+  - content_for :page_js do
+    :javascript
+      $('#new_range').submit(function(e){
+        var $form = $(this);
+        // disable things *immediately after* submit
+        setTimeout(function(){
+          $form.find(':input').prop('disabled', true);
+        }, 0);
+      });
+
+  = render 'warehouse_reports/filters', f:f
