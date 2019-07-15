@@ -29,7 +29,10 @@ module GrdaWarehouse
       logger.info "Removing import #{@import_id}"
       directory = reconstitute_import
       puts directory
-      remove_imported_data(directory, @upload.export_id_addition)
+      removed_data_notes = remove_imported_data(directory, @upload.export_id_addition)
+      removed_data_notes.each do |msg|
+        logger.info msg
+      end
     end
 
     def export_id_extra
@@ -51,6 +54,7 @@ module GrdaWarehouse
     end
 
     def remove_imported_data directory, export_id_addition
+      removed_data_notes = []
       files = @upload.class.importable_files.map do |filename, klass|
         [::File.join(directory, filename), klass]
       end
@@ -64,7 +68,9 @@ module GrdaWarehouse
         end
 
         if klass.column_names.include?('DateDeleted')
-          logger.info "Attempting to remove #{hud_keys.count} #{klass.name}.  Data Source: #{@data_source_id}, ExportID #{export_id}..."
+          msg = "Attempting to remove #{hud_keys.count} #{klass.name}.  Data Source: #{@data_source_id}, ExportID #{export_id}..."
+          logger.info msg
+          removed_data_notes << msg
           removed = 0
           if dry_run
             hud_keys.each_slice(10_000) do |slice|
@@ -74,7 +80,9 @@ module GrdaWarehouse
                 hud_key => slice,
               ).count
             end
-            logger.info "Found #{removed} to remove."
+            msg = "Found #{removed} to remove."
+            logger.info msg
+            removed_data_notes << msg
           else
             hud_keys.each_slice(10_000) do |slice|
               removed += klass.where(
@@ -83,11 +91,13 @@ module GrdaWarehouse
                 hud_key => slice,
               ).update_all(DateDeleted: Time.now)
             end
-            logger.info "Removed #{removed}."
+            msg = "Removed #{removed}."
+            logger.info msg
+            removed_data_notes << msg
           end
-
         end
       end
+      return removed_data_notes
     end
 
   end
