@@ -20,6 +20,13 @@ module WarehouseReports
       raise 'Key required' if params[:key].blank?
       @key = metrics.keys.detect { |key| key.to_s == params[:key] }
       @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by{ |e| e.client_id }
+
+      respond_to do |format|
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=outflow-#{@key.to_s}.xlsx"
+        end
+        format.html {}
+      end
     end
 
     def metrics
