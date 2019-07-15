@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
+# NOTE: this potentially leaves a folder of CSVs lying around in var/hmis_import/
+
 module GrdaWarehouse
   class ImportRemover
 
