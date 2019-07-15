@@ -278,6 +278,11 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     resources :cohort_changes, only: [:index]
+    resources :outflow, only: [:index] do
+      collection do
+        get :details
+      end
+    end
     namespace :project do
       resource :data_quality do
         get :download, on: :member
