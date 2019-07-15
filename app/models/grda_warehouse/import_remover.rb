@@ -84,12 +84,18 @@ module GrdaWarehouse
             logger.info msg
             removed_data_notes << msg
           else
+            # Mark all associated records as deleted, and update
+            # the DateUpdated to be significantly in the past so that
+            # any future restore will also force an update
             hud_keys.each_slice(10_000) do |slice|
               removed += klass.where(
                 data_source_id: @data_source_id,
                 ExportID: export_id,
                 hud_key => slice,
-              ).update_all(DateDeleted: Time.now)
+              ).update_all(
+                DateDeleted: Time.now,
+                DateUpdated: '2000-01-01'
+              )
             end
             msg = "Removed #{removed}."
             logger.info msg
