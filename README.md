@@ -49,7 +49,7 @@ We've developed locally on OSX using [homebrew](http://brew.sh/) and deployed to
 
 - NOAA Weather - Weather for individual dates and one location per installation are fetched on-demand from NOAA [https://www.ncdc.noaa.gov/cdo-web/webservices/v2]
 
-- ExceptionNotification can send exceptions to a slack channel. Configuration is done via env `EXCEPTION_WEBHOOK*`
+- Exceptions can be sent to a slack channel. Configuration is done via env `EXCEPTION_WEBHOOK*`
 
 ### Developer Prerequisites
 
