@@ -2,21 +2,19 @@
 
 ## Clients exiting to PH
 
-The count of the number of exiting clients in the reporting period with a HUD-defined
-permanent destination.
+The count of the number of clients with an exit in the reporting period with a self-reported destination that falls within the HUD-defined permanent destinations.
 
-## PSH Clients entering Stabilization
+## PSH Clients entering Stabilization/Housing
 
-The count of the number of PSH clients entering stabilization in the reporting period.
+The count of the number of PSH clients entering stabilization or housing in the reporting period.
 
-## RRH Clients entering Stabilization
+## RRH Clients entering Stabilization/Housing
 
-The count of the number of RRH clients entering stabilization in the reporting period.
+The count of the number of RRH clients entering stabilization or housing in the reporting period.
 
-## All Clients entering Stabilization
+## All Clients entering Stabilization/Housing
 
-The count of the number of RRH clients entering stabilization in the reporting period.
-count of the number of clients entering stabilization above, with duplicates removed.
+The unique count of the clients entering stabilization or housing above.
 
 ## Clients without recent service
 

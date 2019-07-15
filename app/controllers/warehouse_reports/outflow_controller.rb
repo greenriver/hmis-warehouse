@@ -11,6 +11,7 @@ module WarehouseReports
     include ArelHelper
 
     before_action :set_report
+    before_action :set_modal_size
 
     def index
 
@@ -32,9 +33,9 @@ module WarehouseReports
     def metrics
       {
         clients_to_ph: 'Clients exiting to PH',
-        psh_clients_to_stabilization: 'PSH Clients entering Stabilization',
-        rrh_clients_to_stabilization: 'RRH Clients entering Stabilization',
-        clients_to_stabilization: 'All Clients entering Stabilization',
+        psh_clients_to_stabilization: "PSH Clients entering #{_"Housing"}",
+        rrh_clients_to_stabilization: "RRH Clients entering #{_"Stabilization"}",
+        clients_to_stabilization: "All Clients entering #{_"Stabilization"}",
         clients_without_recent_service: 'Clients without recent service',
         client_outflow: 'Total Outflow',
       }
@@ -89,6 +90,10 @@ module WarehouseReports
       @report.entries_scope.
         joins(:client).
         order(c_t[:LastName], c_t[:FirstName])
+    end
+
+    private def set_modal_size
+      @modal_size = :xl
     end
   end
 end
