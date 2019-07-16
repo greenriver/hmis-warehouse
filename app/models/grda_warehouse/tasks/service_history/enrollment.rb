@@ -138,6 +138,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :service,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
@@ -147,6 +149,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :extrapolated,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
@@ -310,6 +314,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
+        move_in_date: self.MoveInDate,
       }
     end
 
@@ -323,7 +328,25 @@ module GrdaWarehouse::Tasks::ServiceHistory
         record_type: nil,
         client_id: destination_client.id,
         project_type: project.computed_project_type,
+        homeless: false,
+        literally_homeless: false,
       }
+    end
+
+    def homeless? date
+      return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+
+      return GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        date.before(self.MoveInDate)
+    end
+
+    def literally_homeless? date
+      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+
+      return (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] +
+        GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+        include?(project.computed_project_type) &&
+          date.before(self.MoveInDate)
     end
 
     def household_birthdates
