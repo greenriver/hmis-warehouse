@@ -13,9 +13,17 @@ namespace :reporting do
       Rails.logger.info 'Exiting, project data quality reports already running'
       exit
     end
-
+    include NotifierConfig
+    setup_notifier('Project Data Quality Report Runner')
     GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.with_advisory_lock(advisory_lock_key) do
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.where(completed_at: nil).each(&:run!)
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.where(completed_at: nil).each do |r|
+        begin
+          r.run!
+        rescue Exception => e
+          Rails.logger.error e.message
+          ExceptionNotifier.notify_exception(e) if @send_notifications
+        end
+      end
     end
   end
 
