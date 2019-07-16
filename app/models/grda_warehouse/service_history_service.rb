@@ -29,42 +29,19 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   scope :homeless_only, -> (start_date:, end_date:) do
-    to_exclude = service_within_date_range(start_date: start_date, end_date: end_date).
-      ph_moved_in.
-      pluck(:client_id, :date)
-
     where(
       project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
       date: (start_date..end_date),
-    ).
-    where.not(id:
-      where(
-        client_id: to_exclude.map(&:first),
-        date: to_exclude.map(&:last)
-      ).pluck(:id)
+      homeless: true,
     )
 end
 
   scope :literally_homeless_only, -> (start_date:, end_date:) do
-    to_exclude = service_within_date_range(start_date: start_date, end_date: end_date).
-      ph_moved_in.
-      pluck(:client_id, :date)
-
     where(
       project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES,
       date: (start_date..end_date),
-    ).
-      where.not(id:
-      where(
-        client_id: to_exclude.map(&:first),
-        date: to_exclude.map(&:last)
-      ).pluck(:id)
+      literally_homeless: true,
     )
-  end
-
-  scope :ph_moved_in, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
-      joins(:enrollment).where(e_t[:MoveInDate].lt(shs_t[:date]))
   end
 
   scope :youth, -> do

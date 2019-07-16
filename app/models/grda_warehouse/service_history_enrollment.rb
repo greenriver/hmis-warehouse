@@ -260,7 +260,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :ph_move_in_after, -> (date) do
     in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
-    joins(:enrollment).where(e_t[:MoveInDate].lt(date))
+    where(she_t[:move_in_date].lt(date))
   end
 
   #################################
