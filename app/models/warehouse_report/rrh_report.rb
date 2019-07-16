@@ -259,24 +259,37 @@ class WarehouseReport::RrhReport
         'exited to temporary destination' => {},
         'other or unknown outcome' => {},
       }
+      columns = [
+        :client_id,
+        :residential_project,
+        :destination,
+        :housed_date,
+        :housing_exit,
+      ]
       housed_scope.
         exiting_stabilization(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
         distinct.
-        pluck(:client_id, :destination).map do |client_id, dest_id|
-          destination = destination_bucket(client_id, dest_id)
-          destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
+        pluck(*columns).map do |row|
+          row = Hash[columns.zip(row)]
+          destination = destination_bucket(row[:client_id], row[:destination])
+          destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
           destinations[destination][:count] ||= 0
           destinations[destination][:client_ids] ||= Set.new
           # Only count each client once per bucket
-          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(client_id)
-          destinations[destination][:client_ids] << client_id
+          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
+          destinations[destination][:client_ids] << row[:client_id]
           destinations[destination][:detailed_destinations] ||= {}
-          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] ||= 0
-          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] += 1
+          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] ||= 0
+          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] += 1
+
+          # Support for later
+          destinations[destination][:support] ||= []
+          destinations[destination][:support] << row
         end
       destinations.delete_if{|_,v| v == {} }
       @destinations[:support] = destinations
+      @destinations[:projects_selected] = ! all_projects
       @destinations[:data] = destinations.map{|_, row| [row[:destination], row[:count]]}
       @destinations
     end
@@ -932,6 +945,7 @@ class WarehouseReport::RrhReport
       rows = support.map do |row|
         [
           row[:client_id],
+          row[:service_project],
           row[:search_start],
           row[:search_end],
           row[:housed_date],
@@ -979,6 +993,24 @@ class WarehouseReport::RrhReport
           row[:housing_exit],
         ]
       end
+    when :destination
+      columns = {
+        residential_project: _('Stabilization Project'),
+        destination: _('Destination'),
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
+      }
+      support = destinations[:support][params[:destination]].try(:[], :support)
+      rows = support.map do |row|
+        [
+          row[:client_id],
+          row[:residential_project],
+          HUD.destination(row[:destination]),
+          row[:housed_date],
+          row[:housing_exit],
+        ]
+      end
+
     end
 
     clients = client_source.where(id: rows.map(&:first)).
