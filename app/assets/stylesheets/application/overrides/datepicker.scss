@@ -4,7 +4,7 @@
   padding: 0;
   // Above header
   // Use Important flag because z-index is strangely added inline by library
-  z-index: $zIndex-10+50 !important;
+  z-index: $zIndex-10+10 !important;
 }
 
 .datepicker input {
