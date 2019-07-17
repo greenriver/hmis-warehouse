@@ -600,6 +600,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]

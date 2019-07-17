@@ -1,0 +1,9 @@
+.row
+  .col-sm-8
+    = simple_form_for [:admin, @agency] do |f|
+      = f.error_notification
+      .form-inputs
+        = f.input :name
+
+      .form_actions
+      = f.button :submit
