@@ -1,14 +1,15 @@
 #= require ./namespace
 class App.WarehouseReports.Rrh.Destination
-  constructor: (@wrapper, @legend_wrapper, @data) ->
+  constructor: (@wrapper, @legend_wrapper, @data, @support_url) ->
     @plot()
-    console.log(@data)
+    # console.log(@data)
 
   plot: =>
     @chart = bb.generate
       data:
         columns: @data.data
         type: "pie"
+        onclick: @_follow_link
       tooltip:
         contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
           @_toolip(d, defaultTitleFormat, defaultValueFormat, color)
@@ -49,3 +50,12 @@ class App.WarehouseReports.Rrh.Destination
     html += "</tbody>"
     html += '</table>'
     html
+
+  _follow_link: (d, e) =>
+    if @data.projects_selected == true
+      url = @support_url + encodeURI("&destination=#{d.id}")
+      # console.log(d, @data, url)
+
+      $('.modal .modal-content').html('Loading...')
+      $('.modal').modal('show')
+      $('.modal .modal-content').load(url)

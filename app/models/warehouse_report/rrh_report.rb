@@ -259,24 +259,37 @@ class WarehouseReport::RrhReport
         'exited to temporary destination' => {},
         'other or unknown outcome' => {},
       }
+      columns = [
+        :client_id,
+        :residential_project,
+        :destination,
+        :housed_date,
+        :housing_exit,
+      ]
       housed_scope.
         exiting_stabilization(start_date: start_date, end_date: end_date).
         where(ho_t[:destination].not_eq(nil)).
         distinct.
-        pluck(:client_id, :destination).map do |client_id, dest_id|
-          destination = destination_bucket(client_id, dest_id)
-          destinations[destination][:destination] ||= destination_bucket(client_id, dest_id)
+        pluck(*columns).map do |row|
+          row = Hash[columns.zip(row)]
+          destination = destination_bucket(row[:client_id], row[:destination])
+          destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
           destinations[destination][:count] ||= 0
           destinations[destination][:client_ids] ||= Set.new
           # Only count each client once per bucket
-          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(client_id)
-          destinations[destination][:client_ids] << client_id
+          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
+          destinations[destination][:client_ids] << row[:client_id]
           destinations[destination][:detailed_destinations] ||= {}
-          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] ||= 0
-          destinations[destination][:detailed_destinations][HUD.destination(dest_id)] += 1
+          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] ||= 0
+          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] += 1
+
+          # Support for later
+          destinations[destination][:support] ||= []
+          destinations[destination][:support] << row
         end
       destinations.delete_if{|_,v| v == {} }
       @destinations[:support] = destinations
+      @destinations[:projects_selected] = ! all_projects
       @destinations[:data] = destinations.map{|_, row| [row[:destination], row[:count]]}
       @destinations
     end
@@ -684,6 +697,7 @@ class WarehouseReport::RrhReport
     return month_data
   end
 
+  # average length of stay for clients who exited pre-placement in a given month
   def pre_placement_average_stay_by_month client_scope
     columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
     clients = client_scope.pluck(*columns).map do |row|
@@ -709,11 +723,13 @@ class WarehouseReport::RrhReport
           month_data[month_year]['All']['data'] << nil
           month_data[month_year][project_name]['data'] << nil if @project_ids != :all
         else
+          # only include clients who exited this month
           clients[project_name].each do |row|
+            next if row[:search_end].blank?
             next if row[:search_start] > end_of_month
-            next if row[:search_end].present? && row[:search_end] < beginning_of_month
+            next if row[:search_end] < beginning_of_month || row[:search_end] > end_of_month
             next if row[:search_end].present? && row[:search_start] > row[:search_end]
-            use_end_date = [row[:search_end], end_of_month].min
+            use_end_date = row[:search_end]
             month_data[month_year]['All']['data'] << (use_end_date - row[:search_start]).to_i
             if @project_ids != :all
               month_data[month_year][project_name]['data'] << (use_end_date - row[:search_start]).to_i
@@ -762,10 +778,11 @@ class WarehouseReport::RrhReport
           month_data[month_year][project_name]['data'] << nil if @project_ids != :all
         else
           clients[project_name].each do |row|
+            next if row[:housing_exit].blank?
             next if row[:housed_date] >= end_of_month
-            next if row[:housing_exit].present? && row[:housing_exit] < beginning_of_month
+            next if row[:housing_exit] < beginning_of_month || row[:housing_exit] > end_of_month
             next if row[:housing_exit].present? && row[:housed_date] > row[:housing_exit]
-            use_end_date = [row[:housing_exit], end_of_month].compact.min
+            use_end_date = row[:housing_exit]
             month_data[month_year]['All']['data'] << (use_end_date - row[:housed_date]).to_i
             if @project_ids != :all
               month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i
@@ -928,6 +945,7 @@ class WarehouseReport::RrhReport
       rows = support.map do |row|
         [
           row[:client_id],
+          row[:service_project],
           row[:search_start],
           row[:search_end],
           row[:housed_date],
@@ -975,6 +993,24 @@ class WarehouseReport::RrhReport
           row[:housing_exit],
         ]
       end
+    when :destination
+      columns = {
+        residential_project: _('Stabilization Project'),
+        destination: _('Destination'),
+        housed_date: _('Date Housed'),
+        housing_exit: _('Housing Exit'),
+      }
+      support = destinations[:support][params[:destination]].try(:[], :support)
+      rows = support.map do |row|
+        [
+          row[:client_id],
+          row[:residential_project],
+          HUD.destination(row[:destination]),
+          row[:housed_date],
+          row[:housing_exit],
+        ]
+      end
+
     end
 
     clients = client_source.where(id: rows.map(&:first)).
