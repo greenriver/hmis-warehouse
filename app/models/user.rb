@@ -30,6 +30,8 @@ class User < ActiveRecord::Base
 
   has_many :messages
 
+  belongs_to :agency
+
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end

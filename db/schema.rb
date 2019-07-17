@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190717164100) do
+ActiveRecord::Schema.define(version: 20190717185326) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -419,7 +419,7 @@ ActiveRecord::Schema.define(version: 20190717164100) do
     t.integer  "invitations_count",                 default: 0
     t.boolean  "receive_file_upload_notifications", default: false
     t.string   "phone"
-    t.string   "agency"
+    t.string   "deprecated_agency"
     t.boolean  "notify_on_vispdat_completed",       default: false
     t.boolean  "notify_on_client_added",            default: false
     t.boolean  "notify_on_anomaly_identified",      default: false,       null: false

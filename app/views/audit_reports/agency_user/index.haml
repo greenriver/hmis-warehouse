@@ -1,0 +1,27 @@
+- title = "User Audit for #{@agency}"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
+
+%table.table.table-hover
+  %thead
+    %tr
+      %th{rowspan: 2} First Name
+      %th{rowspan: 2}  Last Name
+      %th{rowspan: 2}  Email
+      %th{rowspan: 2}  Last Login
+      %th{colspan: 3} Clients Viewed
+    %tr
+      %th This Month (Through Today)
+      %th Last Month
+      %th Two Months Ago
+  %tbody
+    - @users.each do |user|
+      %tr
+        %td= user.first_name
+        %td= user.last_name
+        %td= user.email
+        %td= user.current_sign_in_at
+        %td= clients_viewed(user, 0)
+        %td= clients_viewed(user, 1)
+        %td= clients_viewed(user, 2)
