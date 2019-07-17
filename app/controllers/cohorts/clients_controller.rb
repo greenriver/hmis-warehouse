@@ -154,30 +154,26 @@ module Cohorts
           if @actives.key? :actives_population
             populations = @actives[:actives_population]
             populations.each do |population|
-              enrollment_scope ||= begin
-                # Force service to fall within the correct age ranges for some populations
-                if ['youth', 'children'].include? population
-                  service_scope = population
-                elsif population == 'parenting_children'
-                  service_scope = :children
-                elsif population == 'parenting_youth'
-                  service_scope = :youth
-                elsif population == 'individual_adult'
-                  service_scope = :adult
-                else
-                  service_scope = :current_scope
-                end
-
-                enrollment_scope.with_service_between(
-                  start_date: @actives[:start],
-                  end_date: @actives[:end],
-                  service_scope: service_scope
-                )
+              # Force service to fall within the correct age ranges for some populations
+              service_scope = if ['youth', 'children'].include? population.to_s
+                population
+              elsif population.to_s == 'parenting_children'
+                :children
+              elsif population.to_s == 'parenting_youth'
+                :youth
+              elsif population.to_s == 'individual_adult'
+                :adult
+              else
+                :current_scope
               end
 
-              if population.present?
-                enrollment_scope = enrollment_scope.send(population)
-              end
+              enrollment_scope = enrollment_scope.with_service_between(
+                start_date: @actives[:start],
+                end_date: @actives[:end],
+                service_scope: service_scope
+              )
+
+              enrollment_scope = enrollment_scope.send(population)
             end
           end
           # Active record seems to have trouble with the complicated nature of this scope
@@ -190,23 +186,20 @@ module Cohorts
           entry.
           where(she_t[:client_id].eq(c_t[:id])).select(c_t[:id])
         @populations.each do |population|
-          enrollment_query ||= begin
-            if ['youth', 'children'].include? population
-              service_scope = population
-            elsif population == 'parenting_children'
-              service_scope = :children
-            elsif population == 'parenting_youth'
-              service_scope = :youth
-            else
-              service_scope = :current_scope
-            end
-
-            enrollment_query.with_service_between(
-              start_date: 3.months.ago.to_date,
-              end_date: Date.today,
-              service_scope: service_scope)
+          service_scope = if ['youth', 'children'].include? population.to_s
+            population
+          elsif population.to_s == 'parenting_children'
+            :children
+          elsif population.to_s == 'parenting_youth'
+            :youth
+          else
+            :current_scope
           end
 
+          enrollment_query = enrollment_query.with_service_between(
+            start_date: 3.months.ago.to_date,
+            end_date: Date.today,
+            service_scope: service_scope)
           enrollment_query = enrollment_query.send(population)
         end
         @clients = client_scope.
