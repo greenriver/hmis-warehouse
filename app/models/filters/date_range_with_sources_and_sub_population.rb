@@ -8,9 +8,13 @@
 module Filters
   class DateRangeWithSourcesAndSubPopulation < DateRangeAndSources
     attribute :sub_population, Symbol, default: :all_clients
+    attribute :no_service_after_date, Date, lazy: true, default: -> (r,_) { r.default_no_service_after_date }
 
     validates_presence_of :start, :end, :sub_population
 
+    def default_no_service_after_date
+      Date.today - 90.day
+    end
 
   end
 end

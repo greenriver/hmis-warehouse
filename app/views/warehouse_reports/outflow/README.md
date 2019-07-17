@@ -18,8 +18,7 @@ The unique count of the clients entering stabilization or housing above.
 
 ## Clients without recent service
 
-The count of the number of clients with an open enrollment and service since Oct 1, 2018,
-but no service during the reporting period.
+The count of the number of clients with an open enrollment and some service during the reporting period, but no service after the cut-off date.
 
 ## Total Outflow
 
