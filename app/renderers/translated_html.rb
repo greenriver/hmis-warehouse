@@ -6,6 +6,6 @@
 
 class TranslatedHtml < Redcarpet::Render::HTML
   def postprocess(html)
-    html.gsub(/{{(.+)}}/) { |m| _($1) }
+    html.gsub(/{{(.*?)}}/) { |m| _($1) }
   end
 end
