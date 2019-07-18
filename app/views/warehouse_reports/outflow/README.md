@@ -18,7 +18,7 @@ The unique count of the clients entering stabilization or housing above.
 
 ## Clients without recent service
 
-The count of the number of clients with an open enrollment in a night-by-night Emergency Shelter and some service during the reporting period, but no service after the cut-off date.
+The count of the number of clients with an open enrollment in ES, SH, TH, or SO and some service during the reporting period, but no service after the cut-off date.
 
 ## Total Outflow
 

@@ -10,12 +10,14 @@
     = link_to details_warehouse_reports_outflow_index_path(filter: params[:filter], key: @key, format: :xlsx) do
       Download
       %span.icon-download2
+  %p Showing #{pluralize(@enrollments.count, 'row')}
   %table.table.table-sm.mt-4
     %thead
       %tr
         %th Warehouse ID
         %th Name
         %th Project Name
+        %th Project Type
         %th First Date In Program
         %th Last Date In Program
         %th Destination
@@ -31,6 +33,7 @@
           - enrollments.each do |enrollment|
             %tr
               %td= enrollment.project_name
+              %td= HUD.project_type enrollment.computed_project_type
               %td= enrollment.first_date_in_program
               %td= enrollment.last_date_in_program
               %td= HUD.destination(enrollment.destination)
