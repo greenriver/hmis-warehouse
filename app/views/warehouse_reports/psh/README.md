@@ -1,10 +1,10 @@
-# Rapid Rehousing Dashboard Calculations
+# Permanent Supportive Housing Dashboard Calculations
 
-The population of clients to be considered in the report (the *universe*) are defined as clients enrolled in RRH or a RRH-affiliated project during the reporting period, who also meet the chosen requirements at the top of the page (e.g., are veterans).
+The population of clients to be considered in the report (the *universe*) are defined as clients enrolled in PSH (non-RRH) or a PSH-affiliated project during the reporting period, who also meet the chosen requirements at the top of the page (e.g., are veterans).
 
-*{{Pre-Placement}}* is time spent in RRH-affiliated projects or time before the move-in date for a RRH enrollment.
+*{{Pre-Placement}}* is time spent in PSH-affiliated projects or time before the move-in date for a PSH enrollment.
 
-*{{Stabilization}}* is time spent in RRH after the move-in date.
+*{{Stabilization}}* is time spent in PSH after the move-in date.
 
 ## Overview
 
