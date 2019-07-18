@@ -485,7 +485,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_dates_for_enrollment enrollment
-      service_dates_by_enrollment[enrollment.id] || []
+      service_dates_by_enrollment[enrollment.id]&.compact || []
     end
 
     def most_recent_disability_resonses_by_enrollment

@@ -46,4 +46,4 @@
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.average_days_in_stabilization, 'day')
-    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: "Time in #{_('Housing')}", default_open: 'yes'
+    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: "Time in #{_('Housing')} with an Exit to Any Destination", default_open: 'yes'
