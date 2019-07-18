@@ -840,9 +840,8 @@ class WarehouseReport::RrhReport
     }
   end
 
-  # returns array of clients with id, first name, last name who match the metric
-  def support_for metric, params=nil
-    columns = {
+  def default_support_columns
+    {
       service_project: _('Pre-Placement Project'),
       search_start: _('Search Start'),
       search_end: _('Search End'),
@@ -850,7 +849,48 @@ class WarehouseReport::RrhReport
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
     }
+  end
 
+  def columns_for_returns_after_exit
+    {
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+      days_to_return: _('Days to Return'),
+    }
+  end
+
+  def columns_for_percent_exiting_pre_placement
+    {
+      service_project: _('Pre-Placement Project'),
+      search_start: _('Search Start'),
+      search_end: _('Search End'),
+      housed_date: _('Date Housed'),
+    }
+  end
+
+  def columns_for_percent_in_stabilization
+    {
+      service_project: _('Pre-Placement Project'),
+      search_start: _('Search Start'),
+      search_end: _('Search End'),
+      residential_project: _('Stabilization Project'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  def columns_for_percent_exiting_stabilization
+    {
+      residential_project: _('Stabilization Project'),
+      destination: _('Destination'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  # returns array of clients with id, first name, last name who match the metric
+  def support_for metric, params=nil
+    columns = default_support_columns
     case metric
     when :enrolled_clients
       rows = enrolled_clients.pluck(*([:client_id] + columns.keys))
@@ -891,15 +931,11 @@ class WarehouseReport::RrhReport
       project_name = valid_project_name(params[:selected_project])
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
-      rows = in_stabilization.where(residential_project: project_name).
-        enrolled_stabilization(start_date: start_date, end_date: end_date).
+      rows = exiting_stabilization.where(residential_project: project_name).
+        exiting_stabilization(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :return_after_exit_to_ph
-      columns = {
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-        days_to_return: _('Days to Return'),
-      }
+      columns = columns_for_returns_after_exit
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
@@ -914,11 +950,7 @@ class WarehouseReport::RrhReport
         ]
       end
     when :return_after_exit_to_any
-      columns = {
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-        days_to_return: _('Days to Return'),
-      }
+      columns = columns_for_returns_after_exit
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
@@ -933,12 +965,7 @@ class WarehouseReport::RrhReport
         ]
       end
     when :percent_exiting_pre_placement
-      columns = {
-        service_project: _('Pre-Placement Project'),
-        search_start: _('Search Start'),
-        search_end: _('Search End'),
-        housed_date: _('Date Housed'),
-      }
+      columns = columns_for_percent_exiting_pre_placement
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
       support = percent_exiting_pre_placement_data[:support][month][project_name]['data']
@@ -952,14 +979,7 @@ class WarehouseReport::RrhReport
         ]
       end
     when :percent_in_stabilization
-      columns = {
-        service_project: _('Pre-Placement Project'),
-        search_start: _('Search Start'),
-        search_end: _('Search End'),
-        residential_project: _('Stabilization Project'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
+      columns = columns_for_percent_in_stabilization
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
       support = percent_in_stabilization_data[:support][month][project_name]['data']
@@ -975,12 +995,7 @@ class WarehouseReport::RrhReport
         ]
       end
     when :percent_exiting_stabilization
-      columns = {
-        residential_project: _('Stabilization Project'),
-        destination: _('Destination'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
+      columns = columns_for_percent_exiting_stabilization
       project_name = valid_project_name(params[:selected_project])
       month = params[:month]
       support = percent_exiting_stabilization_data[:support][month][project_name]['data']

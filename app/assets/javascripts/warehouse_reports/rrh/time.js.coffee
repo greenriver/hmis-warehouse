@@ -93,7 +93,7 @@ class App.WarehouseReports.Rrh.Time
     if d.name != 'All'
       month = @data.labels[d.index + 1]
       url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
-      console.log(d, @data, url)
+      # console.log(d, @data, url, month)
 
       $('.modal .modal-content').html('Loading...')
       $('.modal').modal('show')
