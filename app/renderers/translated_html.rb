@@ -5,6 +5,7 @@
 ###
 
 class TranslatedHtml < Redcarpet::Render::HTML
+  # NOTE: this will convert anything within {{ }} to a translated string
   def postprocess(html)
     html.gsub(/{{(.*?)}}/) { |m| _($1) }
   end
