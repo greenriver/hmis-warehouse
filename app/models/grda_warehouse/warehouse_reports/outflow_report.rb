@@ -8,8 +8,6 @@ module GrdaWarehouse::WarehouseReports
   class OutflowReport
     include ArelHelper
 
-    LOOKBACK_DATE = Date.parse('2018-10-01')
-
     def initialize(filter, user)
       @filter = filter
       @user = user
@@ -40,8 +38,8 @@ module GrdaWarehouse::WarehouseReports
       @clients_to_stabilization ||= (psh_clients_to_stabilization + rrh_clients_to_stabilization).uniq
     end
 
-    # Clients with an open enrollment in the reporting period and service between the LOOKBACK date
-    # and the start date, but no service in the reporting period.
+    # Clients with an open enrollment and service within the reporting period,
+    # but no service after the cutoff date.
     def clients_without_recent_service
       @clients_without_recent_service ||= begin
         open_enrollments_no_service = entries_scope.
@@ -49,11 +47,11 @@ module GrdaWarehouse::WarehouseReports
           merge(GrdaWarehouse::Hud::Project.es).
           where.not(id:  entries_scope.
             bed_night.
-            with_service_between(start_date: @filter.start, end_date: @filter.end).select(:id))
+            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today).select(:id))
 
         most_recent_service = service_history_service_source.
           where(service_history_enrollment_id: open_enrollments_no_service.select(:id)).
-          where(date: (LOOKBACK_DATE..@filter.start)).
+          where(date: (@filter.start..@filter.end)).
           group(:service_history_enrollment_id).
           maximum(:date)
 
