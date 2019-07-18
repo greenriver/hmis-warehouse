@@ -100,6 +100,7 @@ module WarehouseReports
 
     def enrollment_scope
       @report.entries_scope.
+        residential.
         joins(:client).
         preload(:client).
         order(c_t[:LastName], c_t[:FirstName])
