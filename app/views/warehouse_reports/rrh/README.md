@@ -1,40 +1,40 @@
 # Rapid Rehousing Dashboard Calculations
 
-The population of clients to be considered in the report (the 'universe') are defined as clients who are enrolled in PH or a PH-affiliated project, and meet the requirements specified at the top of the page (e.g., are veterans).
+The population of clients to be considered in the report (the *universe*) are defined as clients enrolled in PH or a PH-affiliated project during the reporting period, who also meet the chosen requirements at the top of the page (e.g., are veterans).
 
-{{Pre-Placement}} is time spent in PH-affiliated projects or before the move-in date for a PH enrollment.
+*{{Pre-Placement}}* is time spent in PH-affiliated projects or time before the move-in date for a PH enrollment.
 
-{{Stabilization}} is time spent in PH after the move-in date.
+*{{Stabilization}}* is time spent in PH after the move-in date.
 
 ## Overview
 
 ### Enrolled Clients
 
-The count of all the clients in the universe.
+The unique count of all the clients in the universe.
 
 ### Clients Enrolled in {{Pre-Placement}}
 
-The count of the clients from the universe who were in {{pre-placement}}.
+The unique count of the clients from the universe who had an open enrollment in {{pre-placement}} during the reporting period.
 
 ### Clients Enrolled in {{Stabilization}}
 
-The count of the clients from the universe who were in {{stabilization}}.
+The unique count of the clients from the universe who had an open enrollment in {{stabilization}} during the reporting period.
 
 ### Clients Entering {{Pre-Placement}}
 
-The count of the clients who entered {{pre-placement}} during the reporting period.
+The unique count of the clients who entered {{pre-placement}} during the reporting period.
 
 ### Clients Exiting {{Pre-Placement}}
 
-The count of the clients who exited {{pre-placement}} during the reporting period.
+The unique count of the clients who exited {{pre-placement}} during the reporting period.
 
 ### Clients Entering {{Stabilization}}
 
-The count of the clients who entered {{stabilization}} during the reporting period.
+The unique count of the clients who entered {{stabilization}} during the reporting period.
 
 ### Clients Exited {{Stabilization}}
 
-The count of the clients who exited {{stabilization}} during the reporting period.
+The unique count of the clients who exited {{stabilization}} during the reporting period.
 
 ## Time In Program
 
@@ -52,11 +52,11 @@ The average of the number of days a client who exited to {{stabilization}} spent
 
 #### Chart
 
-The average of the number of days a client who exited to another destination in a given month, spent in {{pre-placement}}.
+The average of the number of days a client who exited to a destination other than {{stabilization}} in a given month, spent in {{pre-placement}}.
 
 #### Average Time in {{Pre-Placement}} for the Reporting Period
 
-The average of the number of days a client who exited to another destination spent in {{pre-placement}} for the reporting period.
+The average of the number of days a client who exited to a destination other than {{stabilization}} spent in {{pre-placement}} for the reporting period.
 
 ### Time in {{Pre-Placement}} with an Exit to Any Destination
 
@@ -92,7 +92,7 @@ clients in the universe for a given month.
 ### Percentage Exiting {{Stabilization}} to Permanent Destinations
 
 The percentage of clients exiting to a permanent destination out of the number
-of clients who exitied {{stabilization}} in a given month.
+of clients who exited {{stabilization}} in a given month.
 
 ## Outcomes
 
@@ -110,8 +110,8 @@ A successful exit to permanent housing is defined as an exit to permanent housin
 
 ## Returns to Homelessness from Permanent Housing
 
-The number of clients that with a subsequent enrollment after successfully exiting Rapid Rehousing to a permanent housing destination.
+The number of unique clients that with a subsequent enrollment after successfully exiting Rapid Rehousing to a permanent housing destination.
 
 ## Returns to Homelessness after Exit
 
-The number of clients with a subsequent enrollment after successfully exiting Rapid Rehousing to any destination.
+The number of unique clients with a subsequent enrollment after successfully exiting Rapid Rehousing to any destination.
