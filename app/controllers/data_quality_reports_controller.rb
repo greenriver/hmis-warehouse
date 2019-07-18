@@ -77,7 +77,7 @@ class DataQualityReportsController < ApplicationController
   def describe_computations
     path = "app/views/data_quality_reports/#{@report.model_name.element}/project/README.md"
     description = File.read(path)
-    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+    markdown = Redcarpet::Markdown.new(::TranslatedHtml)
     markdown.render(description)
   end
   helper_method :describe_computations

@@ -4,15 +4,15 @@
 
 The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a self-reported destination that falls within the HUD-defined permanent destinations.
 
-## PSH Clients entering Stabilization/Housing
+## PSH Clients entering {{Stabilization}}
 
 The count of the number of PSH clients entering stabilization or housing in the reporting period.
 
-## RRH Clients entering Stabilization/Housing
+## RRH Clients entering {{Stabilization}}
 
 The count of the number of RRH clients entering stabilization or housing in the reporting period.
 
-## All Clients entering Stabilization/Housing
+## All Clients entering {{Stabilization}}
 
 The unique count of the clients entering stabilization or housing above.
 
