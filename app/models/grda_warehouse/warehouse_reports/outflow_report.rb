@@ -41,7 +41,7 @@ module GrdaWarehouse::WarehouseReports
     # Clients with an open enrollment and service within the reporting period,
     # but no service after the cutoff date.
     def clients_without_recent_service
-      @clients_without_recent_service ||= begin
+      @clients_without_recent_service = begin
         open_enrollments_no_service = entries_scope.
           bed_night.
           merge(GrdaWarehouse::Hud::Project.es).
@@ -73,6 +73,7 @@ module GrdaWarehouse::WarehouseReports
 
     def exits_scope
       service_history_enrollment_scope.
+        in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
         exit_within_date_range(start_date: @filter.start, end_date: @filter.end)
     end
 
