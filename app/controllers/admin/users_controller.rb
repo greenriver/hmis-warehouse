@@ -33,6 +33,7 @@ module Admin
     end
 
     def edit
+      @agencies = Agency.all
     end
 
     def confirm
@@ -110,7 +111,7 @@ module Admin
         :first_name,
         :email,
         :phone,
-        :agency,
+        :agency_id,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
