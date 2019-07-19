@@ -1,0 +1,20 @@
+- title = "User Logins"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
+
+%table.table.table-hover
+  %thead
+    %tr
+      %th First Name
+      %th Last Name
+      %th Email
+      %th Last Login
+  %tbody
+    - @users.each do |user|
+      - highlight = 'table-warning' if user.current_sign_in_at < 30.days.ago
+      %tr{class: highlight}
+        %td= user.first_name
+        %td= user.last_name
+        %td= user.email
+        %td= user.current_sign_in_at

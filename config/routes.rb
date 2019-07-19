@@ -167,6 +167,7 @@ Rails.application.routes.draw do
   end
   namespace :audit_reports do
     resources :agency_user, only: [:index]
+    resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
     resources :youth_intakes, only: [:index]
