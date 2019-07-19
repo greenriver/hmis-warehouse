@@ -212,6 +212,35 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
   end
 
+  desc "Initialize ServiceHistortService homeless fields"
+  task initialize_service_service_homelessness: [:environment, "log:info_to_stdout"] do
+    # Clients enrolled in homeless projects are homeless
+    GrdaWarehouse::ServiceHistoryService.
+      in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+      update_all(homeless: true)
+
+    # Clients enrolled in chronic projects are literally homeless
+    GrdaWarehouse::ServiceHistoryService.
+      in_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+      update_all(literally_homeless: true)
+
+    # Clients enrolled in TH are not literally homeless
+    # literally_homeless is defaulted to false, so we don't need to do this
+    #
+    # GrdaWarehouse::ServiceHistoryService.
+    #   in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+    #   update_all(literally_homeless: false)
+
+    # Clients enrolled in PH are literally homeless until their move-in date, or if they don't have one
+    s_t = GrdaWarehouse::ServiceHistoryService.arel_table
+    e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+    GrdaWarehouse::ServiceHistoryService.
+      joins(service_history_enrollment: :enrollment).
+      in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+      where(s_t[:date].lt(e_t[:MoveInDate]).or(e_t[:MoveInDate].eq(nil))).
+      update_all(homeless: true, literally_homeless: true)
+  end
+
   desc "Populate/replace nicknames"
   task nicknames_populate: [:environment, "log:info_to_stdout"] do
     Nickname.populate!
