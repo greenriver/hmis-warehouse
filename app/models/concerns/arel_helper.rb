@@ -80,9 +80,6 @@ module ArelHelper
   end
 
   # Some shortcuts for arel tables
-  def sh_t
-    GrdaWarehouse::ServiceHistory.arel_table
-  end
   def she_t
     GrdaWarehouse::ServiceHistoryEnrollment.arel_table
   end
@@ -313,9 +310,6 @@ module ArelHelper
 
 
     # Some shortcuts for arel tables
-    def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
-    end
     def she_t
       GrdaWarehouse::ServiceHistoryEnrollment.arel_table
     end

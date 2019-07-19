@@ -94,7 +94,7 @@ module GrdaWarehouse::Hud
     has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
 
-    has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
+    # has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
     has_many :service_history_enrollments
     has_many :service_history_services
     has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name

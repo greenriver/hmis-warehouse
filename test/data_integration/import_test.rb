@@ -62,7 +62,7 @@ class ImportTest < ActiveSupport::TestCase
   end
 
   private def destroy_warehouse_data
-    GrdaWarehouse::ServiceHistory.delete_all
+    # GrdaWarehouse::ServiceHistory.delete_all
     GrdaWarehouse::WarehouseClientsProcessed.delete_all
     GrdaWarehouse::WarehouseClient.delete_all
     GrdaWarehouse::Hud::Affiliation.delete_all
