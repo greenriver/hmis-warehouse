@@ -13,6 +13,8 @@ module AuditReports
     end
 
     def clients_viewed(user, months_in_past)
+      return 0 unless view_history[user.id].present?
+
       return view_history[user.id][months_in_past]
     end
     helper_method :clients_viewed
