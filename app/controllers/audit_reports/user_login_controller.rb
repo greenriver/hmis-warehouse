@@ -3,7 +3,7 @@ module AuditReports
     include WarehouseReportAuthorization
 
     def index
-      @users = User.active.order(current_sign_in_at: :desc)
+      @users = User.active.where.not(current_sign_in_at: nil).order(current_sign_in_at: :desc).page(params[:page])
     end
 
   end
