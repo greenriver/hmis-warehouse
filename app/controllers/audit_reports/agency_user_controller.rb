@@ -5,9 +5,7 @@ module AuditReports
 
     def index
       if current_user.can_manage_all_agencies
-        @agency = "All Agencies"
-      else
-        @agency = current_user.agency.name
+        @agencies = Agency.all.order(:name)
       end
       @users = user_scope
     end
@@ -37,12 +35,24 @@ module AuditReports
     end
 
     def user_scope
+      scope = User.
+        active.
+        joins(:agency)
       if current_user.can_manage_all_agencies
-        scope = User.active
+        @agency = "All Agencies"
+        if params[:report].present?
+          if params[:report][:agency].present?
+            agency = Agency.find(params[:report][:agency].to_i)
+            scope = scope.where(agency_id: agency.id)
+            @agency_id = agency.id
+            @agency = agency.name
+          end
+        end
       else
-        scope = User.active.where(agency: current_user.agency)
+        @agency = current_user.agency.name
+        scope = scope.where(agency: current_user.agency)
       end
-      scope.order(:last_name, :first_name)
+      scope.order(:last_name, :first_name).page(params[:page])
     end
 
   end
