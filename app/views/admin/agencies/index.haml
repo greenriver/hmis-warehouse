@@ -43,7 +43,8 @@
                     %span.icon-pencil
                     Edit
                 %td
-                  = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
-                    %span.icon-cross
-                    Delete
+                  - unless agency.users.count > 0
+                    = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                      %span.icon-cross
+                      Delete
       %p= paginate @agencies

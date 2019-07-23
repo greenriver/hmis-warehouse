@@ -60,7 +60,10 @@ module Admin
     end
 
     def agency_scope
-      Agency.order(:name)
+      Agency.
+        includes(:users).
+        preload(:users).
+        order(:name)
     end
   end
 end
