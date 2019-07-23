@@ -15,6 +15,7 @@
 %h1= title
 
 .d-flex
+  = render 'sort', sort_options: @sort_options
   = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
     Download Excel
 %p= paginate @users

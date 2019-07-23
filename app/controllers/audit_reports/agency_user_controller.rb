@@ -10,12 +10,19 @@ module AuditReports
     before_action :require_can_view_user_audit_report!
 
     def index
+      @column = user_sort_options.map{ |i| i[:column] }.detect { |c| c == params[:column] } || 'last_name'
+      @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'asc'
+
       if current_user.can_manage_all_agencies
         @agencies = Agency.all.order(:name)
       end
       @users = user_scope
+
       respond_to do |format|
-        format.html {}
+        format.html do
+          @users = sort_users(@users)
+          @users = @users.page(params[:page])
+        end
         format.xlsx do
           filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.today.strftime('%Y-%m-%d')}"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
@@ -29,6 +36,78 @@ module AuditReports
       return view_history[user.id][months_in_past]
     end
     helper_method :clients_viewed
+
+    def user_sort_options
+      [
+        {
+          column: 'last_name',
+          direction: :asc,
+          title: 'Last name A-Z',
+        },
+        {
+          column: 'last_name',
+          direction: :desc,
+          title: 'Last name Z-A',
+        },
+        {
+          column: 'current_sign_in_at',
+          direction: :desc,
+          title: 'Most Recent Login',
+        },
+        {
+          column: 'current_sign_in_at',
+          direction: :asc,
+          title: 'Least Recent Login',
+        },
+        {
+          column: 'this_month',
+          direction: :desc,
+          title: 'Most Clients This Month',
+        },
+        {
+          column: 'this_month',
+          direction: :asc,
+          title: 'Least Clients This Month',
+        },
+        {
+          column: 'last_month',
+          direction: :desc,
+          title: 'Most Clients Last Month',
+        },
+        {
+          column: 'last_month',
+          direction: :asc,
+          title: 'Least Clients Last Month',
+        },
+        {
+          column: 'prev_month',
+          direction: :desc,
+          title: 'Most Clients Previous Month',
+        },
+        {
+          column: 'prev_month',
+          direction: :asc,
+          title: 'Least Clients Previous Month',
+        },
+      ]
+    end
+    helper_method :user_sort_options
+
+    def sort_users(users)
+      return users.order(@column => @direction) unless @column.include? 'month'
+
+      case @column
+        when 'this_month'
+          sorted = users.sort_by{ |user| clients_viewed(user, 0) }
+        when 'last_month'
+          sorted = users.sort_by{ |user| clients_viewed(user, 1) }
+        when 'prev_month'
+          sorted = users.sort_by{ |user| clients_viewed(user, 2) }
+      end
+
+      sorted.reverse! if @direction == 'desc'
+      Kaminari.paginate_array(sorted)
+    end
 
     def view_history
       @view_history ||= ActivityLog.where(
@@ -65,7 +144,7 @@ module AuditReports
         @agency = current_user.agency.name
         scope = scope.where(agency: current_user.agency)
       end
-      scope.order(:last_name, :first_name).page(params[:page])
+      scope.order(:last_name, :first_name)
     end
 
   end
