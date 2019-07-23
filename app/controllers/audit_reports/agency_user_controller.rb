@@ -24,6 +24,7 @@ module AuditReports
           @users = @users.page(params[:page])
         end
         format.xlsx do
+          @users = @users.order(:last_name, :first_name)
           filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.today.strftime('%Y-%m-%d')}"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -144,7 +145,7 @@ module AuditReports
         @agency = current_user.agency.name
         scope = scope.where(agency: current_user.agency)
       end
-      scope.order(:last_name, :first_name)
+      scope
     end
 
   end
