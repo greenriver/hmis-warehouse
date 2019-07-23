@@ -2,7 +2,11 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
+.d-flex
+  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
+    Download Excel
 
+%p A list of all enabled accounts (non-disabled accounts with a valid password set):
 = paginate @users
 %table.table.table-hover
   %thead
@@ -10,6 +14,7 @@
       %th First Name
       %th Last Name
       %th Email
+      %th Agency
       %th Last Login
   %tbody
     - @users.each do |user|
@@ -18,4 +23,5 @@
         %td= link_to user.first_name, edit_admin_user_path(user)
         %td= link_to user.last_name, edit_admin_user_path(user)
         %td= user.email
+        %td= user.agency.name
         %td= user.current_sign_in_at
