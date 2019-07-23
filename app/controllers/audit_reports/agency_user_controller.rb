@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module AuditReports
   class AgencyUserController < ApplicationController
     include WarehouseReportAuthorization
@@ -8,6 +14,13 @@ module AuditReports
         @agencies = Agency.all.order(:name)
       end
       @users = user_scope
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.today.strftime('%Y-%m-%d')}"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def clients_viewed(user, months_in_past)
