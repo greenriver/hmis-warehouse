@@ -33,7 +33,7 @@ module Admin
     end
 
     def edit
-      @agencies = Agency.all
+      @agencies = Agency.order(:name)
     end
 
     def confirm
