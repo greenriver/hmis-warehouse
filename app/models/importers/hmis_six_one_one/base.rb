@@ -63,6 +63,11 @@ module Importers::HMISSixOneOne
 
             add_error(file_path: file_path, message: msg, line: '')
             log(msg)
+
+            # Populate @import for error reporting
+            @import.files << 'Export.csv'
+            @import.summary['Export.csv'][:total_lines] = 1
+            complete_import()
             return
           end
         end
