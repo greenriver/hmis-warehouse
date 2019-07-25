@@ -166,6 +166,7 @@ Rails.application.routes.draw do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
   namespace :warehouse_reports do
+    resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]

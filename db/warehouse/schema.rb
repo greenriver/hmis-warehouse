@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190710202403) do
+ActiveRecord::Schema.define(version: 20190725172606) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -169,10 +169,7 @@ ActiveRecord::Schema.define(version: 20190710202403) do
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
-  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
-  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
-  add_index "Disabilities", ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
   add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
@@ -341,6 +338,7 @@ ActiveRecord::Schema.define(version: 20190710202403) do
   add_index "Enrollment", ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID", using: :btree
   add_index "Enrollment", ["EntryDate"], name: "index_Enrollment_on_EntryDate", using: :btree
   add_index "Enrollment", ["ExportID"], name: "enrollment_export_id", using: :btree
+  add_index "Enrollment", ["MoveInDate"], name: "index_Enrollment_on_MoveInDate", using: :btree
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
   add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
@@ -660,14 +658,11 @@ ActiveRecord::Schema.define(version: 20190710202403) do
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
-  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
-  add_index "IncomeBenefits", ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
-  add_index "IncomeBenefits", ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -1401,10 +1396,10 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
+    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
-    t.integer  "participant_site_identifier"
   end
 
   add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
@@ -2116,7 +2111,6 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.string   "last_locality"
     t.string   "last_zipcode"
     t.string   "source_hash"
-    t.datetime "pending_date_deleted"
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -2261,6 +2255,7 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.boolean "individual_adult",                            default: false, null: false
     t.boolean "individual_elder",                            default: false, null: false
     t.boolean "head_of_household",                           default: false, null: false
+    t.date    "move_in_date"
   end
 
   add_index "service_history_enrollments", ["client_id", "record_type"], name: "index_she_on_client_id", using: :btree
@@ -2274,14 +2269,19 @@ ActiveRecord::Schema.define(version: 20190710202403) do
   add_index "service_history_enrollments", ["record_type", "date", "data_source_id", "organization_id", "project_id", "project_type", "project_tracking_method"], name: "index_she_date_ds_org_proj_proj_type", using: :btree
 
   create_table "service_history_services", force: :cascade do |t|
-    t.integer "service_history_enrollment_id",            null: false
-    t.string  "record_type",                   limit: 50, null: false
-    t.date    "date",                                     null: false
+    t.integer "service_history_enrollment_id",                            null: false
+    t.string  "record_type",                   limit: 50,                 null: false
+    t.date    "date",                                                     null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
+
+  add_index "service_history_services", ["date"], name: "index_service_history_services_on_date", using: :btree
+  add_index "service_history_services", ["project_type"], name: "index_service_history_services_on_project_type", using: :btree
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
     t.integer "id",                                       default: "nextval('service_history_services_id_seq'::regclass)", null: false
@@ -2292,6 +2292,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2000", ["client_id", "date", "record_type"], name: "index_shs_2000_date_client_id", using: :btree
@@ -2309,6 +2311,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2001", ["client_id", "date", "record_type"], name: "index_shs_2001_date_client_id", using: :btree
@@ -2326,6 +2330,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2002", ["client_id", "date", "record_type"], name: "index_shs_2002_date_client_id", using: :btree
@@ -2343,6 +2349,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2003", ["client_id", "date", "record_type"], name: "index_shs_2003_date_client_id", using: :btree
@@ -2360,6 +2368,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2004", ["client_id", "date", "record_type"], name: "index_shs_2004_date_client_id", using: :btree
@@ -2377,6 +2387,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2005", ["client_id", "date", "record_type"], name: "index_shs_2005_date_client_id", using: :btree
@@ -2394,6 +2406,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2006", ["client_id", "date", "record_type"], name: "index_shs_2006_date_client_id", using: :btree
@@ -2411,6 +2425,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2007", ["client_id", "date", "record_type"], name: "index_shs_2007_date_client_id", using: :btree
@@ -2428,6 +2444,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2008", ["client_id", "date", "record_type"], name: "index_shs_2008_date_client_id", using: :btree
@@ -2445,6 +2463,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2009", ["client_id", "date", "record_type"], name: "index_shs_2009_date_client_id", using: :btree
@@ -2462,6 +2482,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2010", ["client_id", "date", "record_type"], name: "index_shs_2010_date_client_id", using: :btree
@@ -2479,6 +2501,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2011", ["client_id", "date", "record_type"], name: "index_shs_2011_date_client_id", using: :btree
@@ -2496,6 +2520,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2012", ["client_id", "date", "record_type"], name: "index_shs_2012_date_client_id", using: :btree
@@ -2513,6 +2539,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2013", ["client_id", "date", "record_type"], name: "index_shs_2013_date_client_id", using: :btree
@@ -2530,6 +2558,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2014", ["client_id", "date", "record_type"], name: "index_shs_2014_date_client_id", using: :btree
@@ -2547,6 +2577,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2015", ["client_id", "date", "record_type"], name: "index_shs_2015_date_client_id", using: :btree
@@ -2564,6 +2596,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2016", ["client_id", "date", "record_type"], name: "index_shs_2016_date_client_id", using: :btree
@@ -2581,6 +2615,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2017", ["client_id", "date", "record_type"], name: "index_shs_2017_date_client_id", using: :btree
@@ -2598,6 +2634,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2018", ["client_id", "date", "record_type"], name: "index_shs_2018_date_client_id", using: :btree
@@ -2615,6 +2653,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2019", ["client_id", "date", "record_type"], name: "index_shs_2019_date_client_id", using: :btree
@@ -2632,6 +2672,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2020", ["client_id", "date", "record_type"], name: "index_shs_2020_date_client_id", using: :btree
@@ -2649,6 +2691,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2021", ["client_id", "date", "record_type"], name: "index_shs_2021_date_client_id", using: :btree
@@ -2666,6 +2710,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2022", ["client_id", "date", "record_type"], name: "index_shs_2022_date_client_id", using: :btree
@@ -2683,6 +2729,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2023", ["client_id", "date", "record_type"], name: "index_shs_2023_date_client_id", using: :btree
@@ -2700,6 +2748,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2024", ["client_id", "date", "record_type"], name: "index_shs_2024_date_client_id", using: :btree
@@ -2717,6 +2767,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2025", ["client_id", "date", "record_type"], name: "index_shs_2025_date_client_id", using: :btree
@@ -2734,6 +2786,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2026", ["client_id", "date", "record_type"], name: "index_shs_2026_date_client_id", using: :btree
@@ -2751,6 +2805,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2027", ["client_id", "date", "record_type"], name: "index_shs_2027_date_client_id", using: :btree
@@ -2768,6 +2824,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2028", ["client_id", "date", "record_type"], name: "index_shs_2028_date_client_id", using: :btree
@@ -2785,6 +2843,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2029", ["client_id", "date", "record_type"], name: "index_shs_2029_date_client_id", using: :btree
@@ -2802,6 +2862,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2030", ["client_id", "date", "record_type"], name: "index_shs_2030_date_client_id", using: :btree
@@ -2819,6 +2881,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2031", ["client_id", "date", "record_type"], name: "index_shs_2031_date_client_id", using: :btree
@@ -2836,6 +2900,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2032", ["client_id", "date", "record_type"], name: "index_shs_2032_date_client_id", using: :btree
@@ -2853,6 +2919,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2033", ["client_id", "date", "record_type"], name: "index_shs_2033_date_client_id", using: :btree
@@ -2870,6 +2938,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2034", ["client_id", "date", "record_type"], name: "index_shs_2034_date_client_id", using: :btree
@@ -2887,6 +2957,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2035", ["client_id", "date", "record_type"], name: "index_shs_2035_date_client_id", using: :btree
@@ -2904,6 +2976,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2036", ["client_id", "date", "record_type"], name: "index_shs_2036_date_client_id", using: :btree
@@ -2921,6 +2995,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2037", ["client_id", "date", "record_type"], name: "index_shs_2037_date_client_id", using: :btree
@@ -2938,6 +3014,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2038", ["client_id", "date", "record_type"], name: "index_shs_2038_date_client_id", using: :btree
@@ -2955,6 +3033,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2039", ["client_id", "date", "record_type"], name: "index_shs_2039_date_client_id", using: :btree
@@ -2972,6 +3052,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2040", ["client_id", "date", "record_type"], name: "index_shs_2040_date_client_id", using: :btree
@@ -2989,6 +3071,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2041", ["client_id", "date", "record_type"], name: "index_shs_2041_date_client_id", using: :btree
@@ -3006,6 +3090,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2042", ["client_id", "date", "record_type"], name: "index_shs_2042_date_client_id", using: :btree
@@ -3023,6 +3109,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2043", ["client_id", "date", "record_type"], name: "index_shs_2043_date_client_id", using: :btree
@@ -3040,6 +3128,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2044", ["client_id", "date", "record_type"], name: "index_shs_2044_date_client_id", using: :btree
@@ -3057,6 +3147,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2045", ["client_id", "date", "record_type"], name: "index_shs_2045_date_client_id", using: :btree
@@ -3074,6 +3166,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2046", ["client_id", "date", "record_type"], name: "index_shs_2046_date_client_id", using: :btree
@@ -3091,6 +3185,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2047", ["client_id", "date", "record_type"], name: "index_shs_2047_date_client_id", using: :btree
@@ -3108,6 +3204,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2048", ["client_id", "date", "record_type"], name: "index_shs_2048_date_client_id", using: :btree
@@ -3125,6 +3223,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2049", ["client_id", "date", "record_type"], name: "index_shs_2049_date_client_id", using: :btree
@@ -3142,6 +3242,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_2050", ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id", using: :btree
@@ -3159,6 +3261,8 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
+    t.boolean "homeless",                                 default: false
+    t.boolean "literally_homeless",                       default: false
   end
 
   add_index "service_history_services_remainder", ["date", "client_id"], name: "index_shs_1900_date_client_id", using: :btree
