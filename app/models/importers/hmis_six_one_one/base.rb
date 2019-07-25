@@ -54,6 +54,18 @@ module Importers::HMISSixOneOne
           log("Exiting, failed to find a valid export file")
           return
         end
+        if @data_source.source_id.present?
+          source_id = @export[:SourceID]
+          if @data_source.source_id.casecmp(source_id) != 0
+            # Construct a valid file_path for add_error
+            file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
+            msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
+
+            add_error(file_path: file_path, message: msg, line: '')
+            log(msg)
+            return
+          end
+        end
         begin
           @range = set_date_range()
           clean_source_files()
