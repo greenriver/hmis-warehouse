@@ -41,6 +41,8 @@
                 File:
                 = link_to preview_client_file_path(@client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
+              - elsif @eto_disability_verification_site
+                Verified at #{@eto_disability_verification_site}
               - else
                 No file present
   .row

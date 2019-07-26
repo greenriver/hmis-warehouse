@@ -38,4 +38,8 @@
         %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
       %p
         = checkmark_or_x(@client.disability_verified_on.present?)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
+        - if @eto_disability_verification_site.present?
+          %span Disability Verified at #{@eto_disability_verification_site}
+        - else
+          %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
+

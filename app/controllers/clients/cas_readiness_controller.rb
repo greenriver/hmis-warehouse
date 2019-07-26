@@ -16,8 +16,9 @@ module Clients
       if Cas::Neighborhood.db_exists?
         @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name)
       end
+      @eto_disability_verification_site = verification_source&.disability_verification
     end
-    
+
     def update
       update_params = cas_readiness_params
       if GrdaWarehouse::Config.get(:cas_flag_method).to_s != 'file'
@@ -27,13 +28,13 @@ module Clients
           nil
         end
       end
-      
+
       if @client.update(update_params)
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
         # Maintain the veteran status
         @client.adjust_veteran_status
-        
+
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later
         redirect_to action: :edit
@@ -51,6 +52,10 @@ module Clients
 
       def cas_readiness_params
         params.require(:readiness).permit(*client_source.cas_readiness_parameters)
+      end
+
+      def verification_source
+        GrdaWarehouse::VerificationSource.where(client_id: @client.id).first
       end
 
       def client_source
