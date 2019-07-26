@@ -115,10 +115,7 @@ module GrdaWarehouse::HMIS
 
     def self.fetch_touch_points
       touch_points = {}
-      # somewhat hackish, but figure out which sites we have access to
-      ENV.select{|k,v| k.include?('ETO_API_SITE') && v.presence != 'unknown' }.each do |k,v|
-        identifier = k.sub('ETO_API_SITE', '')
-        data_source_id = ENV.fetch("ETO_API_DATA_SOURCE#{identifier}")
+      EtoApi::Eto.site_identifiers.each do |identifier, data_source_id|
         bo = Bo::ClientIdLookup.new(api_site_identifier: identifier)
         response = bo.fetch_site_touch_point_map
         break unless response.present?
