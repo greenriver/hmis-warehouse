@@ -313,6 +313,13 @@ module Bo
           # reflect changes on the destination client if the changes to the source client data are newer
           if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on
             dest_client.update(disability_verified_on: client.disability_verified_on)
+
+            verification = verifications.detect { |v| v[:date_last_updated].to_time == max_date }
+            if verification
+              verification_source = GrdaWarehouse::VerificationSource.where(client_id: dest_client.id).first_or_create
+              verification_source.update(disability_verification: verification[:site_name])
+            end
+
             updated_destination_counts += 1
           end
         end
