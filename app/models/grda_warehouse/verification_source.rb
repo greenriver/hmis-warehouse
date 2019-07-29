@@ -7,5 +7,11 @@
 module GrdaWarehouse
   class VerificationSource < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+
+    def source_columns
+      [
+        :disability_verification,
+      ]
+    end
   end
 end
