@@ -23,13 +23,13 @@
     {
       "warning_type": "Redirect",
       "warning_code": 18,
-      "fingerprint": "2668a810cab80fbfd588b2bfef44defae743b65f1346f0f456339f1adc0532c8",
+      "fingerprint": "1aca9c2d121a2dd47296e279e8aab5bacb9f9725310169273bb716debe4e1c78",
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/application_controller.rb",
       "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(request.env[\"HTTP_REFERER\"], *args.dup)",
+      "code": "redirect_to(request.env[\"HTTP_REFERER\"], *args)",
       "render_path": null,
       "location": {
         "type": "method",
@@ -278,7 +278,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1064,
+      "line": 1087,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(\"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -420,7 +420,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1092,
+      "line": 1115,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(:project_id => hud_project.id, \"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -895,7 +895,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 307,
+      "line": 311,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -915,7 +915,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 384,
+      "line": 377,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1156,7 +1156,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 336,
+      "line": 340,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).group(:project_id).where(\"#{key}_#{:complete}\" => true)",
       "render_path": null,
@@ -1176,7 +1176,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/support.rb",
-      "line": 168,
+      "line": 169,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(completeness_metrics[options[:column].to_sym][:denominator]).where(\"#{options[:column].to_sym}_#{options[:metric].to_sym}\" => true)",
       "render_path": null,
@@ -1229,6 +1229,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-06-26 09:53:40 -0400",
-  "brakeman_version": "4.5.1"
+  "updated": "2019-07-29 16:03:07 -0400",
+  "brakeman_version": "4.6.1"
 }
