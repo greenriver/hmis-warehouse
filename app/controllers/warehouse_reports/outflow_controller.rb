@@ -45,7 +45,7 @@ module WarehouseReports
     def describe_computations
       path = "app/views/warehouse_reports/outflow/README.md"
       description = File.read(path)
-      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)
     end
     helper_method :describe_computations
@@ -57,7 +57,14 @@ module WarehouseReports
 
     private def filter_options
       if params[:filter].present?
-        opts = params.require(:filter).permit(:start, :end, :sub_population, organization_ids: [], project_ids: [])
+        opts = params.require(:filter).permit(
+          :start,
+          :end,
+          :sub_population,
+          :no_service_after_date,
+          organization_ids: [],
+          project_ids: [],
+        )
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
           opts[:end] = opts[:start]
@@ -70,6 +77,7 @@ module WarehouseReports
         {
           start: default_start.to_date,
           end: default_end.to_date,
+          no_service_after_date: default_no_service_after_date,
         }
       end
     end
@@ -82,13 +90,19 @@ module WarehouseReports
       3.months.ago.beginning_of_month
     end
 
+    private def default_no_service_after_date
+      Date.today - 90.days
+    end
+
     private def default_end
       1.months.ago.end_of_month
     end
 
     def enrollment_scope
       @report.entries_scope.
+        residential.
         joins(:client).
+        preload(:client).
         order(c_t[:LastName], c_t[:FirstName])
     end
 
