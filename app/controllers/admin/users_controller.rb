@@ -37,6 +37,7 @@ module Admin
     end
 
     def confirm
+      @agencies = Agency.order(:name)
       update unless adding_admin?
     end
 
