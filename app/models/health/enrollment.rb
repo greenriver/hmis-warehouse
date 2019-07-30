@@ -17,8 +17,43 @@ module Health
 
     belongs_to :user
 
+    def enrollments
+      transactions.select{ |transaction| maintenance_type(transaction) == '021'}
+    end
+
+    def disenrollments
+      transactions.select{ |transaction| maintenance_type(transaction) == '024'}
+    end
+
+    def subscriber_id(transaction)
+      transaction.select{|h| h.keys.include? :REF}.
+        map{|h| h[:REF]}.each do |ref|
+          if ref.detect{|h| h.keys.include? :E128}[:E128][:value][:raw] == '0F'
+            return ref.detect{|h| h.keys.include? :E127}[:E127][:value][:raw]
+          end
+      end
+    end
+
+    def maintenance_type(transaction)
+      INS(transaction).detect{|h| h.keys.include? :E875}[:E875][:value][:raw]
+    end
+
+    def INS(transaction)
+      transaction.detect{|h| h.keys.include? :INS}[:INS]
+    end
+
+    def transactions
+      return [] unless as_json.present?
+      @json_transactions ||= as_json[:interchanges].
+        detect{|h| h.keys.include? :functional_groups}[:functional_groups].
+        detect{|h| h.keys.include? :transactions}[:transactions].
+        detect{|h| h.keys.include? "2 - Detail"}['2 - Detail'].
+        select{|h| h.keys.include? "2000 - MEMBER LEVEL DETAIL"}.
+        map{|h| h["2000 - MEMBER LEVEL DETAIL"]}
+    end
+
     def as_json
-      return {} unless response.present?
+      return {} unless content.present?
       @json ||= begin
         json = {}
         parsed_834 = parse_834
