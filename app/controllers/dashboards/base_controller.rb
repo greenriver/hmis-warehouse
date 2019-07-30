@@ -72,7 +72,7 @@ module Dashboards
     def describe_computations
       path = "app/views/dashboards/base/README.md"
       description = File.read(path)
-      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)
     end
     helper_method :describe_computations

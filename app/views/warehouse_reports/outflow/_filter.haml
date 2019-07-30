@@ -2,12 +2,14 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :start, label: 'Start date', as: :date_picker, input_html: {value: @filter.start}
+        = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @filter.start}
       .col-sm-4
-        = f.input :end, label: 'End date', as: :date_picker, input_html: {value: @filter.end}
+        = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @filter.end}
+      .col-sm-4
+        = f.input :no_service_after_date, label: 'No Service After', as: :date_picker, input_html: {value: @filter.no_service_after_date}
+    .row
       .col-sm-4
         = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, input_html: {class: 'select2'}
-    .row
       .col-4
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.organization_ids, label: 'Organizations', required: false
       .col-4

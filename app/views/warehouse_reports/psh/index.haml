@@ -8,6 +8,7 @@
 = render 'program_makeup'
 = render 'outcomes'
 = render 'returns'
+= render 'computation_description'
 - content_for :page_js do
   :javascript
     var pre_placement_leavers_chart_data = #{@report.time_in_pre_placement_leavers_data.to_json}
