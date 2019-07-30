@@ -50,16 +50,17 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def redirect_back(*args)
-    argsdup = args.dup
-    fallback = argsdup.delete(:fallback_location) || root_path
+  # Removed 7/30/2019 -- no longer in use, brakeman identified as Possible unprotected redirect
+  # def redirect_back(*args)
+  #   argsdup = args.dup
+  #   fallback = argsdup.delete(:fallback_location) || root_path
 
-    if request.env['HTTP_REFERER'].present?
-      redirect_to request.env['HTTP_REFERER'], *argsdup
-    else
-      redirect_to fallback, *argsdup
-    end
-  end
+  #   if request.env['HTTP_REFERER'].present?
+  #     redirect_to request.env['HTTP_REFERER'], *argsdup
+  #   else
+  #     redirect_to fallback, *argsdup
+  #   end
+  # end
 
   def locale
     default_locale = 'en'
@@ -124,7 +125,7 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource)
     # alert users if their password has been compromised
     set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-    
+
     last_url = session["user_return_to"]
     if last_url.present?
       last_url

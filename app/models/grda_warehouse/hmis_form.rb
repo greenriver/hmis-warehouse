@@ -108,15 +108,39 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   end
 
+  # Pre-check part of a family if the client has a family score and are < 60
+  # or if they are 60+ and have a score > 1
   def self.set_part_of_a_family
-    # This could be done as one query, but as these are small
-    # and don't tend to take long, this is easier to troubleshoot and reason about.
-    source_client_ids = vispdat.where.not(vispdat_family_score: nil).
+    # update any we don't need to check for age
+    source_client_ids = vispdat.where(vispdat_family_score: (2..Float::INFINITY)).
       distinct.
       pluck(:client_id)
-    destination_client_ids = GrdaWarehouse::WarehouseClient.where(source_id: source_client_ids).distinct.pluck(:destination_id)
+    destination_client_ids = GrdaWarehouse::WarehouseClient.
+      where(source_id: source_client_ids).
+      distinct.
+      pluck(:destination_id)
     GrdaWarehouse::Hud::Client.where(id: destination_client_ids, family_member: false).
       update_all(family_member: true)
+
+    # For anyone with a score of one, only update those who are < 60
+    source_clients = vispdat.where(vispdat_family_score: 1).
+      distinct.
+      pluck(:client_id, :collected_at).to_h
+
+    warehouse_clients = GrdaWarehouse::WarehouseClient.
+      where(source_id: source_clients.keys).
+      distinct.
+      pluck(:destination_id, :source_id).to_h
+
+    GrdaWarehouse::Hud::Client.where(id: warehouse_clients.keys).
+      find_each do |client|
+        source_client_id = warehouse_clients[client.id]
+        collected_at = source_clients[source_client_id]
+        age = client.age_on(collected_at.to_date)
+        if age.blank? || age < 60
+          client.update(family_member: true) unless client.family_member
+        end
+      end
   end
 
   def primary_language
