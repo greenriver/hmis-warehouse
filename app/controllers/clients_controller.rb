@@ -112,7 +112,7 @@ class ClientsController < ApplicationController
         to_unmerge.each do |id|
           c = client_source.find(id)
           if c.warehouse_client_source.present?
-            c.warehouse_client_source.delete
+            c.warehouse_client_source.destroy
           end
           destination_client = c.dup
           destination_client.data_source = @dnd_warehouse_data_source
