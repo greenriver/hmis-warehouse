@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190607144129) do
+ActiveRecord::Schema.define(version: 20190730122842) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -318,6 +318,17 @@ ActiveRecord::Schema.define(version: 20190607144129) do
     t.integer  "user_id"
     t.string   "original_filename"
     t.datetime "deleted_at"
+  end
+
+  create_table "enrollments", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "content"
+    t.string   "original_filename"
+    t.integer  "new_patients"
+    t.integer  "returning_patients"
+    t.integer  "disenrolled_patients"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "epic_careplans", force: :cascade do |t|
@@ -669,14 +680,14 @@ ActiveRecord::Schema.define(version: 20190607144129) do
     t.date     "birthdate"
     t.string   "ssn"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                                       null: false
-    t.datetime "updated_at",                                                       null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false,                 null: false
-    t.integer  "rejected_reason",                  default: 0,                     null: false
+    t.boolean  "rejected",                         default: false,   null: false
+    t.integer  "rejected_reason",                  default: 0,       null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date",                   default: '2018-12-14 20:51:35'
+    t.datetime "effective_date",                   default: "now()"
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"

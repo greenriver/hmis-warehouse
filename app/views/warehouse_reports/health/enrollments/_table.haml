@@ -1,0 +1,16 @@
+- if @files.any?
+  %h2 Previous 834 Files
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Upload Date
+        %th New Enrollments
+        %th Returning Enrollments
+        %th Disenrollments
+    %tbody
+      - @files.each do |file|
+        %tr
+          %td= file.created_at
+          %td= file.new_patients
+          %td= file.returning_patients
+          %td= file.disenrolled_patients
