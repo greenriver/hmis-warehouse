@@ -16,7 +16,8 @@
           = f.input :phone
       .row
         .col-sm-10
-          = f.input :agency
+          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, required: false, include_blank: 'Unknown', input_html: {class: :select2}
+
   .col-sm-6
     .form--checkbox-groups
       %h3 Notifications

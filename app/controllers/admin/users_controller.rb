@@ -26,16 +26,19 @@ module Admin
       end
 
       # sort / paginate
-      @users = @users
-        .order(sort_column => sort_direction)
-        .page(params[:page]).per(25)
+      @users = @users.
+        preload(:roles).
+        order(sort_column => sort_direction).
+        page(params[:page]).per(25)
       @inactive_users = User.inactive
     end
 
     def edit
+      @agencies = Agency.order(:name)
     end
 
     def confirm
+      @agencies = Agency.order(:name)
       update unless adding_admin?
     end
 
@@ -84,19 +87,22 @@ module Admin
     end
 
     private def adding_admin?
-      existing_roles = @user.user_roles
-      return false if existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
-
-      assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
-      added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-      added_role_ids.select { |id| id.present? }.each do |id|
-        role = Role.find(id.to_i)
-        if role.administrative?
-          @admin_role_name = role.role_name
-          return true
+      @adming_admin ||= begin
+        adming_admin = false
+        existing_roles = @user.user_roles
+        unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
+          assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
+          added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
+          added_role_ids.select { |id| id.present? }.each do |id|
+            role = Role.find(id.to_i)
+            if role.administrative?
+              @admin_role_name = role.role_name
+              adming_admin =  true
+            end
+          end
         end
+        adming_admin
       end
-      false
     end
 
     private def user_scope
@@ -110,7 +116,7 @@ module Admin
         :first_name,
         :email,
         :phone,
-        :agency,
+        :agency_id,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
