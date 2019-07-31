@@ -50,27 +50,8 @@ module Importers::HMISSixOneOne
       # Provide Application locking so we can be sure we aren't already importing this data source
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{@data_source.id}") do
         @export = load_export_file()
-        if @export.blank?
-          log("Exiting, failed to find a valid export file")
-          return
-        end
-        if @data_source.source_id.present?
-          source_id = @export[:SourceID]
-          if @data_source.source_id.casecmp(source_id) != 0
-            # Construct a valid file_path for add_error
-            file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
-            msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
+        return unless export_file_valid?
 
-            add_error(file_path: file_path, message: msg, line: '')
-            log(msg)
-
-            # Populate @import for error reporting
-            @import.files << 'Export.csv'
-            @import.summary['Export.csv'][:total_lines] = 1
-            complete_import()
-            return
-          end
-        end
         begin
           @range = set_date_range()
           clean_source_files()
@@ -118,6 +99,30 @@ module Importers::HMISSixOneOne
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
+    end
+
+    def export_file_valid?
+      if @export.blank?
+          log("Exiting, failed to find a valid export file")
+          return false
+        end
+        if @data_source.source_id.present?
+          source_id = @export[:SourceID]
+          if @data_source.source_id.casecmp(source_id) != 0
+            # Construct a valid file_path for add_error
+            file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
+            msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
+
+            add_error(file_path: file_path, message: msg, line: '')
+
+            # Populate @import for error reporting
+            @import.files << 'Export.csv'
+            @import.summary['Export.csv'][:total_lines] = 1
+            complete_import()
+            return false
+          end
+          return true
+        end
     end
 
     def delete_remaining_pending_deletes()
