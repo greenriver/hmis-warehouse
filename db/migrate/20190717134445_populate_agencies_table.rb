@@ -2,7 +2,7 @@ class PopulateAgenciesTable < ActiveRecord::Migration
   def up
     User.all.find_each do |user|
       agency_name = if user.class.column_names.include?('agency')
-        user.agency
+        user[:agency]
         elsif user.class.column_names.include?('deprecated_agency')
           user.deprecated_agency
         end
