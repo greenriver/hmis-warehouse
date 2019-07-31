@@ -241,7 +241,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return nil unless relevant_section.present?
 
     relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.starts_with?('total score')
+      question[:question].downcase.include?('total score')
     end&.first.try(:[], :answer)
     relevant_question
   end
@@ -253,7 +253,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return nil unless relevant_section.present?
 
     relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.starts_with?('total family score')
+      question[:question].downcase.include?('total family score')
     end&.first.try(:[], :answer)
     relevant_question
   end
@@ -265,7 +265,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     return nil unless relevant_section.present?
 
     relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.starts_with?('total score.')
+      question[:question].downcase.include?('total score')
     end&.first.try(:[], :answer)
     relevant_question
   end
