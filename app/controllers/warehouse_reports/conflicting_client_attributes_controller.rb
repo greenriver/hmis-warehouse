@@ -7,16 +7,15 @@
 module WarehouseReports
   class ConflictingClientAttributesController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
 
     def index
       @attribute_name = attributes.detect { |a| a == params.dig(:report, :attribute)} || 'Gender'
-      @clients = []
-      destination_client_scope.each do |destination_client|
-        if destination_client.source_clients.pluck(@attribute_name).uniq.size > 1
-          @clients << destination_client
-        end
-      end
-      @clients = Kaminari.paginate_array(@clients).page(params[:page])
+      @clients = client_scope.
+        where(id: destination_client_ids).
+        order(:LastName, :FirstName).
+        page(params[:page])
+
     end
 
     def attributes
@@ -28,16 +27,19 @@ module WarehouseReports
     end
     helper_method :attributes
 
-    def destination_client_scope
-      GrdaWarehouse::Hud::Client.
-        destination.
-        where(id:
-          GrdaWarehouse::WarehouseClient.
-            group(:destination_id).
-            having('count(destination_id)>1').
-            pluck(:destination_id)
-        ).
-        order(:last_name, :first_name)
+
+    def destination_client_ids
+      GrdaWarehouse::WarehouseClient.joins(:source).
+        merge(client_scope).
+        group(:destination_id).
+        having( nf( 'COUNT', [nf('DISTINCT', [c_t[@attribute_name.to_sym]])] ).gt 1 ).
+        # having("count(distinct(#{c_t[@attribute_name].to_sql}))>1").
+        distinct.
+        select(:destination_id)
+    end
+
+    def client_scope
+      GrdaWarehouse::Hud::Client.viewable_by(current_user)
     end
   end
 end
