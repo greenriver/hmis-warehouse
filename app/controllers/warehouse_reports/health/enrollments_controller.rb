@@ -14,10 +14,15 @@ module WarehouseReports::Health
     end
 
     def create
-      @file = Health::Enrollment.create(
-        user_id: current_user.id,
-        content: enrollment_params[:content].read,
-        original_filename: enrollment_params[:content].original_filename)
+      begin
+        @file = Health::Enrollment.create(
+          user_id: current_user.id,
+          content: enrollment_params[:content].read,
+          original_filename: enrollment_params[:content].original_filename)
+        Health::ProcessEnrollmentChangesJob.perform_later(@file.id)
+      rescue Exception => e
+        flash[:error] = "Error processing uploaded file #{e}"
+      end
       redirect_to action: :index
     end
 

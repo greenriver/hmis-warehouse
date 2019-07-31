@@ -8,6 +8,7 @@
 # Risk: Describes patient enrollments and contains PHI
 # Control: PHI attributes documented
 
+require "stupidedi"
 module Health
   class Enrollment < HealthBase
 

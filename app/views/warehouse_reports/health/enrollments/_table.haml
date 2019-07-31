@@ -4,6 +4,7 @@
     %thead
       %tr
         %th Upload Date
+        %th
         %th New Enrollments
         %th Returning Enrollments
         %th Disenrollments
@@ -11,6 +12,9 @@
       - @files.each do |file|
         %tr
           %td= file.created_at
+          %td
+            - if file.new_patients.nil?
+              = render 'spinner'
           %td= file.new_patients
           %td= file.returning_patients
           %td= file.disenrolled_patients
