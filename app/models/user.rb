@@ -103,6 +103,14 @@ class User < ActiveRecord::Base
     can_view_client_window? || can_view_clients? || can_edit_clients?
   end
 
+  def self.stale_account_threshold
+    30.days.ago
+  end
+
+  def stale_account?
+    current_sign_in_at < self.class.stale_account_threshold
+  end
+
 
   # def role_keys
   #   [:admin, :dnd_staff, :housing_subsidy_admin]

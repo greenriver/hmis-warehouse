@@ -2,12 +2,14 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
-.d-flex
+.d-flex.mb-4
   = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
     Download Excel
 
-%p A list of all enabled accounts (non-disabled accounts with a valid password set):
-= paginate @users
+  %p.alert.alert-info
+    All enabled accounts are shown below (non-disabled accounts with a valid password set).
+    %br Highlighted rows haven't logged in since #{User.stale_account_threshold.to_date}.
+  = paginate @users
 %table.table.table-hover
   %thead
     %tr
@@ -18,7 +20,7 @@
       %th Last Login
   %tbody
     - @users.each do |user|
-      - highlight = 'table-warning' if user.current_sign_in_at < 30.days.ago
+      - highlight = 'table-warning' if user.stale_account?
       %tr{class: highlight}
         %td= link_to user.first_name, edit_admin_user_path(user)
         %td= link_to user.last_name, edit_admin_user_path(user)
