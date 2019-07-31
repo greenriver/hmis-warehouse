@@ -165,6 +165,10 @@ Rails.application.routes.draw do
   resources :warehouse_reports, only: [:index] do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
+  namespace :audit_reports do
+    resources :agency_user, only: [:index]
+    resources :user_login, only: [:index]
+  end
   namespace :warehouse_reports do
     resources :youth_intakes, only: [:index]
     resources :incomes, only: [:index]
@@ -600,6 +604,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]
