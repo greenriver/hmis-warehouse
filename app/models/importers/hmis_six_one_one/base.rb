@@ -103,26 +103,26 @@ module Importers::HMISSixOneOne
 
     def export_file_valid?
       if @export.blank?
-          log("Exiting, failed to find a valid export file")
+        log("Exiting, failed to find a valid export file")
+        return false
+      end
+      if @data_source.source_id.present?
+        source_id = @export[:SourceID]
+        if @data_source.source_id.casecmp(source_id) != 0
+          # Construct a valid file_path for add_error
+          file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
+          msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
+
+          add_error(file_path: file_path, message: msg, line: '')
+
+          # Populate @import for error reporting
+          @import.files << 'Export.csv'
+          @import.summary['Export.csv'][:total_lines] = 1
+          complete_import()
           return false
         end
-        if @data_source.source_id.present?
-          source_id = @export[:SourceID]
-          if @data_source.source_id.casecmp(source_id) != 0
-            # Construct a valid file_path for add_error
-            file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
-            msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
-
-            add_error(file_path: file_path, message: msg, line: '')
-
-            # Populate @import for error reporting
-            @import.files << 'Export.csv'
-            @import.summary['Export.csv'][:total_lines] = 1
-            complete_import()
-            return false
-          end
-          return true
-        end
+      end
+      return true
     end
 
     def delete_remaining_pending_deletes()
