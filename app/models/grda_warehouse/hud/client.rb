@@ -857,9 +857,7 @@ module GrdaWarehouse::Hud
           'BHA Eligibility',
           'Housing Authority Eligibility',
         ],
-        disability_verified_on: [
-          'Disability Verification',
-        ],
+        disability_verified_on: GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name),
         limited_cas_release: [
           'Limited CAS Release'
         ],

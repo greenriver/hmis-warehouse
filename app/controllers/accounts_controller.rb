@@ -39,7 +39,6 @@ class AccountsController < ApplicationController
         :first_name,
         :last_name,
         :phone,
-        :agency,
         :email_schedule,
       )
   end
