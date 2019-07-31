@@ -38,6 +38,11 @@
         - if can_edit_data_sources?
           %tr
             %th
+              HMIS Export SourceID
+            %td
+              = f.input :source_id, label: false
+          %tr
+            %th
               Visible in the Window into the Warehouse?
             %td
               = f.input :visible_in_window, label: false
