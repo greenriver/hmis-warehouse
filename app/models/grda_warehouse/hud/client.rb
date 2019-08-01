@@ -176,6 +176,9 @@ module GrdaWarehouse::Hud
 
     has_many :enrollment_change_histories
 
+    has_many :verification_sources, class_name: GrdaWarehouse::VerificationSource.name
+    has_many :disability_verification_sources, class_name: GrdaWarehouse::VerificationSource::Disability.name
+
     # do not include ineligible clients for Sync with CAS
     def active_cohorts
       cohort_clients.select do |cc|

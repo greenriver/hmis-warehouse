@@ -245,6 +245,7 @@ module ClientController
       @include_confidential_names = user_can_view_confidential_names?
       allowed_rollups = [
         "/clients/rollup/assessments",
+        "/clients/rollup/verifications",
         "/clients/rollup/assessments_without_data",
         "/clients/rollup/case_manager",
         "/clients/rollup/chronic_days",

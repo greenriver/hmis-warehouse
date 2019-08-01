@@ -36,11 +36,3 @@
       %p
         = checkmark_or_x(@client.ha_eligible)
         %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
-      %p
-        = checkmark_or_x(@client.disability_verified_on.present?)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
-        - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
-        - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
-        - if file.present?
-          - if file.tag_list.present?
-            = "(#{file.tag_list.join(', ')})"
