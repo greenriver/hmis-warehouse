@@ -10,7 +10,7 @@ module GrdaWarehouse::Tasks
   class EarliestResidentialService
     include TsqlImport
     include ArelHelper
-    
+
     def initialize(replace_all=false, dry_run: false)
       @replace_all = replace_all.present?
       @dry_run = dry_run
@@ -47,26 +47,27 @@ module GrdaWarehouse::Tasks
           end
           columns = new_first_entries.first.keys
           if @dry_run
-            Rails.logger.info 'DRY RUN, not adding new records'
+            Rails.logger.info "DRY RUN, not adding #{new_first_entries.count} new records"
           else
             insert_batch GrdaWarehouse::ServiceHistoryEnrollment, columns, new_first_entries.map(&:values)
           end
         end
       end
-      
+
       Rails.logger.info 'done processing first-time residential records'
     end
 
-    def existing_first_dates 
+    def existing_first_dates
       @existing_first_dates ||= GrdaWarehouse::ServiceHistoryEnrollment.first_date.pluck(:client_id, :first_date_in_program)
     end
 
-    def earliest_dates 
-      @earliest_dates ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, 'min(first_date_in_program)')
+    def earliest_dates
+      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, 'min(first_date_in_program)')
     end
 
+    # limit to enrollments with service
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
+      GrdaWarehouse::ServiceHistoryEnrollment.distinct.joins(:service_history_services)
     end
   end
 end
