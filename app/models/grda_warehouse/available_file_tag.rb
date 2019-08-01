@@ -54,6 +54,12 @@ module GrdaWarehouse
       self.ordered.group_by{|tag| tag.group}
     end
 
+    def self.tag_includes(info_type)
+      self.all.select do |tag|
+        tag.included_info.present? && tag.included_info.split(',').map(&:strip).include?(info_type)
+      end
+    end
+
     # Taken from here:https://github.com/carrierwaveuploader/carrierwave-i18n/blob/master/rails/locales/en.yml
     # These don't get translated appropriately unless they are here
     # def translations

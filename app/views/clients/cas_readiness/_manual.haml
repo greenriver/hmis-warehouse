@@ -36,11 +36,18 @@
             .mr-10
               = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
             .mr-10.pt-2
-              - file = @client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
+              - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
+              - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
               - if file.present?
                 File:
+                - if file.tag_list.present?
+                  = file.tag_list.join(', ')
+                  %br
                 = link_to preview_client_file_path(@client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
+              - elsif @client.disability_verification_sources.exists?
+                - @client.disability_verification_sources.each do |v|
+                  .disability_verification Disability Verified at #{v.location} on #{v.verified_at&.to_date}
               - else
                 No file present
   .row

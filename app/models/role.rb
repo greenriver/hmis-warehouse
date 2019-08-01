@@ -320,6 +320,14 @@ class Role < ActiveRecord::Base
         description: 'Access to see assigned "secure" uploaded files',
         administrative: false,
       },
+      can_manage_agency: {
+        description: 'Ability to manage users associated with my agency',
+        administrative: true,
+      },
+      can_manage_all_agencies: {
+        description: 'Ability to manage all agencies',
+        administrative: true,
+      },
     }
   end
 

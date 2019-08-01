@@ -1,0 +1,17 @@
+- verifications = @client.verification_sources
+- if verifications.present?
+  %table.table
+    %thead
+      %tr
+        %th Verification Type
+        %th Verification Source
+        %th Verification Date
+    %tbody
+      - verifications.each do |v|
+        %tr
+          %td= v.title
+          %td= v.location
+          %td= v.verified_at&.to_date
+- else
+  .no-data
+    No verifications on file

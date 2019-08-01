@@ -5,10 +5,11 @@ module Bo
 
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago
+    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false
       @api_site_identifier = api_site_identifier
       @start_time = start_time
       @debug = debug
+      @force_disability_verification = force_disability_verification
       @api_config = api_config_from_site_identifier @api_site_identifier
       @data_source_id = @api_config['data_source_id']
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
@@ -306,13 +307,20 @@ module Bo
         # then, check the destination client and update that as well
         # We could batch this to improve performance if necessary, but after the first load
         # this should only be a handful of clients each day
-        if client.disability_verified_on.blank? || max_date > client.disability_verified_on
+        if client.disability_verified_on.blank? || max_date > client.disability_verified_on || (@force_disability_verification && max_date >= client.disability_verified_on)
           client.update(disability_verified_on: max_date)
           updated_source_counts += 1
           dest_client = client.destination_client
           # reflect changes on the destination client if the changes to the source client data are newer
-          if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on
+          if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on || @force_disability_verification
             dest_client.update(disability_verified_on: client.disability_verified_on)
+
+            verification = verifications.detect { |v| v[:date_last_updated].to_time == max_date }
+            if verification
+              verification_source = GrdaWarehouse::VerificationSource::Disability.where(client_id: dest_client.id).first_or_create
+              verification_source.update(location: verification[:site_name], verified_at: max_date)
+            end
+
             updated_destination_counts += 1
           end
         end
