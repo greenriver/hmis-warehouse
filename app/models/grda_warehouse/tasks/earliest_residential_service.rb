@@ -28,12 +28,12 @@ module GrdaWarehouse::Tasks
       to_add = earliest_dates - existing_first_dates
       Rails.logger.info "Adding #{to_add.size} new first-time residential records"
 
-      service_history_source.transaction do
+      GrdaWarehouse::ServiceHistoryEnrollment.transaction do
         if @dry_run
           Rails.logger.info 'DRY RUN, not deleting records'
         else
           if to_remove.any?
-            service_history_source.first_date.where(client_id: to_remove.map(&:first)).delete_all
+            GrdaWarehouse::ServiceHistoryEnrollment.first_date.where(client_id: to_remove.map(&:first)).delete_all
           end
         end
 
