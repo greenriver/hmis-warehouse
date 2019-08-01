@@ -90,7 +90,8 @@ module GrdaWarehouse
     end
 
     scope :verification_of_disability, -> do
-      tagged_with(['Verification of Disability', 'Disability Verification'], any: true)
+      tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
+      tagged_with(tags, any: true)
     end
 
     scope :notification_triggers, -> do

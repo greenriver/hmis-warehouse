@@ -42,4 +42,8 @@
           %span Disability Verified at #{@eto_disability_verification_site}
         - else
           %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]
-
+          - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
+          - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
+          - if file.present?
+            - if file.tag_list.present?
+              = "(#{file.tag_list.join(', ')})"

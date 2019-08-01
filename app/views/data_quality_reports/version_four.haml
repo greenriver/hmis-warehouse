@@ -20,7 +20,9 @@
           %strong= @report.end
       .col-sm-4
         %h4 Projects
-        %p= @report.projects.map(&:organization_and_name).join('<br />').html_safe
+        - names = @report.projects.map do |project|
+          - project.organization_and_name(include_confidential_names: true)
+        %p= names.join('<br />').html_safe
       .col-sm-4
         %h4 Run
         - requestor = User.find(@report.requestor_id)
