@@ -97,6 +97,7 @@ module AuditReports
     def sort_users(users)
       return users.order(@column => @direction) unless @column.include? 'month'
 
+      # FIXME: this needs to be pushed off to the database
       case @column
         when 'this_month'
           sorted = users.sort_by{ |user| clients_viewed(user, 0) }

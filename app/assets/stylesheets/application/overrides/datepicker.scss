@@ -4,7 +4,8 @@
   padding: 0;
   // Above header
   // Use Important flag because z-index is strangely added inline by library
-  z-index: $zIndex-10+10 !important;
+  // higher than bootstrap $zindex-modal
+  z-index: $zindex-tooltip !important;
 }
 
 .datepicker input {
