@@ -3,7 +3,7 @@ module AuditReports
     include WarehouseReportAuthorization
 
     def index
-      @users = users_scope.page(params[:page])
+      @users = users_scope.page(params[:page]).per(25)
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -17,6 +17,7 @@ module AuditReports
     def users_scope
       User.
         joins(:agency).
+        preload(:agency).
         active.
         where.not(current_sign_in_at: nil).
         order(current_sign_in_at: :desc)

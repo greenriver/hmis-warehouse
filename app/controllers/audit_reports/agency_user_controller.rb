@@ -21,7 +21,7 @@ module AuditReports
       respond_to do |format|
         format.html do
           @users = sort_users(@users)
-          @users = @users.page(params[:page])
+          @users = @users.page(params[:page]).per(25)
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
@@ -145,7 +145,8 @@ module AuditReports
         @agency = current_user.agency.name
         scope = scope.where(agency: current_user.agency)
       end
-      scope
+      scope.
+      preload(:agency)
     end
 
   end

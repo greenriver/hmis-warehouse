@@ -9,7 +9,7 @@
   .ml-4
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
-  = paginate @users
+= paginate @users
 %table.table.table-hover
   %thead
     %tr
