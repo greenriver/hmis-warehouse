@@ -5,12 +5,12 @@
 ###
 
 module GrdaWarehouse
-  class VerificationSource < GrdaWarehouseBase
+  class VerificationSource::Disability < GrdaWarehouse::VerificationSource
     self.table_name = :verification_sources
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+
 
     def title
-      raise NotImplementedError
+      'Disability Verification'
     end
   end
 end

@@ -7,7 +7,7 @@
 module Clients
   class CasReadinessController < ApplicationController
     include ClientPathGenerator
-    
+
     before_action :require_can_edit_clients!
     before_action :set_client
     after_action :log_client
@@ -16,7 +16,6 @@ module Clients
       if Cas::Neighborhood.db_exists?
         @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name)
       end
-      @eto_disability_verification_site = verification_source&.disability_verification
     end
 
     def update
@@ -52,10 +51,6 @@ module Clients
 
       def cas_readiness_params
         params.require(:readiness).permit(*client_source.cas_readiness_parameters)
-      end
-
-      def verification_source
-        GrdaWarehouse::VerificationSource.where(client_id: @client.id).first
       end
 
       def client_source
