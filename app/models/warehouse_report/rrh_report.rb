@@ -853,8 +853,8 @@ class WarehouseReport::RrhReport
 
   def columns_for_returns_after_exit
     {
-      entry_date: _('Housing Exit'),
-      exit_date: _('Date of Return'),
+      exit_date: _('Housing Exit'),
+      return_date: _('Date of Return'),
       days_to_return: _('Days to Return'),
     }
   end
@@ -944,8 +944,8 @@ class WarehouseReport::RrhReport
       end.map do |_, row|
         [
           row[:client_id],
-          row[:entry_date],
           row[:exit_date],
+          row[:entry_date], # actually return date
           row[:days_to_return],
         ]
       end
@@ -959,8 +959,8 @@ class WarehouseReport::RrhReport
       end.map do |_, row|
         [
           row[:client_id],
-          row[:entry_date],
           row[:exit_date],
+          row[:entry_date], # actually return date
           row[:days_to_return],
         ]
       end
