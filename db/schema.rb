@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190802144446) do
+ActiveRecord::Schema.define(version: 20190802150742) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,8 +37,10 @@ ActiveRecord::Schema.define(version: 20190802144446) do
 
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
   add_index "activity_logs", ["created_at", "item_model", "user_id"], name: "index_activity_logs_on_created_at_and_item_model_and_user_id", using: :btree
+  add_index "activity_logs", ["item_model", "user_id", "created_at"], name: "index_activity_logs_on_item_model_and_user_id_and_created_at", using: :btree
   add_index "activity_logs", ["item_model", "user_id"], name: "index_activity_logs_on_item_model_and_user_id", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree
+  add_index "activity_logs", ["user_id", "item_model", "created_at"], name: "index_activity_logs_on_user_id_and_item_model_and_created_at", using: :btree
   add_index "activity_logs", ["user_id"], name: "index_activity_logs_on_user_id", using: :btree
 
   create_table "agencies", force: :cascade do |t|
