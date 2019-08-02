@@ -853,8 +853,8 @@ class WarehouseReport::RrhReport
 
   def columns_for_returns_after_exit
     {
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
+      entry_date: _('Housing Exit'),
+      exit_date: _('Date of Return'),
       days_to_return: _('Days to Return'),
     }
   end
