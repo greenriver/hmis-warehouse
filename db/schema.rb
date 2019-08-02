@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190417142558) do
+ActiveRecord::Schema.define(version: 20190801193258) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -36,8 +36,15 @@ ActiveRecord::Schema.define(version: 20190417142558) do
   end
 
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
+  add_index "activity_logs", ["item_model", "user_id"], name: "index_activity_logs_on_item_model_and_user_id", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree
   add_index "activity_logs", ["user_id"], name: "index_activity_logs_on_user_id", using: :btree
+
+  create_table "agencies", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "cas_reports", force: :cascade do |t|
     t.integer  "client_id",                                          null: false
@@ -321,6 +328,8 @@ ActiveRecord::Schema.define(version: 20190417142558) do
     t.boolean  "can_view_all_secure_uploads",                         default: false
     t.boolean  "can_unsubmit_submitted_claims",                       default: false
     t.boolean  "can_view_assigned_secure_uploads",                    default: false
+    t.boolean  "can_manage_agency",                                   default: false
+    t.boolean  "can_manage_all_agencies",                             default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -436,13 +445,14 @@ ActiveRecord::Schema.define(version: 20190417142558) do
     t.integer  "invitations_count",                 default: 0
     t.boolean  "receive_file_upload_notifications", default: false
     t.string   "phone"
-    t.string   "agency"
+    t.string   "deprecated_agency"
     t.boolean  "notify_on_vispdat_completed",       default: false
     t.boolean  "notify_on_client_added",            default: false
     t.boolean  "notify_on_anomaly_identified",      default: false,       null: false
     t.string   "coc_codes",                         default: [],                       array: true
     t.string   "email_schedule",                    default: "immediate", null: false
     t.boolean  "active",                            default: true,        null: false
+    t.integer  "agency_id"
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

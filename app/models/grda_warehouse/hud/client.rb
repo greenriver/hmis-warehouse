@@ -176,6 +176,9 @@ module GrdaWarehouse::Hud
 
     has_many :enrollment_change_histories
 
+    has_many :verification_sources, class_name: GrdaWarehouse::VerificationSource.name
+    has_many :disability_verification_sources, class_name: GrdaWarehouse::VerificationSource::Disability.name
+
     # do not include ineligible clients for Sync with CAS
     def active_cohorts
       cohort_clients.select do |cc|
@@ -857,9 +860,7 @@ module GrdaWarehouse::Hud
           'BHA Eligibility',
           'Housing Authority Eligibility',
         ],
-        disability_verified_on: [
-          'Disability Verification',
-        ],
+        disability_verified_on: GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name),
         limited_cas_release: [
           'Limited CAS Release'
         ],

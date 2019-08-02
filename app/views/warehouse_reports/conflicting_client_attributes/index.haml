@@ -1,0 +1,31 @@
+- title = "Clients With Conflicting Reported #{@attribute_name.pluralize}"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+
+= simple_form_for :report, url: warehouse_reports_conflicting_client_attributes_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-4
+        = f.input :attribute, collection: attributes, selected: @attribute_name, input_html: { class: :select2 }
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update View'
+
+  = render 'warehouse_reports/filters', f:f
+
+= paginate @clients
+= page_entries_info @clients, entry_name: 'Client'
+%table.table
+  %thead
+    %th Client Name
+    %th DOB
+    %th SSN
+    %th Gender
+  %tbody
+    - @clients.each do |client|
+      %tr
+        %td= link_to client.name, client_path(client)
+        %td= dob_or_age client.DOB
+        %td= ssn client.SSN
+        %td= HUD.gender(client.Gender)

@@ -6,9 +6,10 @@
 
 # provides validation for date ranges
 module Filters
-  class DateRangeWithSourcesAndSubPopulation < DateRangeAndSources
+  class OutflowReport < DateRangeAndSources
     attribute :sub_population, Symbol, default: :all_clients
     attribute :no_service_after_date, Date, lazy: true, default: -> (r,_) { r.default_no_service_after_date }
+    attribute :no_recent_service_project_ids, Array, default: []
 
     validates_presence_of :start, :end, :sub_population
 

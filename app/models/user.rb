@@ -30,6 +30,8 @@ class User < ActiveRecord::Base
 
   has_many :messages
 
+  belongs_to :agency
+
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
@@ -99,6 +101,14 @@ class User < ActiveRecord::Base
 
   def can_access_some_version_of_clients?
     can_view_client_window? || can_view_clients? || can_edit_clients?
+  end
+
+  def self.stale_account_threshold
+    30.days.ago
+  end
+
+  def stale_account?
+    current_sign_in_at < self.class.stale_account_threshold
   end
 
 

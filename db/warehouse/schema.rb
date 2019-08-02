@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190710202403) do
+ActiveRecord::Schema.define(version: 20190802121551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1347,6 +1347,7 @@ ActiveRecord::Schema.define(version: 20190710202403) do
     t.string   "after_create_path"
     t.boolean  "import_paused",      default: false, null: false
     t.string   "authoritative_type"
+    t.string   "source_id"
   end
 
   create_table "direct_financial_assistances", force: :cascade do |t|
@@ -3241,6 +3242,15 @@ ActiveRecord::Schema.define(version: 20190710202403) do
   end
 
   add_index "user_viewable_entities", ["user_id", "entity_id", "entity_type", "deleted_at"], name: "one_entity_per_type_per_user_allows_delete", unique: true, using: :btree
+
+  create_table "verification_sources", force: :cascade do |t|
+    t.integer  "client_id"
+    t.string   "location"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "verified_at"
+    t.string   "type"
+  end
 
   create_table "vispdats", force: :cascade do |t|
     t.integer  "client_id"
