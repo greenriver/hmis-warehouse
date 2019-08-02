@@ -3,14 +3,18 @@
   %head
     = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
     = wicked_pdf_javascript_include_tag 'pdf'
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
     -# = stylesheet_link_tag 'dashboard_pdf', media: 'all'
     -# = javascript_include_tag 'pdf'
 
   %body
     - @show_census = true
     - chart_options = { size: { height: 300, width: 1200 } }
-
-    = render 'index_title'
+    %section.d-flex.align-items-start
+      .mr-4
+        = render 'index_title'
+      .ml-auto
+        = image_tag(wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}"), width: 250)
 
     %section
       = render 'housed_overall', chart_options: chart_options
@@ -18,23 +22,15 @@
     %section
       = render 'overview', chart_options: chart_options
 
-    %section
+    %section.page-break-after
       = render 'censuses', chart_options: chart_options
 
-    .page-break
-
-    %section
+    %section.page-break-after
       = render 'entry', chart_options: chart_options
 
-    .page-break
 
-    %section
+    %section.page-break-after
       = render 'exit', chart_options: chart_options
-
-    .page-break
-
-    %section.l-page__secondary-content
-      = render 'computation_description'
 
     = svg 'symbol-defs'
     = yield :page_js

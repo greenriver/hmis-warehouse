@@ -8,6 +8,7 @@
   }
 
   body {
+    display: block;
     background: #FFF;
   }
 
@@ -42,7 +43,6 @@
   }
 
   .l-page__secondary-content {
-    page-break-before: always;
     h1 {
       font-size: .35in;
       text-transform: uppercase;
@@ -122,7 +122,6 @@
     padding: 0;
     border: 0 !important;
     border-radius: 0;
-    page-break-before: always;
   }
 
   .ho-container__summary {
@@ -186,5 +185,9 @@
       vertical-align: top;
     }
   }
+  .pdf-hide {
+    display: none;
+  }
 
 }
+
