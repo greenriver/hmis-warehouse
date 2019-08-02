@@ -115,7 +115,7 @@ module AuditReports
       @view_history ||= ActivityLog.where(
         user_id: user_scope.pluck(:id),
         item_model: GrdaWarehouse::Hud::Client.name,
-        created_at: 2.months.ago.beginning_of_month .. Date.today,
+        created_at: 2.months.ago.beginning_of_month .. Date.tomorrow,
       ).
       select(:user_id, :item_id, :created_at).
       group_by(&:user_id).
