@@ -137,16 +137,6 @@ module AuditReports
         history
       end
 
-      # pluck(:user_id, :item_id, "date_part('month', created_at)")
-      # pluck(:user_id, :item_id, :created_at).
-      # group_by(&:user_id).
-      #   map do |user_id, dates|
-      #     current = dates.select { |date| date.created_at >= Date.today.beginning_of_month }.map(&:item_id).uniq.count
-      #     last = dates.select { |date| date.created_at < Date.today.beginning_of_month && date.created_at >= 1.month.ago.beginning_of_month }.map(&:item_id).uniq.count
-      #     previous = dates.select { |date| date.created_at < 1.month.ago.beginning_of_month  }.map(&:item_id).uniq.count
-
-      #     [user_id, [current, last, previous]]
-      #   end.to_h
     end
 
     def user_scope
