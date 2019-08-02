@@ -82,14 +82,21 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def housed_scope
-      Reporting::Housed.
-      where(client_id: entries_scope.pluck(:client_id)).
-      viewable_by(@user)
+      housed = Reporting::Housed.
+        where(client_id: entries_scope.pluck(:client_id)).
+        viewable_by(@user)
+      if @filter.sub_population.to_s.starts_with?('youth')
+        housed = housed.send(@filter.sub_population)
+      end
+      return housed
     end
 
     def service_history_enrollment_scope
+      sub_population = @filter.sub_population
+      sub_population = :youth if sub_population.to_s.starts_with?('youth')
+
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        send(@filter.sub_population).
+        send(sub_population).
         joins(:project).
         joins(:organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user))

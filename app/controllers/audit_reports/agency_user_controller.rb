@@ -7,6 +7,7 @@
 module AuditReports
   class AgencyUserController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
     before_action :require_can_view_user_audit_report!
 
     def index
@@ -33,6 +34,7 @@ module AuditReports
 
     def clients_viewed(user, months_in_past)
       return 0 unless view_history[user.id].present?
+      return 0 unless view_history[user.id][months_in_past].present?
 
       return view_history[user.id][months_in_past]
     end
@@ -112,20 +114,29 @@ module AuditReports
     end
 
     def view_history
-      @view_history ||= ActivityLog.where(
-        user_id: user_scope.pluck(:id),
-        item_model: GrdaWarehouse::Hud::Client.name,
-        created_at: 2.months.ago.beginning_of_month .. Date.today,
-      ).
-      select(:user_id, :item_id, :created_at).
-      group_by(&:user_id).
-        map do |user_id, dates|
-          current = dates.select { |date| date.created_at >= Date.today.beginning_of_month }.map(&:item_id).uniq.count
-          last = dates.select { |date| date.created_at < Date.today.beginning_of_month && date.created_at >= 1.month.ago.beginning_of_month }.map(&:item_id).uniq.count
-          previous = dates.select { |date| date.created_at < 1.month.ago.beginning_of_month  }.map(&:item_id).uniq.count
+      al_t = ActivityLog.arel_table
+      @view_history ||= begin
+        history = {}
+        months = {
+          Date.today.month => 0,
+          (Date.today - 1.months).month => 1,
+          (Date.today - 2.months).month => 2,
+        }
 
-          [user_id, [current, last, previous]]
-        end.to_h
+        ActivityLog.where(
+          user_id: User.active.select(:id),
+          item_model: GrdaWarehouse::Hud::Client.name,
+          created_at: 2.months.ago.beginning_of_month .. Date.tomorrow,
+        ).
+        group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
+        distinct.
+        count(:item_id).each do |(user_id, month), count|
+          history[user_id] ||= []
+          history[user_id][months[month.to_i]] = count
+        end
+        history
+      end
+
     end
 
     def user_scope
