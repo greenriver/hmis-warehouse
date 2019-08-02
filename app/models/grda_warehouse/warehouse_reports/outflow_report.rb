@@ -41,16 +41,31 @@ module GrdaWarehouse::WarehouseReports
     # Clients with an open enrollment and service within the reporting period,
     # but no service after the cutoff date.
     def clients_without_recent_service
-      @clients_without_recent_service = entries_scope.
-        homeless.
-        with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
-        where.not(client_id:  entries_scope.
+      @clients_without_recent_service ||= begin
+        without_recent_service = entries_scope.
           homeless.
-          with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today, service_scope: :homeless).
-          select(:client_id)
-        ).
-        distinct.
-        pluck(:client_id)
+          with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
+          where.not(client_id:  entries_scope.
+            homeless.
+            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today, service_scope: :homeless).
+            select(:client_id)
+          ).
+          distinct.
+          pluck(:client_id)
+        if @filter.no_recent_service_project_ids.any?
+          without_recent_service += entries_scope.in_project(@filter.no_recent_service_project_ids).
+            with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
+            where.not(client_id:  entries_scope.
+              in_project(@filter.no_recent_service_project_ids).
+              with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today, service_scope: :homeless).
+              select(:client_id)
+            ).
+            distinct.
+            pluck(:client_id)
+        end
+        without_recent_service
+      end
+      return @clients_without_recent_service.uniq
     end
 
     def client_outflow

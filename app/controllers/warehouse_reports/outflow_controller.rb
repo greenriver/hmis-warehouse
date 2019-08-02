@@ -51,7 +51,7 @@ module WarehouseReports
     helper_method :describe_computations
 
     private def set_report
-      @filter = ::Filters::DateRangeWithSourcesAndSubPopulation.new(filter_options)
+      @filter = ::Filters::OutflowReport.new(filter_options)
       @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter, current_user)
     end
 
@@ -64,6 +64,7 @@ module WarehouseReports
           :no_service_after_date,
           organization_ids: [],
           project_ids: [],
+          no_recent_service_project_ids: [],
         )
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
@@ -72,6 +73,7 @@ module WarehouseReports
         end
         opts[:project_ids] = cleanup_ids(opts[:project_ids])
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
+        opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
         opts
       else
         {
