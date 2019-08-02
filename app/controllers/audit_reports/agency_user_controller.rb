@@ -113,7 +113,7 @@ module AuditReports
 
     def view_history
       @view_history ||= ActivityLog.where(
-        user_id: user_scope.pluck(:id),
+        user_id: user_scope.select(:id),
         item_model: GrdaWarehouse::Hud::Client.name,
         created_at: 2.months.ago.beginning_of_month .. Date.tomorrow,
       ).
