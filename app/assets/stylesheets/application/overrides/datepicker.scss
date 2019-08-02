@@ -2,6 +2,9 @@
 
 .datepicker {
   padding: 0;
+}
+
+.datepicker-dropdown {
   // Above header
   // Use Important flag because z-index is strangely added inline by library
   // higher than bootstrap $zindex-modal
