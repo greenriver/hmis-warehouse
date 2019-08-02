@@ -17,5 +17,12 @@ module Filters
       Date.today - 90.day
     end
 
+     def available_sub_populations
+      @available_sub_populations = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.dup
+      @available_sub_populations.delete('Youth')
+      @available_sub_populations['Youth at Search Start'] = :youth_at_search_start
+      @available_sub_populations['Youth at Housed Date'] = :youth_at_housed_date
+      return @available_sub_populations
+    end
   end
 end

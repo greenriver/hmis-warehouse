@@ -28,6 +28,22 @@ module Reporting
       where(dob: 24.years.ago..18.years.ago)
     end
 
+    scope :youth_at_search_start, -> do
+      where(age_at_search_start: 18..24)
+    end
+
+    scope :youth_at_search_end, -> do
+      where(age_at_search_end: 18..24)
+    end
+
+    scope :youth_at_housed_date, -> do
+      where(age_at_housed_date: 18..24)
+    end
+
+    scope :youth_at_housing_exit, -> do
+      where(age_at_housing_exit: 18..24)
+    end
+
     scope :veteran, -> do
       where(veteran_status: 1)
     end
@@ -146,7 +162,9 @@ module Reporting
 
     def self.available_subpopulations
       {
-        youth: 'Youth',
+        youth: 'Youth (today)',
+        youth_at_search_start: 'Youth (at search start)',
+        youth_at_housed_date: 'Youth (at housed date)',
         veteran: 'Veteran',
       }
     end
@@ -242,6 +260,11 @@ module Reporting
           en[:ph_destination] = :not_ph
         end
         en[:race] = cache_client.race_string(scope_limit: GrdaWarehouse::Hud::Client.where(id: client_ids), destination_id: en[:client_id])
+
+        en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
+        en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
+        en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
+        en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
         en
       end
       return unless data.present?
@@ -293,6 +316,10 @@ module Reporting
         month_year: nil,
         ph_destination: nil,
         project_id: nil,
+        age_at_search_start: nil,
+        age_at_search_end: nil,
+        age_at_housed_date: nil,
+        age_at_housing_exit: nil,
       }
     end
 
