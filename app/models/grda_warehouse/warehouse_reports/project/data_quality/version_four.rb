@@ -465,12 +465,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def household_client_counts
       @household_client_counts ||= source_enrollments.where.not(HouseholdID: nil).
         group(:HouseholdID).
-        select(:HouseholdID).
         count
     end
 
     def household_type_for enrollment:
-      if household_client_counts[enrollment].blank? || household_client_counts[enrollment] == 1
+      if household_client_counts[enrollment.HouseholdID].blank? || household_client_counts[enrollment.HouseholdID] == 1
         :individual
       else
         :family

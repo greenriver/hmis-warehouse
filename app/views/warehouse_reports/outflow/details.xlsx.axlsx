@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: metrics[@key]) do |sheet|
+wb.add_worksheet(name: @report.metrics[@key].slice(0,30)) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(
     [
@@ -19,13 +19,14 @@ wb.add_worksheet(name: metrics[@key]) do |sheet|
       client = enrollment.client
       sheet.add_row(
         [
-          client['id'],
-          client['FirstName'],
-          client['LastName'],
-          enrollment['project_name'],
-          enrollment['first_date_in_program'],
-          enrollment['last_date_in_program'],
-          HUD.destination(enrollment['destination'])
+          client.id,
+          client.FirstName,
+          client.LastName,
+          enrollment.project_name,
+          enrollment.service_type_brief,
+          enrollment.first_date_in_program,
+          enrollment.last_date_in_program,
+          HUD.destination(enrollment.destination)
         ]
       )
     end

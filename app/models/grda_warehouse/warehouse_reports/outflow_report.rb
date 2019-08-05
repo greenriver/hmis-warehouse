@@ -65,8 +65,24 @@ module GrdaWarehouse::WarehouseReports
       return @clients_without_recent_service.uniq
     end
 
+    def exits_to_ph
+      @exits_to_ph ||= (clients_to_ph + clients_to_stabilization).uniq
+    end
+
     def client_outflow
       @client_outflow ||= (clients_to_ph + clients_to_stabilization + clients_without_recent_service).uniq
+    end
+
+    def metrics
+      {
+        clients_to_ph: 'Clients exiting to PH',
+        psh_clients_to_stabilization: "PSH Clients entering #{_"Housing"}",
+        rrh_clients_to_stabilization: "RRH Clients entering #{_"Stabilization"}",
+        clients_to_stabilization: "All Clients entering #{_"Stabilization"}",
+        exits_to_ph: "Unique Clients exiting PH or entering #{_"Stabilization"}",
+        clients_without_recent_service: 'Clients without recent service',
+        client_outflow: 'Total Outflow',
+      }
     end
 
     def entries_scope
