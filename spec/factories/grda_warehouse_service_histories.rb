@@ -36,12 +36,17 @@ FactoryBot.define do
   end
 
   trait :with_ph_enrollment do
-    transient do
-      move_in_date { nil }
-      enrollment { create :hud_enrollment, data_source_id: 1, MoveInDate: move_in_date }
-    end
+    enrollment { create :hud_enrollment, data_source_id: 1, MoveInDate: move_in_date }
 
     computed_project_type { 3 }
+    enrollment_group_id { enrollment.EnrollmentID }
+    project_id { enrollment.ProjectID }
+  end
+
+  trait :with_th_enrollment do
+    enrollment { create :hud_enrollment, data_source_id: 1, MoveInDate: move_in_date }
+
+    computed_project_type { 2 }
     enrollment_group_id { enrollment.EnrollmentID }
     project_id { enrollment.ProjectID }
   end

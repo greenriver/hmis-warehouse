@@ -51,26 +51,83 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
     let!(:data_source) { create :data_source_fixed_id }
 
     let!(:no_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
-    let!(:no_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:no_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
 
-    let!(:future_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 2, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
-    let!(:future_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:future_move_in_th) { create :grda_warehouse_service_history, :service_history_entry, :with_th_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:future_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
 
-    let!(:past_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 3, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
-    let!(:past_move_in_enrollment) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 3, data_source_id: 1, move_in_date: Date.yesterday, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:past_move_in_th) { create :grda_warehouse_service_history, :service_history_entry, :with_th_enrollment, client_id: 3, data_source_id: 1, first_date_in_program: start_date, move_in_date: Date.yesterday, last_date_in_program: end_date }
+    let!(:past_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 3, data_source_id: 1, first_date_in_program: start_date, move_in_date: Date.yesterday, last_date_in_program: end_date }
 
-    let(:scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today) }
+    let(:homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today) }
+    let(:literally_homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today, chronic_types_only: true) }
 
+    # Client ID 1 (only no move in date)
     it 'includes no move in' do
-      expect(scope).to include no_move_in
+      aggregate_failures do
+        expect(homeless_scope).to include no_move_in
+        expect(homeless_scope).to include no_move_in_ph
+        expect(literally_homeless_scope).to include no_move_in
+        expect(literally_homeless_scope).to include no_move_in_ph
+      end
     end
 
+    # Client ID 2 (only future move in date)
     it 'includes future move in' do
-      expect(scope).to include future_move_in
+      aggregate_failures do
+        expect(homeless_scope).to include future_move_in_th
+        expect(homeless_scope).to include future_move_in_ph
+        expect(literally_homeless_scope).to include future_move_in_th
+        expect(literally_homeless_scope).to include future_move_in_ph
+      end
     end
 
+    # Client ID 3 (only past move in date)
     it 'does not include past move in' do
-      expect(scope).not_to include past_move_in
+      aggregate_failures do
+        expect(homeless_scope).not_to include past_move_in_th
+        expect(homeless_scope).not_to include past_move_in_ph
+        expect(literally_homeless_scope).not_to include past_move_in_th
+        expect(literally_homeless_scope).not_to include past_move_in_ph
+      end
+    end
+
+    # Client IDs mixed  (only past move in date)
+    it 'does not include past move in' do
+      past_move_in_th.update(client_id: 4)
+      aggregate_failures do
+        expect(homeless_scope).to include past_move_in_th
+        expect(homeless_scope).not_to include past_move_in_ph
+        expect(literally_homeless_scope).not_to include past_move_in_th
+        expect(literally_homeless_scope).not_to include past_move_in_ph
+      end
+    end
+
+    # Client ID 3 (only past move in date) and include some es that gets excluded
+    it 'negates es with PH' do
+      no_move_in.update(client_id: 3)
+      aggregate_failures do
+        # Excluded by PH
+        expect(homeless_scope).not_to include no_move_in
+        expect(homeless_scope).not_to include past_move_in_th
+        expect(homeless_scope).not_to include past_move_in_ph
+        # Excluded by TH & PH
+        expect(literally_homeless_scope).not_to include no_move_in
+        expect(literally_homeless_scope).not_to include past_move_in_th
+        expect(literally_homeless_scope).not_to include past_move_in_ph
+      end
+    end
+
+    # Client ID 4 (only past move in date) and include some es that gets excluded sometimes
+    it 'negates es with TH' do
+      past_move_in_th.update(client_id: 4)
+      no_move_in.update(client_id: 4)
+      aggregate_failures do
+        expect(homeless_scope).to include no_move_in
+        expect(homeless_scope).to include past_move_in_th
+        expect(literally_homeless_scope).not_to include no_move_in
+        expect(literally_homeless_scope).not_to include past_move_in_th
+      end
     end
   end
 end
