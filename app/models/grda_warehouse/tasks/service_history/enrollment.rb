@@ -651,6 +651,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         deleted_at: :DateDeleted,
         household_id: :HouseholdID,
         head_of_household: :RelationshipToHoH,
+        move_in_date: :MoveInDate,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -660,6 +662,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         destination: :Destination,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -668,6 +671,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
+        updated_at: :DateUpdated,
       }
     end
 

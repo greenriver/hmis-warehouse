@@ -109,44 +109,46 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do
-    ph_scopes = [
+    housed_scopes = [
       entry.ongoing(on_date: date).
         in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
         with_move_in_date_before(date).
         select(:client_id).
-        distinct.to_sql]
+        distinct.to_sql
+    ]
 
     if chronic_types_only
-      ph_scopes << entry.ongoing(on_date: date).
+      housed_scopes << entry.ongoing(on_date: date).
         in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
         select(:client_id).
         distinct.to_sql
     end
 
-    negate_with_housed = Arel.sql(ph_scopes.join(' OR '))
+    negate_with_housed = Arel.sql(housed_scopes.join(' OR '))
 
     entry.
       ongoing(on_date: date).
       homeless(chronic_types_only: chronic_types_only).
-      where.not(client_id: negated_with_housed)
+      where(she_t[:client_id].not_in(negate_with_housed))
   end
 
   scope :hud_currently_homeless, -> (date: Date.today, chronic_types_only: false) do
-    ph_scopes = [
+    housed_scopes = [
       entry.ongoing(on_date: date).
-        in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+        hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
         with_move_in_date_before(date).
         select(:client_id).
-        distinct.to_sql]
+        distinct.to_sql
+    ]
 
     if chronic_types_only
-      ph_scopes << entry.ongoing(on_date: date).
+      housed_scopes << entry.ongoing(on_date: date).
         hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
         select(:client_id).
         distinct.to_sql
     end
 
-    negate_with_housed = Arel.sql(ph_scopes.join(' OR '))
+    negate_with_housed = Arel.sql(housed_scopes.join(' OR '))
 
     entry.
       ongoing(on_date: date).
