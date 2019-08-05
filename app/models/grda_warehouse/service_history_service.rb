@@ -30,7 +30,8 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
 
   scope :homeless_only, -> (start_date:, end_date:) do
     where(
-      project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
+      # Deprecated - moved to homeless flag
+      # project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
       date: (start_date..end_date),
       homeless: true,
     )
@@ -38,7 +39,8 @@ end
 
   scope :literally_homeless_only, -> (start_date:, end_date:) do
     where(
-      project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES,
+      # Deprecated - moved to homeless literally_homeless
+      # project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES,
       date: (start_date..end_date),
       literally_homeless: true,
     )
