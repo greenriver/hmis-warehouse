@@ -19,7 +19,7 @@ module WarehouseReports
 
     def details
       raise 'Key required' if params[:key].blank?
-      @key = metrics.keys.detect { |key| key.to_s == params[:key] }
+      @key = @report.metrics.keys.detect { |key| key.to_s == params[:key] }
       @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by{ |e| e.client_id }
 
       respond_to do |format|
@@ -29,18 +29,6 @@ module WarehouseReports
         format.html {}
       end
     end
-
-    def metrics
-      {
-        clients_to_ph: 'Clients exiting to PH',
-        psh_clients_to_stabilization: "PSH Clients entering #{_"Housing"}",
-        rrh_clients_to_stabilization: "RRH Clients entering #{_"Stabilization"}",
-        clients_to_stabilization: "All Clients entering #{_"Stabilization"}",
-        clients_without_recent_service: 'Clients without recent service',
-        client_outflow: 'Total Outflow',
-      }
-    end
-    helper_method :metrics
 
     def describe_computations
       path = "app/views/warehouse_reports/outflow/README.md"
