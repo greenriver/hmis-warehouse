@@ -344,4 +344,11 @@ namespace :grda_warehouse do
       GrdaWarehouse::SecureFile.clean_expired
     end
   end
+
+  desc "Remove data based on import"
+  task :remove_import_data, [:import_id] => [:environment, "log:info_to_stdout"] do |task, args|
+    import_id = args.import_id.to_i
+    exit unless import_id.present? && import_id.to_s == args.import_id
+    GrdaWarehouse::ImportRemover.new(import_id).run!
+  end
 end

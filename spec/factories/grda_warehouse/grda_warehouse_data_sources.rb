@@ -18,4 +18,12 @@ FactoryBot.define do
     # association :client, factory: :grda_warehouse_hud_client
     source_type { :sftp }
   end
+  factory :authoritative_data_source, class: 'GrdaWarehouse::DataSource' do
+    name { 'Authoritative' }
+    short_name { 'A' }
+    # association :client, factory: :grda_warehouse_hud_client
+    source_type { nil }
+    authoritative { true }
+    authoritative_type { :youth }
+  end
 end

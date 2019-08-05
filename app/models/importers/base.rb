@@ -9,9 +9,9 @@
 # BPHC - /mnt/hmis/bphc
 # DND - /mnt/hmis/dnd
 # MA - /mnt/hmis/ma
-# 
-# Staging & Development should use GrdaWarehouse::Tasks::DumpHmisSubset to generate 
-# fake data from production. Import locations for staging and development are within 
+#
+# Staging & Development should use GrdaWarehouse::Tasks::DumpHmisSubset to generate
+# fake data from production. Import locations for staging and development are within
 # the local tmp directory
 require 'zip'
 require 'csv'
@@ -24,14 +24,14 @@ module Importers
     include TsqlImport
     EXTRACT_DIRECTORY = 'tmp/grda_hud_zip'
 
-    attr_accessor :directory, :source_type, :logger, :notifier_config
+    attr_accessor :directory, :source_type, :logger, :notifier_config, :import
 
-    def initialize( 
-        data_source_id=nil, 
+    def initialize(
+        data_source_id=nil,
         data_sources=GrdaWarehouse::DataSource.importable_via_samba,
         logger: Rails.logger,
         directory: nil,   # for importing a set of plain CSV files, should be a map from data source ids to directories
-        rm_files: false, 
+        rm_files: false,
         munge_export_id: false
       )
       raise 'No longer in use'
@@ -74,7 +74,7 @@ module Importers
           # Keep track of changed projects for this data source
           @changed_projects = []
           copy_files_to_tmp(smb_source: source_type, directory_source: d.source_type, data_source: d)
-          
+
           # Load the newest updated date from the last time we ran this import
           # This is used to speed import (anything with a created date that is
           # newer is simply imported, the rest are issued as upserts)
@@ -135,7 +135,7 @@ module Importers
     # copy files from SMB location to local extract directory (equivalent of unzip)
     def fetch_over_samba data_source
       attempts = 1 # samba can be finnicky and sometimes needs a few seconds to wake up, we'll give it five attempts with 2 * attempts seconds between
-      while attempts < 5 
+      while attempts < 5
         @import.zip = "/#{data_source.file_path.split('/').last}"
         source_path = data_source.file_path
         temporary_path = extract_path.gsub(@import.zip, '/')
@@ -198,7 +198,7 @@ module Importers
       # reset some things
       reset_for_klass()
       file = read_csv_file()
-      
+
       # get clean csv data for the file, @new_data is an array of arrays
       # the first line is the headers for the file
       @new_data = load_from_csv(file: file)
@@ -238,7 +238,7 @@ module Importers
             # Check to see if we already have this record,
             # if we don't (even deleted), add it
             # if we do, and the updated date is newer or we've previously deleted it
-            #   update it, 
+            #   update it,
             # if the update date is older, ignore it
             @new_data.each do |row|
               h_key = row[@hud_key]
@@ -373,7 +373,7 @@ module Importers
       when 'samba'
         fetch_over_samba(data_source)
         logger.info "Importing #{data_source.name} from #{data_source.file_path}"
-      end   
+      end
     end
 
     def load_from_csv file:
@@ -381,7 +381,7 @@ module Importers
       logger.info "Loading #{@file_path} in to RAM"
       file.each_line do |line|
         @import.summary[@file_path][:total_lines] += 1
-        if $. == 1 
+        if $. == 1
           @header_commas = line.count(',')
         else
           @line_commas = line.count(',')
@@ -494,9 +494,9 @@ module Importers
       logger.info "Processing #{file_lines} lines in: #{@file_path}"
 
       @import.summary[@file_path] = {
-        total_lines: -1, 
-        lines_added: 0, 
-        lines_updated: 0, 
+        total_lines: -1,
+        lines_added: 0,
+        lines_updated: 0,
         total_errors: 0
       }
       File.open(@file_path, "r:#{@file_encoding}:utf-8")
@@ -534,7 +534,7 @@ module Importers
         @klass.only_deleted
           .where(data_source_id: @import.data_source.id, @headers.first => batch.map{|m| m[@headers.first]})
           .pluck(*klass_headers)
-          .each do |m| 
+          .each do |m|
             @previously_deleted[m.first] = klass_headers.zip(m).to_h.with_indifferent_access
         end
       end

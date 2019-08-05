@@ -228,6 +228,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       # Income at annual date
       report_enrollment.should_have_income_annual_assessment = report_enrollment.should_calculate_annual_completeness?(
         entry_date: hud_enrollment.EntryDate,
+        exit_date: hud_enrollment.exit&.ExitDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
@@ -235,18 +236,21 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       report_enrollment.income_at_annual_earned = report_enrollment.calculate_income_at_annual_earned(
         income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
+        exit_date: hud_enrollment.exit&.ExitDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_annual_non_employment_cash = report_enrollment.calculate_income_at_annual_non_employment_cash(
         income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
+        exit_date: hud_enrollment.exit&.ExitDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
       report_enrollment.income_at_annual_overall = report_enrollment.calculate_income_at_annual_overall(
         income_record: annual_income_record,
         entry_date: hud_enrollment.EntryDate,
+        exit_date: hud_enrollment.exit&.ExitDate,
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
       )
@@ -325,6 +329,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       )
       report_enrollment.set_income_at_annual_completeness(
         entry_date: hud_enrollment.EntryDate,
+        exit_date: hud_enrollment.exit&.ExitDate,
         income_record: income_at_annual_for_enrollment(hud_enrollment),
         head_of_household: report_enrollment.head_of_household,
         report_end: report_end,
@@ -460,12 +465,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def household_client_counts
       @household_client_counts ||= source_enrollments.where.not(HouseholdID: nil).
         group(:HouseholdID).
-        select(:HouseholdID).
         count
     end
 
     def household_type_for enrollment:
-      if household_client_counts[enrollment].blank? || household_client_counts[enrollment] == 1
+      if household_client_counts[enrollment.HouseholdID].blank? || household_client_counts[enrollment.HouseholdID] == 1
         :individual
       else
         :family
@@ -485,7 +489,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def service_dates_for_enrollment enrollment
-      service_dates_by_enrollment[enrollment.id] || []
+      service_dates_by_enrollment[enrollment.id]&.compact || []
     end
 
     def most_recent_disability_resonses_by_enrollment

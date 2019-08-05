@@ -1,0 +1,45 @@
+- title = "User Audit for #{@agency}"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
+
+- if current_user.can_manage_all_agencies
+  = simple_form_for :report, url: audit_reports_agency_user_index_path, method: :get do |f|
+    - content_for :filters_col_full do
+      .row
+        .col.col-sm-3
+          = f.input :agency, collection: @agencies, selected: @agency_id, input_html: { class: :select2 }, include_blank: 'All Agencies'
+    - content_for :filter_actions do
+      = f.button :submit, value: 'Update View'
+    = render 'warehouse_reports/filters', f:f
+
+%h1= title
+
+.d-flex
+  = render 'sort', sort_options: @sort_options
+  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
+    Download Excel
+%p= paginate @users
+%table.table.table-hover
+  %thead
+    %tr
+      %th{rowspan: 2} First Name
+      %th{rowspan: 2} Last Name
+      %th{rowspan: 2} Email
+      %th{rowspan: 2} Agency
+      %th{rowspan: 2} Last Login
+      %th{colspan: 3} Clients Viewed
+    %tr
+      %th This Month (Through Today)
+      %th Last Month
+      %th Two Months Ago
+  %tbody
+    - @users.each do |user|
+      %tr
+        %td= link_to user.first_name, edit_admin_user_path(user)
+        %td= link_to user.last_name, edit_admin_user_path(user)
+        %td= user.email
+        %td= user.agency.name
+        %td= user.current_sign_in_at
+        %td= clients_viewed(user, 0)
+        %td= clients_viewed(user, 1)
+        %td= clients_viewed(user, 2)

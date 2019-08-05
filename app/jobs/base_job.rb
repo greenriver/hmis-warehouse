@@ -17,7 +17,7 @@ class BaseJob < ActiveJob::Base
       if job.respond_to? :job_id
         unlock_job!(job.job_id)
       end
-      
+
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
     end
@@ -37,7 +37,7 @@ class BaseJob < ActiveJob::Base
       notify_on_restart(msg)
       unlock_job!(job.id)
 
-      
+
       # Exit, ignoring signal handlers which would prevent the process from dying
       exit!(0)
     end
@@ -63,6 +63,7 @@ class BaseJob < ActiveJob::Base
       setup_notifier('DelayedJobFailure')
       msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
       @notifier.ping(msg) if @send_notifications
+      ExceptionNotifier.notify_exception(exception) if @send_notifications
     end
   end
 
@@ -81,7 +82,7 @@ class BaseJob < ActiveJob::Base
       msg = "Restarting stale delayed job: #{job_object.locked_by}"
       notify_on_restart(msg)
 
-      job_object.update_attributes(locked_by: nil, locked_at: nil) 
+      job_object.update_attributes(locked_by: nil, locked_at: nil)
     end
   end
 end

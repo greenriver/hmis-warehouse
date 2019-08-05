@@ -121,6 +121,11 @@ module Reporting::DataQualityReports
       where head_of_household: true
     end
 
+    scope :adult_or_head_of_household, -> do
+      a_t = Reporting::DataQualityReports::Enrollment.arel_table
+      enrolled.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+    end
+
     scope :ph, -> do
       where project_type: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
     end
@@ -549,7 +554,7 @@ module Reporting::DataQualityReports
 
     def calculate_destination_not_collected destination:, head_of_household:
       return false unless is_adult?(date: Date.today) || head_of_household
-      destination == 99
+      destination.in? [30, 99]
     end
 
     def set_prior_living_situation_completeness  prior_living_situation:, head_of_household:
@@ -684,10 +689,11 @@ module Reporting::DataQualityReports
       income_at_exit.present? && income_at_exit.IncomeFromAnySource == 99
     end
 
-    def set_income_at_annual_completeness entry_date:, income_record:, head_of_household:, report_end:
+    def set_income_at_annual_completeness entry_date:, exit_date:, income_record:, head_of_household:, report_end:
       # Short circuit if we shouldn't have a record
       if ! should_calculate_annual_completeness?(
         entry_date: entry_date,
+        exit_date: exit_date,
         head_of_household: head_of_household,
         report_end: report_end,
       )
@@ -699,6 +705,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
         entry_date: entry_date,
+        exit_date: exit_date,
       )
         self.income_at_annual_assessment_refused = true
         return
@@ -708,6 +715,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
         entry_date: entry_date,
+        exit_date: exit_date,
       )
         self.income_at_annual_assessment_not_collected = true
         return
@@ -717,6 +725,7 @@ module Reporting::DataQualityReports
         head_of_household: head_of_household,
         report_end: report_end,
         entry_date: entry_date,
+        exit_date: exit_date,
       )
         self.income_at_annual_assessment_missing = true
         return
@@ -724,27 +733,30 @@ module Reporting::DataQualityReports
       self.income_at_annual_assessment_complete = true
     end
 
-    def calculate_income_at_annual_assessment_refused income_record:, report_end:, head_of_household:, entry_date:
+    def calculate_income_at_annual_assessment_refused income_record:, report_end:, head_of_household:, entry_date:, exit_date:
       return false unless should_calculate_annual_completeness?(
         entry_date: entry_date,
+        exit_date: exit_date,
         head_of_household: head_of_household,
         report_end: report_end,
       )
       income_record.present? && income_record.IncomeFromAnySource.in?(REFUSED)
     end
 
-    def calculate_income_at_annual_assessment_missing income_record:, report_end:, head_of_household:, entry_date:
+    def calculate_income_at_annual_assessment_missing income_record:, report_end:, head_of_household:, entry_date:, exit_date:
       return false unless should_calculate_annual_completeness?(
         entry_date: entry_date,
+        exit_date: exit_date,
         head_of_household: head_of_household,
         report_end: report_end,
       )
       income_record.blank? || income_record.IncomeFromAnySource.blank?
     end
 
-    def calculate_income_at_annual_assessment_not_collected income_record:, report_end:, head_of_household:, entry_date:
+    def calculate_income_at_annual_assessment_not_collected income_record:, report_end:, head_of_household:, entry_date:, exit_date:
       return false unless should_calculate_annual_completeness?(
         entry_date: entry_date,
+        exit_date: exit_date,
         head_of_household: head_of_household,
         report_end: report_end,
       )
@@ -836,14 +848,14 @@ module Reporting::DataQualityReports
 
     # Only calculate this for adults or heads of household who have been enrolled for
     # more than one year since the report end
-    def should_calculate_annual_completeness? entry_date:, head_of_household:, report_end:
-      return true if (is_adult?(date: entry_date) || head_of_household) && entry_date + 1.years < report_end
+    def should_calculate_annual_completeness? entry_date:, exit_date:, head_of_household:, report_end:
+      return true if (is_adult?(date: entry_date) || head_of_household) && entry_date + 1.years < report_end && (exit_date.blank? || exit_date.present? && entry_date + 1.years < exit_date)
       return false
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_earned income_record:,  entry_date:, head_of_household:, report_end:
-      return unless should_calculate_annual_completeness?(entry_date: entry_date, head_of_household: head_of_household, report_end: report_end)
+    def calculate_income_at_annual_earned income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+      return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
       income_for_types(
@@ -853,8 +865,8 @@ module Reporting::DataQualityReports
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_non_employment_cash income_record:,  entry_date:, head_of_household:, report_end:
-      return unless should_calculate_annual_completeness?(entry_date: entry_date, head_of_household: head_of_household, report_end: report_end)
+    def calculate_income_at_annual_non_employment_cash income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+      return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
       income_for_types(
@@ -864,8 +876,8 @@ module Reporting::DataQualityReports
     end
 
     # similar to income at exit, but the InformationDate must be within the past year
-    def calculate_income_at_annual_overall income_record:,  entry_date:, head_of_household:, report_end:
-      return unless should_calculate_annual_completeness?(entry_date: entry_date, head_of_household: head_of_household, report_end: report_end)
+    def calculate_income_at_annual_overall income_record:,  entry_date:, exit_date:, head_of_household:, report_end:
+      return unless should_calculate_annual_completeness?(entry_date: entry_date, exit_date: exit_date, head_of_household: head_of_household, report_end: report_end)
       return unless income_record.present?
       return unless income_record.InformationDate < report_end && income_record.InformationDate + 1.years >= report_end
       income_for_types(

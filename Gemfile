@@ -93,9 +93,12 @@ gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
+
+# PDF Exports
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'combine_pdf'
+gem 'grover'
 
 gem 'whenever', require: false
 gem 'ruby-progressbar', require: false

@@ -5,10 +5,11 @@ module Bo
 
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago
+    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false
       @api_site_identifier = api_site_identifier
       @start_time = start_time
       @debug = debug
+      @force_disability_verification = force_disability_verification
       @api_config = api_config_from_site_identifier @api_site_identifier
       @data_source_id = @api_config['data_source_id']
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
@@ -20,6 +21,7 @@ module Bo
       rebuild_eto_client_lookups
       rebuild_eto_touch_point_lookups
       # rebuild_subject_response_lookups
+      set_disability_verifications
     end
 
     def fetch_site_touch_point_map one_off: false
@@ -30,8 +32,7 @@ module Bo
       }
       message_options = {}
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.site_touch_point_lookup settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -56,8 +57,7 @@ module Bo
       }
       message_options = {}
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.response_lookup settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -74,8 +74,7 @@ module Bo
       }
 
       if one_off
-        soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.client_lookup_standard settings[:url]
+        response = call_once(settings, message_options)
       else
         response = call_with_retry(settings, message_options)
       end
@@ -238,6 +237,11 @@ module Bo
       end
     end
 
+    def call_once settings, message_options
+      soap = Bo::Soap.new(username: @config.user, password: @config.pass)
+      soap.send(settings[:method], settings[:url], message_options)
+    end
+
     # Try a few times, re-try if we get some specific errors or the body is empty
     def call_with_retry settings, message_options
       response = ''
@@ -263,6 +267,71 @@ module Bo
         end
       end
       return response
+    end
+
+    def fetch_disability_verifications one_off: false
+      return unless @config.disability_verification_cuid.present?
+      msg = "Fetching disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+      settings = {
+        url: "#{@config.url}?wsdl=1&cuid=#{@config.disability_verification_cuid}",
+        method: :disability_lookup,
+      }
+      message_options = {
+        touch_point_id: @config.disability_touch_point_id,
+        touch_point_question_id: @config.disability_touch_point_question_id,
+      }
+      if one_off
+        response = call_once(settings, message_options)
+      else
+        response = call_with_retry(settings, message_options)
+      end
+    end
+
+    def set_disability_verifications
+      return unless @config.disability_verification_cuid.present?
+      @disability_verifications = fetch_disability_verifications.
+        group_by{ |row| row[:participant_enterprise_identifier].gsub('-', '') }
+      personal_ids = @disability_verifications.keys
+      source_clients = GrdaWarehouse::Hud::Client.source.where(
+        data_source_id: @data_source_id,
+        PersonalID: personal_ids
+        ).select(:id, :PersonalID, :disability_verified_on)
+      updated_source_counts = 0
+      updated_destination_counts = 0
+      source_clients.each do |client|
+        verifications = @disability_verifications[client.PersonalID]
+        max_date = verifications.map{ |row| row[:date_last_updated].to_time }.max
+        # only set the verification date if it was blank before or is newer
+        # then, check the destination client and update that as well
+        # We could batch this to improve performance if necessary, but after the first load
+        # this should only be a handful of clients each day
+        if client.disability_verified_on.blank? || max_date > client.disability_verified_on || (@force_disability_verification && max_date >= client.disability_verified_on)
+          client.update(disability_verified_on: max_date)
+          updated_source_counts += 1
+          dest_client = client.destination_client
+          # reflect changes on the destination client if the changes to the source client data are newer
+          if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on || @force_disability_verification
+            dest_client.update(disability_verified_on: client.disability_verified_on)
+
+            verification = verifications.detect { |v| v[:date_last_updated].to_time == max_date }
+            if verification
+              verification_source = GrdaWarehouse::VerificationSource::Disability.where(client_id: dest_client.id).first_or_create
+              verification_source.update(location: verification[:site_name], verified_at: max_date)
+            end
+
+            updated_destination_counts += 1
+          end
+        end
+      end
+      msg = "Updated #{updated_source_counts} source disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+      msg = "Updated #{updated_destination_counts} destination disability verifications"
+      Rails.logger.info msg
+      @notifier.ping msg if send_notifications && msg.present?
+
     end
 
     def existing_eto_touch_point_lookups

@@ -1,0 +1,26 @@
+= simple_form_for :filter, url: warehouse_reports_outflow_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-4
+        = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @filter.start}
+      .col-4
+        = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @filter.end}
+      .col-4
+        = f.input :no_service_after_date, label: 'No Service After', as: :date_picker, input_html: {value: @filter.no_service_after_date}
+    .row
+      .col-4
+        = f.input :sub_population, collection: @filter.available_sub_populations, selected:  @filter.sub_population, required: false, include_blank: false, input_html: {class: 'select2'}
+      .col-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.organization_ids, label: 'Organizations', required: false
+      .col-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.project_ids, label: 'Projects', required: false
+    .row
+      .col-8
+        = f.input :no_recent_service_project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.no_recent_service_project_ids, label: 'Additional projects included in "without recent service" calculation', required: false
+  - content_for :filter_actions do
+    .row
+      .col-sm-2.mt-no-label
+        = f.button :submit, value: 'Update View'
+
+
+  = render 'warehouse_reports/filters', f:f

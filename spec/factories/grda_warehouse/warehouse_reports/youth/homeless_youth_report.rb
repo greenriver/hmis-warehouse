@@ -12,7 +12,7 @@ FactoryBot.define do
   end
 
   factory :intake, class: 'GrdaWarehouse::YouthIntake::Entry' do
-    sequence(:client_id)
+    association :client, factory: :authoritative_hud_client
     staff_name { 'RSpec' }
     staff_email { 'nobody@example.com' }
     unaccompanied { 'No' }
@@ -26,6 +26,7 @@ FactoryBot.define do
     requesting_financial_assistance { 'No' }
     staff_believes_youth_under_24 { 'Yes' }
     client_gender { 0 }
+    client_dob { Date.parse('2010-06-01') }
     client_lgbtq { 'No' }
     client_race { ['RaceNone'] }
     client_ethnicity { 0 }

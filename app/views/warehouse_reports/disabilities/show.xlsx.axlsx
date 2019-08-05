@@ -10,6 +10,7 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
       'Unaccompanied?',
       'Parenting?',
       'Head of Household?',
+      'Veteran',
       'Disability & Response',
     ],
     :style => title)
@@ -17,14 +18,15 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
     disabilities = client['disabilities'].join(', ')
     enrollment = client['enrollment']
     sheet.add_row [
-      client['id'], 
-      client['FirstName'], 
+      client['id'],
+      client['FirstName'],
       client['LastName'],
       enrollment&.[]('age'),
       yes_no(enrollment&.[]('unaccompanied_youth')),
       yes_no(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile')),
       yes_no(enrollment&.[]('head_of_household')),
+      HUD.veteran_status(client['VeteranStatus']),
       disabilities
-    ] 
+    ]
   end
 end

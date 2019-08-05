@@ -28,7 +28,11 @@ Rails.application.routes.draw do
     namespace :health do
       resources :patient, only: [:index, :update]
       resources :utilization, only: [:index]
-      resources :appointments, only: [:index]
+      resources :appointments, only: [:index] do
+        collection do
+          get :upcoming
+        end
+      end
       resources :medications, only: [:index]
       resources :problems, only: [:index]
       resources :self_sufficiency_matrix_forms do
@@ -161,7 +165,12 @@ Rails.application.routes.draw do
   resources :warehouse_reports, only: [:index] do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
+  namespace :audit_reports do
+    resources :agency_user, only: [:index]
+    resources :user_login, only: [:index]
+  end
   namespace :warehouse_reports do
+    resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
@@ -274,6 +283,11 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     resources :cohort_changes, only: [:index]
+    resources :outflow, only: [:index] do
+      collection do
+        get :details
+      end
+    end
     namespace :project do
       resource :data_quality do
         get :download, on: :member
@@ -591,6 +605,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]

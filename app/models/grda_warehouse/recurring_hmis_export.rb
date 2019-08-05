@@ -20,8 +20,8 @@ module GrdaWarehouse
     has_many :hmis_exports, through: :recurring_hmis_export_links
 
     def should_run?
-      if hmis_exports.present?
-        last_export_finished_on = recurring_hmis_export_links.last.exported_at
+      if hmis_exports.exists?
+        last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
         return Date.today - last_export_finished_on >= every_n_days
       else
         # Don't re-run the export on the day it was requested
@@ -92,7 +92,7 @@ module GrdaWarehouse
         'sa-east-1',
       ]
     end
-        
+
 
     def filter_hash
       hash = self.slice(

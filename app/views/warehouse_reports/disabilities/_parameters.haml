@@ -1,3 +1,21 @@
+.report-parameters
+  - start_date = report.parameters['filter']['start']
+  - end_date = report.parameters['filter']['end']
+  - if start_date.present?
+    .report-parameters__parameter
+      %label.label.label-primary.parameter-label
+        Range
+      %label.label.label-info.parameter-value
+        %strong
+          = "#{start_date} .. #{end_date}"
+
+  - sub_population = report.parameters['filter']['sub_population'] || :all_clients
+  .report-parameters__parameter
+    %label.label.label-primary.parameter-label
+      Population
+    %label.label.label-info.parameter-value
+      %strong
+      = available_sub_populations.invert[sub_population.to_sym]
 
 - report.parameters['filter']['disabilities'].each do |id|
   - next if id.blank?

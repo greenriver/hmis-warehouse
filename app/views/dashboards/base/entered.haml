@@ -8,8 +8,5 @@
 
   = content_for :page_js do
     :javascript
-      (function($){
-        var chart = $('#entered-chart');
-        var housed_chart = new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));
-
-      })(jQuery);
+      var chart = $('#entered-chart');
+      new App.Dashboards.Clients.Entered(chart, chart.data('labels'), chart.data('data'));

@@ -100,6 +100,26 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  scope :youth, -> do
+    where(authoritative_type: 'youth')
+  end
+
+  scope :health, -> do
+    where(authoritative_type: 'health')
+  end
+
+  scope :vispdat, -> do
+    where(authoritative_type: 'vispdat')
+  end
+
+  def self.authoritative_types
+    {
+      "Youth" => :youth,
+      "VI-SPDAT" => :vispdat,
+      "Health" => :health,
+    }
+  end
+
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name

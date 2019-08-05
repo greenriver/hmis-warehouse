@@ -11,23 +11,24 @@
 .row
   .col-sm-12
 
-.row
-  .col-sm-12
-    = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
-      .form-group
-        %p
-          Limit to matches created within a date range.
-          = render 'filter', f: f
-        .row
-          .col-sm-5
-            = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
-          .col-sm-5
-            = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
-          .col-sm-2
-            = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: {class: 'jUnits'}
+.well
+  .row
+    .col-sm-12
+      = simple_form_for @step_range, as: :steps, url: chart_warehouse_reports_cas_decision_efficiency_index_path, html: { method: :get } do |f|
+        .form-group
+          %p
+            Limit to matches created within a date range.
+            = render 'filter', f: f
+          .row
+            .col-sm-5
+              = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
+            .col-sm-5
+              = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
+            .col-sm-2
+              = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: {class: 'jUnits'}
 
-    %canvas#counts{ width: 800, height: 200, data: {legal_steps: @step_range.ordered_steps.to_json} }
-    #stats(style="display:table;margin:1em auto;")
+%canvas#counts{ width: 800, height: 200, data: {legal_steps: @step_range.ordered_steps.to_json} }
+#stats(style="display:table;margin:1em auto;")
 
 - content_for :page_js do
   :javascript

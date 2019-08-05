@@ -650,6 +650,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: :ProjectID,
         deleted_at: :DateDeleted,
         household_id: :HouseholdID,
+        head_of_household: :RelationshipToHoH,
       }
     end
 

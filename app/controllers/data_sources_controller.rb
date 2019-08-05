@@ -58,7 +58,8 @@ class DataSourcesController < ApplicationController
       GrdaWarehouse::Hud::Project.transaction do
         visible_in_window = data_source_params[:visible_in_window] || false
         import_paused = data_source_params[:import_paused] || false
-        @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused)
+        source_id = data_source_params[:source_id]
+        @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused, source_id: source_id)
       end
     rescue StandardError => e
       error = true
@@ -87,6 +88,7 @@ class DataSourcesController < ApplicationController
       permit(
         :visible_in_window,
         :import_paused,
+        :source_id,
         projects_attributes:
         [
           :id,
@@ -112,8 +114,10 @@ class DataSourcesController < ApplicationController
         :source_type,
         :visible_in_window,
         :authoritative,
+        :authoritative_type,
         :after_create_path,
         :import_paused,
+        :source_id,
       )
   end
 

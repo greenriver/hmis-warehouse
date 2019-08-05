@@ -7,34 +7,34 @@
         .col-sm-9.rrh__time.chunk
           .jTimeInPrePlacementExitToStabilizationChart
         .col-sm-3.metric.text-center.rrh__time.chunk
-          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %h4.title Average Time in #{_('Pre-Placement')} for the Reporting Period
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.average_days_leavers_pre_placement_exit_to_stabilization, 'day')
-          %p.description For clients exiting to stabilization.
-    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitToStabilizationChart', title: 'Time in Pre-Placement with Exits to Stabilization', default_open: 'yes'
+          %p.description For clients exiting to #{_('Stabilization')}.
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitToStabilizationChart', title: "Time in #{_('Pre-Placement')} with Exits to #{_('Stabilization')}", default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
           .jTimeInPrePlacementExitNoStabilizationChart
         .col-sm-3.metric.text-center.rrh__time.chunk
-          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %h4.title Average Time in #{_('Pre-Placement')} for the Reporting Period
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.average_days_leavers_pre_placement_exit_no_stabilization, 'day')
-          %p.description For clients exiting to anywhere except stabilization.
-    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitNoStabilizationChart', title: 'Time in Pre-Placement with an Exit not to Stabilization', default_open: 'yes'
+          %p.description For clients exiting to anywhere except #{_('stabilization')}.
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementExitNoStabilizationChart', title: "Time in #{_('Pre-Placement')} with an Exit not to #{_('Stabilization')}", default_open: 'yes'
     - content_for :panel_collapse_content, flush: true do
       .row
         .col-sm-9.rrh__time.chunk
           .jTimeInPrePlacementChart
         .col-sm-3.metric.text-center.rrh__time.chunk
-          %h4.title Average Time in Pre-Placment for the Reporting Period
+          %h4.title Average Time in #{_('Pre-Placement')} for the Reporting Period
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.leavers_average_pre_placement, 'day')
           %p.description For clients exiting to anywhere destination.
-    = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: 'Time in Pre-Placement with an Exit to Any Destination', default_open: 'yes'
+    = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: "Time in #{_('Pre-Placement')} with an Exit to Any Destination", default_open: 'yes'
 
     - content_for :panel_collapse_content, flush: true do
       .row
@@ -42,8 +42,8 @@
           .jTimeInStabilizationChart
         .col-sm-3.metric.text-center.rrh__time.chunk
           %h4.title
-            Average Time in Stabilization for the Reporting Period
+            Average Time in #{_('Stabilization')} for the Reporting Period
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.average_days_in_stabilization, 'day')
-    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: 'Time in Stabilization', default_open: 'yes'
+    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: "Time in #{_('Stabilization')} with an Exit to any Destination", default_open: 'yes'

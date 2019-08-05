@@ -103,6 +103,10 @@ module GrdaWarehouse::Hud
       sh: 'rgba(61, 99, 130, 0.5)',
     }
 
+    ALL_PROJECT_TYPES = ::HUD.project_types.keys
+    PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
+    PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
+
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
@@ -663,9 +667,9 @@ module GrdaWarehouse::Hud
         self.viewable_by(user).
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, :id).each do |org, project_name, id|
+            pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
             options[org] ||= []
-            options[org] << [project_name, id]
+            options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
           end
         options
       end

@@ -1,8 +1,8 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.EntryReEntry extends App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @sub_population, @entry_support_url, @re_entry_support_url) ->
-    super(@chart_selector, @data, @sub_population, @entry_support_url)
+  constructor: (@chart_selector, @data, @sub_population, @entry_support_url, @re_entry_support_url, options) ->
+    super(@chart_selector, @data, @sub_population, @entry_support_url, options)
 
   _build_chart: () =>
     data =
@@ -32,9 +32,8 @@ class App.Dashboards.Clients.EntryReEntry extends App.Dashboards.Clients.Base
           show: true
           ticks: 4
       legend:
-        position: 'right'
-      size:
-        height: 200
+        position: @options.legend.position
+      size: @options.size
       bindto: @chart_selector
     })
 

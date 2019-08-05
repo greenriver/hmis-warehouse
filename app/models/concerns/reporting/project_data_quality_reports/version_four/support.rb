@@ -39,6 +39,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         :enrolled_length_of_stay,
         :ph_destinations,
         :retained_income,
+        :no_income,
       ]
     end
 
@@ -146,7 +147,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(incorrect_household_type: true).
           pluck(*enrollment_support_columns.values),
-        title: 'Service After Exit',
+        title: 'Incorrect Household Type',
       }
     end
 
@@ -285,6 +286,24 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
+    def no_income_support options
+      included_clients = enrollments.enrolled.adult_or_head_of_household
+
+      ids = case options[:metric].to_sym
+        when :no_earned_income
+          clients_with_no_income[:earned]
+        when :no_non_employment_cash_income
+          clients_with_no_income[:non_employment_cash]
+        when :no_income_overall
+          clients_with_no_income[:overall]
+      end
+      {
+        headers: no_income_support_columns.keys,
+        counts: included_clients.where(id: ids.to_a).pluck(*no_income_support_columns.values),
+        title: 'No Income',
+      }
+    end
+
     def enrollment_support_columns
       @enrollment_support_columns ||= {
         'Client ID' => :client_id,
@@ -386,9 +405,26 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Later Earned' => :income_at_later_date_earned,
         'Later Non-Employment' => :income_at_later_date_non_employment_cash,
         'Later Overall' => :income_at_later_date_overall,
-
       }
+    end
 
+    def no_income_support_columns
+      @no_income_support_columns ||= {
+        'Client ID' => :client_id,
+        'First Name' => :first_name,
+        'Last Name' => :last_name,
+        'Entry Date' => :entry_date,
+        'Exit Date' => :exit_date,
+        'Project' => :project_name,
+        'Entry Response' => :income_at_entry_response,
+        'Entry Earned' => :income_at_entry_earned,
+        'Entry Non-Employment' => :income_at_entry_non_employment_cash,
+        'Entry Overall' => :income_at_entry_overall,
+        'Later Response' => :income_at_later_date_response,
+        'Later Earned' => :income_at_later_date_earned,
+        'Later Non-Employment' => :income_at_later_date_non_employment_cash,
+        'Later Overall' => :income_at_later_date_overall,
+      }
     end
 
     def timeliness_support_columns

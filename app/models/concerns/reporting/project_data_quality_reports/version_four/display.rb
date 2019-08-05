@@ -68,6 +68,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       30 # days
     end
 
+    def hide_beds_and_units
+      project_types = report_projects.pluck(:project_type).uniq
+      project_types.all? { |type| GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITHOUT_INVENTORY.include?(type) }
+    end
+
     def enrolled_clients
       enrollments.enrolled
     end
@@ -149,8 +154,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def heads_of_households_or_adults
-      a_t = Reporting::DataQualityReports::Enrollment.arel_table
-      enrolled_clients.where(a_t[:head_of_household].eq(true).or(a_t[:adult].eq(true)))
+      enrolled_clients.adult_or_head_of_household
     end
 
     def served_percentages
@@ -160,7 +164,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         active = active_clients.group(:project_id).select(:active).count
         enrolled.each do |id, enrolled_count|
           active_count = active[id] || 0
-          percent = (active_count / enrolled_count.to_f) * 100
+          percent = ((active_count / enrolled_count.to_f) * 100).round(2)
           if percent < completeness_goal
             project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
             percentages << {
@@ -606,7 +610,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @household_type_mismatch ||= begin
         issues = []
         household_type_issues = enrolled_clients.where(incorrect_household_type: true).group(:project_id).distinct.
-          select(:household_type).count
+          select(:client_id).count
         household_type_issues.each do |id, count|
           next if count.zero?
           project = projects.detect{|p| p.id == id}
@@ -615,14 +619,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             issues << {
               project_id: id,
               project_name: project.ProjectName,
-              label: "individuals at family project",
+              label: "Individuals at family project",
               value: count,
             }
           else
             issues << {
               project_id: id,
               project_name: project.ProjectName,
-              label: "families at individual project",
+              label: "Families at individual project",
               value: count,
             }
           end
@@ -1040,6 +1044,25 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       }
     end
 
+    def no_income
+      clients_with_no_income_overall = clients_with_no_income[:overall].count
+      clients_with_no_earned_income = clients_with_no_income[:earned].count
+      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash].count
+      denominator = clients_with_no_income[:clients].count
+
+      overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0
+      earned_percentage = ((clients_with_no_earned_income / denominator.to_f) * 100).round rescue 0
+      non_cash_percentage = ((clients_with_no_non_cash_income / denominator.to_f) * 100).round rescue 0
+
+      {
+        labels: [ 'No Earned Income', 'No Non-Employment Cash Income', 'No Income Overall' ],
+        data: {
+          'Total' => [ earned_percentage, non_cash_percentage, overall_percentage ],
+        },
+        counts: [clients_with_no_earned_income, clients_with_no_non_cash_income, clients_with_no_income_overall ]
+      }
+    end
+
     # an overall completeness based on all completeness metrics
     def completeness_percentage
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
@@ -1105,6 +1128,83 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           columns: completeness_metrics.keys,
         }
       end
+    end
+
+    def clients_with_no_income
+      @clients_with_no_income ||= begin
+        counts = {
+          clients: Set.new,
+          earned: Set.new,
+          earned_client_ids: Set.new,
+          non_employment_cash: Set.new,
+          non_employment_cash_client_ids: Set.new,
+          overall: Set.new,
+          overall_client_ids: Set.new,
+        }
+        columns = [
+          :id,
+          :client_id,
+          :income_at_entry_response,
+          :income_at_later_date_response,
+          :income_at_entry_earned,
+          :income_at_later_date_earned,
+          :income_at_entry_non_employment_cash,
+          :income_at_later_date_non_employment_cash,
+          :income_at_entry_overall,
+          :income_at_later_date_overall,
+        ]
+        data = enrollments.enrolled.adult_or_head_of_household.pluck(*columns).map{|row| Hash[columns.zip(row)]}
+
+        data.each do |row|
+          counts[:clients] << row[:client_id]
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_earned],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_earned]
+          )
+            counts[:earned] << row[:id]
+            counts[:earned_client_ids] << row[:client_id]
+          end
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_overall],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_overall]
+          )
+            counts[:overall] << row[:id]
+            counts[:overall_client_ids] << row[:client_id]
+          end
+
+          if count_income_as_zero?(
+            later_response: row[:income_at_later_date_response],
+            later_value: row[:income_at_later_date_non_employment_cash],
+            earlier_response: row[:income_at_entry_response],
+            earlier_value: row[:income_at_entry_non_employment_cash]
+          )
+            counts[:non_employment_cash] << row[:id]
+            counts[:non_employment_cash_client_ids] << row[:client_id]
+          end
+        end
+        counts
+      end
+    end
+
+    def count_income_as_zero? later_response:, later_value:, earlier_response:, earlier_value:
+      if later_response == 0
+        return true
+      elsif later_response == 1
+        return true if later_value.nil? || later_value.zero?
+      elsif later_response.nil?
+        if earlier_response == 0 || earlier_response.nil?
+          return true
+        elsif earlier_response == 1
+          return true if earlier_value.nil? || earlier_value.zero?
+        end
+      end
+      return false
     end
 
   end

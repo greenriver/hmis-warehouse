@@ -201,7 +201,13 @@ Counts of the number of enrollments in each group, calculated as described above
 
 Computed for clients that were adults at `EntryDate` or head of household, using the last two income assessments at or before the report end for each enrollment with _at least_ two.
 
-Non-earned income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA, Social Security retirement, pensions, child support, alimony, or other unclassified income.
+Non-employment cash income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA, Social Security retirement, pensions, child support, alimony, or other unclassified income.
+
+### Percentage of Clients With No Income
+
+Computed for clients that were adults at `EntryDate` or head of household, using the most recent available income assessment at or before the report end.
+
+Non-employment cash income is defined as any of unemployment, SSI, SSDI, VA or private disability, workers comp, TANF, GA, Social Security retirement, pensions, child support, alimony, or other unclassified income.
 
 ### Exiting to PH / Percentage of Clients Exiting to Permanent Housing
 
