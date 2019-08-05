@@ -123,6 +123,8 @@ namespace :deploy do
   end
 end
 
+before 'deploy:assets:precompile', :npm_install
+
 namespace :deploy do
   before 'assets:precompile', :touch_theme_variables do
     on roles(:app)  do
