@@ -1,0 +1,28 @@
+{
+  "name": "hmis-warehouse",
+  "version": "1.0.0",
+  "description": "## Introduction The HMIS Warehouse project was initiated by the City of Boston's Department of Neighborhood Development to gather data from across various HMIS installations, produce aggregated reports, and supply de-duplicated client information to the [Boston CAS](https://github.com/greenriver/boston-cas) system for Coordinated Access to housing.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "puppeteer": "^1.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greenriver/hmis-warehouse.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/greenriver/hmis-warehouse/issues"
+  },
+  "homepage": "https://github.com/greenriver/hmis-warehouse#readme"
+}

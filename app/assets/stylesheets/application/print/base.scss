@@ -1,0 +1,32 @@
+@import '../_settings/colors';
+@import '../_settings/variables';
+@import '../_settings/custom_bootstrap_variables';
+
+@media print {
+  body {
+    font-family: $font-family-sans-serif;
+  }
+
+  .page-break-after {
+    page-break-after: always !important;
+  }
+
+
+  .l-page__w-100 {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .l-page__w-50 {
+    max-width: 50%;
+  }
+
+  .l-page__no-margin {
+    margin: 0;
+  }
+
+  .l-page__no-padding-b {
+    padding-bottom: 0;
+  }
+
+}
