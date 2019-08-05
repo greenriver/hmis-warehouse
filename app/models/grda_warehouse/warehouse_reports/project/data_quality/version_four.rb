@@ -465,7 +465,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def household_client_counts
       @household_client_counts ||= source_enrollments.where.not(HouseholdID: nil).
         group(:HouseholdID).
-        select(:HouseholdID).
         count
     end
 
