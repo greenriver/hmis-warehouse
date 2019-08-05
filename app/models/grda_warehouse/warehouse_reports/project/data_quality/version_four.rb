@@ -469,7 +469,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def household_type_for enrollment:
-      if household_client_counts[enrollment].blank? || household_client_counts[enrollment] == 1
+      if household_client_counts[enrollment.household_id].blank? || household_client_counts[enrollment.household_id] == 1
         :individual
       else
         :family
