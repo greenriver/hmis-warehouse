@@ -24,12 +24,12 @@ module ServiceHistoryServiceConcern
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-      where(project_type_column => r_non_homeless)
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
+      where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-      hud_project_type(r_non_homeless)
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
+      hud_project_type(r_non_homeless).where(homeless: false)
     end
 
     scope :homeless, -> (chronic_types_only: false) do
@@ -38,6 +38,10 @@ module ServiceHistoryServiceConcern
       else
         where(homeless: true)
       end
+    end
+
+    scope :non_homeless, -> do
+      where(homeless: false)
     end
 
     scope :hud_homeless, -> (chronic_types_only: true) do

@@ -54,11 +54,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
     in_project_type(r_non_homeless)
   end
   scope :hud_residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
     hud_project_type(r_non_homeless)
   end
   scope :permanent_housing, -> do
