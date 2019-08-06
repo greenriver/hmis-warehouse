@@ -1,5 +1,9 @@
 require 'rails_helper'
 
+# NOTE:
+# Homeless is true for ES, SH, SO, TH and PH before move-in date
+# Literally Homeless is only true for ES, SH, SO
+
 RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
   let(:client) { 0 }
   let(:start_date) { Date.today }
@@ -68,7 +72,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
         expect(homeless_scope).to include no_move_in
         expect(homeless_scope).to include no_move_in_ph
         expect(literally_homeless_scope).to include no_move_in
-        expect(literally_homeless_scope).to include no_move_in_ph
+        expect(literally_homeless_scope).not_to include no_move_in_ph
       end
     end
 
@@ -77,8 +81,8 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
       aggregate_failures do
         expect(homeless_scope).to include future_move_in_th
         expect(homeless_scope).to include future_move_in_ph
-        expect(literally_homeless_scope).to include future_move_in_th
-        expect(literally_homeless_scope).to include future_move_in_ph
+        expect(literally_homeless_scope).not_to include future_move_in_th
+        expect(literally_homeless_scope).not_to include future_move_in_ph
       end
     end
 

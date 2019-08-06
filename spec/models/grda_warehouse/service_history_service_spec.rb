@@ -22,7 +22,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     expect(scope.count).to eq(GrdaWarehouse::ServiceHistoryService.count)
   end
 
-  it 'still includes PH with no move-in-date' do
+  it 'homeless still includes PH with no move-in-date' do
     en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
     en.project.update(ProjectType: 13, computed_project_type: 13)
     en.update(processed_as: nil)
@@ -35,7 +35,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
   end
 
-  it 'no longer includes services for the entry exit enrollment if we make them PH with a prior move-in-date' do
+  it 'homeless no longer includes services for the entry exit enrollment if we make them PH with a prior move-in-date' do
     en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
     en.project.update(ProjectType: 13, computed_project_type: 13)
     en.update(MoveInDate: start_date, processed_as: nil)
@@ -48,7 +48,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
   end
 
-  it 'still includes TH with a future move-in-date' do
+  it 'homeless still includes TH with a future move-in-date' do
     en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
     en.project.update(ProjectType: 2, computed_project_type: 2)
     en.update(MoveInDate: end_date + 1.days, processed_as: nil)
@@ -61,7 +61,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
   end
 
-  it 'still includes TH with a past move-in-date' do
+  it 'homeless still includes TH with a past move-in-date' do
     en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
     en.project.update(ProjectType: 2, computed_project_type: 2)
     en.update(MoveInDate: start_date, processed_as: nil)
