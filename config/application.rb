@@ -60,5 +60,7 @@ module BostonHmis
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = self.routes
+
+    config.assets.paths << Rails.root.join('node_modules')
   end
 end

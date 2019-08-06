@@ -201,4 +201,35 @@ module ApplicationHelper
     ''
   end
 
+  # http://cobwwweb.com/render-inline-svg-rails-middleman#sthash.0TA73Fi9.dpuf
+  def svg(name)
+    file_path = "#{Rails.root}/app/assets/images/#{name}.svg"
+    return File.read(file_path).html_safe if File.exist?(file_path)
+    '(not found)'
+  end
+
+  # embed an svg from a sprite (pick the symbol to use and give it a class)
+  # should generate svg tag with classes passed surrounding a use tag with xlink:href att value of symbol_name
+  def embedded_svg(symbol_name, *args)
+    options = args.extract_options!
+    if options[:height]
+      style = "height: #{options[:height]}; width: #{options[:width]}"
+    end
+    content_tag(:div,
+      content_tag(
+        :svg,
+        content_tag(
+          :use,
+          "",
+          'xlink:href' => "\#icon-#{symbol_name}",
+          :class => options[:xlink_class],
+        ),
+        :class => options[:class],
+        style: style
+      ),
+      class: "icon-svg #{options[:wrapper_class]}",
+      style: style
+    )
+  end
+
 end
