@@ -24,24 +24,28 @@ module ServiceHistoryServiceConcern
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
       where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE[:th]
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
       hud_project_type(r_non_homeless).where(homeless: false)
+    end
+
+    scope :literally_homeless, -> do
+      where(arel_table[:literally_homeless].eq(true))
     end
 
     scope :homeless, -> (chronic_types_only: false) do
       if chronic_types_only
-        where(literally_homeless: true)
+        where(arel_table[:literally_homeless].eq(true))
       else
-        where(homeless: true)
+        where(arel_table[:homeless].eq(true))
       end
     end
 
     scope :non_homeless, -> do
-      where(homeless: false)
+      where(arel_table[:homeless].eq(false))
     end
 
     scope :hud_homeless, -> (chronic_types_only: true) do

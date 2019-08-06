@@ -329,7 +329,7 @@ module GrdaWarehouse::Tasks
       @residential_dates ||= enrollments.select do |e|
         e[:project_type].in? @non_homeless_types
       end.map do |e|
-       e[:date]
+        e[:date] if e[:move_in_date].present? && e[:move_in_date] < e[:date]
      end.compact.uniq
     end
 
@@ -401,6 +401,7 @@ module GrdaWarehouse::Tasks
         project_id: :project_id,
         project_tracking_method: :project_tracking_method,
         project_name: :project_name,
+        move_in_date: :move_in_date,
       }
     end
 

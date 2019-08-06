@@ -4,7 +4,7 @@
     %thead
       %tr
         %th
-        %th Program Name < Agency Name
+        %th Project Name < Organization Name
         %th Entry
         %th Exit
         %th Most Recent Day Served
@@ -65,6 +65,8 @@
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
             = e[:entry_date]
+          - if move_in_date.present?
+            %i.icon-house{data: { toggle: :tooltip, title: "<b>Move-in Date:</b> #{move_in_date}".html_safe, html: 'true' }}
         %td
           - destination = HUD.destination(e[:destination])
           - if destination == e[:destination]

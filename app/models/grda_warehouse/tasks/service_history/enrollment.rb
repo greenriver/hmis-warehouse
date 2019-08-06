@@ -337,14 +337,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
 
       return GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
-        self.MoveInDate.nil? || date < self.MoveInDate
+        (self.MoveInDate.blank? || date < self.MoveInDate)
     end
 
+    # The day only counts as literally homeless if it's in ES, SO, SH.  Others don't negate it, but don't count as such
     def literally_homeless? date
       return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
-
-      return (GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).include?(project.computed_project_type) &&
-          self.MoveInDate.nil? || date < self.MoveInDate
+      return false
     end
 
     def household_birthdates
