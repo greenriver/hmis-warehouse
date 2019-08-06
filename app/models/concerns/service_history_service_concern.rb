@@ -34,16 +34,14 @@ module ServiceHistoryServiceConcern
 
     scope :homeless, -> (chronic_types_only: false) do
       if chronic_types_only
-        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        where(literally_homeless: true)
       else
-        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        where(homeless: true)
       end
-
-      where(project_type_column => project_types)
     end
 
     scope :hud_homeless, -> (chronic_types_only: true) do
-      hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+      homeless(chronic_types_only: true)
     end
 
     scope :in_project_type, -> (project_types) do

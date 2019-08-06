@@ -29,21 +29,11 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   scope :homeless_only, -> (start_date:, end_date:) do
-    where(
-      # Removed - moved to homeless flag
-      # project_type: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES,
-      date: (start_date..end_date),
-      homeless: true,
-    )
+    homeless(chronic_types_only: false).where(date: (start_date..end_date))
 end
 
   scope :literally_homeless_only, -> (start_date:, end_date:) do
-    where(
-      # Removed - moved to homeless literally_homeless
-      # project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES,
-      date: (start_date..end_date),
-      literally_homeless: true,
-    )
+    homeless(chronic_types_only: true).where(date: (start_date..end_date))
   end
 
   scope :youth, -> do
