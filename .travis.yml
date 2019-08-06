@@ -25,6 +25,7 @@ script:
   - bundle exec rake reporting:db:schema:load
   - bundle exec brakeman -q --ensure-latest
   - bundle exec bundle-audit check --update
+  - npm install
   - bundle exec rspec
 
 addons:
@@ -35,3 +36,6 @@ addons:
 before_install:
   - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
   - gem install bundler -v '< 2'
+
+matrix:
+  fast_finish: true
