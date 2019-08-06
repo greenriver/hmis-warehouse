@@ -28,11 +28,11 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
-  scope :homeless_only, -> (start_date:, end_date:) do
+  scope :homeless_between, -> (start_date:, end_date:) do
     homeless(chronic_types_only: false).where(date: (start_date..end_date))
 end
 
-  scope :literally_homeless_only, -> (start_date:, end_date:) do
+  scope :literally_homeless_between, -> (start_date:, end_date:) do
     homeless(chronic_types_only: true).where(date: (start_date..end_date))
   end
 
