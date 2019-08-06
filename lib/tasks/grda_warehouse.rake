@@ -352,8 +352,8 @@ namespace :grda_warehouse do
     GrdaWarehouse::ImportRemover.new(import_id).run!
   end
 
-  desc "Force rebuild for move-in-date enrollments"
-  task :force_rebuild_for_move_in_date_enrollments, [] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc "Force rebuild for homeless enrollments"
+  task :force_rebuild_for_homeless_enrollments, [] => [:environment, "log:info_to_stdout"] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).update_all(processed_as: nil)
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.update_all(processed_as: nil)
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
