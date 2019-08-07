@@ -36,7 +36,7 @@ module Window::Health
       respond_with @cha, location: polymorphic_path(careplans_path_generator) unless request.xhr?
     end
 
-    # Don't use the HealthFile concern version, it calls save which loses all the data for some reason.  If we're uploading, we only need to save the attached file.
+    # Don't use the HealthFile concern version, it calls save which loses all the data for some reason.  If we're uploading, we only need to save the attached file, other changes are saved via ajax.
     def upload
       @upload_object.assign_attributes(upload_params)
       if @upload_object.health_file&.new_record?
