@@ -36,6 +36,19 @@ module Window::Health
       respond_with @cha, location: polymorphic_path(careplans_path_generator) unless request.xhr?
     end
 
+    # Don't use the HealthFile concern version, it calls save which loses all the data for some reason.  If we're uploading, we only need to save the attached file.
+    def upload
+      @upload_object.assign_attributes(upload_params)
+      if @upload_object.health_file&.new_record?
+        @upload_object.health_file.set_calculated!(current_user.id, @client.id)
+      end
+
+      unless @upload_object.health_file.save
+        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
+      end
+      respond_with @upload_object, location: @location
+    end
+
     def edit
       if @cha_locked
         flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
