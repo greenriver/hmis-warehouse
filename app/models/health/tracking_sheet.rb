@@ -71,6 +71,16 @@ module Health
       @most_recent_qa_from_case_management_notes[patient_id]&.to_date
     end
 
+    def most_recent_qa_from_eto_case_note patient_id
+      @eto_form_ids ||= GrdaWarehouse::HmisForm.has_qualifying_activities.pluck(:id)
+      @most_recent_qa_from_eto_case_notes ||= Health::QualifyingActivity.
+        where(source_type: 'GrdaWarehouse::HmisForm', source_id: @eto_form_ids).
+        where(patient_id: @patient_ids).
+        group(:patient_id).
+        maximum(:date_of_activity)
+      @most_recent_qa_from_eto_case_notes[patient_id]&.to_date
+    end
+
     def most_recent_qa_from_epic_case_management_note patient_id
       @most_recent_qa_from_epic_case_management_notes ||= Health::EpicCaseNoteQualifyingActivity.
         joins(:patient).
@@ -84,6 +94,7 @@ module Health
       [
         most_recent_qa_from_case_management_note(patient_id),
         most_recent_qa_from_epic_case_management_note(patient_id),
+        most_recent_qa_from_eto_case_note(patient_id),
       ].compact&.max&.to_date
     end
 
