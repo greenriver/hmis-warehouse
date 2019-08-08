@@ -678,6 +678,76 @@ module Health
       # end
     end
 
+    def consented_date
+      @consented_date ||= participation_forms.signed&.last&.signature_on
+    end
+
+    def ssm_completed_date
+      @ssm_completed_date ||= self_sufficiency_matrix_forms.completed.maximum(:completed_at)&.to_date
+    end
+
+    def cha_completed_date
+      @cha_completed_date ||= comprehensive_health_assessments.complete&.maximum(:completed_at)&.to_date
+    end
+
+    def cha_reviewed_date
+      @cha_reviewed_date ||= comprehensive_health_assessments.complete&.maximum(:reviewed_at)&.to_date
+    end
+
+    def cha_renewal_date
+      @cha_renewal_date ||= if cha_reviewed_date.present?
+        cha_reviewed_date + 1.years
+      end
+    end
+
+    def care_plan_patient_signed_date
+      @care_plan_patient_signed_date ||= careplans.maximum(:patient_signed_on)&.to_date
+    end
+
+    def care_plan_provider_signed_date
+      @care_plan_provider_signed_date ||= careplans.maximum(:provider_signed_on)&.to_date
+    end
+
+    def care_plan_renewal_date
+      if care_plan_provider_signed_date.present?
+        care_plan_provider_signed_date + 1.years
+      end
+    end
+
+    def most_recent_face_to_face_qa_date
+      qualifying_activities.direct_contact.face_to_face.maximum(:date_of_activity)
+    end
+
+    def most_recent_qa_from_case_note
+      [
+        sdh_case_management_notes.joins(:activities).maximum(:date_of_contact),
+        epic_case_note_qualifying_activities.maximum(:update_date),
+      ].compact&.max&.to_date
+    end
+
+    def tracking_sheet
+      {
+        'ID_MEDICAID' => medicaid_id,
+        'NAM_FIRST' => first_name,
+        'NAM_LAST' => last_name,
+        'DTE_BIRTH' => birthdate,
+        'ACO_NAME' => aco&.name,
+        'CARE_COORDINATOR' => care_coordinator&.name,
+        'ASSIGNMENT_DATE' => effective_date,
+        'CONSENT_DATE' => consented_date,
+        # Limit SSM and CHA to warehouse versions only (per spec)
+        'SSM_DATE' => ssm_completed_date,
+        'CHA_DATE' => cha_completed_date,
+        'CHA_REVIEWED' => if cha_reviewed_date.present? then 'Yes' else 'No' end,
+        'CHA_RENEWAL_DATE' => cha_renewal_date,
+        'PCTP_PT_SIGN' => care_plan_patient_signed_date,
+        'PCTP_PCP_SIGN' => care_plan_provider_signed_date,
+        'PCTP_RENEWAL_DATE' => care_plan_renewal_date,
+        'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date,
+        'QA_LAST' => most_recent_qa_from_case_note,
+      }
+    end
+
     def self.sort_options
       [
         {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},
