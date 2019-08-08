@@ -725,29 +725,6 @@ module Health
       ].compact&.max&.to_date
     end
 
-    def tracking_sheet
-      {
-        'ID_MEDICAID' => medicaid_id,
-        'NAM_FIRST' => first_name,
-        'NAM_LAST' => last_name,
-        'DTE_BIRTH' => birthdate,
-        'ACO_NAME' => aco&.name,
-        'CARE_COORDINATOR' => care_coordinator&.name,
-        'ASSIGNMENT_DATE' => effective_date,
-        'CONSENT_DATE' => consented_date,
-        # Limit SSM and CHA to warehouse versions only (per spec)
-        'SSM_DATE' => ssm_completed_date,
-        'CHA_DATE' => cha_completed_date,
-        'CHA_REVIEWED' => if cha_reviewed_date.present? then 'Yes' else 'No' end,
-        'CHA_RENEWAL_DATE' => cha_renewal_date,
-        'PCTP_PT_SIGN' => care_plan_patient_signed_date,
-        'PCTP_PCP_SIGN' => care_plan_provider_signed_date,
-        'PCTP_RENEWAL_DATE' => care_plan_renewal_date,
-        'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date,
-        'QA_LAST' => most_recent_qa_from_case_note,
-      }
-    end
-
     def self.sort_options
       [
         {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},

@@ -19,7 +19,8 @@ module Health
     phi_attr :contents, Phi::FreeText
     phi_attr :received_valid_complaint, Phi::NeedsReview
 
-    belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals
+    belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_goals
+    has_many :patient, through: :epic_patient
 
     scope :visible, -> do
       where(arel_table[:title].matches('SDH%'))
