@@ -107,7 +107,7 @@ module Health
     end
 
     def care_coordinator patient_id
-      @patient_coordinator_lookup = Health::Patient.pluck(:id, :care_coordinator_id).to_h
+      @patient_coordinator_lookup ||= Health::Patient.pluck(:id, :care_coordinator_id).to_h
       @care_coordinators ||= User.where(id: @patient_coordinator_lookup.values).
         distinct.map{ |m| [m.id, m.name] }.to_h
 
