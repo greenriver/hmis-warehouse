@@ -106,6 +106,14 @@ module Health
       @aco_names[patient_id]
     end
 
+    def care_coordinator patient_id
+      @patient_coordinator_lookup = Health::Patient.pluck(:id, :care_coordinator_id).to_h
+      @care_coordinators ||= User.where(id: @patient_coordinator_lookup.values).
+        distinct.map{ |m| [m.id, m.name] }.to_h
+
+      @care_coordinators[@patient_coordinator_lookup[patient_id]]
+    end
+
     def row patient
       {
         'ID_MEDICAID' => patient.medicaid_id,
@@ -113,7 +121,7 @@ module Health
         'NAM_LAST' => patient.last_name,
         'DTE_BIRTH' => patient.birthdate,
         'ACO_NAME' => aco_name(patient.id),
-        'CARE_COORDINATOR' => patient.care_coordinator&.name,
+        'CARE_COORDINATOR' => care_coordinator(patient.id),
         'ASSIGNMENT_DATE' => patient.enrollment_start_date,
         'CONSENT_DATE' => consented_date(patient.id),
         # Limit SSM and CHA to warehouse versions only (per spec)

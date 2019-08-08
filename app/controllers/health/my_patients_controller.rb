@@ -40,7 +40,7 @@ module Health
         end
         format.xlsx do
           date = Date.today.strftime('%Y-%m-%d')
-          @patients.joins(:patient_referral).preload(:patient_referral)
+          @patients = @patients.joins(:patient_referral).preload(:patient_referral)
           @tracking_sheet = Health::TrackingSheet.new(@patients)
           render xlsx: :index, filename: "Tracking Sheet #{date}.xlsx"
         end
