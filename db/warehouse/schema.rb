@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190802121551) do
+ActiveRecord::Schema.define(version: 20190808155531) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1928,6 +1928,11 @@ ActiveRecord::Schema.define(version: 20190802121551) do
     t.integer  "sh_all_clients",                         default: 0
     t.datetime "created_at",                                         null: false
     t.datetime "updated_at",                                         null: false
+    t.integer  "ph_beds",                                default: 0
+    t.integer  "es_beds",                                default: 0
+    t.integer  "th_beds",                                default: 0
+    t.integer  "so_beds",                                default: 0
+    t.integer  "sh_beds",                                default: 0
   end
 
   create_table "nightly_census_by_projects", force: :cascade do |t|
@@ -4429,22 +4434,6 @@ ActiveRecord::Schema.define(version: 20190802121551) do
      FROM service_history_enrollments;
   SQL
 
-  create_view "service_history_services_materialized", materialized: true,  sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type
-     FROM service_history_services;
-  SQL
-
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
-  add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
-
   create_view "todd_stats",  sql_definition: <<-SQL
       SELECT pg_stat_all_tables.relname,
       round((
@@ -4468,5 +4457,25 @@ ActiveRecord::Schema.define(version: 20190802121551) do
      FROM pg_stat_all_tables
     WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
+
+  create_view "service_history_services_materialized", materialized: true,  sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM service_history_services;
+  SQL
+
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
+  add_index "service_history_services_materialized", ["homeless"], name: "index_shsm_homeless", using: :btree
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
+  add_index "service_history_services_materialized", ["literally_homeless"], name: "index_shsm_literally_homeless", using: :btree
+  add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
 
 end
