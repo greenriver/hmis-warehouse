@@ -73,6 +73,17 @@ module Health
       end
     end
 
+    def self.aco_pid_sl(transaction)
+      transaction.select{|h| h.keys.include? :REF}.
+        map{|h| h[:REF]}.each do |ref|
+        type = ref.detect{|h| h.keys.include? :E128}[:E128][:value][:raw]
+        if type == 'PID'
+          return ref.detect{|h| h.keys.include? :E127}[:E127][:value][:raw]
+        end
+      end
+      return nil
+    end
+
     def self.maintenance_type(transaction)
       INS(transaction).detect{|h| h.keys.include? :E875}[:E875][:value][:raw]
     end
