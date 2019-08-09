@@ -55,6 +55,24 @@ module Health
       NM1(transaction).detect{|h| h.keys.include? :E67}[:E67][:value][:raw]
     end
 
+    def self.enrollment_date(transaction)
+      transaction.select{|h| h.keys.include? :DTP}.
+        map{|h| h[:DTP]}.each do |dtp|
+          if dtp.detect{|h| h.keys.include? :E374}[:E374][:value][:raw] == '356'
+            return Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+          end
+      end
+    end
+
+    def self.disenrollment_date(transaction)
+      transaction.select{|h| h.keys.include? :DTP}.
+        map{|h| h[:DTP]}.each do |dtp|
+        if dtp.detect{|h| h.keys.include? :E374}[:E374][:value][:raw] == '357'
+          return Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+        end
+      end
+    end
+
     def self.maintenance_type(transaction)
       INS(transaction).detect{|h| h.keys.include? :E875}[:E875][:value][:raw]
     end

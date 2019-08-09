@@ -19,7 +19,7 @@ module Health
           medicaid_id = Health::Enrollment.subscriber_id(transaction)
           referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
           if referral.present?
-            if referral.disenrollment_date.present?
+            if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
               re_enroll_patient(transaction, referral)
               returning_patients += 1
             end
@@ -56,12 +56,15 @@ module Health
     end
 
     def re_enroll_patient(transaction, referral)
-      referral.update(disenrollment_date: nil)
+      referral.update(
+        disenrollment_date: nil,
+        pending_disenrollment_date: nil,
+      )
       # TODO any other work to re-enroll
     end
 
     def disenroll_patient(transaction, referral)
-      # Create a disenrollment record for manual processing
+      referral.update(pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction))
     end
 
     def update_patient(transaction, referral)
@@ -70,7 +73,8 @@ module Health
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
-        medicaid_id: Health::Enrollment.subscriber_id(transaction)
+        medicaid_id: Health::Enrollment.subscriber_id(transaction),
+        enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
       )
     end
   end

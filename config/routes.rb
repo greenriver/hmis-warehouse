@@ -620,6 +620,7 @@ Rails.application.routes.draw do
           get :review
           get :assigned
           get :rejected
+          get :disenrolled
           post :bulk_assign_agency
         end
         post :assign_agency
