@@ -9,7 +9,63 @@ module WarehouseReports
     include ArelHelper
     include WarehouseReportAuthorization
 
+    before_action :set_filter
+
     def index
+      if @mo.valid?
+        @projects_with_counts = {
+          totals: OpenStruct.new({
+            clients: 0,
+            beds: 0,
+            units: 0,
+            utilization: 0,
+          })
+        }
+        @mo.organization.projects.each do |project|
+          @projects_with_counts[project.id] ||= OpenStruct.new({
+            id: project.id,
+            name: project.ProjectName,
+            project_type: project.compute_project_type,
+            clients: 0,
+            beds: 0,
+            units: 0,
+            utilization: 0,
+          })
+          @projects_with_counts[project.id][:clients] = client_counts_by_project_id[project.id] || 0
+          @projects_with_counts[project.id][:beds] = project.inventories.within_range(@mo).map do |inventory|
+            inventory.average_daily_inventory(
+              range: @mo,
+              field: :BedInventory
+            )
+          end.sum
+
+          @projects_with_counts[project.id][:units] = project.inventories.within_range(@mo).map do |inventory|
+            inventory.average_daily_inventory(
+              range: @mo,
+              field: :UnitInventory
+            )
+          end.sum
+          if @projects_with_counts[project.id][:clients] > 0 && @projects_with_counts[project.id][:beds] > 0
+            @projects_with_counts[project.id][:utilization] = (@projects_with_counts[project.id][:clients].to_f / @projects_with_counts[project.id][:beds] * 100).round rescue 0
+          end
+          @projects_with_counts[:totals][:clients] += @projects_with_counts[project.id][:clients]
+          @projects_with_counts[:totals][:beds] += @projects_with_counts[project.id][:beds]
+          @projects_with_counts[:totals][:units] += @projects_with_counts[project.id][:units]
+        end
+        if @projects_with_counts[:totals][:clients] > 0 && @projects_with_counts[:totals][:beds] > 0
+            @projects_with_counts[:totals][:utilization] = (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round rescue 0
+        end
+      else
+        @projects_with_counts = ( @mo.organization.projects.viewable_by(current_user).map{ |p| [ p, [] ] } rescue {} )
+      end
+      respond_to :html
+    end
+
+    def client_counts_by_project_id
+      @client_counts_by_project_id ||= service_scope.distinct.group(p_t[:id].to_sql).count(:client_id)
+    end
+
+    def set_filter
       options = {}
       if params[:mo].present?
         start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
@@ -20,52 +76,16 @@ module WarehouseReports
       end
       @mo = ::Filters::MonthAndOrganization.new options
       @mo.user = current_user
-      if @mo.valid?
-        @projects_with_counts = organization_scope.bed_utilization_by_project(filter: @mo)
-      else
-        @projects_with_counts = ( @mo.organization.projects.viewable_by(current_user).map{ |p| [ p, [] ] } rescue {} )
-      end
-      respond_to :html, :xlsx
     end
-
-    def info project, projects_by_date, date
-      ri = relevant_inventories project.inventories, date
-      capacity = ri&.map(&:BedInventory)&.sum
-      clients = projects_by_date[date].try(&:client_count).to_i
-      {
-        capacity:         capacity,
-        persons:          clients,
-        percent_capacity: capacity.try{ |c| ( clients / c.to_f * 100 ).round(1) if c > 0 }
-      }
-    end
-    helper_method :info
-
-    def avg_info project, projects_by_date, range
-      persons = []
-      percent_capacity = []
-      range.to_a.each do |date|
-        i = info project, projects_by_date, date
-        persons << i[:persons]
-        percent_capacity << i[:percent_capacity]
-      end
-      percent_capacity = percent_capacity.compact
-      {
-        persons: ( persons.sum.to_f / persons.length ).round(1),
-        percent_capacity: ( ( percent_capacity.sum.to_f / percent_capacity.length ).round(1) if percent_capacity.any? )
-      }
-    end
-    helper_method :avg_info
-
-    # find the inventory closest in time to the reference date
-    # this might not be the approved way to deal with it -- perhaps we only want the closest preceding inventory -- but
-    # our inventory information is exceedingly spotty
-    def relevant_inventories inventories, date
-      GrdaWarehouse::Hud::Inventory.relevant_inventories(inventories: inventories, date: date)
-    end
-    helper_method :relevant_inventories
 
     def organization_scope
       GrdaWarehouse::Hud::Organization.viewable_by(current_user)
+    end
+
+    def service_scope
+      GrdaWarehouse::ServiceHistoryService.where(date: @mo.range).
+        joins(service_history_enrollment: { project: :organization }).
+        merge(organization_scope)
     end
 
   end
