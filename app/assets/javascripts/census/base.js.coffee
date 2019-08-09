@@ -106,7 +106,12 @@ class App.Census.Base
     html = "<table class='bb-tooltip'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
     $(d).each (i) =>
       row = d[i]
-
+      client_count = 0
+      inventory_count = 0
+      if d[0].value?
+        client_count = d[0].value
+      if d[1].value?
+        inventory_count = d[1].value
       if row?
         bg_color = color(row.id)
         html += "<tr class='bb-tooltip-name-#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
@@ -132,8 +137,13 @@ class App.Census.Base
           html += box
           html += value
         # html += '</tr>'
+        else if client_count > 0 && inventory_count > 0
+          html += '<td>Utilization</td>'
+          html += '<td>'
+          html += d3.format(".0%")(client_count / inventory_count)
+          html += '</td>'
         else
-          html += '<td></td><td></td>'
+          html += '<td colspan="2"></td>'
 
     html += '</table>'
     html
