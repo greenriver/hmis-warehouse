@@ -79,6 +79,7 @@ module Admin::Health
             @patient_referral.update(
               disenrollment_date: disenrollment_date,
               pending_disenrollment_date: nil,
+              removal_acknowledged: true,
             )
           end
 
