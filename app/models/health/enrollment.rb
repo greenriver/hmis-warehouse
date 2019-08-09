@@ -19,14 +19,14 @@ module Health
     belongs_to :user
 
     def enrollments
-      transactions.select{ |transaction| maintenance_type(transaction) == '021'}
+      transactions.select{ |transaction| self.class.maintenance_type(transaction) == '021'}
     end
 
     def disenrollments
-      transactions.select{ |transaction| maintenance_type(transaction) == '024'}
+      transactions.select{ |transaction| self.class.maintenance_type(transaction) == '024'}
     end
 
-    def subscriber_id(transaction)
+    def self.subscriber_id(transaction)
       transaction.select{|h| h.keys.include? :REF}.
         map{|h| h[:REF]}.each do |ref|
           if ref.detect{|h| h.keys.include? :E128}[:E128][:value][:raw] == '0F'
@@ -35,12 +35,41 @@ module Health
       end
     end
 
-    def maintenance_type(transaction)
+    def self.first_name(transaction)
+      NM1(transaction).detect{|h| h.keys.include? :E1036}[:E1036][:value][:raw]
+    end
+
+    def self.last_name(transaction)
+      NM1(transaction).detect{|h| h.keys.include? :E1035}[:E1035][:value][:raw]
+    end
+
+    def self.DOB(transaction)
+      Date.parse(
+        member(transaction).
+        detect{|h| h.keys.include? :DMG}[:DMG].
+        detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw]
+      )
+    end
+
+    def self.SSN(transaction)
+      NM1(transaction).detect{|h| h.keys.include? :E67}[:E67][:value][:raw]
+    end
+
+    def self.maintenance_type(transaction)
       INS(transaction).detect{|h| h.keys.include? :E875}[:E875][:value][:raw]
     end
 
-    def INS(transaction)
+    def self.INS(transaction)
       transaction.detect{|h| h.keys.include? :INS}[:INS]
+    end
+
+    def self.NM1(transaction)
+      member(transaction).
+      detect{|h| h.keys.include? :NM1}[:NM1]
+    end
+
+    def self.member(transaction)
+      transaction.detect{|h| h.keys.include? "2100A - MEMBER"}["2100A - MEMBER"]
     end
 
     def transactions

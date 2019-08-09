@@ -13,8 +13,10 @@
         %tr
           %td= file.created_at
           %td
-            - if file.new_patients.nil?
+            - if file.status == 'processing'
               = render 'spinner'
+            - else
+              = checkmark_or_x(file.status == 'complete')
           %td= file.new_patients
           %td= file.returning_patients
           %td= file.disenrolled_patients

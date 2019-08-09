@@ -324,6 +324,7 @@ ActiveRecord::Schema.define(version: 20190730122842) do
     t.integer  "user_id"
     t.string   "content"
     t.string   "original_filename"
+    t.string   "status"
     t.integer  "new_patients"
     t.integer  "returning_patients"
     t.integer  "disenrolled_patients"

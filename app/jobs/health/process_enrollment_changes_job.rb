@@ -9,54 +9,69 @@ module Health
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 
-      # counters
-      new_patients = 0
-      returning_patients = 0
-      disenrolled_patients = 0
+      begin
+        # counters
+        new_patients = 0
+        returning_patients = 0
+        disenrolled_patients = 0
 
-      enrollment.enrollments.each do |transaction|
-        medicaid_id = enrollment.subscriber_id(transaction)
-        referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
-        if referral.present?
-          if referral.disenrollment_date.present?
-            re_enroll_patient(enrollment, referral)
-            returning_patients += 1
+        enrollment.enrollments.each do |transaction|
+          medicaid_id = Health::Enrollment.subscriber_id(transaction)
+          referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+          if referral.present?
+            if referral.disenrollment_date.present?
+              re_enroll_patient(transaction, referral)
+              returning_patients += 1
+            end
+            update_patient(transaction, referral)
+          else
+            enroll_patient(transaction)
+            new_patients += 1
           end
-          update_patient(enrollment, referral)
-        else
-          enroll_patient(enrollment)
-          new_patients += 1
         end
-      end
 
-      enrollment.disenrollments.each do |transaction|
-        medicaid_id = enrollment.subscriber_id(transaction)
-        referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
-        if referral.present?
-          disenroll_patient(enrollment, referral)
-          disenrolled_patients += 1
+        enrollment.disenrollments.each do |transaction|
+          medicaid_id = Health::Enrollment.subscriber_id(transaction)
+          referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+          if referral.present?
+            disenroll_patient(transaction, referral)
+            disenrolled_patients += 1
+          end
         end
+
+        enrollment.update(
+          new_patients: new_patients,
+          returning_patients: returning_patients,
+          disenrolled_patients: disenrolled_patients,
+          status: 'complete',
+        )
+      rescue e
+        enrollment.update(status: e)
       end
-      
-      enrollment.update(new_patients: new_patients,
-        returning_patients: returning_patients,
-        disenrolled_patients: disenrolled_patients)
     end
 
-    def enroll_patient(enrollment)
-
+    def enroll_patient(transaction)
+      referral = Health::PatientReferral.new
+      update_patient(transaction, referral)
     end
 
-    def re_enroll_patient(enrollment, referral)
-
+    def re_enroll_patient(transaction, referral)
+      referral.update(disenrollment_date: nil)
+      # TODO any other work to re-enroll
     end
 
-    def disenroll_patient(enrollment, referral)
-
+    def disenroll_patient(transaction, referral)
+      # Create a disenrollment record for manual processing
     end
 
-    def update_patient(enrollment, referral)
-
+    def update_patient(transaction, referral)
+      referral.update(
+        first_name: Health::Enrollment.first_name(transaction),
+        last_name: Health::Enrollment.last_name(transaction),
+        birthdate: Health::Enrollment.DOB(transaction),
+        ssn: Health::Enrollment.SSN(transaction),
+        medicaid_id: Health::Enrollment.subscriber_id(transaction)
+      )
     end
   end
 end

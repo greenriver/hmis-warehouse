@@ -5,6 +5,7 @@ class CreateEnrollments < ActiveRecord::Migration
       t.string :content
       t.string :original_filename
 
+      t.string :status
       t.integer :new_patients
       t.integer :returning_patients
       t.integer :disenrolled_patients

@@ -18,7 +18,9 @@ module WarehouseReports::Health
         @file = Health::Enrollment.create(
           user_id: current_user.id,
           content: enrollment_params[:content].read,
-          original_filename: enrollment_params[:content].original_filename)
+          original_filename: enrollment_params[:content].original_filename,
+          status: 'processing',
+        )
         Health::ProcessEnrollmentChangesJob.perform_later(@file.id)
       rescue Exception => e
         flash[:error] = "Error processing uploaded file #{e}"
