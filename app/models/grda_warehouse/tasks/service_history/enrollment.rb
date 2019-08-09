@@ -152,9 +152,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     # build out all days within the month
     # don't build for any dates we already have
+    # never build past today, it makes counts and display very odd
     def add_extrapolated_days dates, type_provided
       extrapolated_dates = dates.map do |date|
-        (date.beginning_of_month .. date.end_of_month).to_a
+        stop_on = [date.end_of_month, Date.today].min
+        (date.beginning_of_month .. stop_on).to_a
       end.flatten(1).uniq
       # Don't build extrapolations for any day we already have
       extrapolated_dates -= dates
