@@ -719,10 +719,17 @@ module Health
     end
 
     def most_recent_qa_from_case_note
-      [
-        sdh_case_management_notes.joins(:activities).maximum(:date_of_contact),
-        epic_case_note_qualifying_activities.maximum(:update_date),
-      ].compact&.max&.to_date
+      Health::QualifyingActivity.
+        where(
+          source_type: [
+            "GrdaWarehouse::HmisForm",
+            "Health::SdhCaseManagementNote",
+            "Health::EpicQualifyingActivity",
+          ]
+        ).
+        joins(:patient).
+        merge(Health::Patient.where(id: id)).
+        maximum(:date_of_activity)
     end
 
     def self.sort_options
