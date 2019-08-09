@@ -22,11 +22,6 @@
 
     = render 'warehouse_reports/filters', f:f
 
-  :css
-    .warn-about-percent {
-      color: red;
-    }
-
   %table.table.table-sm.table-hover.bed-table
     %thead
       %tr
@@ -65,8 +60,3 @@
         %th= project.units
         %th= project.clients
         %th= project.utilization
-
-
-  = content_for :page_js do
-    :javascript
-      $('.warn-about-percent').tooltip({title: 'In calculating the percent rows were excluded for which there was no corresponding bed inventory.'});
