@@ -15,16 +15,22 @@ module Reporting::DataQualityReports
     def calculate_unit_inventory project_ids:, report_range:
       GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).
         merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
-          map do |m|
-          m[:UnitInventory] || 0
+        map do |inventory|
+          inventory.average_daily_inventory(
+          range: report_range,
+          field: :UnitInventory
+        )
         end.sum
     end
 
     def calculate_bed_inventory project_ids:, report_range:
       GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).
         merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
-          map do |m|
-          m[:BedInventory] || 0
+        map do |inventory|
+          inventory.average_daily_inventory(
+            range: report_range,
+            field: :BedInventory
+          )
         end.sum
     end
 
