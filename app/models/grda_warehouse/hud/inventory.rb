@@ -150,13 +150,19 @@ module GrdaWarehouse::Hud
 
     # field is usually :UnitInventory or :BedInventory
     # range must be of type Filters::DateRange
+    # never calculate averages beyond yesterday since we won't have client data for future dates
     def average_daily_inventory range:, field:
       count = self[field]
       return 0 if count.blank? || count < 1
       start_date = [range.start, self.InventoryStartDate].compact.max
-      end_date = [range.end, self.InventoryEndDate].compact.min
+      end_date = [range.end, self.InventoryEndDate, Date.yesterday].compact.min
       days = (end_date - start_date).to_i
-      (days.to_f * count / range.length).to_i rescue 0
+      length = if range.end > Date.yesterday
+        (end_date - range.start).to_i
+      else
+        range.length
+      end
+      (days.to_f * count / length).to_i rescue 0
     end
   end
 end
