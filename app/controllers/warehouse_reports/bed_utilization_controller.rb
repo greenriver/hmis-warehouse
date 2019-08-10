@@ -69,7 +69,8 @@ module WarehouseReports
       options = {}
       if params[:mo].present?
         start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
-        end_date = start_date.end_of_month
+        # NOTE: we need to pro-rate the current month
+        end_date = [start_date.end_of_month, Date.yesterday].min
         options = params[:mo]
         options[:start] = start_date
         options[:end] = end_date
