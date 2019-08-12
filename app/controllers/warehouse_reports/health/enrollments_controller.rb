@@ -28,6 +28,11 @@ module WarehouseReports::Health
       redirect_to action: :index
     end
 
+    def show
+      @file = Health::Enrollment.find(params[:id].to_i)
+      @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
+    end
+
     def enrollment_params
       params.require(:health_enrollment).permit(:content)
     end

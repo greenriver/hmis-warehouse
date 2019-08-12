@@ -173,7 +173,7 @@ Rails.application.routes.draw do
     resources :dob_entry_same, only: [:index]
     resources :non_alpha_names, only: [:index]
     resources :future_enrollments, only: [:index]
-    resources :long_standing_clients, only: [:index]
+    resources :long_standing_clients, only: [:index, :show]
     resources :really_old_enrollments, only: [:index]
     resources :double_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]

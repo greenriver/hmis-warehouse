@@ -11,7 +11,7 @@
     %tbody
       - @files.each do |file|
         %tr
-          %td= file.created_at
+          %td= link_to file.created_at, warehouse_reports_health_enrollment_path(file)
           %td
             - if file.status == 'processing'
               = render 'spinner'
