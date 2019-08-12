@@ -166,9 +166,13 @@ module GrdaWarehouse
       Cas::Tag.find(tag_id)&.name rescue nil
     end
 
-    def visible_columns
+    def visible_columns(user:)
       return self.class.default_visible_columns unless column_state.present?
-      column_state&.select(&:visible)&.presence || self.class.available_columns
+
+      columns = column_state&.select(&:visible)&.presence || self.class.available_columns
+      columns.each do |column|
+        column.current_user = user
+      end
     end
 
     def self.default_visible_columns
@@ -185,6 +189,7 @@ module GrdaWarehouse
         ::CohortColumns::Rank.new(),
         ::CohortColumns::Age.new(),
         ::CohortColumns::Gender.new(),
+        ::CohortColumns::Ssn.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
