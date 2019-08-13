@@ -104,11 +104,11 @@ module GrdaWarehouse::YouthIntake
     end
 
     def self.any_visible_by?(user)
-      user.can_view_youth_intake? || user.can_edit_youth_intake?
+      user.can_view_youth_intake? || user.can_edit_youth_intake? || user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
     end
 
     def self.any_modifiable_by?(user)
-      user.can_edit_youth_intake?
+      user.can_edit_youth_intake? || user.can_edit_own_agency_youth_intake?
     end
 
     def ongoing?
