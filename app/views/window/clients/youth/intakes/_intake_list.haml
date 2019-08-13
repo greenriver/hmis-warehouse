@@ -11,6 +11,7 @@
         %thead
           %tr
             %th Engagement Date
+            %th Agency
             %th Exit Date
         %tbody
           - @intakes.ordered.each do |intake|
@@ -18,6 +19,7 @@
               %td.nobr
                 = link_to polymorphic_path(youth_intake_path_generator, id: intake.id) do
                   = intake.engagement_date
+              %td= intake.user&.agency&.name
               %td= intake.exit_date
     - else
       %p.pt-2.text-center None on file
