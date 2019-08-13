@@ -1045,9 +1045,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def no_income
-      clients_with_no_income_overall = clients_with_no_income[:overall].count
-      clients_with_no_earned_income = clients_with_no_income[:earned].count
-      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash].count
+      clients_with_no_income_overall = clients_with_no_income[:overall_client_ids].count
+      clients_with_no_earned_income = clients_with_no_income[:earned_client_ids].count
+      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash_client_ids].count
       denominator = clients_with_no_income[:clients].count
 
       overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0

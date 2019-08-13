@@ -20,6 +20,14 @@ module Censuses
       #             "yesterday": value
       #           }
       #         ]
+      #       },
+      #       { "label": "Bed Inventory Count"
+      #         "data": [
+      #           {
+      #             "x": date,
+      #             "y": value
+      #           }
+      #         ]
       #       }
       #     ]
       #     "title": {
@@ -37,6 +45,7 @@ module Censuses
 
       @shape ||= {}
       clients = {}
+      inventory = {}
       yesterday = nil
 
       project_scope.each do | census_record |
@@ -53,6 +62,8 @@ module Censuses
         GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
           clients[project_type] ||= []
           clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"], yesterday: yesterday["#{project_type}_all_clients"] }
+          inventory[project_type] ||= []
+          inventory[project_type] << { x: census_record.date, y: census_record["#{project_type}_beds"] }
         end
 
         yesterday = census_record
@@ -61,7 +72,7 @@ module Censuses
       # Only include dimensions that contain data
       GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do | project_type |
         if clients[project_type].present? && clients[project_type].size > 0
-          add_dimension(project_type, clients[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
+          add_dimension(project_type, clients[project_type], inventory[project_type], "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]}")
         end
       end
 
@@ -135,10 +146,11 @@ module Censuses
       return (date.yday % interval) == 0
     end
 
-    private def add_dimension (project_type, clients, title)
+    private def add_dimension (project_type, clients, beds, title)
       @shape[project_type] ||= {}
       @shape[project_type][:datasets] ||= []
       @shape[project_type][:datasets][0] ||= { label: "Client Count", data: clients }
+      @shape[project_type][:datasets][1] = { label: "Bed Inventory Count", data: beds }
       @shape[project_type][:title] ||= {}
       @shape[project_type][:title][:display] ||= true
       @shape[project_type][:title][:text] ||= title

@@ -308,6 +308,16 @@ module Health
       time_score: "Daily Time Management "
     }
 
+    def self.collection_for section_key
+      SECTIONS[section_key].map do |k,v|
+        label = "[#{k}] #{v}"
+        [
+          label,
+          k
+        ]
+      end
+    end
+
     def completed?
       completed_at.present?
     end

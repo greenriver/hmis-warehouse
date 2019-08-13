@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190805172310) do
+ActiveRecord::Schema.define(version: 20190808155531) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1928,6 +1928,11 @@ ActiveRecord::Schema.define(version: 20190805172310) do
     t.integer  "sh_all_clients",                         default: 0
     t.datetime "created_at",                                         null: false
     t.datetime "updated_at",                                         null: false
+    t.integer  "ph_beds",                                default: 0
+    t.integer  "es_beds",                                default: 0
+    t.integer  "th_beds",                                default: 0
+    t.integer  "so_beds",                                default: 0
+    t.integer  "sh_beds",                                default: 0
   end
 
   create_table "nightly_census_by_projects", force: :cascade do |t|

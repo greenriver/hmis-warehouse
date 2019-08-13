@@ -33,17 +33,32 @@ module Health
           @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
       end
-      @patients = @patients.order(last_name: :asc, first_name: :asc).
-        page(params[:page].to_i).per(25)
+      respond_to do |format|
+        format.html do
+          @patients = @patients.order(last_name: :asc, first_name: :asc).
+            page(params[:page].to_i).per(25)
+        end
+        format.xlsx do
+          date = Date.today.strftime('%Y-%m-%d')
+          @patients = @patients.joins(:patient_referral).preload(:patient_referral)
+          @tracking_sheet = Health::TrackingSheet.new(@patients)
+          render xlsx: :index, filename: "Tracking Sheet #{date}.xlsx"
+        end
+      end
+
     end
 
 
     def patient_scope
       if current_user.can_manage_care_coordinators?
         ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
-        patient_source.where(care_coordinator_id: ids).joins(:patient_referral).merge(Health::PatientReferral.not_confirmed_rejected)
+        patient_source.where(care_coordinator_id: ids).
+          joins(:patient_referral).
+          merge(Health::PatientReferral.not_confirmed_rejected)
       else
-        patient_source.where(care_coordinator_id: current_user.id).joins(:patient_referral).merge(Health::PatientReferral.not_confirmed_rejected)
+        patient_source.where(care_coordinator_id: current_user.id).
+          joins(:patient_referral).
+          merge(Health::PatientReferral.not_confirmed_rejected)
       end
     end
 

@@ -29,6 +29,28 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_parenting_juvenile_client_counts(project_type), project_type_code, :parenting_juveniles)
       add_clients_to_census_buckets(get_all_client_counts(project_type), project_type_code, :all_clients)
 
+      beds_by_date = {}
+      @by_count.each do | date, _ |
+        inventories = GrdaWarehouse::Hud::Inventory.within_range(@start_date..@end_date).
+          joins(:project).
+          merge(GrdaWarehouse::Hud::Project.with_project_type(project_type))
+
+        bed_counts = inventories.select do | inventory |
+          ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
+              (inventory.InventoryEndDate.blank?)) ||
+          ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
+              (inventory.InventoryEndDate.blank?)) ||
+          ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
+              (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date)) ||
+          ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+              (inventory.InventoryEndDate.blank?)) ||
+          ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+              (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
+        end.map(&:beds)
+        beds_by_date[date] = bed_counts.compact.sum rescue 0
+
+      end
+      add_clients_to_census_buckets(beds_by_date, project_type_code, :beds)
     end
 
     def build_project_type_independent_batch
