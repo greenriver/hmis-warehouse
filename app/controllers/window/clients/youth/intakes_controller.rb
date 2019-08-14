@@ -23,6 +23,7 @@ module Window::Clients::Youth
       @case_managements = @client.case_managements.order(engaged_on: :desc, created_at: :desc)
       @direct_financial_assistances = @client.direct_financial_assistances.order(provided_on: :desc, created_at: :desc)
       @youth_referrals = @client.youth_referrals.order(referred_on: :desc, created_at: :desc)
+      @follow_ups = @client.youth_follow_ups.order(contacted_on: :desc, created_at: :desc)
 
       @referral = @client.youth_referrals.build(referred_on: Date.today)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.today)

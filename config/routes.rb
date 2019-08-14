@@ -390,6 +390,7 @@ Rails.application.routes.draw do
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
+    resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
 
     resources :files, controller: 'clients/files' do
       get :preview, on: :member
