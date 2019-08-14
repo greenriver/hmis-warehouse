@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190730141425) do
+ActiveRecord::Schema.define(version: 20190814011156) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1922,6 +1922,11 @@ ActiveRecord::Schema.define(version: 20190730141425) do
     t.integer  "sh_all_clients",                         default: 0
     t.datetime "created_at",                                         null: false
     t.datetime "updated_at",                                         null: false
+    t.integer  "ph_beds",                                default: 0
+    t.integer  "es_beds",                                default: 0
+    t.integer  "th_beds",                                default: 0
+    t.integer  "so_beds",                                default: 0
+    t.integer  "sh_beds",                                default: 0
   end
 
   create_table "nightly_census_by_projects", force: :cascade do |t|
@@ -3349,9 +3354,11 @@ ActiveRecord::Schema.define(version: 20190730141425) do
 
   create_table "verification_sources", force: :cascade do |t|
     t.integer  "client_id"
-    t.string   "disability_verification"
+    t.string   "location"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "verified_at"
+    t.string   "type"
   end
 
   create_table "vispdats", force: :cascade do |t|
@@ -3615,6 +3622,19 @@ ActiveRecord::Schema.define(version: 20190730141425) do
   end
 
   add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
+  create_table "youth_follow_ups", force: :cascade do |t|
+    t.integer  "client_id"
+    t.integer  "user_id"
+    t.date     "contacted_on"
+    t.string   "housing_status"
+    t.string   "zip_code"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_follow_ups", ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at", using: :btree
 
   create_table "youth_intakes", force: :cascade do |t|
     t.integer  "client_id"

@@ -25,7 +25,13 @@ Dotenv.load('.env', '.env.local')
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
   rake "grda_warehouse:daily"
+end
+shifted_time = Time.parse(daily_schedule) - 2.hours
+every 1.day, at: shifted_time.strftime('%H:%M %P') do
   rake "grda_warehouse:process_recurring_hmis_exports"
+end
+shifted_time = Time.parse(daily_schedule) - 5.minutes
+every 1.day, at: shifted_time.strftime('%H:%M %P') do
   rake "grda_warehouse:secure_files:clean_expired"
 end
 
@@ -51,7 +57,7 @@ every 1.day, at: '4:00 am' do
 end
 
 # These only happen in some scenarios
-if ENV['ETO_API_SITE1'] != 'unknown'
+if ENV['ETO_API_SITE1'] != 'unknown' && ENV['ETO_LEGACY_API_UPDATE'] != ''
   every 1.day, at: '4:00 pm' do
     rake "eto:import:update_ids_and_demographics"
   end

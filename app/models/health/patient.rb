@@ -678,6 +678,60 @@ module Health
       # end
     end
 
+    def consented_date
+      @consented_date ||= participation_forms.signed&.last&.signature_on
+    end
+
+    def ssm_completed_date
+      @ssm_completed_date ||= self_sufficiency_matrix_forms.completed.maximum(:completed_at)&.to_date
+    end
+
+    def cha_completed_date
+      @cha_completed_date ||= comprehensive_health_assessments.complete&.maximum(:completed_at)&.to_date
+    end
+
+    def cha_reviewed_date
+      @cha_reviewed_date ||= comprehensive_health_assessments.complete&.maximum(:reviewed_at)&.to_date
+    end
+
+    def cha_renewal_date
+      @cha_renewal_date ||= if cha_reviewed_date.present?
+        cha_reviewed_date + 1.years
+      end
+    end
+
+    def care_plan_patient_signed_date
+      @care_plan_patient_signed_date ||= careplans.maximum(:patient_signed_on)&.to_date
+    end
+
+    def care_plan_provider_signed_date
+      @care_plan_provider_signed_date ||= careplans.maximum(:provider_signed_on)&.to_date
+    end
+
+    def care_plan_renewal_date
+      if care_plan_provider_signed_date.present?
+        care_plan_provider_signed_date + 1.years
+      end
+    end
+
+    def most_recent_face_to_face_qa_date
+      qualifying_activities.direct_contact.face_to_face.maximum(:date_of_activity)
+    end
+
+    def most_recent_qa_from_case_note
+      Health::QualifyingActivity.
+        where(
+          source_type: [
+            "GrdaWarehouse::HmisForm",
+            "Health::SdhCaseManagementNote",
+            "Health::EpicQualifyingActivity",
+          ]
+        ).
+        joins(:patient).
+        merge(Health::Patient.where(id: id)).
+        maximum(:date_of_activity)
+    end
+
     def self.sort_options
       [
         {title: 'Patient Last name A-Z', column: :patient_last_name, direction: 'asc'},

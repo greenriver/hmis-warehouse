@@ -147,7 +147,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(incorrect_household_type: true).
           pluck(*enrollment_support_columns.values),
-        title: 'Service After Exit',
+        title: 'Incorrect Household Type',
       }
     end
 

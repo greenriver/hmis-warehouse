@@ -368,38 +368,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Assessment
   def service_type
-    case project_type
-    when 1
-      'Emergency Shelter (ES)'
-    when 2
-      'Transitional Housing (TH)'
-    when 3
-      'Permanent Supportive Housing (PH)'
-    when 4
-      'Street Outreach (SO)'
-    when 6
-      'Services Only'
-    when 7
-      'Other'
-    when 8
-      'Safe Haven (SH)'
-    when 9
-      'Permanent Housing (Housing Only) (PH)'
-    when 10
-      'Permanent Housing (Housing with Services) (PH)'
-    when 11
-      'Day Shelter'
-    when 12
-      'Homeless Prevention'
-    when 13
-      'Rapid Re-Housing (PH)'
-    when 14
-      'Coordinated Assessment'
-    end
+    ::HUD.project_type(computed_project_type)
   end
 
   def service_type_brief
-    ::HUD.project_type_brief(project_type)
+    ::HUD.project_type_brief(computed_project_type)
   end
 
   def start_time

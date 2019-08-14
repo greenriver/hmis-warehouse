@@ -24,6 +24,9 @@ chdir APP_ROOT do
   system! 'bundle exec rake health:db:migrate'
   system! 'bundle exec rake reporting:db:migrate'
 
+  puts "\n== Updating NPM =="
+  system! 'npm install'
+
   puts "\n== Removing old logs and tempfiles =="
   system! 'bundle exec rake log:clear tmp:clear'
 

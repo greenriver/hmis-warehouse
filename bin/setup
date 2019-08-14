@@ -10,6 +10,9 @@ Dir.chdir APP_ROOT do
   system 'gem install bundler --conservative'
   system 'bundle check || bundle install --without seven_zip'
 
+  puts '== Installing NPM =='
+  system! 'npm install'
+
   ymls = [
     'secrets.yml',
     'letsencrypt_plugin.yml',

@@ -28,7 +28,7 @@
         - Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |section_key|
           %section.c-card
             .c-card__content
-              = f.input :"#{section_key}_score", label: Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key], collection: Health::SelfSufficiencyMatrixForm::SECTIONS[section_key].invert.to_a, as: :radio_buttons
+              = f.input :"#{section_key}_score", label: Health::SelfSufficiencyMatrixForm::SECTION_TITLES[section_key], collection: Health::SelfSufficiencyMatrixForm.collection_for(section_key), as: :radio_buttons
               .row
                 .col-md-10
                   = f.input :"#{section_key}_notes", as: :text, label: 'Notes', hint: Health::SelfSufficiencyMatrixForm::SECTION_NOTES[section_key], input_html: {class: 'sized'}

@@ -28,9 +28,7 @@ class App.Dashboards.Clients.Exits extends App.Dashboards.Clients.Base
         y:
           show: true
           ticks: 4
-      legend:
-        show: false
-      size:
-        height: 200
+      legend: @options.legend
+      size: @options.size
       bindto: @chart_selector
     })

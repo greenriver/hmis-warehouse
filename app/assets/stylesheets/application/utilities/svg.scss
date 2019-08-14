@@ -1,0 +1,25 @@
+.icon-svg {
+  &,
+  svg {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+$sizes: (
+  xs: 1rem,
+  sm: 2rem,
+  md: 3rem,
+  lg: 5rem,
+  xl: 6rem,
+);
+
+@each $name, $size in $sizes {
+  .icon-svg--#{$name} {
+    &,
+    svg {
+      width: $size;
+      height: $size;
+    }
+  }
+}

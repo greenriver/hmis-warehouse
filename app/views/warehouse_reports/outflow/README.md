@@ -20,6 +20,8 @@ The unique count of the clients entering stabilization or housing above.
 
 The count of the number of clients with an open enrollment in ES, SH, TH, or SO and some service during the reporting period, but no service after the cut-off date.
 
+If *Additional projects included in "without recent service" calculation* are selected, service in any of those projects after the cut-off date will remove the client from the count.
+
 ## Total Outflow
 
 The count of the number of clients above, with duplicates removed.

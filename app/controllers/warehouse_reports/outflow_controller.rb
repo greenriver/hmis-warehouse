@@ -19,7 +19,7 @@ module WarehouseReports
 
     def details
       raise 'Key required' if params[:key].blank?
-      @key = metrics.keys.detect { |key| key.to_s == params[:key] }
+      @key = @report.metrics.keys.detect { |key| key.to_s == params[:key] }
       @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by{ |e| e.client_id }
 
       respond_to do |format|
@@ -30,18 +30,6 @@ module WarehouseReports
       end
     end
 
-    def metrics
-      {
-        clients_to_ph: 'Clients exiting to PH',
-        psh_clients_to_stabilization: "PSH Clients entering #{_"Housing"}",
-        rrh_clients_to_stabilization: "RRH Clients entering #{_"Stabilization"}",
-        clients_to_stabilization: "All Clients entering #{_"Stabilization"}",
-        clients_without_recent_service: 'Clients without recent service',
-        client_outflow: 'Total Outflow',
-      }
-    end
-    helper_method :metrics
-
     def describe_computations
       path = "app/views/warehouse_reports/outflow/README.md"
       description = File.read(path)
@@ -51,7 +39,7 @@ module WarehouseReports
     helper_method :describe_computations
 
     private def set_report
-      @filter = ::Filters::DateRangeWithSourcesAndSubPopulation.new(filter_options)
+      @filter = ::Filters::OutflowReport.new(filter_options)
       @report = GrdaWarehouse::WarehouseReports::OutflowReport.new(@filter, current_user)
     end
 
@@ -64,6 +52,7 @@ module WarehouseReports
           :no_service_after_date,
           organization_ids: [],
           project_ids: [],
+          no_recent_service_project_ids: [],
         )
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
@@ -72,6 +61,7 @@ module WarehouseReports
         end
         opts[:project_ids] = cleanup_ids(opts[:project_ids])
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
+        opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
         opts
       else
         {

@@ -10,6 +10,7 @@ class Users::InvitationsController < Devise::InvitationsController
 
   # GET /resource/invitation/new
   def new
+    @agencies = Agency.order(:name)
     @user = User.new
   end
 
@@ -43,6 +44,7 @@ class Users::InvitationsController < Devise::InvitationsController
       end
       redirect_to admin_users_path
     else
+      @agencies = Agency.order(:name)
       render :new
     end
   end
@@ -70,7 +72,7 @@ class Users::InvitationsController < Devise::InvitationsController
         :first_name,
         :email,
         :phone,
-        :agency,
+        :agency_id,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,

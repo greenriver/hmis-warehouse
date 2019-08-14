@@ -18,6 +18,3 @@
       = f.input :end, as: :date_picker, input_html: {class: 'form-control', value: @range.end}
     .mr-auto.mt-no-label
       = f.button :submit, value: 'Run Selected Reports'
-    .ml-2.mt-no-label
-      = link_to download_warehouse_reports_project_data_quality_path(format: :xlsx), class: 'btn btn-secondary' do
-        Download most-recent reports

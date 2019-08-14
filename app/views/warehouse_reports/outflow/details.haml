@@ -1,7 +1,7 @@
 = content_for :crumbs do
   = link_to warehouse_reports_outflow_index_path(filter: params[:filter]) do
     = "« Client Outflow Report"
-- title = metrics[@key]
+- title = @report.metrics[@key]
 - content_for :title, title
 = content_for :modal_title, title
 
@@ -33,7 +33,7 @@
           - enrollments.each do |enrollment|
             %tr
               %td= enrollment.project_name
-              %td= HUD.project_type enrollment.computed_project_type
+              %td= enrollment.service_type_brief
               %td= enrollment.first_date_in_program
               %td= enrollment.last_date_in_program
               %td= HUD.destination(enrollment.destination)

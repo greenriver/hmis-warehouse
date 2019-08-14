@@ -18,7 +18,7 @@ module Filters
     end
 
     def organizations
-      @organizations ||= organization_scope.distinct.order(:OrganizationName)
+      @organizations ||= organization_scope.distinct.order(:OrganizationName).preload(projects: :inventories)
     end
 
     def disambiguated_organizations

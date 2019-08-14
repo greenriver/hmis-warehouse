@@ -36,6 +36,3 @@
       %p
         = checkmark_or_x(@client.ha_eligible)
         %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
-      %p
-        = checkmark_or_x(@client.disability_verified_on.present?)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]

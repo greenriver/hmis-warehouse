@@ -15,11 +15,12 @@
 
       = f.input :DOB, as: :date_picker, label: 'DOB'
     .col-sm-6
-      = f.input :Gender, collection: HUD::genders.invert
-      = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status'
+      = f.input :Gender, collection: HUD::genders.invert, input_html: { class: :select2 }
+      = f.input :VeteranStatus, collection: HUD::no_yes_reasons_for_missing_data_options.invert, label: 'Veteran Status', input_html: { class: :select2 }
 
   = f.submit value: 'Save', class: 'btn btn-secondary'
 
 = content_for :page_js do
   :javascript
     $('.jSSN').inputmask("999-99-9999");
+    $('.select2').select2();
