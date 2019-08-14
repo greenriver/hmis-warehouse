@@ -15,5 +15,13 @@ module Health
 
     scope :active, -> { where active: true }
 
+    def self.split_pid_sl(pid_sl)
+      return { pid: nil, sl: nil } unless pid_sl.present?
+
+      {
+        pid: pid_sl[0, pid_sl.length - 1],
+        sl:  pid_sl[-1],
+      }
+    end
   end
 end
