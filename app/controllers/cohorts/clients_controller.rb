@@ -301,6 +301,7 @@ module Cohorts
         update_params[key] = _debool(update_params[key]) if update_params[key].present?
       end
       @client.assign_attributes(update_params)
+
       if @client.active_changed?
         if @client.active
           log_activate(@cohort.id, @client.id)
