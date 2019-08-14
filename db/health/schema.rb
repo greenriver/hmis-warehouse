@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190607144129) do
+ActiveRecord::Schema.define(version: 20190809152023) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -318,6 +318,18 @@ ActiveRecord::Schema.define(version: 20190607144129) do
     t.integer  "user_id"
     t.string   "original_filename"
     t.datetime "deleted_at"
+  end
+
+  create_table "enrollments", force: :cascade do |t|
+    t.integer  "user_id"
+    t.string   "content"
+    t.string   "original_filename"
+    t.string   "status"
+    t.integer  "new_patients"
+    t.integer  "returning_patients"
+    t.integer  "disenrolled_patients"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "epic_careplans", force: :cascade do |t|
@@ -725,6 +737,7 @@ ActiveRecord::Schema.define(version: 20190607144129) do
     t.boolean  "removal_acknowledged",             default: false
     t.date     "disenrollment_date"
     t.string   "stop_reason_description"
+    t.date     "pending_disenrollment_date"
   end
 
   create_table "patients", force: :cascade do |t|
