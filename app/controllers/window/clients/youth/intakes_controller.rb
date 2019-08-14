@@ -10,7 +10,7 @@ module Window::Clients::Youth
     include PjaxModalController
 
     before_action :require_can_access_youth_intake_list!
-    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :udate, :new, :create, :destroy]
+    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :update, :new, :create, :destroy]
 
     before_action :set_client
     before_action :set_intake, only: [:show, :edit, :update, :destroy]
@@ -24,6 +24,7 @@ module Window::Clients::Youth
       @direct_financial_assistances = @client.direct_financial_assistances.order(provided_on: :desc, created_at: :desc)
       @youth_referrals = @client.youth_referrals.order(referred_on: :desc, created_at: :desc)
       @follow_ups = @client.youth_follow_ups.order(contacted_on: :desc, created_at: :desc)
+      @follow_up_due = follow_up_due_on
 
       @referral = @client.youth_referrals.build(referred_on: Date.today)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.today)
@@ -74,6 +75,25 @@ module Window::Clients::Youth
 
       @intake.save
       respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
+    end
+
+    def follow_up_due_on
+      return unless @intakes.ongoing.exists?
+
+      last_contact = [
+        @intakes.ongoing.first&.engagement_date,
+        @case_managements.first&.engaged_on,
+        @direct_financial_assistances.first&.provided_on,
+        @youth_referrals.first&.referred_on,
+        @follow_ups.first&.contacted_on,
+      ].compact.max
+
+      cut_off_date = Date.today - 3.months - 1.week
+      if last_contact.present? && last_contact <= cut_off_date
+        last_contact + 3.months
+      else
+        nil
+      end
     end
 
     def set_client
