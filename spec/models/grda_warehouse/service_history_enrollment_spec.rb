@@ -1,13 +1,14 @@
 require 'rails_helper'
 
 # NOTE:
-# Homeless is true for ES, SH, SO, TH and PH before move-in date
+# Homeless is true for ES, SH, SO, TH
 # Literally Homeless is only true for ES, SH, SO
+# PH only negates homeless after the move-in-date
 
 RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
   let(:client) { 0 }
-  let(:start_date) { Date.today }
-  let(:end_date) { Date.tomorrow }
+  let(:start_date) { Date.current }
+  let(:end_date) { Date.current + 1.days }
 
   describe 'by range' do
     let!(:start_in_range) { create :grda_warehouse_service_history, :service_history_entry, first_date_in_program: start_date, last_date_in_program: end_date }
@@ -57,20 +58,20 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
     let!(:no_move_in) { create :grda_warehouse_service_history, :service_history_entry, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
     let!(:no_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 1, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
 
-    let!(:future_move_in_th) { create :grda_warehouse_service_history, :service_history_entry, :with_th_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
-    let!(:future_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:future_move_in_th) { create :grda_warehouse_service_history, :service_history_entry, :with_th_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.current + 1.days, first_date_in_program: start_date, last_date_in_program: end_date }
+    let!(:future_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 2, data_source_id: 1, move_in_date: Date.current + 1.days, first_date_in_program: start_date, last_date_in_program: end_date }
 
     let!(:past_move_in_th) { create :grda_warehouse_service_history, :service_history_entry, :with_th_enrollment, client_id: 3, data_source_id: 1, first_date_in_program: start_date, move_in_date: Date.yesterday, last_date_in_program: end_date }
     let!(:past_move_in_ph) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 3, data_source_id: 1, first_date_in_program: start_date, move_in_date: Date.yesterday, last_date_in_program: end_date }
 
-    let(:homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today) }
-    let(:literally_homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.today, chronic_types_only: true) }
+    let(:homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.current) }
+    let(:literally_homeless_scope) { GrdaWarehouse::ServiceHistoryEnrollment.currently_homeless(date: Date.current, chronic_types_only: true) }
 
     # Client ID 1 (only no move in date)
     it 'includes no move in' do
       aggregate_failures do
         expect(homeless_scope).to include no_move_in
-        expect(homeless_scope).to include no_move_in_ph
+        expect(homeless_scope).to_not include no_move_in_ph
         expect(literally_homeless_scope).to include no_move_in
         expect(literally_homeless_scope).not_to include no_move_in_ph
       end
@@ -80,7 +81,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
     it 'includes future move in' do
       aggregate_failures do
         expect(homeless_scope).to include future_move_in_th
-        expect(homeless_scope).to include future_move_in_ph
+        expect(homeless_scope).to_not include future_move_in_ph
         expect(literally_homeless_scope).not_to include future_move_in_th
         expect(literally_homeless_scope).not_to include future_move_in_ph
       end

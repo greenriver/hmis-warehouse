@@ -22,16 +22,16 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     expect(scope.count).to eq(GrdaWarehouse::ServiceHistoryService.count)
   end
 
-  it 'homeless still includes PH with no move-in-date' do
+  it 'homeless no longer includes PH with no move-in-date' do
     en = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where.not(TrackingMethod: 3)).first
     en.project.update(ProjectType: 13, computed_project_type: 13)
     en.update(processed_as: nil)
     en.rebuild_service_history!
-
     scope = GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: start_date, end_date: end_date)
     aggregate_failures do
       expect(en.service_history_enrollment.service_history_services.count).to be > 0
-      expect(scope.count).to eq(GrdaWarehouse::ServiceHistoryService.count)
+      expect(scope.count).to eq(GrdaWarehouse::ServiceHistoryService.count - en.service_history_enrollment.service_history_services.count)
+      expect(GrdaWarehouse::ServiceHistoryService.where(homeless: nil).count).to eq en.service_history_enrollment.service_history_services.count
     end
   end
 

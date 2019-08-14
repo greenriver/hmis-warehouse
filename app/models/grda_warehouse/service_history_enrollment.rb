@@ -130,19 +130,24 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     else
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
 
-      unhoused_scope = entry.ongoing(on_date: date).
-        in_project_type(residential_project_types).
-        with_move_in_date_after_or_blank(date).
-        select(:id).to_sql
+      # unhoused_scope = entry.ongoing(on_date: date).
+      #   in_project_type(residential_project_types).
+      #   with_move_in_date_after_or_blank(date).
+      #   select(:id).to_sql
       housed_scope = entry.ongoing(on_date: date).
         in_project_type(residential_project_types).
         with_move_in_date_before(date).
         select(:client_id).to_sql
 
+      # where(
+      #   (she_t[:id].in(Arel.sql(homeless_scope)).
+      #     or(she_t[:id].in(Arel.sql(unhoused_scope)))
+      #   ).
+      #   and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
+      # )
+
       where(
-        (she_t[:id].in(Arel.sql(homeless_scope)).
-          or(she_t[:id].in(Arel.sql(unhoused_scope)))
-        ).
+        she_t[:id].in(Arel.sql(homeless_scope)).
         and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
       )
     end
@@ -169,19 +174,24 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     else
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
 
-      unhoused_scope = entry.ongoing(on_date: date).
-        hud_project_type(residential_project_types).
-        with_move_in_date_after_or_blank(date).
-        select(:id).to_sql
+      # unhoused_scope = entry.ongoing(on_date: date).
+      #   hud_project_type(residential_project_types).
+      #   with_move_in_date_after_or_blank(date).
+      #   select(:id).to_sql
       housed_scope = entry.ongoing(on_date: date).
         hud_project_type(residential_project_types).
         with_move_in_date_before(date).
         select(:client_id).to_sql
 
+      # where(
+      #   (she_t[:id].in(Arel.sql(homeless_scope)).
+      #     or(she_t[:id].in(Arel.sql(unhoused_scope)))
+      #   ).
+      #   and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
+      # )
+
       where(
-        (she_t[:id].in(Arel.sql(homeless_scope)).
-          or(she_t[:id].in(Arel.sql(unhoused_scope)))
-        ).
+        she_t[:id].in(Arel.sql(homeless_scope)).
         and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
       )
     end

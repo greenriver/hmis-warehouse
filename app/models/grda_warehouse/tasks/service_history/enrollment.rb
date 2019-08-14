@@ -337,9 +337,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def homeless? date
       return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
-
-      return GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
-        (self.MoveInDate.blank? || date < self.MoveInDate)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return nil
     end
 
     # The day only counts as literally homeless if it's in ES, SO, SH.  Others don't negate it, but don't count as such
