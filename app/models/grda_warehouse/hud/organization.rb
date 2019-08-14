@@ -62,22 +62,22 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.bed_utilization_by_project filter:
-      user = filter.user
-      # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
-      project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, GrdaWarehouse::Hud::Project.project_type_column]
-      project_scope_for_user(user).
-        joins( :service_history, :organization ).
-        merge(self.residential).
-        where( o_t[:OrganizationID].eq filter.organization.OrganizationID ).
-        where( o_t[:data_source_id].eq filter.organization.data_source_id ).
-        where( sh_t[:date].between(filter.range) ).
-        group( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date] ).
-        order( p_t[:ProjectName].asc, sh_t[:date].asc ).
-        select( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [sh_t[:client_id]] )] ).as('client_count') ).
-        includes(:inventories).
-        group_by(&:id)
-    end
+    # def self.bed_utilization_by_project filter:
+    #   user = filter.user
+    #   # you wouldn't think it would need to be as complicated as this, but Arel complained until I got it just right
+    #   project_cols = [:id, :data_source_id, :ProjectID, :ProjectName, GrdaWarehouse::Hud::Project.project_type_column]
+    #   project_scope_for_user(user).
+    #     joins( :service_history, :organization ).
+    #     merge(self.residential).
+    #     where( o_t[:OrganizationID].eq filter.organization.OrganizationID ).
+    #     where( o_t[:data_source_id].eq filter.organization.data_source_id ).
+    #     where( sh_t[:date].between(filter.range) ).
+    #     group( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date] ).
+    #     order( p_t[:ProjectName].asc, sh_t[:date].asc ).
+    #     select( *project_cols.map{ |cn| p_t[cn] }, sh_t[:date].as('date'), nf( 'COUNT', [nf( 'DISTINCT', [sh_t[:client_id]] )] ).as('client_count') ).
+    #     includes(:inventories).
+    #     group_by(&:id)
+    # end
 
     def self.project_scope_for_user user=nil
       if user.present?

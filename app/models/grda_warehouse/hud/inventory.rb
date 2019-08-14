@@ -144,28 +144,19 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.relevant_inventories(inventories:, date:)
-      inventories = inventories.select{ |inv| inv.BedInventory.present? }
-      if inventories.any?
-        ref = date.to_time.to_i
-        inventories.sort_by do |inv|
-          ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
-        end
-      end
-    end
-
     def self.related_item_keys
       [:ProjectID]
     end
 
     # field is usually :UnitInventory or :BedInventory
+    # range must be of type Filters::DateRange
     def average_daily_inventory range:, field:
       count = self[field]
-      return 0 unless count.present? && count > 0
+      return 0 if count.blank? || count < 1
       start_date = [range.start, self.InventoryStartDate].compact.max
       end_date = [range.end, self.InventoryEndDate].compact.min
       days = (end_date - start_date).to_i
-      count = (days.to_f * count / range.length).to_i rescue 0
+      (days.to_f * count / range.length).to_i rescue 0
     end
   end
 end
