@@ -9,7 +9,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     def index
-      columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :id]
+      columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id]
       @filter = ::Filters::DateRange.new(date_range_options)
       @ph_clients = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct.
         pluck(*columns).
@@ -35,26 +35,14 @@ module WarehouseReports
         es_start_dates = enrollments.map{|en| en[:first_date_in_program]}
         remove = []
         ph.each do |enrollment|
-          if es_start_dates.all?{|st_date| st_date < enrollment[:first_date_in_program]}
+          if enrollment[:move_in_date].blank?
             remove << true
-          else
+          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].present? && st_date.in?(enrollment[:move_in_date]..enrollment[:last_date_in_program])}
             remove << false
-          end
-        end
-        remove.all?
-      end
-
-      @homeless_clients.delete_if do |client_id, enrollments|
-        ph = @ph_clients[client_id]
-        es_start_dates = enrollments.map{|en| en[:first_date_in_program]}
-        remove = []
-        ph.each do |enrollment|
-          if enrollment[:last_date_in_program].blank?
+          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].blank? && st_date > enrollment[:move_in_date]}
             remove << false
-          elsif es_start_dates.all?{|st_date| st_date > enrollment[:last_date_in_program]}
+          else # es enrollment opened after exit from PH
             remove << true
-          else
-            remove << false
           end
         end
         remove.all?

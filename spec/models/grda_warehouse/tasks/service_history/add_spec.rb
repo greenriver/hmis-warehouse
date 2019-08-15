@@ -104,6 +104,9 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+    end
     GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
     Delayed::Worker.new.work_off(2)
   end
