@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190814174740) do
+ActiveRecord::Schema.define(version: 20190814202518) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1222,6 +1222,17 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.string   "user_string_7"
     t.string   "user_string_8"
     t.string   "hmis_destination"
+    t.boolean  "user_boolean_5"
+    t.boolean  "user_boolean_6"
+    t.boolean  "user_boolean_7"
+    t.boolean  "user_boolean_8"
+    t.boolean  "user_boolean_9"
+    t.boolean  "user_boolean_10"
+    t.boolean  "user_boolean_11"
+    t.boolean  "user_boolean_12"
+    t.boolean  "user_boolean_13"
+    t.boolean  "user_boolean_14"
+    t.boolean  "user_boolean_15"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -2282,7 +2293,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2298,7 +2309,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2317,7 +2328,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2336,7 +2347,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2355,7 +2366,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2374,7 +2385,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2393,7 +2404,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2412,7 +2423,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2431,7 +2442,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2450,7 +2461,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2469,7 +2480,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2488,7 +2499,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2507,7 +2518,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2526,7 +2537,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2545,7 +2556,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2564,7 +2575,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2583,7 +2594,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2602,7 +2613,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2621,7 +2632,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2640,7 +2651,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2659,7 +2670,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2678,7 +2689,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2697,7 +2708,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2716,7 +2727,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2735,7 +2746,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2754,7 +2765,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2773,7 +2784,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2792,7 +2803,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2811,7 +2822,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2830,7 +2841,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2849,7 +2860,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2868,7 +2879,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2887,7 +2898,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2906,7 +2917,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2925,7 +2936,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2944,7 +2955,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2963,7 +2974,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -2982,7 +2993,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3001,7 +3012,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3020,7 +3031,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3039,7 +3050,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3058,7 +3069,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3077,7 +3088,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3096,7 +3107,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3115,7 +3126,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3134,7 +3145,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3153,7 +3164,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3172,7 +3183,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3191,7 +3202,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3210,7 +3221,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3229,7 +3240,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3248,7 +3259,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
@@ -3267,7 +3278,7 @@ ActiveRecord::Schema.define(version: 20190814174740) do
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
     t.integer "project_type",                  limit: 2
-    t.boolean "homeless",                                 default: false
+    t.boolean "homeless"
     t.boolean "literally_homeless",                       default: false
   end
 
