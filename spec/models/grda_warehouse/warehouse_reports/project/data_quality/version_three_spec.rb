@@ -20,6 +20,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
         open_enrollments = GrdaWarehouse::Hud::Enrollment.
           open_during_range(range).
           where(ProjectID: report.project.ProjectID).
+          joins(:service_history_enrollment).
           distinct.select(:PersonalID).count
 
         client_count = report.clients.map { |client| client[:destination_id] }.uniq.count
@@ -1065,13 +1066,16 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
     importer.import!
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+    end
     Delayed::Worker.new.work_off(2)
   end
 
   def cleanup_fixture
     # Because we are only running the import once, we have to do our own DB and file cleanup
     GrdaWarehouse::Utility.clear!
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.delete_all
     FileUtils.rm_rf(@import_path) unless @import_path == @file_path
   end
 end
