@@ -227,22 +227,7 @@ module GrdaWarehouse::Tasks
         e.sort_by!{|m| m[:date]}
         meta = e.first
         dates_served = e.map{|m| m[:date]}.uniq
-        # special treatment for SO
-        # Count all days in any month served
-        # if count_so_as_full_month?(meta)
-        #   so_dates_served = []
-        #   dates_served.map do |date|
-        #     Date.new(date.year, date.month, 01)
-        #   end.uniq.each do |first_of_month|
-        #     last_of_month = first_of_month.end_of_month
-        #     first_of_month.upto(last_of_month) do |d|
-        #       so_dates_served << d
-        #     end
-        #   end
-        #   debug_log "SO Dates Served in #{meta[:project_name]}: #{so_dates_served.size}"
-        #   # debug_log so_dates_served.inspect
-        #   dates_served = so_dates_served.uniq
-        # end
+
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
         count_until = if bed_night?(meta)
@@ -253,7 +238,7 @@ module GrdaWarehouse::Tasks
         # days included in adjusted days that are not also served by a residential project
         # If the project uses bed-night tracking, just count them all
         # otherwise ignore overlapping dates (this allows for overlapping SO from two sources)
-        # We dedup dates later, none will be double counted
+        # We de-dupe dates later, none will be double counted
         if count_all_dates?(meta)
           adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
           debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
@@ -324,8 +309,9 @@ module GrdaWarehouse::Tasks
       dates.select{|date| date < stop_date}
     end
 
+    # days served in PH *after* the move-in-date
     def residential_dates enrollments:
-      @non_homeless_types ||= project_source::RESIDENTIAL_PROJECT_TYPE_IDS - project_source::CHRONIC_PROJECT_TYPES
+      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       @residential_dates ||= enrollments.select do |e|
         e[:project_type].in? @non_homeless_types
       end.map do |e|

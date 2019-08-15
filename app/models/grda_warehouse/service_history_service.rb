@@ -17,8 +17,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   end
 
   scope :permanent_housing, -> do
-    project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten
-    in_project_type(project_types)
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
   end
 
   scope :homeless_sheltered, -> do
