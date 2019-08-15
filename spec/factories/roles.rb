@@ -122,4 +122,9 @@ FactoryBot.define do
     name { 'can view own agency youth intake' }
     can_view_own_agency_youth_intake { true }
   end
+
+  factory :can_edit_own_agency_youth_intake, class: 'Role' do
+    name { 'can edit own agency youth intake' }
+    can_edit_own_agency_youth_intake { true }
+  end
 end
