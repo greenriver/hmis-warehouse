@@ -1,0 +1,14 @@
+- title = "Homeless Youth Three Month Follow Up Report"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+.row
+  .col-sm-8
+    %h1= title
+
+= render 'filter'
+- if @report.clients.present?
+  %p.alert.alert-info The following clients have not had a youth interaction, including three-month follow-ups, since #{@report.cut_off_date}. Anyone with a last seen date before #{@report.late_date} is over due for a three month follow-up.
+  = render 'table'
+- else
+  %p No Clients found.
