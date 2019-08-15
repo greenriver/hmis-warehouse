@@ -172,6 +172,7 @@ Rails.application.routes.draw do
   namespace :warehouse_reports do
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
+    resources :youth_follow_ups, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
