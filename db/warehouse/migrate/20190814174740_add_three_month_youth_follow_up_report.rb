@@ -4,7 +4,7 @@ class AddThreeMonthYouthFollowUpReport < ActiveRecord::Migration
       {
         url: 'warehouse_reports/youth_follow_ups',
         name: 'Homeless Youth Follow Up Report',
-        description: 'Youth Who Require A Three Month Follow Up',
+        description: 'Youth who require a three month follow up',
         limitable: true,
       },
     ],

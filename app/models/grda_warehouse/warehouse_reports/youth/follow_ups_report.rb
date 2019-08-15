@@ -50,6 +50,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         first_name: :FirstName,
         last_name: :LastName,
         engagement_date: :engagement_date,
+        # GREATEST is not supported on SQL Server, so to work there, this would need to be abstracted
         last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on)', # engaged_on,
       }
     end
