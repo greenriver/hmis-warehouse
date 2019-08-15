@@ -10,14 +10,14 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
 
   belongs_to :service_history_enrollment, inverse_of: :service_history_services
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  has_one :enrollment, through: :service_history_enrollment
 
   scope :hud_project_type, -> (project_types) do
     in_project_type(project_types)
   end
 
   scope :permanent_housing, -> do
-    project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten
-    in_project_type(project_types)
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
   end
 
   scope :homeless_sheltered, -> do
@@ -27,45 +27,12 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
-  scope :in_project_type, -> (project_types) do
-    where(project_type_column => project_types)
-  end
+  scope :homeless_between, -> (start_date:, end_date:) do
+    homeless(chronic_types_only: false).where(date: (start_date..end_date))
+end
 
-
-  scope :homeless_only, -> (start_date:, end_date:) do
-    # CHRONIC_PROJECT_TYPES
-    # HOMELESS_PROJECT_TYPES
-    homeless_project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - homeless_project_types
-
-    where(
-      project_type: homeless_project_types,
-      date: (start_date..end_date)
-    ).
-    where(
-      GrdaWarehouse::ServiceHistoryService.
-        where(shs_t[:client_id].eq(arel_table[:client_id])).
-        where(date: (start_date..end_date)).
-        where.not(project_type: non_homeless).
-        exists
-    )
-  end
-
-  scope :literally_homeless_only, -> (start_date:, end_date:) do
-    homeless_project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-    non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - homeless_project_types
-
-    where(
-      project_type: homeless_project_types,
-      date: (start_date..end_date)
-    ).
-    where(
-      GrdaWarehouse::ServiceHistoryService.
-        where(shs_t[:client_id].eq(arel_table[:client_id])).
-        where(date: (start_date..end_date)).
-        where.not(project_type: non_homeless).
-        exists
-    )
+  scope :literally_homeless_between, -> (start_date:, end_date:) do
+    homeless(chronic_types_only: true).where(date: (start_date..end_date))
   end
 
   scope :youth, -> do

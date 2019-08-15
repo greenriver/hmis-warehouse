@@ -348,6 +348,7 @@ Rails.application.routes.draw do
       resources :premium_payments, only: [:index, :show, :create, :destroy]
       resources :eligibility
       resources :eligibility_results, only: [:show]
+      resources :enrollments
     end
   end
 
@@ -627,6 +628,7 @@ Rails.application.routes.draw do
           get :review
           get :assigned
           get :rejected
+          get :disenrolled
           post :bulk_assign_agency
         end
         post :assign_agency

@@ -106,6 +106,7 @@ module GrdaWarehouse::Hud
     ALL_PROJECT_TYPES = ::HUD.project_types.keys
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
+    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph] + RESIDENTIAL_PROJECT_TYPES[:th]
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects

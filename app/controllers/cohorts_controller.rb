@@ -45,7 +45,7 @@ class CohortsController < ApplicationController
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
-        @visible_columns += @cohort.visible_columns
+        @visible_columns += @cohort.visible_columns(user: current_user)
         if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
           @visible_columns << CohortColumns::Delete.new
         end

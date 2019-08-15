@@ -12,14 +12,14 @@
     = @filter.start
     and
     = @filter.end
-    and received service within at an emergency shelter or had a street outreach contact during the same time frame.
+    and opened an enrollment at an emergency shelter or had a street outreach contact between the PH move-in date and PH exit.
 
   .text-right
     = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
       Download Excel
   .row
-    .col-sm-12.d-flex.align-items-center.mb-4
-      %p.mr-4= page_entries_info @clients, entry_name: 'Clients'
+    .col-sm-12
+      .mb-4= page_entries_info @clients, entry_name: 'Clients'
       = paginate(@clients)
 
   - @clients.each do |client|
@@ -36,12 +36,14 @@
               %tr
                 %th Project
                 %th Entry Date
+                %th Move-in Date
                 %th Exit Date
             %tbody
               - @ph_clients[client.id].each do |enrollment|
                 %tr
                   %td= enrollment[:project_name]
                   %td= enrollment[:first_date_in_program]
+                  %td= enrollment[:move_in_date]
                   %td= enrollment[:last_date_in_program]
         .col-sm-6
           %h4 ES and SO Enrollments
@@ -49,6 +51,7 @@
             %thead
               %tr
                 %th Project
+                %th Project Type
                 %th Entry Date
                 %th Exit Date
                 %th Last Service
@@ -57,6 +60,7 @@
               - @homeless_clients[client.id].each do |enrollment|
                 %tr
                   %td= enrollment[:project_name]
+                  %td= HUD.project_type_brief enrollment[:computed_project_type]
                   %td= enrollment[:first_date_in_program]
                   %td= enrollment[:last_date_in_program]
                   %td= @homeless_service_dates[enrollment[:id]]
