@@ -55,8 +55,7 @@ module Health
       @summary = {}
       gs = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].first[:GS].map(&:values).flatten
       pid_sl = gs.detect{|h| h[:name] == "Application Receiver's Code"}[:value][:raw]
-      @summary[:pid] = pid_sl[0, pid_sl.length - 1]
-      @summary[:sl] = pid_sl[-1]
+      @summary.merge!(Health::AccountableCareOrganization.split_pid_sl(pid_sl))
       @summary[:cp_name] = cp_name_for(@summary[:pid], @summary[:sl])
 
       headers = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].
