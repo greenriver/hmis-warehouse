@@ -1,0 +1,14 @@
+= content_for :crumbs do
+  = link_to warehouse_reports_health_enrollments_url do
+    « Enrollment (834) Processing
+
+- title = "Enrollment Information Uploaded on  #{@file.created_at}"
+- content_for :title, title
+%h1= content_for :title
+
+%p= paginate @transactions
+- @transactions.each do |transaction|
+  .panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      %pre= JSON.pretty_generate transaction
+    = render 'common/panel_collapse', id: Health::Enrollment.subscriber_id(transaction), title: "#{Health::Enrollment.first_name(transaction)} #{Health::Enrollment.last_name(transaction)} (#{Health::Enrollment.subscriber_id(transaction)})"

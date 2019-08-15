@@ -10,7 +10,7 @@
       - if inactivity_class == 'homeless_inactive'
         = "No homeless service in over #{@cohort.days_of_inactivity} days"
 
-    - @cohort.visible_columns.each do |cohort_column|
+    - @cohort.visible_columns(user: current_user).each do |cohort_column|
       - cohort_column.cohort = @cohort
       - cohort_column.cohort_names = @cohort_names
       - cohort_column.cohort_client = cohort_client

@@ -1,0 +1,22 @@
+- if @files.any?
+  %h2 Previous 834 Files
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Upload Date
+        %th
+        %th New Enrollments
+        %th Returning Enrollments
+        %th Disenrollments
+    %tbody
+      - @files.each do |file|
+        %tr
+          %td= link_to file.created_at, warehouse_reports_health_enrollment_path(file)
+          %td
+            - if file.status == 'processing'
+              = render 'spinner'
+            - else
+              = checkmark_or_x(file.status == 'complete')
+          %td= link_to file.new_patients, review_admin_health_patient_referrals_path
+          %td= file.returning_patients
+          %td= link_to file.disenrolled_patients, disenrolled_admin_health_patient_referrals_path
