@@ -335,6 +335,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       }
     end
 
+    # Service is considered a homeless service if it is in ES, SO, SH or TH.
+    # Service is explicitly NOT homeless if it is in PH after the move-in date.
+    # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
+    # neither homeless nor not homeless and receives a nil value
     def homeless? date
       return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
