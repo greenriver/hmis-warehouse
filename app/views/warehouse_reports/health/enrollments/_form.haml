@@ -1,0 +1,9 @@
+= simple_form_for @file, url: warehouse_reports_health_enrollments_path do |f|
+  - content_for :filters_col_full do
+    %h3 Upload 834 File
+    = f.input :content, as: :file, label: false
+
+  - content_for :filter_actions do
+    = f.submit 'Upload', class: 'btn btn-primary'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
