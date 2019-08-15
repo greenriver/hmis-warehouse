@@ -7,5 +7,8 @@
     %h1= title
 
 = render 'filter'
-
-= render 'table'
+- if @report.clients.present?
+  %p.alert.alert-info The following clients have not had a youth interaction, including three-month follow-ups, since #{@report.cut_off_date}. Anyone with a last seen date before #{@report.late_date} is over due for a three month follow-up.
+  = render 'table'
+- else
+  %p No Clients found.

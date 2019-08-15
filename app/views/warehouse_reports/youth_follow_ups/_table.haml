@@ -2,13 +2,11 @@
   %thead
     %tr
       %th Client
-      %th Name
       %th Engagement Date
       %th Last Seen
   %tbody
     - @report.clients.each do |client|
       %tr
-        %td= link_to client[:id], client_path(client[:id])
-        %td= "#{client[:first_name]} #{client[:last_name]}"
+        %td= link_to "#{client[:first_name]} #{client[:last_name]}", polymorphic_path(youth_intakes_path_generator, {client_id: client[:id]})
         %td= client[:engagement_date]
         %td= client[:last_seen]

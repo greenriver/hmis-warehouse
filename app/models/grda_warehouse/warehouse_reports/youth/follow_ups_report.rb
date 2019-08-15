@@ -8,30 +8,38 @@ module GrdaWarehouse::WarehouseReports::Youth
   include ArelHelper
 
   class FollowUpsReport
+    attr_accessor :cut_off_date, :late_date
     def initialize(end_date, user:)
       @end_date = end_date
+      @cut_off_date = @end_date - 2.months - 3.weeks
+      @late_date = @end_date - 3.months
       @current_user = user
     end
 
+
     def clients
-      cut_off_date = @end_date - 2.months - 3.weeks
-      ids_for_seen = intake_source.where(engagement_date: cut_off_date .. @end_date).pluck(:client_id) +
-        # GrdaWarehouse::Youth::YouthCaseManagement.where(engaged_on: cut_off_date .. @end_date).pluck(:client_id) +
-        GrdaWarehouse::Youth::DirectFinancialAssistance.where(provided_on: cut_off_date .. @end_date).pluck(:client_id) +
-        GrdaWarehouse::Youth::YouthReferral.where(referred_on: cut_off_date .. @end_date).pluck(:client_id) +
-        GrdaWarehouse::Youth::YouthFollowUp.where(contacted_on: cut_off_date .. @end_date).pluck(:client_id)
+
+      ids_for_seen = intake_source.where(engagement_date: @cut_off_date .. @end_date).pluck(:client_id) +
+        GrdaWarehouse::Youth::YouthCaseManagement.visible_by?(@current_user).where(engaged_on: @cut_off_date .. @end_date).pluck(:client_id) +
+        GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(@current_user).where(provided_on: @cut_off_date .. @end_date).pluck(:client_id) +
+        GrdaWarehouse::Youth::YouthReferral.visible_by?(@current_user).where(referred_on: @cut_off_date .. @end_date).pluck(:client_id) +
+        GrdaWarehouse::Youth::YouthFollowUp.visible_by?(@current_user).where(contacted_on: @cut_off_date .. @end_date).pluck(:client_id)
 
       GrdaWarehouse::Hud::Client.joins(:youth_intakes).
-        merge(intake_source.open_between(start_date: cut_off_date, end_date: @end_date)).
+        merge(intake_source.open_between(start_date: @cut_off_date, end_date: @end_date)).
         merge(intake_source.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthCaseManagement.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthReferral.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(@current_user)).
         includes(
-          #:case_managements,
+          :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
           :youth_follow_ups
         ).
         references(
-          #:case_managements,
+          :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
           :youth_follow_ups
@@ -51,7 +59,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         last_name: :LastName,
         engagement_date: :engagement_date,
         # GREATEST is not supported on SQL Server, so to work there, this would need to be abstracted
-        last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on)', # engaged_on,
+        last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on, engaged_on)', # ,
       }
     end
 
