@@ -18,12 +18,12 @@
         %h4 Days in Last 3 Years
         .client__days-homeless
           = "#{@client.processed_service_history&.days_homeless_last_three_years || 0} homeless"
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH'}}
-          
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
+
         .client__days-literally-homeless
           = "#{@client.processed_service_history&.literally_homeless_last_three_years || 0} literally homeless"
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH'}}
-          
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, or SH with no overlapping TH or PH after move-in date'}}
+
       - if @client.scope_for_ongoing_residential_enrollments.any?
         %li
           %h4 Enrolled in
@@ -31,7 +31,10 @@
       %li
         %h4 Homeless Span
         %span= "#{@client.date_of_first_service} to #{@client.date_of_last_service}"
-        %span= "#{@client.days_homeless} in total ES, SO, TH, and SH"
+        %span
+          = pluralize(@client.days_homeless, 'day')
+          %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
+
       %li
         %h4 Veteran:
         - if window

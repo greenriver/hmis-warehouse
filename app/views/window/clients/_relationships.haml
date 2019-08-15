@@ -18,7 +18,7 @@
           %tr
             %td= mail_to user.email, user.name
             %td= user.phone
-            %td= user.agency
+            %td= user.agency&.name
             %td= uc.relationship
   - else
     - if show_relationship_link
