@@ -15,11 +15,11 @@ module Window::Clients::Youth
     before_action :set_follow_up, only: [:edit, :update, :destroy]
 
     def new
-      @follow_up =  GrdaWarehouse::Youth::YouthFollowUp.new(contacted_on: Date.today)
+      @follow_up =  follow_up_source.new(contacted_on: Date.today)
     end
 
     def create
-      @follow_up = GrdaWarehouse::Youth::YouthFollowUp.new(user_id: current_user.id, client: @client)
+      @follow_up = follow_up_source.new(user_id: current_user.id, client: @client)
       @follow_up.update(follow_up_params)
       respond_with(@follow_up, location: polymorphic_path(youth_intakes_path_generator))
     end
@@ -50,7 +50,19 @@ module Window::Clients::Youth
     end
 
     def set_follow_up
-      @follow_up =  GrdaWarehouse::Youth::YouthFollowUp.find(params[:id].to_i)
+      @follow_up =  follow_up_scope.find(params[:id].to_i)
+    end
+
+    def follow_up_source
+      GrdaWarehouse::Youth::YouthFollowUp
+    end
+
+    def follow_up_scope
+      follow_up_source.visible_by?(current_user)
+    end
+
+    def flash_interpolation_options
+      { resource_name: '3-month follow up' }
     end
   end
 end
