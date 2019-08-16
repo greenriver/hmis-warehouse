@@ -1,0 +1,34 @@
+%h3.mt-4 Disconnected Clients
+%p
+  Other clients that this client was either split from, or split into:
+.row
+  .col-sm-6
+    %h4 Client Split From
+    %table.table
+      %thead
+        %th Personal ID
+        %th Name
+        %th DOB
+        %th SSN
+      - @client.splits_from.each do |split|
+        - c = split.source_client
+        %tr
+          %td= c.uuid
+          %td= link_to c.full_name, edit_client_path(c)
+          %td= c.DOB
+          %td= ssn c.SSN
+  .col-sm-6
+    %h4 Client Split To
+    %table.table
+      %thead
+        %th Personal ID
+        %th Name
+        %th DOB
+        %th SSN
+      - @client.splits_to.each do |split|
+        - c = split.destination_client
+        %tr
+          %td= c.uuid
+          %td= link_to c.full_name, edit_client_path(c)
+          %td= c.DOB
+          %td= ssn c.SSN
