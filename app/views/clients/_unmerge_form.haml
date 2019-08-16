@@ -4,7 +4,7 @@
   }
 %h3 Data Sources
 %p
-  Data for this record comes from the following data sources. Use this forms to split clients into their own separate records or merge in data from a different client record.
+  Data for this record comes from the following data sources. Use this form to split clients into their own separate records or merge in data from a different client record.
 .row
   .col-sm-12
     - if @client.source_clients.count > 1
@@ -24,6 +24,7 @@
         %table.table
           %thead
             %th
+            %th Receiver
             %th Data Source
             %th Personal ID
             %th Name
@@ -35,6 +36,7 @@
           - source_clients.each do |c|
             %tr
               %td= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+              %td= radio_button_tag 'grda_warehouse_hud_client[receiver]', c.id
               %td= c.data_source.short_name
               %td= c.uuid
               %td= c.full_name
@@ -50,4 +52,6 @@
                     Match Details
 
         .form-actions
+        %p
+          Any dependent items (e.g., health information) will be associated with the reciever, if selected.
         = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"
