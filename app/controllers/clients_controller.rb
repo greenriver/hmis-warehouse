@@ -108,21 +108,22 @@ class ClientsController < ApplicationController
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
       # FIXME: Transaction kills this for some reason
       # GrdaWarehouse::Hud::Base.transaction do
-        Rails.logger.info to_unmerge.inspect
-        to_unmerge.each do |id|
-          c = client_source.find(id)
-          if c.warehouse_client_source.present?
-            c.warehouse_client_source.destroy
-          end
-          destination_client = c.dup
-          destination_client.data_source = @dnd_warehouse_data_source
-          destination_client.save
-          GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-          unmerged << c.full_name
-        # end
-        Rails.logger.info '@client.invalidate_service_history'
-        @client.invalidate_service_history
+      Rails.logger.info "Unmerging #{to_unmerge.inspect}"
+      to_unmerge.each do |id|
+        c = client_source.find(id)
+        if c.warehouse_client_source.present?
+          c.warehouse_client_source.destroy
+        end
+        destination_client = c.dup
+        destination_client.data_source = @dnd_warehouse_data_source
+        destination_client.save
+        GrdaWarehouse::ClientSplitHistory.create(split_from: @client.id, split_into: destination_client.id)
+        GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
+        unmerged << c.full_name
       end
+      Rails.logger.info '@client.invalidate_service_history'
+      @client.invalidate_service_history
+      # end
 
       Importing::RunAddServiceHistoryJob.perform_later
       redirect_to({action: :edit}, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
