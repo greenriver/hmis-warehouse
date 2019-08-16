@@ -96,4 +96,24 @@ FactoryBot.define do
   trait :new_referral_out do
     referred_on { Date.parse('2019-01-01') }
   end
+
+  factory :follow_up, class: 'GrdaWarehouse::Youth::YouthFollowUp' do
+  end
+
+  trait :past_follow_up do
+    contacted_on { Date.parse('2018-12-31') }
+  end
+
+  trait :new_follow_up do
+    contacted_on { Date.parse('2019-01-01') }
+  end
+
+  trait :homeless_at_followup do
+    housing_status { 'No' }
+  end
+
+  trait :housed_at_followup do
+    housing_status { 'Yes, in RRH' }
+    zip_code { '99999' }
+  end
 end
