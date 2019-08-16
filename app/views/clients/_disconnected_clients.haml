@@ -12,15 +12,15 @@
         %th Split
         %th Split By
       - @client.splits_from.each do |split|
-        - c = split.source_client
-        %tr
-          %td= link_to c.full_name, edit_client_path(c)
-          %td= c.DOB
-          %td= ssn c.SSN
-          %td= @client.warehouse_client_destination.last.reviewed_at
-          %td
-            - if (user = User.find(@client.warehouse_client_destination.last.reviewd_by.to_i))
-              = user.name
+        - if c = split.source_client
+          %tr
+            %td= link_to c.full_name, edit_client_path(c)
+            %td= c.DOB
+            %td= ssn c.SSN
+            %td= @client.warehouse_client_destination.last.reviewed_at
+            %td
+              - if (user = User.find(@client.warehouse_client_destination.last.reviewd_by.to_i))
+                = user.name
   .col-sm-6
     %h4 Client Split To
     %table.table
@@ -31,12 +31,12 @@
         %th Split
         %th Split By
       - @client.splits_to.each do |split|
-        - c = split.destination_client
-        %tr
-          %td= link_to c.full_name, edit_client_path(c)
-          %td= c.DOB
-          %td= ssn c.SSN
-          %td= c.warehouse_client_destination.first.reviewed_at
-          %td
-            - if (user = User.find(c.warehouse_client_destination.first.reviewd_by.to_i))
-              = user.name
+        - if c = split.destination_client
+          %tr
+            %td= link_to c.full_name, edit_client_path(c)
+            %td= c.DOB
+            %td= ssn c.SSN
+            %td= c.warehouse_client_destination.first.reviewed_at
+            %td
+              - if (user = User.find(c.warehouse_client_destination.first.reviewd_by.to_i))
+                = user.name
