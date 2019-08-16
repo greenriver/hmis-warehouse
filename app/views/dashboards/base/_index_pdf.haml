@@ -14,7 +14,8 @@
       .mr-4
         = render 'index_title'
       .ml-auto
-        = image_tag(wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}"), width: 250)
+        - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+        = image_tag(logo, width: 250) if logo.present?
 
     %section
       = render 'housed_overall', chart_options: chart_options
