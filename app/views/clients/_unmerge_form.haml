@@ -35,8 +35,8 @@
             %th
           - source_clients.each do |c|
             %tr
-              %td= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-              %td= radio_button_tag 'grda_warehouse_hud_client[receiver]', c.id
+              %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+              %td= radio_button_tag 'grda_warehouse_hud_client[receiver]', c.id, false, disabled: true
               %td= c.data_source.short_name
               %td= c.uuid
               %td= c.full_name
@@ -55,3 +55,13 @@
         %p
           Any dependent items (e.g., health information) will be associated with the reciever, if selected.
         = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"
+
+= content_for :page_js do
+  :javascript
+    $('.jSplit').on('change', function(e){
+      receiver = $('#grda_warehouse_hud_client_receiver_' + e.target.value)
+      receiver.prop('disabled', !e.target.checked)
+      if(!e.target.checked){
+        receiver.prop('checked', false)
+      }
+    });
