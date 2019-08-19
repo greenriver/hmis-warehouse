@@ -104,7 +104,8 @@ class ClientsController < ApplicationController
   def unmerge
     begin
       to_unmerge = client_params['unmerge'].reject(&:empty?)
-      receiver = client_params['receiver']
+      hmis_receiver = client_params['hmis_receiver']
+      health_receiver = client_params['health_receiver']
       unmerged = []
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
       # FIXME: Transaction kills this for some reason
@@ -120,8 +121,11 @@ class ClientsController < ApplicationController
         destination_client.save
         GrdaWarehouse::ClientSplitHistory.create(split_from: @client.id, split_into: destination_client.id)
         GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-        if receiver == id
-          destination_client.move_dependent_items(@client.id, destination_client.id)
+        if hmis_receiver == id
+          destination_client.move_dependent_hmis_items(@client.id, destination_client.id)
+        end
+        if health_receiver == id
+          destination_client.move_dependent_health_items(@client.id, destination_client.id)
         end
         unmerged << c.full_name
       end
@@ -202,7 +206,8 @@ class ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
-        :receiver,
+        :hmis_receiver,
+        :health_receiver,
         merge: [],
         unmerge: []
       )

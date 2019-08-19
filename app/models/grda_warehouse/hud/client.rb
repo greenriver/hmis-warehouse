@@ -1933,6 +1933,11 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
+      move_dependent_hmis_items previous_id, new_id
+      move_dependent_health_items previous_id, new_id
+    end
+
+    def move_dependent_hmis_items previous_id, new_id
       # move any client notes
       GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
         update_all(client_id: new_id)
@@ -1983,6 +1988,16 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Youth::YouthCaseManagement.where(client_id: previous_id).
         update_all(client_id: new_id)
       GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
+        update_all(client_id: new_id)
+    end
+
+    def move_dependent_health_items previous_id, new_id
+      # move any patients
+      Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
     end
 

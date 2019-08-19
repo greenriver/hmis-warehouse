@@ -24,7 +24,8 @@
         %table.table
           %thead
             %th
-            %th Receiver
+            %th HMIS Receiver
+            %th Health Receiver
             %th Data Source
             %th Personal ID
             %th Name
@@ -36,7 +37,8 @@
           - source_clients.each do |c|
             %tr
               %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-              %td= radio_button_tag 'grda_warehouse_hud_client[receiver]', c.id, false, disabled: true
+              %td= radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
+              %td= radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
               %td= c.data_source.short_name
               %td= c.uuid
               %td= c.full_name
@@ -53,15 +55,18 @@
 
         .form-actions
         %p
-          Any dependent items (e.g., health information) will be associated with the reciever, if selected.
+          Dependent items (e.g., health information) will be associated with the receiver, if selected. Otherwise, they will remain with this record.
         = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"
 
 = content_for :page_js do
   :javascript
     $('.jSplit').on('change', function(e){
-      receiver = $('#grda_warehouse_hud_client_receiver_' + e.target.value)
-      receiver.prop('disabled', !e.target.checked)
+      var hmis_receiver = $('#grda_warehouse_hud_client_hmis_receiver_' + e.target.value)
+      var health_receiver = $('#grda_warehouse_hud_client_health_receiver_' + e.target.value)
+      hmis_receiver.prop('disabled', !e.target.checked)
+      health_receiver.prop('disabled', !e.target.checked)
       if(!e.target.checked){
-        receiver.prop('checked', false)
+        hmis_receiver.prop('checked', false)
+        health_receiver.prop('checked', false)
       }
     });
