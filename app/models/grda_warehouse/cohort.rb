@@ -166,9 +166,13 @@ module GrdaWarehouse
       Cas::Tag.find(tag_id)&.name rescue nil
     end
 
-    def visible_columns
+    def visible_columns(user:)
       return self.class.default_visible_columns unless column_state.present?
-      column_state&.select(&:visible)&.presence || self.class.available_columns
+
+      columns = column_state&.select(&:visible)&.presence || self.class.available_columns
+      columns.each do |column|
+        column.current_user = user
+      end
     end
 
     def self.default_visible_columns
@@ -185,6 +189,7 @@ module GrdaWarehouse
         ::CohortColumns::Rank.new(),
         ::CohortColumns::Age.new(),
         ::CohortColumns::Gender.new(),
+        ::CohortColumns::Ssn.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
@@ -283,6 +288,17 @@ module GrdaWarehouse
         ::CohortColumns::UserBoolean2.new(),
         ::CohortColumns::UserBoolean3.new(),
         ::CohortColumns::UserBoolean4.new(),
+        ::CohortColumns::UserBoolean5.new(),
+        ::CohortColumns::UserBoolean6.new(),
+        ::CohortColumns::UserBoolean7.new(),
+        ::CohortColumns::UserBoolean8.new(),
+        ::CohortColumns::UserBoolean9.new(),
+        ::CohortColumns::UserBoolean10.new(),
+        ::CohortColumns::UserBoolean11.new(),
+        ::CohortColumns::UserBoolean12.new(),
+        ::CohortColumns::UserBoolean13.new(),
+        ::CohortColumns::UserBoolean14.new(),
+        ::CohortColumns::UserBoolean15.new(),
         ::CohortColumns::UserSelect1.new(),
         ::CohortColumns::UserSelect2.new(),
         ::CohortColumns::UserSelect3.new(),

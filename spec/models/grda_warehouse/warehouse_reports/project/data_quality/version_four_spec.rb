@@ -175,7 +175,9 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
     importer.import!
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+    end
     Delayed::Worker.new.work_off(2)
   end
 

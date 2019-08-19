@@ -29,4 +29,14 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   def self.remove_view_sql
     "DROP MATERIALIZED VIEW IF EXISTS service_history_services_materialized;"
   end
+
+  def self.rebuild!
+    self.connection.execute(self.remove_view_sql)
+    self.connection.execute(self.view_sql)
+    self.connection.add_index :service_history_services_materialized, :id, unique: true
+    self.connection.add_index :service_history_services_materialized, [:client_id, :project_type, :record_type], name: :index_shsm_c_id_p_type_r_type
+    self.connection.add_index :service_history_services_materialized, [:project_type, :record_type], name: :index_shsm_p_type_r_type
+    self.connection.add_index :service_history_services_materialized, [:homeless], name: :index_shsm_homeless
+    self.connection.add_index :service_history_services_materialized, [:literally_homeless], name: :index_shsm_literally_homeless
+  end
 end

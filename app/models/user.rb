@@ -103,6 +103,10 @@ class User < ActiveRecord::Base
     can_view_client_window? || can_view_clients? || can_edit_clients?
   end
 
+  def has_some_edit_access_to_youth_intakes?
+    can_edit_youth_intake? || can_edit_own_agency_youth_intake?
+  end
+
   def self.stale_account_threshold
     30.days.ago
   end

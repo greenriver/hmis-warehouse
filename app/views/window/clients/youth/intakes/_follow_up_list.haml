@@ -1,0 +1,27 @@
+%section.client__assessments.c-card.c-card--block.c-card--no-padding
+  .c-card__header.c-card__header--external
+    %h2.section-expander-block__header 3-month Follow Ups
+    - if current_user.has_some_edit_access_to_youth_intakes? && @intakes.ongoing.exists?
+      = link_to polymorphic_path([:new] + youth_follow_up_path_generator), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm ml-auto' do
+        %i.icon-plus
+        Add 3-month Follow Up
+  .c-card__content.c-card__content--flush
+    - if @follow_ups.present?
+      %table.table.table-sm
+        %thead
+          %tr
+            %th Date
+            %th Is Client Stably Housed?
+            %th
+        %tbody
+          - @follow_ups.each do |follow_up|
+            %tr
+              %td.nobr
+                = link_to polymorphic_path([:edit] + youth_follow_up_path_generator, id: follow_up.id), data: {loads_in_pjax_modal: true} do
+                  = follow_up.contacted_on
+              %td=  follow_up.housing_status_details
+              %td
+                = link_to polymorphic_path(youth_follow_up_path_generator, id: follow_up.id), method: :delete, data: {confirm: 'Deleting this note will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                  %i.icon-cross
+    - else
+      %p.pt-2.text-center None on file
