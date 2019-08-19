@@ -24,11 +24,11 @@ class App.WarehouseReports.Rrh.Returns
       bindto: @wrapper
 
   _follow_link: (d, e) =>
-    if @data.projects_selected == true
-      bucket = @data.labels[d.index]
-      url = @support_url + encodeURI("&selected_project=#{d.name}&bucket=#{bucket}")
-      # console.log(d, @data, url)
+    # if @data.projects_selected == true
+    bucket = @data.labels[d.index]
+    url = @support_url + encodeURI("&selected_project=#{d.name}&bucket=#{bucket}")
+    # console.log(d, @data, url)
 
-      $('.modal .modal-content').html('Loading...')
-      $('.modal').modal('show')
-      $('.modal .modal-content').load(url)
+    $('.modal .modal-content').html('Loading...')
+    $('.modal').modal('show')
+    $('.modal .modal-content').load(url)

@@ -52,10 +52,9 @@ class App.WarehouseReports.Rrh.Destination
     html
 
   _follow_link: (d, e) =>
-    if @data.projects_selected == true
-      url = @support_url + encodeURI("&destination=#{d.id}")
-      # console.log(d, @data, url)
+    url = @support_url + encodeURI("&destination=#{d.id}")
+    # console.log(d, @data, url)
 
-      $('.modal .modal-content').html('Loading...')
-      $('.modal').modal('show')
-      $('.modal .modal-content').load(url)
+    $('.modal .modal-content').html('Loading...')
+    $('.modal').modal('show')
+    $('.modal .modal-content').load(url)

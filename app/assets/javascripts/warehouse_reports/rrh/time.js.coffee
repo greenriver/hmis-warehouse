@@ -90,11 +90,11 @@ class App.WarehouseReports.Rrh.Time
 
 
   _follow_link: (d, e) =>
-    if d.name != 'All'
-      month = @data.labels[d.index + 1]
-      url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
-      # console.log(d, @data, url, month)
+    # if d.name != 'All'
+    month = @data.labels[d.index + 1]
+    url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
+    # console.log(d, @data, url, month)
 
-      $('.modal .modal-content').html('Loading...')
-      $('.modal').modal('show')
-      $('.modal .modal-content').load(url)
+    $('.modal .modal-content').html('Loading...')
+    $('.modal').modal('show')
+    $('.modal .modal-content').load(url)
