@@ -28,7 +28,7 @@ class App.WarehouseReports.Rrh.Time
             count: 7
             format: d3.format(",.0f")
           padding: 0
-          min: 0
+          min: @_calc_min(@data.data)
       grid:
         x:
           show: true
@@ -43,6 +43,20 @@ class App.WarehouseReports.Rrh.Time
         height: 200
       bindto: @chart_selector
     })
+
+  # Enforce a maximum of 0 as the minimum, but allow it to drop below 0.
+  _calc_min: (data) =>
+    # Deep clone so we don't mess up the data array
+    d = JSON.parse(JSON.stringify(data));
+    d = [].concat.apply([], d)
+
+    # Throw out all non-numeric values
+    d = d.filter (el)->
+      !isNaN(parseFloat(el)) && isFinite(el)
+    # ensure we have a 0
+    d.push(0)
+    d.reduce (a,b) -> Math.min a, b
+
   _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
     # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
