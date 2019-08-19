@@ -137,6 +137,16 @@ module CombinedClientPathsGenerator
     end
     helper_method :direct_financial_assistances_path_generator
 
+    def youth_follow_up_path_generator
+      client_path_generator + [:youth_follow_up]
+    end
+    helper_method :youth_follow_up_path_generator
+
+    def youth_follow_ups_path_generator
+      client_path_generator + [:youth_follow_ups]
+    end
+    helper_method :youth_follow_ups_path_generator
+
     def self_sufficiency_matrix_forms_path_generator
       health_path_generator + [:self_sufficiency_matrix_forms]
     end

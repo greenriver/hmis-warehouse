@@ -2,7 +2,7 @@
 = simple_form_for :nightly_census, url: censuses_path, html: {method: :get} do |f|
   .row
     .col-sm-3
-      = f.input :type, input_html: {name: :type}, collection: @types, label: 'Census Type', selected: @census.class.name, include_blank: false
+      = f.input :type, input_html: {name: :type, class: :select2}, collection: @types, label: 'Census Type', selected: @census.class.name, include_blank: false
     .col-sm-3
       %label{for: 'nightly_census[start_date]'}
         From

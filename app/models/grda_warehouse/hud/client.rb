@@ -24,6 +24,7 @@ module GrdaWarehouse::Hud
     has_many :case_managements, class_name: GrdaWarehouse::Youth::YouthCaseManagement.name
     has_many :direct_financial_assistances, class_name: GrdaWarehouse::Youth::DirectFinancialAssistance.name
     has_many :youth_referrals, class_name: GrdaWarehouse::Youth::YouthReferral.name
+    has_many :youth_follow_ups, class_name: GrdaWarehouse::Youth::YouthFollowUp.name
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -1980,6 +1981,8 @@ module GrdaWarehouse::Hud
         update_all(client_id: new_id)
       GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
         update_all(client_id: new_id)
+      GrdaWarehouse::Youth::YouthFollowUp.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
@@ -2101,7 +2104,7 @@ module GrdaWarehouse::Hud
         end_date = on_date.to_date
         start_date = end_date - 3.years
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
-          homeless.
+          literally_homeless.
           where(date: start_date..end_date).
           where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
           select(:date).distinct
@@ -2468,19 +2471,19 @@ module GrdaWarehouse::Hud
     end
 
     private def residential_dates enrollments:
-      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
-        e.service_history_services.map(&:date)
+        e.service_history_services.non_homeless.map(&:date)
      end.flatten.compact.uniq
     end
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in? GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        e.computed_project_type.in? GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
       end.map do |e|
-       e.service_history_services.where(record_type: :service).map(&:date)
+       e.service_history_services.homeless.where(record_type: :service).map(&:date)
       end.flatten.compact.uniq
    end
 
@@ -2488,8 +2491,8 @@ module GrdaWarehouse::Hud
       dates.group_by{ |d| [d.year, d.month] }.keys
     end
 
-    # If we haven't been in a homeless project type in the last 30 days, this is a new episode
-    # If we don't currently have a non-homeless residential and we have had one for the past 90 days
+    # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
+    # If we don't currently have a non-homeless residential (PH) and we have had one for the past 90 days
     # residential_dates in this context is PH ONLY
     def new_episode? enrollments:, enrollment:
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
