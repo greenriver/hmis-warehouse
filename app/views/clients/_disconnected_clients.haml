@@ -11,8 +11,10 @@
         %th SSN
         %th Split
         %th Split By
+      - split_froms = false
       - @client.splits_from.each do |split|
         - if c = split.source_client
+          - split_froms = true
           %tr
             %td= link_to c.full_name, edit_client_path(c)
             %td= c.DOB
@@ -21,6 +23,9 @@
             %td
               - if (user = User.find(@client.warehouse_client_destination.last.reviewd_by.to_i))
                 = user.name
+      - if ! split_froms
+        %tr
+          %td None.
   .col-sm-6
     %h4 Client Split To
     %table.table
@@ -30,8 +35,10 @@
         %th SSN
         %th Split
         %th Split By
+      - split_tos = false
       - @client.splits_to.each do |split|
         - if c = split.destination_client
+          - split_tos = true
           %tr
             %td= link_to c.full_name, edit_client_path(c)
             %td= c.DOB
@@ -40,3 +47,6 @@
             %td
               - if (user = User.find(c.warehouse_client_destination.first.reviewd_by.to_i))
                 = user.name
+      - if ! split_froms
+        %tr
+          %td None.
