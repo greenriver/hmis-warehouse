@@ -29,6 +29,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:existing_referral_out) { create :referral_out, :existing_referral_out, client_id: existing_intake.client_id }
   let!(:new_referral_out) { create :referral_out, :new_referral_out, client_id: existing_intake.client_id }
 
+  let!(:past_follow_up) { create :follow_up, :past_follow_up, client_id: existing_intake.client_id }
+  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client_id: new_at_risk_contact.client_id }
+  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client_id: new_homeless_contact.client_id }
+
   let(:report) { build :homeless_youth_report }
 
   describe 'when an intake is associated with a client' do
@@ -118,6 +122,24 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
 
     it 'count clients with referrals out in the interval' do
       expect(report.six_a.count).to eq 1
+    end
+
+    # Follow Ups
+
+    it 'counts housed follow ups' do
+      expect(report.follow_up_one_a.count).to eq 1
+    end
+
+    it 'counts still-housed follow ups' do
+      expect(report.follow_up_one_b.count).to eq 1
+    end
+
+    it 'counts homeless follow ups' do
+      expect(report.follow_up_two_a.count).to eq 1
+    end
+
+    it 'counts re-housed homeless follow ups' do
+      expect(report.follow_up_two_b.count).to eq 1
     end
   end
 end

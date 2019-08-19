@@ -262,3 +262,34 @@
     %tr
       %th h. Number of YYA served who owned a Cell phone
       %td= @report.f_four_h.count
+
+.row
+  %h2 Follow Ups
+  %table.table
+    %tbody
+      %tr
+        %th{rowspan: 2} 1. Prevention Outcomes (Follow up)
+        %th a. Number of YYA contacted for follow up 3 mos. after receiving prevention services
+        %td= @report.follow_up_one_a.count
+      %tr
+        %th b. Number of YYA who remain housed 3 mos. after receiving prevention services
+        %td= @report.follow_up_one_a.count
+      %tr
+        %th{rowspan: 4} 2. Rehousing Outcomes
+        %th a. Number of YYA contacted for follow up 3 mos. after receiving rehousing services
+        %td= @report.follow_up_two_a.count
+      %tr
+        %th b. Number of YYA who are in housing 3 mos. after receiving rehousing services
+        %td= @report.follow_up_two_b.count
+      %tr
+        %th c. Zip codes of stabilized housing (please list)
+        %td
+          %ul.list-unstyled
+            - @report.follow_up_two_c.each do |zip_code|
+              %li= zip_code
+      %tr
+        %th d. Number of YYA who are in each type of Stable Housing placement (RRH, market rate, transitional, family) 3 mos.
+        %td
+          %ul.list-unstyled
+            - @report.follow_up_two_d.each do |label, count|
+              %li= "#{label} (#{count.count})"
