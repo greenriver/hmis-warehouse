@@ -24,8 +24,9 @@
         %table.table
           %thead
             %th
-            %th HMIS Receiver
-            %th Health Receiver
+            %th.text-center HMIS Receiver
+            - if GrdaWarehouse::Config.get(:healthcare_available)
+              %th.text-center Health Receiver
             %th Data Source
             %th Personal ID
             %th Name
@@ -37,8 +38,11 @@
           - source_clients.each do |c|
             %tr
               %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-              %td= radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
-              %td= radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
+              %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
+              - if GrdaWarehouse::Config.get(:healthcare_available)
+                %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                  = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
               %td= c.data_source.short_name
               %td= c.uuid
               %td= c.full_name
@@ -54,9 +58,7 @@
                     Match Details
 
         .form-actions
-        %p
-          Dependent items (e.g., health information) will be associated with the receiver, if selected. Otherwise, they will remain with this record.
-        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"
+        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
 
 = content_for :page_js do
   :javascript
