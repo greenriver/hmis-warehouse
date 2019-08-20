@@ -227,6 +227,7 @@ module GrdaWarehouse::Hud
           :ReasonNoServices,
           :RunawayYouth,
           :SexualOrientation,
+          :SexualOrientationOther,
           :FormerWardChildWelfare,
           :ChildWelfareYears,
           :ChildWelfareMonths,

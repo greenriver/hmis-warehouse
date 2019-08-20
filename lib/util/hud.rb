@@ -216,8 +216,8 @@ module HUD
   # 1.4
   def record_type(id, reverse=false)
     map = {
-      12 => 'Contact',
-      13 => 'Contact',
+      12 => 'Contact', # removed in 2020 spec
+      13 => 'Contact', # removed in 2020 spec
       141 => 'PATH service',
       142 => 'RHY service connections',
       143 => 'HOPWA service',
@@ -807,7 +807,7 @@ module HUD
       12,
       13,
       2,
-      8
+      8,
       9,
       99,
     ]

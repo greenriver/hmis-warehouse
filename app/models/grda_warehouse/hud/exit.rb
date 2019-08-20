@@ -100,8 +100,6 @@ module GrdaWarehouse::Hud
           :ExitDate,
           :Destination,
           :OtherDestination,
-          :AssessmentDisposition,
-          :OtherDisposition,
           :HousingAssessment,
           :SubsidyInformation,
           :ProjectCompletionStatus,
