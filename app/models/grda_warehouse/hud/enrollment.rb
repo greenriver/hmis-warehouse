@@ -367,6 +367,10 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, **hud_enrollment_belongs('EmploymentEducation'), inverse_of: :enrollment
     has_many :events, **hud_enrollment_belongs('Event'), inverse_of: :enrollment
     has_many :assessments, **hud_enrollment_belongs('Assessment'), inverse_of: :enrollment
+    has_many :direct_assessment_questions, **hud_enrollment_belongs('AssessmentQuestion'), inverse_of: :enrollment
+    has_many :assessment_questions, through: :assessments
+    has_many :direct_assessment_results, **hud_enrollment_belongs('AssessmentResult'), inverse_of: :enrollment
+    has_many :assessment_results, through: :assessments
 
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)

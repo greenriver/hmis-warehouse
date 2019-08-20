@@ -112,6 +112,10 @@ module GrdaWarehouse::Hud
     has_many :income_benefits, through: :enrollments, source: :income_benefits, inverse_of: :client
     has_many :employment_educations, through: :enrollments, source: :employment_educations, inverse_of: :client
     has_many :events, through: :enrollments, source: :events, inverse_of: :client
+    has_many :events, through: :enrollments, inverse_of: :enrollment
+    has_many :assessments, through: :enrollments, source: :assessments, inverse_of: :client
+    has_many :assessment_questions, through: :assessments, source: :assessment_questions
+    has_many :assessment_results, through: :assessments, source: :assessment_results
 
     # The following scopes are provided for data cleanup, but should generally not be
     # used, as these relationships should go through enrollments
@@ -123,6 +127,9 @@ module GrdaWarehouse::Hud
     has_many :direct_income_benefits, **hud_assoc(:PersonalID, 'IncomeBenefit'), inverse_of: :direct_client
     has_many :direct_employment_educations, **hud_assoc(:PersonalID, 'EmploymentEducation'), inverse_of: :direct_client
     has_many :direct_events, **hud_assoc(:PersonalID, 'Event'), inverse_of: :direct_client
+    has_many :direct_assessments, **hud_assoc(:PersonalID, 'Assessment'), inverse_of: :direct_client
+    has_many :direct_assessment_questions, **hud_assoc(:PersonalID, 'AssessmentQuestion'), inverse_of: :enrollment
+    has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
     # End cleanup relationships
 
     has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
