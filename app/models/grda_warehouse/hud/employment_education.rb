@@ -31,6 +31,42 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :EmploymentEducationID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :LastGradeCompleted,
+          :SchoolStatus,
+          :Employed,
+          :EmploymentType,
+          :NotEmployedReason,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :EmploymentEducationID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :LastGradeCompleted,
+          :SchoolStatus,
+          :Employed,
+          :EmploymentType,
+          :NotEmployedReason,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :EmploymentEducationID,

@@ -29,6 +29,38 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :EnrollmentCoCID,
+          :EnrollmentID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :EnrollmentCoCID,
+          :EnrollmentID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :EnrollmentCoCID,

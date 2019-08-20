@@ -13,20 +13,20 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "GeographyID",
-        "ProjectID",
-        "CoCCode",
-        "PrincipalSite",
-        "Geocode",
-        "Address",
-        "City",
-        "State",
-        "ZIP",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :GeographyID,
+        :ProjectID,
+        :CoCCode,
+        :PrincipalSite,
+        :Geocode,
+        :Address,
+        :City,
+        :State,
+        :ZIP,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
       ]
     end
 

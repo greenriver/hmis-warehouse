@@ -173,16 +173,31 @@ module GrdaWarehouse::Hud
     end
 
     def self.hud_csv_headers(version: nil)
-      [
-        :OrganizationID,
-        :OrganizationName,
-        :OrganizationCommonName,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
+      case version
+      when '2020'
+        [
+          :OrganizationID,
+          :OrganizationName,
+          :VictimServicesProvider,
+          :OrganizationCommonName,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      else
+        [
+          :OrganizationID,
+          :OrganizationName,
+          :OrganizationCommonName,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     # when we export, we always need to replace OrganizationID with the value of id

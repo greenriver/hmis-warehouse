@@ -35,6 +35,50 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :VictimServicesProvider,
+          :HousingType,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :VictimServicesProvider,
+          :HousingType,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :ProjectID,

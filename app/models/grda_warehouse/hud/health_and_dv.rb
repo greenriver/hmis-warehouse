@@ -35,6 +35,48 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :HealthAndDVID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DomesticViolenceVictim,
+          :WhenOccurred,
+          :CurrentlyFleeing,
+          :GeneralHealthStatus,
+          :DentalHealthStatus,
+          :MentalHealthStatus,
+          :PregnancyStatus,
+          :DueDate,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :HealthAndDVID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DomesticViolenceVictim,
+          :WhenOccurred,
+          :CurrentlyFleeing,
+          :GeneralHealthStatus,
+          :DentalHealthStatus,
+          :MentalHealthStatus,
+          :PregnancyStatus,
+          :DueDate,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :HealthAndDVID,

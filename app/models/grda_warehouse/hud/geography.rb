@@ -30,6 +30,44 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :GeographyID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :Geocode,
+          :GeographyType,
+          :Address1,
+          :Address2,
+          :City,
+          :State,
+          :ZIP,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :GeographyID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :Geocode,
+          :GeographyType,
+          :Address1,
+          :Address2,
+          :City,
+          :State,
+          :ZIP,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :GeographyID,

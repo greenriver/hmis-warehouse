@@ -39,6 +39,50 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :DisabilitiesID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DisabilityType,
+          :DisabilityResponse,
+          :IndefiniteAndImpairs,
+          :TCellCountAvailable,
+          :TCellCount,
+          :TCellSource,
+          :ViralLoadAvailable,
+          :ViralLoad,
+          :ViralLoadSource,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :DisabilitiesID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DisabilityType,
+          :DisabilityResponse,
+          :IndefiniteAndImpairs,
+          :TCellCountAvailable,
+          :TCellCount,
+          :TCellSource,
+          :ViralLoadAvailable,
+          :ViralLoad,
+          :ViralLoadSource,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :DisabilitiesID,
