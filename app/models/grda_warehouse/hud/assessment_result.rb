@@ -28,10 +28,10 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :export, **hud_belongs(Export), inverse_of: :assessment_results
-    belongs_to :enrollment, **hud_belongs(Enrollment)
-    belongs_to :client, **hud_belongs(Client)
-    belongs_to :assessment, **hud_belongs(Assessment)
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results
+    belongs_to :enrollment, **hud_enrollment_belongs
+    belongs_to :client, **hud_assoc(:PersonalID, 'Client')
+    belongs_to :assessment, **hud_belongs(:AssessmentID, 'Assessment')
     belongs_to :data_source
 
   end

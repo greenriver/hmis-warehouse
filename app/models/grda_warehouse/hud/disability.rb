@@ -108,11 +108,11 @@ module GrdaWarehouse::Hud
       end
     end
 
-    belongs_to :direct_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :direct_disabilities
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
     has_one :client, through: :enrollment, inverse_of: :disabilities
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :disabilities
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     has_one :project, through: :enrollment
-    belongs_to :export, class_name: 'GrdaWarehouse::Hud::Export', primary_key: [:ExportID, :data_source_id], foreign_key: [:ExportID, :data_source_id], inverse_of: :disabilities
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities
     has_one :destination_client, through: :client
     belongs_to :data_source
 

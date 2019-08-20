@@ -31,8 +31,9 @@ module GrdaWarehouse::Hud
     end
 
     belongs_to :export, **hud_belongs(Export), inverse_of: :assessments
-    belongs_to :enrollment, **hud_belongs(Enrollment)
-    belongs_to :client, **hud_belongs(Client)
+    belongs_to :enrollment, **hud_enrollment_belongs(Enrollment)
+    has_one :client, through: :enrollment, inverse_of: :assessments
+    belongs_to :direct_client, **hud_belongs(Client)
     belongs_to :data_source
 
   end

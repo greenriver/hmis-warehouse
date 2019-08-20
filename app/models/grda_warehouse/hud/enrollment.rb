@@ -347,9 +347,9 @@ module GrdaWarehouse::Hud
     alias_attribute :date, :EntryDate
 
     belongs_to :data_source, inverse_of: :enrollments, autosave: false
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments, autosave: false
-    belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments, autosave: false
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, autosave: false
+    belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :enrollments
     has_one :organization, through: :project, autosave: false
 
     has_many :enrollment_extras, class_name: 'GrdaWarehouse::EnrollmentExtra', dependent: :destroy, inverse_of: :enrollment
@@ -358,62 +358,64 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :client, autosave: false
 
     # Client-Enrollment related relationships
-    has_one :exit,  class_name: GrdaWarehouse::Hud::Exit.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment, autosave: false
-    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :enrollment_cocs, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :employment_educations, class_name: GrdaWarehouse::Hud::EmploymentEducation.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_one :exit, **hud_enrollment_belongs('Exit'), inverse_of: :enrollment
+    has_many :disabilities, **hud_enrollment_belongs('Disability'), inverse_of: :enrollment
+    has_many :health_and_dvs, **hud_enrollment_belongs('HealthAndDv'), inverse_of: :enrollment
+    has_many :income_benefits, **hud_enrollment_belongs('IncomeBenefit'), inverse_of: :enrollment
+    has_many :services, **hud_enrollment_belongs('Service'), inverse_of: :enrollment
+    has_many :enrollment_cocs, **hud_enrollment_belongs('EnrollmentCoc'), inverse_of: :enrollment
+    has_many :employment_educations, **hud_enrollment_belongs('EmploymentEducation'), inverse_of: :enrollment
+    has_many :events, **hud_enrollment_belongs('Event'), inverse_of: :enrollment
+    has_many :assessments, **hud_enrollment_belongs('Assessment'), inverse_of: :enrollment
 
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)
-    end, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('EnrollmentCoc')
 
     # Income benefits at various stages
     has_one :income_benefits_at_entry, -> do
       at_entry
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_refused, -> do
       at_entry.all_sources_refused
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_entry_all_sources_missing, -> do
       at_entry.all_sources_missing
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
 
     has_one :income_benefits_at_exit, -> do
       GrdaWarehouse::Hud::IncomeBenefit.at_exit
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_refused, -> do
       GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_one :income_benefits_at_exit_all_sources_missing, -> do
       GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_annual_update, -> do
       at_annual_update
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_annual_update_all_sources_refused, -> do
       at_annual_update.all_sources_refused
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_annual_update_all_sources_missing, -> do
       at_annual_update.all_sources_missing
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_update, -> do
       at_update
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_update_all_sources_refused, -> do
       at_update.all_sources_refused
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
     has_many :income_benefits_update_all_sources_missing, -> do
       at_update.all_sources_missing
-    end, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    end, **hud_enrollment_belongs('IncomeBenefit')
 
 
     # NOTE: you will want to limit this to a particular record_type
     has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :enrollment
     has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
-    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)

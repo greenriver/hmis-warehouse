@@ -32,9 +32,10 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :export, **hud_belongs(Export), inverse_of: :events
-    belongs_to :enrollment, **hud_belongs(Enrollment)
-    belongs_to :client, **hud_belongs(Client)
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :events
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :events
+    has_one :direct_client, **hud_assoc(Client), inverse_of: :direct_events
+    has_one :client, through: :enrollment, inverse_of: :events
     belongs_to :data_source
 
   end

@@ -17,6 +17,10 @@ module GrdaWarehouse::Hud
     include Eto::TouchPoints
     include SiteChronic
 
+    self.table_name = :Client
+    self.hud_key = :PersonalID
+    acts_as_paranoid(column: :DateDeleted)
+
     has_many :client_files
     has_many :health_files
     has_many :vispdats, class_name: GrdaWarehouse::Vispdat::Base.name
@@ -28,10 +32,6 @@ module GrdaWarehouse::Hud
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
-
-    self.table_name = 'Client'
-    self.hud_key = :PersonalID
-    acts_as_paranoid(column: :DateDeleted)
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
@@ -81,7 +81,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
 
     belongs_to :data_source, inverse_of: :clients
-    belongs_to :export, **hud_belongs(Export), inverse_of: :clients
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients
 
     has_one :warehouse_client_source, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :source_id, inverse_of: :source
     has_many :warehouse_client_destination, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :destination_id, inverse_of: :destination
@@ -111,16 +111,18 @@ module GrdaWarehouse::Hud
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs, inverse_of: :client
     has_many :income_benefits, through: :enrollments, source: :income_benefits, inverse_of: :client
     has_many :employment_educations, through: :enrollments, source: :employment_educations, inverse_of: :client
+    has_many :events, through: :enrollments, source: :events, inverse_of: :client
 
     # The following scopes are provided for data cleanup, but should generally not be
     # used, as these relationships should go through enrollments
-    has_many :direct_exits, **hud_many(Exit), inverse_of: :direct_client
-    has_many :direct_enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :direct_client
-    has_many :direct_services, **hud_many(Service), inverse_of: :direct_client
-    has_many :direct_disabilities, **hud_many(Disability), inverse_of: :direct_client
-    has_many :direct_health_and_dvs, **hud_many(HealthAndDv), inverse_of: :direct_client
-    has_many :direct_income_benefits, **hud_many(IncomeBenefit), inverse_of: :direct_client
-    has_many :direct_employment_educations, **hud_many(EmploymentEducation), inverse_of: :direct_client
+    has_many :direct_exits, **hud_assoc(:PersonalID, 'Exit'), inverse_of: :direct_client
+    has_many :direct_enrollment_cocs, **hud_assoc(:PersonalID, 'EnrollmentCoc'), inverse_of: :direct_client
+    has_many :direct_services, **hud_assoc(:PersonalID, 'Service'), inverse_of: :direct_client
+    has_many :direct_disabilities, **hud_assoc(:PersonalID, 'Disability'), inverse_of: :direct_client
+    has_many :direct_health_and_dvs, **hud_assoc(:PersonalID, 'HealthAndDv'), inverse_of: :direct_client
+    has_many :direct_income_benefits, **hud_assoc(:PersonalID, 'IncomeBenefit'), inverse_of: :direct_client
+    has_many :direct_employment_educations, **hud_assoc(:PersonalID, 'EmploymentEducation'), inverse_of: :direct_client
+    has_many :direct_events, **hud_assoc(:PersonalID, 'Event'), inverse_of: :direct_client
     # End cleanup relationships
 
     has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments

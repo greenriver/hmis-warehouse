@@ -26,23 +26,23 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    has_many :affiliations, **hud_many(Affiliation)
-    has_many :clients, **hud_many(Client)
-    has_many :disabilities, **hud_many(Disability)
-    has_many :employment_educations, **hud_many(EmploymentEducation)
-    has_many :enrollments, **hud_many(Enrollment)
-    has_many :enrollment_cocs, **hud_many(EnrollmentCoc)
-    has_many :exits, **hud_many(Exit)
-    has_many :funders, **hud_many(Funder)
-    has_many :health_and_dvs, **hud_many(HealthAndDv)
-    has_many :income_benefits, **hud_many(IncomeBenefit)
-    has_many :inventories, **hud_many(Inventory)
-    has_many :organizations, **hud_many(Organization)
-    has_many :projects, **hud_many(Project)
-    has_many :project_coss, **hud_many(ProjectCoc)
-    has_many :services, **hud_many(Service)
+    has_many :affiliations, **hud_assoc(:UserID, 'Affiliation')
+    has_many :clients, **hud_assoc(:PersonalID, 'Client')
+    has_many :disabilities, **hud_assoc(:UserID, 'Disability')
+    has_many :employment_educations, **hud_assoc(:UserID, 'EmploymentEducation')
+    has_many :enrollments, **hud_assoc(:UserID, 'Enrollment')
+    has_many :enrollment_cocs, **hud_assoc(:UserID, 'EnrollmentCoc')
+    has_many :exits, **hud_assoc(:UserID, 'Exit')
+    has_many :funders, **hud_assoc(:UserID, 'Funder')
+    has_many :health_and_dvs, **hud_assoc(:UserID, 'HealthAndDv')
+    has_many :income_benefits, **hud_assoc(:UserID, 'IncomeBenefit')
+    has_many :inventories, **hud_assoc(:UserID, 'Inventory')
+    has_many :organizations, **hud_assoc(:UserID, 'Organization')
+    has_many :projects, **hud_assoc(:UserID, 'Project')
+    has_many :project_coss, **hud_assoc(:UserID, 'ProjectCoc')
+    has_many :services, **hud_assoc(:UserID, 'Service')
 
-    belongs_to :export, **hud_belongs(Export), inverse_of: :users
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users
     belongs_to :data_source
 
   end
