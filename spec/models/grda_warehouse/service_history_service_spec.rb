@@ -87,9 +87,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     end
   end
 
-  # FIXME
-  # Add some move-in-dates, rebuild and re-check
-
   def start_date
     GrdaWarehouse::Hud::Enrollment.minimum(:EntryDate)
   end

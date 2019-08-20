@@ -7,6 +7,6 @@ class SetAllShsLiterallyHomelessFalse < ActiveRecord::Migration
     #    GrdaWarehouse::ServiceHistoryService.where(date: range, literally_homeless: nil).update_all(literally_homeless: false)
     # end
 
-    change_column_default :service_history_services, :literally_homeless, false
+    # change_column_default :service_history_services, :literally_homeless, false
   end
 end
