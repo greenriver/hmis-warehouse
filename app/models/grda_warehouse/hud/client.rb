@@ -2148,7 +2148,7 @@ module GrdaWarehouse::Hud
 
     # TH or PH
     def self.dates_hud_non_chronic_residential_scope client_id:
-      GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_literally_homeless.
       where(client_id: client_id).
         select(:date).distinct
     end
@@ -2164,7 +2164,7 @@ module GrdaWarehouse::Hud
 
     # PH
     def self.dates_in_ph_residential_scope client_id:
-      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_homeless.
       where(client_id: client_id).
         select(:date).distinct
     end
@@ -2210,7 +2210,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_housed_scope(client_id:, on_date: Date.today)
-      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_homeless.
         where(client_id: client_id).select(:date).distinct
     end
 
@@ -2467,7 +2467,7 @@ module GrdaWarehouse::Hud
 
     private def adjusted_dates dates:, stop_date:
       return dates if stop_date.nil?
-      dates.select{|date| date < stop_date}
+      dates.select{|date| date <= stop_date}
     end
 
     private def residential_dates enrollments:
