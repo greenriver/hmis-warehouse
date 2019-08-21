@@ -123,32 +123,6 @@ namespace :grda_warehouse do
     GrdaWarehouse::Grades::Base.install_default_grades!
   end
 
-  desc "Import Many HUD CSVs for development"
-  task import_dev_hud_csvs: [:environment, "log:info_to_stdout"] do
-    # FIXME: this no longer works with the new importer, we need a new exporter first
-    # loop over data sources, looking for sub directories, find the first one
-    # copy all files into the data source import path
-    # delete the folder, run samba import for that DS
-    # GrdaWarehouse::DataSource.importable.each do |ds|
-    #   directories = Dir["#{ds.file_path}/*"].select{ |f| File.directory?(f)}
-    #   directories.each do |dir|
-    #     puts "Moving #{dir}/* to #{ds.file_path}"
-    #     Dir["#{dir}/*"].each do |f|
-    #       FileUtils.mv(f, ds.file_path) if File.extname(f) == '.csv'
-    #     end
-    #     puts "Removing #{dir}"
-    #     FileUtils.rmdir(dir)
-    #     puts "Importing #{ds.id}"
-    #     Importers::Samba.new(ds.id).run!
-    #   end
-    # end
-  end
-
-  desc "Dump Many HUD CSVs from Production for Development"
-  task :dump_hud_csvs_for_dev, [:n,:env] => [:environment] do |t, args|
-    GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500, env: args.env || :development).run!
-  end
-
   desc "SFTP Import HUD Zips from all Data Sources"
   task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
     hmis_version = args.hmis_version || 'hmis_51'

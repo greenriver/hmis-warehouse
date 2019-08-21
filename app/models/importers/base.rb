@@ -4,15 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-# Current production locations
-# NECHV - /mnt/hmis/nechv
-# BPHC - /mnt/hmis/bphc
-# DND - /mnt/hmis/dnd
-# MA - /mnt/hmis/ma
-#
-# Staging & Development should use GrdaWarehouse::Tasks::DumpHmisSubset to generate
-# fake data from production. Import locations for staging and development are within
-# the local tmp directory
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
