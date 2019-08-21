@@ -16,7 +16,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @clients_with_issues = Set.new
-        @es_so_night_by_night_clients = fetch_night_by_night_clients(ES + SO)        
+        @es_so_night_by_night_clients = fetch_night_by_night_clients(ES + SO)
         add_es_so_answers()
 
         update_report_progress(percent: 50)
@@ -37,7 +37,7 @@ module ReportGenerators::DataQuality::Fy2017
         (adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])) &&
         started_less_than_90_days_before_report(entry_date) &&
         ended_after_report(exit_date)
-        
+
       end
       @answers[:q7_b2][:value] = adult_or_hoh_clients.size
 
@@ -50,18 +50,6 @@ module ReportGenerators::DataQuality::Fy2017
           order(date: :asc).
           distinct.
           pluck(date)
-
-        # service_dates += GrdaWarehouse::ServiceHistory.service.
-        #   where(
-        #     client_id: enrollment[:client_id],
-        #     enrollment_group_id: enrollment[:enrollment_group_id],
-        #     first_date_in_program: enrollment[:first_date_in_program],
-        #     project_id: enrollment[:project_id],
-        #     data_source_id: enrollment[:data_source_id],
-        #   ).
-        #   order(date: :asc).
-        #   distinct.
-        #   pluck(:date)
 
         inactive_client = false
         service_dates.each_with_index do |date, index|
@@ -79,7 +67,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: inactive.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -107,17 +95,6 @@ module ReportGenerators::DataQuality::Fy2017
           order(date: :asc).
           maximum(:date)
 
-        # latest_service_date = GrdaWarehouse::ServiceHistory.service.
-        #   where(
-        #     client_id: enrollment[:client_id],
-        #     enrollment_group_id: enrollment[:enrollment_group_id],
-        #     first_date_in_program: enrollment[:first_date_in_program],
-        #     project_id: enrollment[:project_id],
-        #     data_source_id: enrollment[:data_source_id],
-        #   ).
-        #   order(date: :asc).
-        #   maximum(:date)
-
         latest_service_date.blank? || (latest_service_date - @report.options['report_end'].to_date).abs > 90
       end
       @answers[:q7_c3][:value] = inactive.size
@@ -126,7 +103,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: inactive.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -146,7 +123,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def fetch_night_by_night_clients(project_types)
       columns = {
-        client_id: she_t[:client_id].to_sql, 
+        client_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         DOB: c_t[:DOB].to_sql,
         RelationshipToHoH: e_t[:RelationshipToHoH].to_sql,
@@ -225,7 +202,7 @@ module ReportGenerators::DataQuality::Fy2017
         q7_d3: {
           title:  'Bed Night (All clients in ES – NBN) - % of Inactive Records',
           value: 0,
-        },        
+        },
       }
     end
   end

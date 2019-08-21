@@ -88,13 +88,12 @@ module GrdaWarehouse::Hud
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
-    has_one :processed_service_history, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
+    has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
 
     has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
 
-    # has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
     has_many :service_history_enrollments
     has_many :service_history_services
     has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
@@ -1496,7 +1495,6 @@ module GrdaWarehouse::Hud
           GrdaWarehouse::Hud::Project.confidential_project_name
         end
       end.uniq.sort
-      # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
     end
 
     def weeks_of_service
