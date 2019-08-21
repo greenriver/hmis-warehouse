@@ -1,10 +1,10 @@
 require 'test_helper'
 require 'support/import_factory'
-# run with: 
+# run with:
 # bin/rake test TEST="test/data_integration/import_test.rb"
 
 class ImportTest < ActiveSupport::TestCase
-  
+
   def setup
     create_data_sources
   end
@@ -24,7 +24,7 @@ class ImportTest < ActiveSupport::TestCase
     assert_equal 12, GrdaWarehouse::Hud::Enrollment.count
     assert_equal 9, GrdaWarehouse::Hud::Exit.count
     assert_equal 11, GrdaWarehouse::Hud::Service.count
-  
+
     assert_equal 6, client.services.count
 
     @ds.file_path = 'var/test/hmis/grda_2'
@@ -45,14 +45,14 @@ class ImportTest < ActiveSupport::TestCase
     # assert_equal 9, client.services.count
   end
 
-   
+
   private def create_data_sources
     @ds = GrdaWarehouse::DataSource.where(name: 'Test Data Source').first_or_create do |m|
       m.file_path = 'var/test/hmis/grda_1'
       m.source_type = 'samba'
     end
   end
-  
+
   private def destroy_import_logs
     GrdaWarehouse::ImportLog.destroy_all
   end
@@ -62,7 +62,7 @@ class ImportTest < ActiveSupport::TestCase
   end
 
   private def destroy_warehouse_data
-    GrdaWarehouse::ServiceHistory.delete_all
+    GrdaWarehouse::ServiceHistoryEnrollment.delete_all
     GrdaWarehouse::WarehouseClientsProcessed.delete_all
     GrdaWarehouse::WarehouseClient.delete_all
     GrdaWarehouse::Hud::Affiliation.delete_all
