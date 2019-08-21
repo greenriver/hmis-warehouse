@@ -158,11 +158,6 @@ namespace :grda_warehouse do
         ds = GrdaWarehouse::DataSource.find_by_short_name(key)
         Importers::HMISSixOneOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
       end
-    else
-      Importers::HMISFiveOne::Sftp.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-        Importers::HMISFiveOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
-      end
     end
   end
 
@@ -171,21 +166,7 @@ namespace :grda_warehouse do
     hmis_version = args.hmis_version || 'hmis_611'
 
     case hmis_version
-    when 'hmis_51'
-      Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
-
-        options = {
-          data_source_id: conf['data_source_id'],
-          region: conf['region'],
-          access_key_id: conf['access_key_id'],
-          secret_access_key: conf['secret_access_key'],
-          bucket_name: conf['bucket_name'],
-          path: conf['path'],
-          file_password: conf['file_password']
-        }
-        Importers::HMISFiveOne::S3.new(options).import!
-      end
-    else
+    when 'hmis_611'
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
 
         options = {
