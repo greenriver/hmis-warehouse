@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190814202518) do
+ActiveRecord::Schema.define(version: 20190816160117) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1103,6 +1103,17 @@ ActiveRecord::Schema.define(version: 20190814202518) do
 
   add_index "client_notes", ["client_id"], name: "index_client_notes_on_client_id", using: :btree
   add_index "client_notes", ["user_id"], name: "index_client_notes_on_user_id", using: :btree
+
+  create_table "client_split_histories", force: :cascade do |t|
+    t.integer  "split_into", null: false
+    t.integer  "split_from", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "client_split_histories", ["created_at"], name: "index_client_split_histories_on_created_at", using: :btree
+  add_index "client_split_histories", ["split_from"], name: "index_client_split_histories_on_split_from", using: :btree
+  add_index "client_split_histories", ["updated_at"], name: "index_client_split_histories_on_updated_at", using: :btree
 
   create_table "cohort_client_changes", force: :cascade do |t|
     t.integer  "cohort_client_id", null: false
