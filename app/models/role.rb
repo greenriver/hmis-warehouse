@@ -204,6 +204,14 @@ class Role < ActiveRecord::Base
         description: 'Ability to add or edit Youth Intake records',
         administrative: false,
       },
+      can_view_own_agency_youth_intake: {
+        description: 'Access to existing Youth Intake records associated with the User\'s agency',
+        administrative: false,
+      },
+      can_edit_own_agency_youth_intake: {
+        description: 'Ability to add or edit Youth Intake records associated with the User\'s agency,',
+        administrative: false,
+      },
       can_create_clients: {
         description: 'Given an authoritative data source, users can add clients that don\'t exist in HMIS',
         administrative: false,
@@ -319,6 +327,14 @@ class Role < ActiveRecord::Base
       can_view_assigned_secure_uploads: {
         description: 'Access to see assigned "secure" uploaded files',
         administrative: false,
+      },
+      can_manage_agency: {
+        description: 'Ability to manage users associated with my agency',
+        administrative: true,
+      },
+      can_manage_all_agencies: {
+        description: 'Ability to manage all agencies',
+        administrative: true,
       },
     }
   end

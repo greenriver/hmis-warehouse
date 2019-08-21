@@ -165,8 +165,14 @@ Rails.application.routes.draw do
   resources :warehouse_reports, only: [:index] do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
+  namespace :audit_reports do
+    resources :agency_user, only: [:index]
+    resources :user_login, only: [:index]
+  end
   namespace :warehouse_reports do
+    resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
+    resources :youth_follow_ups, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -342,6 +348,7 @@ Rails.application.routes.draw do
       resources :premium_payments, only: [:index, :show, :create, :destroy]
       resources :eligibility
       resources :eligibility_results, only: [:show]
+      resources :enrollments
     end
   end
 
@@ -385,6 +392,7 @@ Rails.application.routes.draw do
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
+    resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
 
     resources :files, controller: 'clients/files' do
       get :preview, on: :member
@@ -430,6 +438,7 @@ Rails.application.routes.draw do
       resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: 'clients/youth/direct_financial_assistances'
       resources :youth_referrals, except: [:index], controller: 'clients/youth/referrals'
+      resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
 
       resources :files, controller: 'clients/files' do
         get :preview, on: :member
@@ -600,6 +609,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]
@@ -619,6 +629,7 @@ Rails.application.routes.draw do
           get :review
           get :assigned
           get :rejected
+          get :disenrolled
           post :bulk_assign_agency
         end
         post :assign_agency

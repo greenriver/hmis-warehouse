@@ -23,9 +23,21 @@ module WarehouseReports
     end
 
     def clients
-      @clients = @report.support_for(params[:metric]&.to_sym, params)
+      @clients = if can_see_client_details?
+        @report.support_for(params[:metric]&.to_sym, params)
+      else
+        WarehouseReport::RrhReport::Support.new(clients: [], rows: [], headers: [])
+      end
       render layout: 'pjax_modal_content'
     end
+
+    def describe_computations
+      path = "app/views/warehouse_reports/rrh/README.md"
+      description = File.read(path)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
+      markdown.render(description)
+    end
+    helper_method :describe_computations
 
     private def set_modal_size
       @modal_size = :xl
@@ -108,6 +120,15 @@ module WarehouseReports
     private def project_source
       GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
+
+    private def can_see_client_details?
+      @can_see_client_details ||= if @filter.project_ids == :all
+        current_user.can_view_clients?
+      else
+        true
+      end
+    end
+    helper_method :can_see_client_details?
 
   end
 end

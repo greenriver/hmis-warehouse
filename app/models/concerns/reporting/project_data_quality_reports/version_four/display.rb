@@ -610,7 +610,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @household_type_mismatch ||= begin
         issues = []
         household_type_issues = enrolled_clients.where(incorrect_household_type: true).group(:project_id).distinct.
-          select(:household_type).count
+          select(:client_id).count
         household_type_issues.each do |id, count|
           next if count.zero?
           project = projects.detect{|p| p.id == id}
@@ -619,14 +619,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             issues << {
               project_id: id,
               project_name: project.ProjectName,
-              label: "individuals at family project",
+              label: "Individuals at family project",
               value: count,
             }
           else
             issues << {
               project_id: id,
               project_name: project.ProjectName,
-              label: "families at individual project",
+              label: "Families at individual project",
               value: count,
             }
           end
@@ -1045,9 +1045,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def no_income
-      clients_with_no_income_overall = clients_with_no_income[:overall].count
-      clients_with_no_earned_income = clients_with_no_income[:earned].count
-      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash].count
+      clients_with_no_income_overall = clients_with_no_income[:overall_client_ids].count
+      clients_with_no_earned_income = clients_with_no_income[:earned_client_ids].count
+      clients_with_no_non_cash_income = clients_with_no_income[:non_employment_cash_client_ids].count
       denominator = clients_with_no_income[:clients].count
 
       overall_percentage = ((clients_with_no_income_overall / denominator.to_f) * 100).round rescue 0

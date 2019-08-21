@@ -7,6 +7,7 @@
 module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
+    include Rails.application.routes.url_helpers
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -26,6 +27,7 @@ module Dashboards
       respond_to do |format|
         format.html do
           @html = true
+          render "dashboards/base/index"
         end
         format.xlsx do
           require_can_view_clients!
@@ -41,38 +43,50 @@ module Dashboards
           ).pluck(:id, :OrganizationName).to_h
         end
         format.pdf do
-          file_name = "#{@report.sub_population_title} Dashboard"
-          render pdf: file_name,
-            layout: 'pdf',
-            page_size: 'Letter',
-            javascript_delay: 20,
-            show_as_html: true
-          #
-          # pdf = dashboard_pdf(file_name)
-
-          # send_data dashboard_pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+          render_pdf!
         end
       end
     end
 
-    def dashboard_pdf file_name
-      render_to_string(
-        pdf: file_name,
-        template: 'dashboards/index',
-        # layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter',
-        # header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        # footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
-        # Show table of contents by providing the 'toc' property
-        # toc: {}
-      )
+    def pdf
+      render_pdf!
+    end
+
+    private def render_pdf!
+      @pdf = true
+      file_name = "#{@report.sub_population_title} Dashboard"
+      send_data dashboard_pdf(file_name), filename: "#{file_name}.pdf", type: "application/pdf"
+    end
+
+    private def dashboard_pdf file_name
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
+        timeout: 50000,
+        format: 'Letter',
+        emulate_media: 'print',
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        debug: {
+          # headless: false,
+          # devtools: true
+        }
+      }
+
+      html = render_to_string('dashboards/base/index')
+      Grover.new(html, grover_options).to_pdf
     end
 
     def describe_computations
       path = "app/views/dashboards/base/README.md"
       description = File.read(path)
-      markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+      markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)
     end
     helper_method :describe_computations

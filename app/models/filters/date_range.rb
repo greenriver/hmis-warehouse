@@ -43,6 +43,10 @@ module Filters
       Date.today
     end
 
+    def length
+      (self.end - self.start).to_i rescue 0
+    end
+
     class MonthDefault < DateRange
       def default_start
         self.end - 1.month

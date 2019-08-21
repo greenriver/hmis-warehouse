@@ -107,4 +107,24 @@ FactoryBot.define do
     name { 'secure file admin' }
     can_view_all_secure_uploads { true }
   end
+
+  factory :can_edit_anything_super_user, class: 'Role' do
+    name { 'can edit anything' }
+    can_edit_anything_super_user { true }
+  end
+
+  factory :can_view_youth_intake, class: 'Role' do
+    name { 'can view youth intake' }
+    can_view_youth_intake { true }
+  end
+
+  factory :can_view_own_agency_youth_intake, class: 'Role' do
+    name { 'can view own agency youth intake' }
+    can_view_own_agency_youth_intake { true }
+  end
+
+  factory :can_edit_own_agency_youth_intake, class: 'Role' do
+    name { 'can edit own agency youth intake' }
+    can_edit_own_agency_youth_intake { true }
+  end
 end

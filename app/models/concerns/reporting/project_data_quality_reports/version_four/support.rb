@@ -138,7 +138,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       {
         headers: ph_support_columns.keys,
         counts: move_in_date_above_threshold.pluck(*ph_support_columns.values),
-        title: 'Excessive Time Prior to Move-in-Date',
+        title: 'Excessive Time Prior to Move-in Date',
       }
     end
 
@@ -147,7 +147,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(incorrect_household_type: true).
           pluck(*enrollment_support_columns.values),
-        title: 'Service After Exit',
+        title: 'Incorrect Household Type',
       }
     end
 
@@ -324,7 +324,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'First Name' => :first_name,
         'Last Name' => :last_name,
         'Entry Date' => :entry_date,
-        'Move-in-Date' => :move_in_date,
+        'Move-in Date' => :move_in_date,
         'Days to Move-in' => :days_to_move_in_date,
         'Exit Date' => :exit_date,
         'Project' => :project_name,

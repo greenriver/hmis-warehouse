@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190708152330) do
+ActiveRecord::Schema.define(version: 20190802160019) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -213,6 +213,10 @@ ActiveRecord::Schema.define(version: 20190708152330) do
     t.boolean "presented_as_individual", default: false
     t.boolean "children_only",           default: false
     t.boolean "individual_adult",        default: false
+    t.integer "age_at_search_start"
+    t.integer "age_at_search_end"
+    t.integer "age_at_housed_date"
+    t.integer "age_at_housing_exit"
   end
 
   add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree
@@ -253,7 +257,7 @@ ActiveRecord::Schema.define(version: 20190708152330) do
     t.integer  "prior_exit_project_type"
     t.integer  "prior_exit_destination_id"
     t.datetime "calculated_at",                             null: false
-    t.integer  "enrollment_id",                             null: false
+    t.integer  "enrollment_id"
   end
 
   add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree

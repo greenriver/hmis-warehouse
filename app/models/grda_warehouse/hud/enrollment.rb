@@ -426,37 +426,40 @@ module GrdaWarehouse::Hud
       return nil
     end
 
-    def days_served
-      client.destination_client.service_history_enrollment.entry.
-        joins(:service_history_services).
-        where(enrollment_group_id: self.EnrollmentID).
-        merge(GrdaWarehouse::ServiceHistoryservice.where(record_type: 'service')).
-        select(:date).distinct
-    end
+    # Removed 8/14/2019
+    # def days_served
+    #   client.destination_client.service_history_enrollment.entry.
+    #     joins(:service_history_services).
+    #     where(enrollment_group_id: self.EnrollmentID).
+    #     merge(GrdaWarehouse::ServiceHistoryservice.where(record_type: 'service')).
+    #     select(:date).distinct
+    # end
     # If another enrollment with the same project type starts before this ends,
-    # Only count days in this enrollment that occured before the other starts
-    def adjusted_days
-      non_overlapping_days( Project.arel_table[:ProjectType].eq self.project.ProjectType )
-    end
+    # Only count days in this enrollment that occurred before the other starts
+    # Removed 8/14/2019
+    # def adjusted_days
+    #   non_overlapping_days( Project.arel_table[:ProjectType].eq self.project.ProjectType )
+    # end
 
     # days served for this enrollment that will not be assigned to some other enrollment as selected by the condition parameter
-    def non_overlapping_days(condition)
-      ds = days_served
-      et = Enrollment.arel_table
-      st = ds.engine.arel_table
-      conflicting_enrollments = client.destination_client.source_enrollments.joins(:project).
-        where(condition).
-        where( et[:id].not_eq self.id ).
-        where(
-          et[:EntryDate].between( self.EntryDate + 1.day .. exit_date ).
-          or(
-            et[:EntryDate].eq(self.EntryDate).and( et[:id].lt self.id )   # if they start on the same day, the earlier-id enrollments get to count the day
-          )
-        )
-      ds.where.not(
-        date: ds.engine.service.joins(:enrollment).merge(conflicting_enrollments).select(st[:date])
-      )
-    end
+    # Removed 8/14/2019
+    # def non_overlapping_days(condition)
+    #   ds = days_served
+    #   et = Enrollment.arel_table
+    #   st = ds.engine.arel_table
+    #   conflicting_enrollments = client.destination_client.source_enrollments.joins(:project).
+    #     where(condition).
+    #     where( et[:id].not_eq self.id ).
+    #     where(
+    #       et[:EntryDate].between( self.EntryDate + 1.day .. exit_date ).
+    #       or(
+    #         et[:EntryDate].eq(self.EntryDate).and( et[:id].lt self.id )   # if they start on the same day, the earlier-id enrollments get to count the day
+    #       )
+    #     )
+    #   ds.where.not(
+    #     date: ds.engine.service.joins(:enrollment).merge(conflicting_enrollments).select(st[:date])
+    #   )
+    # end
 
     def exit_date
       @exit_date ||= if exit.present?
@@ -466,24 +469,27 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def homeless?
-      project.ProjectType.in? Project::CHRONIC_PROJECT_TYPES
-    end
+    # Removed 8/14/2019
+    # def homeless?
+    #   project.ProjectType.in? Project::CHRONIC_PROJECT_TYPES
+    # end
 
     # days when the user is in a homeless project and *not* in a residential project
     # an enrollment gets credit for its days preceding the beginning of another enrollment regardless
     # of overlap with a preceding enrollment
-    def days_homeless
-      if homeless?
-        non_overlapping_days( Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS )
-      else
-        self.class.none
-      end
-    end
+    # Removed 8/14/2019
+    # def days_homeless
+    #   if homeless?
+    #     non_overlapping_days( Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS )
+    #   else
+    #     self.class.none
+    #   end
+    # end
 
-    def most_recent_service_date
-      days_served.maximum(:date)
-    end
+    # Removed 8/14/2019
+    # def most_recent_service_date
+    #   days_served.maximum(:date)
+    # end
 
     # If we haven't been in a homeless project type in the last 30 days, this is a new episode
     # If we don't currently have a non-homeless residential enrollment and we have had one for the past 90 days, this is a new episode

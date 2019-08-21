@@ -68,6 +68,11 @@ module ControllerAuthorization
     not_authorized!
   end
 
+  def require_can_view_user_audit_report!
+    return true if current_user.present? && (current_user.can_manage_agency? || current_user.can_manage_all_agencies?)
+    not_authorized!
+  end
+
   def require_can_view_client_and_history!
     return true if current_user.can_view_clients? && current_user.can_view_client_history_calendar?
     not_authorized!

@@ -138,6 +138,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :service,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
@@ -147,14 +149,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :extrapolated,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
     # build out all days within the month
     # don't build for any dates we already have
+    # never build past today, it makes counts and display very odd
     def add_extrapolated_days dates, type_provided
       extrapolated_dates = dates.map do |date|
-        (date.beginning_of_month .. date.end_of_month).to_a
+        stop_on = [date.end_of_month, Date.today].min
+        (date.beginning_of_month .. stop_on).to_a
       end.flatten(1).uniq
       # Don't build extrapolations for any day we already have
       extrapolated_dates -= dates
@@ -310,6 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
+        move_in_date: self.MoveInDate,
       }
     end
 
@@ -323,7 +330,33 @@ module GrdaWarehouse::Tasks::ServiceHistory
         record_type: nil,
         client_id: destination_client.id,
         project_type: project.computed_project_type,
+        homeless: false,
+        literally_homeless: false,
       }
+    end
+
+    # Service is considered a homeless service if it is in ES, SO, SH or TH.
+    # Service is explicitly NOT homeless if it is in PH after the move-in date.
+    # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
+    # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
+    # or non_homeless scopes"?
+    def homeless? date
+      return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return nil
+    end
+
+    # The day only counts as literally homeless if it's in ES, SO, SH.
+    # TH or PH after move-in date negates literally homeless
+    # Others don't negate it, but don't count as such
+    def literally_homeless? date
+      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return nil
     end
 
     def household_birthdates
@@ -628,6 +661,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: :ProjectID,
         deleted_at: :DateDeleted,
         household_id: :HouseholdID,
+        head_of_household: :RelationshipToHoH,
+        move_in_date: :MoveInDate,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -637,6 +673,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         destination: :Destination,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -645,6 +682,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
+        updated_at: :DateUpdated,
       }
     end
 

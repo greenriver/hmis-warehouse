@@ -23,7 +23,13 @@ module Health
       return [] unless section.present? &&
         question.present? &&
         number&.is_a?(Integer)
-      (1..number).map { |n| _("CHA #{section}_Q#{question}_A#{n}") }
+      (1..number).map do |n|
+        label = "[#{n}] #{_("CHA #{section}_Q#{question}_A#{n}")}"
+        [
+          label,
+          _("CHA #{section}_Q#{question}_A#{n}")
+        ]
+      end
     end
 
     QUESTION_ANSWER_OPTIONS = {

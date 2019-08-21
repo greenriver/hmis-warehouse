@@ -17,7 +17,7 @@ module Reporting::DataQualityReports
       project.project_cocs.map(&:CoCCode).uniq.join(', ')
     end
     def calculate_funder project:
-      project.funders.map(&:GrantID).uniq.join(', ')
+      project.funders.map{ |f| HUD.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
     def calculate_geocode project:
       project.geographies.map(&:Geocode).uniq.join(', ')
@@ -27,14 +27,22 @@ module Reporting::DataQualityReports
         HUD::geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
+
     def calculate_unit_inventory project:, report_range:
-      project.inventories.within_range(report_range).map do |m|
-        m[:UnitInventory] || 0
+      project.inventories.within_range(report_range).map do |inventory|
+        inventory.average_daily_inventory(
+          range: report_range,
+          field: :UnitInventory
+        )
       end.sum
     end
+
     def calculate_bed_inventory project:, report_range:
-      project.inventories.within_range(report_range).map do |m|
-        m[:BedInventory] || 0
+      project.inventories.within_range(report_range).map do |inventory|
+        inventory.average_daily_inventory(
+          range: report_range,
+          field: :BedInventory
+        )
       end.sum
     end
 

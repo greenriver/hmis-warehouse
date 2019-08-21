@@ -47,7 +47,9 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
 
     $('.modal .modal-content').html('Loading...')
     $('.modal').modal('show')
-    $('.modal .modal-content').load(url)
+    $('.modal .modal-content').load url, (response, status, xhr) ->
+      if xhr.status != 200
+        $('.modal .modal-content').html(response)
 
   _over: (d) =>
     $('html,body').css('cursor', 'pointer')

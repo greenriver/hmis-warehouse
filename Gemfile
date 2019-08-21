@@ -77,7 +77,7 @@ gem "gmail", require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
+gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
 # for de-duping clients
 gem 'redcarpet'
@@ -93,9 +93,12 @@ gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
+
+# PDF Exports
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'combine_pdf'
+gem 'grover'
 
 gem 'whenever', require: false
 gem 'ruby-progressbar', require: false

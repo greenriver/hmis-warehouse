@@ -1,24 +1,31 @@
 = content_for :modal_title do
   - title = "Supporting Data"
-  - if params[:selected_project].present?
-    - title += " for #{@report.valid_project_name(params[:selected_project])}"
+  - projects = @report.valid_project_name(params[:selected_project])
+  - if projects.present?
+    - title += " for #{projects}"
   - title
-- if @clients.support_rows.any?
-  %table.table.table-sm
-    %thead
-      %tr
-        - @clients.headers.each do |h|
-          %th= h
-    %tbody
-      - @clients.support_rows.each do |row|
-        - client_id = row['Warehouse ID']
+- if can_see_client_details?
+  - if @clients.support_rows.any?
+    %p Showing #{pluralize(@clients.support_rows.count, 'row')}
+    %table.table.table-sm
+      %thead
         %tr
-          - row.each do |header, v|
-            - if @clients.client_headers.include?(header)
-              - if current_user.can_view_clients? || current_user.can_edit_clients?
-                - url = client_path(id: client_id)
-              - elsif current_user.can_view_client_window?
-                - url = window_client_path(id: client_id)
-              %td= link_to_if url.present?, v, url, target: '_blank'
-            - else
-              %td= v
+          - @clients.headers.each do |h|
+            %th= h
+      %tbody
+        - @clients.support_rows.each do |row|
+          - client_id = row['Warehouse ID']
+          %tr
+            - row.each do |header, v|
+              - if @clients.client_headers.include?(header)
+                - if current_user.can_view_clients? || current_user.can_edit_clients?
+                  - url = client_path(id: client_id)
+                - elsif current_user.can_view_client_window?
+                  - url = window_client_path(id: client_id)
+                %td= link_to_if url.present?, v, url, target: '_blank'
+              - else
+                %td= v
+  - else
+    %p No clients found.
+- else
+  %p You do not have permission to see all client details, please select individual projects and update the view.

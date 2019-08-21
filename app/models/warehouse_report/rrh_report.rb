@@ -840,9 +840,8 @@ class WarehouseReport::RrhReport
     }
   end
 
-  # returns array of clients with id, first name, last name who match the metric
-  def support_for metric, params=nil
-    columns = {
+  def default_support_columns
+    {
       service_project: _('Pre-Placement Project'),
       search_start: _('Search Start'),
       search_end: _('Search End'),
@@ -850,7 +849,48 @@ class WarehouseReport::RrhReport
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
     }
+  end
 
+  def columns_for_returns_after_exit
+    {
+      exit_date: _('Housing Exit'),
+      return_date: _('Date of Return'),
+      days_to_return: _('Days to Return'),
+    }
+  end
+
+  def columns_for_percent_exiting_pre_placement
+    {
+      service_project: _('Pre-Placement Project'),
+      search_start: _('Search Start'),
+      search_end: _('Search End'),
+      housed_date: _('Date Housed'),
+    }
+  end
+
+  def columns_for_percent_in_stabilization
+    {
+      service_project: _('Pre-Placement Project'),
+      search_start: _('Search Start'),
+      search_end: _('Search End'),
+      residential_project: _('Stabilization Project'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  def columns_for_percent_exiting_stabilization
+    {
+      residential_project: _('Stabilization Project'),
+      destination: _('Destination'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  # returns array of clients with id, first name, last name who match the metric
+  def support_for metric, params=nil
+    columns = default_support_columns
     case metric
     when :enrolled_clients
       rows = enrolled_clients.pluck(*([:client_id] + columns.keys))
@@ -867,39 +907,51 @@ class WarehouseReport::RrhReport
     when :exiting_stabilization
       rows = exiting_stabilization.pluck(*([:client_id] + columns.keys))
     when :pre_placement_stabilization_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_to_stabilization.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_no_stabilization_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_no_stabilization.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_any_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :time_in_stabilization
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = residential_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
-      rows = in_stabilization.where(residential_project: project_name).
-        enrolled_stabilization(start_date: start_date, end_date: end_date).
+      rows = exiting_stabilization.where(residential_project: project_name).
+        exiting_stabilization(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :return_after_exit_to_ph
-      columns = {
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-        days_to_return: _('Days to Return'),
-      }
+      columns = columns_for_returns_after_exit
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
@@ -908,17 +960,13 @@ class WarehouseReport::RrhReport
       end.map do |_, row|
         [
           row[:client_id],
-          row[:entry_date],
           row[:exit_date],
+          row[:entry_date], # actually return date
           row[:days_to_return],
         ]
       end
     when :return_after_exit_to_any
-      columns = {
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-        days_to_return: _('Days to Return'),
-      }
+      columns = columns_for_returns_after_exit
       bucket = length_of_time_buckets.values.detect do |label|
         params[:bucket] == label
       end
@@ -927,20 +975,19 @@ class WarehouseReport::RrhReport
       end.map do |_, row|
         [
           row[:client_id],
-          row[:entry_date],
           row[:exit_date],
+          row[:entry_date], # actually return date
           row[:days_to_return],
         ]
       end
     when :percent_exiting_pre_placement
-      columns = {
-        service_project: _('Pre-Placement Project'),
-        search_start: _('Search Start'),
-        search_end: _('Search End'),
-        housed_date: _('Date Housed'),
-      }
-      project_name = valid_project_name(params[:selected_project])
+      columns = columns_for_percent_exiting_pre_placement
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_exiting_pre_placement_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [
@@ -952,16 +999,13 @@ class WarehouseReport::RrhReport
         ]
       end
     when :percent_in_stabilization
-      columns = {
-        service_project: _('Pre-Placement Project'),
-        search_start: _('Search Start'),
-        search_end: _('Search End'),
-        residential_project: _('Stabilization Project'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
-      project_name = valid_project_name(params[:selected_project])
+      columns = columns_for_percent_in_stabilization
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_in_stabilization_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [
@@ -975,14 +1019,13 @@ class WarehouseReport::RrhReport
         ]
       end
     when :percent_exiting_stabilization
-      columns = {
-        residential_project: _('Stabilization Project'),
-        destination: _('Destination'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
-      project_name = valid_project_name(params[:selected_project])
+      columns = columns_for_percent_exiting_stabilization
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_exiting_stabilization_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [
