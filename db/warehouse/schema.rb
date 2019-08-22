@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190821163752) do
+ActiveRecord::Schema.define(version: 20190821200216) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1627,6 +1627,7 @@ ActiveRecord::Schema.define(version: 20190821163752) do
     t.float    "vispdat_times_homeless"
     t.string   "staff_email"
     t.datetime "eto_last_updated"
+    t.string   "housing_status"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree
