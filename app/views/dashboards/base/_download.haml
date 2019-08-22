@@ -1,9 +1,10 @@
 .ho-container
   .ho-container__header
     %h3 Downloads
-  = link_to({action: :index, format: :xlsx}.merge(params), {class: 'btn btn-secondary mr-4'}) do
-    %i.icon-download2
-    Supporting Data
+  - if can_see_client_details?
+    = link_to({action: :index, format: :xlsx}.merge(params), {class: 'btn btn-secondary mr-4'}) do
+      %i.icon-download2
+      Supporting Data
 
   = link_to({action: :index, format: :pdf}.merge(params), {class: 'btn btn-secondary'}) do
     %i.icon-download2

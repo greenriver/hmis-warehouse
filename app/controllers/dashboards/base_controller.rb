@@ -91,6 +91,15 @@ module Dashboards
     end
     helper_method :describe_computations
 
+    private def can_see_client_details?
+      @can_see_client_details ||= if @project_ids == []
+        current_user.can_view_clients?
+      else
+        true
+      end
+    end
+    helper_method :can_see_client_details?
+
     def set_available_months
       @available_months ||= active_report_class.distinct.order(year: :desc, month: :desc).
         pluck(:year, :month).map do |year, month|
@@ -108,7 +117,7 @@ module Dashboards
     def set_report_months
       all_months_array = @available_months.keys
       start_index = all_months_array.index(JSON.parse(@start_month))
-      end_index = all_months_array.index(JSON.parse(@end_month))
+      end_index = all_months_array.index(JSON.parse(@end_month)) || 0
       @report_months = all_months_array[end_index..start_index] rescue []
     end
 
