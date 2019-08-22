@@ -28,7 +28,7 @@ class CohortsController < ApplicationController
     @search = scope.ransack(params[:q])
 
     @cohort = cohort_source.new
-    @cohorts = @search.result.active.reorder(sort_string)
+    @cohorts = @search.result.active.distinct.reorder(sort_string)
     @inactive_cohorts = @search.result.inactive.reorder(sort_string)
   end
 

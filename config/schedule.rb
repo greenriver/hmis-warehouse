@@ -57,9 +57,11 @@ every 1.day, at: '4:00 am' do
 end
 
 # These only happen in some scenarios
-if ENV['ETO_API_SITE1'] != 'unknown' && ENV['ETO_LEGACY_API_UPDATE'] != ''
-  every 1.day, at: '4:00 pm' do
-    rake "eto:import:update_ids_and_demographics"
+if ENV['ETO_API_SITE1'] != 'unknown'
+  if ENV['ETO_LEGACY_API_UPDATE'] != ''
+    every 1.day, at: '4:00 pm' do
+      rake "eto:import:update_ids_and_demographics"
+    end
   end
   every 1.day, at: '6:00 am' do
     rake "eto:import:demographics_and_touch_points"
