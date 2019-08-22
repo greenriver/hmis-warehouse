@@ -58,7 +58,7 @@ class ReportsController < ApplicationController
     end
 
     def report_scope
-      Report.all
+      Report.active
     end
 
     # Use callbacks to share common setup or constraints between actions.
