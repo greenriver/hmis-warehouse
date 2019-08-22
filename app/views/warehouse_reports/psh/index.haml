@@ -20,7 +20,7 @@
     var timeInPrePlacementChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementChart', pre_placement_leavers_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :pre_placement_any_exit))}');
     var timeInStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInStabilizationChart', stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :time_in_stabilization))}');
     var destination_chart_data = #{@report.destinations.to_json}
-    var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data);
+    var destination_chart = new App.WarehouseReports.Rrh.Destination('.rrh__destination-chart', '.rrh__destination-chart-legend', destination_chart_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :destination))}');
     var ph_returns_data = #{@report.ph_returns_for_chart.to_json}
     var ph_returns_chart = new App.WarehouseReports.Rrh.Returns('#jPhReturnsChart', ph_returns_data, '#{clients_warehouse_reports_psh_index_path(params.merge(metric: :return_after_exit_to_ph))}');
     var returns_data = #{@report.returns_for_chart.to_json}

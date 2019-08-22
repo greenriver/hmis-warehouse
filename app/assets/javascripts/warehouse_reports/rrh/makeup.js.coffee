@@ -91,11 +91,11 @@ class App.WarehouseReports.Rrh.Makeup
 
 
   _follow_link: (d, e) =>
-    if d.name != 'All'
-      month = @data.labels[d.index + 1]
-      url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
-      # console.log(d, @data, url)
+    # if d.name != 'All'
+    month = @data.labels[d.index + 1]
+    url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
+    # console.log(d, @data, url)
 
-      $('.modal .modal-content').html('Loading...')
-      $('.modal').modal('show')
-      $('.modal .modal-content').load(url)
+    $('.modal .modal-content').html('Loading...')
+    $('.modal').modal('show')
+    $('.modal .modal-content').load(url)

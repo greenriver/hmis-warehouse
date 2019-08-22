@@ -907,28 +907,44 @@ class WarehouseReport::RrhReport
     when :exiting_stabilization
       rows = exiting_stabilization.pluck(*([:client_id] + columns.keys))
     when :pre_placement_stabilization_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_to_stabilization.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_no_stabilization_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_no_stabilization.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_any_exit
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = service_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement.where(service_project: project_name).
         enrolled_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :time_in_stabilization
-      project_name = valid_project_name(params[:selected_project])
+      if params[:selected_project] == 'All'
+        project_name = residential_project_names
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = exiting_stabilization.where(residential_project: project_name).
@@ -966,8 +982,12 @@ class WarehouseReport::RrhReport
       end
     when :percent_exiting_pre_placement
       columns = columns_for_percent_exiting_pre_placement
-      project_name = valid_project_name(params[:selected_project])
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_exiting_pre_placement_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [
@@ -980,8 +1000,12 @@ class WarehouseReport::RrhReport
       end
     when :percent_in_stabilization
       columns = columns_for_percent_in_stabilization
-      project_name = valid_project_name(params[:selected_project])
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_in_stabilization_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [
@@ -996,8 +1020,12 @@ class WarehouseReport::RrhReport
       end
     when :percent_exiting_stabilization
       columns = columns_for_percent_exiting_stabilization
-      project_name = valid_project_name(params[:selected_project])
       month = params[:month]
+      if params[:selected_project] == 'All'
+        project_name = 'All'
+      else
+        project_name = valid_project_name(params[:selected_project])
+      end
       support = percent_exiting_stabilization_data[:support][month][project_name]['data']
       rows = support.map do |row|
         [

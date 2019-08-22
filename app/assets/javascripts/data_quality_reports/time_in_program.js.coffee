@@ -29,7 +29,9 @@ class App.DataQualityReports.TimeInProgram extends App.DataQualityReports.Base
     if project_id?
       $('.modal .modal-content').html('Loading...')
       $('.modal').modal('show')
-      $('.modal .modal-content').load(url)
+      $('.modal .modal-content').load url, (response, status, xhr) ->
+        if xhr.status != 200
+          $('.modal .modal-content').html(response)
 
   _over: (d) =>
     $('html,body').css('cursor', 'pointer')

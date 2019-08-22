@@ -44,6 +44,10 @@ module ServiceHistoryServiceConcern
       end
     end
 
+    scope :non_literally_homeless, -> do
+      where(arel_table[:literally_homeless].eq(false))
+    end
+
     scope :non_homeless, -> do
       where(arel_table[:homeless].eq(false))
     end

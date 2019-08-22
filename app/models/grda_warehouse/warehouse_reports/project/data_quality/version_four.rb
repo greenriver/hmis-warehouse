@@ -349,7 +349,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           organization_name: project.organization.OrganizationName,
           project_type: project.computed_project_type,
           operating_start_date: project.OperatingStartDate,
-          housing_type: HUD::housing_type(project.HousingType),
+          housing_type: project.HousingType,
           calculated_at: self.started_at,
         )
 

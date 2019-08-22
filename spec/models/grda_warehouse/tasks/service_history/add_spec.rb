@@ -77,7 +77,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     it 'it should ignore service records that fall outside of the enrollment dates' do
       client = GrdaWarehouse::Hud::Client.destination.where(PersonalID: '1-1').first
-      expect(client.service_history.service.count).to eq(7)
+      expect(client.service_history_services.count).to eq(7)
     end
     it 'it should generate service history records for entry-exit projects' do
     end
