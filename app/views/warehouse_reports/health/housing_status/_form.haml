@@ -2,7 +2,7 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :aco, collection: Health::AccountableCareOrganization.active, label: 'ACO', selected: @aco, input_html: { class: :select2 }
+        = f.input :aco, collection: Health::AccountableCareOrganization.active, label: 'ACO', selected: @aco, input_html: { class: :select2,  multiple: true }
       .col-sm-4
         = f.input :start_date, as: :date_picker, input_html: { value: @start_date }
       .col-sm-4

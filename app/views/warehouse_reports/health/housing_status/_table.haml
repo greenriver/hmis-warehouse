@@ -1,0 +1,19 @@
+- if @report.present?
+  %table.table
+    %thead
+      %tr
+        %th Date
+        %th Street
+        %th Shelter
+        %th Doubled Up
+        %th Temporary
+        %th Permanent
+    %tbody
+      - @report.each do |date, body|
+        %tr
+          %td= date
+          %td= body[:street]&.count
+          %td= body[:shelter]&.count
+          %td= body[:doubling_up]&.count
+          %td= body[:temporary]&.count
+          %td= body[:permanent]&.count
