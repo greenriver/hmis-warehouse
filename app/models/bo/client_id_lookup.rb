@@ -231,7 +231,7 @@ module Bo
           last_updated: row[:date_last_updated].to_time.localtime,
         )
       end
-       GrdaWarehouse::EtoQaaws::TouchPointLookup.transaction do
+      GrdaWarehouse::EtoQaaws::TouchPointLookup.transaction do
         GrdaWarehouse::EtoQaaws::TouchPointLookup.where(data_source_id: @data_source_id).delete_all
         GrdaWarehouse::EtoQaaws::TouchPointLookup.import(new_rows)
       end

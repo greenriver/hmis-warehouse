@@ -48,7 +48,6 @@
               = entry['ProjectName']
             %td
               = entry['short_name']
-            -#%td= GrdaWarehouse::ServiceHistory.entry.where(client_id: entry['client_id'], project_id: entry['ProjectID'], last_date_in_program: nil).pluck(:date).join(', ')
   .col-sm-4
     .census__involved-projects
       %h4 Involved Projects
