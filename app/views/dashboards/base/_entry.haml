@@ -37,12 +37,15 @@
         .jReEntry
 
 = content_for :page_js do
+  - if can_see_client_details?
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
   :javascript
-    var entry_support_link = '#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}'
+    var entry_support_link = '#{entry_support_link}'
 
     new App.Dashboards.Clients.Entered('.jEntry', #{@report.homeless_project_types.to_json}, #{@report.first_time_entry_locations.to_json}, '#{@report.sub_population_title}', entry_support_link, #{chart_options_small.to_json});
 
-    var re_entry_support_link = '#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}'
+    var re_entry_support_link = '#{re_entry_support_link}'
 
     new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', #{@report.entry_re_entry_data.to_json}, '#{@report.sub_population_title}', entry_support_link, re_entry_support_link, #{chart_options.to_json});
 

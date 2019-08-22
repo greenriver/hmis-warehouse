@@ -22,7 +22,9 @@
   .o-chart.jHoused
 
 = content_for :page_js do
+  - if can_see_client_details?
+    - support_link = "#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}"
   :javascript
-    var support_link = '#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}'
+    var support_link = '#{support_link}'
 
     new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json}, '#{@report.sub_population_title}', support_link, #{chart_options.to_json});
