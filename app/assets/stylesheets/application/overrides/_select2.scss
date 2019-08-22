@@ -8,11 +8,6 @@
 .select2-container {
   display: inline-flex;
   width: 100% !important;
-  &.all-selected {
-    .select2-selection__rendered {
-      display: none;
-    }
-  }
 }
 
 .select2-container .selection {
@@ -96,21 +91,20 @@
 
 .select2-select-all {
   position: absolute;
-  right: space(4);
+  right: 1px;
+  top: 2px;
   z-index: 10;
+  background: rgba($gray-100, .9);
   cursor: pointer;
   color: $link-color;
-  max-height: 40px;
+  min-height: 40px;
   &:hover {
     color: $link-hover-color;
+    cursor: pointer;
   }
-  top: 50%;
-  transform: translate(0, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.select2-select-all-message {
-
+  padding-right: space(6);
+  padding-left: space(4);
 }
