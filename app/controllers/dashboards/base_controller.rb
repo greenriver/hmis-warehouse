@@ -94,7 +94,6 @@ module Dashboards
     private def can_see_client_details?
       @can_see_client_details ||= if @project_ids == []
         current_user.can_view_clients?
-        false
       else
         true
       end
