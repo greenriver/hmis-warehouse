@@ -18,38 +18,33 @@ class WarehouseReport::Health::HousingStatus
 
     patients_scope = patients_scope.where(patient_referrals: {accountable_care_organization_id: @aco}) if @aco.present?
 
-    patients = patients_scope.
-      preload(:sdh_case_management_notes, :epic_case_notes).
-      select(:id, :client_id, :housing_status_timestamp, :housing_status, :medicaid_id)
-
-    from_patients = patients.select { |patient| patient.housing_status_timestamp.present? }.
-      map { |patient| [patient.housing_status_timestamp.to_date, [patient.client_id, patient.housing_status]]}.
+    from_patients = patients_scope.
+      where.not(housing_status_timestamp: nil).
+      pluck(:housing_status_timestamp, :client_id, :housing_status).
+      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
       to_h
 
-    from_sdh_notes = {}
-    patients.each do |patient|
-      patient.sdh_case_management_notes.
-        select { |note|  note.housing_status.present? && note.date_of_contact.present? }.
-        each do |note|
-        from_sdh_notes[note.date_of_contact.to_date] = [patient.client_id, note.housing_status]
-      end
-    end
+    from_sdh_notes = patients_scope.ot
+      joins(:sdh_case_management_notes).
+      where.not(sdh_case_management_notes: {housing_status: nil, date_of_contact: nil}).
+      pluck('sdh_case_management_notes.date_of_contact', :client_id, 'sdh_case_management_notes.housing_status').
+      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
+      to_h
 
-    from_epic = {}
-    patients.each do |patient|
-      patient.epic_case_notes.
-        select { |note|  note.homeless_status.present? && note.date_of_contact.present? }.
-        each do |note|
-        from_sdh_notes[note.date_of_contact.to_date] = [patient.client_id, note.homeless_status]
-      end
-    end
+    from_epic = patients_scope.
+      joins(:epic_case_notes).
+      where.not(epic_case_notes: {homeless_status: nil, contact_date: nil}).
+      pluck('epic_case_notes.contact_date', :client_id, 'epic_case_notes.homeless_status').
+      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
+      to_h
 
     from_touchpoints = GrdaWarehouse::Hud::Client.
-      where(id: patients.map { | patient| patient.client_id }).
+      where(id: patients_scope.pluck(:id)).
       joins(:case_management_notes).
       where.not(hmis_forms: {housing_status: nil}).
       where(hmis_forms: {collected_at: @start_date..@end_date}).
       pluck('hmis_forms.collected_at', :id, :housing_status).
+      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
       to_h
 
     # combine data sources
