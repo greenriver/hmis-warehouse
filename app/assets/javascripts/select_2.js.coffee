@@ -21,6 +21,10 @@ App.select2.initToggleSelectAll = ($select) =>
   """)
   $select.closest('.form-group').on 'click', '.j-select2-select-all', (event)=>
     toggleSelectAll()
+  $select.on 'select2:select', (event)=>
+    updateSelectAllState(event)
+  $select.on 'select2:unselect', (event)=>
+    updateSelectAllState(event)
 
   toggleSelectAll = (updateOptions=true, options={}) =>
     $selectAllLink = $formGroup.find('.select2-select-all')
@@ -41,5 +45,28 @@ App.select2.initToggleSelectAll = ($select) =>
     $select2Container[classAction]('all-selected')
     if (updateOptions)
       $select.find('option').prop("selected", !allSelected);
+    $select.trigger('change')
+    $select.select2('close')
+
+  # If we made any changes manually, and there are any selected, set the link to "select none"
+  updateSelectAllState = (event) =>
+    $selectAllLink = $formGroup.find('.select2-select-all')
+    allSelected = $selectAllLink.data('selected')
+    $selectAllLink.data('selected', !allSelected)
+
+    if $select.select2('data').length == 0
+      classAction = 'removeClass'
+      html = """
+        <span class='mr-2'>Select all</span>
+        <i class='icon-checkbox-checked' />
+      """
+    else# if $select.select2('data').length < $select.find('option').length
+      classAction = 'addClass'
+      html = """
+        <span class='mr-2'>Select none</span>
+        <i class='icon-checkbox-unchecked' />
+      """
+    $selectAllLink.html(html)
+    $select2Container[classAction]('all-selected')
     $select.trigger('change')
     $select.select2('close')
