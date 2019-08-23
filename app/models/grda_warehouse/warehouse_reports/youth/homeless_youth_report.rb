@@ -18,7 +18,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       GrdaWarehouse::YouthIntake::Base.
         served.
         open_between(start_date: @start_date, end_date: @end_date).
-        open_after(@start_date)
+        opened_after(@start_date)
     end
 
     def section_1_scope
@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     def section_3_intake_scope
       GrdaWarehouse::YouthIntake::Base.
         open_between(start_date: @start_date, end_date: @end_date).
-        open_after(@start_date).
+        opened_after(@start_date).
         where(youth_experiencing_homelessness_at_start: "No")
     end
 
@@ -102,7 +102,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     def four_a
       @four_a ||= get_client_ids(section_4_intake_scope.
         served.
-        open_after(@start_date))
+        opened_after(@start_date))
     end
 
     def four_b
@@ -122,7 +122,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def four_d
       @four_d ||= get_client_ids(section_4_intake_scope.
-          open_after(@start_date).
+          opened_after(@start_date).
           where(turned_away: true))
     end
 
@@ -320,7 +320,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       get_client_ids(GrdaWarehouse::YouthIntake::Base.
           served.
           open_between(start_date: @start_date, end_date: @end_date).
-          open_after(@start_date))
+          opened_after(@start_date))
     end
 
     def total_served
@@ -461,8 +461,72 @@ module GrdaWarehouse::WarehouseReports::Youth
           where(owns_cell_phone: 'Yes'))
     end
 
+    # Follow Ups
+
+    def follow_up_scope(homeless_at_start:)
+      yi_t = GrdaWarehouse::YouthIntake::Base.arel_table
+      GrdaWarehouse::Youth::YouthFollowUp.
+        between(start_date: @start_date, end_date: @end_date).
+        joins(client: :youth_intakes).
+        merge(GrdaWarehouse::YouthIntake::Base.served.open_between(start_date: @start_date, end_date: @end_date)).
+        where(yi_t[:youth_experiencing_homelessness_at_start].eq(homeless_at_start))
+    end
+
+    def follow_up_section_one_scope
+      follow_up_scope(homeless_at_start: 'No')
+    end
+
+    def follow_up_one_a
+      @follow_up_one_a ||= get_client_ids(follow_up_section_one_scope)
+    end
+
+    def follow_up_one_b
+      @follow_up_one_b ||= get_client_ids(follow_up_section_one_scope.
+        where.not(housing_status: 'No'))
+    end
+
+    def follow_up_section_two_scope
+      follow_up_scope(homeless_at_start: 'Yes')
+    end
+
+    def follow_up_two_a
+      @follow_up_two_a ||= get_client_ids(follow_up_section_two_scope)
+    end
+
+    def follow_up_two_b
+      @follow_up_two_b ||= get_client_ids(follow_up_section_two_scope.
+        where.not(housing_status: 'No'))
+    end
+
+    def follow_up_two_c
+      @follow_up_two_c ||= follow_up_section_two_scope.pluck(:zip_code).uniq
+    end
+
+    def follow_up_two_d
+      @follow_up_two_d ||= begin
+        result = {}
+        follow_up_housing.values.each { |value| result[value] = [] }
+        groups = follow_up_section_two_scope.pluck(:housing_status, :client_id).group_by(&:first)
+        groups.each do |group, items|
+          next if group == 'No'
+          key = follow_up_housing[group]
+          result[key]  = items.map{ | item | item.last }
+        end
+        result
+      end
+    end
+
     private def get_client_ids(scope)
       scope.distinct.pluck(:client_id)
+    end
+
+    private def follow_up_housing
+      {
+        'Yes, in RRH' => 'RRH',
+        'Yes, in market-rate housing' => 'Market-Rate',
+        'Yes, in transitional housing'=> 'Transitional',
+        'Yes, with family' => 'Family',
+      }
     end
 
     private def homeless_statuses

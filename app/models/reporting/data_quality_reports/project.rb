@@ -17,7 +17,7 @@ module Reporting::DataQualityReports
       project.project_cocs.map(&:CoCCode).uniq.join(', ')
     end
     def calculate_funder project:
-      project.funders.map(&:GrantID).uniq.join(', ')
+      project.funders.map{ |f| HUD.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
     def calculate_geocode project:
       project.geographies.map(&:Geocode).uniq.join(', ')

@@ -6,10 +6,6 @@
     - if can_manage_config?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
         = link_to 'Site Config', admin_configs_path, class: 'nav-link'
-    - if can_manage_config?
-      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_public_files_path))}
-        = link_to 'Public Files', admin_public_files_path, class: 'nav-link'
-    - if can_edit_translations?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_translation_keys_path))}
         = link_to 'Translations', admin_translation_keys_path, class: 'nav-link'
     - if can_view_imports?

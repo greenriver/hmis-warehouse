@@ -6,10 +6,16 @@
 
 module GrdaWarehouse::Youth
   class YouthFollowUp < GrdaWarehouseBase
+    include ArelHelper
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+
+    scope :between, -> (start_date:, end_date:) do
+      at = arel_table
+      where(at[:contacted_on].gteq(start_date).and(at[:contacted_on].lteq(end_date)))
+    end
 
     scope :visible_by?, -> (user) do
       # users at your agency, plus your own user in case you have no agency.

@@ -1,12 +1,9 @@
 #= require namespace
 App.init = ->
+  App.select2.init()
   $('abbr').tooltip();
   $('[data-toggle="tooltip"]').tooltip();
   $('[data-toggle="popover"]').popover();
-  # $('.select2').each () ->
-  #   $(this).closest('.form-group').addClass('select2-wrapper')
-  #   $(this).select2()
-  $('.select2').select2()
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()
