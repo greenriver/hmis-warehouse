@@ -88,3 +88,23 @@
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
   margin: 2px 2px 2px 0;
 }
+
+.select2-select-all {
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  z-index: 10;
+  background: rgba($gray-100, .9);
+  cursor: pointer;
+  color: $link-color;
+  min-height: 40px;
+  &:hover {
+    color: $link-hover-color;
+    cursor: pointer;
+  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: space(6);
+  padding-left: space(4);
+}
