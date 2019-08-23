@@ -24,7 +24,7 @@ class WarehouseReport::Health::HousingStatus
       map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
       to_h
 
-    from_sdh_notes = patients_scope.ot
+    from_sdh_notes = patients_scope.
       joins(:sdh_case_management_notes).
       where.not(sdh_case_management_notes: {housing_status: nil, date_of_contact: nil}).
       pluck('sdh_case_management_notes.date_of_contact', :client_id, 'sdh_case_management_notes.housing_status').
