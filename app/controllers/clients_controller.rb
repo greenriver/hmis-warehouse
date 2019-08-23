@@ -104,25 +104,45 @@ class ClientsController < ApplicationController
   def unmerge
     begin
       to_unmerge = client_params['unmerge'].reject(&:empty?)
+      hmis_receiver = client_params['hmis_receiver']
+      health_receiver = client_params['health_receiver']
       unmerged = []
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
       # FIXME: Transaction kills this for some reason
       # GrdaWarehouse::Hud::Base.transaction do
-        Rails.logger.info to_unmerge.inspect
-        to_unmerge.each do |id|
-          c = client_source.find(id)
-          if c.warehouse_client_source.present?
-            c.warehouse_client_source.destroy
-          end
-          destination_client = c.dup
-          destination_client.data_source = @dnd_warehouse_data_source
-          destination_client.save
-          GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-          unmerged << c.full_name
-        # end
-        Rails.logger.info '@client.invalidate_service_history'
-        @client.invalidate_service_history
+      Rails.logger.info "Unmerging #{to_unmerge.inspect}"
+      to_unmerge.each do |id|
+        c = client_source.find(id)
+        if c.warehouse_client_source.present?
+          c.warehouse_client_source.destroy
+        end
+        destination_client = c.dup
+        destination_client.data_source = @dnd_warehouse_data_source
+        destination_client.save
+
+        receive_hmis = hmis_receiver == id
+        receive_health = health_receiver == id
+        GrdaWarehouse::ClientSplitHistory.create(
+          split_from: @client.id,
+          split_into: destination_client.id,
+          receive_hmis: receive_hmis,
+          receive_health: receive_health,
+        )
+
+        GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
+
+        if receive_hmis
+          destination_client.move_dependent_hmis_items(@client.id, destination_client.id)
+        end
+        if receive_health
+          destination_client.move_dependent_health_items(@client.id, destination_client.id)
+        end
+
+        unmerged << c.full_name
       end
+      Rails.logger.info '@client.invalidate_service_history'
+      @client.invalidate_service_history
+      # end
 
       Importing::RunAddServiceHistoryJob.perform_later
       redirect_to({action: :edit}, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
@@ -197,6 +217,8 @@ class ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
+        :hmis_receiver,
+        :health_receiver,
         merge: [],
         unmerge: []
       )
