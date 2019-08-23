@@ -119,14 +119,25 @@ class ClientsController < ApplicationController
         destination_client = c.dup
         destination_client.data_source = @dnd_warehouse_data_source
         destination_client.save
-        GrdaWarehouse::ClientSplitHistory.create(split_from: @client.id, split_into: destination_client.id)
+
+        receive_hmis = hmis_receiver == id
+        receive_health = health_receiver == id
+        GrdaWarehouse::ClientSplitHistory.create(
+          split_from: @client.id,
+          split_into: destination_client.id,
+          receive_hmis: receive_hmis,
+          receive_health: receive_health,
+        )
+
         GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-        if hmis_receiver == id
+
+        if receive_hmis
           destination_client.move_dependent_hmis_items(@client.id, destination_client.id)
         end
-        if health_receiver == id
+        if receive_health
           destination_client.move_dependent_health_items(@client.id, destination_client.id)
         end
+
         unmerged << c.full_name
       end
       Rails.logger.info '@client.invalidate_service_history'
