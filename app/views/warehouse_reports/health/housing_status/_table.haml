@@ -1,4 +1,5 @@
-- if @report.present?
+- rows = @report.report_data
+- if rows.present?
   %table.table
     %thead
       %tr
@@ -9,7 +10,7 @@
         %th Temporary
         %th Permanent
     %tbody
-      - @report.each do |date, body|
+      - rows.each do |date, body|
         %tr
           %td= date
           %td= body[:street]&.count
