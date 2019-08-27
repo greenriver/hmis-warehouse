@@ -25,15 +25,25 @@ module GrdaWarehouse
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
 
-    # viewable if you have access to all of the projects
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      return none unless user
+      if user.can_view_all_reports?
         current_scope
+      elsif user.can_view_assigned_reports?
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
       else
-        joins(:projects).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+        none
       end
     end
-    scope :editable_by, -> (user) { viewable_by user }
+    scope :editable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.can_edit_project_groups?
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      else
+        none
+      end
+    end
 
     def self.available_projects
       GrdaWarehouse::Hud::Project.joins(:organization).

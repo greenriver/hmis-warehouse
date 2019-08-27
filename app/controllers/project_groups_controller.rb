@@ -9,16 +9,15 @@ class ProjectGroupsController < ApplicationController
   before_action :set_project_group, only: [:edit, :update]
 
   def index
-    @project_groups = GrdaWarehouse::ProjectGroup.
-      includes(:projects).order(name: :asc)
+    @project_groups = project_group_scope
   end
 
   def new
-    @project_group = GrdaWarehouse::ProjectGroup.new
+    @project_group = project_group_source.new
   end
 
   def create
-      @project_group = GrdaWarehouse::ProjectGroup.new
+      @project_group = project_group_source.new
     begin
       @project_group.assign_attributes(name: group_params[:name])
       @project_group.project_ids = group_params[:projects]
@@ -61,6 +60,16 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_project_group
-    @project_group = GrdaWarehouse::ProjectGroup.find(params[:id].to_i)
+    @project_group = project_group_source.find(params[:id].to_i)
+  end
+
+  def project_group_source
+    GrdaWarehouse::ProjectGroup
+  end
+
+  def project_group_scope
+    project_group_source.
+      editable_by(current_user).
+      includes(:projects).order(name: :asc)
   end
 end
