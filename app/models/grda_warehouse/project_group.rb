@@ -20,6 +20,8 @@ module GrdaWarehouse
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
 
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
 

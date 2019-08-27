@@ -50,6 +50,7 @@
           = can_view_all_entities_message
     .c-columns{class: ('static' if can_view_all_entities)}
       = render 'users/entity_column', entity: reports_viewability(base), f: f
+      = render 'users/entity_column', entity: project_groups_viewability(base), f: f
       = render 'users/entity_column', entity: cohort_viewability(base), f: f
       - if can_view_all_entities
         .c-columns__veil

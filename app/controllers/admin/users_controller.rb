@@ -141,7 +141,8 @@ module Admin
         organizations: [],
         projects: [],
         reports: [],
-        cohorts: []
+        cohorts: [],
+        project_groups: [],
       )
     end
 

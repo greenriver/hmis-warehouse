@@ -101,6 +101,23 @@ module ViewableEntities
     end
     helper_method :reports_viewability
 
+    private def project_groups_viewability(base)
+      model = GrdaWarehouse::ProjectGroup.viewable_by(current_user)
+      collection = model.order(:name).pluck(:name, :id)
+      # TODO
+      {
+        selected: @user.project_groups.map(&:id),
+        collection: collection,
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectGroups',
+          name:  "#{base}[project_groups][]",
+        }
+      }
+    end
+    helper_method :project_groups_viewability
+
     private def cohort_viewability(base)
       model = GrdaWarehouse::Cohort.active.viewable_by(current_user)
       {
