@@ -4,17 +4,23 @@
     %thead
       %tr
         %th Date
-        %th Street
-        %th Shelter
-        %th Doubled Up
-        %th Temporary
-        %th Permanent
+        %th.text-center Street
+        %th.text-center Shelter
+        %th.text-center Doubled Up
+        %th.text-center Temporary
+        %th.text-center Permanent
     %tbody
       - rows.each do |date, body|
+        - patient_count =
         %tr
           %td= date
-          %td= body[:street]&.count
-          %td= body[:shelter]&.count
-          %td= body[:doubling_up]&.count
-          %td= body[:temporary]&.count
-          %td= body[:permanent]&.count
+          %td.text-center
+            #{body[:street][:active_ids].count} of #{body[:street][:patient_count]} (#{body[:street][:percent]}%)
+          %td.text-center
+            #{body[:shelter][:active_ids].count} of #{body[:shelter][:patient_count]} (#{body[:shelter][:percent]}%)
+          %td.text-center
+            #{body[:doubling_up][:active_ids].count} of #{body[:doubling_up][:patient_count]} (#{body[:doubling_up][:percent]}%)
+          %td.text-center
+            #{body[:temporary][:active_ids].count} of #{body[:temporary][:patient_count]} (#{body[:temporary][:percent]}%)
+          %td.text-center
+            #{body[:permanent][:active_ids].count} of #{body[:permanent][:patient_count]} (#{body[:permanent][:percent]}%)
