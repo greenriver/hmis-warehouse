@@ -81,8 +81,8 @@ module ViewableEntities
     end
     helper_method :coc_viewability
 
-    private def reports_viewability(base)
-      model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.viewable_by(current_user)
+    private def reports_assignability(base)
+      model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.assignable_by(current_user)
       collection = model.order( :report_group, :name ).map do |rd|
         [ "#{rd.report_group}: #{rd.name}", rd.id ]
       end
@@ -99,10 +99,26 @@ module ViewableEntities
         },
       }
     end
-    helper_method :reports_viewability
+    helper_method :reports_assignability
 
-    private def cohort_viewability(base)
-      model = GrdaWarehouse::Cohort.active.viewable_by(current_user)
+    private def project_groups_editability(base)
+      model = GrdaWarehouse::ProjectGroup.editable_by(current_user)
+      collection = model.order(:name).pluck(:name, :id)
+      {
+        selected: @user.project_groups.map(&:id),
+        collection: collection,
+        placeholder: 'Project Group',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jProjectGroups',
+          name:  "#{base}[project_groups][]",
+        }
+      }
+    end
+    helper_method :project_groups_editability
+
+    private def cohort_editability(base)
+      model = GrdaWarehouse::Cohort.active.editable_by(current_user)
       {
         selected:    @user.cohorts.map(&:id),
         collection:  model.order(:name),
@@ -114,6 +130,6 @@ module ViewableEntities
         },
       }
     end
-    helper_method :cohort_viewability
+    helper_method :cohort_editability
   end
 end

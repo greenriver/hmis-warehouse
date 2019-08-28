@@ -24,6 +24,15 @@ module GrdaWarehouse::WarehouseReports
       end
     end
 
+    scope :assignable_by, -> (user) do
+      return none unless user
+      if user.can_view_all_reports?
+        current_scope
+      else
+        none
+      end
+    end
+
     scope :ordered, -> do
       order(weight: :asc, name: :asc)
     end

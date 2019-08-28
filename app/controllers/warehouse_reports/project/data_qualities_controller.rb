@@ -118,7 +118,7 @@ module WarehouseReports::Project
     end
 
     def project_group_scope
-      GrdaWarehouse::ProjectGroup.all
+      GrdaWarehouse::ProjectGroup.viewable_by current_user
     end
 
     # The version of the report we are currently generating
