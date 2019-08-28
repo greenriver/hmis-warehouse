@@ -27,26 +27,19 @@ module GrdaWarehouse
 
     scope :viewable_by, -> (user) do
       return none unless user
-      if user.can_view_all_reports?
-        current_scope
-      elsif user.can_view_assigned_reports?
-        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
-      else
-        none
-      end
+      joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
     end
     scope :editable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      if user.can_edit_project_groups?
         current_scope
-      elsif user.can_edit_project_groups?
-        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
       else
-        none
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
       end
     end
 
-    def self.available_projects
-      GrdaWarehouse::Hud::Project.joins(:organization).
+    def self.available_projects user
+      GrdaWarehouse::Hud::Project.viewable_by(user).
+        joins(:organization).
         pluck(:ProjectName, o_t[:OrganizationName].as('organization_name').to_sql, :id).
         map do |project_name, organization_name, id|
           [

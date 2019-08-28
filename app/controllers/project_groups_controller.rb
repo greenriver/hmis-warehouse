@@ -51,11 +51,11 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
-  
+
   end
 
   def update_permissions(project_group)
-    user_ids = user_params[:users].reject(&:empty?).map(&:to_i)
+    user_ids = user_params[:users].reject(&:empty?).map(&:to_i) + [current_user.id]
     # add new user permissions
     added_users = user_ids - @project_group.user_viewable_entities.pluck(:user_id)
     added_users.each do |id|
