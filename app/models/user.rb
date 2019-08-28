@@ -189,6 +189,10 @@ class User < ActiveRecord::Base
     viewable GrdaWarehouse::Cohort
   end
 
+  def project_groups
+    viewable GrdaWarehouse::ProjectGroup
+  end
+
   def associated_by associations:
     return [] unless associations.present?
     associations.flat_map do |association|
@@ -241,7 +245,7 @@ class User < ActiveRecord::Base
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::UserViewableEntity.transaction do
-      %i( data_sources organizations projects reports cohorts).each do |type|
+      %i( data_sources organizations projects reports cohorts project_groups ).each do |type|
         ids = ( viewables[type] || [] ).map(&:to_i)
         scope = viewable_join self.send(type)
         scope.where.not( entity_id: ids ).destroy_all
