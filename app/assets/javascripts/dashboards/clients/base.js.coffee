@@ -30,7 +30,8 @@ class App.Dashboards.Clients.Base
     return color
 
   _follow_link: (d, e) =>
-    month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
-    url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
-    url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
-    window.open url
+    if @support_url
+      month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
+      url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
+      url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
+      window.open url
