@@ -733,7 +733,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @describe_time_to_enter ||= begin
         issues = []
         time_to_enter_by_project_id.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = entering_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
@@ -747,7 +747,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def time_to_enter_by_project_id
-      @time_to_enter_by_project_id ||= enrolled_clients.group(:project_id).
+      @time_to_enter_by_project_id ||= entering_clients.group(:project_id).
         sum(:days_to_add_entry_date)
     end
 
@@ -781,7 +781,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         goal = [timeliness_goal, timeliness_goal, timeliness_goal]
         report_projects.each do |project|
           count = time_to_enter_by_project_id[project.project_id] || 0
-          denominator = enrolled_clients.where(project_id: project.project_id).count
+          denominator = entering_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
           data[project.id] = [0, average_timeliness, 0]
         end
