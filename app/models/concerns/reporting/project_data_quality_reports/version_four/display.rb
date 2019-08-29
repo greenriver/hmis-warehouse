@@ -259,7 +259,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                 value: report_project.unit_inventory,
               }
             end
-            if report_project.coc_code.blank? || report_project.coc_code.length != 6
+            if report_project.coc_code.blank? || malformed_coc_code(report_project.coc_code)
               issues << {
                 project_id: report_project.project_id,
                 project_name: report_project.project_name,
@@ -328,6 +328,13 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         issues
       end
       return @project_descriptor
+    end
+
+    def malformed_coc_code(coc_code_string)
+      coc_code_string.split(',').each do |coc_code|
+        return true if coc_code.strip.length != 6
+      end
+      return false
     end
 
     # return where the completeness value is < threshold
