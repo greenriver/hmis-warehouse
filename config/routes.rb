@@ -349,6 +349,7 @@ Rails.application.routes.draw do
       resources :eligibility
       resources :eligibility_results, only: [:show]
       resources :enrollments
+      resources :housing_status
     end
   end
 

@@ -118,8 +118,6 @@ module GrdaWarehouse::Hud
       class_name: GrdaWarehouse::ProjectGroup.name,
       join_table: :project_project_groups
 
-    # Service History is deprecated in favor of Service History Enrollments
-    has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
     has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
 
     has_many :project_cocs, **hud_many(ProjectCoc), inverse_of: :project

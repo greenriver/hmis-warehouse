@@ -20,21 +20,29 @@ module GrdaWarehouse
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
 
+    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
 
-    # viewable if you have access to all of the projects
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      if user.can_edit_project_groups?
         current_scope
       else
-        joins(:projects).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
       end
     end
-    scope :editable_by, -> (user) { viewable_by user }
+    scope :editable_by, -> (user) do
+      if user.can_edit_project_groups?
+        current_scope
+      else
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      end
+    end
 
-    def self.available_projects
-      GrdaWarehouse::Hud::Project.joins(:organization).
+    def self.available_projects user
+      GrdaWarehouse::Hud::Project.viewable_by(user).
+        joins(:organization).
         pluck(:ProjectName, o_t[:OrganizationName].as('organization_name').to_sql, :id).
         map do |project_name, organization_name, id|
           [

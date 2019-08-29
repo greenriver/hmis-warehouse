@@ -7,10 +7,19 @@
 class Report < ActiveRecord::Base
   require 'csv'
   include Rails.application.routes.url_helpers
+
+  self.table_name = :reports
+
   belongs_to :report_results_summary
   has_many :report_results
 
-  self.table_name = 'reports'
+  scope :active, -> do
+    where enabled: true
+  end
+
+  scope :inactive, -> do
+    where endabled: false
+  end
 
   def model_name
     ActiveModel::Name.new self, nil, 'report'
