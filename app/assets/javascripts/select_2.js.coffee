@@ -26,7 +26,7 @@ App.select2.initToggleSelectAll = ($select) =>
   $select.on 'select2:unselect', (event)=>
     updateSelectAllState()
   # initial state
-  updateSelectAllState()
+  # updateSelectAllState()
 
   toggleSelectAll = (updateOptions=true, options={}) =>
     $selectAllLink = $formGroup.find('.select2-select-all')
