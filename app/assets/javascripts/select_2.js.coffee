@@ -22,9 +22,11 @@ App.select2.initToggleSelectAll = ($select) =>
   $select.closest('.form-group').on 'click', '.j-select2-select-all', (event)=>
     toggleSelectAll()
   $select.on 'select2:select', (event)=>
-    updateSelectAllState(event)
+    updateSelectAllState()
   $select.on 'select2:unselect', (event)=>
-    updateSelectAllState(event)
+    updateSelectAllState()
+  # initial state
+  updateSelectAllState()
 
   toggleSelectAll = (updateOptions=true, options={}) =>
     $selectAllLink = $formGroup.find('.select2-select-all')
@@ -49,7 +51,7 @@ App.select2.initToggleSelectAll = ($select) =>
     $select.select2('close')
 
   # If we made any changes manually, and there are any selected, set the link to "select none"
-  updateSelectAllState = (event) =>
+  updateSelectAllState = () =>
     $selectAllLink = $formGroup.find('.select2-select-all')
     allSelected = $selectAllLink.data('selected')
     $selectAllLink.data('selected', !allSelected)

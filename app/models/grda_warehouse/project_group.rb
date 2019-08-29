@@ -26,8 +26,11 @@ module GrdaWarehouse
     has_many :organization_contacts, through: :projects
 
     scope :viewable_by, -> (user) do
-      return none unless user
-      joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      if user.can_edit_project_groups?
+        current_scope
+      else
+        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      end
     end
     scope :editable_by, -> (user) do
       if user.can_edit_project_groups?
