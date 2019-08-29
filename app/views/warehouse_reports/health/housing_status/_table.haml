@@ -1,4 +1,5 @@
 - rows = @report.report_data
+- dates = rows.keys
 - if rows.present?
   %table.table
     %thead
@@ -10,8 +11,8 @@
         %th.text-center Temporary
         %th.text-center Permanent
     %tbody
-      - rows.each do |date, body|
-        - patient_count =
+      - dates.sort.each do |date|
+        - body = rows[date]
         %tr
           %td= date
           %td.text-center
