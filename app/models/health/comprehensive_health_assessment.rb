@@ -63,6 +63,7 @@ module Health
       'activity did not occur during entire period',
       'did not occur',
       'could not (would not) respond',
+      'did not occur—no urine output from bladder in last 3 days',
     ]
 
     BLANK_RESPONSES = [
