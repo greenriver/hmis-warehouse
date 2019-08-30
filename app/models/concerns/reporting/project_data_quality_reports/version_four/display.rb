@@ -332,7 +332,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
     def malformed_coc_code(coc_code_string)
       coc_code_string.split(',').each do |coc_code|
-        return true if coc_code.strip.length != 6
+        return true if coc_code.strip.match(/^\w\w-\d\d\d$/).blank?
       end
       return false
     end
