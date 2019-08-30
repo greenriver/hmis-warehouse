@@ -57,7 +57,7 @@ class WarehouseReport::Health::HousingStatus
     merge_data(from_epic, results)
     merge_data(from_touchpoints, results)
 
-    results.sort_by{|date,_| date}.map do |date, status_counts|
+    results.map do |date, status_counts|
       status_counts.each do |status, counts|
         counts[:percent] = (counts[:active_ids].count / patient_count).round rescue 0
       end
