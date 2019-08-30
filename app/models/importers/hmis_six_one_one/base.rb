@@ -455,13 +455,18 @@ module Importers::HMISSixOneOne
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
+    # The HMIS spec limits the field to 50 characters
+    EXPORT_ID_FIELD_WIDTH = 50
+
     # make sure we have an ExportID in every file that
     # reflects the start date of the export
     # NOTE: The white-listing process seems to add extra commas to the CSV
     # These can break the useful export_id, so we need to remove any
     # from the existing row before tacking on the new value
     def set_useful_export_id(row:, export_id:)
-      row['ExportID'] = "#{row['ExportID'].chomp(', ')}_#{export_id}"
+      # Make sure there i enough room to append the underscore and suffix
+      truncated = row['ExportID'].chomp(', ')[0, EXPORT_ID_FIELD_WIDTH - export_id.length - 1]
+      row['ExportID'] = "#{truncated}_#{export_id}"
       row
     end
 
