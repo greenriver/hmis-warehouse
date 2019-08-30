@@ -24,7 +24,10 @@
 #     hud_last_permanent_zip: 422,
 #     hud_last_permanent_zip_quality: 423,
 #   },
-#   touchpoint_fields: {assessment_type: 'A-1. At what point is this data being collected?'},
+#   touchpoint_fields: {
+#     assessment_type: 'A-1. At what point is this data being collected?',
+#     housing_status: 'A-6. Where did you sleep last night?',
+#   },
 # )
 
 module EtoApi::Tasks

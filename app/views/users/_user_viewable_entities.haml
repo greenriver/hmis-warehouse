@@ -39,9 +39,9 @@
       = render 'users/entity_column', entity: organization_viewability(base), f: f
       = render 'users/entity_column', entity: project_viewability(base), associations: [:data_source, :organization, :coc_code], f: f
       = render 'users/entity_column', entity: coc_viewability(base), f: f
-
       - if can_view_all_entities
         .c-columns__veil
+
   .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
     - if can_view_all_entities
       .c-columns__message
@@ -49,8 +49,9 @@
           %i.icon-info.mr-2
           = can_view_all_entities_message
     .c-columns{class: ('static' if can_view_all_entities)}
-      = render 'users/entity_column', entity: reports_viewability(base), f: f
-      = render 'users/entity_column', entity: cohort_viewability(base), f: f
+      = render 'users/entity_column', entity: reports_assignability(base), f: f
+      = render 'users/entity_column', entity: project_groups_editability(base), f: f
+      = render 'users/entity_column', entity: cohort_editability(base), f: f
       - if can_view_all_entities
         .c-columns__veil
 

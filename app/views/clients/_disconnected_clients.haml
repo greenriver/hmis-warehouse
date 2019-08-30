@@ -1,0 +1,52 @@
+%h3.mt-4 Disconnected Clients
+%p
+  Other clients that this client was either split from, or split into:
+.row
+  .col-sm-6
+    %h4 Client Split From
+    %table.table
+      %thead
+        %th Name
+        %th DOB
+        %th SSN
+        %th Split
+        %th Split By
+      - split_froms = false
+      - @client.splits_from.each do |split|
+        - if c = split.source_client
+          - split_froms = true
+          %tr
+            %td= link_to c.full_name, edit_client_path(c)
+            %td= c.DOB
+            %td= ssn c.SSN
+            %td= @client.warehouse_client_destination.last.reviewed_at
+            %td
+              - if (user = User.find(@client.warehouse_client_destination.last.reviewd_by.to_i))
+                = user.name
+      - if ! split_froms
+        %tr
+          %td None.
+  .col-sm-6
+    %h4 Client Split To
+    %table.table
+      %thead
+        %th Name
+        %th DOB
+        %th SSN
+        %th Split
+        %th Split By
+      - split_tos = false
+      - @client.splits_to.each do |split|
+        - if c = split.destination_client
+          - split_tos = true
+          %tr
+            %td= link_to c.full_name, edit_client_path(c)
+            %td= c.DOB
+            %td= ssn c.SSN
+            %td= c.warehouse_client_destination.first.reviewed_at
+            %td
+              - if (user = User.find(c.warehouse_client_destination.first.reviewd_by.to_i))
+                = user.name
+      - if ! split_tos
+        %tr
+          %td None.

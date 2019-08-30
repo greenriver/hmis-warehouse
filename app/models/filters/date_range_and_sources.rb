@@ -32,8 +32,8 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
-      return [] unless user.can_edit_project_groups?
       GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
           where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
           pluck(p_t[:id].as('project_id').to_sql)
     end

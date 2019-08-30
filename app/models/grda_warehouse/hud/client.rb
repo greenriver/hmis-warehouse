@@ -29,6 +29,9 @@ module GrdaWarehouse::Hud
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
+    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
+    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
+
     self.table_name = 'Client'
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
@@ -1928,6 +1931,11 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
+      move_dependent_hmis_items previous_id, new_id
+      move_dependent_health_items previous_id, new_id
+    end
+
+    def move_dependent_hmis_items previous_id, new_id
       # move any client notes
       GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
         update_all(client_id: new_id)
@@ -1980,6 +1988,16 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
         update_all(client_id: new_id)
       GrdaWarehouse::Youth::YouthFollowUp.where(client_id: previous_id).
+        update_all(client_id: new_id)
+    end
+
+    def move_dependent_health_items previous_id, new_id
+      # move any patients
+      Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
     end
 

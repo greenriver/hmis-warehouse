@@ -42,7 +42,8 @@ class App.Dashboards.Clients.EntryReEntry extends App.Dashboards.Clients.Base
       url = @entry_support_url
     else if d.name == 'Returning'
       url = @re_entry_support_url
-    month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
-    url = url.replace('START_DATE', month.format('MMM DD, YYYY'))
-    url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
-    window.open url
+    if url
+      month = moment(@chart.categories()[d.index] + ' 1', 'MMM YYYY D')
+      url = url.replace('START_DATE', month.format('MMM DD, YYYY'))
+      url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
+      window.open url

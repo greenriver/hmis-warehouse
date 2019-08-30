@@ -4,7 +4,7 @@
   }
 %h3 Data Sources
 %p
-  Data for this record comes from the following data sources. Use this forms to split clients into their own separate records or merge in data from a different client record.
+  Data for this record comes from the following data sources. Use this form to split clients into their own separate records or merge in data from a different client record.
 .row
   .col-sm-12
     - if @client.source_clients.count > 1
@@ -24,6 +24,9 @@
         %table.table
           %thead
             %th
+            %th.text-center HMIS Receiver
+            - if GrdaWarehouse::Config.get(:healthcare_available)
+              %th.text-center Health Receiver
             %th Data Source
             %th Personal ID
             %th Name
@@ -34,7 +37,12 @@
             %th
           - source_clients.each do |c|
             %tr
-              %td= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+              %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+              %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
+              - if GrdaWarehouse::Config.get(:healthcare_available)
+                %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                  = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
               %td= c.data_source.short_name
               %td= c.uuid
               %td= c.full_name
@@ -50,4 +58,17 @@
                     Match Details
 
         .form-actions
-        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}"
+        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
+
+= content_for :page_js do
+  :javascript
+    $('.jSplit').on('change', function(e){
+      var hmis_receiver = $('#grda_warehouse_hud_client_hmis_receiver_' + e.target.value)
+      var health_receiver = $('#grda_warehouse_hud_client_health_receiver_' + e.target.value)
+      hmis_receiver.prop('disabled', !e.target.checked)
+      health_receiver.prop('disabled', !e.target.checked)
+      if(!e.target.checked){
+        hmis_receiver.prop('checked', false)
+        health_receiver.prop('checked', false)
+      }
+    });
