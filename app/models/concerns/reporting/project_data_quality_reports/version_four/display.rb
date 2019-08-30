@@ -509,10 +509,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     def timeliness
       @timeliness ||= begin
         issues = []
-        time_to_enter_entry = enrolled_clients.group(:project_id).
+        time_to_enter_entry = entering_clients.group(:project_id).
           sum(:days_to_add_entry_date)
         time_to_enter_entry.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = entering_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
             project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
@@ -525,10 +525,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           end
         end
 
-        time_to_enter_exit = enrolled_clients.group(:project_id).
+        time_to_enter_exit = exiting_clients.group(:project_id).
           sum(:days_to_add_exit_date)
         time_to_enter_exit.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = exiting_clients.where(project_id: id).count
           next if denominator.zero?
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
