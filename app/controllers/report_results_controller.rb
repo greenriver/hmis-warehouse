@@ -300,7 +300,6 @@ class ReportResultsController < ApplicationController
           project_type:[],
           project_group_ids: []
         ],
-        results: ReportGenerators::Ahar::Fy2016::Base.questions,
       )
 
     end
