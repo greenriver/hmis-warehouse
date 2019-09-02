@@ -114,58 +114,69 @@ module HUD
     when '3.12.1' then :destination
     when '3.15.1' then :relationship_to_hoh
     when '4.1.1' then :housing_status
-    when '4.4.A' then :reason_not_insured
+    when '4.04.A' then :reason_not_insured
     when '4.9.D' then :p_a_t_h_how_confirmed
     when '4.9.E' then :p_a_t_h_s_m_i_information
     when '4.10.2' then :disability_response
     when '4.11.A' then :when_d_v_occurred
     when '4.12.2' then :contact_location
-    when '4.14.A' then :p_a_t_h_services
+    when '4.14.A', 'P1.2' then :p_a_t_h_services
     when '4.14.B' then :r_h_y_services
-    when '4.14.C' then :h_o_p_w_a_services
-    when '4.14.D' then :s_s_v_f_services
-    when '4.14.D3' then :s_s_v_f_sub_type3
-    when '4.14.D4' then :s_s_v_f_sub_type4
-    when '4.14.D5' then :s_s_v_f_sub_type5
-    when '4.15.A' then :h_o_p_w_a_financial_assistance
-    when '4.14E' then :bed_night
+    when '4.14.C', 'W1.2' then :h_o_p_w_a_services
+    when '4.14.D', 'V2.2' then :s_s_v_f_services
+    when '4.14.D3', 'V2.A' then :s_s_v_f_sub_type3
+    when '4.14.D4', 'V2.4' then :s_s_v_f_sub_type4
+    when '4.14.D5', 'V2.5' then :s_s_v_f_sub_type5
+    when '4.15.A', 'V2.3' then :h_o_p_w_a_financial_assistance
+    when '4.14' then :bed_night
     when '4.15.B' then :s_s_v_f_financial_assistance
-    when '4.16.A' then :p_a_t_h_referral
-    when '4.16.B' then :r_h_y_referral
+    when '4.16.A', 'P2.2' then :p_a_t_h_referral
+    when '4.16.B', 'R14.2' then :r_h_y_referral
     when '4.16.A1' then :p_a_t_h_referral_outcome
     when '4.18.1' then :housing_assessment_disposition
-    when '4.19.1' then :housing_assessment_at_exit
-    when '4.19.A' then :subsidy_information
-    when '4.20.A' then :reason_not_enrolled
-    when '4.22.A' then :reason_no_services
-    when '4.23.1' then :sexual_orientation
-    when '4.24.1' then :last_grade_completed
-    when '4.25.1' then :school_status
-    when '4.26.A' then :employment_type
-    when '4.26.B' then :not_employed_reason
-    when '4.27.1' then :health_status
-    when '4.31.A' then :r_h_y_numberof_years
+    when '4.19.1', 'W5.1' then :housing_assessment_at_exit
+    when '4.19.4' then :assessment_level
+    when '4.19.7' then :prioritization_status
+    when '4.19.A', 'W5.A' then :subsidy_information
+    when '4.20.A', 'P3.A' then :reason_not_enrolled
+    when '4.20.D' then :referral_result
+    when '4.20.2' then :event
+    when '4.22.A', 'R2.A' then :reason_no_services
+    when '4.23.1', 'R3.1' then :sexual_orientation
+    when '4.24.1', 'R4.1' then :last_grade_completed
+    when '4.25.1', 'R5.1' then :school_status
+    when '4.26.A', 'R6.A' then :employment_type
+    when '4.26.B', 'R6.B' then :not_employed_reason
+    when '4.27.1', 'R7.1' then :health_status
+    when '4.31.A', 'R11.A' then :r_h_y_numberof_years
     when '4.33.A' then :incarcerated_parent_status
-    when '4.34.1' then :referral_source
-    when '4.35.A' then :count_exchange_for_sex
+    when '4.34.1', 'R1.1' then :referral_source
+    when '4.35.A', 'R15.B' then :count_exchange_for_sex
     when '4.36.1' then :exit_action
-    when '4.37.1' then :project_completion_status
+    when '4.37.1', 'R17.1' then :project_completion_status
     when '4.37.A' then :early_exit_reason
-    when '4.37.B' then :expelled_reason
-    when '4.39' then :no_assistance_reason
-    when '4.41.11' then :military_branch
-    when '4.41.12' then :discharge_status
-    when '4.42.1' then :percent_a_m_i
-    when '4.43.5' then :address_data_quality
-    when '4.47.B' then :t_cell_source_viral_load_source
-    when '4.47.3' then :viral_load_available
-    when '4.48.1' then :no_points_yes
-    when '4.48.2' then :time_to_housing_loss
-    when '4.48.4' then :annual_percent_a_m_i
-    when '4.48.7' then :eviction_history
-    when '4.48.9' then :literal_homeless_history
+    when '4.37.B', 'R17.A' then :expelled_reason
+    when 'R19.A' then :worker_response
+    when 'R20.2' then :aftercare_provided
+    when '4.39', 'W3' then :no_assistance_reason
+    when '4.41.11', 'V1.11' then :military_branch
+    when '4.41.12', 'V1.12' then :discharge_status
+    when '4.42.1', 'V4.1' then :percent_a_m_i
+    when '4.43.5', 'V5.5' then :address_data_quality
+    when 'V6.1' then :vamcs_station_number
+    when '4.47.B', 'W4.B' then :t_cell_source_viral_load_source
+    when '4.47.3', 'W4.3' then :viral_load_available
+    when '4.48.1', 'V7.1' then :no_points_yes
+    when '4.48.2', 'V7.2' then :time_to_housing_loss
+    when '4.48.4', 'V7.4' then :annual_percent_a_m_i
+    when '4.48.7', 'V7.7' then :eviction_history
+    when '4.48.9', 'V7.9' then :literal_homeless_history
+    when 'V8.1' then :voucher_tracking
+    when 'V9.1' then :cm_exit_reason
     when '4.49.1' then :crisis_services_use
-    when '5.3.1' then :data_collection_stage
+    when '5.03.1' then :data_collection_stage
+    when 'P1.2' then :path_services
+    when 'P2.2' then :path_referral
     when 'ad_hoc_yes_no_1' then :ad_hoc_yes_no_1
     else
       raise "unknown controlled vocabulary list: #{number}"
@@ -904,7 +915,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.4.A
+  # 4.04.A
   def reason_not_insured(id, reverse=false)
     map = {
       1 => 'Applied; decision pending',
@@ -987,7 +998,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.A
+  # 4.14.A / P1.2
   def p_a_t_h_services(id, reverse=false)
     map = {
       1 => 'Re-engagement',
@@ -1008,40 +1019,44 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.B
+  # 4.14.B / R14.2
   def r_h_y_services(id, reverse=false)
     map = {
-      1 => 'Basic support services',
+      # 1 => 'Basic support services',
       2 => 'Community service/service learning (CSL)',
-      3 => 'Counseling/therapy',
-      4 => 'Dental care',
+      # 3 => 'Counseling/therapy',
+      # 4 => 'Dental care',
       5 => 'Education',
       6 => 'Employment and training services',
       7 => 'Criminal justice /legal services',
       8 => 'Life skills training',
-      9 => 'Parenting education for parent of youth',
+      # 9 => 'Parenting education for parent of youth',
       10 => 'Parenting education for youth with children',
-      11 => 'Peer (youth) counseling',
+      # 11 => 'Peer (youth) counseling',
       12 => 'Post-natal care',
       13 => 'Pre-natal care',
       14 => 'Health/medical care',
-      15 => 'Psychological or psychiatric care',
-      16 => 'Recreational activities',
+      # 15 => 'Psychological or psychiatric care',
+      # 16 => 'Recreational activities',
       17 => 'Substance abuse assessment and/or treatment',
       18 => 'Substance abuse prevention',
-      19 => 'Support group',
-      20 => 'Preventative – overnight interim, respite',
-      21 => 'Preventative – formal placement in an alternative setting outside of BCP',
-      22 => 'Preventative – entry into BCP after preventative services',
-      23 => 'Street outreach – health and hygiene products distributed',
-      24 => 'Street outreach – food and drink items',
-      25 => 'Street outreach – services information/brochures',
+      # 19 => 'Support group',
+      # 20 => 'Preventative – overnight interim, respite',
+      # 21 => 'Preventative – formal placement in an alternative setting outside of BCP',
+      # 22 => 'Preventative – entry into BCP after preventative services',
+      # 23 => 'Street outreach – health and hygiene products distributed',
+      # 24 => 'Street outreach – food and drink items',
+      # 25 => 'Street outreach – services information/brochures',
+      26 => 'Home-based Services',
+      27 => 'Post-natal newborn care (wellness exams; immunizations)',
+      28 => 'STD Testing',
+      29 => 'Street-based Services',
     }
 
     _translate map, id, reverse
   end
 
-  # 4.14.C
+  # 4.14.C, W1.2
   def h_o_p_w_a_services(id, reverse=false)
     map = {
       1 => 'Adult day care and personal assistance',
@@ -1063,7 +1078,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D
+  # 4.14.D / V2.2
   def s_s_v_f_services(id, reverse=false)
     map = {
       1 => 'Outreach services',
@@ -1077,7 +1092,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D3
+  # 4.14.D3 / V2.A
   def s_s_v_f_sub_type3(id, reverse=false)
     map = {
       1 => 'VA vocational and rehabilitation counseling',
@@ -1089,7 +1104,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D4
+  # 4.14.D4 / V2.4
   def s_s_v_f_sub_type4(id, reverse=false)
     map = {
       1 => 'Health care services',
@@ -1110,7 +1125,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14.D5
+  # 4.14.D5 / V2.5
   def s_s_v_f_sub_type5(id, reverse=false)
     map = {
       1 => 'Personal financial planning services',
@@ -1129,7 +1144,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.15.A
+  # 4.15.A / W2.3
   def h_o_p_w_a_financial_assistance(id, reverse=false)
     map = {
       1 => 'Rental assistance',
@@ -1142,7 +1157,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.14E
+  # 4.14
   def bed_night(id, reverse=false)
     map = {
       200 => 'BedNight',
@@ -1151,7 +1166,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.15.B
+  # 4.15.B / V3.3
   def s_s_v_f_financial_assistance(id, reverse=false)
     map = {
       1 => 'Rental assistance',
@@ -1165,12 +1180,13 @@ module HUD
       11 => 'General housing stability assistance - emergency supplies',
       12 => 'General housing stability assistance - other',
       14 => 'Emergency housing assistance',
+      15 => 'Extended Shallow Subsidy – Rental Assistance',
     }
 
     _translate map, id, reverse
   end
 
-  # 4.16.A
+  # 4.16.A / P2.2
   def p_a_t_h_referral(id, reverse=false)
     map = {
       1 => 'Community mental health',
@@ -1214,7 +1230,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.16.A1
+  # 4.16.A1 / P2.A
   def p_a_t_h_referral_outcome(id, reverse=false)
     map = {
       1 => 'Attained',
@@ -1247,7 +1263,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.19.1
+  # 4.19.1 / W5.1
   def housing_assessment_at_exit(id, reverse=false)
     map = {
       1 => 'Able to maintain the housing they had at project entry',
@@ -1266,7 +1282,28 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.19.A
+
+  # 4.19.4
+  def assessment_level(id, reverse=false)
+    map = {
+      1 => 'Crisis Needs Assessment',
+      2 => 'Housing Needs Assessment',
+    }
+
+    _translate map, id, reverse
+  end
+
+   # 4.19.7
+  def prioritization_status(id, reverse=false)
+    map = {
+      1 => 'Placed on prioritization list',
+      2 => 'Not placed on prioritization list',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.19.A / W5.A
   def subsidy_information(id, reverse=false)
     map = {
       1 => 'Without a subsidy 1',
@@ -1280,7 +1317,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.20.A
+  # 4.20.A / P3.A
   def reason_not_enrolled(id, reverse=false)
     map = {
       1 => 'Client was found ineligible for PATH',
@@ -1290,7 +1327,41 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.22.A
+  # 4.20.2
+  def event(id, reverse=false)
+    map = {
+      1 => 'Referral to Prevention Assistance project',
+      2 => 'Problem Solving/Diversion/Rapid Resolution intervention or service',
+      3 => 'Referral to scheduled Coordinated Entry Crisis Needs Assessment',
+      4 => 'Referral to scheduled Coordinated Entry Housing Needs Assessment',
+       5 => 'Referral to Post-placement/ follow-up case management',
+      6 => 'Referral to Street Outreach project or services',
+      7 => 'Referral to Housing Navigation project or services',
+      8 => 'Referral to Non-continuum services: Ineligible for continuum services',
+      9 => 'Referral to Non-continuum services: No availability in continuum services',
+      10 => 'Referral to Emergency Shelter bed opening',
+      11 => 'Referral to Transitional Housing bed/unit opening',
+      12 => 'Referral to Joint TH-RRH project/unit/resource opening',
+      13 => 'Referral to RRH project resource opening',
+      14 => 'Referral to PSH project resource opening',
+      15 => 'Referral to Other PH project resource opening',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.20.D
+  def referral_result(id, reverse=false)
+    map = {
+      1 => 'Successful referral: client accepted',
+      2 => 'Unsuccessful referral: client rejected',
+      3 => 'Unsuccessful referral: provider rejected',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.22.A / R2.A
   def reason_no_services(id, reverse=false)
     map = {
       1 => 'Out of age range',
@@ -1302,7 +1373,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.23.1
+  # 4.23.1 / R3.1
   def sexual_orientation(id, reverse=false)
     map = {
       1 => 'Heterosexual',
@@ -1310,6 +1381,7 @@ module HUD
       3 => 'Lesbian',
       4 => 'Bisexual',
       5 => 'Questioning / unsure',
+      6 => 'Other',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
@@ -1318,7 +1390,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.24.1
+  # 4.24.1 / R4.1
   def last_grade_completed(id, reverse=false)
     map = {
       1 => 'Less than grade 5',
@@ -1341,7 +1413,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.25.1
+  # 4.25.1 / R5.1
   def school_status(id, reverse=false)
     map = {
       1 => 'Attending school regularly',
@@ -1359,7 +1431,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.26.A
+  # 4.26.A / R6.A
   def employment_type(id, reverse=false)
     map = {
       1 => 'Full-time',
@@ -1371,7 +1443,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.26.B
+  # 4.26.B / R6.B
   def not_employed_reason(id, reverse=false)
     map = {
       1 => 'Looking for work',
@@ -1383,7 +1455,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.27.1
+  # 4.27.1 / R7.1
   def health_status(id, reverse=false)
     map = {
       1 => 'Excellent',
@@ -1399,7 +1471,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.31.A
+  # 4.31.A / R11.A
   def r_h_y_numberof_years(id, reverse=false)
     map = {
       1 => 'Less than one year',
@@ -1423,46 +1495,46 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.34.1
+  # 4.34.1 / R1.1
   def referral_source(id, reverse=false)
     map = {
       1 => 'Self-referral',
-      2 => 'Individual: parent/guardian',
-      3 => 'Individual: relative or friend',
-      4 => 'Individual: other adult or youth',
-      5 => 'Individual: partner/spouse',
-      6 => 'Individual: foster parent',
-      7 => 'Outreach project: FYSB',
+      2 => 'Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individualn',
+      # 3 => 'Individual: relative or friend',
+      # 4 => 'Individual: other adult or youth',
+      # 5 => 'Individual: partner/spouse',
+      # 6 => 'Individual: foster parent',
+      7 => 'Outreach Project',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       10 => 'Outreach project: other',
-      11 => 'Temporary shelter: FYSB basic center project',
-      12 => 'Temporary shelter: other youth only emergency shelter',
-      13 => 'Temporary shelter: emergency shelter for families',
-      14 => 'Temporary shelter: emergency shelter for individuals',
-      15 => 'Temporary shelter: domestic violence shelter',
-      16 => 'Temporary shelter: safe place',
-      17 => 'Temporary shelter: other',
-      18 => 'Residential project: FYSB transitional living project',
-      19 => 'Residential project: other transitional living project',
-      20 => 'Residential project: group home',
-      21 => 'Residential project: independent living project',
-      22 => 'Residential project: job corps',
-      23 => 'Residential project: drug treatment center',
-      24 => 'Residential project: treatment center',
-      25 => 'Residential project: educational institute',
-      26 => 'Residential project: other agency project',
-      27 => 'Residential project: other project',
-      28 => 'Hotline: national runaway switchboard',
-      29 => 'Hotline: other',
-      30 => 'Other agency: child welfare/CPS',
-      31 => 'Other agency: non-residential independent living project',
-      32 => 'Other project operated by your agency',
-      33 => 'Other youth services agency',
-      34 => 'Juvenile justice',
-      35 => 'Law enforcement/ police',
-      36 => 'Religious organization',
-      37 => 'Mental hospital',
+      11 => 'Temporary Shelter',
+      # 12 => 'Temporary shelter: other youth only emergency shelter',
+      # 13 => 'Temporary shelter: emergency shelter for families',
+      # 14 => 'Temporary shelter: emergency shelter for individuals',
+      # 15 => 'Temporary shelter: domestic violence shelter',
+      # 16 => 'Temporary shelter: safe place',
+      # 17 => 'Temporary shelter: other',
+      18 => 'Residential Project',
+      # 19 => 'Residential project: other transitional living project',
+      # 20 => 'Residential project: group home',
+      # 21 => 'Residential project: independent living project',
+      # 22 => 'Residential project: job corps',
+      # 23 => 'Residential project: drug treatment center',
+      # 24 => 'Residential project: treatment center',
+      # 25 => 'Residential project: educational institute',
+      # 26 => 'Residential project: other agency project',
+      # 27 => 'Residential project: other project',
+      28 => 'Hotline',
+      # 29 => 'Hotline: other',
+      30 => 'Child Welfare/CPS',
+      # 31 => 'Other agency: non-residential independent living project',
+      # 32 => 'Other project operated by your agency',
+      # 33 => 'Other youth services agency',
+      34 => 'Juvenile Justice',
+      35 => 'Law Enforcement/ Police',
+      # 36 => 'Religious organization',
+      37 => 'Mental Hospital',
       38 => 'School',
       39 => 'Other organization',
       99 => 'Data not collected',
@@ -1471,7 +1543,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.35.A
+  # 4.35.A / R15.B
   def count_exchange_for_sex(id, reverse=false)
     map = {
       1 => '1-3',
@@ -1497,7 +1569,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.37.1
+  # 4.37.1 / R17.1
   def project_completion_status(id, reverse=false)
     map = {
       1 => 'Completed project',
@@ -1521,7 +1593,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.37.B
+  # 4.37.B / R17.A
   def expelled_reason(id, reverse=false)
     map = {
       1 => 'Criminal activity/destruction of property/violence',
@@ -1535,7 +1607,29 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.39
+  # R19.A
+  def worker_response(id, reverse=false)
+    map = {
+      0 => 'No',
+      1 => 'Yes',
+      2 => 'Worker does not know',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # R20.2
+  def aftercare_provided(id, reverse=false)
+    map = {
+      0 => 'No',
+      1 => 'Yes',
+      9 => 'Client refused',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.39 / W3
   def no_assistance_reason(id, reverse=false)
     map = {
       1 => 'Applied; decision pending',
@@ -1550,7 +1644,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.41.11
+  # 4.41.11 / V1.11
   def military_branch(id, reverse=false)
     map = {
       1 => 'Army',
@@ -1566,7 +1660,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.41.12
+  # 4.41.12 / V1.12
   def discharge_status(id, reverse=false)
     map = {
       1 => 'Honorable',
@@ -1583,7 +1677,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.42.1
+  # 4.42.1 / V4.1
   def percent_a_m_i(id, reverse=false)
     map = {
       1 => 'Less than 30%',
@@ -1595,7 +1689,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.43.5
+  # 4.43.5 / V5.5
   def address_data_quality(id, reverse=false)
     map = {
       1 => 'Full address',
@@ -1608,7 +1702,158 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.47.B
+  # V6.1
+  def vamcs_station_number(id, reverse=false)
+    map = {
+      402 => '(402) Togus, ME',
+      405 => '(405) White River Junction, VT',
+      436 => '(436) Montana HCS',
+      437 => '(437) Fargo, ND',
+      438 => '(438) Sioux Falls, SD',
+      442 => '(442) Cheyenne, WY',
+      459 => '(459) Honolulu, HI',
+      460 => '(460) Wilmington, DE',
+      463 => '(463) Anchorage, AK',
+      501 => '(501) New Mexico HCS',
+      502 => '(502) Alexandria, LA',
+      503 => '(503) Altoona, PA',
+      504 => '(504) Amarillo, TX',
+      506 => '(506) Ann Arbor, MI',
+      508 => '(508) Atlanta, GA',
+      509 => '(509) Augusta, GA',
+      512 => '(512) Baltimore HCS, MD',
+      515 => '(515) Battle Creek, MI',
+      516 => '(516) Bay Pines, FL',
+      517 => '(517) Beckley, WV',
+      518 => '(518) Bedford, MA',
+      519 => '(519) Big Spring, TX',
+      520 => '(520) Gulf Coast HCS, MS',
+      521 => '(521) Birmingham, AL',
+      523 => '(523) VA Boston HCS, MA ',
+      526 => '(526) Bronx, NY',
+      528 => '(528) Western New York, NY',
+      529 => '(529) Butler, PA',
+      531 => '(531) Boise, ID',
+      534 => '(534) Charleston, SC',
+      537 => '(537) Jesse Brown VAMC (Chicago), IL',
+      538 => '(538) Chillicothe, OH',
+      539 => '(539) Cincinnati, OH',
+      540 => '(540) Clarksburg, WV',
+      541 => '(541) Cleveland, OH',
+      542 => '(542) Coatesville, PA',
+      544 => '(544) Columbia, SC ',
+      546 => '(546) Miami, FL',
+      548 => '(548) West Palm Beach, FL',
+      549 => '(549) Dallas, TX',
+      550 => '(550) Danville, IL',
+      552 => '(552) Dayton, OH',
+      553 => '(553) Detroit, MI',
+      554 => '(554) Denver, CO',
+      556 => '(556) Captain James A Lovell FHCC',
+      557 => '(557) Dublin, GA',
+      558 => '(558) Durham, NC',
+      561 => '(561) New Jersey HCS, NJ',
+      562 => '(562) Erie, PA',
+      564 => '(564) Fayetteville, AR',
+      565 => '(565) Fayetteville, NC',
+      568 => '(568) Black Hills HCS, SD ',
+      570 => '(570) Fresno, CA',
+      573 => '(573) Gainesville, FL',
+      575 => '(575) Grand Junction, CO ',
+      578 => '(578) Hines, IL',
+      580 => '(580) Houston, TX',
+      581 => '(581) Huntington, WV',
+      583 => '(583) Indianapolis, IN',
+      585 => '(585) Iron Mountain, MI',
+      586 => '(586) Jackson, MS',
+      589 => '(589) Kansas City, MO',
+      590 => '(590) Hampton, VA',
+      593 => '(593) Las Vegas, NV ',
+      595 => '(595) Lebanon, PA',
+      596 => '(596) Lexington, KY ',
+      598 => '(598) Little Rock, AR ',
+      600 => '(600) Long Beach, CA ',
+      603 => '(603) Louisville, KY ',
+      605 => '(605) Loma Linda, CA',
+      607 => '(607) Madison, WI',
+      608 => '(608) Manchester, NH',
+      610 => '(610) Northern Indiana HCS, IN',
+      612 => '(612) N. California, CA',
+      613 => '(613) Martinsburg, WV',
+      614 => '(614) Memphis, TN',
+      618 => '(618) Minneapolis, MN',
+      619 => '(619) Central Alabama Veterans HCS, AL',
+      620 => '(620) VA Hudson Valley HCS, NY',
+      621 => '(621) Mountain Home, TN',
+      623 => '(623) Muskogee, OK',
+      626 => '(626) Middle Tennessee HCS, TN',
+      629 => '(629) New Orleans, LA',
+      630 => '(630) New York Harbor HCS, NY',
+      631 => '(631) VA Central Western Massachusetts HCS',
+      632 => '(632) Northport, NY',
+      635 => '(635) Oklahoma City, OK',
+      636 => '(636) Nebraska-W Iowa, NE',
+      637 => '(637) Asheville, NC',
+      640 => '(640) Palo Alto, CA ',
+      642 => '(642) Philadelphia, PA ',
+      644 => '(644) Phoenix, AZ',
+      646 => '(646) Pittsburgh, PA',
+      648 => '(648) Portland, OR',
+      649 => '(649) Northern Arizona HCS',
+      650 => '(650) Providence, RI',
+      652 => '(652) Richmond, VA',
+      653 => '(653) Roseburg, OR',
+      654 => '(654) Reno, NV',
+      655 => '(655) Saginaw, MI',
+      656 => '(656) St. Cloud, MN',
+      657 => '(657) St. Louis, MO',
+      658 => '(658) Salem, VA',
+      659 => '(659) Salisbury, NC',
+      660 => '(660) Salt Lake City, UT',
+      662 => '(662) San Francisco, CA',
+      663 => '(663) VA Puget Sound, WA',
+      664 => '(664) San Diego, CA',
+      666 => '(666) Sheridan, WY',
+      667 => '(667) Shreveport, LA',
+      668 => '(668) Spokane, WA',
+      671 => '(671) San Antonio, TX',
+      672 => '(672) San Juan, PR',
+      673 => '(673) Tampa, FL',
+      674 => '(674) Temple, TX',
+      675 => '(675) Orlando, FL',
+      676 => '(676) Tomah, WI',
+      678 => '(678) Southern Arizona HCS',
+      679 => '(679) Tuscaloosa, AL',
+      687 => '(687) Walla Walla, WA',
+      688 => '(688) Washington, DC',
+      689 => '(689) VA Connecticut HCS, CT',
+      691 => '(691) Greater Los Angeles HCS',
+      692 => '(692) White City, OR',
+      693 => '(693) Wilkes-Barre, PA',
+      695 => '(695) Milwaukee, WI',
+      740 => '(740) VA Texas Valley Coastal Bend HCS',
+      756 => '(756) El Paso, TX',
+      757 => '(757) Columbus, OH',
+      '459GE' => '(459GE) Guam',
+      '528A5' => '(528A5) Canandaigua, NY',
+      '528A6' => '(528A6) Bath, NY',
+      '528A7' => '(528A7) Syracuse, NY',
+      '528A8' => '(528A8) Albany, NY',
+      '589A4' => '(589A4) Columbia, MO',
+      '589A5' => '(589A5) Kansas City, MO',
+      '589A6' => '(589A6) Eastern KS HCS, KS',
+      '589A7' => '(589A7) Wichita, KS',
+      '636A6' => '(636A6) Central Iowa, IA ',
+      '636A8' => '(636A8) Iowa City, IA',
+      '657A4' => '(657A4) Poplar Bluff, MO',
+      '657A5' => '(657A5) Marion, IL',
+      99 => 'not collected',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.47.B / W4.B
   def t_cell_source_viral_load_source(id, reverse=false)
     map = {
       1 => 'Medical Report',
@@ -1619,7 +1864,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.47.3
+  # 4.47.3 / W4.3
   def viral_load_available(id, reverse=false)
     map = {
       0 => 'Not available',
@@ -1633,7 +1878,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.1
+  # 4.48.1 / V7.1
   def no_points_yes(id, reverse=false)
     map = {
       0 => 'No (0 points)',
@@ -1644,7 +1889,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.2
+  # 4.48.2 / V7.2
   def time_to_housing_loss(id, reverse=false)
     map = {
       0 => '0-6 days',
@@ -1657,7 +1902,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.4
+  # 4.48.4 / V7.4
   def annual_percent_a_m_i(id, reverse=false)
     map = {
       0 => '0-14% of AMI for household size',
@@ -1669,7 +1914,7 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.7
+  # 4.48.7 / V7.7
   def eviction_history(id, reverse=false)
     map = {
       0 => '4 or more prior rental evictions',
@@ -1682,18 +1927,60 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 4.48.9
+  # 4.48.9 / V7.9
   def literal_homeless_history(id, reverse=false)
     map = {
       0 => '4 or more times or total of at least 12 months in past three years',
       1 => '2-3 times in past three years',
       2 => '1 time in past three years',
-      3 => '4 or more times or total of at least 12 months in past three years',
+      3 => 'None (0 points)',
       99 => 'Data not collected',
     }
 
     _translate map, id, reverse
   end
+
+  # V8.1
+  def voucher_tracking(id, reverse=false)
+    map = {
+      1 => 'Referral package forwarded to PHA',
+      2 => 'Voucher denied by PHA',
+      3 => 'Voucher issued by PHA',
+      4 => 'Voucher revoked or expired',
+      5 => 'Voucher in use – veteran moved into housing',
+      6 => 'Voucher was ported locally',
+      7 => 'Voucher was administratively absorbed by new PHA',
+      8 => 'Voucher was converted to Housing Choice Voucher',
+      9 => 'Veteran exited – voucher was returned',
+      10 => 'Veteran exited – family maintained the voucher',
+      11 => 'Veteran exited – prior to ever receiving a voucher',
+      12 => 'Other',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # V9.1
+  def cm_exit_reason(id, reverse=false)
+    map = {
+      1 => 'Accomplished goals and/or obtained services and no longer needs CM',
+      2 => 'Transferred to another HUD/VASH program site',
+      3 => 'Found/chose other housing',
+      4 => 'Did not comply with HUD/VASH CM',
+      5 => 'Eviction and/or other housing related issues',
+      6 => 'Unhappy with HUD/VASH housing',
+      7 => 'No longer financially eligible for HUD/VASH voucher',
+      8 => 'No longer interested in participating in this program',
+      9 => 'Veteran cannot be located',
+      10 => 'Veteran too ill to participate at this time',
+      11 => 'Veteran is incarcerated',
+      12 => 'Veteran is deceased',
+      13 => 'Other',
+    }
+
+    _translate map, id, reverse
+  end
+
 
   # 4.49.1
   def crisis_services_use(id, reverse=false)
@@ -1712,13 +1999,14 @@ module HUD
     _translate map, id, reverse
   end
 
-  # 5.3.1
+  # 5.03.1
   def data_collection_stage(id, reverse=false)
     map = {
       1 => 'Project entry',
       2 => 'Update',
       3 => 'Project exit',
       5 => 'Annual assessment',
+      6 => 'Post-exit', # not used in CSV
     }
 
     _translate map, id, reverse
