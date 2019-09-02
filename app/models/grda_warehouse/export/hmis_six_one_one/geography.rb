@@ -11,7 +11,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     self.hud_key = :GeographyID
 
-    belongs_to :project_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :geographies
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :geographies
 
     # Geography records should be one per ProjectID per CoCCode
     def export_project_related! project_scope:, path:, export:
@@ -50,42 +50,15 @@ module GrdaWarehouse::Export::HMISSixOneOne
         row[:Geocode] = override
       end
 
-      if override = information_date_override_for(geography_id: row[:GeographyID].to_i, data_source_id: data_source_id)
-        row[:InformationDate] = override
-      end
       # Technical limit of HMIS spec is 50 characters
-      row[:Address1] = row[:Address1][0...50] if row[:Address1]
-      row[:Address2] = row[:Address2][0...50] if row[:Address2]
+      row[:Address1] = row[:Address1][0...100] if row[:Address1]
+      row[:Address2] = row[:Address2][0...100] if row[:Address2]
       row[:City] = row[:City][0...50] if row[:City]
       row[:ZIP] = row[:ZIP][0...5] if row[:ZIP]
       return row
     end
 
-    def geography_type_override_for geography_id:, data_source_id:
-      @geography_type_overrides ||= self.class.where.not(geography_type_override: nil).
-        pluck(:data_source_id, :id, :geography_type_override).
-        map do |data_source_id, geography_id, geography_type_override|
-          if geography_type_override.present?
-            [[data_source_id, geography_id], geography_type_override]
-          else
-            nil
-          end
-        end.compact.to_h
-      @geography_type_overrides[[data_source_id, geography_id]]
-    end
 
-    def geocode_override_for geography_id:, data_source_id:
-      @geocode_overrides ||= self.class.where.not(geocode_override: nil).
-        pluck(:data_source_id, :id, :geocode_override).
-        map do |data_source_id, geography_id, geocode_override|
-          if geocode_override.present?
-            [[data_source_id, geography_id], geocode_override]
-          else
-            nil
-          end
-        end.compact.to_h
-      @geocode_overrides[[data_source_id, geography_id]]
-    end
 
     def information_date_override_for geography_id:, data_source_id:
       @information_date_overrides ||= self.class.where.not(information_date_override: nil).
