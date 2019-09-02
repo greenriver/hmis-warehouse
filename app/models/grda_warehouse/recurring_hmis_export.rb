@@ -36,7 +36,7 @@ module GrdaWarehouse
       when '6.11'
         ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json, report_url: nil)
       when '2020'
-        WarehouseReports::Hmis2020ExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
+        WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
       end
     end
 

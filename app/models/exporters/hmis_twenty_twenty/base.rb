@@ -6,7 +6,7 @@
 
 require 'zip'
 require 'csv'
-module Exporters::Hmis2020
+module Exporters::HmisTwentyTwenty
   class Base
     include NotifierConfig
     include ArelHelper
@@ -67,6 +67,7 @@ module Exporters::Hmis2020
         export_health_and_dvs()
         export_income_benefits()
         export_services()
+    binding.pry
         export_current_living_situations()
         export_assessments()
         export_assessment_questions()
@@ -157,14 +158,6 @@ module Exporters::Hmis2020
 
     def export_inventories
       inventory_source.new.export_project_related!(
-        project_scope: project_scope,
-        path: @file_path,
-        export: @export
-      )
-    end
-
-    def export_geographies
-      geography_source.new.export_project_related!(
         project_scope: project_scope,
         path: @file_path,
         export: @export
@@ -313,8 +306,7 @@ module Exporters::Hmis2020
      end
 
      def export_users
-      user_source.new.export_enrollment_related!(
-        enrollment_scope: enrollment_scope,
+      user_source.new.export!(
         project_scope: project_scope,
         path: @file_path,
         export: @export
@@ -468,154 +460,154 @@ module Exporters::Hmis2020
     end
 
     def self.affiliation_source
-      GrdaWarehouse::Export::HMISSixOneOne::Affiliation
+      GrdaWarehouse::Export::HmisTwentyTwenty::Affiliation
     end
     def affiliation_source
       self.class.affiliation_source
     end
 
     def self.client_source
-      GrdaWarehouse::Export::HMISSixOneOne::Client
+      GrdaWarehouse::Export::HmisTwentyTwenty::Client
     end
     def client_source
       self.class.client_source
     end
 
     def self.disability_source
-      GrdaWarehouse::Export::HMISSixOneOne::Disability
+      GrdaWarehouse::Export::HmisTwentyTwenty::Disability
     end
     def disability_source
       self.class.disability_source
     end
 
     def self.employment_education_source
-      GrdaWarehouse::Export::HMISSixOneOne::EmploymentEducation
+      GrdaWarehouse::Export::HmisTwentyTwenty::EmploymentEducation
     end
     def employment_education_source
       self.class.employment_education_source
     end
 
     def self.enrollment_source
-      GrdaWarehouse::Export::HMISSixOneOne::Enrollment
+      GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
     end
     def enrollment_source
       self.class.enrollment_source
     end
 
     def self.enrollment_coc_source
-      GrdaWarehouse::Export::HMISSixOneOne::EnrollmentCoc
+      GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc
     end
     def enrollment_coc_source
       self.class.enrollment_coc_source
     end
 
     def self.exit_source
-      GrdaWarehouse::Export::HMISSixOneOne::Exit
+      GrdaWarehouse::Export::HmisTwentyTwenty::Exit
     end
     def exit_source
       self.class.exit_source
     end
 
     def self.export_source
-      GrdaWarehouse::Export::HMISSixOneOne::Export
+      GrdaWarehouse::Export::HmisTwentyTwenty::Export
     end
     def export_source
       self.class.export_source
     end
 
     def self.funder_source
-      GrdaWarehouse::Export::HMISSixOneOne::Funder
+      GrdaWarehouse::Export::HmisTwentyTwenty::Funder
     end
     def funder_source
       self.class.funder_source
     end
 
     def self.health_and_dv_source
-      GrdaWarehouse::Export::HMISSixOneOne::HealthAndDv
+      GrdaWarehouse::Export::HmisTwentyTwenty::HealthAndDv
     end
     def health_and_dv_source
       self.class.health_and_dv_source
     end
 
     def self.income_benefits_source
-      GrdaWarehouse::Export::HMISSixOneOne::IncomeBenefit
+      GrdaWarehouse::Export::HmisTwentyTwenty::IncomeBenefit
     end
     def income_benefits_source
       self.class.income_benefits_source
     end
 
     def self.inventory_source
-      GrdaWarehouse::Export::HMISSixOneOne::Inventory
+      GrdaWarehouse::Export::HmisTwentyTwenty::Inventory
     end
     def inventory_source
       self.class.inventory_source
     end
 
     def self.organization_source
-      GrdaWarehouse::Export::HMISSixOneOne::Organization
+      GrdaWarehouse::Export::HmisTwentyTwenty::Organization
     end
     def organization_source
       self.class.organization_source
     end
 
     def self.project_source
-      GrdaWarehouse::Export::HMISSixOneOne::Project
+      GrdaWarehouse::Export::HmisTwentyTwenty::Project
     end
     def project_source
       self.class.project_source
     end
 
     def self.project_coc_source
-      GrdaWarehouse::Export::HMISSixOneOne::ProjectCoc
+      GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc
     end
     def project_coc_source
       self.class.project_coc_source
     end
 
     def self.service_source
-      GrdaWarehouse::Export::HMISSixOneOne::Service
+      GrdaWarehouse::Export::HmisTwentyTwenty::Service
     end
     def service_source
       self.class.service_source
     end
 
     def self.current_living_situation_source
-      GrdaWarehouse::Export::HMISSixOneOne::CurrentLivingSituation
+      GrdaWarehouse::Export::HmisTwentyTwenty::CurrentLivingSituation
     end
     def current_living_situation_source
       self.class.current_living_situation_source
     end
 
     def self.assessment_source
-      GrdaWarehouse::Export::HMISSixOneOne::Assessment
+      GrdaWarehouse::Export::HmisTwentyTwenty::Assessment
     end
     def assessment_source
       self.class.assessment_source
     end
 
     def self.assessment_question_source
-      GrdaWarehouse::Export::HMISSixOneOne::AssessmentQuestion
+      GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentQuestion
     end
     def assessment_question_source
       self.class.assessment_question_source
     end
 
     def self.assessment_result_source
-      GrdaWarehouse::Export::HMISSixOneOne::AssessmentResult
+      GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentResult
     end
     def assessment_result_source
       self.class.assessment_result_source
     end
 
     def self.event_source
-      GrdaWarehouse::Export::HMISSixOneOne::Event
+      GrdaWarehouse::Export::HmisTwentyTwenty::Event
     end
     def event_source
       self.class.event_source
     end
 
     def self.user_source
-      GrdaWarehouse::Export::HMISSixOneOne::User
+      GrdaWarehouse::Export::HmisTwentyTwenty::User
     end
     def user_source
       self.class.user_source

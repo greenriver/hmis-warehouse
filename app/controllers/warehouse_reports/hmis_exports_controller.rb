@@ -53,7 +53,7 @@ module WarehouseReports
           if @filter.version == '6.11'
             WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
           elsif @filter.version == '2020'
-            WarehouseReports::Hmis2020ExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
+            WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
           end
           redirect_to warehouse_reports_hmis_exports_path
         end

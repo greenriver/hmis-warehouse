@@ -56,7 +56,7 @@ class UploadsController < ApplicationController
       when 'hmis_611'
         job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
       when 'hmis_2020'
-        job = Delayed::Job.enqueue Importing::HudZip::Hmis2020Job.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
+        job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
       end
       @upload.update(delayed_job_id: job.id)
     end

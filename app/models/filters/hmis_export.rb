@@ -9,7 +9,7 @@ module Filters
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.today
-    attribute :version, String, default: '6.11'
+    attribute :version, String, default: '2020'
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
