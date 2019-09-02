@@ -6,9 +6,11 @@
     %thead
       %tr
         %th Patient
+        %th Care Coordinator
     %tbody
       - @patients.each do |patient|
         %tr
           %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+          %td= patient.care_coordinator&.name_with_email
 - else
   No patients found

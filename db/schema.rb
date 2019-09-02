@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190813124815) do
+ActiveRecord::Schema.define(version: 20190828190416) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -226,12 +226,13 @@ ActiveRecord::Schema.define(version: 20190813124815) do
   end
 
   create_table "reports", force: :cascade do |t|
-    t.string   "name",                                  null: false
-    t.string   "type",                                  null: false
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
-    t.integer  "weight",                    default: 0, null: false
+    t.string   "name",                                     null: false
+    t.string   "type",                                     null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+    t.integer  "weight",                    default: 0,    null: false
     t.integer  "report_results_summary_id"
+    t.boolean  "enabled",                   default: true, null: false
   end
 
   add_index "reports", ["report_results_summary_id"], name: "index_reports_on_report_results_summary_id", using: :btree

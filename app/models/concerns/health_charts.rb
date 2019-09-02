@@ -10,20 +10,15 @@ module HealthCharts
 
     def health_housing_stati
       stati = case_management_notes.map do |form|
-        first_section = form.answers[:sections].first
-        if first_section.present?
-          answer = form.answers[:sections].first[:questions].select do |question|
-            question[:question] == "A-6. Where did you sleep last night?"
-          end.first.try(:[], :answer)
-          next unless answer.present?
-          answer = self.class.clean_health_housing_outcome_answer(answer)
-          if self.class.health_housing_outcome(answer)
-            {
-              date: form.collected_at.to_date,
-              score: self.class.health_housing_score(answer),
-              status: answer
-            }
-          end
+        answer = form.housing_status
+        next unless answer.present?
+        answer = self.class.clean_health_housing_outcome_answer(answer)
+        if self.class.health_housing_outcome(answer)
+          {
+            date: form.collected_at.to_date,
+            score: self.class.health_housing_score(answer),
+            status: answer
+          }
         end
       end.compact
       if patient.housing_status_timestamp.present?

@@ -94,6 +94,16 @@ module Health
       merge(Health::PatientReferral.not_confirmed_rejected)
     end
 
+    scope :active_on_date, -> (date) do
+      joins(:patient_referral).
+      merge(Health::PatientReferral.where(
+        hpr_t[:enrollment_start_date].lteq(date).
+        and(hpr_t[:disenrollment_date].gt(date).
+          or(hpr_t[:disenrollment_date].eq(nil))
+        )
+      ))
+    end
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}

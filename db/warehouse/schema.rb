@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190820145158) do
+ActiveRecord::Schema.define(version: 20190823175037) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1247,6 +1247,19 @@ ActiveRecord::Schema.define(version: 20190820145158) do
   add_index "client_notes", ["client_id"], name: "index_client_notes_on_client_id", using: :btree
   add_index "client_notes", ["user_id"], name: "index_client_notes_on_user_id", using: :btree
 
+  create_table "client_split_histories", force: :cascade do |t|
+    t.integer  "split_into",     null: false
+    t.integer  "split_from",     null: false
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.boolean  "receive_hmis"
+    t.boolean  "receive_health"
+  end
+
+  add_index "client_split_histories", ["created_at"], name: "index_client_split_histories_on_created_at", using: :btree
+  add_index "client_split_histories", ["split_from"], name: "index_client_split_histories_on_split_from", using: :btree
+  add_index "client_split_histories", ["updated_at"], name: "index_client_split_histories_on_updated_at", using: :btree
+
   create_table "cohort_client_changes", force: :cascade do |t|
     t.integer  "cohort_client_id", null: false
     t.integer  "cohort_id",        null: false
@@ -1759,6 +1772,7 @@ ActiveRecord::Schema.define(version: 20190820145158) do
     t.float    "vispdat_times_homeless"
     t.string   "staff_email"
     t.datetime "eto_last_updated"
+    t.string   "housing_status"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree
@@ -4633,10 +4647,12 @@ ActiveRecord::Schema.define(version: 20190820145158) do
      FROM service_history_services;
   SQL
 
+  add_index "service_history_services_materialized", ["client_id", "homeless"], name: "index_shsm_c_id_homeless", using: :btree
+  add_index "service_history_services_materialized", ["client_id", "literally_homeless"], name: "index_shsm_c_id_literally_homeless", using: :btree
   add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type", using: :btree
-  add_index "service_history_services_materialized", ["homeless"], name: "index_shsm_homeless", using: :btree
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
-  add_index "service_history_services_materialized", ["literally_homeless"], name: "index_shsm_literally_homeless", using: :btree
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id", using: :btree
   add_index "service_history_services_materialized", ["project_type", "record_type"], name: "index_shsm_p_type_r_type", using: :btree
 
 end

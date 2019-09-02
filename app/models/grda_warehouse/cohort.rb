@@ -49,6 +49,19 @@ module GrdaWarehouse
       end
     end
 
+    scope :editable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
+        current_scope
+      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+        joins(:user_viewable_entities).
+          where(GrdaWarehouse::UserViewableEntity.table_name => {user_id: user.id})
+      else
+        none
+      end
+    end
+
     def search_clients(page: nil, per: nil, population: :active, user: )
       @client_search_scope = cohort_clients.joins(:client)
 

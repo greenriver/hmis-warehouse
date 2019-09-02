@@ -24,13 +24,73 @@ module Health
         question.present? &&
         number&.is_a?(Integer)
       (1..number).map do |n|
-        label = "[#{n}] #{_("CHA #{section}_Q#{question}_A#{n}")}"
+        question_key = "#{section}_Q#{question}"
+        answer_key = "#{section}_Q#{question}_A#{n}"
+        value = _("CHA #{answer_key}")
+        text = value.gsub(/^\d+\./, '').strip # Some values already have numbers
+        # text = "#{text} / #{question_key}"
+
+        if value.downcase.in?(EIGHTS_RESPONSES)
+          label = "[8] #{text}"
+        elsif value.downcase.in?(BLANK_RESPONSES)
+          label = "[blank] #{text}"
+        elsif question_key.in?(ZERO_BASED)
+          label = "[#{n - 1}] #{text}"
+        elsif question_key.in?(LETTER_BASED)
+          label = "[#{LETTERS[n - 1]}] #{text}"
+        elsif question_key.in?(NO_PREFIX)
+          label = text
+        else
+          label = "[#{n}] #{text}"
+        end
         [
           label,
-          _("CHA #{section}_Q#{question}_A#{n}")
+          value,
         ]
       end
     end
+
+    NO_PREFIX = [
+      'R_Q1', 'R_Q2', 'R_Q3', 'R_Q4', 'R_Q5', 'R_Q7', 'R_Q8',
+
+    ]
+
+    EIGHTS_RESPONSES = [
+      'uncertain',
+      'unable to determine',
+      'person could not (would not) respond',
+      'activity did not occur—during entire period ',
+      'activity did not occur during entire period',
+      'did not occur',
+      'could not (would not) respond',
+      'did not occur—no urine output from bladder in last 3 days',
+    ]
+
+    BLANK_RESPONSES = [
+      'not applicable (first assessment, or more than 30 days since last assessment)',
+    ]
+
+    LETTERS = ('a' .. 'z').to_a
+
+    LETTER_BASED = [
+      'B_Q2', 'B_Q4',
+    ]
+
+    ZERO_BASED = [
+      'C_Q1', 'C_Q2', 'C_Q3',
+      'D_Q1', 'D_Q2', 'D_Q3', 'D_Q4',
+      'E_Q1A', 'E_Q2A',
+      'F_Q1A', 'F_Q2', 'F_Q3', 'F_Q4', 'F_Q5',
+      'G_Q1AP', 'G_Q2A', 'G_Q3', 'G_Q4A', 'G_Q4B', 'G_Q5', 'G_Q6A', 'G_Q6B',
+      'H_Q1',
+      'I_Q1A',
+      'J_Q1', 'J_Q2', 'J_Q3A', 'J_Q4', 'J_Q5', 'J_Q6A', 'J_Q6B', 'J_Q6C', 'J_Q6D', 'J_Q6E', 'J_Q7A', 'J_Q8', 'J_Q9A', 'J_Q9B',
+      'K_Q1A',
+      'L_Q2',
+      'M_Q1A',
+      'N_Q1',
+      'O_Q1',
+    ]
 
     QUESTION_ANSWER_OPTIONS = {
       a_q1:  nil,

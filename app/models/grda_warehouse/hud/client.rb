@@ -33,6 +33,9 @@ module GrdaWarehouse::Hud
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
 
+    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
+    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
+
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
 
@@ -89,13 +92,12 @@ module GrdaWarehouse::Hud
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
-    has_one :processed_service_history, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
+    has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
 
     has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
 
-    has_many :service_history, class_name: GrdaWarehouse::ServiceHistory.name, inverse_of: :client
     has_many :service_history_enrollments
     has_many :service_history_services
     has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
@@ -1507,7 +1509,6 @@ module GrdaWarehouse::Hud
           GrdaWarehouse::Hud::Project.confidential_project_name
         end
       end.uniq.sort
-      # service_history.where( date: processed_service_history.select(:last_date_served) ).order(:project_name).distinct.pluck(:project_name)
     end
 
     def weeks_of_service
@@ -1939,6 +1940,11 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
+      move_dependent_hmis_items previous_id, new_id
+      move_dependent_health_items previous_id, new_id
+    end
+
+    def move_dependent_hmis_items previous_id, new_id
       # move any client notes
       GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
         update_all(client_id: new_id)
@@ -1991,6 +1997,16 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
         update_all(client_id: new_id)
       GrdaWarehouse::Youth::YouthFollowUp.where(client_id: previous_id).
+        update_all(client_id: new_id)
+    end
+
+    def move_dependent_health_items previous_id, new_id
+      # move any patients
+      Health::Patient.where(client_id: previous_id).
+        update_all(client_id: new_id)
+
+      # move any health files (these should really be attached to patients)
+      Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
     end
 
@@ -2157,7 +2173,7 @@ module GrdaWarehouse::Hud
 
     # TH or PH
     def self.dates_hud_non_chronic_residential_scope client_id:
-      GrdaWarehouse::ServiceHistoryService.hud_residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_literally_homeless.
       where(client_id: client_id).
         select(:date).distinct
     end
@@ -2173,7 +2189,7 @@ module GrdaWarehouse::Hud
 
     # PH
     def self.dates_in_ph_residential_scope client_id:
-      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_homeless.
       where(client_id: client_id).
         select(:date).distinct
     end
@@ -2219,7 +2235,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.dates_housed_scope(client_id:, on_date: Date.today)
-      GrdaWarehouse::ServiceHistoryService.residential_non_homeless.
+      GrdaWarehouse::ServiceHistoryService.non_homeless.
         where(client_id: client_id).select(:date).distinct
     end
 
@@ -2476,7 +2492,7 @@ module GrdaWarehouse::Hud
 
     private def adjusted_dates dates:, stop_date:
       return dates if stop_date.nil?
-      dates.select{|date| date < stop_date}
+      dates.select{|date| date <= stop_date}
     end
 
     private def residential_dates enrollments:

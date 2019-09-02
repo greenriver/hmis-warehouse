@@ -259,7 +259,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                 value: report_project.unit_inventory,
               }
             end
-            if report_project.coc_code.blank? || report_project.coc_code.length != 6
+            if report_project.coc_code.blank? || malformed_coc_code(report_project.coc_code)
               issues << {
                 project_id: report_project.project_id,
                 project_name: report_project.project_name,
@@ -328,6 +328,13 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         issues
       end
       return @project_descriptor
+    end
+
+    def malformed_coc_code(coc_code_string)
+      coc_code_string.split(',').each do |coc_code|
+        return true if coc_code.strip.match(/^\w\w-\d\d\d$/).blank?
+      end
+      return false
     end
 
     # return where the completeness value is < threshold
@@ -509,10 +516,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     def timeliness
       @timeliness ||= begin
         issues = []
-        time_to_enter_entry = enrolled_clients.group(:project_id).
+        time_to_enter_entry = entering_clients.group(:project_id).
           sum(:days_to_add_entry_date)
         time_to_enter_entry.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = entering_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
             project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
@@ -525,10 +532,10 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           end
         end
 
-        time_to_enter_exit = enrolled_clients.group(:project_id).
+        time_to_enter_exit = exiting_clients.group(:project_id).
           sum(:days_to_add_exit_date)
         time_to_enter_exit.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = exiting_clients.where(project_id: id).count
           next if denominator.zero?
           average_timeliness = count.to_f / denominator
           if average_timeliness > timeliness_goal
@@ -733,7 +740,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @describe_time_to_enter ||= begin
         issues = []
         time_to_enter_by_project_id.each do |id, count|
-          denominator = enrolled_clients.where(project_id: id).count
+          denominator = entering_clients.where(project_id: id).count
           average_timeliness = count.to_f / denominator
           project_name = projects.detect{|p| p.id == id}&.ProjectName || 'Project Missing'
           issues << {
@@ -747,7 +754,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def time_to_enter_by_project_id
-      @time_to_enter_by_project_id ||= enrolled_clients.group(:project_id).
+      @time_to_enter_by_project_id ||= entering_clients.group(:project_id).
         sum(:days_to_add_entry_date)
     end
 
@@ -781,7 +788,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         goal = [timeliness_goal, timeliness_goal, timeliness_goal]
         report_projects.each do |project|
           count = time_to_enter_by_project_id[project.project_id] || 0
-          denominator = enrolled_clients.where(project_id: project.project_id).count
+          denominator = entering_clients.where(project_id: project.project_id).count
           average_timeliness = (count.to_f / denominator).round rescue 0
           data[project.id] = [0, average_timeliness, 0]
         end

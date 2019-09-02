@@ -417,8 +417,6 @@ module GrdaWarehouse::Hud
 
 
     # NOTE: you will want to limit this to a particular record_type
-    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :enrollment
-    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
     has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     scope :residential, -> do
@@ -624,28 +622,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    # Removed 8/14/2019
-    # def homeless?
-    #   project.ProjectType.in? Project::CHRONIC_PROJECT_TYPES
-    # end
-
-    # days when the user is in a homeless project and *not* in a residential project
-    # an enrollment gets credit for its days preceding the beginning of another enrollment regardless
-    # of overlap with a preceding enrollment
-    # Removed 8/14/2019
-    # def days_homeless
-    #   if homeless?
-    #     non_overlapping_days( Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS )
-    #   else
-    #     self.class.none
-    #   end
-    # end
-
-    # Removed 8/14/2019
-    # def most_recent_service_date
-    #   days_served.maximum(:date)
-    # end
-
     # If we haven't been in a homeless project type in the last 30 days, this is a new episode
     # If we don't currently have a non-homeless residential enrollment and we have had one for the past 90 days, this is a new episode
     def new_episode?
@@ -674,7 +650,7 @@ module GrdaWarehouse::Hud
         ).
         where(project_type: non_homeless_residential).exists?
 
-      residential_for_past_90_days = client.destination_client..service_history_enrollments.
+      residential_for_past_90_days = client.destination_client.service_history_enrollments.
         joins(:service_history_services).
         merge(
           GrdaWarehouse::ServiceHistoryService.where(
