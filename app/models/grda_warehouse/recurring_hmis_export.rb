@@ -32,8 +32,12 @@ module GrdaWarehouse
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
       filter.adjust_reporting_period
-      ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json,
-        report_url: nil)
+      case filter.version
+      when '6.11'
+        ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json, report_url: nil)
+      when '2020'
+        WarehouseReports::Hmis2020ExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
+      end
     end
 
     def s3_present?

@@ -80,7 +80,6 @@ module GrdaWarehouse::Hud
       end
     end
 
-    belongs_to :project_coc, **hud_belongs(ProjectCoc), inverse_of: :enrollment_cocs
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs
     has_one :client, through: :enrollment, inverse_of: :enrollment_cocs
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollment_cocs
