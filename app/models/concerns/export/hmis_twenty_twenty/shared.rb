@@ -265,7 +265,9 @@ module Export::HmisTwentyTwenty::Shared
       map do |u_id, ds_id, id|
         [[u_id, ds_id], id]
       end.to_h
-    @user_lookup[[user_id, data_source_id]]
+    # UserID cannot be null, so we'll  return the string we have
+    # even if we can't find a use record
+    @user_lookup[[user_id, data_source_id]] || user_id
   end
 
   def client_export_id personal_id, data_source_id
