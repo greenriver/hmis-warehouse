@@ -206,7 +206,7 @@ module Importers::HmisTwentyTwenty
     end
 
     def import_users()
-      import_class(users_source)
+      import_class(user_source)
     end
 
     def import_current_living_situations()
@@ -291,7 +291,6 @@ module Importers::HmisTwentyTwenty
       [
         inventory_source,
         project_coc_source,
-        geography_source,
         funder_source,
         affiliation_source,
       ].each do |klass|

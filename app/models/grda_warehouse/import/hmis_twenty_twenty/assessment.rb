@@ -12,7 +12,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     setup_hud_column_access( GrdaWarehouse::Hud::Assessment.hud_csv_headers(version: '2020') )
 
     def self.date_provided_column
-      :InformationDate
+      :AssessmentDate
     end
 
     def self.file_name
