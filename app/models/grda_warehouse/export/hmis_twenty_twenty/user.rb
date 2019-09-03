@@ -11,21 +11,16 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
     self.hud_key = :UserID
 
+    # NOTE: because there is no direct connection to the scopes for all
+    # exported models, we'll just gather the unique UserIDs while we're processing.
     def export! project_scope:, path:, export:
-      raise 'TODO'
-      case export.period_type
-      when 3
-        export_scope = self.class.where(project_exits_for_organization(project_scope))
-      when 1
-        export_scope = self.class.where(project_exits_for_organization(project_scope)).modified_within_range(range: (export.start_date..export.end_date))
-      end
+      export_scope = self.class.where(id: export.user_ids.to_a)
       export_to_path(
         export_scope: export_scope,
         path: path,
         export: export
       )
     end
-
 
   end
 end

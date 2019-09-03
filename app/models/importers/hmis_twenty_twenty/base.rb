@@ -14,7 +14,6 @@ require 'newrelic_rpm'
 # The import is authoritative for the projects specified in the Project.csv file
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
-
 module Importers::HmisTwentyTwenty
   class Base
     include TsqlImport

@@ -67,7 +67,6 @@ module Exporters::HmisTwentyTwenty
         export_health_and_dvs()
         export_income_benefits()
         export_services()
-    binding.pry
         export_current_living_situations()
         export_assessments()
         export_assessment_questions()

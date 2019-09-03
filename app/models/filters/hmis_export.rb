@@ -9,7 +9,13 @@ module Filters
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.today
-    attribute :version, String, default: '2020'
+    attribute :version, String, default: -> (r,_) do
+      if Date.current >= '2019-10-01'.to_date || ! Rails.env.production?
+        '2020'
+      else
+        '6.11'
+      end
+    end
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2

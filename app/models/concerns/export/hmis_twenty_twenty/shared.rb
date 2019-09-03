@@ -109,6 +109,7 @@ module Export::HmisTwentyTwenty::Shared
     end
     if row[:UserID].present?
       row[:UserID] = user_export_id(row[:UserID], data_source_id)
+      note_user_id(export: export, user_id: row[:UserID])
     end
 
     if export.faked_pii
@@ -198,6 +199,11 @@ module Export::HmisTwentyTwenty::Shared
       path: path,
       export: export
     )
+  end
+
+  def note_user_id export:, user_id:
+    export.user_ids ||= Set.new
+    export.user_ids << user_id
   end
 
   # Load some lookup tables so we don't have

@@ -3,7 +3,6 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
-
 module Import::HmisTwentyTwenty::Shared
   extend ActiveSupport::Concern
   included do
