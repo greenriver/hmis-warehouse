@@ -65,7 +65,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastPermanentZIP: -> (value) { Faker::Address.zip },
       OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(3) else nil end},
       OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(2) else nil end},
-      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location << ' Health' else nil end},
+      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location + ' Health' else nil end},
       OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
       OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
       OtherTypeProvided: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
