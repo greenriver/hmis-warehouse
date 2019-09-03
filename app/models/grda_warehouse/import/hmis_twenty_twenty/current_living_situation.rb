@@ -8,7 +8,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
   class CurrentLivingSituation < GrdaWarehouse::Hud::CurrentLivingSituation
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
-    self.hud_key = :CurrentLivingSituationID
+    self.hud_key = :CurrentLivingSitID
     setup_hud_column_access( GrdaWarehouse::Hud::CurrentLivingSituation.hud_csv_headers(version: '2020') )
 
     def self.date_provided_column

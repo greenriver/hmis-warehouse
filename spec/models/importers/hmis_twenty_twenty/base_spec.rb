@@ -26,6 +26,25 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     it 'the effective export end date is 2017-09-20' do
       expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-20'.to_date)
     end
+    it 'the database will have two assessments' do
+      expect(GrdaWarehouse::Hud::Assessment.count).to eq(2)
+    end
+    it 'the database will have four assessment questions' do
+      expect(GrdaWarehouse::Hud::AssessmentQuestion.count).to eq(4)
+    end
+    it 'the database will have two assessment results' do
+      expect(GrdaWarehouse::Hud::AssessmentResult.count).to eq(2)
+    end
+    it 'the database will have two events' do
+      expect(GrdaWarehouse::Hud::Event.count).to eq(2)
+    end
+    it 'the database will have two living situations' do
+      expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
+    end
+    it 'the database will have four users' do
+      expect(GrdaWarehouse::Hud::User.count).to eq(4)
+    end
+
     describe 'each client\'s counts will match expected counts' do
       clients = {
         '2f4b963171644a8b9902bdfe79a4b403' => {

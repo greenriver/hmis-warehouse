@@ -9,7 +9,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     include ::Export::HmisTwentyTwenty::Shared
     setup_hud_column_access( GrdaWarehouse::Hud::CurrentLivingSituation.hud_csv_headers(version: '2020') )
 
-    self.hud_key = :CurrentLivingSituationID
+    self.hud_key = :CurrentLivingSitID
 
      # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted

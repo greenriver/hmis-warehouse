@@ -160,11 +160,11 @@ module Import::HmisTwentyTwenty::Shared
             data_source_id: data_source_id,
             keys: hud_keys_for_batch(csv_rows)
           )
+
           csv_rows.each do |row|
             export_id ||= row[:ExportID]
             row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
             existing = existing_items[row[self.hud_key]]
-            # binding.pry if self.name == 'GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment'
             if should_add?(existing)
               clean_row = row.merge({data_source_id: data_source_id})
               headers ||= clean_row.keys
