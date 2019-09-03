@@ -701,42 +701,42 @@ module Importers::HmisTwentyTwenty
     end
 
     def self.current_living_situation_source
-      GrdaWarehouse::Import::HMISSixOneOne::CurrentLivingSituation
+      GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation
     end
     def current_living_situation_source
       self.class.current_living_situation_source
     end
 
     def self.assessment_source
-      GrdaWarehouse::Import::HMISSixOneOne::Assessment
+      GrdaWarehouse::Import::HmisTwentyTwenty::Assessment
     end
     def assessment_source
       self.class.assessment_source
     end
 
     def self.assessment_question_source
-      GrdaWarehouse::Import::HMISSixOneOne::AssessmentQuestion
+      GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentQuestion
     end
     def assessment_question_source
       self.class.assessment_question_source
     end
 
     def self.assessment_result_source
-      GrdaWarehouse::Import::HMISSixOneOne::AssessmentResult
+      GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentResult
     end
     def assessment_result_source
       self.class.assessment_result_source
     end
 
     def self.event_source
-      GrdaWarehouse::Import::HMISSixOneOne::Event
+      GrdaWarehouse::Import::HmisTwentyTwenty::Event
     end
     def event_source
       self.class.event_source
     end
 
     def self.user_source
-      GrdaWarehouse::Import::HMISSixOneOne::User
+      GrdaWarehouse::Import::HmisTwentyTwenty::User
     end
     def user_source
       self.class.user_source
