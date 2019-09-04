@@ -12,6 +12,10 @@ class ApplicationMailer < ActionMailer::Base
     ActionMailer::Base.register_interceptor SandboxEmailInterceptor
   end
 
+  if ENV['SES_MONITOR_OUTGOING_EMAIL'] == 'true'
+    ActionMailer::Base.register_interceptor CloudwatchEmailInterceptor
+  end
+
   def self.prefix
     '[Warehouse]'
   end
