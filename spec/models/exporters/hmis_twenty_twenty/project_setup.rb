@@ -13,7 +13,6 @@ RSpec.shared_context 'project setup', shared_context: :metadata do
   # 'Funder.csv' => funder_source,
   # 'Inventory.csv' => inventory_source,
   # 'Organization.csv' => organization_source,
-  # 'Geography.csv' => geography_source,
   # 'ProjectCoC.csv' => project_coc_source,
 
   # Enrollment Related
@@ -24,12 +23,18 @@ RSpec.shared_context 'project setup', shared_context: :metadata do
   # 'HealthAndDV.csv' => health_and_dv_source,
   # 'IncomeBenefits.csv' => income_benefits_source,
   # 'Services.csv' => service_source,
+  # 'CurrentLivingSituation.csv' => current_living_situation_source,
+  # 'Assessment.csv' => assessment_source,
+  # 'AssessmentQuestions.csv' => assessment_question_source,
+  # 'AssessmentResults.csv' => assessment_result_source,
+  # 'Event.csv' => event_source,
 
   #  Other
   # 'Export.csv' => export_source,
   # 'Client.csv' => client_source,
   # 'Enrollment.csv' => enrollment_source,
   # 'Project.csv' => project_source,
+  # 'User.csv' => user_source,
 
   class ProjectRelatedTests
     TESTS ||= [
