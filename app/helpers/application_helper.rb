@@ -158,23 +158,12 @@ module ApplicationHelper
   # generates a list of HTML snippets representing the names the user is known by in different data sources
   def client_aliases(client)
 
-    names = client.client_names(window: controller_path.include?('window'), user: current_user)
+    names = client.client_names(window: controller_path.include?('window'), user: current_user, health: true)
     names.map do |name|
       sn = name[:ds]
       id = name[:ds_id]
       full_name = name[:name]
       content_tag( :em, sn, class: "ds-#{id}" ) + " #{full_name}"
-    end
-  end
-
-  def patient_to_add_to_aliases(client)
-    names = client.client_names(window: controller_path.include?('window'), user: current_user)
-    health_ds = GrdaWarehouse::DataSource.health.first&.short_name || 'Health'
-    client_has_health = names.detect { |name| name[:ds] == health_ds }
-    if client.patient.present? && !client_has_health
-      content_tag( :em, health_ds, class: "ds-#{health_ds.downcase}" ) + " #{client.patient.name}"
-    else
-      nil
     end
   end
 

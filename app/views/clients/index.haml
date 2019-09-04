@@ -34,7 +34,6 @@
           - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
         - else
           - main_client_name = akas.shift
-        - add_to_aliases = patient_to_add_to_aliases client
         .clients__client-card.clients__client.c-card.c-card--linked.js-client{data: {id: client.id, href: client_path(client)}}
           .c-card__content
             .client__details.client__details--identity
@@ -46,10 +45,6 @@
                   .client__client-name
                     .client-aka
                       = aka
-              - if add_to_aliases.present?
-                .client__client-name
-                  .client-aka
-                    = add_to_aliases
             .client__details.client__details--demographics
               .client__ssns
                 - client.source_clients.map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact.each do |ssn|

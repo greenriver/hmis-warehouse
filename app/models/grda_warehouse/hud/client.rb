@@ -668,19 +668,24 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names window: true, user: nil
+    def client_names window: true, user: nil, health: false
       client_scope = if window
         source_clients.visible_in_window_to(user)
       else
         source_clients
       end
-      client_scope.includes(:data_source).map do |m|
+      names = client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
           ds_id: m.data_source.id,
           name: m.full_name,
+          health: m.data_source.authoritative_type == 'health'
         }
       end
+      if health && patient.present?
+        names << { ds: 'Health', ds_id: 'health', name: patient.name } unless names.detect { |name| name[:health] }
+      end
+      return names
     end
 
     # client has a disability response in the affirmative
