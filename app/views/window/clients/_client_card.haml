@@ -7,6 +7,7 @@
         - main_client_name = client.source_clients.visible_in_window_to(current_user).first.data_source.short_name
       - else
         - main_client_name = akas.shift
+      - add_to_aliases = patient_to_add_to_aliases client
       .clients__client-additional-names
         .client__client-name
           .client-aka
@@ -15,6 +16,10 @@
           .client__client-name
             .client-aka
               = aka
+        - if add_to_aliases.present?
+          .client__client-name
+            .client-aka
+              = add_to_aliases
       = render 'relationships', client: client
     .client__details.client__details--demographics
       = render 'clients/chronic_flags', client: client

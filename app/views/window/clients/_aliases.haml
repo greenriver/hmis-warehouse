@@ -1,10 +1,13 @@
 
 - aliases = @client.client_names(window: true, user: current_user).uniq
+- health_ds = GrdaWarehouse::DataSource.health.first&.short_name || 'Health'
+- client_has_health = aliases.detect { |name| name[:ds] == health_ds }
+- add_patient_to_aliases = @client.patient.present? && !client_has_health
 - if @client.deceased?
   .alert.alert-danger
     = "Marked deceased on: #{@client.deceased_on}"
 
-- if aliases.any?
+- if aliases.any? || add_patient_to_aliases
   %ul.client__aliases.d-flex.list-unstyled.mt-6
     - aliases.each do |name|
       - sn = name[:ds]
@@ -14,3 +17,9 @@
           = sn
         %span.client__client-name-title
           = full_name
+    - if add_patient_to_aliases
+      %li.client__client-name
+        %span{class: "ds-#{health_ds.downcase}"}
+          = health_ds
+        %span.client__client-name-title
+          = @client.patient.name
