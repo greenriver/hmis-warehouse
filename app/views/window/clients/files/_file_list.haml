@@ -20,7 +20,7 @@
         %th.text-center
       %tbody
         - files.each do |file|
-          = render 'file_row', file: file, consent: consent
+          = render 'window/clients/files/file_row', file: file, consent: consent
 - if paginate
   - if consent
     - anchor = 'consent'

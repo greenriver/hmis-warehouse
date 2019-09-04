@@ -1,4 +1,4 @@
-= render 'instructions'
+= render 'window/clients/files/instructions'
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
 
   - if @file.errors.any?
@@ -35,12 +35,12 @@
                   - if GrdaWarehouse::Config.get(:allow_multiple_file_tags)
                     .checkbox
                       %label
-                        = render 'multi_tag', item: item, f: f, options: options
+                        = render 'window/clients/files/multi_tag', item: item, f: f, options: options
                         = item.name
                   - else
                     .radio
                       %label
-                        = render 'single_tag', item: item, f: f, options: options
+                        = render 'window/clients/files/single_tag', item: item, f: f, options: options
                         = item.name
                   - if item.included_info.present?
                     %p.ml-4

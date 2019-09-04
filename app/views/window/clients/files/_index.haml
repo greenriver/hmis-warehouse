@@ -2,14 +2,14 @@
   .col-sm-8
     %h1= content_for :title
   .col-sm-4.text-right
-    = render 'file_upload'
-= render 'permission_warning'
+    = render 'window/clients/files/file_upload'
+= render 'window/clients/files/permission_warning'
 .row
   .col-sm-8
-    = render 'download_warning'
-    = render 'health_warning'
+    = render 'window/clients/files/download_warning'
+    = render 'window/clients/files/health_warning'
   .col-sm-4
-    = render 'blank_file_list', file_list_title: 'Blank Files'
+    = render 'window/clients/files/blank_file_list', file_list_title: 'Blank Files'
 
 - if @client.client_files.any? || @deleted_files.any?
   %ul.nav.nav-tabs
