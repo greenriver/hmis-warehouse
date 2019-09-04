@@ -167,6 +167,17 @@ module ApplicationHelper
     end
   end
 
+  def patient_to_add_to_aliases(client)
+    names = client.client_names(window: controller_path.include?('window'), user: current_user)
+    health_ds = GrdaWarehouse::DataSource.health.first&.short_name || 'Health'
+    client_has_health = names.detect { |name| name[:ds] == health_ds }
+    if client.patient.present? && !client_has_health
+      content_tag( :em, health_ds, class: "ds-#{health_ds.downcase}" ) + " #{client.patient.name}"
+    else
+      nil
+    end
+  end
+
   def human_locale(locale)
     translations = {
       en: 'Text adjustments'
