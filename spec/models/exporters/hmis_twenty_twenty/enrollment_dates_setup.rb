@@ -24,6 +24,11 @@ RSpec.shared_context 'enrollment dates setup', shared_context: :metadata do
   let!(:income_benefits) { create_list :hud_income_benefit, 5, data_source_id: data_source.id, InformationDate: 1.week.ago }
   let!(:services) { create_list :hud_service, 5, data_source_id: data_source.id, DateProvided: 1.week.ago }
   let!(:exits) { create_list :hud_exit, 5, data_source_id: data_source.id }
+  let!(:assessments) { create_list :hud_assessment, 5, data_source_id: data_source.id, AssessmentDate: Date.yesterday }
+  let!(:assessment_questions) { create_list :hud_assessment_question, 5, data_source_id: data_source.id }
+  let!(:assessment_results) { create_list :hud_assessment_result, 5, data_source_id: data_source.id }
+  let!(:events) { create_list :hud_event, 5, data_source_id: data_source.id }
+  let!(:current_living_situations) { create_list :hud_current_living_situation, 5, data_source_id: data_source.id }
 
   # Project Related
   # 'Affiliation.csv' => affiliation_source,
@@ -89,6 +94,26 @@ RSpec.shared_context 'enrollment dates setup', shared_context: :metadata do
         list: :assessments,
         klass: GrdaWarehouse::Export::HmisTwentyTwenty::Assessment,
         export_method: :export_assessments,
+      },
+      {
+        list: :assessment_questions,
+        klass: GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentQuestion,
+        export_method: :export_assessment_questions,
+      },
+      {
+        list: :assessment_results,
+        klass: GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentResult,
+        export_method: :export_assessment_results,
+      },
+      {
+        list: :events,
+        klass: GrdaWarehouse::Export::HmisTwentyTwenty::Event,
+        export_method: :export_events,
+      },
+      {
+        list: :current_living_situations,
+        klass: GrdaWarehouse::Export::HmisTwentyTwenty::CurrentLivingSituation,
+        export_method: :export_current_living_situations,
       },
     ].freeze
   end

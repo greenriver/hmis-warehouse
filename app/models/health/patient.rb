@@ -221,7 +221,7 @@ module Health
     # patients with no qualifying activities in the past month
     scope :no_recent_qualifying_activities, -> do
       where.not(
-        id: Health::QualifyingActivity.in_range(1.months.ago..Date.today).
+        id: Health::QualifyingActivity.in_range(1.months.ago..Date.current).
           distinct.select(:patient_id)
       )
     end
@@ -229,7 +229,7 @@ module Health
     # patients with no qualifying activities in the current calendar month
     scope :no_qualifying_activities_this_month, -> do
       where.not(
-        id: Health::QualifyingActivity.in_range(Date.today.beginning_of_month..Date.today).
+        id: Health::QualifyingActivity.in_range(Date.current.beginning_of_month..Date.current).
           distinct.select(:patient_id)
       )
     end
@@ -319,7 +319,7 @@ module Health
 
     def days_to_engage
       return 0 unless engagement_date.present?
-      (engagement_date - Date.today).to_i.clamp(0, 365)
+      (engagement_date - Date.current).to_i.clamp(0, 365)
     end
 
     def self.outreach_cutoff_span
@@ -330,7 +330,7 @@ module Health
       if enrollment_start_date.present?
         (enrollment_start_date + self.class.outreach_cutoff_span).to_date
       else
-        (Date.today + self.class.outreach_cutoff_span).to_date
+        (Date.current + self.class.outreach_cutoff_span).to_date
       end
     end
 

@@ -474,7 +474,7 @@ module GrdaWarehouse::Hud
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :open_on_date, -> (date=Date.today) do
+    scope :open_on_date, -> (date=Date.current) do
       range = ::Filters::DateRange.new(start: date, end: date)
       open_during_range(range)
     end
@@ -618,7 +618,7 @@ module GrdaWarehouse::Hud
       @exit_date ||= if exit.present?
         exit.ExitDate
       else
-        Date.today
+        Date.current
       end
     end
 

@@ -731,8 +731,8 @@ module ReportGenerators::Pit::Fy2018
     def infer_age client_id:
       first_entry_date = first_entry_date(client_id: client_id)
       return nil unless first_entry_date.present?
-      if first_entry_date < Date.today - 18.years # happened over 18 years ago
-        return ((Date.today - first_entry_date)/365).to_i
+      if first_entry_date < Date.current - 18.years # happened over 18 years ago
+        return ((Date.current - first_entry_date)/365).to_i
       end
       return nil
     end

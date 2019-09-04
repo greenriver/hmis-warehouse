@@ -1,13 +1,9 @@
 FactoryBot.define do
-  factory :hud_assessment, class: 'GrdaWarehouse::Hud::Assessment' do
-    sequence(:AssessmentID, 7)
+  factory :hud_event, class: 'GrdaWarehouse::Hud::Event' do
+    sequence(:EventID, 12)
     sequence(:EnrollmentID, 1)
     sequence(:PersonalID, 10)
-    AssessmentLocation { 'Nearby' }
-    AssessmentType { 3 }
-    AssessmentLevel { 2 }
-    PrioritizationStatus { 1 }
-    sequence(:AssessmentDate) do |n|
+    sequence(:EventDate) do |n|
       dates = [
         Date.current,
         15.days.ago,
@@ -17,6 +13,8 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
+    Event { 2 }
+    ResultDate { 'Result' }
     sequence(:UserID, 5)
     DateCreated { Time.now }
     DateUpdated { Time.now }

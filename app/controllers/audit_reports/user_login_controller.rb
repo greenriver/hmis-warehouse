@@ -7,7 +7,7 @@ module AuditReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          date = Date.today.strftime('%Y-%m-%d')
+          date = Date.current.strftime('%Y-%m-%d')
           filename = "user-logins-#{date}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

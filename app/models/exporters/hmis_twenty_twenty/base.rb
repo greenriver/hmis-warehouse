@@ -416,7 +416,7 @@ module Exporters::HmisTwentyTwenty
       export.SourceContactFirst = @user&.first_name || 'Automated'
       export.SourceContactLast = @user&.last_name || 'Export'
       export.SourceContactEmail = @user&.email
-      export.ExportDate = Date.today
+      export.ExportDate = Date.current
       export.ExportStartDate = @range.start
       export.ExportEndDate = @range.end
       export.SoftwareName = _('OpenPath HMIS Warehouse')

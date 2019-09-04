@@ -378,7 +378,7 @@ module Reporting
         GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))
@@ -412,7 +412,7 @@ module Reporting
         GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))
@@ -497,7 +497,7 @@ module Reporting
       GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))

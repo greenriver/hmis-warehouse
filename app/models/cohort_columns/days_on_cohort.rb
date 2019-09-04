@@ -12,7 +12,7 @@ module CohortColumns
 
 
     def value(cohort_client)
-      (Date.today - cohort_client.created_at.to_date).to_i
+      (Date.current - cohort_client.created_at.to_date).to_i
     end
   end
 end
