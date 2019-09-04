@@ -39,7 +39,7 @@ RSpec.shared_context 'multi-project tests', shared_context: :metadata do
         expect(csv_project_ids).to eq source_ids
       end
     end
-    ProjectRelatedTests::TESTS.each do |item|
+    ProjectRelatedHmisTwentyTwentyTests::TESTS.each do |item|
       describe "when exporting #{item[:list]}" do
         before(:each) do
           exporter.public_send(item[:export_method])

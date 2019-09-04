@@ -58,7 +58,7 @@ RSpec.shared_context 'enrollment dates setup', shared_context: :metadata do
   # 'Project.csv' => project_source,
   # 'User.csv' => user_source,
 
-  class EnrollmentRelatedTests
+  class EnrollmentRelatedHmisTwentyTwentyTests
     TESTS ||= [
       {
         list: :disabilities,

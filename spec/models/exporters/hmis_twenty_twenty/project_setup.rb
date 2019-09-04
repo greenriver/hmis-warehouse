@@ -36,7 +36,7 @@ RSpec.shared_context 'project setup', shared_context: :metadata do
   # 'Project.csv' => project_source,
   # 'User.csv' => user_source,
 
-  class ProjectRelatedTests
+  class ProjectRelatedHmisTwentyTwentyTests
     TESTS ||= [
       {
         list: :organizations,

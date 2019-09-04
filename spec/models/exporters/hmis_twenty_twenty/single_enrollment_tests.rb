@@ -55,7 +55,7 @@ RSpec.shared_context 'single-enrollment tests', shared_context: :metadata do
         expect(csv.first['PersonalID']).to eq clients.first.destination_client.id.to_s
       end
     end
-    EnrollmentRelatedTests::TESTS.each do |item|
+    EnrollmentRelatedHmisTwentyTwentyTests::TESTS.each do |item|
       describe "when exporting #{item[:list]}" do
         before(:each) do
           exporter.public_send(item[:export_method])
