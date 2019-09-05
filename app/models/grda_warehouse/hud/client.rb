@@ -682,8 +682,8 @@ module GrdaWarehouse::Hud
           health: m.data_source.authoritative_type == 'health'
         }
       end
-      if health && patient.present?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name } unless names.detect { |name| name[:health] }
+      if health && patient.present? && names.detect { |name| name[:health] }.blank?
+        names << { ds: 'Health', ds_id: 'health', name: patient.name }
       end
       return names
     end
