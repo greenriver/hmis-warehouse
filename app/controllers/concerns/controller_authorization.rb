@@ -59,7 +59,7 @@ module ControllerAuthorization
   end
 
   def require_can_edit_window_client_notes_or_own_window_client_notes!
-    return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes?
+    return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes? || current_user.can_edit_client_notes?
     not_authorized!
   end
 

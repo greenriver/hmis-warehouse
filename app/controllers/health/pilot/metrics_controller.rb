@@ -5,8 +5,23 @@
 ###
 
 module Health::Pilot
-  class MetricsController < Window::Health::Pilot::MetricsController
+  class MetricsController < HealthController
+    include PjaxModalController
     include ClientPathGenerator
-    
+    include ActionView::Helpers::NumberHelper
+
+    helper HealthOverviewHelper
+
+    before_action :set_client, only: [:index]
+    before_action :set_patient, only: [:index]
+
+    def index
+      load_patient_metrics
+
+      @scrolspy = true
+
+      render layout: !request.xhr?
+    end
+
   end
 end

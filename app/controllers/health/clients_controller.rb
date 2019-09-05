@@ -5,9 +5,15 @@
 ###
 
 module Health
-  class ClientsController < Window::Health::ClientsController
+  class ClientsController < IndividualPatientControllerr
+    include PjaxModalController
     include ClientPathGenerator
-    
 
+    before_action :set_client, only: [:careplan]
+    before_action :set_hpc_patient, only: [:careplan]
+
+    def careplan
+
+    end
   end
 end
