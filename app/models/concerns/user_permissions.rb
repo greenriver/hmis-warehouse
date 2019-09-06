@@ -66,19 +66,19 @@ module UserPermissions
     end
 
     def can_access_vspdat_list?
-      GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
+      GrdaWarehouse::Vispdat::Base.any_visible_by?(self)
     end
 
     def can_create_or_modify_vspdat?
-      GrdaWarehouse::Vispdat::Base.any_modifiable_by(current_user)
+      GrdaWarehouse::Vispdat::Base.any_modifiable_by(self)
     end
 
     def can_access_youth_intake_list?
-      GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
+      GrdaWarehouse::YouthIntake::Base.any_visible_by?(self)
     end
 
     def can_edit_some_youth_intakes?
-      GrdaWarehouse::YouthIntake::Base.any_modifiable_by?(current_user)
+      GrdaWarehouse::YouthIntake::Base.any_modifiable_by?(self)
     end
 
     def can_edit_window_client_notes_or_own_window_client_notes?

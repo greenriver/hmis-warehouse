@@ -57,9 +57,10 @@
           %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
             Uses Move-in Date
         %td= checkmark(@project.uses_move_in_date)
-      %tr
-        %th Project Contacts
-        %td= link_to 'View/Edit', project_contacts_path(@project)
+      - if can_view_imports?
+        %tr
+          %th Project Contacts
+          %td= link_to 'View/Edit', project_contacts_path(@project)
       %tr
         %th Confidential Project?
         %td= checkmark @project.confidential?
