@@ -1,0 +1,27 @@
+.c-card--flush.mb-5
+  %header.row.c-card__header
+    .col-sm-8
+      %h3
+        = org.name
+        - if can_see_raw_hmis_data?
+          = link_to 'HMIS', hmi_path(org.id, type: 'Organization'), class: 'btn btn-xs btn-secondary btn-hmis ml-2'
+      - if org.dmh
+        Treated as DMH for chronic calculations
+    .col-sm-4.text-right
+      - if can_edit_organizations?
+        = link_to organization_contacts_path(organization_id: org.id) do
+          View/Edit Organization Contacts
+  %table.table.table-sm
+    %thead
+      %tr
+        %th{style: 'width:30%'} Project
+        %th{style: 'width:10%'} Confidential?
+        %th{style: 'width:10%'} CoC Code
+        %th{style: 'width:10%'} Continuum Project
+        %th{style: 'width:15%'} Housing Type
+        %th{style: 'width:5%'} Geocode
+        %th{style: 'width:5%'} Geography Type
+        %th{style: 'width:5%'} Inventory Record?
+    %tbody
+      - org.projects.each do |project|
+        = render 'project', project: project, org: org

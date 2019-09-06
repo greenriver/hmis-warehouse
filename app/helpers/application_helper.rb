@@ -7,7 +7,7 @@
 module ApplicationHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
-  Role.permissions.each do |permission|
+  (Role.permissions + User.additional_permissions).each do |permission|
     define_method("#{permission}?") do
       current_user.try(permission)
     end

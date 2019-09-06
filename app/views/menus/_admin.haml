@@ -4,6 +4,7 @@
       %li.o-menu__item
         = link_to data_sources_path, class: 'o-menu__link' do
           = _('Data Sources')
+    - if current_user.can_see_raw_hmis_data?
       %li.o-menu__item
         = link_to hmis_path, class: 'o-menu__link' do
           = _('HMIS Source Data')

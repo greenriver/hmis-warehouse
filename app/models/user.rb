@@ -6,6 +6,7 @@
 
 class User < ActiveRecord::Base
   include Rails.application.routes.url_helpers
+  include UserPermissions
   has_paper_trail
   acts_as_paranoid
 
@@ -262,14 +263,6 @@ class User < ActiveRecord::Base
     viewables.each do |viewable|
       viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
     end
-  end
-
-  def can_see_admin_menu?
-    can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
-  end
-
-  def self.can_receive_secure_files?
-    can_view_assigned_secure_uploads || can_view_all_secure_uploads
   end
 
   def admin_dashboard_landing_path

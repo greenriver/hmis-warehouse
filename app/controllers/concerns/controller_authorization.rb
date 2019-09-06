@@ -14,70 +14,11 @@ module ControllerAuthorization
   # such as require_can_edit_users!
   # It then checks the appropriate permission against the current user throwing up
   # an alert if access is blocked
-  Role.permissions.each do |permission|
+  (Role.permissions + User.additional_permissions).each do |permission|
     define_method("require_#{permission}!") do
       not_authorized! unless current_user&.send("#{permission}?".to_sym)
     end
   end
-
-  def require_can_assign_or_view_users_to_clients!
-    can_view = can_assign_users_to_clients? || can_view_client_user_assignments?
-    return true if can_view
-    not_authorized!
-  end
-
-  def require_can_view_clients_or_window!
-    can_view = current_user.can_view_client_window? || current_user.can_view_clients?
-    return true if can_view
-    not_authorized!
-  end
-
-  def require_window_file_access!
-    can_view = current_user.can_see_own_file_uploads? || current_user.can_manage_window_client_files?
-    return true if can_view
-    not_authorized!
-  end
-
-  def require_can_access_vspdat_list!
-    return true if GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
-    not_authorized!
-  end
-
-  def require_can_create_or_modify_vspdat!
-    return true if GrdaWarehouse::Vispdat::Base.any_modifiable_by(current_user)
-    not_authorized!
-  end
-
-  def require_can_access_youth_intake_list!
-    return true if GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
-    not_authorized!
-  end
-
-  def require_can_edit_some_youth_intakes!
-    return true if GrdaWarehouse::YouthIntake::Base.any_modifiable_by?(current_user)
-    not_authorized!
-  end
-
-  def require_can_edit_window_client_notes_or_own_window_client_notes!
-    return true if current_user.can_edit_window_client_notes? || current_user.can_see_own_window_client_notes? || current_user.can_edit_client_notes?
-    not_authorized!
-  end
-
-  def require_can_view_any_reports!
-    return true if current_user.present? && (current_user.can_view_all_reports? || current_user.can_view_assigned_reports?)
-    not_authorized!
-  end
-
-  def require_can_view_user_audit_report!
-    return true if current_user.present? && (current_user.can_manage_agency? || current_user.can_manage_all_agencies?)
-    not_authorized!
-  end
-
-  def require_can_view_client_and_history!
-    return true if current_user.can_view_clients? && current_user.can_view_client_history_calendar?
-    not_authorized!
-  end
-
 
   def require_can_see_this_client_demographics!
     return true if current_user.can_view_client_window?

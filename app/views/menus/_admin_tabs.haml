@@ -1,4 +1,4 @@
-- if current_user.can_see_admin_menu?
+- if can_see_admin_menu?
   %ul.nav.nav-tabs
     - if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_users_path))}

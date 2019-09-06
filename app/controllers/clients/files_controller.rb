@@ -311,10 +311,6 @@ module Clients
       @window = ! can_manage_client_files?
     end
 
-    def require_can_manage_these_client_files!
-      require_can_manage_client_files!
-    end
-
     def editable_scope
       scope = file_source.editable_by?(current_user).
         where(client_id: @client.id)
