@@ -88,26 +88,6 @@ class User < ActiveRecord::Base
     super && active
   end
 
-  def has_administrative_access_to_health?
-      can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
-  end
-
-  def has_patient_referral_review_access?
-    can_approve_patient_assignments? || can_manage_patients_for_own_agency?
-  end
-
-  def has_some_patient_access?
-    can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
-  end
-
-  def can_access_some_version_of_clients?
-    can_view_client_window? || can_view_clients? || can_edit_clients?
-  end
-
-  def has_some_edit_access_to_youth_intakes?
-    can_edit_youth_intake? || can_edit_own_agency_youth_intake?
-  end
-
   def limited_client_view?
     ! can_view_clients?
   end
