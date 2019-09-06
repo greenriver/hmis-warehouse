@@ -53,7 +53,7 @@ Rails.application.routes.draw do
       resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
       resources :files, only: [:index, :show], controller: '/health/files'
       resources :team_members, controller: '/health/patient_team_members'
-      resources :goals, controller: :patient_goals, controller: '/health/goals'
+      resources :goals, controller: '/health/patient_goals'
       resources :epic_case_notes, only: [:show], controller: '/health/epic_case_notes'
       resources :epic_ssms, only: [:show], controller: '/health/epic_ssms'
       resources :epic_chas, only: [:show], controller: '/health/epic_chas'
