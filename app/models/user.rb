@@ -107,6 +107,10 @@ class User < ActiveRecord::Base
     can_edit_youth_intake? || can_edit_own_agency_youth_intake?
   end
 
+  def limited_client_view?
+    ! can_view_clients?
+  end
+
   def self.stale_account_threshold
     30.days.ago
   end

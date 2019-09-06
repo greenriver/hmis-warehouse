@@ -1,5 +1,5 @@
 
-- aliases = @client.client_names(window: false, user: current_user).uniq
+- aliases = @client.client_names(window: current_user.limited_client_view?, user: current_user).uniq
 - if @client.deceased?
   .alert.alert-danger
     = "Marked deceased on: #{@client.deceased_on}"

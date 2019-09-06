@@ -1,4 +1,0 @@
-= content_for :modal_title, '3-month Follow Up'
-= simple_form_for @follow_up, as: :follow_up, url: polymorphic_path(youth_follow_up_path_generator, id: @follow_up.id) do |f|
-  = render 'form', f: f
-  = f.submit 'Update', class: 'btn btn-primary'

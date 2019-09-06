@@ -27,7 +27,7 @@ class ClientsController < ApplicationController
   helper_method :sort_column, :sort_direction
 
   def index
-    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results)
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
     @clients = if params[:q].present?
       client_source.text_search(params[:q], client_scope: client_search_scope)

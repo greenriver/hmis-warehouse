@@ -273,6 +273,7 @@ $client-image-height: 200px;
 .client__details{
   padding-right: space(4);
   flex: 0 0 33%;
+  max-width: 33%;
 }
 
 @include media-breakpoint-down(sm) {
@@ -285,7 +286,7 @@ $client-image-height: 200px;
 
 .client__details--status,
 .client__details--demographics {
-  align-self: center;
+  align-self: flex-start;
 }
 
 .clients__client-name,

@@ -798,13 +798,13 @@ module GrdaWarehouse::Hud
     def window_link_for? user
       return false if user.blank?
       if show_window_demographic_to?(user)
-        window_client_path(self)
+        client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
-        window_client_vispdats_path(self)
+        client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
-        window_client_files_path(self)
+        client_files_path(self)
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
-        window_client_youth_intakes_path(self)
+        lient_youth_intakes_path(self)
       end
     end
 
@@ -821,7 +821,7 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
+      (user.can_view_clients? || (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))) && user.can_view_client_window?
     end
 
     def visible_because_of_relationship?(user)
