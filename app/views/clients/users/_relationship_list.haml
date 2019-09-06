@@ -42,6 +42,32 @@
             = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
           %td
             = f.submit value: 'Add Relationship', class: 'btn btn-primary'
+- else
+  %table.table.table-sm
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 200}
+    %col{width: 100}
+    %col{width: 100}
+    %col{width: 200}
+    %thead
+      %tr
+        %th
+          Existing User
+        %th
+          Relationship
+        %th
+          Start Date
+        %th
+          End Date
+        %th
+          Receive Notifications?
+        %th
+          Confidential?
+        %th
+          &nbsp;
+    %tbody
 - @user_clients.each do |user_client|
   - user = user_client.user
   %table.table.table-sm
@@ -59,20 +85,33 @@
         %td
           = user_client.relationship
         %td
-          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-            = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
+          - if can_assign_users_to_clients?
+            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+              = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
+          - else
+            = user_client.start_date
         %td
-          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-            = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
+          - if can_assign_users_to_clients?
+            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+              = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
+          - else
+            = user_client.end_date
         %td.text-center
-          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-            = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
+          - if can_assign_users_to_clients?
+            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+              = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
+          - else
+            = checkmark_or_x user_client.client_notifications
         %td.text-center
-          = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-            = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
+          - if can_assign_users_to_clients?
+            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+              = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
+          - else
+            = checkmark_or_x user_client.confidential
         %td
-          = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-secondary', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
-            %span.icon-cross
+          - if can_assign_users_to_clients?
+            = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-danger btn-icon-only', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
+              %span.icon-cross
 - if @user_clients.blank?
   %p.text-center
     %em This client has no relationships

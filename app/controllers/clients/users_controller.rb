@@ -9,6 +9,7 @@ module Clients
     include ClientPathGenerator
 
     before_action :require_can_assign_or_view_users_to_clients!
+    before_action :require_can_assign_users_to_clients!, only: [:update, :destroy, :create, :edit]
     before_action :set_client
     before_action :set_user, only: [:edit, :update, :destroy]
     after_action :log_client
