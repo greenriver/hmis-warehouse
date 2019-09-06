@@ -1,0 +1,22 @@
+%article.l-print__section
+  %h1 Care Team Members
+  %table.health__team
+    %thead
+      %tr
+        %th Capacity
+        %th Name
+        %th Organization
+        %th Contact
+    %tbody
+      - if @careplan.locked?
+        - team_members = @careplan.team_members_archive.map{|m| m['type'].safe_constantize.new(m)}
+      - else
+        - team_members = @patient.team_members
+      - team_members.each do |member|
+        %tr
+          %td= member.member_type_name
+          %td= member.full_name
+          %td= member.organization
+          %td
+            %p= member.email
+            %p= member.phone

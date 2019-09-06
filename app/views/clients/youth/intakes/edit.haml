@@ -1,0 +1,13 @@
+- content_for :title, "Edit Youth Intake for #{@client.full_name}"
+
+%h1.page-title= content_for :title
+
+= simple_form_for @intake, url: polymorphic_path(youth_intake_path_generator, id: @intake.id) do |f|
+  = render 'intake_form', f: f, readonly: false
+  .form-action.d-flex
+    .ml-auto
+      = link_to polymorphic_path(youth_intakes_path_generator), class: 'btn btn-secondary' do
+        %i.icon-cross
+        Cancel
+    .ml-2
+      = f.submit 'Save', class: 'btn btn-primary'

@@ -1,0 +1,20 @@
+- title = 'Appointments'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+
+- if @patient.present? && @appointments.any?
+  %h3 Upcoming Appointments
+  %p.note.small
+    Upcoming Appointments at #{Health::Appointment.ignore_departments.to_sentence} are not shown.
+  = render 'appointments_table', appointments: @appointments
+
+  = content_for :page_js do
+    :javascript
+      $('.datatable').DataTable({
+        searching: false,
+        ordering: false,
+        pageLength: 15,
+        lengthChange: false,
+        pagingType: 'simple'
+      });

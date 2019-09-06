@@ -1,0 +1,23 @@
+- title = 'Problems'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.row
+  .col-sm-12
+    - if @patient.present? && @problems.any?
+      = render 'problems_table', problems: @problems
+    - else
+      %p No problems.
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });

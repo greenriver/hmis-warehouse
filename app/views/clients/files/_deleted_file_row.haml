@@ -1,0 +1,27 @@
+%tr{ class: "client-file-#{file.id}"}
+  %td
+    - file.tag_list.each do |tag|
+      - included_info = @available_tags[tag]&.included_info
+      .client__file-tags.mb-2
+        = tag
+        - if included_info
+          .files-included-info
+            %em Contains:
+            = included_info
+    - if file.note.present?
+      .client__file-note.mb-2
+        %strong Note:
+        = file.note
+    %small.client__file-attribution
+      = "#{file.created_at} by "
+      = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
+  %td= file.deleted_at
+  %td
+    - if file.delete_reason.present?
+      - detail = file.delete_detail
+      - if file.delete_reason != 99 || detail.blank?
+        = delete_reasons[file.delete_reason]
+      - else
+        = "#{file.delete_detail}"
+    - else
+      Removed by Uploader

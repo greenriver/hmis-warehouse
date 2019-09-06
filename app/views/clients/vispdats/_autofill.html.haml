@@ -1,0 +1,69 @@
+- content_for :page_js do
+  :coffeescript
+    vt = "grda_warehouse_vispdat"
+
+    # checks all inputs passed in
+    check = (input) -> $(input).prop('checked', true)
+    # returns all the inputs with the given name
+    named = (name) -> $("input[name='\#{vt}[\#{name}]']")
+    # returns element with id
+    el = (name, value) ->
+      input = $("#\#{vt}_\#{name}")
+      input.val( value ) if input.val().length==0
+
+    # Basic Information
+    first_name = chance.first()
+    nickname = chance.pickone(['Lil', 'Big', 'Ice']) + " " + first_name[0]
+    last_name = chance.last()
+    el "nickname", nickname
+    el "language_answer", chance.pickone(['language_english', 'language_spanish', 'language_french'])
+
+    # History
+    sleeps = chance.pickone( named 'sleep_answer' )
+    check radio for radio in [sleeps]
+    el 'years_homeless', chance.integer(min: 0, max: 3)
+    el 'episodes_homeless', chance.integer(min: 0, max: 36)
+
+    # Risks / Socialization / Wellness
+    el 'emergency_healthcare', chance.integer(min: 0, max: 25)
+    el 'ambulance', chance.integer(min: 0, max: 25)
+    el 'inpatient', chance.integer(min: 0, max: 25)
+    el 'crisis_service', chance.integer(min: 0, max: 25)
+    el 'talked_to_police', chance.integer(min: 0, max: 25)
+    el 'jail', chance.integer(min: 0, max: 25)
+    answers = [
+      chance.pickone named('attacked_answer')
+      chance.pickone named('threatened_answer')
+      chance.pickone named('legal_answer')
+      chance.pickone named('tricked_answer')
+      chance.pickone named('risky_answer')
+      chance.pickone named('owe_money_answer')
+      chance.pickone named('get_money_answer')
+      chance.pickone named('activities_answer')
+      chance.pickone named('basic_needs_answer')
+      chance.pickone named('abusive_answer')
+      chance.pickone named('leave_answer')
+      chance.pickone named('chronic_answer')
+      chance.pickone named('hiv_answer')
+      chance.pickone named('disability_answer')
+      chance.pickone named('avoid_help_answer')
+      chance.pickone named('pregnant_answer')
+      chance.pickone named('eviction_answer')
+      chance.pickone named('drinking_answer')
+      chance.pickone named('mental_answer')
+      chance.pickone named('head_answer')
+      chance.pickone named('learning_answer')
+      chance.pickone named('brain_answer')
+      chance.pickone named('medication_answer')
+      chance.pickone named('sell_answer')
+      chance.pickone named('trauma_answer')
+      chance.pickone named('picture_answer')
+    ]
+    check radio for radio in answers
+
+    # Follow Up Questions
+    el 'find_location', chance.address()
+    el 'find_time', chance.hour() + ' ' + chance.ampm()
+    el 'when_answer', chance.pickone(['morning', 'afternoon', 'evening', 'night'])
+    el 'phone', chance.phone()
+    el 'email', "\#{first_name}.\#{last_name}@mailinator.com"

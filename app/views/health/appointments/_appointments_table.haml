@@ -1,0 +1,26 @@
+.slab
+  %table.table.table-sm.datatable
+    %thead
+      %tr
+        %th Date
+        %th Appointment
+        %th Doctor
+        %th SA
+    %tbody
+      - appointments.each do |visit|
+        %tr
+          %td
+            = visit.appointment_time.strftime('%m/%d/%Y')
+            %br
+            = visit.appointment_time.strftime('%l:%M %p')
+          %td
+            = visit.appointment_type
+            at
+            = visit.department
+            - if visit.notes.present?
+              %br
+              %strong
+                Note:
+              = visit.notes
+          %td= visit.doctor
+          %td= visit.sa

@@ -1,0 +1,15 @@
+<% form = nil %>
+<% simple_form_for @note, url: form_url  do |f| %>
+  <% form = f%>
+<% end %>
+
+var noteAdded = "<%= j @noteAdded.to_json %>"
+if(noteAdded === 'true') {
+  var container = $(behaviorSelector('activities'));
+  container.empty();
+  container.append("<%= j render(partial: 'fields_for_activities', locals: {f: form}) %>");
+  init();
+  var notes = $('.sdh-note__activity');
+  var last = notes.last();
+  last.find('input[type="radio"]').first().focus();
+}

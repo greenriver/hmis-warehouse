@@ -1,0 +1,9 @@
+- title = 'Previous Team Members'
+= content_for(:title, title)
+%h1= content_for :title
+
+.row
+  .col-sm-12
+    = render 'current_members', members: @team.members.only_deleted.order(type: :asc, last_name: :asc, first_name: :asc), restore: true
+
+          

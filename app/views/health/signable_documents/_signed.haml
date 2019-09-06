@@ -1,0 +1,4 @@
+= content_for :title, 'Care Plan Signature'
+%h1=content_for :title
+.alert.alert-danger
+  This request is no longer valid. Program administrators will take the next action to get a signature. You can contact BH CP at #{mail_to Health::Cp.sender.first.key_contact_email}.

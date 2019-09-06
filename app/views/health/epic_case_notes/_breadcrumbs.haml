@@ -1,0 +1,3 @@
+= content_for :crumbs do
+  = link_to  polymorphic_path(careplans_path_generator, client_id: @client.id) do
+    &laquo; Care Plan

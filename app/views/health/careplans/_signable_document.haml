@@ -1,0 +1,24 @@
+.patient__file-link.mb-2
+  - # Show a link to the most appropriate version of the careplan, or just generate a pdf
+  - if health_file_id = careplan.most_appropriate_pdf_id
+    - url = polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: health_file_id)
+  - else
+    - url = polymorphic_path(careplan_path_generator, id: careplan)
+  = link_to url do
+    PDF: Care Plan
+
+- if patient_sig = careplan.patient_signed_health_files.order(updated_at: :desc).select(:id, :updated_at).limit(1).first
+  .patient__file-link.mb-2
+    = link_to polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: patient_sig.id) do
+      PDF: Care Plan
+      .pctp__signature-document-date.ml-2
+        %strong
+          (patient signature #{patient_sig.updated_at.to_date})
+- if pcp_sig = careplan.pcp_signed_health_files.order(updated_at: :desc).select(:id, :updated_at).limit(1).first
+  .patient__file-link.mb-2
+    = link_to polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: pcp_sig.id) do
+      PDF: Care Plan
+      .pctp__signature-document-date.ml-2
+        %strong
+          (PCP signature #{pcp_sig.updated_at.to_date})
+

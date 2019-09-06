@@ -1,0 +1,6 @@
+- if @goals.present?
+  .row.jGoals
+    .col-sm-12
+      %h3 Goals
+      - @goals.each do |goal|
+        = render goal

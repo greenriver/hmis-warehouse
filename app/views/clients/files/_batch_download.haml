@@ -1,0 +1,5 @@
+= simple_form_for :batch_download, url: polymorphic_path(files_batch_download_path_generator, id: @client.id), method: :post do |f|
+  = f.input :file_ids, as: :hidden, input_html: {class: 'jDownloadIDs'}
+  %button.jDownloadButton.btn.btn-secondary{disabled: :disabled}
+    %i.icon-download2
+    Download Selected

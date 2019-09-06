@@ -1,0 +1,152 @@
+- content_for :page_js do
+  :javascript
+    
+    var radioButtonsWithOtherChange = function(input) {
+      var container = $(input).parents('.string-collection-with-other__container');
+      var otherInput = container.find('.string-collection-with-other__input');
+      var otherValue = otherInput.data('other-value');
+      var inputs = container.find('.string-collection-with-other__control:checked')
+      var selectedValues = []
+      inputs.each(function() {
+        selectedValues.push($(this).val())
+      });
+      if(selectedValues.indexOf(otherValue) > -1) {
+        otherInput.slideDown();
+      } else {
+        otherInput.find('input').val('');
+        otherInput.slideUp();
+      }
+      var dateInput = container.find('.string-collection-date__input');
+      if(dateInput.length === 1) {
+        var dateValues = dateInput.data('date-values')
+        var value = $(input).val()
+        if($(input).is(':checked') && dateValues.indexOf(value) > -1) {
+          dateInput.slideDown();
+        } else {
+          // don't remove yet (this will be removed after validation)
+          dateInput.slideUp();
+        }
+      }
+    }
+
+    var behaviorSelector = function(behavior) {
+      return '[data-behavior="'+behavior+'"]'
+    }
+
+    var saveNote = function(e) {
+      var form = $(e.target).closest('form');
+      var data = form.serialize();
+      $.ajax({
+        url: form.data('url'),
+        type: 'PATCH',
+        data: data,
+        processData: false
+      }).done(function(e) {
+        console.log('done');
+      }).fail(function(e) {
+        console.log('fail');
+      })
+    }
+
+    var addActivity = function(event) {
+      event.preventDefault();
+      var container = $(behaviorSelector("activities"));
+      var none = $(behaviorSelector("no activities"));
+      var activities = $(behaviorSelector("activity"));
+      var template = $(behaviorSelector("activity to copy"))[0];
+      var html = $(template).html().replace(/COPY/gi, activities.length);
+      
+      var newActivityContainer = $("<div class='sdh-note__activity' data-behavior='activity'></div>").appendTo(container);
+      var newHeader = $("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>").appendTo(newActivityContainer);
+      var newActivity = $(html).appendTo(newActivityContainer);
+      none.hide();
+      saveNote(event);
+      return false
+    }
+
+    var removeActivity = function(event) {
+      event.preventDefault();
+      var confirm = window.confirm("Are you sure?");
+      if(confirm) {
+        var activity = $(this).parents('.sdh-note__activity');
+        var removeInput = activity.find(behaviorSelector('remove activity input'))
+        removeInput.prop('checked', true);
+        var form = $(event.target).closest('form');
+        var url = $(event.target).attr('href');
+        var data = form.serialize();
+        $.ajax({
+          url: url,
+          type: 'PATCH',
+          data: data
+        }).done(function(e) {
+          activity.slideUp();
+          activity.remove();
+        }).fail(function(e) {
+          console.log('fail');
+        })
+      }
+    }
+
+    var loadInput = function(i) {
+      var input = $(i);
+      if(!input.is('input')) {
+        input = input.find('input');
+      }
+      return input
+    }
+
+    var isActivityInput = function(input) {
+      var name = loadInput(input).attr('name');
+      return name.indexOf('health_sdh_case_management_note[activities_attributes]') >= 0
+    }
+
+    var updateActivityInputs = function(event) {
+      var activity = $(this).parents('.sdh-note__activity');
+      var remove = activity.find(behaviorSelector('remove activity input'));
+      var inputs = activity.find('input');
+      var isEmpty = true
+      inputs.each(function() {
+        var input = loadInput(this);
+        if(input.attr('type') === 'radio' && input.is(':checked')) {
+          if(input.val()) {
+            isEmpty = false;
+          }
+        } else if(input.attr('type') === 'text') {
+          if(input.val()) {
+            isEmpty = false;
+          }
+        }
+      });
+      remove.prop('checked', isEmpty);
+      saveNote(event);
+    }
+
+    var init = function() {
+      var datepickers = $('div.datepicker');
+      datepickers.each(function() {
+        if(isActivityInput(this)) {
+          $(this).on('changeDate', updateActivityInputs);
+        } else {
+          $(this).on('changeDate', saveNote);
+        }
+      })
+      $('.sdh-cmn-form input').each(function() {
+        if(!$(this).hasClass('datepicker')) {
+          if(isActivityInput(this)) {
+            $(this).on('change', updateActivityInputs);
+          } else {
+            $(this).on('change', saveNote);
+          }
+        }
+      });
+      var removeActivities = $(behaviorSelector('remove activity'));
+      removeActivities.on('click', removeActivity);
+    }
+
+    $(document).ready(function() {
+      init();
+    });
+
+
+
+

@@ -1,0 +1,15 @@
+%ul.nav.nav-tabs.sub-nav-tabs
+  %li.nav-item{role: :presentation, aria: {controls: 'summary', selected: 'true'}}= link_to 'Patient Summary', '#summary', class: 'nav-link'
+  %li.nav-item{role: :presentation, aria: {controls: 'appointments-list', selected: 'false'}}= link_to 'Appointments', '#appointments-list', class: 'nav-link'
+  %li.nav-item{role: :presentation, aria: {controls: 'problems-list', selected: 'false'}}= link_to 'Problems', '#problems-list', class: 'nav-link'
+  %li.nav-item{role: :presentation, aria: {controls: 'medications-list', selected: 'false'}}= link_to 'Medications', '#medications-list', class: 'nav-link'
+
+
+- content_for :page_js do
+  :javascript
+    var tabs = document.querySelector('.sub-nav-tabs')
+    new App.Affix({
+      element: tabs,
+      offset: tabs.offsetTop,
+      elementToPad: tabs.parentElement.nextElementSibling
+    })

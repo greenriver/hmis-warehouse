@@ -1,0 +1,17 @@
+- status = @client.release_current_status
+- state='success'
+- icon='checkmark'
+
+- if status == 'None on file'
+  - state='warning'
+  - icon='question'
+- elsif status == 'Expired'
+  - state='danger'
+  - icon='clock'
+
+.c-tag{ class: "c-tag--#{state}" }
+  .c-tag__wrapper
+    .c-tag__icon
+      %div{ class: "icon-#{icon}" }
+    .c-tag__content
+      %span=status

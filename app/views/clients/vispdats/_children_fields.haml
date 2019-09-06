@@ -1,0 +1,54 @@
+%h2#children-fields Children
+.well.vispdat
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are currently with you?
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-8.col-md-offset-1
+      %label How many children under the age of 18 are not currently with you, but you have reason to believe they will be joining you when you get housed?
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family, label: false
+    .col-sm-1
+      = f.input :number_of_children_under_18_not_with_family_refused, label: "Refused/Unsure"
+  .row
+    .col-sm-8.col-md-offset-1
+      %label= @vispdat.question(:number_of_bedrooms)
+    .col-sm-2
+      - bedrooms = @vispdat.number_of_bedrooms || 0
+      = f.input :number_of_bedrooms, label: false, as: :select, collection: [[2,2],[3,3],[4,4],['other',0]], input_html: { class: 'number-of-bedrooms select2' }, include_blank: false, selected: (bedrooms.between?(2,4) ? bedrooms : 0)
+      = f.input :number_of_bedrooms, input_html: { min: 1, max: 20, step: '1', disabled: bedrooms.between?(2,4), class: 'number-of-bedrooms-other', value: (bedrooms.between?(2,4) ? '' : bedrooms) }
+  .row
+    .col-sm-8.col-md-offset-1
+      %label IF HOUSEHOLD INCLUDES A FEMALE: Is any member of the family currently pregnant?
+    .col-sm-2
+      = f.input :any_member_pregnant_answer, as: :radio_buttons, collection: @vispdat.class.options_for(:any_member_pregnant_answers), label: false
+
+  .row
+    .col-sm-10
+      %hr
+    .col-sm-2.text-right
+      = link_to polymorphic_path([:add_child] + vispdat_path_generator, client_id: @client.id, id: @vispdat.id), class: 'btn btn-success', title: 'Add Child', method: :put, data: { toggle: 'tooltip' } do
+        %i.icon-plus
+        Add Child
+
+  .row
+    .col-sm-12
+      .row
+        .col-sm-3.col-md-offset-1
+          %label
+            %strong First Name
+        .col-sm-3
+          %label
+            %strong Last Name
+        .col-sm-3
+          %label
+            %strong Date of Birth
+        .col-sm-2
+          %label
+            %strong Delete
+      = f.simple_fields_for :children do |child|
+        = render 'child', child: child

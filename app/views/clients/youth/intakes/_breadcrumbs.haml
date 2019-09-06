@@ -1,0 +1,4 @@
+= content_for :crumbs do
+  = link_to polymorphic_path(youth_intakes_path_generator) do
+    &laquo;
+    = _("Youth Intakes for #{@client.name}")
