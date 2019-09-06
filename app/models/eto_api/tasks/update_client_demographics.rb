@@ -101,6 +101,7 @@ module EtoApi::Tasks
           clients = candidate_scope(type: :demographic).
             where(id: ids)
           clients.each do |client|
+            next unless client.present?
             begin
               found = fetch_demographics(client)
               if found.present?
@@ -124,7 +125,7 @@ module EtoApi::Tasks
                 return
               end
             rescue Exception => e
-              raise "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
+              notifier.ping "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
             end
           end
         end

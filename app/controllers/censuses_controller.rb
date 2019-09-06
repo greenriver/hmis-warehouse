@@ -6,6 +6,7 @@
 
 class CensusesController < ApplicationController
   before_action :require_can_view_censuses!
+  before_action :require_can_view_clients!, only: [:details]
   include ArelHelper
   # default view grouped by project
   def index
@@ -28,7 +29,7 @@ class CensusesController < ApplicationController
 
       @yesterday_client_count = census.clients_for_date(@date - 1.day, ds_id, org_id, p_id).size
       @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id)
-  
+
     elsif params[:project_type].present?
       # Whitelist project_types
       project_type =  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect{|m| m == params[:project_type].downcase.to_sym}
