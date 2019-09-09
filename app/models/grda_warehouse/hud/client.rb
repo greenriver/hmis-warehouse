@@ -1075,7 +1075,7 @@ module GrdaWarehouse::Hud
             FirstName: c_t[:FirstName].to_sql,
             LastName: c_t[:LastName].to_sql,
             last_date_in_program: she_t[:last_date_in_program].to_sql,
-            data_source_id: c_t[:data_source_id].to_sql,
+            data_source_id: she_t[:data_source_id].to_sql,
           }
 
           hh_where = hids.map do |hh_id, ds_id, p_id|
