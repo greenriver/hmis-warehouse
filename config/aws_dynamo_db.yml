@@ -1,0 +1,4 @@
+<%= ENV['RAILS_ENV'] %>:
+  region: <%= ENV['AWS_DYNAMO_REGION'] %>
+  access_key_id: <%= ENV['AWS_DYNAMO_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['AWS_DYNAMO_SECRET_ACCESS_KEY'] %>
