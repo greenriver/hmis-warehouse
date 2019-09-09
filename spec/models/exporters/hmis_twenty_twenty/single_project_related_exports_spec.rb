@@ -3,7 +3,7 @@ require 'models/exporters/hmis_twenty_twenty/project_setup.rb'
 require 'models/exporters/hmis_twenty_twenty/single_project_tests.rb'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project setup'
+  include_context '2020 project setup'
 
   let(:exporter) do
     Exporters::HmisTwentyTwenty::Base.new(
@@ -16,5 +16,5 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'single-project tests'
+  include_context '2020 single-project tests'
 end

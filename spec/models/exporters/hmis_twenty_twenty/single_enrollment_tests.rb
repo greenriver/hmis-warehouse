@@ -1,4 +1,4 @@
-RSpec.shared_context 'single-enrollment tests', shared_context: :metadata do
+RSpec.shared_context '2020 single-enrollment tests', shared_context: :metadata do
   describe 'When exporting enrollment related item' do
     before(:each) do
       exporter.create_export_directory
@@ -90,5 +90,5 @@ RSpec.shared_context 'single-enrollment tests', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'single-enrollment tests', include_shared: true
+  rspec.include_context '2020 single-enrollment tests', include_shared: true
 end

@@ -1,4 +1,4 @@
-RSpec.shared_context 'multi-project tests', shared_context: :metadata do
+RSpec.shared_context '2020 multi-project tests', shared_context: :metadata do
   describe "When exporting project related items for #{project_test_type}" do
     before(:each) do
       exporter.create_export_directory
@@ -87,5 +87,5 @@ RSpec.shared_context 'multi-project tests', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'multi-project tests', include_shared: true
+  rspec.include_context '2020 multi-project tests', include_shared: true
 end

@@ -8,8 +8,8 @@ def project_test_type
 end
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project setup'
-  include_context 'enrollment dates setup'
+  include_context '2020 project setup'
+  include_context '2020 enrollment dates setup'
 
   let(:involved_project_ids) { projects.map(&:id) }
   let(:exporter) do
@@ -23,5 +23,5 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'multi-enrollment tests'
+  include_context '2020 multi-enrollment tests'
 end

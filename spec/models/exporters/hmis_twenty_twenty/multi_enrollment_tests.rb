@@ -1,4 +1,4 @@
-RSpec.shared_context 'multi-enrollment tests', shared_context: :metadata do
+RSpec.shared_context '2020 multi-enrollment tests', shared_context: :metadata do
   def involved_projects
     GrdaWarehouse::Hud::Project.where(id: involved_project_ids)
   end
@@ -121,5 +121,5 @@ RSpec.shared_context 'multi-enrollment tests', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'multi-enrollment tests', include_shared: true
+  rspec.include_context '2020 multi-enrollment tests', include_shared: true
 end

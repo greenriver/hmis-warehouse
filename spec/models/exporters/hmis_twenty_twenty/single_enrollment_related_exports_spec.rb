@@ -4,8 +4,8 @@ require 'models/exporters/hmis_twenty_twenty/enrollment_setup.rb'
 require 'models/exporters/hmis_twenty_twenty/single_enrollment_tests.rb'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project setup'
-  include_context 'enrollment setup'
+  include_context '2020 project setup'
+  include_context '2020 enrollment setup'
 
   let(:exporter) do
     Exporters::HmisTwentyTwenty::Base.new(
@@ -18,5 +18,5 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'single-enrollment tests'
+  include_context '2020 single-enrollment tests'
 end

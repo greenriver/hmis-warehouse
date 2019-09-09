@@ -1,4 +1,4 @@
-RSpec.shared_context 'enrollment setup', shared_context: :metadata do
+RSpec.shared_context '2020 enrollment setup', shared_context: :metadata do
   let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id, EntryDate: 2.weeks.ago }
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
   let!(:destination_data_source) { create :grda_warehouse_data_source }
@@ -128,5 +128,5 @@ RSpec.shared_context 'enrollment setup', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'enrollment setup', include_shared: true
+  rspec.include_context '2020 enrollment setup', include_shared: true
 end

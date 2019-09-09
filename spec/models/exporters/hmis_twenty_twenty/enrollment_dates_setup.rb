@@ -1,4 +1,4 @@
-RSpec.shared_context 'enrollment dates setup', shared_context: :metadata do
+RSpec.shared_context '2020 enrollment dates setup', shared_context: :metadata do
   # Setup such that there are more than 3 of each item, but three fall within the date range
   let!(:enrollments) { create_list :hud_enrollment, 5, data_source_id: data_source.id }
   let!(:clients) { create_list :hud_client, 5, data_source_id: data_source.id }
@@ -129,5 +129,5 @@ RSpec.shared_context 'enrollment dates setup', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'enrollment dates setup', include_shared: true
+  rspec.include_context '2020 enrollment dates setup', include_shared: true
 end

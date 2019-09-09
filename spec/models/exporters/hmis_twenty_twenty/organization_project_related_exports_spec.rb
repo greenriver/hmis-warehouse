@@ -9,8 +9,8 @@ def project_test_type
 end
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project setup'
-  include_context 'enrollment setup'
+  include_context '2020 project setup'
+  include_context '2020 enrollment setup'
 
   let(:project_test_type) { 'organization-based' }
   let(:exporter) do
@@ -24,6 +24,6 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'single-project tests'
-  include_context 'single-enrollment tests'
+  include_context '2020 single-project tests'
+  include_context '2020 single-enrollment tests'
 end

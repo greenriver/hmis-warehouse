@@ -3,7 +3,7 @@ require 'models/exporters/hmis_twenty_twenty/project_continuum_override_setup.rb
 require 'models/exporters/hmis_twenty_twenty/project_continuum_override_tests.rb'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project continuum override setup'
+  include_context '2020 project continuum override setup'
 
   let(:exporter) do
     Exporters::HmisTwentyTwenty::Base.new(
@@ -16,5 +16,5 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'project continuum override tests'
+  include_context '2020 project continuum override tests'
 end

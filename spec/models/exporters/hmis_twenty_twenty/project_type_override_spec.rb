@@ -3,7 +3,7 @@ require 'models/exporters/hmis_twenty_twenty/project_type_override_setup.rb'
 require 'models/exporters/hmis_twenty_twenty/project_type_override_tests.rb'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project type override setup'
+  include_context '2020 project type override setup'
 
   let(:enrollment_exporter) do
     Exporters::HmisTwentyTwenty::Base.new(
@@ -27,5 +27,5 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'project type override tests'
+  include_context '2020 project type override tests'
 end

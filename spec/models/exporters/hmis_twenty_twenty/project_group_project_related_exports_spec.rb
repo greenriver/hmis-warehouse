@@ -9,8 +9,8 @@ def project_test_type
 end
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
-  include_context 'project setup'
-  include_context 'enrollment setup'
+  include_context '2020 project setup'
+  include_context '2020 enrollment setup'
 
   let(:project_test_type) { 'project group-based' }
   let!(:project_group) { create :project_group, name: 'P Group', projects: projects.first(3) }
@@ -26,6 +26,6 @@ RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
     )
   end
 
-  include_context 'multi-project tests'
-  include_context 'multi-enrollment tests'
+  include_context '2020 multi-project tests'
+  include_context '2020 multi-enrollment tests'
 end

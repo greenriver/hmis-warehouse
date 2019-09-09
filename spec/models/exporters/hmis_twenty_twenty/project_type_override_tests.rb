@@ -1,4 +1,4 @@
-RSpec.shared_context 'project type override tests', shared_context: :metadata do
+RSpec.shared_context '2020 project type override tests', shared_context: :metadata do
   describe 'When exporting enrollment related item' do
     before(:each) do
       enrollment_exporter.create_export_directory
@@ -102,5 +102,5 @@ RSpec.shared_context 'project type override tests', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'project type override tests', include_shared: true
+  rspec.include_context '2020 project type override tests', include_shared: true
 end

@@ -1,4 +1,4 @@
-RSpec.shared_context 'project setup', shared_context: :metadata do
+RSpec.shared_context '2020 project setup', shared_context: :metadata do
   let!(:data_source) { create :source_data_source, id: 2 }
   let!(:user) { create :user }
   let!(:projects) { create_list :hud_project, 5, data_source_id: data_source.id }
@@ -72,5 +72,5 @@ RSpec.shared_context 'project setup', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'project setup', include_shared: true
+  rspec.include_context '2020 project setup', include_shared: true
 end
