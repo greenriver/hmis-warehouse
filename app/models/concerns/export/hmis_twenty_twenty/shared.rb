@@ -138,16 +138,18 @@ module Export::HmisTwentyTwenty::Shared
 
   # All HUD Keys will need to be replaced with our IDs to make them unique across data sources.
   def columns_to_pluck
-    @columns_to_pluck = hud_csv_headers.map do |k|
-      case k
-      when self.class.hud_key.to_sym
-        self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql
-      else
-        self.class.arel_table[k].as("#{k}_".to_s).to_sql
+    @columns_to_pluck ||= begin
+      columns =hud_csv_headers.map do |k|
+        case k
+        when self.class.hud_key.to_sym
+          self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql
+        else
+          self.class.arel_table[k].as("#{k}_".to_s).to_sql
+        end
       end
+      columns << :data_source_id
+      columns
     end
-    @columns_to_pluck << :data_source_id
-    return @columns_to_pluck
   end
 
   def export_enrollment_related! enrollment_scope:, project_scope:, path:, export:

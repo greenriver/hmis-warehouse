@@ -61,6 +61,7 @@ module Import::HmisTwentyTwenty::Shared
     end
 
     def should_add? existing
+      # FIXME: why is this using a to_h?
       existing.to_h.blank?
     end
 
