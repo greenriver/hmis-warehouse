@@ -1061,9 +1061,10 @@ module GrdaWarehouse::Hud
       site_chronics.any?
     end
 
+    # Households are people entering with the same HouseholdID to the same project, regardless of time
     def households
       @households ||= begin
-        hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id).uniq
+        hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id, :project_id).uniq
         if hids.any?
           columns = {
             household_id: she_t[:household_id].as('household_id').to_sql,
@@ -1075,7 +1076,17 @@ module GrdaWarehouse::Hud
             LastName: c_t[:LastName].as('LastName').to_sql,
             last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
           }
-          hh_where = hids.map{|hh_id, ds_id| "(household_id = '#{hh_id}' and #{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.data_source_id = #{ds_id})"}.join(' or ')
+
+          hh_where = hids.map do |hh_id, ds_id, p_id|
+            she_t[:household_id].eq(hh_id).
+            and(
+              she_t[:data_source_id].eq(ds_id)
+            ).
+            and(
+              she_t[:project_id].eq(p_id)
+            ).to_sql
+          end.join(' or ')
+
           entries = GrdaWarehouse::ServiceHistoryEnrollment.entry
             .joins(:client)
             .where(hh_where)
@@ -1083,13 +1094,13 @@ module GrdaWarehouse::Hud
             .pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
-          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['date']]}
+          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}
         end
       end
     end
 
-    def household household_id, date
-      households[[household_id, date]] if households.present?
+    private def household household_id, data_source_id
+      households[[household_id, data_source_id]] if households.present?
     end
 
     # after and before take dates, or something like 3.years.ago
@@ -2350,7 +2361,7 @@ module GrdaWarehouse::Hud
             homeless_days: homeless_dates_for_enrollment.count,
             adjusted_days: adjusted_dates_for_similar_programs.count,
             months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
-            household: self.household(entry.household_id, entry.first_date_in_program),
+            household: self.household(entry.household_id, entry.enrollment.data_source_id),
             project_type: ::HUD::project_type_brief(entry.computed_project_type),
             project_type_id: entry.computed_project_type,
             class: "client__service_type_#{entry.computed_project_type}",
