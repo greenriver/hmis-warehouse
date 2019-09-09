@@ -92,7 +92,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies
-    has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies, autosave: false
+    has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies
     belongs_to :data_source
 
     scope :viewable_by, -> (user) do
