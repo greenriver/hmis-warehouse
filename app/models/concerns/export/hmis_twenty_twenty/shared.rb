@@ -73,7 +73,7 @@ module Export::HmisTwentyTwenty::Shared
 
 
   # Override as necessary
-  def clean_headers(headers)
+  def clean_headers headers
     headers
   end
 
@@ -87,7 +87,7 @@ module Export::HmisTwentyTwenty::Shared
   end
 
   # Override as necessary
-  def clean_row(row:, export:, data_source_id:)
+  def clean_row row:, export:, data_source_id:
     # allow each class to cleanup it's own data
     row = apply_overrides(row, data_source_id: data_source_id)
 
