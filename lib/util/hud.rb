@@ -1499,7 +1499,7 @@ module HUD
   def referral_source(id, reverse=false)
     map = {
       1 => 'Self-referral',
-      2 => 'Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individualn',
+      2 => 'Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual',
       # 3 => 'Individual: relative or friend',
       # 4 => 'Individual: other adult or youth',
       # 5 => 'Individual: partner/spouse',
