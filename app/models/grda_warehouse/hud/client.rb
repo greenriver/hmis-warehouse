@@ -1099,7 +1099,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    private def household household_id, data_source_id
+    def household household_id, data_source_id
       households[[household_id, data_source_id]] if households.present?
     end
 
