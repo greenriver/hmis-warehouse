@@ -1067,14 +1067,15 @@ module GrdaWarehouse::Hud
         hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id, :project_id).uniq
         if hids.any?
           columns = {
-            household_id: she_t[:household_id].as('household_id').to_sql,
-            date: she_t[:date].as('date').to_sql,
-            client_id: she_t[:client_id].as('client_id').to_sql,
-            age: she_t[:age].as('age').to_sql,
-            enrollment_group_id: she_t[:enrollment_group_id].as('enrollment_group_id').to_sql,
-            FirstName: c_t[:FirstName].as('FirstName').to_sql,
-            LastName: c_t[:LastName].as('LastName').to_sql,
-            last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
+            household_id: she_t[:household_id].to_sql,
+            date: she_t[:date].to_sql,
+            client_id: she_t[:client_id].to_sql,
+            age: she_t[:age].to_sql,
+            enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+            FirstName: c_t[:FirstName].to_sql,
+            LastName: c_t[:LastName].to_sql,
+            last_date_in_program: she_t[:last_date_in_program].to_sql,
+            data_source_id: c_t[:data_source_id].to_sql,
           }
 
           hh_where = hids.map do |hh_id, ds_id, p_id|
