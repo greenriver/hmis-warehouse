@@ -36,9 +36,9 @@
                 %td= referral_count
                 %td
                   - count = @report.declines_by_agency[[program_name, sub_program_name]] || 0
-                  - pecent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
-                  = "#{count} (#{pecent}%)"
+                  - percent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
+                  = "#{count} (#{percent}%)"
                 %td
                   - count = @report.cancels_by_agency[[program_name, sub_program_name]] || 0
-                  - pecent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
-                  = "#{count} (#{pecent}%)"
+                  - percent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
+                  = "#{count} (#{percent}%)"
