@@ -12,7 +12,7 @@ class WarehouseReport::CasDeclines < OpenStruct
 
   def initialize(start_date:, end_date:)
     @start_date = start_date
-    @end_date = end_date
+    @end_date = end_date + 1.day # needed to catch starts and ends on the end date
   end
 
   def reasons
@@ -26,7 +26,7 @@ class WarehouseReport::CasDeclines < OpenStruct
 
   def declines
     @declines ||= report_source.declined.
-      started_between(start_date: start_date, end_date: end_date + 1.day)
+      started_between(start_date: start_date, end_date: end_date)
   end
 
   def declines_by_agency
@@ -38,7 +38,7 @@ class WarehouseReport::CasDeclines < OpenStruct
   def cancels
     @cancels ||= report_source.canceled_between(
       start_date: start_date,
-      end_date: end_date + 1.day
+      end_date: end_date
     )
   end
 
@@ -49,7 +49,7 @@ class WarehouseReport::CasDeclines < OpenStruct
   end
 
   def referrals_by_agency
-    @referrals_by_agency ||= report_source.started_between(start_date: start_date, end_date: end_date + 1.day).
+    @referrals_by_agency ||= report_source.started_between(start_date: start_date, end_date: end_date).
       distinct.
       group(:program_name, :sub_program_name).
       order(:program_name, :sub_program_name).
