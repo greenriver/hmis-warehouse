@@ -49,12 +49,17 @@ module Health::Soap
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorCode') == 'Success'
     end
 
+    def response(result)
+      result.last
+    end
+
     def payload_id(result)
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'PayloadID')
     end
 
     def error_message(result)
-      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorMessage')
+      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorMessage') ||
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorMessage')
     end
 
     # Submit a simple request
@@ -97,12 +102,17 @@ module Health::Soap
       end
       if message.multipart?
         if message.parts.size > 1
-          return [ Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded ]
+          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded ])
         else
-          return [ Hash.from_xml(message.parts.first.decoded), nil ]
+          return SoapReponse.new(self, [ Hash.from_xml(message.parts.first.decoded), nil ])
         end
       else
-        return [ message.decoded, nil ]
+        decoded = message.decoded
+        if decoded[0..4] == '<?xml'
+          return SoapResponse.new(self, [ Hash.from_xml(decoded), nil])
+        else
+          return SoapResponse,new(self, [ message.decoded, nil ])
+        end
       end
     end
 
