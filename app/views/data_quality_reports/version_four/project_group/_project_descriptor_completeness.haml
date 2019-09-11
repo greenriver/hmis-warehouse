@@ -90,6 +90,7 @@
             %strong  #{pluralize(@report.report_project_group.bed_inventory, 'bed')}
     - else
       .col-sm-6
+        %h4 Geocode
         %ul.list-unstyled
           - @report.report_projects.preload(:project).each do |p|
             %li
