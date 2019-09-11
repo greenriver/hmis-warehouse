@@ -27,6 +27,10 @@ module GrdaWarehouse::WarehouseReports::Youth
       GrdaWarehouse::Hud::Client.joins(:youth_intakes).
         merge(intake_source.open_between(start_date: @cut_off_date, end_date: @end_date)).
         merge(intake_source.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthCaseManagement.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthReferral.visible_by?(@current_user)).
+        merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(@current_user)).
         includes(
           :case_managements,
           :direct_financial_assistances,
