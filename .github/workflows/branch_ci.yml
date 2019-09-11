@@ -22,7 +22,13 @@ jobs:
           postgresql postgresql-contrib \
           redis-server \
           libmagic-dev \
-          libpq-dev
+          libpq-dev \
+          curl \
+          libcurl4-openssl-dev \
+          freetds-dev \
+          freetds-bin \
+          build-essential \
+          libc6-dev
         sudo -upostgres createuser --echo --superuser $USER #give the runner
         createdb --echo
         createdb $DATABASE_WAREHOUSE_DB_TEST
