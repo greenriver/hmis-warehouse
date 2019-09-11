@@ -26,7 +26,7 @@ jobs:
         gem install bundler -v '< 2'
     - name: 'Install gems'
       run: |
-        bundle install --jobs 4 --retry 3
+        bundle install --jobs 4 --retry 3 --without production staging development
     - name: Run bundle-audit
       run: |
         bundle exec bundle-audit check --update
@@ -44,19 +44,40 @@ jobs:
       env:
         RAILS_ENV: test
         DATABASE_ADAPTER: postgresql
+        WAREHOUSE_DATABASE_ADAPTER: postgresql
+        HEALTH_DATABASE_ADAPTER: postgresql
+        REPORTING_DATABASE_ADAPTER: postgresql
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
         DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
         DEFAULT_FROM: greenriver.testing@mailinator.com
+        HEALTH_FROM: greenriver.testing@mailinator.com
         DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
         HOSTNAME: openpath.host
         PORT: 80
       run: |
-        bundle exec rake db:drop db:create db:schema:load
+        bundle exec rake db:drop db:create warehouse:db:drop warehouse:db:create health:db:drop health:db:create reporting:db:drop reporting:db:create
+        bundle exec rake db:schema:load
+        bundle exec rake reporting:db:schema:load
+        bundle exec rake health:db:schema:load
+        bundle exec rake warehouse:db:schema:load
+        npm install
     - name: Run tests
       env:
         RAILS_ENV: test
         DATABASE_ADAPTER: postgresql
+        WAREHOUSE_DATABASE_ADAPTER: postgresql
+        HEALTH_DATABASE_ADAPTER: postgresql
+        REPORTING_DATABASE_ADAPTER: postgresql
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
         DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
         DEFAULT_FROM: greenriver.testing@mailinator.com
+        HEALTH_FROM: greenriver.testing@mailinator.com
         DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
         HOSTNAME: openpath.host
         PORT: 80
