@@ -85,15 +85,23 @@
             %li
               #{p.geography_type.presence || 'blank'}
   .row
-    .col-sm-6
-      %h4 Housing Type
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{HUD.housing_type p.housing_type.presence}
-    .col-sm-6
-      %h4 Project Types
-      %ul.list-unstyled
-        - @report.report_projects.preload(:project).each do |p|
-          %li
-            #{HUD.project_type p.project_type.presence}
+    - if ! @report.hide_beds_and_units
+      .col-sm-6
+        %h4 Housing Type
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{HUD.housing_type p.housing_type.presence}
+      .col-sm-6
+        %h4 Project Types
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{HUD.project_type p.project_type.presence}
+    - else
+      .col-sm-12
+        %h4 Project Types
+        %ul.list-unstyled
+          - @report.report_projects.preload(:project).each do |p|
+            %li
+              #{HUD.project_type p.project_type.presence}
