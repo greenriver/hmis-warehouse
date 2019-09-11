@@ -5,8 +5,10 @@
 ###
 
 # bundle exec rails runner 'TestMailer.ping("somebody@greenriver.com").deliver_now'
+# bundle exec rails runner 'TestMailer.ping("bounce@simulator.amazonses.com").deliver_now'
+# bundle exec rails runner 'TestMailer.ping("complaint@simulator.amazonses.com").deliver_now'
 
-class TestMailer < ActionMailer::Base
+class TestMailer < ApplicationMailer
   default from: ENV.fetch('DEFAULT_FROM')
 
   def ping(email)

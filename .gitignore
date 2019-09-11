@@ -24,6 +24,7 @@
 !/.gitignore
 !/.overcommit.yml
 !/.rubocop.yml
+!/.github
 
 # Ignore operational files
 package.box
