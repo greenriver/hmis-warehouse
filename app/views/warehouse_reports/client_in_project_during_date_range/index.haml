@@ -21,8 +21,8 @@
         %th First Name
         %th Age
         %th Veteran Status
-        %th= "Cumulative Days Homeless as of #{Date.today}"
-        %th= "Days Homeless in The Past Three Years as of #{Date.today}"
+        %th= "Cumulative Days Homeless as of #{Date.current}"
+        %th= "Days Homeless in The Past Three Years as of #{Date.current}"
     %tbody
       - @clients.each do |client|
         %tr

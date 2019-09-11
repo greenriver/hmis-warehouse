@@ -31,6 +31,42 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :ServicesID,
+          :EnrollmentID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :ServicesID,
+          :EnrollmentID,
+          :PersonalID,
+          :DateProvided,
+          :RecordType,
+          :TypeProvided,
+          :OtherTypeProvided,
+          :SubTypeProvided,
+          :FAAmount,
+          :ReferralOutcome,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :ServicesID,
@@ -53,10 +89,10 @@ module GrdaWarehouse::Hud
     end
 
     belongs_to :data_source, inverse_of: :services
-    belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_services
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services
     has_one :client, through: :enrollment, inverse_of: :services
-    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :services
-    belongs_to :export, **hud_belongs(Export), inverse_of: :services
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :services
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services
     has_one :project, through: :enrollment
     has_one :organization, through: :project
 

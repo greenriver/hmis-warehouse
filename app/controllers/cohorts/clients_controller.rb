@@ -198,7 +198,7 @@ module Cohorts
 
           enrollment_query = enrollment_query.with_service_between(
             start_date: 3.months.ago.to_date,
-            end_date: Date.today,
+            end_date: Date.current,
             service_scope: service_scope)
           enrollment_query = enrollment_query.send(population)
         end

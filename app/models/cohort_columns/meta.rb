@@ -58,7 +58,7 @@ module CohortColumns
 
     def inactive
       if cohort.days_of_inactivity && last_activity
-        (Date.today - cohort.days_of_inactivity.days) > last_activity.to_date
+        (Date.current - cohort.days_of_inactivity.days) > last_activity.to_date
       else
         true
       end

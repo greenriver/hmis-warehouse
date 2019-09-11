@@ -9,7 +9,7 @@ module WarehouseReports::Health
     before_action :require_can_administer_health!
 
     def index
-      @end_date = params.dig(:filter, :end_date) || Date.today
+      @end_date = params.dig(:filter, :end_date) || Date.current
       @start_date = params.dig(:filter, :start_date) || @end_date - 1.month
       @aco = params.dig(:filter, :aco)&.select{|id| id.present? }
 

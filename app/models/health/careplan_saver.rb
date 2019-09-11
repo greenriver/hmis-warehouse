@@ -28,7 +28,7 @@ module Health
       should_really_create_qa = @careplan.just_signed? && @create_qa
 
       begin
-        @careplan.class.transaction do          
+        @careplan.class.transaction do
           if should_really_create_qa
             @qualifying_activity.activity = :pctp_signed
             @qualifying_activity.mode_of_contact = :other
@@ -56,10 +56,10 @@ module Health
         source_type: @careplan.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: :care_planning,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: :in_person,        
+        reached_client: :in_person,
         patient_id: @careplan.patient_id,
       )
     end

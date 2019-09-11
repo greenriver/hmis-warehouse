@@ -117,7 +117,7 @@ module WarehouseReports
             title: 'Longest standing',
             column: wcpt[:first_date_served].asc,
             param: 'first_date_served',
-            default: Date.today.to_s,
+            default: Date.current.to_s,
           },
         }
 

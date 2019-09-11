@@ -79,7 +79,7 @@ module Importing
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned') if @send_notifications
 
-        range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
+        range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Hud::Enrollment.open_during_range(range).
           joins(:project, :destination_client).
           pluck_in_batches(:id, batch_size: 250) do |batch|
@@ -135,7 +135,7 @@ module Importing
             dates << i.months.ago.change(day: 15).to_date
             dates << i.months.ago.change(day: 1).to_date
           end
-          dates.select!{|m| m <= Date.today}
+          dates.select!{|m| m <= Date.current}
 
           dates.each do |date|
             GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!

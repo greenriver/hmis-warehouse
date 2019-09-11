@@ -26,13 +26,13 @@ FactoryBot.define do
   trait :service_history_entry do
     client_id { 0 }
     record_type { 'entry' }
-    date { Date.today }
+    date { Date.current }
   end
 
   trait :service_history_exit do
     client_id { 0 }
     record_type { 'exit' }
-    date { Date.today }
+    date { Date.current }
   end
 
   trait :with_ph_enrollment do

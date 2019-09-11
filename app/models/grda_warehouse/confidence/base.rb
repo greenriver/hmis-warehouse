@@ -11,13 +11,13 @@ module GrdaWarehouse::Confidence
 
     self.table_name = :data_monitorings
 
-    scope :unprocessed, -> do 
+    scope :unprocessed, -> do
       where(value: nil)
     end
 
     scope :queued, -> do
       unprocessed.
-      where(arel_table[:calculate_after].lteq(Date.today))
+      where(arel_table[:calculate_after].lteq(Date.current))
     end
 
     def self.iterations
@@ -42,16 +42,16 @@ module GrdaWarehouse::Confidence
 
     # Start a new batch if we don't have one in the previous month
     def self.should_start_a_new_batch?
-      # Date.today.day <= 7
+      # Date.current.day <= 7
       ! self.where(census: fifteenth_of_last_month).exists?
     end
 
 
     # If there are any that are ready for calculation
     def self.should_run?
-      # Date.today.wday == 6
+      # Date.current.wday == 6
       self.where(calculated_on: nil).
-      where(arel_table[:calculate_after].lt(Date.today)).exists?
+      where(arel_table[:calculate_after].lt(Date.current)).exists?
     end
 
     def self.fifteenth_of_last_month
@@ -62,7 +62,7 @@ module GrdaWarehouse::Confidence
       collections = []
       iterations.times do |iteration|
         iteration -= 1 # we want to start counting at 0
-        calculate_after = Date.today + iteration.public_send(iteration_length)
+        calculate_after = Date.current + iteration.public_send(iteration_length)
         census_iterations.times do |census_iteration|
           # census_iteration -= 1 # we want to start counting at 0
           census_date = fifteenth_of_last_month - census_iteration.public_send(census_iteration_length)
@@ -79,7 +79,7 @@ module GrdaWarehouse::Confidence
       collections
     end
 
-    # generally we'll set these up with create_batch!, but this 
+    # generally we'll set these up with create_batch!, but this
     # gives the option to create for one client
     def self.setup_for_client client_id
       collections = collection_dates_for_client(client_id)

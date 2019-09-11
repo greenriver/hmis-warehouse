@@ -1,7 +1,7 @@
 #require 'test_helper'
 
 class ImportFactory
-  
+
   # def generate_client_veteran
   #   Client.create(veteran: true)
   # end
@@ -22,12 +22,12 @@ class ImportFactory
   #       @clients << generate_client_gender_unknown.id
   #     }
   #     1.times {
-  #       @clients << generate_client_with_birthday(Date.today - 12.years).id #lt 16 years
-  #       @clients << generate_client_with_birthday(Date.today - 17.years).id #gt 16 years
-  #       @clients << generate_client_with_birthday(Date.today - 26.years).id #gt 25 years
-  #       @clients << generate_client_with_birthday(Date.today - 56.years).id #gt 55 years
-  #       @clients << generate_client_with_birthday(Date.today - 61.years).id #gt 60 years
-  #       @clients << generate_client_with_birthday(Date.today - 63.years).id #gt 62 years
+  #       @clients << generate_client_with_birthday(Date.current - 12.years).id #lt 16 years
+  #       @clients << generate_client_with_birthday(Date.current - 17.years).id #gt 16 years
+  #       @clients << generate_client_with_birthday(Date.current - 26.years).id #gt 25 years
+  #       @clients << generate_client_with_birthday(Date.current - 56.years).id #gt 55 years
+  #       @clients << generate_client_with_birthday(Date.current - 61.years).id #gt 60 years
+  #       @clients << generate_client_with_birthday(Date.current - 63.years).id #gt 62 years
   #     }
   #     4.times {
   #       @clients << generate_client_with_income(rand(10..1716)).id # < 30% AMI
@@ -51,10 +51,10 @@ class ImportFactory
   #       @clients << generate_client_homeless_physical_disability_male_chronic.id
   #     }
   #     dates = [
-  #       Date.today - 8.years,
-  #       Date.today - 5.days,
-  #       Date.today - 10.years,
-  #       Date.today - 18.months,
+  #       Date.current - 8.years,
+  #       Date.current - 5.days,
+  #       Date.current - 10.years,
+  #       Date.current - 18.months,
   #     ]
   #     dates.each do |d|
   #       @clients << generate_client_homeless_chronic_co_morbid_with_start_date(d).id

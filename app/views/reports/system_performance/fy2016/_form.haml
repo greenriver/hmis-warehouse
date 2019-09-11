@@ -15,12 +15,12 @@
           %label.control-lable.string
             %abbr{data: {original_title: "required"}} *
             Start Date
-          = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(Date.today.year-2,10,1)}, label: false
+          = f.input :report_start, as: :date_picker, input_html: {name: 'report_result[options][report_start]', value: Date.new(Date.current.year-2,10,1)}, label: false
         .form-group
           %label.control-lable.string.required
             %abbr{data: {original_title: "required"}} *
             End Date
-          = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.today.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
+          = f.input :report_end, as: :date_picker, input_html: {name: 'report_result[options][report_end]', value: Date.new(Date.current.year-1,9,30).to_date, class: 'form-control jStart'}, label: false
     %hr
     .row
       .col-sm-12.margin-bottom-12

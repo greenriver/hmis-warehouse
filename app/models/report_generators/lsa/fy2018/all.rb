@@ -238,7 +238,7 @@ module ReportGenerators::Lsa::Fy2018
       LsaSqlServer::LSAReport.delete_all
       LsaSqlServer::LSAReport.create!(
         ReportID: Time.now.to_i,
-        ReportDate: Date.today,
+        ReportDate: Date.current,
         ReportStart: @report_start,
         ReportEnd: @report_end,
         ReportCoC: @coc_code,

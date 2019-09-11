@@ -14,7 +14,7 @@
         = f.input :days
     .row
       .col-sm-6
-        = f.input :date_requested, as: :date_picker, input_html: {value: f.object.date_requested || Date.today}
+        = f.input :date_requested, as: :date_picker, input_html: {value: f.object.date_requested || Date.current}
     .row
       .col-sm-6
         = f.input :effective_date, as: :date_picker
