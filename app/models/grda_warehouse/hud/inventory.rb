@@ -21,37 +21,89 @@ module GrdaWarehouse::Hud
     require 'csv'
 
     def self.hud_csv_headers(version: nil)
-      [
-        :InventoryID,
-        :ProjectID,
-        :CoCCode,
-        :InformationDate,
-        :HouseholdType,
-        :Availability,
-        :UnitInventory,
-        :BedInventory,
-        :CHBedInventory,
-        :VetBedInventory,
-        :YouthBedInventory,
-        :BedType,
-        :InventoryStartDate,
-        :InventoryEndDate,
-        :HMISParticipatingBeds,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
+      case version
+      when '5.1', '6.11', '6.12'
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHBedInventory,
+          :VetBedInventory,
+          :YouthBedInventory,
+          :BedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :HMISParticipatingBeds,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHVetBedInventory,
+          :YouthVetBedInventory,
+          :VetBedInventory,
+          :CHYouthBedInventory,
+          :YouthBedInventory,
+          :CHBedInventory,
+          :OtherBedInventory,
+          :TargetPopulation,
+          :ESBedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      else
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHBedInventory,
+          :VetBedInventory,
+          :YouthBedInventory,
+          :BedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :HMISParticipatingBeds,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1
     CHILD_ONLY_HOUSEHOLD_TYPE = 4
 
-    belongs_to :export, **hud_belongs(Export), inverse_of: :inventories
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :inventories
     # has_one :project, through: :project_coc, source: :project
-    has_one :project, **hud_belongs(Project), inverse_of: :inventories
+    has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :inventories
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
     belongs_to :data_source
 

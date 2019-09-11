@@ -8,7 +8,7 @@
   .history__title
     %h1= content_for :title
   .history__summary
-    %p Snapshot for #{@client.name} (#{@client.id}) taken on #{Date.today}
+    %p Snapshot for #{@client.name} (#{@client.id}) taken on #{Date.current}
     %ul
       %li= "Days Homeless in the past three years: #{@client.days_homeless_in_last_three_years} (seen in ES, SO, SH, TH with no overlapping PH)"
       %li= "Days Literally Homeless in the past three years: #{@client.literally_homeless_last_three_years} (seen in ES, SO, SH with no overlapping TH or PH)"

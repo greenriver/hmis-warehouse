@@ -26,7 +26,7 @@ module WarehouseReports
     end
 
     private def default_date
-      Date.new(Date.today.year, 1, 1)
+      Date.new(Date.current.year, 1, 1)
     end
   end
 end

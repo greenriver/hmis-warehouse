@@ -46,7 +46,7 @@
                   = client[:DOB]
                   %br
                   Age:
-                  = GrdaWarehouse::Hud::Client.age date: Date.today, dob: client[:DOB]
+                  = GrdaWarehouse::Hud::Client.age date: Date.current, dob: client[:DOB]
               %td
                 = masked_ssn(client[:SSN])
               %td

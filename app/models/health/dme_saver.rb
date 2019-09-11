@@ -20,7 +20,7 @@ module Health
     end
 
     def update
-      @equipment.class.transaction do 
+      @equipment.class.transaction do
         @equipment.save!
         if @create_qa
           @qualifying_activity.source_id = @equipment.id
@@ -34,7 +34,7 @@ module Health
         source_type: @equipment.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: 'Care planning',
         follow_up: 'Provide durable medical equipment to patient',
         reached_client: 'Yes (face to face, phone call answered, response to email)',

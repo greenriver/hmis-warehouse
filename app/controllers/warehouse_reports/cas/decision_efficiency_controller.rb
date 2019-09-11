@@ -22,7 +22,7 @@ module WarehouseReports::Cas
       unless options.present?
         options = {
           start: 12.month.ago.to_date,
-          end: Date.today,
+          end: Date.current,
         }
       end
       options
@@ -37,7 +37,7 @@ module WarehouseReports::Cas
         @data[:labels] = histogram.keys
         @data[:data_sets] = histogram.values.map(&:keys).flatten.uniq.map do |title|
           values = histogram.keys.map do |key|
-            histogram[key].try(:[], title) || 0 
+            histogram[key].try(:[], title) || 0
           end
           [title, values]
         end.to_h
@@ -70,7 +70,7 @@ module WarehouseReports::Cas
       return 0 if array.empty?
       mid = array.size / 2
       sorted = array.sort
-      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2 
+      array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
     end
 
     private def step_params
