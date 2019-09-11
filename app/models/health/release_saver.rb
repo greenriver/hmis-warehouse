@@ -36,7 +36,7 @@ module Health
         source_type: @form.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: :outreach,
         follow_up: 'Engage Patient',
         reached_client: :yes,

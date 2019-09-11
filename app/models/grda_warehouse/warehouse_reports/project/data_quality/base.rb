@@ -64,7 +64,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         # min_enrollment_date = clients.map{|c| c[:first_date_in_program]}.min
-        max_exit_date = (clients.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+        max_exit_date = (clients.map{|c| c[:last_date_in_program]}.compact + [Date.current]).max
         max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
         clients.each do |client|
           client[:most_recent_service] = max_dates[client[:enrollment_id]] || 'Before report start'

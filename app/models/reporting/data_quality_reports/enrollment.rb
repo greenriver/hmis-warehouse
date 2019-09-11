@@ -349,7 +349,7 @@ module Reporting::DataQualityReports
       missing = true if dob_quality == 2
       missing = true if dob.present? && dob < '1915-01-01'.to_date
       missing = true if dob.present? && dob > enrollment_created_date
-      missing = true if (is_adult?(date: Date.today) || head_of_household) && dob.present? && dob >= entry_date
+      missing = true if (is_adult?(date: Date.current) || head_of_household) && dob.present? && dob >= entry_date
 
       return missing
     end
@@ -509,12 +509,12 @@ module Reporting::DataQualityReports
     end
 
     def calculate_disabling_condition_refused disabling_condition:
-      return false unless is_adult?(date: Date.today)
+      return false unless is_adult?(date: Date.current)
       disabling_condition.in?(REFUSED)
     end
 
     def calculate_disabling_condition_missing disabling_condition:, all_indefinite_and_impairs:
-      return false unless is_adult?(date: Date.today)
+      return false unless is_adult?(date: Date.current)
       disabling_condition.blank? || disabling_condition == 0 && all_indefinite_and_impairs.present? && all_indefinite_and_impairs.any?(1)
     end
 
@@ -543,17 +543,17 @@ module Reporting::DataQualityReports
     end
 
     def calculate_destination_refused destination:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       destination.in?(REFUSED)
     end
 
     def calculate_destination_missing destination:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       destination.blank?
     end
 
     def calculate_destination_not_collected destination:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       destination.in? [30, 99]
     end
 
@@ -583,17 +583,17 @@ module Reporting::DataQualityReports
     end
 
     def calculate_prior_living_situation_refused prior_living_situation:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       prior_living_situation.in?(REFUSED)
     end
 
     def calculate_prior_living_situation_missing prior_living_situation:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       prior_living_situation.blank?
     end
 
     def calculate_prior_living_situation_not_collected prior_living_situation:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       prior_living_situation == 99
     end
 
@@ -623,17 +623,17 @@ module Reporting::DataQualityReports
     end
 
     def calculate_income_at_entry_refused income_at_entry:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       income_at_entry.present? && income_at_entry.IncomeFromAnySource.in?(REFUSED)
     end
 
     def calculate_income_at_entry_missing income_at_entry:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       income_at_entry.blank? || income_at_entry.IncomeFromAnySource.blank?
     end
 
     def calculate_income_at_entry_not_collected income_at_entry:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       income_at_entry.present? && income_at_entry.IncomeFromAnySource == 99
     end
 
@@ -669,21 +669,21 @@ module Reporting::DataQualityReports
     end
 
     def calculate_income_at_exit_refused income_at_exit:, exit_date:, report_end:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
       income_at_exit.present? && income_at_exit.IncomeFromAnySource.in?(REFUSED)
     end
 
     def calculate_income_at_exit_missing income_at_exit:, exit_date:, report_end:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
       income_at_exit.blank? || income_at_exit.IncomeFromAnySource.blank?
     end
 
     def calculate_income_at_exit_not_collected income_at_exit:, exit_date:, report_end:, head_of_household:
-      return false unless is_adult?(date: Date.today) || head_of_household
+      return false unless is_adult?(date: Date.current) || head_of_household
       return false if exit_date.blank? # no exit
       return false if exit_date > report_end # exit after report end
       income_at_exit.present? && income_at_exit.IncomeFromAnySource == 99
@@ -950,7 +950,7 @@ module Reporting::DataQualityReports
       # if we don't have a move-in-date use the earlier of report_end and today.
       # if the report_end is before the move-in-date use the report end
       # if for some odd reason we are running this with a future report_end, use today
-      end_date = [move_in_date, report_end, Date.today].compact.min
+      end_date = [move_in_date, report_end, Date.current].compact.min
       (end_date - entry_date).to_i
     end
 

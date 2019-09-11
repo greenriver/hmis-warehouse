@@ -159,7 +159,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # never build past today, it makes counts and display very odd
     def add_extrapolated_days dates, type_provided
       extrapolated_dates = dates.map do |date|
-        stop_on = [date.end_of_month, Date.today].min
+        stop_on = [date.end_of_month, Date.current].min
         (date.beginning_of_month .. stop_on).to_a
       end.flatten(1).uniq
       # Don't build extrapolations for any day we already have
@@ -585,13 +585,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # NOTE: this is limited to the end of next year, sometimes we get exit dates that are *very* far in the future.  This will preserve the ability to set future end dates and prevent extra rebuilds, but will continue extending the days into the future.
         [
           exit_date,
-          (Date.today + 1.year).end_of_year
+          (Date.current + 1.year).end_of_year
         ].min
       else
         [
           export.effective_export_end_date,
           export.ExportEndDate,
-          Date.today,
+          Date.current,
         ].compact.min.to_date
       end
     end

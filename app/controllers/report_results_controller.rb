@@ -151,7 +151,7 @@ class ReportResultsController < ApplicationController
         missing_gepgraphy_information_date: [],
         invalid_funders: [],
       }
-      range = ::Filters::DateRange.new(start: Date.today - 3.years, end: Date.today)
+      range = ::Filters::DateRange.new(start: Date.current - 3.years, end: Date.current)
 
       # There are a few required project descriptor fields.  Without these the report won't run cleanly
       @missing_data[:missing_housing_type] = GrdaWarehouse::Hud::Project.joins(:organization).

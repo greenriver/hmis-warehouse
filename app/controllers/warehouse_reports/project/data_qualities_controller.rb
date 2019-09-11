@@ -11,12 +11,12 @@ module WarehouseReports::Project
     before_action :set_projects, :set_project_groups, :load_data_quality_report_shells
 
     def show
-      if Date.today.month < 10
-        start_date = Date.new(Date.today.year-2,10,1)
-        end_date = Date.new(Date.today.year-1,9,30)
+      if Date.current.month < 10
+        start_date = Date.new(Date.current.year-2,10,1)
+        end_date = Date.new(Date.current.year-1,9,30)
       else
-        start_date = Date.new(Date.today.year-1,10,1)
-        end_date = Date.new(Date.today.year,9,30)
+        start_date = Date.new(Date.current.year-1,10,1)
+        end_date = Date.new(Date.current.year,9,30)
       end
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
@@ -89,7 +89,7 @@ module WarehouseReports::Project
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
       end
-      render xlsx: :download, filename: "project_data_quality_report #{Date.today}.xlsx"
+      render xlsx: :download, filename: "project_data_quality_report #{Date.current}.xlsx"
     end
 
     def generate_param

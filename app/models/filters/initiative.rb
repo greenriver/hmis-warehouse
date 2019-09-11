@@ -47,7 +47,7 @@ module Filters
     end
 
     def default_end
-      Date.today
+      Date.current
     end
 
     def default_comparison_start

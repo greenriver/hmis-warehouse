@@ -35,7 +35,7 @@ module GrdaWarehouse::Tasks
 
     # Pass client_ids as an array
     def initialize(
-      date: Date.today,
+      date: Date.current,
       count_so_as_full_month: true,
       dry_run: false,
       client_ids: nil,

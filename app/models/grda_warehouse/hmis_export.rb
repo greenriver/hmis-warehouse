@@ -9,6 +9,7 @@ module GrdaWarehouse
     self.table_name = :exports
     attr_accessor :fake_data
     attr_accessor :recurring_hmis_export_id
+    attr_accessor :user_ids
 
     mount_uploader :file, HmisExportUploader
 

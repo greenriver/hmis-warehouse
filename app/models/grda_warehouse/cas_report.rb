@@ -20,6 +20,10 @@ module GrdaWarehouse
       where.not(administrative_cancel_reason: nil)
     end
 
+    scope :declined, -> do
+      where.not( decline_reason: nil )
+    end
+
     scope :canceled_between, -> (start_date:, end_date:) do
       canceled.where(updated_at: (start_date..end_date))
     end
