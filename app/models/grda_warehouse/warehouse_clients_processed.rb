@@ -26,6 +26,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     cohort_client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).
       merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id).to_set
+    assessment_client_ids = GrdaWarehouse::Hud::Client.distinct.joins(:coc_assessment_touch_points).pluck(:id)
+
     calcs = StatsCalculator.new(client_ids: client_ids)
     client_ids.each do |client_id|
       processed = existing_by_client_id[client_id] || where(
@@ -47,7 +49,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
       )
-      if client_id.in?(cohort_client_ids)
+      if client_id.in?(cohort_client_ids + assessment_client_ids)
         processed.assign_attributes(
           CohortCalcs.new(processed.client).as_hash
         )
