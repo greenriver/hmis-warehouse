@@ -15,9 +15,4 @@ class Users::SessionsController < Devise::SessionsController
     redirect_to root_path
   end
 
-  # def create
-  #   AuthTrail.track(strategy: 'database_authenticatable', )
-  #   super
-  # end
-
 end
