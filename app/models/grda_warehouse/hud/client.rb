@@ -19,12 +19,12 @@ module GrdaWarehouse::Hud
 
     has_many :client_files
     has_many :health_files
-    has_many :vispdats, class_name: GrdaWarehouse::Vispdat::Base.name
-    has_many :youth_intakes, class_name: GrdaWarehouse::YouthIntake::Base.name
-    has_many :case_managements, class_name: GrdaWarehouse::Youth::YouthCaseManagement.name
-    has_many :direct_financial_assistances, class_name: GrdaWarehouse::Youth::DirectFinancialAssistance.name
-    has_many :youth_referrals, class_name: GrdaWarehouse::Youth::YouthReferral.name
-    has_many :youth_follow_ups, class_name: GrdaWarehouse::Youth::YouthFollowUp.name
+    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
+    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
+    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
+    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
+    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
+    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
