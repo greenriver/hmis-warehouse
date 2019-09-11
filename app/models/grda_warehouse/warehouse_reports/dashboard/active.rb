@@ -15,7 +15,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       #   start = 6.months.ago.beginning_of_month.to_date
       # end
       {
-        start: start, 
+        start: start,
         end: 1.months.ago.end_of_month.to_date,
       }
     end
@@ -28,7 +28,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
 
-    scope :for_month, -> (date: Date.today) do
+    scope :for_month, -> (date: Date.current) do
       start_of_month = date&.to_date&.beginning_of_month
       where("parameters->> 'start' = ? or parameters ->> 'start_date' = ?", start_of_month, start_of_month)
     end
@@ -56,10 +56,10 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def run!
       # Active Clients
       init() # setup some useful buckets
-      
+
       @labels.each do |key, _|
         project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
- 
+
         enrollment_counts_by_client = enrollment_counts(project_type)
         enrollment_count = enrollment_counts_by_client.values.sum
         @data[:clients][:data] << enrollment_counts_by_client.count

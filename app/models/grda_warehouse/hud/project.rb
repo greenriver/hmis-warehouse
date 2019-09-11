@@ -35,6 +35,49 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :TargetPopulation,
+          :VictimServicesProvider,
+          :HousingType,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :ProjectID,
+          :OrganizationID,
+          :ProjectName,
+          :ProjectCommonName,
+          :OperatingStartDate,
+          :OperatingEndDate,
+          :ContinuumProject,
+          :ProjectType,
+          :HousingType,
+          :ResidentialAffiliation,
+          :TrackingMethod,
+          :HMISParticipatingProject,
+          :PITCount,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :ProjectID,
@@ -110,9 +153,9 @@ module GrdaWarehouse::Hud
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph] + RESIDENTIAL_PROJECT_TYPES[:th]
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
-    belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :projects
+    belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
-    belongs_to :export, **hud_belongs(Export), inverse_of: :projects
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects
 
     has_and_belongs_to_many :project_groups,
       class_name: GrdaWarehouse::ProjectGroup.name,
@@ -120,9 +163,9 @@ module GrdaWarehouse::Hud
 
     has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
 
-    has_many :project_cocs, **hud_many(ProjectCoc), inverse_of: :project
-    has_many :geographies, **hud_many(Geography), inverse_of: :project
-    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :project
+    has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project
+    has_many :geographies, **hud_assoc(:ProjectID, 'Geography'), inverse_of: :project
+    has_many :enrollments, **hud_assoc(:ProjectID, 'Enrollment'), inverse_of: :project
     has_many :income_benefits, through: :enrollments, source: :income_benefits
     has_many :disabilities, through: :enrollments, source: :disabilities
     has_many :employment_educations, through: :enrollments, source: :employment_educations
@@ -130,26 +173,26 @@ module GrdaWarehouse::Hud
     has_many :services, through: :enrollments, source: :services
     has_many :exits, through: :enrollments, source: :exit
     # has_many :inventories, through: :project_cocs, source: :inventories
-    has_many :inventories, **hud_many(Inventory), inverse_of: :project
+    has_many :inventories, **hud_assoc(:ProjectID, 'Inventory'), inverse_of: :project
     has_many :clients, through: :enrollments, source: :client
-    has_many :funders, class_name: 'GrdaWarehouse::Hud::Funder', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ProjectID', :data_source_id], inverse_of: :projects
+    has_many :funders, **hud_assoc(:ProjectID, 'Funder'), inverse_of: :project
 
-    has_many :affiliations, **hud_many(Affiliation), inverse_of: :project
+    has_many :affiliations, **hud_assoc(:ProjectID, 'Affiliation'), inverse_of: :project
+    # NOTE: you can't use hud_assoc for residential project, the keys don't match
     has_many :residential_affiliations, class_name: 'GrdaWarehouse::Hud::Affiliation', primary_key: ['ProjectID', :data_source_id], foreign_key: ['ResProjectID', :data_source_id]
 
     has_many :affiliated_projects, through: :residential_affiliations, source: :project
     has_many :residential_projects, through: :affiliations
 
-    has_many :enrollment_cocs, **hud_many(EnrollmentCoc), inverse_of: :project
-    has_many :funders, **hud_many(Funder), inverse_of: :project
+    has_many :enrollment_cocs, **hud_assoc(:ProjectID, 'EnrollmentCoc'), inverse_of: :project
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     # Warehouse Reporting
-    has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
-    end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
-    has_many :contacts, class_name: GrdaWarehouse::Contact::Project.name, foreign_key: :entity_id
+    end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
+    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Project', foreign_key: :entity_id
     has_many :organization_contacts, through: :organization, source: :contacts
 
     scope :residential, -> do

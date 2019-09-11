@@ -81,7 +81,7 @@ module WarehouseReports
     end
 
     private def default_no_service_after_date
-      Date.today - 90.days
+      Date.current - 90.days
     end
 
     private def default_end

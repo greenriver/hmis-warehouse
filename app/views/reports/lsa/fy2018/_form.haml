@@ -25,7 +25,7 @@
           %td= yes_no(! @missing_data[:invalid_funders].include?(project))
 
 = simple_form_for :report_result do |f|
-  - year = if Date.today.month >= 10 then Date.today.year else Date.today.year - 1 end
+  - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end
   %h3 Queue Report
   .slab
     = f.error_notification

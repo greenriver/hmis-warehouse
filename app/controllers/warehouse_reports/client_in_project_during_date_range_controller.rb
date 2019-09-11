@@ -50,7 +50,7 @@ module WarehouseReports
     # AHAR reporting dates
     private def oct_1
       @oct_1 ||= begin
-        d1 = Date.today
+        d1 = Date.current
         d2 = "#{ d1.year - 1 }-10-01".to_date
         d2 -= 1.year while d2 + 1.year - 1.day > d1
         d2

@@ -28,9 +28,9 @@ module GrdaWarehouse::Tasks
       if @replace_all
         # never build back beyond 2010
         start_date = [GrdaWarehouse::ServiceHistoryEnrollment.minimum(:first_date_in_program), '2010-01-01'.to_date].max
-        end_date = Date.today
+        end_date = Date.current
       else
-        end_date = Date.today
+        end_date = Date.current
         start_date = end_date - 3.years
       end
       GrdaWarehouse::Census::CensusBuilder.new.create_census(start_date, end_date)

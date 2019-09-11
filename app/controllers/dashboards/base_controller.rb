@@ -123,12 +123,12 @@ module Dashboards
 
     def set_start_date
       (year, month) = @report_months.last
-      @start_date = Date.new(year, month, 1) rescue Date.today
+      @start_date = Date.new(year, month, 1) rescue Date.current
     end
 
     def set_end_date
       (year, month) = @report_months.first
-      @end_date = Date.new(year, month, -1) rescue Date.today
+      @end_date = Date.new(year, month, -1) rescue Date.current
     end
 
     def set_project_and_organization_ids

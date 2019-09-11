@@ -39,6 +39,10 @@ gem 'hellosign-ruby-sdk'
 gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'devise-pwned_password'
+
+gem 'authtrail' # for logging login attempts
+gem 'maxminddb' # for local geocoding of login attempts
+
 gem 'paper_trail'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'

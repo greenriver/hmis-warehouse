@@ -18,7 +18,7 @@ RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
   let(:exporter) do
     Exporters::HmisSixOneOne::Base.new(
       start_date: 1.week.ago.to_date,
-      end_date: Date.today,
+      end_date: Date.current,
       projects: involved_project_ids,
       period_type: 3,
       directive: 3,

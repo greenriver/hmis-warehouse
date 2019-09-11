@@ -5,7 +5,7 @@ FactoryBot.define do
     sequence(:PersonalID, 10)
     sequence(:EntryDate) do |n|
       dates = [
-        Date.today,
+        Date.current,
         8.weeks.ago,
         6.weeks.ago,
         4.weeks.ago,

@@ -1054,7 +1054,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       enrollment_ids = hohs.map{|m| m[:enrollment_id]}
       # min_enrollment_date = hohs.map{|c| c[:first_date_in_program]}.min
-      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.current]).max
       max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
 
       hohs.each do |hoh|
@@ -1080,7 +1080,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       enrollment_ids = hohs.map{|m| m[:enrollment_id]}
       # min_enrollment_date = hohs.map{|c| c[:first_date_in_program]}.min
-      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.today]).max
+      max_exit_date = (hohs.map{|c| c[:last_date_in_program]}.compact + [Date.current]).max
       max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
 
       hohs.each do |hoh|
