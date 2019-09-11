@@ -47,7 +47,7 @@ module GrdaWarehouse::WarehouseReports
           with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
           where.not(client_id:  entries_scope.
             homeless.
-            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today, service_scope: :homeless).
+            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current, service_scope: :homeless).
             select(:client_id)
           ).
           distinct.
@@ -55,7 +55,7 @@ module GrdaWarehouse::WarehouseReports
         if @filter.no_recent_service_project_ids.any?
           # Remove anyone with service after the cut-off in any of the selected projects
           with_recent_service = entries_scope.in_project(@filter.no_recent_service_project_ids).
-            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.today).
+            with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current).
             distinct.
             pluck(:client_id)
           without_recent_service = without_recent_service - with_recent_service

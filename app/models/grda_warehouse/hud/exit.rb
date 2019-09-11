@@ -44,6 +44,100 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :ExitID,
+          :EnrollmentID,
+          :PersonalID,
+          :ExitDate,
+          :Destination,
+          :OtherDestination,
+          :AssessmentDisposition,
+          :OtherDisposition,
+          :HousingAssessment,
+          :SubsidyInformation,
+          :ProjectCompletionStatus,
+          :EarlyExitReason,
+          :ExchangeForSex,
+          :ExchangeForSexPastThreeMonths,
+          :CountOfExchangeForSex,
+          :AskedOrForcedToExchangeForSex,
+          :AskedOrForcedToExchangeForSexPastThreeMonths,
+          :WorkPlaceViolenceThreats,
+          :WorkplacePromiseDifference,
+          :CoercedToContinueWork,
+          :LaborExploitPastThreeMonths,
+          :CounselingReceived,
+          :IndividualCounseling,
+          :FamilyCounseling,
+          :GroupCounseling,
+          :SessionCountAtExit,
+          :PostExitCounselingPlan,
+          :SessionsInPlan,
+          :DestinationSafeClient,
+          :DestinationSafeWorker,
+          :PosAdultConnections,
+          :PosPeerConnections,
+          :PosCommunityConnections,
+          :AftercareDate,
+          :AftercareProvided,
+          :EmailSocialMedia,
+          :Telephone,
+          :InPersonIndividual,
+          :InPersonGroup,
+          :CMExitReason,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :ExitID,
+          :EnrollmentID,
+          :PersonalID,
+          :ExitDate,
+          :Destination,
+          :OtherDestination,
+          :HousingAssessment,
+          :SubsidyInformation,
+          :ProjectCompletionStatus,
+          :EarlyExitReason,
+          :ExchangeForSex,
+          :ExchangeForSexPastThreeMonths,
+          :CountOfExchangeForSex,
+          :AskedOrForcedToExchangeForSex,
+          :AskedOrForcedToExchangeForSexPastThreeMonths,
+          :WorkPlaceViolenceThreats,
+          :WorkplacePromiseDifference,
+          :CoercedToContinueWork,
+          :LaborExploitPastThreeMonths,
+          :CounselingReceived,
+          :IndividualCounseling,
+          :FamilyCounseling,
+          :GroupCounseling,
+          :SessionCountAtExit,
+          :PostExitCounselingPlan,
+          :SessionsInPlan,
+          :DestinationSafeClient,
+          :DestinationSafeWorker,
+          :PosAdultConnections,
+          :PosPeerConnections,
+          :PosCommunityConnections,
+          :AftercareDate,
+          :AftercareProvided,
+          :EmailSocialMedia,
+          :Telephone,
+          :InPersonIndividual,
+          :InPersonGroup,
+          :CMExitReason,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :ExitID,
@@ -97,9 +191,9 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :exits
     has_one :client, through: :enrollment, inverse_of: :exits
-    belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_exits
-    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :exit
-    belongs_to :export, **hud_belongs(Export), inverse_of: :exits
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_exits
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :exits
     has_one :project, through: :enrollment
     has_one :destination_client, through: :enrollment
 

@@ -31,7 +31,7 @@ module GrdaWarehouse::Confidence
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
-          ::Confidence::DaysHomelessJob.new(client_ids: batch), 
+          ::Confidence::DaysHomelessJob.new(client_ids: batch),
           queue: :low_priority
         )
       end
@@ -42,7 +42,7 @@ module GrdaWarehouse::Confidence
     def self.calculate_queued_for_client client_id
       dates_homeless = GrdaWarehouse::Hud::Client.dates_homeless(client_id: client_id)
       census_dates = queued.where(resource_id: client_id).
-        where(arel_table[:calculate_after].lteq(Date.today)).
+        where(arel_table[:calculate_after].lteq(Date.current)).
         distinct.
         pluck(:census)
       # puts "Calculating for #{client_id}, dates: #{census_dates.inspect}"
@@ -51,10 +51,10 @@ module GrdaWarehouse::Confidence
         dh = queued.where(resource_id: client_id, census: census).
           order(iteration: :asc).first
         dh.value = dates_homeless.select{|date| date <= dh.census}.count
-        dh.calculated_on = Date.today
+        dh.calculated_on = Date.current
         if dh.iteration > 0
           previous_iteration = find_by(
-            resource_id: client_id, 
+            resource_id: client_id,
             census: dh.census,
             iteration: dh.iteration - 1
           )

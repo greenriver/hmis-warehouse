@@ -8,7 +8,7 @@ module WarehouseReports
   class YouthFollowUpsController < ApplicationController
     include WindowClientPathGenerator
     def index
-      @end_date = report_params.dig(:filter, :end)&.to_date || Date.today
+      @end_date = report_params.dig(:filter, :end)&.to_date || Date.current
       @report = GrdaWarehouse::WarehouseReports::Youth::FollowUpsReport.new(@end_date, user: current_user)
     end
 

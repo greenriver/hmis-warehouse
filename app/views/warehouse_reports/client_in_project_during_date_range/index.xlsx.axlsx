@@ -11,8 +11,8 @@ wb.add_worksheet(name: "Enrolled Clients") do |sheet|
     'Last Name',
     'DOB',
     'Veteran Status',
-    "Cumulative Days Homeless as of #{Date.today}",
-    "Days Homeless in The Past Three Years as of #{Date.today}",
+    "Cumulative Days Homeless as of #{Date.current}",
+    "Days Homeless in The Past Three Years as of #{Date.current}",
   ])
   @clients.each do |client|
     sheet.add_row([

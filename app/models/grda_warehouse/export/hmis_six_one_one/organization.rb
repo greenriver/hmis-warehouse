@@ -11,7 +11,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     self.hud_key = :OrganizationID
 
-    has_many :projects_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :organization
+    has_many :projects_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:OrganizationID, :data_source_id], foreign_key: [:OrganizationID, :data_source_id], inverse_of: :organization
 
     def export! project_scope:, path:, export:
       case export.period_type

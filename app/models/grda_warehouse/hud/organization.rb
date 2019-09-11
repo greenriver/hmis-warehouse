@@ -12,11 +12,12 @@ module GrdaWarehouse::Hud
     self.table_name = 'Organization'
     self.hud_key = :OrganizationID
     acts_as_paranoid column: :DateDeleted
-    has_many :projects, **hud_many(Project), inverse_of: :organization
-    belongs_to :export, **hud_belongs(Export), inverse_of: :organizations
+    has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations
     belongs_to :data_source, inverse_of: :organizations
-    has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
-    has_many :contacts, class_name: GrdaWarehouse::Contact::Organization.name, foreign_key: :entity_id
+
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
+    has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     accepts_nested_attributes_for :projects
@@ -172,16 +173,31 @@ module GrdaWarehouse::Hud
     end
 
     def self.hud_csv_headers(version: nil)
-      [
-        :OrganizationID,
-        :OrganizationName,
-        :OrganizationCommonName,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
+      case version
+      when '2020'
+        [
+          :OrganizationID,
+          :OrganizationName,
+          :VictimServicesProvider,
+          :OrganizationCommonName,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      else
+        [
+          :OrganizationID,
+          :OrganizationName,
+          :OrganizationCommonName,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     # when we export, we always need to replace OrganizationID with the value of id
