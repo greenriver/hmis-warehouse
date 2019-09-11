@@ -95,4 +95,4 @@ jobs:
         HOSTNAME: openpath.host
         PORT: 80
       run: |
-        bundle exec rspec
+        bundle exec rspec --color --format documentation
