@@ -279,39 +279,14 @@ class User < ActiveRecord::Base
 
   def subordinates
     return [] unless can_manage_organization_users?
-    # Administrative permission to see all assignments
-    if can_view_all_user_client_assignments?
-      return User.all
-    end
-    uve_source = GrdaWarehouse::UserViewableEntity
-    uve_t = uve_source.arel_table
 
-    data_source_ids = data_sources.pluck(:id)
+    # Administrative permission to see all assignments (skips the user)
+    return User.where.not(id: self.id) if can_view_all_user_client_assignments?
 
-    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.
-      where(data_source_id: data_source_ids ).pluck(:id)
+    return [] if agency_id.blank?
 
-    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.
-      where(OrganizationID: organization_ids).
-      pluck(:id) + GrdaWarehouse::Hud::Project.
-        where(data_source_id: data_source_ids).
-        pluck(:id)
-
-    data_source_members = uve_t[:entity_id].in(data_source_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::DataSource'))
-    organization_members = uve_t[:entity_id].in(organization_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
-    project_members = uve_t[:entity_id].in(project_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Project'))
-
-    sub_ids = uve_source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
-
-    manager_ids = User.includes(:roles)
-      .references(:roles)
-      .where( roles: { can_manage_organization_users: true } )
-      .pluck(:id)
-
-    User.where(id: sub_ids - manager_ids)
+    # The users in the user's agency except themselves
+    User.where(agency_id: self.agency_id).where.not(id: self.id)
   end
 
   # def health_agency
