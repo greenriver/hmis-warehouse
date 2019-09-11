@@ -5,10 +5,11 @@
 ###
 
 module GrdaWarehouse::WarehouseReports::Youth
-  include ArelHelper
-
   class FollowUpsReport
+    include ArelHelper
+
     attr_accessor :cut_off_date, :late_date
+
     def initialize(end_date, user:)
       @end_date = end_date
       @cut_off_date = @end_date - 2.months - 3.weeks
@@ -16,9 +17,7 @@ module GrdaWarehouse::WarehouseReports::Youth
       @current_user = user
     end
 
-
     def clients
-
       ids_for_seen = intake_source.where(engagement_date: @cut_off_date .. @end_date).pluck(:client_id) +
         GrdaWarehouse::Youth::YouthCaseManagement.visible_by?(@current_user).where(engaged_on: @cut_off_date .. @end_date).pluck(:client_id) +
         GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(@current_user).where(provided_on: @cut_off_date .. @end_date).pluck(:client_id) +
@@ -59,7 +58,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         last_name: :LastName,
         engagement_date: :engagement_date,
         # GREATEST is not supported on SQL Server, so to work there, this would need to be abstracted
-        last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on, engaged_on)', # ,
+        last_seen: 'GREATEST(engagement_date, provided_on, referred_on, contacted_on, engaged_on)',
       }
     end
 
