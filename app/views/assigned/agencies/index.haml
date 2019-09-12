@@ -1,0 +1,10 @@
+- title = "My Agency's Assigned Clients"
+- content_for :title, title
+
+%h1.mb-5= content_for :title
+
+- current_user.subordinates.each do |subordinate|
+  %h3
+    Clients for
+    = subordinate.name
+  = render 'assigned/clients/client_table', clients: subordinate.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
