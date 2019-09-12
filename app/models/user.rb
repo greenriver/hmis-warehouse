@@ -278,12 +278,8 @@ class User < ActiveRecord::Base
   end
 
   def subordinates
-    return [] unless can_manage_organization_users?
-
-    # Administrative permission to see all assignments (skips the user)
-    return User.where.not(id: self.id) if can_view_all_user_client_assignments?
-
-    return [] if agency_id.blank?
+    return User.none unless can_manage_organization_users?
+    return User.none if agency_id.blank?
 
     # The users in the user's agency except themselves
     User.where(agency_id: self.agency_id).where.not(id: self.id)
