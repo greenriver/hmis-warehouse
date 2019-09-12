@@ -2299,11 +2299,7 @@ module GrdaWarehouse::Hud
     end
 
     def homeless_episodes_between start_date:, end_date:
-      # Need to include enrollments that were open 90 days prior to
-      # handle the case where we look back for PH
-      ph_lookback = start_date - 90.days
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: ph_lookback, end_date: end_date)
+      enrollments = service_history_enrollments.residential.entry
       chronic_enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true)
