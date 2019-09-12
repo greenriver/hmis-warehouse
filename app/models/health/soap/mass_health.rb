@@ -34,7 +34,7 @@ module Health::Soap
 
     def get_files
       result = generic_results_retrieval_request(payload_type: 'FILELIST', payload_id: 'FILELIST')
-      return Hash.from_xml(result.last)&.dig('FileList', 'File')
+      return Hash.from_xml(result.response)&.dig('FileList', 'File')
     end
 
     ELIGIBILITY_RESPONSE_PAYLOAD_TYPE = 'X12_005010_Request_Batch_Results_271'
@@ -111,7 +111,7 @@ module Health::Soap
         if decoded[0..4] == '<?xml'
           return SoapResponse.new(self, [ Hash.from_xml(decoded), nil])
         else
-          return SoapResponse,new(self, [ message.decoded, nil ])
+          return SoapResponse.new(self, [ message.decoded, nil ])
         end
       end
     end
