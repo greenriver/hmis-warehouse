@@ -41,8 +41,14 @@ module GrdaWarehouse
       [start_date, ' - ', to].join
     end
 
-    def self.available_users
-      User.all
+    def self.available_users(user)
+      return User.none unless user.can_manage_organization_users
+
+      if user.can_view_all_user_client_assignments
+        User.all.order(:first_name, :last_name)
+      else
+        User.subordinates
+      end
     end
 
     def self.available_relationships

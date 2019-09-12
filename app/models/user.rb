@@ -281,8 +281,8 @@ class User < ActiveRecord::Base
     return User.none unless can_manage_organization_users?
     return User.none if agency_id.blank?
 
-    # The users in the user's agency except themselves
-    User.where(agency_id: self.agency_id).where.not(id: self.id)
+    # The users in the user's agency
+    User.active.where(agency_id: self.agency_id).order(:first_name, :last_name)
   end
 
   # def health_agency
