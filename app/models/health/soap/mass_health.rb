@@ -104,7 +104,7 @@ module Health::Soap
         if message.parts.size > 1
           return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded ])
         else
-          return SoapReponse.new(self, [ Hash.from_xml(message.parts.first.decoded), nil ])
+          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), nil ])
         end
       else
         decoded = message.decoded
