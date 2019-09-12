@@ -2298,22 +2298,12 @@ module GrdaWarehouse::Hud
         ).residential_history_for_client(client_id: id)
     end
 
-    # Add one to the number of new episodes
-    def homeless_episodes_since date:
-      start_date = date.to_date
-      end_date = Date.current
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
-      chronic_enrollments = service_history_enrollments.entry.
-        hud_homeless(chronic_types_only: true)
-      chronic_enrollments.map do |enrollment|
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
-      end.count(true)
-    end
-
     def homeless_episodes_between start_date:, end_date:
+      # Need to include enrollments that were open 90 days prior to
+      # handle the case where we look back for PH
+      ph_lookback = start_date - 90.days
       enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
+        open_between(start_date: ph_lookback, end_date: end_date)
       chronic_enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true)

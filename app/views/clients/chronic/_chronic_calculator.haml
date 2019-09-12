@@ -22,7 +22,7 @@
         = @client.months_homeless_in_last_year(on_date: date)
     %tr
       %td Homeless episodes in the last 3 years
-      %td= @client.homeless_episodes_since(date: (date - 3.years))
+      %td= @client.homeless_episodes_between(start_date: (date - 3.years), end_date: date)
     %tr
       %td
         Days homeless in the last 3 years
