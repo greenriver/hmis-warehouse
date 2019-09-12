@@ -26,7 +26,7 @@ module AuditReports
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
-          filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.today.strftime('%Y-%m-%d')}"
+          filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -118,9 +118,9 @@ module AuditReports
       @view_history ||= begin
         history = {}
         months = {
-          Date.today.month => 0,
-          (Date.today - 1.months).month => 1,
-          (Date.today - 2.months).month => 2,
+          Date.current.month => 0,
+          (Date.current - 1.months).month => 1,
+          (Date.current - 2.months).month => 2,
         }
 
         ActivityLog.where(

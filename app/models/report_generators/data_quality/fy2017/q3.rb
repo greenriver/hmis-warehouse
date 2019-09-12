@@ -40,12 +40,12 @@ module ReportGenerators::DataQuality::Fy2017
 
     def fetch_all_clients
       columns = {
-        client_id: she_t[:client_id].to_sql, 
+        client_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
-        project_type: she_t[:computed_project_type].to_sql, 
-        VeteranStatus: c_t[:VeteranStatus].to_sql, 
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
-        project_id: she_t[:project_id].to_sql, 
+        project_type: she_t[:computed_project_type].to_sql,
+        VeteranStatus: c_t[:VeteranStatus].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        project_id: she_t[:project_id].to_sql,
         data_source_id: she_t[:data_source_id].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,
@@ -87,7 +87,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age]
           ]
@@ -117,7 +117,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -207,7 +207,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             enrollment[:CoCCode],
             enrollment[:project_name]
           ]
@@ -237,19 +237,19 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.disability_type(enrollment[:DisablingCondition]),
           ]
         end
       )
-      @answers[:q3_c6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2) 
+      @answers[:q3_c6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def enrollments_overlap?(en_1, en_2)
       en_1_start = en_1[:first_date_in_program]
-      en_1_end = en_1[:last_date_in_program] || Date.today
+      en_1_end = en_1[:last_date_in_program] || Date.current
       en_2_start = en_2[:first_date_in_program]
-      en_2_end = en_2[:last_date_in_program] || Date.today
+      en_2_end = en_2[:last_date_in_program] || Date.current
       # Excellent discussion of why this works:
       # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
       # en_1_start < en_2_end && en_1_end > en_2_start
@@ -264,9 +264,9 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = m[:household].first
           all[
             [
-              enrollment[:data_source_id], 
-              enrollment[:project_id], 
-              enrollment[:household_id], 
+              enrollment[:data_source_id],
+              enrollment[:project_id],
+              enrollment[:household_id],
               enrollment[:first_date_in_program],
             ]
           ] = m[:household]
@@ -277,19 +277,19 @@ module ReportGenerators::DataQuality::Fy2017
       end
       @all_households[
         [
-          enrollment[:data_source_id], 
-          enrollment[:project_id], 
-          enrollment[:household_id], 
+          enrollment[:data_source_id],
+          enrollment[:project_id],
+          enrollment[:household_id],
           enrollment[:first_date_in_program],
         ]
       ]
       # The previous uses too much RAM for large data sets
       # This may be slower, but shouldn't require additional RAM
-      # households.values.select do |row| 
+      # households.values.select do |row|
       #   row[:key] == [
-      #     enrollment[:data_source_id], 
-      #     enrollment[:project_id], 
-      #     enrollment[:household_id], 
+      #     enrollment[:data_source_id],
+      #     enrollment[:project_id],
+      #     enrollment[:household_id],
       #     enrollment[:first_date_in_program]
       #   ]
       #   end.first[:household]

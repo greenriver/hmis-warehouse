@@ -12,7 +12,7 @@ module CohortColumns
 
 
     def value(cohort_client) # OK
-      cohort_client.client.age_on(cohort_client.cohort.effective_date || Date.today)
+      cohort_client.client.age_on(cohort_client.cohort.effective_date || Date.current)
     end
   end
 end

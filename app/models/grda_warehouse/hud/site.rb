@@ -13,25 +13,25 @@ module GrdaWarehouse::Hud
 
     def self.hud_csv_headers(version: nil)
       [
-        "GeographyID",
-        "ProjectID",
-        "CoCCode",
-        "PrincipalSite",
-        "Geocode",
-        "Address",
-        "City",
-        "State",
-        "ZIP",
-        "DateCreated",
-        "DateUpdated",
-        "UserID",
-        "DateDeleted",
-        "ExportID"
+        :GeographyID,
+        :ProjectID,
+        :CoCCode,
+        :PrincipalSite,
+        :Geocode,
+        :Address,
+        :City,
+        :State,
+        :ZIP,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
       ]
     end
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
-    belongs_to :export, **hud_belongs(Export), inverse_of: :geographies
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies
     has_one :project, through: :project_coc, source: :project
     belongs_to :data_source
 

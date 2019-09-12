@@ -7,7 +7,7 @@ RSpec.describe GrdaWarehouse::UserClient, type: :model do
   let(:end_date_nil) { build :grda_warehouse_user_client, end_date: nil, user: user, client: client }
   let(:user) { create :user }
   let(:client) { create :grda_warehouse_hud_client }
-  let(:invalid_range) { build :grda_warehouse_user_client, start_date: Date.today, end_date: Date.yesterday }
+  let(:invalid_range) { build :grda_warehouse_user_client, start_date: Date.current, end_date: Date.yesterday }
 
   describe 'validations' do
     describe 'date_range' do

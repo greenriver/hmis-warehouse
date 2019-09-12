@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def default_value client_id
-      effective_date = cohort.effective_date || Date.today
+      effective_date = cohort.effective_date || Date.current
       GrdaWarehouse::Hud::Client.days_homeless_in_last_three_years(client_id: client_id, on_date: effective_date)
     end
 

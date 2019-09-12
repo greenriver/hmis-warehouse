@@ -9,7 +9,7 @@ module GrdaWarehouse::Tasks
 
     attr_accessor :date, :client_ids
 
-    def initialize date: Date.today, client_ids: [], batch_size: 200
+    def initialize date: Date.current, client_ids: [], batch_size: 200
       @date = date
       @client_ids = client_ids
       @batch_size = batch_size
@@ -32,6 +32,6 @@ module GrdaWarehouse::Tasks
         pluck(:client_id).
         sort
     end
-    
+
   end
 end

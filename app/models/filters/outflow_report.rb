@@ -14,7 +14,7 @@ module Filters
     validates_presence_of :start, :end, :sub_population
 
     def default_no_service_after_date
-      Date.today - 90.day
+      Date.current - 90.day
     end
 
      def available_sub_populations

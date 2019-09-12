@@ -22,7 +22,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
       length_of_stay = if enrollment[:last_date_in_program]
         enrollment[:last_date_in_program] - enrollment[:first_date_in_program]
       else
-        Date.today - enrollment[:first_date_in_program]
+        Date.current - enrollment[:first_date_in_program]
       end
       race = @clients[client_id].source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join('; ')
       ethnicity = @clients[client_id].source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map do |v|

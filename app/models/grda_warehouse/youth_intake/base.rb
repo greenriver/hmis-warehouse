@@ -17,7 +17,7 @@ module GrdaWarehouse::YouthIntake
     # serialize :client_race, Array
     # serialize :disabilities, Array
 
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes
     belongs_to :user
 
     after_save :update_destination_client
@@ -33,13 +33,13 @@ module GrdaWarehouse::YouthIntake
         all
       # If you can see any, then show yours, those for your agency, and those for anyone with a full release
       elsif user.can_view_youth_intake? || user.can_edit_youth_intake?
-        joins(:client).where(
-          c_t[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+        where(
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
           or(arel_table[:user_id].in(agency_user_ids))
         )
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
-        joins(:client).where(user_id: agency_user_ids)
+        where(user_id: agency_user_ids)
       else
         none
       end
@@ -55,13 +55,13 @@ module GrdaWarehouse::YouthIntake
         all
       # If you can edit any, then show yours and those for anyone with a full release
       elsif  user.can_edit_youth_intake?
-        joins(:client).where(
-          c_t[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+        where(
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
           or(arel_table[:user_id].in(agency_user_ids))
         )
       # If you can edit your agancy's, then show yours and those for your agency
       elsif user.can_edit_own_agency_youth_intake?
-        joins(:client).where(user_id: agency_user_ids)
+        where(user_id: agency_user_ids)
       else
         none
       end
@@ -229,6 +229,5 @@ module GrdaWarehouse::YouthIntake
       return 99 if client_race.select { |race| ! race.empty? }.empty?
       return nil
     end
-
   end
 end

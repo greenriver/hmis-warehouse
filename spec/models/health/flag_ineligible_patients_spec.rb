@@ -17,7 +17,7 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
     Health::FlagIneligiblePatientsJob.new.perform(inquiry.id)
     patient_01.reload
 
-    expect(patient_01.coverage_inquiry_date).to eq Date.today
+    expect(patient_01.coverage_inquiry_date).to eq Date.current
   end
 
   it 'does not process other patients' do

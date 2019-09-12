@@ -14,4 +14,5 @@ class Users::SessionsController < Devise::SessionsController
     flash[:notice] = "Your session expired; you have been logged out."
     redirect_to root_path
   end
+
 end

@@ -70,7 +70,7 @@ module ServiceHistoryServiceConcern
     }
 
     scope :service_in_prior_years, -> (years: 3) do
-      service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.today)
+      service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.current)
     end
 
     def self.service_types
