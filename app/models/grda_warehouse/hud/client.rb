@@ -1802,6 +1802,8 @@ module GrdaWarehouse::Hud
       @document_readiness ||= begin
         @document_readiness = []
         required_documents.each do |tag|
+          next unless tag.required_by?(self)
+
           file_added = client_files.tagged_with(tag.name).maximum(:updated_at)
           file = OpenStruct.new({
             updated_at: file_added,
