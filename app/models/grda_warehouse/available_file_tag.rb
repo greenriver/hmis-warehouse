@@ -33,7 +33,7 @@ module GrdaWarehouse
     end
 
     def required_by?(client)
-      return true unless required_for.present? && self.class.available_required_for_options.include?(required_for)
+      return true unless required_for.present? && self.class.available_required_for_options.values.include?(required_for)
 
       GrdaWarehouse::Hud::Client.send(required_for).where(id: client).exists?
     end

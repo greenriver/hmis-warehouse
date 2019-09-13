@@ -1817,7 +1817,7 @@ module GrdaWarehouse::Hud
     end
 
     def document_ready?(required_documents)
-      @document_ready ||= required_documents.size == document_readiness(required_documents).select{|m| m.available}.size
+      @document_ready ||= document_readiness(required_documents).all?{|m| m.available}
     end
 
     # Build a set of potential client matches grouped by criteria
