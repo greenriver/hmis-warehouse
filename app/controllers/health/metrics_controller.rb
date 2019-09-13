@@ -18,8 +18,6 @@ module Health
     def index
       load_patient_metrics
 
-      @scrolspy = true
-
       render layout: !request.xhr?
     end
 
