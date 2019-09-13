@@ -6,10 +6,9 @@
 
 module WarehouseReports
   class RunEnrolledDisabledJob < BaseJob
-
     queue_as :enrolled_disabled_report
 
-    def perform params
+    def perform(params)
       report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new
       report.started_at = DateTime.now
       report.parameters = params
@@ -20,7 +19,7 @@ module WarehouseReports
       report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
         [:all, 'All']
       else
-          GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
+        GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
       end
 
       filter_params = params[:filter]
@@ -36,15 +35,13 @@ module WarehouseReports
           open_between(start_date: start_date, end_date: end_date).
           in_project_type(filter_params[:project_types])
 
-        population = service_history_enrollment_source.know_standard_cohorts.detect{|m| m.to_s == filter_params[:sub_population]}
-        if population.present?
-          enrollment_scope = enrollment_scope.send(population)
-        end
+        population = service_history_enrollment_source.know_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
+        enrollment_scope = enrollment_scope.send(population) if population.present?
 
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          where(Disabilities: {DisabilityType: filter_params[:disabilities], DisabilityResponse: [1,2,3]}).
+          where(Disabilities: { DisabilityType: filter_params[:disabilities], DisabilityResponse: [1, 2, 3] }).
           where(Project: { project_source.project_type_column => filter_params[:project_types] }).
-            merge(enrollment_scope).
+          merge(enrollment_scope).
           distinct.
           includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           order(LastName: :asc, FirstName: :asc)
@@ -55,7 +52,7 @@ module WarehouseReports
         attrs = client.attributes.merge(disabilities: disabilities)
 
         enrollments = client.source_enrollments.map(&:service_history_enrollment).compact
-        enrollment = enrollments.map{|r| r.attributes.compact}.reduce(&:merge)
+        enrollment = enrollments.map { |r| r.attributes.compact }.reduce(&:merge)
         attrs.merge(enrollment: enrollment)
       end
 
@@ -78,6 +75,5 @@ module WarehouseReports
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
     end
-
   end
 end

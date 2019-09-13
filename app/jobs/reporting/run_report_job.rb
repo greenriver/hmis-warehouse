@@ -11,7 +11,7 @@ module Reporting
 
     queue_as :high_priority
 
-    def initialize report:, result_id:, options:
+    def initialize(report:, result_id:, options:)
       @report = report
       @result_id = result_id
       @options = options
@@ -26,21 +26,19 @@ module Reporting
     def perform
       # Find the associated report generator
       if @options.present?
-        report_generator = @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new(@options).run!
+        @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new(@options).run!
       else
-        report_generator = @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new.run!
+        @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new.run!
       end
 
       user_id = ReportResult.where(id: @result_id).pluck(:user_id)&.first
       NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later if user_id
     end
 
-    def enqueue(job)
-
-    end
+    def enqueue(job); end
 
     def error(job, exception)
-      result =  ReportResult.find(YAML.load(job.handler).result_id.to_i)
+      result = ReportResult.find(YAML.safe_load(job.handler).result_id.to_i)
       result.update(job_status: "Failed: #{exception.message}")
       super(job, exception)
     end
