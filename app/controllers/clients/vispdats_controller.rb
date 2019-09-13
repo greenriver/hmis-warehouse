@@ -9,9 +9,9 @@ module Clients
     include ClientPathGenerator
 
     before_action :require_can_access_vspdat_list!, only: [:index, :show]
-    before_action :require_can_create_or_modify_vspdat!, only: [:new, :create, :edit, :update, :destroy, :add_child, :remove_child]
+    before_action :require_can_create_or_modify_vspdat!, except: [:index, :show]
     before_action :set_client
-    before_action :set_vispdat, only: [:show, :edit, :update, :destroy, :add_child, :remove_child]
+    before_action :set_vispdat, except: [:new, :create, :list]
     before_action :require_can_edit_vspdat!, only: [:destroy]
     after_action :log_client
 
