@@ -2298,28 +2298,21 @@ module GrdaWarehouse::Hud
         ).residential_history_for_client(client_id: id)
     end
 
-    # Add one to the number of new episodes
-    def homeless_episodes_since date:
-      start_date = date.to_date
-      end_date = Date.current
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
-      chronic_enrollments = service_history_enrollments.entry.
-        hud_homeless(chronic_types_only: true)
-      chronic_enrollments.map do |enrollment|
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
-      end.count(true)
-    end
-
     def homeless_episodes_between start_date:, end_date:
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
+      enrollments = service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
       chronic_enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true)
-      chronic_enrollments.map do |enrollment|
+        hud_homeless(chronic_types_only: true).
+        order(first_date_in_program: :asc).to_a
+      return 0 unless chronic_enrollments.any?
+      # Need to add one to the count of new episodes if the first enrollment in
+      # chronic_enrollments doesn't count as a new episode.
+      # It is equivalent to always count that first enrollment
+      # and then ignore it for the calculation
+      episode_count = 1
+      chronic_enrollments.drop(1).map do |enrollment|
         new_episode?(enrollments: enrollments, enrollment: enrollment)
-      end.count(true)
+      end.count(true) + episode_count
     end
 
     def self.service_types
