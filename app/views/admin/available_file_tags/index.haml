@@ -18,6 +18,7 @@
       %th Weight
       %th Triggers Notifications?
       %th Required for Document Ready?
+      %th Required for
       %th Constitutes a Consent Form?
       %th Requires Effective or Signed-on Date?
       %th Requires Expiration date?
@@ -31,6 +32,7 @@
         %td= available_file_tag.weight
         %td= checkmark available_file_tag.notification_trigger
         %td= checkmark available_file_tag.document_ready
+        %td= GrdaWarehouse::AvailableFileTag.available_required_for_options.key(available_file_tag.required_for)
         %td= checkmark available_file_tag.consent_form
         %td= checkmark available_file_tag.requires_effective_date
         %td= checkmark available_file_tag.requires_expiration_date

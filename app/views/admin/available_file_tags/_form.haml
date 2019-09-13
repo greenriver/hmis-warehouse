@@ -9,6 +9,7 @@
   = f.input :name
   = f.input :group
   = f.input :included_info, label: 'Includes'
+  = f.input :required_for, collection: GrdaWarehouse::AvailableFileTag.available_required_for_options, include_blank: 'None', input_html: { class: :select2 }
   = f.input :weight
   = f.input :note
   = f.input :document_ready, label: 'Required for document ready?'
