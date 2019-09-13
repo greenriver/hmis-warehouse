@@ -8,9 +8,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
   let(:client_signed_2_years_ago_short_consent) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
 
-  let(:client_with_enrollments) { build :grda_warehouse_hud_client }
-  let(:enrollments) { build_list :grda_warehouse_hud_enrollment }
-
   context 'when created' do
     before(:each) do
       client
@@ -233,6 +230,61 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(1)
+      end
+    end
+  end
+
+  describe 'New episode checks' do
+    let!(:warehouse) { create :grda_warehouse_data_source }
+    let!(:source_ds) { create :data_source_fixed_id }
+    let!(:client_with_enrollments) { create :grda_warehouse_hud_client, data_source_id: source_ds.id }
+    let!(:enrollments) { create_list :grda_warehouse_hud_enrollment, 4, PersonalID: client_with_enrollments.PersonalID, data_source_id: client_with_enrollments.data_source_id }
+    let!(:exits) { create_list :hud_exit, 4, PersonalID: client_with_enrollments.PersonalID, data_source_id: client_with_enrollments.data_source_id }
+    let!(:projects) { create_list :hud_project, 4, data_source_id: client_with_enrollments.data_source_id }
+    let(:dates) do
+      [
+        {
+          ProjectType: 1,
+          EntryDate: '2015-03-04',
+          ExitDate: '2015-04-12',
+        },
+        {
+          ProjectType: 4,
+          EntryDate: '2015-06-04',
+          ExitDate: '2015-08-12',
+        },
+        {
+          ProjectType: 1,
+          EntryDate: '2015-07-04',
+          ExitDate: '2015-09-12',
+        },
+        {
+          ProjectType: 1,
+          EntryDate: '2016-03-04',
+          ExitDate: '2016-04-12',
+        },
+      ]
+    end
+
+    it 'should find 3 new episodes' do
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      enrollments.each_with_index do |en, i|
+        date = dates[i]
+        project = projects[i]
+        project.update(ProjectType: date[:ProjectType])
+
+        ex = exits[i]
+        ex.enrollment = en
+        ex.update(ExitDate: date[:ExitDate])
+
+        en.project = project
+        en.exit = ex
+        en.update(EntryDate: date[:EntryDate])
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id).rebuild_service_history!
+      end
+      aggregate_failures 'checking' do
+        expect(enrollments.map(&:new_episode?).count(true)).to eq(3)
+        expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).count(true).to eq(3)
       end
     end
   end
