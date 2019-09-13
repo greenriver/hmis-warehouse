@@ -6,6 +6,7 @@
 
 class User < ActiveRecord::Base
   include Rails.application.routes.url_helpers
+  include UserPermissions
   has_paper_trail
   acts_as_paranoid
 
@@ -87,24 +88,8 @@ class User < ActiveRecord::Base
     super && active
   end
 
-  def has_administrative_access_to_health?
-      can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
-  end
-
-  def has_patient_referral_review_access?
-    can_approve_patient_assignments? || can_manage_patients_for_own_agency?
-  end
-
-  def has_some_patient_access?
-    can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
-  end
-
-  def can_access_some_version_of_clients?
-    can_view_client_window? || can_view_clients? || can_edit_clients?
-  end
-
-  def has_some_edit_access_to_youth_intakes?
-    can_edit_youth_intake? || can_edit_own_agency_youth_intake?
+  def limited_client_view?
+    ! can_view_clients?
   end
 
   def self.stale_account_threshold
@@ -258,14 +243,6 @@ class User < ActiveRecord::Base
     viewables.each do |viewable|
       viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
     end
-  end
-
-  def can_see_admin_menu?
-    can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
-  end
-
-  def self.can_receive_secure_files?
-    can_view_assigned_secure_uploads || can_view_all_secure_uploads
   end
 
   def admin_dashboard_landing_path

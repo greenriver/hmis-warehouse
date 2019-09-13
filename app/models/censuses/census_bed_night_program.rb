@@ -8,13 +8,15 @@ module Censuses
   class CensusBedNightProgram < ProgramBase
 
     # what projects should be included in graphs?
-    def census_projects_scope
-      GrdaWarehouse::Hud::Project.night_by_night
+    def census_projects_scope user:
+      GrdaWarehouse::Hud::Project.night_by_night.viewable_by(user)
     end
 
     # what data should be included in graphs?
-    def census_data_scope
-      GrdaWarehouse::Census::ByProject.night_by_night
+    def census_data_scope user:
+      GrdaWarehouse::Census::ByProject.night_by_night.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
     # # what data should appear in the detail view?

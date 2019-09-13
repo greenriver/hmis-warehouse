@@ -10,7 +10,9 @@
     %tbody
       - funders.each do |f|
         %tr
-          %td= link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+          %td
+            - if can_see_raw_hmis_data?
+              = link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= f.FunderID
           %td
             = HUD.funding_source f.Funder.to_i

@@ -150,6 +150,7 @@ class App.Census.Base
 
   # Override as necessary
   _follow_link: (d, element) =>
+    return unless @options.follow_link == 'true'
     chart_id = $(element).closest('.jChart').attr('id')
     date = d.x.toISOString().split('T')[0]
     project = @chart_data[chart_id]['census_detail_slug']
