@@ -10,7 +10,7 @@ module Clients::Youth
     include PjaxModalController
 
     before_action :require_can_access_youth_intake_list!
-    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :update, :new, :create, :destroy]
+    before_action :require_can_edit_some_youth_intakes!, except: [:index, :show]
 
     before_action :set_client
     before_action :set_intake, only: [:show, :edit, :update, :destroy]
