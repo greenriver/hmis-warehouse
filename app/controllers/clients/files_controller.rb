@@ -10,10 +10,10 @@ module Clients
     include PjaxModalController
 
     before_action :require_window_file_access!
-    before_action :set_client, only: [:index, :show, :new, :create, :edit, :update, :preview, :thumb, :has_thumb, :batch_download, :show_delete_modal, :destroy]
+    before_action :set_client
     before_action :set_files, only: [:index]
     before_action :set_window
-    before_action :set_file, only: [:show, :edit, :update, :preview, :thumb, :has_thumb]
+    before_action :set_file, only: [:show, :update, :preview, :thumb, :has_thumb]
 
     before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
