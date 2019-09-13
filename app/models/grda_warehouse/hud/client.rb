@@ -804,7 +804,7 @@ module GrdaWarehouse::Hud
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
         client_files_path(self)
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
-        lient_youth_intakes_path(self)
+        client_youth_intakes_path(self)
       end
     end
 
