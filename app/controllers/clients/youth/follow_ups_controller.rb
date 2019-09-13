@@ -15,7 +15,7 @@ module Clients::Youth
     before_action :set_follow_up, only: [:edit, :update, :destroy]
 
     def new
-      @follow_up =  follow_up_source.new(contacted_on: Date.today)
+      @follow_up =  follow_up_source.new(contacted_on: Date.current)
     end
 
     def create

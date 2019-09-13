@@ -54,7 +54,7 @@ module Health
         source_type: @cha.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: :cha,
         follow_up: 'Implement Comprehensive Health Assessment',
         reached_client: :yes,

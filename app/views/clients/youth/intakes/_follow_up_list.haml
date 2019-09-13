@@ -1,7 +1,7 @@
 %section.client__assessments.c-card.c-card--block.c-card--no-padding
   .c-card__header.c-card__header--external
     %h2.section-expander-block__header 3-month Follow Ups
-    - if has_some_edit_access_to_youth_intakes? && @intakes.ongoing.exists?
+    - if has_some_edit_access_to_youth_intakes? && @intakes.exists?
       = link_to polymorphic_path([:new] + youth_follow_up_path_generator), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary btn-sm ml-auto' do
         %i.icon-plus
         Add 3-month Follow Up

@@ -20,7 +20,7 @@ module Clients::Youth
     end
 
     def new
-      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.today)
+      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.current)
     end
 
     def create

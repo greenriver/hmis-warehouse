@@ -37,10 +37,10 @@ module WarehouseReports::Cas
     end
 
     def default_end_date
-      if Date.today.month > 6
-        year = Date.today.year
+      if Date.current.month > 6
+        year = Date.current.year
       else
-        year = Date.today.year - 1
+        year = Date.current.year - 1
       end
       Date.new(year, 6, 30)
     end

@@ -50,7 +50,11 @@ module WarehouseReports
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
-          WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
+          if @filter.version == '6.11'
+            WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
+          elsif @filter.version == '2020'
+            WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
+          end
           redirect_to warehouse_reports_hmis_exports_path
         end
       else
@@ -106,6 +110,7 @@ module WarehouseReports
 
     def report_params
       params.require(:filter).permit(
+        :version,
         :start_date,
         :end_date,
         :hash_status,
@@ -126,24 +131,25 @@ module WarehouseReports
 
     def recurrence_params
       params.require(:filter).permit(
-          :start_date,
-          :end_date,
-          :hash_status,
-          :period_type,
-          :include_deleted,
-          :faked_pii,
-          :every_n_days,
-          :reporting_range,
-          :reporting_range_days,
-          :s3_access_key_id,
-          :s3_secret_access_key,
-          :s3_region,
-          :s3_bucket,
-          :s3_prefix,
-          project_ids: [],
-          project_group_ids: [],
-          organization_ids: [],
-          data_source_ids: []
+        :version,
+        :start_date,
+        :end_date,
+        :hash_status,
+        :period_type,
+        :include_deleted,
+        :faked_pii,
+        :every_n_days,
+        :reporting_range,
+        :reporting_range_days,
+        :s3_access_key_id,
+        :s3_secret_access_key,
+        :s3_region,
+        :s3_bucket,
+        :s3_prefix,
+        project_ids: [],
+        project_group_ids: [],
+        organization_ids: [],
+        data_source_ids: []
       )
     end
 

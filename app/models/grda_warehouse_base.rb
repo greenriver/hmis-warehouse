@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouseBase < ActiveRecord::Base
+  include ArelHelper
   establish_connection DB_WAREHOUSE
   self.abstract_class = true
 

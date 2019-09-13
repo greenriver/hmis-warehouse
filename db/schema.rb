@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190828190416) do
+ActiveRecord::Schema.define(version: 20190911124324) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -177,6 +177,27 @@ ActiveRecord::Schema.define(version: 20190828190416) do
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
   end
+
+  create_table "login_activities", force: :cascade do |t|
+    t.string   "scope"
+    t.string   "strategy"
+    t.string   "identity"
+    t.boolean  "success"
+    t.string   "failure_reason"
+    t.integer  "user_id"
+    t.string   "user_type"
+    t.string   "context"
+    t.string   "ip"
+    t.text     "user_agent"
+    t.text     "referrer"
+    t.string   "city"
+    t.string   "region"
+    t.string   "country"
+    t.datetime "created_at"
+  end
+
+  add_index "login_activities", ["identity"], name: "index_login_activities_on_identity", using: :btree
+  add_index "login_activities", ["ip"], name: "index_login_activities_on_ip", using: :btree
 
   create_table "messages", force: :cascade do |t|
     t.integer  "user_id"

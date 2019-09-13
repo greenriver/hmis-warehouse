@@ -20,8 +20,8 @@ module Clients
 
     def show
       @ordered_dates = @dates.keys.sort
-      @start = @ordered_dates.first || Date.today
-      @end = @ordered_dates.last || Date.today
+      @start = @ordered_dates.first || Date.current
+      @end = @ordered_dates.last || Date.current
       @date_range = (@start.beginning_of_month..@end.end_of_month)
       @months = @date_range.map do |date|
         [date.year, date.month]
@@ -78,7 +78,7 @@ module Clients
       @file.note = "Auto Generated for prior #{@years} years"
       @file.name = file_name
       @file.visible_in_window = true
-      @file.effective_date = Date.today
+      @file.effective_date = Date.current
       @file.tag_list.add(['Homeless Verification'])
       @file.save!
       # allow for multiple mechanisms to trigger this without getting in the way

@@ -144,7 +144,7 @@ module Health::Tasks
       sheet = summary_file.worksheets[reply_sheet]
       sheet[reply_row][received_row_number_column].change_contents(row_count)
       sheet[reply_row][received_column_number_column].change_contents(header_count)
-      sheet[reply_row][received_timestamp_column].change_contents(Date.today.strftime("%Y%m%d"))
+      sheet[reply_row][received_timestamp_column].change_contents(Date.current.strftime("%Y%m%d"))
       summary_file.write(receipt_file_path)
       return receipt_file_path
     end

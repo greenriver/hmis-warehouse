@@ -319,7 +319,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
 
     let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
     let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
-    let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: Date.today, ProjectID: project_2.ProjectID }
+    let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: Date.current, ProjectID: project_2.ProjectID }
 
     describe 'with project 1' do
       # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)

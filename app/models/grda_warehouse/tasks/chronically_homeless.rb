@@ -35,7 +35,7 @@ module GrdaWarehouse::Tasks
 
     # Pass client_ids as an array
     def initialize(
-      date: Date.today,
+      date: Date.current,
       count_so_as_full_month: true,
       dry_run: false,
       client_ids: nil,
@@ -177,9 +177,21 @@ module GrdaWarehouse::Tasks
 
     # the end of the most recent 90+ day residential, non-homeless enrollment
     # that is open within the range
+    # NOTE, if the non-homeless enrollment is PH, it must also have a move-in date
     def homeless_reset(client_id:)
       @homeless_reset ||= service_history_enrollments_source.hud_residential_non_homeless.
         open_between(start_date: @date - 3.years, end_date: @date).
+        where(
+          she_t[:move_in_date].not_eq(nil).and(
+            she_t[:computed_project_type].in(
+              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+            )
+          ).or(
+            she_t[:computed_project_type].in(
+              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+            )
+          )
+        ).
         where(she_t[:last_date_in_program].lteq(@date)).
         where( datediff( service_history_enrollments_source, 'day', she_t[:last_date_in_program], she_t[:first_date_in_program] ).gteq(90)).
         where(client_id: client_id).

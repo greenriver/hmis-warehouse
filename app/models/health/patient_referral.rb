@@ -156,7 +156,7 @@ module Health
 
     def age
       if birthdate.present?
-        GrdaWarehouse::Hud::Client.age(dob: birthdate.to_date, date: Date.today)
+        GrdaWarehouse::Hud::Client.age(dob: birthdate.to_date, date: Date.current)
       else
         'Unknown'
       end
@@ -250,7 +250,7 @@ module Health
     def convert_to_patient
       # nothing to do if we have a client already
       return if client.present?
-      update(effective_date: Date.today)
+      update(effective_date: Date.current)
       # look for an existing patient
       if Health::Patient.where(medicaid_id: medicaid_id).exists?
         patient = Health::Patient.where(medicaid_id: medicaid_id).first

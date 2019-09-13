@@ -248,7 +248,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         end
       spans_by_id.each do |ds, dates|
         if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.today
+          spans_by_id[ds][:end_date] = Date.current
         end
       end
       spans_by_id

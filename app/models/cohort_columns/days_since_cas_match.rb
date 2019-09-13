@@ -15,9 +15,9 @@ module CohortColumns
       override_date = cohort_client.client.cas_match_override
 
       if override_date.present?
-        (Date.today - override_date).to_i
+        (Date.current - override_date).to_i
       elsif match_started_time.present?
-        (Date.today - match_started_time.to_date).to_i
+        (Date.current - match_started_time.to_date).to_i
       else
         nil
       end

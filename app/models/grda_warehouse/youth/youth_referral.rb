@@ -10,7 +10,7 @@ module GrdaWarehouse::Youth
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_referrals
 
     validates_presence_of :referred_on, :referred_to
 
@@ -36,18 +36,17 @@ module GrdaWarehouse::Youth
         all
       # If you can see any, then show yours, those for your agency, and those for anyone with a full release
       elsif user.can_view_youth_intake? || user.can_edit_youth_intake?
-        joins(:client).where(
-          c_t[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+        where(
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
           or(arel_table[:user_id].in(agency_user_ids))
         )
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
-        joins(:client).where(user_id: agency_user_ids)
+        where(user_id: agency_user_ids)
       else
         none
       end
     end
-
 
     def available_referrals
       @available_referrals ||= [

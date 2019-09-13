@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190809152023) do
+ActiveRecord::Schema.define(version: 20190905170546) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -985,6 +985,17 @@ ActiveRecord::Schema.define(version: 20190809152023) do
   add_index "signature_requests", ["deleted_at"], name: "index_signature_requests_on_deleted_at", using: :btree
   add_index "signature_requests", ["patient_id"], name: "index_signature_requests_on_patient_id", using: :btree
   add_index "signature_requests", ["type"], name: "index_signature_requests_on_type", using: :btree
+
+  create_table "soap_configs", force: :cascade do |t|
+    t.string "name"
+    t.string "user"
+    t.string "encrypted_pass"
+    t.string "encrypted_pass_iv"
+    t.string "sender"
+    t.string "receiver"
+    t.string "test_url"
+    t.string "production_url"
+  end
 
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false
