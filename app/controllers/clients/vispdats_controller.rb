@@ -11,7 +11,7 @@ module Clients
     before_action :require_can_access_vspdat_list!, only: [:index, :show]
     before_action :require_can_create_or_modify_vspdat!, except: [:index, :show]
     before_action :set_client
-    before_action :set_vispdat, except: [:new, :create, :list]
+    before_action :set_vispdat, except: [:new, :create, :index]
     before_action :require_can_edit_vspdat!, only: [:destroy]
     after_action :log_client
 
@@ -41,8 +41,7 @@ module Clients
       respond_with(@vispdat, location: client_vispdats_path(@client))
     end
 
-    # user param here to determine which vispdat to build
-    # individual, youth or family
+    # VI-SPDAT can be of types: individual, youth or family, determined by params[:type]
     def create
       if @client.vispdats.in_progress.none?
         @vispdat = build_vispdat
@@ -140,7 +139,7 @@ module Clients
     end
 
     private def build_vispdat
-      vispdat_type = params[:type] || "GrdaWarehouse::Vispdat::Individual"
+      vispdat_type = GrdaWarehouse::Vispdat::Base.available_types.detect{|m| m == params[:type]} || "GrdaWarehouse::Vispdat::Individual"
       @client.vispdats.build(user_id: current_user.id, type: vispdat_type)
     end
 
