@@ -8,6 +8,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   let(:client_signed_2_years_ago) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
   let(:client_signed_2_years_ago_short_consent) { build :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: 2.years.ago.to_date }
 
+  let(:client_with_enrollments) { build :grda_warehouse_hud_client }
+  let(:enrollments) { build_list :grda_warehouse_hud_enrollment }
+
   context 'when created' do
     before(:each) do
       client
