@@ -2300,6 +2300,7 @@ module GrdaWarehouse::Hud
 
     def homeless_episodes_between start_date:, end_date:
       enrollments = service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return 0 unless enrollments.any?
       chronic_enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true).
@@ -2527,18 +2528,21 @@ module GrdaWarehouse::Hud
     end
 
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
-    # If we don't currently have a non-homeless residential (PH) and we have had one for the past 90 days
-    # residential_dates in this context is PH ONLY
+    # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days
       ninety_days_ago = entry_date - 90.days
-      ph_dates = residential_dates(enrollments: enrollments)
-      no_other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).empty?
-      current_residential = ph_dates.include?(entry_date)
-      residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
-      no_other_homeless || (! current_residential && residential_for_past_90_days)
+
+      housed_dates = residential_dates(enrollments: enrollments)
+      currently_housed = housed_dates.include?(entry_date)
+      housed_for_week_in_past_90_days = (housed_dates & (ninety_days_ago...entry_date).to_a).count > 7
+
+      other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).present?
+
+      return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
+      return ! other_homeless
     end
 
   end
