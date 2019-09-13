@@ -55,7 +55,6 @@ module Clients
       @organization_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:organization_name]}.map{|org, ens| [org, ens.count]}.to_h
       @project_type_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:project_type]}.map{|project_type, ens| [project_type, ens.count]}.to_h
       file_name = "service_history.pdf"
-      # or from your controller, using views & templates and all wicked_pdf options as normal
 
       # DEBUGGING
       # render pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
