@@ -1156,12 +1156,13 @@ module GrdaWarehouse::Hud
       else
         child = false
         adult = false
-        hh.with_indifferent_access.each do |k, h|
-          _, date = k
+        hh.with_indifferent_access.each do |_, household|
+          date = household.first[:date]
           # client life stage
           child = self.DOB.present? && age_on(date) < 18
           adult = self.DOB.blank? || age_on(date) >= 18
-          h.map{|m| m['age']}.uniq.each do |a|
+          # household members life stage
+          household.map{|m| m['age']}.uniq.each do |a|
             adult = true if a.present? && a >= 18
             child = true if a.blank? || a < 18
           end
