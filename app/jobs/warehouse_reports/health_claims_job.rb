@@ -10,7 +10,7 @@ module WarehouseReports
 
     attr_accessor :params, :max_date, :report_id, :current_user_id
 
-    def initialize params
+    def initialize(params)
       @max_date = params[:max_date]
       @report_id = params[:report_id]
       @current_user_id = params[:current_user_id]
@@ -22,8 +22,7 @@ module WarehouseReports
       NotifyUser.health_claims_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :low_priority)
-    end
+    def enqueue(job, queue: :low_priority); end
 
     def max_attempts
       1
@@ -38,6 +37,5 @@ module WarehouseReports
     def report_source
       ::Health::Claim
     end
-
   end
 end

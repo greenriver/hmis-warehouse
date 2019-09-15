@@ -21,6 +21,7 @@ jobs:
         DATABASE_DB_TEST: boston_cas_test
         REPORTING_DATABASE_DB_TEST: test_boston_reporting
       run: |
+        sudo apt-get update
         sudo apt-get install \
           postgresql postgresql-contrib \
           redis-server \

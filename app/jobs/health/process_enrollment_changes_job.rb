@@ -55,12 +55,12 @@ module Health
       update_patient(transaction, referral)
     end
 
-    def re_enroll_patient(transaction, referral)
+    def re_enroll_patient(_transaction, referral)
       referral.update(
         disenrollment_date: nil,
         pending_disenrollment_date: nil,
       )
-      # TODO any other work to re-enroll
+      # TODO: any other work to re-enroll
     end
 
     def disenroll_patient(transaction, referral)

@@ -5,7 +5,6 @@
 ###
 
 class AddCohortClientsJob < BaseJob
-
   queue_as :low_priority
 
   def perform(cohort_id, client_ids, user_id)
@@ -37,7 +36,7 @@ class AddCohortClientsJob < BaseJob
       cohort_client.save
       log_create(cohort.id, cohort_client.id, user_id)
     end
-    return cohort_client
+    cohort_client
   end
 
   def log_create(cohort_id, cohort_client_id, user_id)

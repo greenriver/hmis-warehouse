@@ -31,6 +31,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::ProjectCoc,
       GrdaWarehouse::Hud::Geography,
       GrdaWarehouse::Hud::Assessment,
+      GrdaWarehouse::Hud::CurrentLivingSituation,
       GrdaWarehouse::Hud::AssessmentQuestion,
       GrdaWarehouse::Hud::AssessmentResult,
       GrdaWarehouse::Hud::Event,
