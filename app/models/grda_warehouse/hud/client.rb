@@ -1803,6 +1803,8 @@ module GrdaWarehouse::Hud
       @document_readiness ||= begin
         @document_readiness = []
         required_documents.each do |tag|
+          next unless tag.required_by?(self)
+
           file_added = client_files.tagged_with(tag.name).maximum(:updated_at)
           file = OpenStruct.new({
             updated_at: file_added,
@@ -1816,7 +1818,7 @@ module GrdaWarehouse::Hud
     end
 
     def document_ready?(required_documents)
-      @document_ready ||= required_documents.size == document_readiness(required_documents).select{|m| m.available}.size
+      @document_ready ||= document_readiness(required_documents).all?{|m| m.available}
     end
 
     # Build a set of potential client matches grouped by criteria
