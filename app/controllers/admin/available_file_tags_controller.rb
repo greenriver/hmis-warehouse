@@ -64,7 +64,8 @@ module Admin
           :notification_trigger,
           :document_ready,
           :requires_effective_date,
-          :requires_expiration_date
+          :requires_expiration_date,
+          :required_for,
         )
       end
   end
