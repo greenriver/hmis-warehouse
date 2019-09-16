@@ -8,7 +8,7 @@ module Reporting::Hud::Ahar::Fy2017
   class RunReportJob < BaseJob
     queue_as :high_priority
 
-    def initialize report_id:, result_id:, options:
+    def initialize(report_id:, result_id:, options:)
       @report_id = report_id
       @result_id = result_id
       @options = options
@@ -26,12 +26,10 @@ module Reporting::Hud::Ahar::Fy2017
       report_generator.new(@options).run!
     end
 
-    def enqueue(job)
-
-    end
+    def enqueue(job); end
 
     def error(job, exception)
-      result =  ReportResult.find(@result_id)
+      result = ReportResult.find(@result_id)
       result.update(job_status: "Failed: #{exception.message}")
       super(job, exception)
     end

@@ -11,7 +11,7 @@ module Reporting
 
     queue_as :high_priority
 
-    def initialize coc_code:, report_id:, current_user_id:
+    def initialize(coc_code:, report_id:, current_user_id:)
       GrdaWarehouse::DashboardExportReport.find(report_id).update(started_at: Time.now)
 
       @coc_code = coc_code
@@ -35,8 +35,6 @@ module Reporting
       NotifyUser.dashboard_export_report_finished(@current_user_id, @report_id).deliver_later
     end
 
-    def enqueue(job)
-
-    end
+    def enqueue(job); end
   end
 end
