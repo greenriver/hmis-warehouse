@@ -516,14 +516,9 @@ module GrdaWarehouse::Hud
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
 
+    # Viewable by must be called on source clients
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      elsif user.coc_codes.none?
-        none
-      else
-        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
-      end
+      distinct.joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by user )
     end
 
     # Race & Ethnicity scopes
