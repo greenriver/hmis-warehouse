@@ -278,7 +278,7 @@ class User < ActiveRecord::Base
   end
 
   def subordinates
-    return User.none unless can_manage_organization_users?
+    return User.none unless can_manage_agency?
     return User.none if agency_id.blank?
 
     # The users in the user's agency
