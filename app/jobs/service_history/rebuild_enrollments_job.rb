@@ -9,7 +9,7 @@ module ServiceHistory
     include ArelHelper
     queue_as :low_priority
 
-    def initialize client_ids:, log_id:
+    def initialize(client_ids:, log_id:)
       @client_ids = client_ids
       @log_id = log_id
     end
@@ -19,7 +19,7 @@ module ServiceHistory
       log = GrdaWarehouse::GenerateServiceHistoryBatchLog.create(
         to_process: @client_ids.count,
         generate_service_history_log_id: @log_id,
-        delayed_job_id: self.job_id
+        delayed_job_id: job_id,
       )
       counts = {
         updated: 0,
@@ -30,10 +30,9 @@ module ServiceHistory
         # Rails.logger.debug "rebuilding enrollments for #{client_id}"
         client = GrdaWarehouse::Hud::Client.destination.find(client_id)
         next if client.blank?
+
         # If this client has been invalidated, remove all service history and rebuild
-        if client.service_history_invalidated?
-          client.force_full_service_history_rebuild
-        end
+        client.force_full_service_history_rebuild if client.service_history_invalidated?
         # You must join in the project here or it will try to rebuild enrollments
         # with no project
         enrollments = GrdaWarehouse::Hud::Client.where(id: client_id).
@@ -45,9 +44,7 @@ module ServiceHistory
           # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
           enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment_id)
           rebuild_type = enrollment.rebuild_service_history!
-          if rebuild_type == :update
-            Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilt #{enrollment_id} for #{client_id}"
-          end
+          Rails.logger.info "===RebuildEnrollmentsJob=== Rebuilt #{enrollment_id} for #{client_id}" if rebuild_type == :update
           rebuild_types << rebuild_type
         end
         if rebuild_types.include?(:update)
@@ -60,18 +57,15 @@ module ServiceHistory
         processor = GrdaWarehouse::Tasks::ServiceHistory::Base.new
         processor.ensure_there_are_no_extra_enrollments_in_service_history(client_id)
         GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [client_id])
-
       end
       GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(to_sanity_check.size, to_sanity_check).run!
       log.update(counts)
     end
 
-    def enqueue(job, queue: :low_priority)
-    end
+    def enqueue(job, queue: :low_priority); end
 
     def max_attempts
       2
     end
-
   end
 end

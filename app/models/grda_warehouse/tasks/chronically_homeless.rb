@@ -216,8 +216,9 @@ module GrdaWarehouse::Tasks
         service_history_columns.keys.zip(row).to_h
       end
       # Throw out any dates that fall outside of the enrollment
+      # Unless this is SO and we allow them
       all_dates.reject! do |m|
-        m[:last_date_in_program].present?&& m[:last_date_in_program] < m[:date]
+        m[:last_date_in_program].present? && m[:last_date_in_program] < m[:date] && ! count_so_as_full_month?(m)
       end
       debug_log "Found #{all_dates.size} days in the residential history"
 
@@ -253,7 +254,7 @@ module GrdaWarehouse::Tasks
         # We de-dupe dates later, none will be double counted
         if count_all_dates?(meta)
           adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
-          debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
+          debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}, entry: #{meta[:first_date_in_program]}, until: #{count_until}"
           all_homeless_dates += adj_dates
         else
           adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
@@ -355,7 +356,7 @@ module GrdaWarehouse::Tasks
     end
 
     def disabled?(client_id)
-      @disabled_clients ||= GrdaWarehouse::Hud::Client.disabled_client_ids
+      @disabled_clients ||= GrdaWarehouse::Hud::Client.where(id: @clients).disabled_client_ids
       @disabled_clients.include? client_id
     end
 

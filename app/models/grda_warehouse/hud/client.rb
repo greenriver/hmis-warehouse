@@ -1156,12 +1156,13 @@ module GrdaWarehouse::Hud
       else
         child = false
         adult = false
-        hh.with_indifferent_access.each do |k, h|
-          _, date = k
+        hh.with_indifferent_access.each do |_, household|
+          date = household.first[:date]
           # client life stage
           child = self.DOB.present? && age_on(date) < 18
           adult = self.DOB.blank? || age_on(date) >= 18
-          h.map{|m| m['age']}.uniq.each do |a|
+          # household members life stage
+          household.map{|m| m['age']}.uniq.each do |a|
             adult = true if a.present? && a >= 18
             child = true if a.blank? || a < 18
           end
@@ -2300,28 +2301,22 @@ module GrdaWarehouse::Hud
         ).residential_history_for_client(client_id: id)
     end
 
-    # Add one to the number of new episodes
-    def homeless_episodes_since date:
-      start_date = date.to_date
-      end_date = Date.current
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
-      chronic_enrollments = service_history_enrollments.entry.
-        hud_homeless(chronic_types_only: true)
-      chronic_enrollments.map do |enrollment|
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
-      end.count(true)
-    end
-
     def homeless_episodes_between start_date:, end_date:
-      enrollments = service_history_enrollments.entry.
-        open_between(start_date: start_date, end_date: end_date)
+      enrollments = service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return 0 unless enrollments.any?
       chronic_enrollments = service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
-        hud_homeless(chronic_types_only: true)
-      chronic_enrollments.map do |enrollment|
+        hud_homeless(chronic_types_only: true).
+        order(first_date_in_program: :asc).to_a
+      return 0 unless chronic_enrollments.any?
+      # Need to add one to the count of new episodes if the first enrollment in
+      # chronic_enrollments doesn't count as a new episode.
+      # It is equivalent to always count that first enrollment
+      # and then ignore it for the calculation
+      episode_count = 1
+      chronic_enrollments.drop(1).map do |enrollment|
         new_episode?(enrollments: enrollments, enrollment: enrollment)
-      end.count(true)
+      end.count(true) + episode_count
     end
 
     def self.service_types
@@ -2536,18 +2531,21 @@ module GrdaWarehouse::Hud
     end
 
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
-    # If we don't currently have a non-homeless residential (PH) and we have had one for the past 90 days
-    # residential_dates in this context is PH ONLY
+    # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(enrollment.computed_project_type)
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days
       ninety_days_ago = entry_date - 90.days
-      ph_dates = residential_dates(enrollments: enrollments)
-      no_other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).empty?
-      current_residential = ph_dates.include?(entry_date)
-      residential_for_past_90_days = (ph_dates & (ninety_days_ago...entry_date).to_a).present?
-      no_other_homeless || (! current_residential && residential_for_past_90_days)
+
+      housed_dates = residential_dates(enrollments: enrollments)
+      currently_housed = housed_dates.include?(entry_date)
+      housed_for_week_in_past_90_days = (housed_dates & (ninety_days_ago...entry_date).to_a).count > 7
+
+      other_homeless = (homeless_dates(enrollments: enrollments) & (thirty_days_ago...entry_date).to_a).present?
+
+      return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
+      return ! other_homeless
     end
 
   end

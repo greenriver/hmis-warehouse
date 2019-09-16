@@ -21,10 +21,7 @@ module Reporting
         end
       end
       @report.notify_requestor
-      if @send_email
-        @report.send_notifications
-      end
+      @report.send_notifications if @send_email
     end
-
   end
 end
