@@ -980,7 +980,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_valid?
-      housing_release_status == self.class.full_release_string
+      housing_release_status.starts_with?(self.class.full_release_string)
     end
 
     def consent_form_valid?
