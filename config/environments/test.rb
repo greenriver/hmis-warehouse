@@ -50,4 +50,6 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
 
   config.active_record.raise_in_transactional_callbacks = true
+
+  config.force_ssl = false
 end

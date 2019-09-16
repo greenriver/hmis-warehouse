@@ -13,14 +13,12 @@ RSpec.describe 'Youth Intake Permissions', type: :request do
   it 'has add intake if my agency doesn\'t have an open intake' do
     sign_in non_agency_user
     get client_youth_intakes_path(intake.client.id)
-    follow_redirect!
     expect(response.body).to include 'Start Intake'
   end
 
   it 'doesn\'t have add intake if my agency has an open intake' do
     sign_in agency_user
     get client_youth_intakes_path(intake.client.id)
-    follow_redirect!
     expect(response.body).not_to include 'Start Intake'
   end
 end
