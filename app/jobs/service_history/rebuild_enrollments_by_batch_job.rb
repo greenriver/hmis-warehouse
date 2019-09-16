@@ -9,7 +9,7 @@ module ServiceHistory
     include ArelHelper
     queue_as :low_priority
 
-    def initialize enrollment_ids:
+    def initialize(enrollment_ids:)
       @enrollment_ids = enrollment_ids
     end
 
@@ -24,12 +24,10 @@ module ServiceHistory
       end
     end
 
-    def enqueue(job, queue: :low_priority)
-    end
+    def enqueue(job, queue: :low_priority); end
 
     def max_attempts
       2
     end
-
   end
 end

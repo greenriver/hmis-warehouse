@@ -17,7 +17,7 @@ module Importing
     end
 
     def advisory_lock_key
-      "run_daily_imports_job"
+      'run_daily_imports_job'
     end
 
     def perform
@@ -30,7 +30,7 @@ module Importing
       end
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         lock_checks = 4
-        while active_imports? && lock_checks > 0
+        while active_imports? && lock_checks.positive?
           sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
           lock_checks -= 1
         end
@@ -56,9 +56,9 @@ module Importing
         GrdaWarehouse::CasHoused.inactivate_clients
 
         # Maintain ETO based CAS flags
-        GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new().run!
+        GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
 
-        GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+        GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
         @notifier.ping('Pushed Clients to CAS') if @send_notifications
 
         # Importers::Samba.new.run!
@@ -100,7 +100,7 @@ module Importing
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
         @notifier.ping('Full sanity check complete') if @send_notifications
         # Rebuild residential first dates
-        GrdaWarehouse::Tasks::EarliestResidentialService.new().run!
+        GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
         @notifier.ping('Earliest residential services generated') if @send_notifications
 
         # Update the materialized view that we use to search by client_id and project_type
@@ -128,14 +128,14 @@ module Importing
 
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
-        if start_time.to_date.day.in?([1,15])
+        if start_time.to_date.day.in?([1, 15])
           months_to_build = 6
           dates = []
           months_to_build.times do |i|
             dates << i.months.ago.change(day: 15).to_date
             dates << i.months.ago.change(day: 1).to_date
           end
-          dates.select!{|m| m <= Date.current}
+          dates.select! { |m| m <= Date.current }
 
           dates.each do |date|
             GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
@@ -170,7 +170,7 @@ module Importing
         # Generate some duplicates if we need to, but not too many
         opts = {
           threshold: -1.45,
-          batch_size: 10000,
+          batch_size: 10_000,
           run_length: 10,
         }
         SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
@@ -191,7 +191,7 @@ module Importing
         @notifier.ping('Updating dashboards') if @send_notifications
         Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
 
-        seconds = ((Time.now - start_time)/1.minute).round * 60
+        seconds = ((Time.now - start_time) / 1.minute).round * 60
         run_time = distance_of_time_in_words(seconds)
         msg = "RunDailyImportsJob completed in #{run_time}"
         Rails.logger.info msg
@@ -220,7 +220,6 @@ module Importing
       # re-set cache key for delayed job
       Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
       GrdaWarehouse::DataSource.data_spans_by_id
-
     end
   end
 end
