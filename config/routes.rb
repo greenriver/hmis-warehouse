@@ -456,6 +456,7 @@ Rails.application.routes.draw do
 
   namespace :assigned do
     resources :clients, only: [:index]
+    resources :agencies, only: [:index]
   end
   namespace :expired do
     resources :clients, only: :index
