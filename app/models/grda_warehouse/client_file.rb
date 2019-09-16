@@ -8,11 +8,11 @@ module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
-    
+
     acts_as_taggable
 
     include ArelHelper
-    
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base'
     validates_presence_of :name
@@ -20,14 +20,14 @@ module GrdaWarehouse
     validate :file_exists_and_not_too_large
     validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
-    
+
     validates_presence_of :expiration_date, on: :requires_expiration_date
     validates_presence_of :effective_date, on: :requires_effective_date
-    
+
     # because Rails cannot supply two contexts at once
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates
-     
+
 
     scope :window, -> do
       where(visible_in_window: true)
@@ -98,6 +98,11 @@ module GrdaWarehouse
       tagged_with(GrdaWarehouse::AvailableFileTag.notification_triggers.pluck(:name), any: true)
     end
 
+    scope :for_coc, -> (coc_codes) do
+      coc_codes = Array.wrap(coc_codes) + [nil, '']
+      where(coc_code: coc_codes)
+    end
+
     ####################
     # Callbacks
     ####################
@@ -128,7 +133,14 @@ module GrdaWarehouse
     end
 
     def consent_type
-      if GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
+      if GrdaWarehouse::AvailableFileTag.coc_level_release?(tag_list)
+        release_type = GrdaWarehouse::Hud::Client.full_release_string
+        if self.coc_code.present?
+          "#{release_type} for CoC #{coc_code}"
+        else
+          "#{release_type} for all CoCs"
+        end
+      elsif GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
         GrdaWarehouse::Hud::Client.full_release_string
       elsif GrdaWarehouse::AvailableFileTag.partial_consent?(tag_list)
         GrdaWarehouse::Hud::Client.partial_release_string

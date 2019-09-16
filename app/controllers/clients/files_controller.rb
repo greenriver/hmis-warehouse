@@ -72,6 +72,7 @@ module Clients
           effective_date: allowed_params[:effective_date],
           expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
+          coc_code: allowed_params[:coc_code],
         }
 
         @file.assign_attributes(attrs)
@@ -229,6 +230,7 @@ module Clients
           :consent_form_confirmed,
           :effective_date,
           :expiration_date,
+          :coc_code,
           tag_list: [],
         )
     end

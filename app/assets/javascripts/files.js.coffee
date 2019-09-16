@@ -33,6 +33,10 @@ $(document).on 'change', '.jFileTag', (e) ->
     $('.jExpirationDate').show()
   else
     $('.jExpirationDate').hide()
+  if $(this).data('coc-code')
+    $('.jConsentFormCoC').show()
+  else
+    $('.jConsentFormCoC').hide()
 
 $(document).on 'change', '.jDownload', (e) ->
   ids = $('.jDownload:checked').map ->

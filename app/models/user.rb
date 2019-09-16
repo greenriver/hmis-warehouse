@@ -262,6 +262,11 @@ class User < ActiveRecord::Base
     User.active.where(agency_id: self.agency_id).order(:first_name, :last_name)
   end
 
+  def coc_codes_for_consent
+    return coc_codes if coc_codes.present?
+    GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode)
+  end
+
   # def health_agency
   #   agency_user&.agency
   # end

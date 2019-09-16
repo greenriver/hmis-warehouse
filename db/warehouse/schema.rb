@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190913131118) do
+ActiveRecord::Schema.define(version: 20190916192050) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1042,6 +1042,7 @@ ActiveRecord::Schema.define(version: 20190913131118) do
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
     t.string   "required_for"
+    t.boolean  "coc_available",            default: false, null: false
   end
 
   create_table "bo_configs", force: :cascade do |t|
@@ -1677,6 +1678,7 @@ ActiveRecord::Schema.define(version: 20190913131118) do
     t.date     "expiration_date"
     t.integer  "delete_reason"
     t.string   "delete_detail"
+    t.string   "coc_code"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
