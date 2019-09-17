@@ -527,8 +527,8 @@ module Reporting
     def one_project_columns
       @one_project_columns ||= {
         search_start: she_t[:first_date_in_program].to_sql,
-        search_end: e_t[:MoveInDate].as('search_end').to_sql,
-        housed_date: e_t[:MoveInDate].as('housed_date').to_sql,
+        search_end: she_t[:move_in_date].as('search_end').to_sql,
+        housed_date: she_t[:move_in_date].as('housed_date').to_sql,
         housing_exit: she_t[:last_date_in_program].to_sql,
         project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column].to_sql,
         destination: she_t[:destination].to_sql,

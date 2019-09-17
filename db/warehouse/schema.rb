@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190913131118) do
+ActiveRecord::Schema.define(version: 20190917000129) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -440,6 +440,7 @@ ActiveRecord::Schema.define(version: 20190913131118) do
   add_index "Enrollment", ["PersonalID"], name: "index_Enrollment_on_PersonalID", using: :btree
   add_index "Enrollment", ["ProjectID"], name: "index_Enrollment_on_ProjectID", using: :btree
   add_index "Enrollment", ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true, using: :btree
+  add_index "Enrollment", ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id", using: :btree
   add_index "Enrollment", ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID", using: :btree
   add_index "Enrollment", ["data_source_id"], name: "index_Enrollment_on_data_source_id", using: :btree
   add_index "Enrollment", ["pending_date_deleted"], name: "index_Enrollment_on_pending_date_deleted", using: :btree
@@ -1042,6 +1043,7 @@ ActiveRecord::Schema.define(version: 20190913131118) do
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
     t.string   "required_for"
+    t.boolean  "coc_available",            default: false, null: false
   end
 
   create_table "bo_configs", force: :cascade do |t|
@@ -1677,6 +1679,7 @@ ActiveRecord::Schema.define(version: 20190913131118) do
     t.date     "expiration_date"
     t.integer  "delete_reason"
     t.string   "delete_detail"
+    t.string   "coc_code"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
