@@ -106,12 +106,13 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               describe 'when the original consent is un-confirmed' do
                 before :each do
                   # rspec seems to get confused with all of the callbacks, this gets around that
-                  file.reload
-                  file.consent_form_confirmed = false
-                  file.save!
+                  second_file.update_columns(consent_form_confirmed: false)
+                  file.update_columns(consent_form_confirmed: false)
+                  # This usually gets called in a callback, but acts as taggable hates transactions
+                  file.set_client_consent
                 end
                 it 'the client release should no longer be valid' do
-                  expect(file.client.consent_form_valid?).to be false
+                  expect(file.client.reload.consent_form_valid?).to be false
                 end
               end
             end
