@@ -66,11 +66,27 @@ module GrdaWarehouse
     end
 
     scope :consent_forms, -> do
-      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+      ).pluck(:id)
+      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+        where(taggable_type: "GrdaWarehouse::File").
+        pluck(:taggable_id)
+      self.where(id: consent_form_tagging_ids)
     end
 
     scope :non_consent, -> do
-      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
+      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+      ).pluck(:id)
+      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+        where(taggable_type: "GrdaWarehouse::File").
+        pluck(:taggable_id)
+      self.where.not(id: consent_form_tagging_ids)
     end
 
     scope :confirmed, -> do

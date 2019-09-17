@@ -101,17 +101,18 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
     describe 'viewability' do
       model = GrdaWarehouse::Hud::Client
-      let(:c1) { create :grda_warehouse_hud_client }
-      let(:c2) { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday }
-      let(:admin_role) { create :admin_role }
-      let(:user) { create :user }
-      let!(:e1)  { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID }
-      let!(:e2)  { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID }
-      let!(:ec1) { create :hud_enrollment_coc, CoCCode: 'foo', data_source_id: e1.data_source_id, PersonalID: e1.PersonalID, EnrollmentID: e1.EnrollmentID }
-      let!(:ec2) { create :hud_enrollment_coc, CoCCode: 'bar', data_source_id: e2.data_source_id, PersonalID: e2.PersonalID, EnrollmentID: e2.EnrollmentID }
+      let!(:c1) { create :grda_warehouse_hud_client }
+      let!(:c2) { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday }
+      let!(:user) { create :user }
+      let!(:p1) { create :hud_project, data_source_id: c1.data_source_id }
+      let!(:pcoc1) { create :hud_project_coc, CoCCode: 'GR-100', project: p1 }
+      let!(:e1) { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID, project: p1 }
+      let!(:p2) { create :hud_project, data_source_id: c2.data_source_id }
+      let!(:pcoc2) { create :hud_project_coc, CoCCode: 'GR-200', project: p2 }
+      let!(:e2) { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID, project: p2 }
 
       user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
-      ids      = ->(*clients) { clients.map(&:id).sort }
+      ids = ->(*clients) { clients.map(&:id).sort }
 
       describe 'ordinary user' do
         it 'sees nothing' do
@@ -119,29 +120,96 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
 
-      describe 'admin user' do
+      describe 'user with both assigned cocs' do
         before do
-          user.roles << admin_role
+          user.update(coc_codes: ['GR-100', 'GR-200'])
         end
         after do
-          user.roles = []
+          user.update(coc_codes: [])
         end
+
         it 'sees both' do
           expect(user_ids[user]).to eq ids[c1, c2]
         end
       end
 
-      describe 'user assigned to coc foo' do
+      describe 'user assigned to coc GR-100' do
         before do
-          user.coc_codes << 'foo'
-          user.save
+          user.update(coc_codes: ['GR-100'])
         end
         after do
-          user.coc_codes = []
-          user.save
+          user.update(coc_codes: [])
         end
         it 'sees c1' do
           expect(user_ids[user]).to eq ids[c1]
+        end
+      end
+
+      describe 'when user can only see clients with valid coc ROI' do
+        let!(:coc_visibility_role) { create :role, can_view_clients_with_roi_in_own_coc: true }
+
+        describe 'when client has no release' do
+          before do
+            user.update(roles: [coc_visibility_role])
+          end
+          describe 'user with no CoCs' do
+            it 'sees no clients when none have ROIs' do
+              expect(model.viewable_by(user).exists?).to be false
+            end
+            describe 'when one has ROI' do
+              let!(:coc_roi_tag) { create :coc_roi_tag }
+              let!(:coc_roi) { create :client_file_coc_roi, client_id: c1.id, coc_code: 'GR-100' }
+              let!(:coc_roi2) { create :client_file_coc_roi, client_id: c2.id, coc_code: 'GR-200' }
+              before do
+                user.update(coc_codes: ['GR-100'])
+                coc_roi.tag_list.add('HAN Release')
+                coc_roi.save!
+              end
+              after do
+                user.update(coc_codes: [])
+              end
+              it 'sees no clients when ROI is unconfirmed' do
+                expect(model.viewable_by(user).exists?).to be false
+              end
+              describe 'confirm consent' do
+                before do
+                  # Acts as taggable gets very confused, so we have to reload and re-tag
+                  coc_roi.reload
+                  coc_roi.update(consent_form_confirmed: true)
+                  coc_roi.tag_list.add('HAN Release')
+                end
+                it 'user sees c1' do
+                  expect(user_ids[user]).to eq ids[c1]
+                end
+
+                describe 'when second client is confirmed in a different CoC' do
+                  before do
+                    # Acts as taggable gets very confused, so we have to reload and re-tag
+                    coc_roi2.reload
+                    coc_roi2.update(consent_form_confirmed: true)
+                    coc_roi2.tag_list.add('HAN Release')
+                    coc_roi2.save!
+                  end
+                  it 'user only sees c1' do
+                    expect(user_ids[user]).to eq ids[c1]
+                  end
+                end
+
+                describe 'when second client is confirmed in a different CoC' do
+                  before do
+                    # Acts as taggable gets very confused, so we have to reload and re-tag
+                    coc_roi2.reload
+                    coc_roi2.update(consent_form_confirmed: true, coc_code: nil)
+                    coc_roi2.tag_list.add('HAN Release')
+                    coc_roi2.save!
+                  end
+                  it 'user only sees c1' do
+                    expect(user_ids[user].sort).to eq ids[c1, c2].sort
+                  end
+                end
+              end
+            end
+          end
         end
       end
     end

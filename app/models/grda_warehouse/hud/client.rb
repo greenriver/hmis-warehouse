@@ -532,7 +532,6 @@ module GrdaWarehouse::Hud
         # with a valid consent form in the coc or with no-coc specified
         # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
         # are included.
-        # TODO: write some tests for this
         joins(:client_files).
         where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
       else
@@ -980,7 +979,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_valid?
-      housing_release_status&.starts_with?(self.class.full_release_string)
+      housing_release_status&.starts_with?(self.class.full_release_string) || false
     end
 
     def consent_form_valid?
