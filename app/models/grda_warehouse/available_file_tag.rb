@@ -53,7 +53,7 @@ module GrdaWarehouse
     end
 
     def self.coc_level_release?(tag_names=[])
-      full_release.where(name: tag_names).exists?
+      full_release.where(name: tag_names, coc_available: true).exists?
     end
 
     def self.partial_consent?(tag_names=[])
