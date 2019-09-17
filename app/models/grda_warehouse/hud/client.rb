@@ -525,13 +525,17 @@ module GrdaWarehouse::Hud
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
 
+    # Viewable by must be called on source clients
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      elsif user.coc_codes.none?
-        none
+      if user.can_view_clients_with_roi_in_own_coc?
+        # If the user has coc-codes specified, this will limit to users
+        # with a valid consent form in the coc or with no-coc specified
+        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+        # are included.
+        joins(:client_files).
+        where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
       else
-        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
+        distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
       end
     end
 
@@ -975,7 +979,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_valid?
-      housing_release_status == self.class.full_release_string
+      housing_release_status&.starts_with?(self.class.full_release_string) || false
     end
 
     def consent_form_valid?
