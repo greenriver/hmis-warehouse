@@ -530,8 +530,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
           data_source_id: data_source_id,
           HouseholdID: self.HouseholdID,
           ProjectID: self.ProjectID,
-          RelationshipToHoH: [nil, 1]
-        ).pluck(:PersonalID)&.first || self.PersonalID
+          RelationshipToHoH: [1, nil]
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:PersonalID)&.first || self.PersonalID
       end
     end
 
@@ -544,7 +546,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
           HouseholdID: self.HouseholdID,
           ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
-        ).pluck(:MoveInDate)&.first || self.MoveInDate
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
 
