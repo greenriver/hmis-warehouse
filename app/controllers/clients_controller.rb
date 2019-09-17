@@ -14,15 +14,15 @@ class ClientsController < ApplicationController
   helper ClientHelper
 
   before_action :require_can_search_window!, only: [:index]
-  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :create_note]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
   before_action :check_release, only: [:show]
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :update, :create_note]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :update]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
-  after_action :log_client, only: [:show, :edit, :update, :destroy, :merge, :unmerge]
+  after_action :log_client, only: [:show, :edit, :update, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
 

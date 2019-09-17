@@ -363,10 +363,9 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients do
+  resources :clients, except: :destroy do
     member do
       get :service_range
-      get :vispdat
       get :rollup
       get :assessment
       get :image
