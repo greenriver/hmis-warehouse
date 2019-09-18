@@ -5,7 +5,7 @@
 ###
 
 module Health
-  class ClientsController < IndividualPatientControllerr
+  class ClientsController < IndividualPatientController
     include PjaxModalController
     include ClientPathGenerator
 
