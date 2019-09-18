@@ -304,6 +304,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         active_in_cas_match: client.cas_reports.where(active_match: true).exists?,
         last_exit_destination: client.last_exit_destination,
         last_cas_match_date: client.cas_reports.maximum(:match_started_at),
+        lgbtq_from_hmis: client.hmis_client&.sexual_orientation
       }
     end
 
