@@ -20,6 +20,10 @@
               Acts as:
               = HUD.project_type @project.act_as_project_type
             for HUD Reports
+          - if @project.active_homeless_status_override.present?
+            %br
+            %em
+              Enrollees are actively homeless for CAS and Cohorts
       %tr
         %th Operating Start Date
         %td.d-flex

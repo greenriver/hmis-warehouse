@@ -115,6 +115,9 @@
                             .o-text--italic.mb-2
                               Acts as
                               = HUD.project_type project.act_as_project_type
+                        - if project.active_homeless_status_override.present?
+                          %em.small
+                            Enrollees are actively homeless for CAS and Cohorts
                         .project__tracking-method.mb-2
                           %em.small
                             Tracking Method:

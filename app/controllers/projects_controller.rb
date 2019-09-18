@@ -62,6 +62,7 @@ class ProjectsController < ApplicationController
       :uses_move_in_date,
       :confidential,
       :operating_start_date_override,
+      :active_homeless_status_override,
     )
   end
 
