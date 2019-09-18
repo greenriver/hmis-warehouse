@@ -1305,7 +1305,7 @@ module GrdaWarehouse::Hud
       return nil unless accessible_via_api?
       client_ids = source_api_ids.pluck(:client_id)
       if client_ids.any?
-        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids)
+        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids.uniq)
       end
     end
 
