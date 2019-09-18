@@ -7,7 +7,7 @@
 module CohortColumns
   class LgbtqFromHmis < ReadOnly
     attribute :column, String, lazy: true, default: :lgbtq_from_hmis
-    attribute :translation_key, String, lazy: true, default: 'LGBTQ (from HMIS)'
+    attribute :translation_key, String, lazy: true, default: 'Sexual Orientation (from HMIS)'
     attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
   end
 end
