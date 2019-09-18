@@ -32,9 +32,9 @@ module Window::Health
       end
       start_date = Date.current.to_time
       if params[:end_date].present?
-        end_date = params[:end_date]&.to_date rescue start_date + 1.week
+        end_date = params[:end_date]&.to_date rescue start_date + 2.week
       else
-        end_date = start_date + 1.week
+        end_date = start_date + 2.week
       end
       @appointments = @patient.appointments.
         limited.
