@@ -1,5 +1,5 @@
 - cas_id = client.cas_client&.id
-- if client.processed_service_history.present? && client.longterm_stayer? || client.active_in_cas? || client.chronically_homeless_for_cas?
+- if client.active_in_cas?
   %h3.mt-0.d-flex
     .ml-0
       CAS
@@ -9,46 +9,26 @@
         = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
           = cas_id
 
-- if client.cas_reports.where( current_step: true ).any?
-  .c-tag.c-tag--success.client-flag
-  .c-tag__wrapper
-    .c-tag__icon
-      .icon-user
-    .c-tag__content
-      %span
-        Active in a Match
-        - if cas_id.present?
-          = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-            View in CAS
-
-- elsif client.active_in_cas? && client.chronically_homeless_for_cas?
-  .c-tag.c-tag--info.client-flag
-    .c-tag__wrapper
-      .c-tag__icon
-        .icon-clock
-      .c-tag__content
-        %span
-          Chronically Homeless &amp; in CAS
-          - if cas_id.present?
-            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
-              View in CAS
-
-- elsif client.chronically_homeless_for_cas?
-  .c-tag.c-tag--warning.client-flag
-    .c-tag__wrapper
-      .c-tag__icon
-        .icon-clock
-      .c-tag__content
-        %span Chronically Homeless for CAS
-
-- elsif client.active_in_cas?
-  .c-tag.c-tag--warning.client-flag
+  - if client.cas_reports.where( current_step: true ).any?
+    .c-tag.c-tag--success.client-flag
     .c-tag__wrapper
       .c-tag__icon
         .icon-user
       .c-tag__content
         %span
-          Available in CAS
+          Active in a Match
           - if cas_id.present?
             = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
               View in CAS
+
+  - else
+    .c-tag.c-tag--warning.client-flag
+      .c-tag__wrapper
+        .c-tag__icon
+          .icon-user
+        .c-tag__content
+          %span
+            Available in CAS
+            - if cas_id.present?
+              = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+                View in CAS
