@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190919153540) do
+ActiveRecord::Schema.define(version: 20190919164531) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1472,6 +1472,7 @@ ActiveRecord::Schema.define(version: 20190919153540) do
     t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
+    t.string  "cas_days_homeless_source",                  default: "days_homeless"
   end
 
   create_table "contacts", force: :cascade do |t|
