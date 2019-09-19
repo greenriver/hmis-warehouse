@@ -207,6 +207,7 @@ module GrdaWarehouse
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
         ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new(),
+        ::CohortColumns::DaysHomelessPlusOverrides.new(),
         ::CohortColumns::FirstDateHomeless.new(),
         ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
