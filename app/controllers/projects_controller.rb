@@ -63,6 +63,7 @@ class ProjectsController < ApplicationController
       :confidential,
       :operating_start_date_override,
       :active_homeless_status_override,
+      :include_in_days_homeless_override,
     )
   end
 

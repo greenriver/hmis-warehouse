@@ -118,6 +118,9 @@
                         - if project.active_homeless_status_override.present?
                           %em.small
                             Enrollees are actively homeless for CAS and Cohorts
+                        - if project.include_in_days_homeless_override.present?
+                          %em.small
+                            Enrollments are included in verified additional days
                         .project__tracking-method.mb-2
                           %em.small
                             Tracking Method:
