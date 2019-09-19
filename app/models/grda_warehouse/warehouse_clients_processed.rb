@@ -67,11 +67,22 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def most_recent_homeless_dates
       @most_recent_homeless_dates ||= begin
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+        dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
           in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES). # for index hinting
           where(client_id: @client_ids).
           group(:client_id).
           maximum(:date)
+
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          joins(service_history_enrollment: :project).
+          merge(GrdaWarehouse::Hud::Project.overrides_homeless_active_status).
+          where(client_id: @client_ids).
+          group(:client_id).
+          maximum(:date).each do |client_id, date|
+            dates[client_id] = [ dates[client_id], date ].max
+          end
+
+        dates
       end
     end
 
