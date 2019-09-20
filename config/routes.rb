@@ -363,7 +363,7 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients, except: :destroy do
+  resources :clients, except: [:update, :destroy] do
     member do
       get :service_range
       get :rollup

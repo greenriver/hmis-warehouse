@@ -33,11 +33,6 @@ RSpec.describe ClientsController, type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it 'doesn\'t allow update' do
-      patch client_path(destination)
-      expect(response).to redirect_to(new_user_session_path)
-    end
-
     it 'doesn\'t allow service_range' do
       get service_range_client_path(destination)
       expect(response).to redirect_to(new_user_session_path)
@@ -106,12 +101,6 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
-    end
-
-    it 'doesn\'t allow update' do
-      sign_in user
-      patch client_path(destination)
       expect(response).to redirect_to(root_path)
     end
 
@@ -193,12 +182,6 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
-    end
-
-    it 'doesn\'t allow update' do
-      sign_in user
-      patch client_path(destination)
       expect(response).to redirect_to(root_path)
     end
 
@@ -284,12 +267,6 @@ RSpec.describe ClientsController, type: :request do
       expect(response).to redirect_to(root_path)
     end
 
-    it 'doesn\'t allow update' do
-      sign_in user
-      patch client_path(destination)
-      expect(response).to redirect_to(root_path)
-    end
-
     it 'allows service_range' do
       sign_in user
       get service_range_client_path(destination, format: :json)
@@ -371,12 +348,6 @@ RSpec.describe ClientsController, type: :request do
       expect(response).to render_template(:edit)
     end
 
-    it 'allows update' do
-      sign_in user
-      patch client_path(destination)
-      expect(response).to render_template(:update)
-    end
-
     it 'allows service_range' do
       sign_in user
       get service_range_client_path(destination, format: :json)
@@ -416,9 +387,8 @@ RSpec.describe ClientsController, type: :request do
 
     it 'allow unmerge' do
       sign_in user
-      patch unmerge_client_path(destination)
-      follow_redirect!
-      expect(response).to render_template(:unmerge)
+      patch unmerge_client_path(destination, grda_warehouse_hud_client: { unmerge: [''] })
+      expect(response).to redirect_to(edit_client_path(destination))
     end
   end
 
@@ -455,12 +425,6 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
-    end
-
-    it 'doesn\'t allow update' do
-      sign_in user
-      patch client_path(destination)
       expect(response).to redirect_to(root_path)
     end
 
