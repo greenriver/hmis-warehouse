@@ -169,6 +169,8 @@ module Clients
     end
 
     def set_client
+      not_authorized! and return unless current_user.present?
+
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
