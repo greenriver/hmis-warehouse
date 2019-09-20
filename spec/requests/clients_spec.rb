@@ -422,5 +422,92 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  # TODO: more permissions
+  describe 'logged in, and can create clients' do
+    let(:role) { create :can_create_clients }
+    let(:user) { create :user, roles: [role] }
+
+    it 'doesn\'t allow index' do
+      sign_in user
+      get clients_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow show' do
+      sign_in user
+      get client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows new' do
+      sign_in user
+      get new_client_path
+      expect(response).to render_template(:new)
+    end
+
+    it 'allows create' do
+      sign_in user
+      post clients_path(client: { data_source_id: window_data_source.id, SSN: '123456789', FirstName: 'First', LastName: 'Last', DOB: '2019-09-16' })
+      follow_redirect!
+      # After create, the view goes to show, but we don't have that permission
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow edit' do
+      sign_in user
+      get edit_client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow update' do
+      sign_in user
+      patch client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow service_range' do
+      sign_in user
+      get service_range_client_path(destination, format: :json)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'doesn\'t allow rollup' do
+      sign_in user
+      get rollup_client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow assessment' do
+      sign_in user
+      get assessment_client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow image' do
+      sign_in user
+      get image_client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow chronic_days' do
+      sign_in user
+      get chronic_days_client_path(destination, format: :json)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'doesn\'t allow merge' do
+      sign_in user
+      patch merge_client_path(destination)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'doesn\'t allow unmerge' do
+      sign_in user
+      patch unmerge_client_path(destination)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+  end
 end
