@@ -137,4 +137,9 @@ FactoryBot.define do
     name { 'can search window' }
     can_search_window { true }
   end
+
+  factory :can_view_client_window, class: 'Role' do
+    name { 'can view clients' }
+    can_view_client_window { true }
+  end
 end

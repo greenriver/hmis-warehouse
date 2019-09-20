@@ -1,8 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe ClientsController, type: :request do
-  let(:destination) { create :window_hud_client }
-  let(:client) { create :window_hud_client, SSN: '123456789', FirstName: 'First', LastName: 'Last', DOB: '2019-09-16' }
+  let!(:warehouse_data_source) { create :grda_warehouse_data_source, visible_in_window: true }
+  let!(:window_data_source) { create :visible_data_source }
+  let!(:destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id }
+  let!(:client) { create :window_hud_client, data_source_id: window_data_source.id, SSN: '123456789', FirstName: 'First', LastName: 'Last', DOB: '2019-09-16' }
   let!(:warehouse_client) { create :warehouse_client, source: client, destination: destination }
 
   describe 'logged out' do
@@ -115,7 +117,7 @@ RSpec.describe ClientsController, type: :request do
 
     it 'doesn\'t allow service_range' do
       sign_in user
-      get service_range_client_path(client, format: :json)
+      get service_range_client_path(destination, format: :json)
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
     end
@@ -202,7 +204,7 @@ RSpec.describe ClientsController, type: :request do
 
     it 'doesn\'t allow service_range' do
       sign_in user
-      get service_range_client_path(client, format: :json)
+      get service_range_client_path(destination, format: :json)
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
     end
@@ -230,6 +232,93 @@ RSpec.describe ClientsController, type: :request do
       get chronic_days_client_path(destination, format: :json)
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'doesn\'t allow merge' do
+      sign_in user
+      patch merge_client_path(destination)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'doesn\'t allow unmerge' do
+      sign_in user
+      patch unmerge_client_path(destination)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+  end
+
+  describe 'logged in, and can view client window' do
+    # implies 'can_see_this_client_demographics!'
+    let(:role) { create :can_view_client_window }
+    let(:user) { create :user, roles: [role] }
+
+    it 'doesn\'t allow index' do
+      sign_in user
+      get clients_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows show' do
+      sign_in user
+      get client_path(destination)
+      expect(response).to render_template(:show)
+    end
+
+    it 'doesn\'t allow new' do
+      sign_in user
+      get new_client_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow create' do
+      sign_in user
+      post clients_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow edit' do
+      sign_in user
+      get edit_client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow update' do
+      sign_in user
+      patch client_path(destination)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows service_range' do
+      sign_in user
+      get service_range_client_path(destination, format: :json)
+      expect(response).to have_http_status(200)
+    end
+
+    it 'allows rollup' do
+      sign_in user
+      get rollup_client_path(destination, partial: :assessments)
+      expect(response).to render_template('clients/rollup/_assessments')
+    end
+
+    # through can_see_this_client_demographics
+    it 'allows assessment' do
+      sign_in user
+      get assessment_client_path(destination, client_id: destination.id)
+      expect(response).to have_http_status(200)
+    end
+
+    it 'allows image' do
+      sign_in user
+      get image_client_path(destination)
+      expect(response).to have_http_status(403)
+    end
+
+    it 'doesn\'t allow chronic_days' do
+      sign_in user
+      get chronic_days_client_path(destination, format: :json)
+      expect(response).to have_http_status(200)
     end
 
     it 'doesn\'t allow merge' do

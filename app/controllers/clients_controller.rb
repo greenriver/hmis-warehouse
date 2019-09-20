@@ -198,7 +198,12 @@ class ClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
+    image = @client.image(max_age)
+    if image.present?
+      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+    else
+      head :forbidden and return
+    end
   end
 
   protected def client_source
