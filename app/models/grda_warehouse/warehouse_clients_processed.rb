@@ -137,7 +137,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def homeless_counts_plus_overrides
-      @homeless_counts ||= begin
+      @homeless_counts_plus_overrides ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
         shsm_t = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
         shsm = Arel::Table.new(shsm_table_name.to_sym)
