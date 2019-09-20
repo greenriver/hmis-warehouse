@@ -315,7 +315,7 @@ RSpec.describe ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'doesn\'t allow chronic_days' do
+    it 'allows chronic_days' do
       sign_in user
       get chronic_days_client_path(destination, format: :json)
       expect(response).to have_http_status(200)
@@ -333,6 +333,92 @@ RSpec.describe ClientsController, type: :request do
       patch unmerge_client_path(destination)
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+  end
+
+  describe 'logged in, and can edit clients' do
+    let(:role) { create :can_edit_clients }
+    let(:role2) { create :can_view_client_window }
+    let(:user) { create :user, roles: [role, role2] }
+
+    it 'doesn\'t allow index' do
+      sign_in user
+      get clients_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows show' do
+      sign_in user
+      get client_path(destination)
+      expect(response).to render_template(:show)
+    end
+
+    it 'doesn\'t allow new' do
+      sign_in user
+      get new_client_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'doesn\'t allow create' do
+      sign_in user
+      post clients_path
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows edit' do
+      sign_in user
+      get edit_client_path(destination)
+      expect(response).to render_template(:edit)
+    end
+
+    it 'allows update' do
+      sign_in user
+      patch client_path(destination)
+      expect(response).to render_template(:update)
+    end
+
+    it 'allows service_range' do
+      sign_in user
+      get service_range_client_path(destination, format: :json)
+      expect(response).to have_http_status(200)
+    end
+
+    it 'allows rollup' do
+      sign_in user
+      get rollup_client_path(destination, partial: :assessments)
+      expect(response).to render_template('clients/rollup/_assessments')
+    end
+
+    # through can_see_this_client_demographics
+    it 'allows assessment' do
+      sign_in user
+      get assessment_client_path(destination, client_id: destination.id)
+      expect(response).to have_http_status(200)
+    end
+
+    it 'allows image' do
+      sign_in user
+      get image_client_path(destination)
+      expect(response).to have_http_status(403)
+    end
+
+    it 'allows chronic_days' do
+      sign_in user
+      get chronic_days_client_path(destination, format: :json)
+      expect(response).to have_http_status(200)
+    end
+
+    it 'allow merge' do
+      sign_in user
+      patch merge_client_path(destination, grda_warehouse_hud_client: { merge: [''] })
+      expect(response).to redirect_to(edit_client_path(destination))
+    end
+
+    it 'allow unmerge' do
+      sign_in user
+      patch unmerge_client_path(destination)
+      follow_redirect!
+      expect(response).to render_template(:unmerge)
     end
   end
 

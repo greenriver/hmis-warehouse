@@ -4,7 +4,7 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     # MiddleName
-    # LastName
+    LastName { 'Ross' }
     # NameSuffix
     # NameDataQuality
     # SSN

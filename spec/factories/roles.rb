@@ -142,4 +142,9 @@ FactoryBot.define do
     name { 'can view clients' }
     can_view_client_window { true }
   end
+
+  factory :can_edit_clients, class: 'Role' do
+    name { 'can view clients' }
+    can_edit_clients { true }
+  end
 end
