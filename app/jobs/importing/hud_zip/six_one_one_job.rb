@@ -22,8 +22,21 @@ module Importing::HudZip
         deidentified: @deidentified,
         project_whitelist: @project_whitelist,
       )
-      importer.pre_process! if @project_whitelist
-      importer.import!
+      # Confirm this is not a 2020 file
+      if importer.next_version?
+        # Queue the next version of the importer
+        Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(
+          data_source_id: @data_source_id,
+          upload_id: @upload_id,
+          deidentified: @deidentified,
+          project_whitelist: @project_whitelist,
+        ), queue: :default_priority
+        # Cleanup un-finished import
+        importer.remove_import!
+      else
+        importer.pre_process! if @project_whitelist
+        importer.import!
+      end
     end
 
     def enqueue(job); end

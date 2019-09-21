@@ -174,6 +174,7 @@ module Window::Health
           :representative_id,
           :representative_signed_on,
           :provider_id,
+          :provider_signature_requested_at,
           :provider_signed_on,
           :patient_health_problems,
           :patient_strengths,

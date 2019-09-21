@@ -316,7 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
-        move_in_date: self.MoveInDate,
+        move_in_date: move_in_date,
       }
     end
 
@@ -527,10 +527,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
         self.PersonalID
       else
         self.class.where(
-          EnrollmentID: self.EnrollmentID,
           data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
+          RelationshipToHoH: [1, nil]
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:PersonalID)&.first || self.PersonalID
+      end
+    end
+
+    def move_in_date
+      @move_in_date ||= if head_of_household?
+        self.MoveInDate
+      else
+        self.class.where(
+          data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
-        ).pluck(:PersonalID)&.first || self.PersonalID
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
 
@@ -539,7 +557,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
+      @hoh ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
     end
 
     def entry_exit_tracking?

@@ -680,6 +680,10 @@ module Importers::HMISSixOneOne
       @import.save
     end
 
+    def remove_import!
+      @import.destroy
+    end
+
     def log(message)
       @notifier.ping message if @notifier
       logger.info message if @debug
