@@ -1305,7 +1305,7 @@ module GrdaWarehouse::Hud
       return nil unless accessible_via_api?
       client_ids = source_api_ids.pluck(:client_id)
       if client_ids.any?
-        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids)
+        Importing::RunEtoApiUpdateForClientJob.perform_later(destination_id: id, client_ids: client_ids.uniq)
       end
     end
 
@@ -1468,6 +1468,10 @@ module GrdaWarehouse::Hud
     end
     # End NOTE
     #############################
+
+    def sexual_orientation_from_hmis
+      source_hmis_clients.where.not(sexual_orientation: nil)&.order(updated_at: :desc)&.first&.sexual_orientation
+    end
 
     def service_date_range
       @service_date_range ||= begin
@@ -2367,7 +2371,8 @@ module GrdaWarehouse::Hud
             living_situation: entry.enrollment.LivingSituation,
             exit_date: entry.last_date_in_program,
             destination: entry.destination,
-            move_in_date: entry.enrollment.MoveInDate,
+            move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
+            move_in_date: entry.move_in_date,
             days: dates_served.count,
             homeless: entry.computed_project_type.in?(Project::HOMELESS_PROJECT_TYPES),
             homeless_days: homeless_dates_for_enrollment.count,
