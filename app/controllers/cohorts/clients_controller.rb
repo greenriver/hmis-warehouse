@@ -139,9 +139,19 @@ module Cohorts
             order(LastName: :asc, FirstName: :asc)
       elsif @actives
         @hoh_only = _debool(@actives[:hoh])
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.where(
+
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+          joins(:project).
+          where(
             she_t[:client_id].eq(wcp_t[:client_id])
-          ).homeless.open_between(start_date: @actives[:start], end_date: @actives[:end])
+          ).
+          # homeless or overrides_homeless_active_status
+          where(
+            GrdaWarehouse::Hud::Project.project_type_override.in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+            or(p_t[:active_homeless_status_override].eq(true))
+          ).
+          open_between(start_date: @actives[:start], end_date: @actives[:end])
+
         @clients = client_scope.joins(:processed_service_history).distinct
           if @actives[:limit_to_last_three_years] == '1'
             @clients = @clients.where(
