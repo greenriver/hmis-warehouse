@@ -27,10 +27,10 @@
               = client.date_of_first_service
               and
               =client.date_of_last_service
-            = render 'required_documents', client: client
+            = render 'assigned/clients/required_documents', client: client
           .client__details.client__details--status
             .client__view_client
-              = link_to 'View', client_path(client), class: 'btn btn-secondary'
-            = render 'consent_form_status', client: client
+              = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
+            = render 'assigned/clients/consent_form_status', client: client
             %p
-              = render 'cas_status', client: client
+              = render 'assigned/clients/cas_status', client: client
