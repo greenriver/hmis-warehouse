@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190917001135) do
+ActiveRecord::Schema.define(version: 20190918132924) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1414,6 +1414,7 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.boolean  "user_boolean_13"
     t.boolean  "user_boolean_14"
     t.boolean  "user_boolean_15"
+    t.string   "lgbtq_from_hmis"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1770,6 +1771,7 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.date     "consent_confirmed_on"
     t.date     "consent_expires_on"
     t.datetime "eto_last_updated"
+    t.string   "sexual_orientation"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree

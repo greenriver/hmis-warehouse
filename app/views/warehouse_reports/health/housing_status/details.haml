@@ -12,5 +12,5 @@
     - @details.each do |detail|
       %tr
         - client = client_scope.find(detail.first)
-        %td= client.name
+        %td= link_to client.name, destination_window_source_client_path(client)
         %td= detail.last
