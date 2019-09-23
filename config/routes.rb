@@ -363,10 +363,9 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients do
+  resources :clients, except: [:update, :destroy] do
     member do
       get :service_range
-      get :vispdat
       get :rollup
       get :assessment
       get :image
@@ -377,6 +376,7 @@ Rails.application.routes.draw do
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
     end
     resource :history, only: [:show], controller: 'clients/history' do
+      get :pdf, on: :collection
       post :queue, on: :collection
     end
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'

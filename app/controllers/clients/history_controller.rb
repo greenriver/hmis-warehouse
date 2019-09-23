@@ -8,14 +8,11 @@ module Clients
   class HistoryController < ApplicationController
     include ClientPathGenerator
 
-    before_action :require_can_see_this_client_demographics!
-    before_action :set_client
-    before_action :check_release, unless: :can_view_clients?
-    before_action :set_dates, only: [:show]
-    before_action :set_pdf_dates, only: :pdf
-    skip_before_action :require_can_see_this_client_demographics!, only: [:pdf]
     skip_before_action :authenticate_user!, only: [:pdf]
-    before_action :require_client_needing_processing!, only: [:pdf]
+    before_action :require_can_see_this_client_demographics!, except: [:pdf]
+    before_action :set_client, except: [:pdf]
+    before_action :check_release, unless: :can_view_clients?, except: [:pdf]
+    before_action :set_dates, only: [:show]
     after_action :log_client
 
     def show
@@ -40,11 +37,17 @@ module Clients
     end
 
     def pdf
+      @user = User.setup_system_user()
+      current_user ||= @user
+      set_client
+      set_pdf_dates
+
+      require_client_needing_processing!
       # force some consistency.  We may be generating this for a client we haven't seen in over a year
       # the processed data only gets cached for those with recent enrollments
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client.id])
       show
-      @user = User.setup_system_user()
+
       # Limit to Residential Homeless programs
       @dates = @dates.map do |date, data|
         [
@@ -57,11 +60,11 @@ module Clients
       file_name = "service_history.pdf"
 
       # DEBUGGING
-      # render pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      # render pdf: file_name, template: "clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       # return
       # END DEBUGGING
 
-      pdf = render_to_string pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      pdf = render_to_string pdf: file_name, template: "clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       @file = GrdaWarehouse::ClientFile.new
       begin
         tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
@@ -168,6 +171,9 @@ module Clients
     end
 
     def set_client
+      current_user ||= @user # needed for PDF route
+      not_authorized! and return unless current_user.present?
+
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found

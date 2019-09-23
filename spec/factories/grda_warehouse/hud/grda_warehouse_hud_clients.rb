@@ -4,7 +4,7 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     # MiddleName
-    # LastName
+    LastName { 'Ross' }
     # NameSuffix
     # NameDataQuality
     # SSN
@@ -42,6 +42,13 @@ FactoryBot.define do
 
   factory :authoritative_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :authoritative_data_source
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    DOB { '1999-12-01' }
+  end
+
+  factory :window_hud_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :visible_data_source
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }

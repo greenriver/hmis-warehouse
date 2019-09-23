@@ -18,7 +18,15 @@ module ServiceHistory
     def perform
       app = ActionDispatch::Integration::Session.new(Rails.application)
 
-      app.get(pdf_window_client_history_path(client_id: @client_id, years: @years))
+      options = {
+        client_id: @client_id,
+        years: @years,
+      }
+      if Rails.env.development? || Rails.env.test?
+        options[:host] = ENV['HOSTNAME']
+        options[:protocol] = 'https'
+      end
+      app.get(pdf_window_client_history_url(options))
     end
 
     def enqueue(job, queue: :high_priority); end
