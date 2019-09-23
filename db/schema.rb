@@ -11,12 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190828190416) do
+ActiveRecord::Schema.define(version: 20190916190551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"
@@ -178,6 +178,27 @@ ActiveRecord::Schema.define(version: 20190828190416) do
     t.datetime "updated_at",  null: false
   end
 
+  create_table "login_activities", force: :cascade do |t|
+    t.string   "scope"
+    t.string   "strategy"
+    t.string   "identity"
+    t.boolean  "success"
+    t.string   "failure_reason"
+    t.integer  "user_id"
+    t.string   "user_type"
+    t.string   "context"
+    t.string   "ip"
+    t.text     "user_agent"
+    t.text     "referrer"
+    t.string   "city"
+    t.string   "region"
+    t.string   "country"
+    t.datetime "created_at"
+  end
+
+  add_index "login_activities", ["identity"], name: "index_login_activities_on_identity", using: :btree
+  add_index "login_activities", ["ip"], name: "index_login_activities_on_ip", using: :btree
+
   create_table "messages", force: :cascade do |t|
     t.integer  "user_id"
     t.string   "from",                       null: false
@@ -336,6 +357,7 @@ ActiveRecord::Schema.define(version: 20190828190416) do
     t.boolean  "can_manage_all_agencies",                             default: false
     t.boolean  "can_view_own_agency_youth_intake",                    default: false
     t.boolean  "can_edit_own_agency_youth_intake",                    default: false
+    t.boolean  "can_view_clients_with_roi_in_own_coc",                default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree

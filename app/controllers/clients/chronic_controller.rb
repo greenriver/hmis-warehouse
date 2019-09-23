@@ -7,7 +7,7 @@
 module Clients
   class ChronicController < ApplicationController
     include ClientPathGenerator
-    
+
     before_action :require_can_edit_clients!
     before_action :set_client
     after_action :log_client
@@ -16,11 +16,11 @@ module Clients
       @note = GrdaWarehouse::ClientNotes::Base.new
       if params[:date].present?
         @date = params[:date].to_date
-      else 
-        @date = Date.today
+      else
+        @date = Date.current
       end
     end
-    
+
     def update
       update_params = chronic_params
       update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
@@ -28,7 +28,7 @@ module Clients
       else
         nil
       end
-      
+
       if @client.update(update_params)
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later

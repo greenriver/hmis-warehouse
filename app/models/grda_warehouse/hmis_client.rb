@@ -14,8 +14,8 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
   scope :consent_active, -> do
     where(
-      arel_table[:consent_confirmed_on].lteq(Date.today).
-      and(arel_table[:consent_expires_on].gteq(Date.today))
+      arel_table[:consent_confirmed_on].lteq(Date.current).
+      and(arel_table[:consent_expires_on].gteq(Date.current))
     )
   end
 
@@ -51,6 +51,18 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
       d_client.consent_expires_on = hmis_client.consent_expires_on
       d_client.housing_release_status = d_client.class.full_release_string
       d_client.save if d_client.changed?
+    end
+  end
+
+  def self.maintain_sexual_orientation(connection_key:, cdid:, site_id:)
+    api = EtoApi::Detail.new(trace: false, api_connection: connection_key)
+    options = api.demographic_defined_values(cdid: cdid, site_id: site_id).map do |m|
+      [m['ID'], m['Text']]
+    end.to_h
+
+    self.where(sexual_orientation: nil).find_each do |hmis_client|
+      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+      hmis_client.update(sexual_orientation: options[value])
     end
   end
 end

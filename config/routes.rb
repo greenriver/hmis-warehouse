@@ -395,7 +395,7 @@ Rails.application.routes.draw do
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
     resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
 
-    resources :files, controller: 'clients/files' do
+    resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
@@ -457,6 +457,7 @@ Rails.application.routes.draw do
 
   namespace :assigned do
     resources :clients, only: [:index]
+    resources :agencies, only: [:index]
   end
   namespace :expired do
     resources :clients, only: :index

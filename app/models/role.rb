@@ -288,10 +288,10 @@ class Role < ActiveRecord::Base
         description: 'Drill-down access to client level details on project data quality reports',
         administrative: true,
       },
-      can_manage_organization_users: {
-        description: 'Can assign users to organizations',
-        administrative: true,
-      },
+      # can_manage_organization_users: {
+      #   description: 'Can assign users to organizations',
+      #   administrative: true,
+      # },
       can_view_all_user_client_assignments: {
         description: 'Administrative permission to see all assignments',
         administrative: true,
@@ -336,6 +336,10 @@ class Role < ActiveRecord::Base
         description: 'Ability to manage all agencies',
         administrative: true,
       },
+      can_view_clients_with_roi_in_own_coc: {
+        description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
+        administrative: false,
+      }
     }
   end
 

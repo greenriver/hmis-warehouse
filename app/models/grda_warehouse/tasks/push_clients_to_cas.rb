@@ -14,30 +14,42 @@ module GrdaWarehouse::Tasks
       self.logger = Rails.logger
     end
 
+    private def advisory_lock_key
+      'push-clients-to-cas'
+    end
+
     # Update the ProjectClient table in the CAS with clients flagged with sync_with_cas
     def sync!
       # Fail gracefully if there's no CAS database setup
       return unless CasBase.db_exists?
-      @client_ids = client_source.pluck(:id)
-      updated_clients = Cas::ProjectClient.transaction do
-        Cas::ProjectClient.update_all(sync_with_cas: false)
-        client_source.where(id: @client_ids).each do |client|
-          project_client = Cas::ProjectClient.
-            where(data_source_id: data_source.id, id_in_data_source: client.id).
-            first_or_initialize
-          project_client_columns.map do |destination, source|
-            project_client[destination] = client.send(source)
-          end
-          project_client.date_days_homeless_verified = Date.today
-          project_client.needs_update = true
-          project_client.save!
-        end
+      if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
+        msg = 'Other CAS Sync in progress, exiting.'
+        logger.warn msg
+        @notifier.ping(msg) if @send_notifications
+        return
       end
-      maintain_cas_availability_table(@client_ids)
+      GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
+        @client_ids = client_source.pluck(:id)
+        updated_clients = Cas::ProjectClient.transaction do
+          Cas::ProjectClient.update_all(sync_with_cas: false)
+          client_source.where(id: @client_ids).each do |client|
+            project_client = Cas::ProjectClient.
+              where(data_source_id: data_source.id, id_in_data_source: client.id).
+              first_or_initialize
+            project_client_columns.map do |destination, source|
+              project_client[destination] = client.send(source)
+            end
+            project_client.date_days_homeless_verified = Date.current
+            project_client.needs_update = true
+            project_client.save!
+          end
+        end
+        maintain_cas_availability_table(@client_ids)
 
-      if updated_clients.size > 0
-        msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
-        @notifier.ping msg if @send_notifications
+        if updated_clients.size > 0
+          msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
+          @notifier.ping msg if @send_notifications
+        end
       end
     end
 

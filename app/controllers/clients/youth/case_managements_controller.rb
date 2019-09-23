@@ -10,7 +10,7 @@ module Clients::Youth
     include PjaxModalController
 
     before_action :require_can_access_youth_intake_list!
-    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :udate, :new, :create, :destroy]
+    before_action :require_can_edit_some_youth_intakes!, except: [:index, :show]
 
     before_action :set_entity, only: [:show, :edit, :update, :destroy]
     before_action :set_client
@@ -20,7 +20,7 @@ module Clients::Youth
     end
 
     def new
-      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.today)
+      @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.current)
     end
 
     def create

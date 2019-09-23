@@ -10,7 +10,7 @@ module Clients::Youth
     include PjaxModalController
 
     before_action :require_can_access_youth_intake_list!
-    before_action :require_can_edit_some_youth_intakes!, only: [:edit, :update, :new, :create, :destroy]
+    before_action :require_can_edit_some_youth_intakes!, except: [:index, :show]
 
     before_action :set_client
     before_action :set_intake, only: [:show, :edit, :update, :destroy]
@@ -34,8 +34,8 @@ module Clients::Youth
         order(contacted_on: :desc, created_at: :desc)
       @follow_up_due = follow_up_due_on
 
-      @referral = @client.youth_referrals.build(referred_on: Date.today)
-      @assistance = @client.direct_financial_assistances.build(provided_on: Date.today)
+      @referral = @client.youth_referrals.build(referred_on: Date.current)
+      @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
     end
 
     def show
@@ -52,7 +52,7 @@ module Clients::Youth
       @intake.exit_date = nil
       @intake.staff_name = current_user.name
       @intake.staff_email = current_user.email
-      @intake.engagement_date = Date.today
+      @intake.engagement_date = Date.current
       @intake.client_dob ||= @client.DOB
     end
 
@@ -96,7 +96,7 @@ module Clients::Youth
         @follow_ups.first&.contacted_on,
       ].compact.max
 
-      cut_off_date = Date.today - 3.months - 1.week
+      cut_off_date = Date.current - 3.months - 1.week
       if last_contact.present? && last_contact <= cut_off_date
         last_contact + 3.months
       else

@@ -32,12 +32,28 @@ module GrdaWarehouse
       where(notification_trigger: true)
     end
 
+    def required_by?(client)
+      return true unless required_for.present? && self.class.available_required_for_options.values.include?(required_for)
+
+      GrdaWarehouse::Hud::Client.send(required_for).where(id: client).exists?
+    end
+
+    def self.available_required_for_options
+      {
+        'Veterans' => 'veteran',
+      }
+    end
+
     def self.contains_consent_form?(tag_names=[])
       consent_forms.where(name: tag_names).exists?
     end
 
     def self.full_release?(tag_names=[])
       full_release.where(name: tag_names).exists?
+    end
+
+    def self.coc_level_release?(tag_names=[])
+      full_release.where(name: tag_names, coc_available: true).exists?
     end
 
     def self.partial_consent?(tag_names=[])

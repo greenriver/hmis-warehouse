@@ -282,6 +282,7 @@ module GrdaWarehouse
         ::CohortColumns::Race.new(),
         ::CohortColumns::Ethnicity.new(),
         ::CohortColumns::Lgbtq.new(),
+        ::CohortColumns::LgbtqFromHmis.new(),
         ::CohortColumns::SleepingLocation.new(),
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
@@ -366,21 +367,21 @@ module GrdaWarehouse
 
 
     private def calculated_days_homeless(client)
-      client.days_homeless(on_date: effective_date || Date.today)
+      client.days_homeless(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
     end
 
     private def days_homeless_last_three_years(client)
-      client.days_homeless_in_last_three_years(on_date: effective_date || Date.today)
+      client.days_homeless_in_last_three_years(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
     end
 
     private def days_literally_homeless_last_three_years(client)
-      client.literally_homeless_last_three_years(on_date: effective_date || Date.today)
+      client.literally_homeless_last_three_years(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date

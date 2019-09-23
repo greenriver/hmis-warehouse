@@ -1,6 +1,6 @@
 = wicked_pdf_stylesheet_link_tag 'print', media: 'print'
 
-- title = "Care Plan for #{@patient.name} as of #{Date.today}"
+- title = "Care Plan for #{@patient.name} as of #{Date.current}"
 - content_for :title, title
 
 .l-print

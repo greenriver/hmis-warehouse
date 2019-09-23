@@ -18,7 +18,7 @@ module GrdaWarehouse
       if self.count > 0
         self.maximum(:date)
       else
-        Date.today
+        Date.current
       end
     end
 

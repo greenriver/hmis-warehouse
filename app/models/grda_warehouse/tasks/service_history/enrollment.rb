@@ -159,7 +159,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # never build past today, it makes counts and display very odd
     def add_extrapolated_days dates, type_provided
       extrapolated_dates = dates.map do |date|
-        stop_on = [date.end_of_month, Date.today].min
+        stop_on = [date.end_of_month, Date.current].min
         (date.beginning_of_month .. stop_on).to_a
       end.flatten(1).uniq
       # Don't build extrapolations for any day we already have
@@ -316,7 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
-        move_in_date: self.MoveInDate,
+        move_in_date: move_in_date,
       }
     end
 
@@ -527,10 +527,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
         self.PersonalID
       else
         self.class.where(
-          EnrollmentID: self.EnrollmentID,
           data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
+          RelationshipToHoH: [1, nil]
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:PersonalID)&.first || self.PersonalID
+      end
+    end
+
+    def move_in_date
+      @move_in_date ||= if head_of_household?
+        self.MoveInDate
+      else
+        self.class.where(
+          data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
-        ).pluck(:PersonalID)&.first || self.PersonalID
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
 
@@ -539,7 +557,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
+      @hoh ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
     end
 
     def entry_exit_tracking?
@@ -585,13 +603,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # NOTE: this is limited to the end of next year, sometimes we get exit dates that are *very* far in the future.  This will preserve the ability to set future end dates and prevent extra rebuilds, but will continue extending the days into the future.
         [
           exit_date,
-          (Date.today + 1.year).end_of_year
+          (Date.current + 1.year).end_of_year
         ].min
       else
         [
           export.effective_export_end_date,
           export.ExportEndDate,
-          Date.today,
+          Date.current,
         ].compact.min.to_date
       end
     end

@@ -8,11 +8,11 @@ module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
-    
+
     acts_as_taggable
 
     include ArelHelper
-    
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base'
     validates_presence_of :name
@@ -20,14 +20,14 @@ module GrdaWarehouse
     validate :file_exists_and_not_too_large
     validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
-    
+
     validates_presence_of :expiration_date, on: :requires_expiration_date
     validates_presence_of :effective_date, on: :requires_effective_date
-    
+
     # because Rails cannot supply two contexts at once
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates
-     
+
 
     scope :window, -> do
       where(visible_in_window: true)
@@ -40,8 +40,8 @@ module GrdaWarehouse
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files?
-        window.joins(:client).where(
-          c_t[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+        window.where(
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
           or(arel_table[:user_id].eq(user.id))
         )
       # You can only see files you uploaded
@@ -66,11 +66,27 @@ module GrdaWarehouse
     end
 
     scope :consent_forms, -> do
-      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+      ).pluck(:id)
+      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+        where(taggable_type: "GrdaWarehouse::File").
+        pluck(:taggable_id)
+      self.where(id: consent_form_tagging_ids)
     end
 
     scope :non_consent, -> do
-      tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), exclude: true)
+      consent_form_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name)
+      ).pluck(:id)
+      consent_form_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: consent_form_tag_ids).
+        where(taggable_type: "GrdaWarehouse::File").
+        pluck(:taggable_id)
+      self.where.not(id: consent_form_tagging_ids)
     end
 
     scope :confirmed, -> do
@@ -96,6 +112,11 @@ module GrdaWarehouse
 
     scope :notification_triggers, -> do
       tagged_with(GrdaWarehouse::AvailableFileTag.notification_triggers.pluck(:name), any: true)
+    end
+
+    scope :for_coc, -> (coc_codes) do
+      coc_codes = Array.wrap(coc_codes) + [nil, '']
+      where(coc_code: coc_codes)
     end
 
     ####################
@@ -128,7 +149,14 @@ module GrdaWarehouse
     end
 
     def consent_type
-      if GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
+      if GrdaWarehouse::AvailableFileTag.coc_level_release?(tag_list)
+        release_type = GrdaWarehouse::Hud::Client.full_release_string
+        if self.coc_code.present?
+          "#{release_type} for CoC #{coc_code}"
+        else
+          "#{release_type} for all CoCs"
+        end
+      elsif GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
         GrdaWarehouse::Hud::Client.full_release_string
       elsif GrdaWarehouse::AvailableFileTag.partial_consent?(tag_list)
         GrdaWarehouse::Hud::Client.partial_release_string

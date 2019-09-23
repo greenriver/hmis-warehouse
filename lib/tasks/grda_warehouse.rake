@@ -206,9 +206,9 @@ namespace :grda_warehouse do
     UniqueName.update!
   end
 
-  desc "Calculate chronic homelessness ['2017-01-15']; defaults: date=Date.today"
+  desc "Calculate chronic homelessness ['2017-01-15']; defaults: date=Date.current"
   task :calculate_chronic_homelessness, [:date] => [:environment, "log:info_to_stdout"] do |task, args|
-    date = (args.date || Date.today).to_date
+    date = (args.date || Date.current).to_date
     GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
     GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
   end

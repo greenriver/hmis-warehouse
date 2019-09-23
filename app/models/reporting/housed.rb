@@ -378,7 +378,7 @@ module Reporting
         GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))
@@ -412,7 +412,7 @@ module Reporting
         GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))
@@ -497,7 +497,7 @@ module Reporting
       GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
         merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
         where(
-          she_t[:first_date_in_program].lt(Date.today).
+          she_t[:first_date_in_program].lt(Date.current).
           and(
             she_t[:last_date_in_program].gt(lookback_date).
             or(she_t[:last_date_in_program].eq(nil))
@@ -527,8 +527,8 @@ module Reporting
     def one_project_columns
       @one_project_columns ||= {
         search_start: she_t[:first_date_in_program].to_sql,
-        search_end: e_t[:MoveInDate].as('search_end').to_sql,
-        housed_date: e_t[:MoveInDate].as('housed_date').to_sql,
+        search_end: she_t[:move_in_date].as('search_end').to_sql,
+        housed_date: she_t[:move_in_date].as('housed_date').to_sql,
         housing_exit: she_t[:last_date_in_program].to_sql,
         project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column].to_sql,
         destination: she_t[:destination].to_sql,

@@ -15,7 +15,9 @@ class User < ActiveRecord::Base
   devise :invitable, :database_authenticatable,
          :recoverable, :rememberable, :trackable, :validatable,
          :lockable, :timeoutable, :confirmable, :pwned_password, password_length: 10..128
-  #has_secure_password # not needed with devise
+  # has_secure_password # not needed with devise
+  # Connect users to login attempts
+  has_many :login_activities, as: :user
 
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
@@ -253,40 +255,16 @@ class User < ActiveRecord::Base
   end
 
   def subordinates
-    return [] unless can_manage_organization_users?
-    # Administrative permission to see all assignments
-    if can_view_all_user_client_assignments?
-      return User.all
-    end
-    uve_source = GrdaWarehouse::UserViewableEntity
-    uve_t = uve_source.arel_table
+    return User.none unless can_manage_agency?
+    return User.none if agency_id.blank?
 
-    data_source_ids = data_sources.pluck(:id)
+    # The users in the user's agency
+    User.active.where(agency_id: self.agency_id).order(:first_name, :last_name)
+  end
 
-    organization_ids = organizations.pluck(:id) + GrdaWarehouse::Hud::Organization.
-      where(data_source_id: data_source_ids ).pluck(:id)
-
-    project_ids = projects.pluck(:id) + GrdaWarehouse::Hud::Project.
-      where(OrganizationID: organization_ids).
-      pluck(:id) + GrdaWarehouse::Hud::Project.
-        where(data_source_id: data_source_ids).
-        pluck(:id)
-
-    data_source_members = uve_t[:entity_id].in(data_source_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::DataSource'))
-    organization_members = uve_t[:entity_id].in(organization_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Organization'))
-    project_members = uve_t[:entity_id].in(project_ids)
-      .and(uve_t[:entity_type].eq('GrdaWarehouse::Hud::Project'))
-
-    sub_ids = uve_source.where(data_source_members.or(organization_members).or(project_members)).distinct.pluck(:user_id)
-
-    manager_ids = User.includes(:roles)
-      .references(:roles)
-      .where( roles: { can_manage_organization_users: true } )
-      .pluck(:id)
-
-    User.where(id: sub_ids - manager_ids)
+  def coc_codes_for_consent
+    return coc_codes if coc_codes.present?
+    GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode)
   end
 
   # def health_agency

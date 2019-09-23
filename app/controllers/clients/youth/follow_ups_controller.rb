@@ -10,12 +10,12 @@ module Clients::Youth
     include PjaxModalController
 
     before_action :require_can_access_youth_intake_list!
-    before_action :require_can_edit_some_youth_intakes!, only: [:new, :create, :edit, :update, :destroy]
+    before_action :require_can_edit_some_youth_intakes!
     before_action :set_client
     before_action :set_follow_up, only: [:edit, :update, :destroy]
 
     def new
-      @follow_up =  follow_up_source.new(contacted_on: Date.today)
+      @follow_up =  follow_up_source.new(contacted_on: Date.current)
     end
 
     def create

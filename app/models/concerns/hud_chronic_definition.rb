@@ -22,7 +22,7 @@ module HudChronicDefinition
     # Must be homeless for all of the last 12 months
     #   OR
     # Must be homeless 12 of the last 36 with 4 episodes
-    def hud_chronic? on_date: Date.today
+    def hud_chronic? on_date: Date.current
       @hud_chronic_data = {}
       if disabled?(on_date: on_date)
         if months_12_homeless?(on_date: on_date)

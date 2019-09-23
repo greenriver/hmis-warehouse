@@ -22,7 +22,7 @@ module GrdaWarehouse
     def should_run?
       if hmis_exports.exists?
         last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
-        return Date.today - last_export_finished_on >= every_n_days
+        return Date.current - last_export_finished_on >= every_n_days
       else
         # Don't re-run the export on the day it was requested
         return ! updated_at.today?
@@ -32,8 +32,12 @@ module GrdaWarehouse
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
       filter.adjust_reporting_period
-      ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json,
-        report_url: nil)
+      case filter.version
+      when '6.11'
+        ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json, report_url: nil)
+      when '2020'
+        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
+      end
     end
 
     def s3_present?
@@ -55,7 +59,7 @@ module GrdaWarehouse
       if s3_prefix.present?
         prefix = "#{s3_prefix.strip}-"
       end
-      date = Date.today.strftime('%Y%m%d')
+      date = Date.current.strftime('%Y%m%d')
       "#{prefix}#{date}-#{report.export_id}.zip"
     end
 

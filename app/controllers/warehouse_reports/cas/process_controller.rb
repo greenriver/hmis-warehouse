@@ -55,7 +55,7 @@ module WarehouseReports::Cas
       unless options.present?
         options = {
           start: 12.month.ago.to_date,
-          end: Date.today,
+          end: Date.current,
         }
       end
       options

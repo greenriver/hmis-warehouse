@@ -1,0 +1,19 @@
+- status = client.release_current_status
+- state='success'
+- icon='checkmark'
+
+- if status == 'None on file'
+  - state='warning'
+  - icon='question'
+- elsif status == 'Expired'
+  - state='danger'
+  - icon='clock'
+
+.client-consent-status.mb-4
+  %h3.mt-0 Consent Form
+  .c-tag{ class: "c-tag--#{state}" }
+    .c-tag__wrapper
+      .c-tag__icon
+        %div{ class: "icon-#{icon}" }
+      .c-tag__content
+        %span=status

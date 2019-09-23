@@ -20,8 +20,8 @@ module Clients
 
     def show
       @ordered_dates = @dates.keys.sort
-      @start = @ordered_dates.first || Date.today
-      @end = @ordered_dates.last || Date.today
+      @start = @ordered_dates.first || Date.current
+      @end = @ordered_dates.last || Date.current
       @date_range = (@start.beginning_of_month..@end.end_of_month)
       @months = @date_range.map do |date|
         [date.year, date.month]
@@ -55,7 +55,6 @@ module Clients
       @organization_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:organization_name]}.map{|org, ens| [org, ens.count]}.to_h
       @project_type_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:project_type]}.map{|project_type, ens| [project_type, ens.count]}.to_h
       file_name = "service_history.pdf"
-      # or from your controller, using views & templates and all wicked_pdf options as normal
 
       # DEBUGGING
       # render pdf: file_name, template: "window/clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
@@ -79,7 +78,7 @@ module Clients
       @file.note = "Auto Generated for prior #{@years} years"
       @file.name = file_name
       @file.visible_in_window = true
-      @file.effective_date = Date.today
+      @file.effective_date = Date.current
       @file.tag_list.add(['Homeless Verification'])
       @file.save!
       # allow for multiple mechanisms to trigger this without getting in the way

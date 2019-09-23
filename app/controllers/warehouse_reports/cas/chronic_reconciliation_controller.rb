@@ -12,7 +12,7 @@ module WarehouseReports::Cas
 
     def index
       @filter = Filter.new(filter_params)
-      
+
       chronic_ids = client_source.joins(site_chronics_table).
         where(ch_t[:date].eq(@filter.date)).
         where(ch_t[:days_in_last_three_years].gteq(365)).
@@ -67,15 +67,15 @@ module WarehouseReports::Cas
       include SiteChronic
 
       attribute(:date, Date, lazy: true,
-          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) rescue Date.today })
+          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) rescue Date.current })
       attribute(:homeless_service_after, Date, lazy: true,
-          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) - 31.days rescue Date.today })
+          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) - 31.days rescue Date.current })
 
       def chronic_days
         site_chronic_source.order(date: :desc).distinct.limit(30).pluck(:date)
       end
 
     end
-    
+
   end
 end

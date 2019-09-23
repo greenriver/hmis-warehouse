@@ -73,7 +73,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
-  scope :ongoing, -> (on_date: Date.today) do
+  scope :ongoing, -> (on_date: Date.current) do
     at = arel_table
     where_closed = at[:first_date_in_program].lteq(on_date).
       and(at[:last_date_in_program].gt(on_date))
@@ -109,7 +109,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # The client is enrolled in ES, SO, SH (TH) or PH prior to move-in and has no overlapping PH (TH) after move in
-  scope :currently_homeless, -> (date: Date.today, chronic_types_only: false) do
+  scope :currently_homeless, -> (date: Date.current, chronic_types_only: false) do
 
     if chronic_types_only # literally homeless
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
@@ -133,7 +133,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     )
   end
 
-  scope :hud_currently_homeless, -> (date: Date.today, chronic_types_only: false) do
+  scope :hud_currently_homeless, -> (date: Date.current, chronic_types_only: false) do
 
     if chronic_types_only # literally homeless
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
@@ -177,10 +177,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :service_in_last_three_years, -> {
-    service_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
+    service_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.current)
   }
   scope :entry_in_last_three_years, -> {
-    entry_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.today)
+    entry_within_date_range(start_date: 3.years.ago.to_date, end_date: Date.current)
   }
   scope :enrollments_open_in_last_three_years, -> {
     enrollment_open_in_prior_years(years: 3)

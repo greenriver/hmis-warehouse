@@ -80,7 +80,7 @@ module ApplicationHelper
     if can_view_full_dob?
       dob
     else
-      GrdaWarehouse::Hud::Client.age(date: Date.today, dob: dob)
+      GrdaWarehouse::Hud::Client.age(date: Date.current, dob: dob)
     end
   end
 
@@ -158,7 +158,7 @@ module ApplicationHelper
   # generates a list of HTML snippets representing the names the user is known by in different data sources
   def client_aliases(client)
 
-    names = client.client_names(window: controller_path.include?('window'), user: current_user)
+    names = client.client_names(window: controller_path.include?('window'), user: current_user, health: true)
     names.map do |name|
       sn = name[:ds]
       id = name[:ds_id]

@@ -6,7 +6,6 @@
 
 module Reporting
   class RunHudChronicJob < BaseJob
-
     queue_as :low_priority
 
     def perform(client_ids, date)
@@ -14,8 +13,8 @@ module Reporting
       date = Date.parse(date)
 
       client_ids.each_with_index do |id, index|
-        client = GrdaWarehouse::Hud::Client.where( id: id ).first
-        next unless client && client.hud_chronic?(on_date: date)
+        client = GrdaWarehouse::Hud::Client.where(id: id).first
+        next unless client&.hud_chronic?(on_date: date)
 
         log " #{index} => Client #{id} is HUD chronic"
 
@@ -35,16 +34,16 @@ module Reporting
       end
     end
 
-    def any_dmh_for? client_id:, on_date:
+    def any_dmh_for?(client_id:, on_date:)
       @dmh_ids ||= GrdaWarehouse::Hud::Organization.dmh.ids
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(on_date: on_date).where(client_id: client_id, organization_id: @dmh_ids).any?
     end
 
-    def log msg, underline: false
+    def log(msg, underline: false)
       return unless Rails.env.development?
-      Rails.logger.info msg
-      Rails.logger.info "="*msg.length if underline
-    end
 
+      Rails.logger.info msg
+      Rails.logger.info '=' * msg.length if underline
+    end
   end
 end

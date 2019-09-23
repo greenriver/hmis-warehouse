@@ -6,6 +6,7 @@ AllCops:
     # - 'lib/tasks/**/*'
     # - 'app/**/*'
     - 'spec/**/*.rb'
+    - 'app/jobs/**/*.rb'
   Exclude:
     - 'db/**/*'
     - 'config/**/*'
@@ -22,7 +23,11 @@ Metrics/ClassLength:
 Metrics/AbcSize:
   # The ABC size is a calculated magnitude, so this number can be a Fixnum or
   # a Float.
-  Max: 35
+  Max: 175
+Metrics/CyclomaticComplexity:
+  Max: 50
+Metrics/PerceivedComplexity:
+  Max: 50
 
 # Trailing commas make for clearer diffs because the last line won't appear
 # to have been changed, as it would if it lacked a comma and had one added.
@@ -48,6 +53,7 @@ Style/AndOr:
 Style/ClassAndModuleChildren:
   Exclude:
     - 'app/controllers/**/*'
+    - 'app/jobs/**/*'
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -81,3 +87,18 @@ Layout/DotPosition:
 
 MultilineMethodCallIndentation:
   EnforcedStyle: indented
+
+Documentation:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Lint/RescueException:
+  Enabled: false
+
+Layout/SpaceAfterNot:
+  Enabled: false

@@ -11,10 +11,34 @@
   = f.input :included_info, label: 'Includes'
   = f.input :weight
   = f.input :note
-  = f.input :document_ready, label: 'Required for document ready?'
+  = f.input :document_ready, label: 'Required for document ready?', input_html: { class: :jDocumentReady }
+  = f.input :required_for, collection: GrdaWarehouse::AvailableFileTag.available_required_for_options, include_blank: 'Everyone', input_html: { class: [:select2, :jDocumentReadyDependent] }
   = f.input :notification_trigger, label: 'Should this generate a notification?'
-  = f.input :consent_form, label: 'Does this constitute a consent form?'
+  = f.input :consent_form, label: 'Does this constitute a consent form?', input_html: { class: :jConsentForm }
+  = f.input :full_release, label: 'Is this a FULL release form?', hint: 'This should be left blank for partial releases', input_html: { class: :jConsentFormDependent }
+  = f.input :coc_available, label: 'Should this document type allow specification of CoC?', input_html: { class: :jConsentFormDependent }
   = f.input :requires_effective_date, label: 'Does this require an effective or signed-on date?'
   = f.input :requires_expiration_date, label: 'Does this require an expiration date?'
   .actions
     = f.submit 'Save', class: 'btn btn-primary'
+
+= content_for :page_js do
+  :javascript
+    $('.jDocumentReady').on('change', function(e){
+      var dependent = $('.jDocumentReadyDependent').closest('.form-group')
+      if($(this).is(':checked')) {
+        dependent.removeClass('hidden');
+      } else {
+        dependent.addClass('hidden');
+      }
+    });
+    $('.jDocumentReady').trigger('change');
+    $('.jConsentForm').on('change', function(e){
+      var dependent = $('.jConsentFormDependent').closest('.form-group')
+      if($(this).is(':checked')) {
+        dependent.removeClass('hidden');
+      } else {
+        dependent.addClass('hidden');
+      }
+    });
+    $('.jConsentForm').trigger('change');

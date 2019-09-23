@@ -174,7 +174,7 @@ class ClientsController < ApplicationController
   def chronic_days
     days = @client.
       chronics.
-      #where(date: 1.year.ago.to_date..Date.today).
+      #where(date: 1.year.ago.to_date..Date.current).
       order(date: :asc).
       map do |c|
         [c[:date], c[:days_in_last_three_years]]

@@ -84,7 +84,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
-    if user.can_edit_anything_super_user?
+    if user&.can_edit_anything_super_user?
       current_scope
     elsif user&.can_see_clients_in_window_for_assigned_data_sources?
       # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
@@ -248,7 +248,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         end
       spans_by_id.each do |ds, dates|
         if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.today
+          spans_by_id[ds][:end_date] = Date.current
         end
       end
       spans_by_id

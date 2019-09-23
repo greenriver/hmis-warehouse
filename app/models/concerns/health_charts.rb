@@ -17,7 +17,9 @@ module HealthCharts
           {
             date: form.collected_at.to_date,
             score: self.class.health_housing_score(answer),
-            status: answer
+            status: answer,
+            source: 'ETO',
+            patient_id: patient.id,
           }
         end
       end.compact
@@ -26,6 +28,8 @@ module HealthCharts
           date: patient.housing_status_timestamp.to_date,
           score: self.class.health_housing_score(patient.housing_status),
           status: patient.housing_status,
+          source: 'EPIC',
+          patient_id: patient.id,
         }
       end
       if patient.sdh_case_management_notes.any?
@@ -36,7 +40,9 @@ module HealthCharts
             {
               date: note.date_of_contact.to_date,
               score: self.class.health_housing_score(note.housing_status),
-              status: note.housing_status
+              status: note.housing_status,
+              source: 'Care Hub',
+              patient_id: patient.id,
             }
           end
       end
@@ -48,7 +54,9 @@ module HealthCharts
             {
               date: note.contact_date.to_date,
               score: self.class.health_housing_score(note.homeless_status),
-              status: note.homeless_status
+              status: note.homeless_status,
+              source: 'EPIC',
+              patient_id: patient.id,
             }
           end
       end
