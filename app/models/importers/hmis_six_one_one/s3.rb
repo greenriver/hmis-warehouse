@@ -41,7 +41,7 @@ module Importers::HMISSixOneOne
 
     def self.available_connections
       connections = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_s3.yml"))).result)[Rails.env]
-      connections.select do |_,conn| 
+      connections.select do |_,conn|
         conn['access_key_id'].present? && GrdaWarehouse::DataSource.where(id: conn['data_source_id'], import_paused: false).exists?
       end
     end
@@ -50,6 +50,10 @@ module Importers::HMISSixOneOne
       file_path = copy_from_s3()
       # For local testing
       # file_path = copy_from_local()
+      if next_version?(file_path)
+        start_next_version!
+        return
+      end
       if file_path.present?
         upload(file_path: file_path)
       end
@@ -155,6 +159,27 @@ module Importers::HMISSixOneOne
       @upload.content_type = @upload.file.content_type
       @upload.content = @upload.file.read
       @upload.save
+    end
+
+    private def next_version? file_path
+      file_names = Zip::File.open(file_path) { |zip| zip.entries.map(&:name) }.
+        map{ |m| File.basename(m) }.
+        select{ |m| m.include?('.csv') }
+      check_files = Importers::HmisTwentyTwenty::Base.importable_files.keys - self.class.importable_files.keys
+      (check_files & file_names).any?
+    end
+
+    private def start_next_version!
+      options = {
+        data_source_id: @data_source.id,
+        region: @s3.region,
+        access_key_id: @s3.access_key_id,
+        secret_access_key: @s3.secret_access_key,
+        bucket_name: @s3.bucket_name,
+        path: @s3_path,
+        file_password: @file_password,
+      }
+      Importers::HmisTwentyTwenty::S3.new(options).import!
     end
   end
 end
