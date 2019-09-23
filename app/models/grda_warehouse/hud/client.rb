@@ -1469,7 +1469,7 @@ module GrdaWarehouse::Hud
     # End NOTE
     #############################
 
-    def hmis_sexual_orientation
+    def sexual_orientation_from_hmis
       source_hmis_clients.where.not(sexual_orientation: nil)&.order(updated_at: :desc)&.first&.sexual_orientation
     end
 
