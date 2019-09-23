@@ -1469,6 +1469,10 @@ module GrdaWarehouse::Hud
     # End NOTE
     #############################
 
+    def sexual_orientation_from_hmis
+      source_hmis_clients.where.not(sexual_orientation: nil)&.order(updated_at: :desc)&.first&.sexual_orientation
+    end
+
     def service_date_range
       @service_date_range ||= begin
         query = service_history_services.select( shs_t[:date].minimum, shs_t[:date].maximum )
