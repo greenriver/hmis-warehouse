@@ -33,19 +33,18 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
   end
 
   it 'counts homeless days' do
-    client = GrdaWarehouse::Hud::Client.find_by(LastName: 'Two').destination_client
+    client = GrdaWarehouse::Hud::Client.destination.find_by(LastName: 'Two')
 
     expect(client.source_enrollments.joins(:project).merge(GrdaWarehouse::Hud::Project.homeless).count).to be > 0
   end
 
   it 'includes the override days in the plus overrides count' do
-    client = GrdaWarehouse::Hud::Client.find_by(LastName: 'Two').destination_client
-
+    client = GrdaWarehouse::Hud::Client.destination.find_by(LastName: 'Two')
     expect(client.processed_service_history.days_homeless_plus_overrides).to be > client.processed_service_history.homeless_days
   end
 
   it 'excludes overlapping homeless days' do
-    client = GrdaWarehouse::Hud::Client.find_by(LastName: 'Two').destination_client
+    client = GrdaWarehouse::Hud::Client.destination.find_by(LastName: 'Two')
 
     homeless_count = client.service_history_services.joins(service_history_enrollment: :project).merge(GrdaWarehouse::Hud::Project.homeless).count
     override_count = client.service_history_services.joins(service_history_enrollment: :project).merge(GrdaWarehouse::Hud::Project.includes_verified_days_homeless).count
