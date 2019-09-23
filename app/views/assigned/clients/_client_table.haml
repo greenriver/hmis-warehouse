@@ -1,30 +1,36 @@
-%table.table.table-sm
-  %thead
-    %tr
-      %th
-        Client
-      %th{style: 'width: 15%'}
-        Release on file?
-      %th{style: 'width: 23.333333333%'}
-        Relationship
-      %th{style: 'width: 23.333333333%'}
-        Expires On
-      %th{style: 'width: 15%'}
-        Confidential?
-  %tbody
-    - clients.each do |uc|
-      - client = uc.client
-      %tr
-        %td{style: 'width: 23.333333333%'}
-          - if @client_path && (client.release_valid? || can_view_clients?)
-            = link_to client.name, send(@client_path, id: client.id)
-          - else
-            = client.name
-        %td{style: 'width: 15%'}
-          = checkmark(client.release_valid?)
-        %td{style: 'width: 23.333333333%'}
-          = uc.relationship
-        %td{style: 'width: 23.333333333%'}
-          = uc.end_date || 'No Expiration'
-        %td{style: 'width: 15%'}
-          = checkmark(uc.confidential)
+.o-page__main-content.mt-3
+  .clients__list
+    - clients.each do |user_client|
+      - client = user_client.client
+      - if ( akas = client_aliases client ).empty?
+        - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
+      - else
+        - main_client_name = akas.shift
+      .clients__client-card.clients__client.c-card
+        .c-card__content
+          .client__details.client__details--identity
+            .clients__client-additional-names
+              .client__client-name
+                .client-aka
+                  = main_client_name
+              - akas.each_with_index do | aka, i |
+                .client__client-name
+                  .client-aka
+                    = aka
+          .client__details.client__details--status
+            - total_homeless = client.days_homeless
+            %p
+              %strong Days Homeless:
+              = pluralize(total_homeless, 'day')
+              %br
+              %strong Between:
+              = client.date_of_first_service
+              and
+              =client.date_of_last_service
+            = render 'assigned/clients/required_documents', client: client
+          .client__details.client__details--status
+            .client__view_client
+              = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
+            = render 'assigned/clients/consent_form_status', client: client
+            %p
+              = render 'assigned/clients/cas_status', client: client
