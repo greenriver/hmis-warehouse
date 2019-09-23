@@ -1,4 +1,5 @@
-- cas_id = client.cas_client&.id
+- if CasBase.db_exists?
+  - cas_id = client.cas_client&.id
 - if client.processed_service_history.present? && client.longterm_stayer? || client.active_in_cas? || client.chronically_homeless_for_cas?
   %h3.mt-0.d-flex
     .ml-0
