@@ -5,8 +5,8 @@
 - if @existing_matches.any?
   %h2 Existing Clients
   .slab
-    %p 
-      The following existing clients in the warehouse may match the client you are attempting to add.  
+    %p
+      The following existing clients in the warehouse may match the client you are attempting to add.
       %br
       To prevent duplicate records in the warehouse, please review the clients below, if any match, please use the existing client.
     %table.table.table-sm
@@ -26,7 +26,7 @@
             %td
               - if current_user.can_edit_clients?
                 - link = polymorphic_path(client_path_generator, id: client.warehouse_client_source.destination_id)
-              - else 
+              - else
                 - link = client.destination_client.window_link_for?(current_user)
               = link_to link do
                 = client.full_name
@@ -36,7 +36,7 @@
               = client.SSN
   %h2 New Client
   %p
-    If none of the above match the client you are attempting to add, click 
+    If none of the above match the client you are attempting to add, click
     %strong
       Add Client
     to create a new client record.
@@ -51,7 +51,7 @@
       .col-sm-2
         = f.input :LastName, label: 'Last Name'
       .col-sm-3
-        = f.input :DOB, label: 'DOB', as: :date_picker, label: 'DOB'
+        = f.input :DOB, as: :date_picker, label: 'DOB'
       .col-sm-3
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row
