@@ -39,6 +39,14 @@ module GrdaWarehouse::Tasks
             project_client_columns.map do |destination, source|
               project_client[destination] = client.send(source)
             end
+
+            case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+              when 'days_homeless'
+                project_client.days_homeless = client.days_homeless
+              when 'days_homeless_plus_overrides'
+                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+            end
+
             project_client.date_days_homeless_verified = Date.current
             project_client.needs_update = true
             project_client.save!
@@ -126,7 +134,7 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
-        days_homeless: :days_homeless,
+        # days_homeless: :days_homeless,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
