@@ -41,11 +41,10 @@ module GrdaWarehouse::Tasks
             end
 
             case GrdaWarehouse::Config.get(:cas_days_homeless_source)
-              when 'days_homeless_plus_overrides'
-                project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
-              else
-                project_client.days_homeless = client.days_homeless
-              end
+            when 'days_homeless_plus_overrides'
+              project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+            else
+              project_client.days_homeless = client.days_homeless
             end
 
             project_client.date_days_homeless_verified = Date.current
