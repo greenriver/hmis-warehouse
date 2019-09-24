@@ -227,7 +227,7 @@ module EtoApi::Tasks
           hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
-          sexual_orientation: sexual_orientation,
+          sexual_orientation: hmis_client&.sexual_orientation,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?
