@@ -207,6 +207,7 @@ module GrdaWarehouse
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
         ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new(),
+        ::CohortColumns::DaysHomelessPlusOverrides.new(),
         ::CohortColumns::FirstDateHomeless.new(),
         ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
@@ -282,6 +283,7 @@ module GrdaWarehouse
         ::CohortColumns::Race.new(),
         ::CohortColumns::Ethnicity.new(),
         ::CohortColumns::Lgbtq.new(),
+        ::CohortColumns::LgbtqFromHmis.new(),
         ::CohortColumns::SleepingLocation.new(),
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
@@ -359,6 +361,7 @@ module GrdaWarehouse
           related_users: related_users(cc.client),
           disability_verification_date: disability_verification_date(cc.client),
           missing_documents: missing_documents(cc.client),
+          days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
         }
         cc.update(data)
       end
@@ -411,6 +414,10 @@ module GrdaWarehouse
 
     private def disability_verification_date(client)
       client.most_recent_verification_of_disability&.created_at&.to_date
+    end
+
+    private def days_homeless_plus_overrides(client)
+      client.processed_service_history&.days_homeless_plus_overrides
     end
   end
 end

@@ -6,6 +6,8 @@
 
 module WarehouseReports::Health
   class HousingStatusController < ApplicationController
+    include PjaxModalController
+
     before_action :require_can_administer_health!
 
     def index
@@ -21,5 +23,17 @@ module WarehouseReports::Health
 
       @report = WarehouseReport::Health::HousingStatus.new(@start_date, @end_date, @aco)
     end
+
+    def details
+      @details = params[:client_ids].zip(params[:sources])
+    end
+
+    def to_query(actives)
+      {
+        client_ids: actives.map{ |item| item.first },
+        sources: actives.map{ |item| item.last },
+      }
+    end
+    helper_method :to_query
   end
 end

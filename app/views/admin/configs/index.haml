@@ -25,6 +25,7 @@
       = f.input :cas_url, label: 'CAS Site URL'
       = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
       = f.input :chronic_definition, collection: GrdaWarehouse::Config.available_chronic_definitions, input_html: {class: :select2}
+      = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', input_html: {class: :select2}
     .col-sm-4
       = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
       = f.input :continuum_name, as: :string, label: 'Continuum Name'

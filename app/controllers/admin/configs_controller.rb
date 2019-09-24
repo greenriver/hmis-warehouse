@@ -49,6 +49,7 @@ module Admin
         :vispdat_prioritization_scheme,
         :rrh_cas_readiness,
         :show_vispdats_on_dashboards,
+        :cas_days_homeless_source,
         client_details: [],
       )
     end

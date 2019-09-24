@@ -233,7 +233,10 @@ module EtoApi::Tasks
               hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
             when 'hud_last_permanent_zip_quality'
               hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
-            else
+              when 'sexual_orientation'
+                value = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+                sexual_orientation = defined_demographic_value(value: value, cdid: cdid, site_id: client.site_id_in_data_source)
+              else
               hmis_client[key] = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
             end
           end
@@ -252,6 +255,7 @@ module EtoApi::Tasks
           hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
+          sexual_orientation: sexual_orientation,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         hmis_client.save
