@@ -3,7 +3,7 @@
   include_links ||= can_view_projects?
 
   enrollments = @client.enrollments_for_rollup(
-    en_scope: scope,
+    en_scope: scope.visible_in_window_to(current_user),
     include_confidential_names: @include_confidential_names,
     only_ongoing: only_ongoing
   )

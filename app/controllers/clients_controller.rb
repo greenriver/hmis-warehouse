@@ -13,21 +13,24 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_view_clients!, only: [:show, :index, :service_range]
-  before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
-  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
+  before_action :require_can_search_window!, only: [:index]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
+  before_action :check_release, only: [:show]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
+  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :update, :create_note]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
-  after_action :log_client, only: [:show, :edit, :update, :destroy, :merge, :unmerge]
+  after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
 
   def index
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
     @clients = if params[:q].present?
-      client_source.text_search(params[:q], client_scope: client_source)
+      client_source.text_search(params[:q], client_scope: client_search_scope)
     else
       client_scope.none
     end
@@ -46,14 +49,19 @@ class ClientsController < ApplicationController
     end
   end
 
-  def update
-
-  end
-
   # display an assessment form in a modal
   def assessment
-    @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
-    @client = @form.client
+    if can_view_clients?
+      @form = assessment_scope.find(params.require(:id).to_i)
+      @client = @form.client
+    else
+      @client = client_scope.find(params[:client_id].to_i)
+      if @client&.consent_form_valid?
+        @form = assessment_scope.find(params.require(:id).to_i)
+      else
+        @form = assessment_scope.new
+      end
+    end
     render 'assessment_form'
   end
 
@@ -186,7 +194,12 @@ class ClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
+    image = @client.image(max_age)
+    if image.present?
+      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+    else
+      head :forbidden and return
+    end
   end
 
   protected def client_source
@@ -194,7 +207,9 @@ class ClientsController < ApplicationController
   end
 
   private def client_scope
-    client_source.destination
+    client_source.destination.
+      joins(source_clients: :data_source).
+      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
   end
 
   private def project_scope
@@ -225,7 +240,15 @@ class ClientsController < ApplicationController
   end
 
   def client_search_scope
-    client_source.source
+    client_source.searchable.joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+  end
+
+  private def assessment_scope
+    if can_view_clients?
+      GrdaWarehouse::HmisForm
+    else
+      GrdaWarehouse::HmisForm.window_with_details
+    end
   end
 
   private def log_client
@@ -238,7 +261,7 @@ class ClientsController < ApplicationController
   helper_method :dp
 
   def user_can_view_confidential_names?
-    can_view_projects?
+    can_view_projects? && can_view_clients?
   end
 
 end

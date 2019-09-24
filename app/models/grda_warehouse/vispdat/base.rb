@@ -136,6 +136,15 @@ module GrdaWarehouse::Vispdat
       end
     end
 
+    def self.available_types
+      [
+        'GrdaWarehouse::Vispdat::Individual',
+        'GrdaWarehouse::Vispdat::Child',
+        'GrdaWarehouse::Vispdat::Family',
+        'GrdaWarehouse::Vispdat::Youth',
+      ]
+    end
+
     ####################
     # Callbacks
     ####################

@@ -17,6 +17,10 @@ module GrdaWarehouse
     belongs_to :entity, polymorphic: true
     belongs_to :user
 
+    scope :data_source, -> do
+      where(entity_type: 'GrdaWarehouse::DataSource' )
+    end
+
     def entity_name
       entity.name
     end

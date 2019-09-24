@@ -7,7 +7,7 @@
 module Censuses
   class CensusByProjectType < ProjectTypeBase
 
-    def for_date_range (start_date, end_date)
+    def for_date_range (start_date, end_date, user: nil)
       # JSON shape
       # {
       #   project_type: {

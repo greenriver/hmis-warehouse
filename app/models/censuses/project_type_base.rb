@@ -37,7 +37,7 @@ module Censuses
         end
     end
 
-    def prior_year_averages (year, project_type, population)
+    def prior_year_averages (year, project_type, population, user: nil)
       {
           year: year,
           ave_client_count: census_values_scope(year).average(values_column_name(project_type, population)).round(2),

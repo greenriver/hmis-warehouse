@@ -1,0 +1,73 @@
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right
+    = render 'clients/files/file_upload'
+= render 'clients/files/permission_warning'
+.row
+  .col-sm-8
+    = render 'clients/files/download_warning'
+    = render 'clients/files/health_warning'
+  .col-sm-4
+    = render 'clients/files/blank_file_list', file_list_title: 'Blank Files'
+
+- if @client.client_files.any? || @deleted_files.any?
+  %ul.nav.nav-tabs
+    %li.nav-item
+      %a.nav-link.active{href: '#consent', role: "presentation", data: {toggle: :tab}}
+        Consent Forms
+    %li.nav-item
+      %a.nav-link{href: '#other', role: "presentation", data: {toggle: :tab}}
+        Other Files
+    - if can_manage_client_files?
+      %li.nav-item
+        %a.nav-link{href: '#deleted', role: "presentation", data: {toggle: :tab}}
+          Deleted Files
+  .tab-content
+    .tab-pane.fade.show.active#consent
+      - if @consent_files.any?
+        %section
+          %header.o-section-card__header
+            %div.o-section-card__header-actions
+              = render 'clients/files/batch_download'
+          .c-card.c-card--flush
+            = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
+      - else
+        No consent files
+    .tab-pane.fade#other
+      - if @files.any?
+        %section.o-section-card
+          %header.o-section-card__header
+            %div.o-section-card__header-actions
+              = render 'clients/files/batch_download'
+          .c-card.c-card--flush
+            = render 'clients/files/file_list', files: @files, paginate: true, consent: false
+      - else
+        No other files
+    .tab-pane.fade#deleted
+      - if can_manage_client_files? && @deleted_files.any?
+        %section.o-section-card
+          .c-card.c-card--flush
+            = render 'clients/files/deleted_file_list', files: @deleted_files
+      - else
+        No deleted files
+- else
+  No file uploads
+
+- content_for :page_js do
+  :javascript
+    var url = document.location.toString();
+    if (url.match('#')) {
+      $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
+    }
+
+    $('.nav-tabs a[data-toggle="tab"]').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
+    });
+
+    // Change hash for page-reload
+    $('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      window.location.hash = e.target.hash;
+    })

@@ -84,7 +84,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
-    if user&.can_see_clients_in_window_for_assigned_data_sources?
+    if user&.can_edit_anything_super_user?
+      current_scope
+    elsif user&.can_see_clients_in_window_for_assigned_data_sources?
+      # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
       ds_ids = user.data_sources.pluck(:id)
       where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
     elsif health_id = self.health_authoritative_id

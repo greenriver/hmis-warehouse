@@ -26,4 +26,11 @@ FactoryBot.define do
     authoritative { true }
     authoritative_type { :youth }
   end
+  factory :visible_data_source, class: 'GrdaWarehouse::DataSource' do
+    name { 'Visible' }
+    short_name { 'V' }
+    # association :client, factory: :grda_warehouse_hud_client
+    source_type { nil }
+    visible_in_window { true }
+  end
 end

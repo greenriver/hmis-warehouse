@@ -18,10 +18,10 @@
       %section#appointments-list.jAppointments{data: {path: upcoming_window_client_health_appointments_path(client_id: patient.client.id)}}
     .patient__action-needed
       .mb-4
-        = render 'window/health/patient/engagement', patient: patient
+        = render 'health/patient/engagement', patient: patient
       .ml-3.mb-4
         - if ! patient.engaged?
-          = render 'window/health/patient/remaining_to_engage', patient: patient
+          = render 'health/patient/remaining_to_engage', patient: patient
       .patient__link.text-right
         - if patient.client.present?
           = link_to 'View', url, class: 'btn btn-sm btn-secondary'

@@ -127,4 +127,24 @@ FactoryBot.define do
     name { 'can edit own agency youth intake' }
     can_edit_own_agency_youth_intake { true }
   end
+
+  factory :can_create_clients, class: 'Role' do
+    name { 'can create clients' }
+    can_create_clients { true }
+  end
+
+  factory :can_search_window, class: 'Role' do
+    name { 'can search window' }
+    can_search_window { true }
+  end
+
+  factory :can_view_client_window, class: 'Role' do
+    name { 'can view clients' }
+    can_view_client_window { true }
+  end
+
+  factory :can_edit_clients, class: 'Role' do
+    name { 'can view clients' }
+    can_edit_clients { true }
+  end
 end
