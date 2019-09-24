@@ -1,0 +1,16 @@
+= simple_form_for :filter, url: warehouse_reports_dv_victim_service_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-4
+        = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @start_date}
+      .col-4
+        = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @end_date}
+      .col-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+  - content_for :filter_actions do
+    .row
+      .col-sm-2.mt-no-label
+        = f.button :submit, value: 'Update View'
+
+
+  = render 'warehouse_reports/filters', f:f
