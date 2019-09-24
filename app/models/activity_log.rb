@@ -8,6 +8,10 @@ class ActivityLog < ActiveRecord::Base
 
   belongs_to :user
 
+  scope :created_in_range, -> (range:) do
+    where(created_at: range)
+  end
+
   def clean_object_name
     item_model&.gsub('GrdaWarehouse::Hud::', '')
   end
