@@ -102,3 +102,6 @@ Lint/RescueException:
 
 Layout/SpaceAfterNot:
   Enabled: false
+
+Layout/MultilineOperationIndentation:
+  Enabled: false

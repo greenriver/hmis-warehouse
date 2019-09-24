@@ -53,4 +53,16 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
       d_client.save if d_client.changed?
     end
   end
+
+  def self.maintain_sexual_orientation(connection_key:, cdid:, site_id:)
+    api = EtoApi::Detail.new(trace: false, api_connection: connection_key)
+    options = api.demographic_defined_values(cdid: cdid, site_id: site_id).map do |m|
+      [m['ID'], m['Text']]
+    end.to_h
+
+    self.where(sexual_orientation: nil).find_each do |hmis_client|
+      value = JSON.parse(hmis_client.response).try(:[], 'CustomDemoData')&.select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+      hmis_client.update(sexual_orientation: options[value])
+    end
+  end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190917001135) do
+ActiveRecord::Schema.define(version: 20190923153128) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -861,8 +861,8 @@ ActiveRecord::Schema.define(version: 20190917001135) do
   add_index "Organization", ["pending_date_deleted"], name: "index_Organization_on_pending_date_deleted", using: :btree
 
   create_table "Project", force: :cascade do |t|
-    t.string   "ProjectID",                     limit: 50
-    t.string   "OrganizationID",                limit: 50
+    t.string   "ProjectID",                         limit: 50
+    t.string   "OrganizationID",                    limit: 50
     t.string   "ProjectName"
     t.string   "ProjectCommonName"
     t.integer  "ContinuumProject"
@@ -873,13 +873,13 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.integer  "PITCount"
     t.datetime "DateCreated"
     t.datetime "DateUpdated"
-    t.string   "UserID",                        limit: 100
+    t.string   "UserID",                            limit: 100
     t.datetime "DateDeleted"
     t.string   "ExportID"
     t.integer  "data_source_id"
     t.integer  "act_as_project_type"
     t.boolean  "hud_continuum_funded"
-    t.boolean  "confidential",                              default: false, null: false
+    t.boolean  "confidential",                                  default: false, null: false
     t.integer  "computed_project_type"
     t.date     "OperatingStartDate"
     t.date     "OperatingEndDate"
@@ -888,10 +888,12 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.string   "local_planning_group"
     t.string   "source_hash"
     t.integer  "housing_type_override"
-    t.boolean  "uses_move_in_date",                         default: false, null: false
+    t.boolean  "uses_move_in_date",                             default: false, null: false
     t.date     "operating_start_date_override"
     t.datetime "pending_date_deleted"
     t.integer  "HMISParticipatingProject"
+    t.boolean  "active_homeless_status_override",               default: false
+    t.boolean  "include_in_days_homeless_override",             default: false
   end
 
   add_index "Project", ["DateCreated"], name: "project_date_created", using: :btree
@@ -1414,6 +1416,8 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.boolean  "user_boolean_13"
     t.boolean  "user_boolean_14"
     t.boolean  "user_boolean_15"
+    t.string   "lgbtq_from_hmis"
+    t.integer  "days_homeless_plus_overrides"
   end
 
   add_index "cohort_clients", ["client_id"], name: "index_cohort_clients_on_client_id", using: :btree
@@ -1475,6 +1479,7 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.string  "vispdat_prioritization_scheme",             default: "length_of_time",         null: false
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
+    t.string  "cas_days_homeless_source",                  default: "days_homeless"
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1770,6 +1775,7 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.date     "consent_confirmed_on"
     t.date     "consent_expires_on"
     t.datetime "eto_last_updated"
+    t.string   "sexual_orientation"
   end
 
   add_index "hmis_clients", ["client_id"], name: "index_hmis_clients_on_client_id", using: :btree
@@ -3764,6 +3770,8 @@ ActiveRecord::Schema.define(version: 20190917001135) do
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
     t.datetime "last_cas_match_date"
+    t.string   "lgbtq_from_hmis"
+    t.integer  "days_homeless_plus_overrides"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
