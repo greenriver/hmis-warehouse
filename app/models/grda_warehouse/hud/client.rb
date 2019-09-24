@@ -681,11 +681,13 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names window: true, user: nil, health: false
-      client_scope = if window
+    def client_names user: nil, health: false
+      client_scope = if user.can_view_clients?
+        source_clients
+      elsif user.can_search_window?
         source_clients.visible_in_window_to(user)
       else
-        source_clients
+        source_clients.none
       end
       names = client_scope.includes(:data_source).map do |m|
         {
@@ -1764,10 +1766,10 @@ module GrdaWarehouse::Hud
       source_enrollments.any_address.sort_by(&:EntryDate).map(&:address_lat_lon).uniq
     end
 
-    def previous_permanent_locations_for_display
+    def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.
+      addresses_from_enrollments = source_enrollments.visible_in_window_to(user).
         any_address.
         order(EntryDate: :desc).
         preload(:client).
