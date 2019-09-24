@@ -317,6 +317,15 @@ module GrdaWarehouse::Hud
       self.class.serves_children.where(id: id).exists?
     end
 
+    scope :overrides_homeless_active_status, -> do
+      where(active_homeless_status_override: true)
+    end
+
+    scope :includes_verified_days_homeless, -> do
+      where(include_in_days_homeless_override: true)
+    end
+
+
     #################################
     # Standard Cohort Scopes
     scope :veteran, -> do

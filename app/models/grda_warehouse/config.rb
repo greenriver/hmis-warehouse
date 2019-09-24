@@ -55,6 +55,13 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_days_homeless_sources
+      {
+        'Calculated days homeless' => :days_homeless,
+        'Calculated days homeless + verified additional days' => :days_homeless_plus_overrides,
+      }
+    end
+
     def self.cache_store
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new

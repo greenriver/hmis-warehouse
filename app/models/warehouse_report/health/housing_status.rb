@@ -52,10 +52,10 @@ class WarehouseReport::Health::HousingStatus
 
     # combine data sources
     results = Hash.new
-    merge_data(from_patients, results)
-    merge_data(from_sdh_notes, results)
-    merge_data(from_epic, results)
-    merge_data(from_touchpoints, results)
+    merge_data(from_patients, 'HMIS', results)
+    merge_data(from_sdh_notes, 'SDH', results)
+    merge_data(from_epic, 'Epic', results)
+    merge_data(from_touchpoints, 'TouchPoint', results)
 
     results.map do |date, status_counts|
       status_counts.each do |status, counts|
@@ -65,7 +65,7 @@ class WarehouseReport::Health::HousingStatus
     return results
   end
 
-  def merge_data(source, target)
+  def merge_data(source, label, target)
     source.each do |date, info|
       patient_count = Health::Patient.active_on_date(date).count
       target[date] ||= {
@@ -79,7 +79,7 @@ class WarehouseReport::Health::HousingStatus
       answer = GrdaWarehouse::Hud::Client.clean_health_housing_outcome_answer(info[1])
       status = GrdaWarehouse::Hud::Client.health_housing_outcomes[answer].try(:[], :status)
       next unless status.present?
-      target[date][status][:active_ids] << client_id
+      target[date][status][:active_ids] << [ client_id, label ]
     end
   end
 

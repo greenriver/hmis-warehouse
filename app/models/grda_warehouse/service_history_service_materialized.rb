@@ -9,6 +9,8 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
+  belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
+
   scope :hud_project_type, -> (project_types) do
     where(project_type: project_types)
   end
