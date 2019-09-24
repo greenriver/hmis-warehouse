@@ -170,6 +170,7 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
     resources :youth_follow_ups, only: [:index]
