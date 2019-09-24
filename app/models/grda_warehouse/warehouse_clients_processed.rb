@@ -48,6 +48,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         days_served: calcs.total_counts[client_id],
         days_homeless_last_three_years: calcs.all_homeless_in_last_three_years[client_id] || 0,
         literally_homeless_last_three_years: calcs.all_literally_homeless_last_three_years[client_id] || 0,
+        days_homeless_plus_overrides: calcs.homeless_counts_plus_overrides[client_id] || 0,
       )
       if client_id.in?(cohort_client_ids + assessment_client_ids)
         processed.assign_attributes(
@@ -61,17 +62,30 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   end
 
   class StatsCalculator
+    include ArelHelper
+
     def initialize(client_ids: )
       @client_ids = client_ids
     end
 
     def most_recent_homeless_dates
       @most_recent_homeless_dates ||= begin
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
+        dates = GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
           in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES). # for index hinting
           where(client_id: @client_ids).
           group(:client_id).
           maximum(:date)
+
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          joins(service_history_enrollment: :project).
+          merge(GrdaWarehouse::Hud::Project.overrides_homeless_active_status).
+          where(client_id: @client_ids).
+          group(:client_id).
+          maximum(:date).each do |client_id, date|
+            dates[client_id] = [ dates[client_id], date ].max
+          end
+
+        dates
       end
     end
 
@@ -115,6 +129,54 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         GrdaWarehouse::ServiceHistoryServiceMaterialized.
           from("(#{homeless_sql}) as c").
+          distinct.
+          group(shsm_c[:client_id]).
+          count('c.date')
+      end
+
+    end
+
+    def homeless_counts_plus_overrides
+      @homeless_counts_plus_overrides ||= begin
+        shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
+        shsm_t = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
+        shsm = Arel::Table.new(shsm_table_name.to_sym)
+        shsm_o = shsm.alias('o')
+        shsm_a = shsm.alias('a')
+        shsm_b = shsm.alias('b')
+        shsm_c = shsm.alias('c')
+
+        override_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          joins(shsm_t.join(she_t).on(shsm_o[:service_history_enrollment_id].eq(she_t[:id])).join_sources).
+          joins(she_t.join(p_t).on(she_t[:data_source_id].eq(p_t[:data_source_id]).and(she_t[:project_id].eq(p_t[:ProjectID]))).join_sources).
+          merge(GrdaWarehouse::Hud::Project.includes_verified_days_homeless).
+          where(shsm_o[:client_id].in(@client_ids)).
+          select(shsm_o[:client_id], shsm_o[:date]).
+          to_sql.
+          sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as o")
+
+        non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          where(shsm_a[:homeless].eq(false)).
+          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])). # for index hinting
+        where(shsm_a[:client_id].in(@client_ids)).
+          where(shsm_a[:date].eq(shsm_b[:date])).
+          where(shsm_a[:client_id].eq(shsm_b[:client_id])).
+          select(shsm_a[:client_id], shsm_a[:date]).
+          exists.not.
+          to_sql.
+          sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
+
+        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          where(shsm_b[:homeless].eq(true)).
+          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)). # for index hinting
+        where(shsm_b[:client_id].in(@client_ids)).
+          where(non_homeless_sql).
+          select(shsm_b[:client_id], shsm_b[:date]).
+          to_sql.
+          sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as b")
+
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.
+          from("(#{homeless_sql} union #{override_sql}) as c").
           distinct.
           group(shsm_c[:client_id]).
           count('c.date')

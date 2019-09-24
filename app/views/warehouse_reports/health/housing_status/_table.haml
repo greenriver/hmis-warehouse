@@ -16,12 +16,18 @@
         %tr
           %td= date
           %td.text-center
-            #{body[:street][:active_ids].count} of #{body[:street][:patient_count]} (#{body[:street][:percent]}%)
+            - group = body[:street]
+            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
           %td.text-center
-            #{body[:shelter][:active_ids].count} of #{body[:shelter][:patient_count]} (#{body[:shelter][:percent]}%)
+            - group = body[:shelter]
+            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
           %td.text-center
-            #{body[:doubling_up][:active_ids].count} of #{body[:doubling_up][:patient_count]} (#{body[:doubling_up][:percent]}%)
+            - group = body[:doubling_up]
+            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
           %td.text-center
-            #{body[:temporary][:active_ids].count} of #{body[:temporary][:patient_count]} (#{body[:temporary][:percent]}%)
+            - group = body[:temporary]
+            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
           %td.text-center
-            #{body[:permanent][:active_ids].count} of #{body[:permanent][:patient_count]} (#{body[:permanent][:percent]}%)
+            - group = body[:permanent]
+            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
+
