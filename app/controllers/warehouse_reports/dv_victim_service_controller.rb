@@ -20,7 +20,7 @@ module WarehouseReports
     end
 
     def clients
-      project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th, :ph).flatten
+      project_types = [2, 3, 13] # TH, PSH, RRH
       if @project_ids.length > 0
         scope = client_scope.
           joins(enrollments: :project).
