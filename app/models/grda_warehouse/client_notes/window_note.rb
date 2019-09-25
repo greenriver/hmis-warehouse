@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse::ClientNotes
-  class WindowNote < Base 
+  class WindowNote < Base
     def self.type_name
       "Window Note"
     end
@@ -30,4 +30,4 @@ module GrdaWarehouse::ClientNotes
       end
     end
   end
-end 
+end

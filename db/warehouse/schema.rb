@@ -1039,6 +1039,7 @@ ActiveRecord::Schema.define(version: 20190924134442) do
     t.boolean  "requires_effective_date",  default: false, null: false
     t.boolean  "requires_expiration_date", default: false, null: false
     t.string   "required_for"
+    t.boolean  "coc_available",            default: false, null: false
   end
 
   create_table "bo_configs", force: :cascade do |t|
@@ -1677,6 +1678,7 @@ ActiveRecord::Schema.define(version: 20190924134442) do
     t.date     "expiration_date"
     t.integer  "delete_reason"
     t.string   "delete_detail"
+    t.string   "coc_code"
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
@@ -3765,6 +3767,7 @@ ActiveRecord::Schema.define(version: 20190924134442) do
     t.string   "last_exit_destination"
     t.datetime "last_cas_match_date"
     t.integer  "days_homeless_plus_overrides"
+    t.string   "lgbtq_from_hmis"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree

@@ -101,6 +101,7 @@ module EtoApi::Tasks
           clients = candidate_scope(type: :demographic).
             where(id: ids)
           clients.each do |client|
+            next unless client.present?
             begin
               found = fetch_demographics(client)
               if found.present?
@@ -124,7 +125,7 @@ module EtoApi::Tasks
                 return
               end
             rescue Exception => e
-              raise "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
+              notifier.ping "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
             end
           end
         end
@@ -227,7 +228,7 @@ module EtoApi::Tasks
           hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
-          sexual_orientation: sexual_orientation,
+          sexual_orientation: hmis_client&.sexual_orientation,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?

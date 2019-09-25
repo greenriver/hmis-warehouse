@@ -7,7 +7,7 @@
 module ApplicationHelper
   # permissions
   # See Role.rb for specifics of what permissions are available
-  Role.permissions.each do |permission|
+  (Role.permissions + User.additional_permissions).each do |permission|
     define_method("#{permission}?") do
       current_user.try(permission)
     end
@@ -158,7 +158,7 @@ module ApplicationHelper
   # generates a list of HTML snippets representing the names the user is known by in different data sources
   def client_aliases(client)
 
-    names = client.client_names(window: controller_path.include?('window'), user: current_user, health: true)
+    names = client.client_names(user: current_user, health: true)
     names.map do |name|
       sn = name[:ds]
       id = name[:ds_id]

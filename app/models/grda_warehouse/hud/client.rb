@@ -525,13 +525,17 @@ module GrdaWarehouse::Hud
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
 
+    # Viewable by must be called on source clients
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      elsif user.coc_codes.none?
-        none
+      if user.can_view_clients_with_roi_in_own_coc?
+        # If the user has coc-codes specified, this will limit to users
+        # with a valid consent form in the coc or with no-coc specified
+        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+        # are included.
+        joins(:client_files).
+        where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
       else
-        distinct.joins(:enrollment_cocs).merge( GrdaWarehouse::Hud::EnrollmentCoc.viewable_by user )
+        distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
       end
     end
 
@@ -677,11 +681,13 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names window: true, user: nil, health: false
-      client_scope = if window
+    def client_names user: nil, health: false
+      client_scope = if user.can_view_clients?
+        source_clients
+      elsif user.can_search_window?
         source_clients.visible_in_window_to(user)
       else
-        source_clients
+        source_clients.none
       end
       names = client_scope.includes(:data_source).map do |m|
         {
@@ -812,13 +818,13 @@ module GrdaWarehouse::Hud
     def window_link_for? user
       return false if user.blank?
       if show_window_demographic_to?(user)
-        window_client_path(self)
+        client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
-        window_client_vispdats_path(self)
+        client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
-        window_client_files_path(self)
+        client_files_path(self)
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
-        window_client_youth_intakes_path(self)
+        client_youth_intakes_path(self)
       end
     end
 
@@ -835,7 +841,7 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release)) && user.can_view_client_window?
+      (user.can_view_clients? || (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))) && user.can_view_client_window?
     end
 
     def visible_because_of_relationship?(user)
@@ -975,7 +981,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_valid?
-      housing_release_status == self.class.full_release_string
+      housing_release_status&.starts_with?(self.class.full_release_string) || false
     end
 
     def consent_form_valid?
@@ -1760,10 +1766,10 @@ module GrdaWarehouse::Hud
       source_enrollments.any_address.sort_by(&:EntryDate).map(&:address_lat_lon).uniq
     end
 
-    def previous_permanent_locations_for_display
+    def previous_permanent_locations_for_display(user)
       labels = ('A'..'Z').to_a
       seen_addresses = {}
-      addresses_from_enrollments = source_enrollments.
+      addresses_from_enrollments = source_enrollments.visible_in_window_to(user).
         any_address.
         order(EntryDate: :desc).
         preload(:client).

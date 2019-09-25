@@ -122,17 +122,20 @@ module AuditReports
           (Date.current - 1.months).month => 1,
           (Date.current - 2.months).month => 2,
         }
-
-        ActivityLog.where(
-          user_id: User.active.select(:id),
-          item_model: GrdaWarehouse::Hud::Client.name,
-          created_at: 2.months.ago.beginning_of_month .. Date.tomorrow,
-        ).
-        group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
-        distinct.
-        count(:item_id).each do |(user_id, month), count|
-          history[user_id] ||= []
-          history[user_id][months[month.to_i]] = count
+        User.active.pluck_in_batches(:id, batch_size: 100) do |batch|
+          ActivityLog.created_in_range(
+            range: 2.months.ago.beginning_of_month.to_date .. Date.tomorrow
+          ).
+          where(
+            user_id: batch,
+            item_model: GrdaWarehouse::Hud::Client.name,
+          ).
+          group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
+          distinct.
+          count(:item_id).each do |(user_id, month), count|
+            history[user_id] ||= []
+            history[user_id][months[month.to_i]] = count
+          end
         end
         history
       end
