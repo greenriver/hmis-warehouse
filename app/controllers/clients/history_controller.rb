@@ -172,7 +172,7 @@ module Clients
 
     def set_client
       current_user ||= @user # needed for PDF route
-      not_authorized! and return unless current_user.present?
+      # not_authorized! and return unless current_user.present?
 
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
