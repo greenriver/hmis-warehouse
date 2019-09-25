@@ -19,16 +19,16 @@ module GrdaWarehouse
 
     def self.known_locations
       {
-        'client/hmis_consent' => 'HMIS Consent Form', # app/controllers/window/clients/vispdats_controller.rb & app/controllers/window/clients/files_controller.rb
-        'client/chronic_homelessness_verification' => 'Verification of Chronic Homelessness', # app/controllers/window/clients/files_controller.rb,
-        'client/disability_verification' => 'Verification of Disability', # app/controllers/window/clients/files_controller.rb,
-        'patient/release' => 'Patient Release Form', # app/controllers/window/health/release_forms_controller.rb
-        'patient/participation' => 'Participation Form', # app/controllers/window/health/participation_forms_controller.rb
-        'patient/participation_spanish' => 'Participation Form (SPANISH)', # app/controllers/window/health/participation_forms_controller.rb
-        'patient/ssm' => 'SSM Form', # app/controllers/window/health/self_sufficiency_matrix_forms_controller.rb.rb
-        'patient/cha' => 'CHA Form', # app/controllers/window/health/comprehensive_health_assessments_controller.rb
-        'patient/care_plan' => 'Care Plan Form', # app/controllers/window/health/careplans_controller.rb
-        'patient/case_management_note' => 'Case Management Note Form', # app/controllers/window/health/sdh_case_management_note.rb
+        'client/hmis_consent' => 'HMIS Consent Form', #  app/controllers/clients/files_controller.rb
+        'client/chronic_homelessness_verification' => 'Verification of Chronic Homelessness', # app/controllers/clients/files_controller.rb,
+        'client/disability_verification' => 'Verification of Disability', # app/controllers/clients/files_controller.rb,
+        'patient/release' => 'Patient Release Form', # app/controllers/health/release_forms_controller.rb
+        'patient/participation' => 'Participation Form', # app/controllers/health/participation_forms_controller.rb
+        'patient/participation_spanish' => 'Participation Form (SPANISH)', # app/controllers/health/participation_forms_controller.rb
+        'patient/ssm' => 'SSM Form', # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
+        'patient/cha' => 'CHA Form', # app/controllers/health/comprehensive_health_assessments_controller.rb
+        'patient/care_plan' => 'Care Plan Form', # app/controllers/health/careplans_controller.rb
+        'patient/case_management_note' => 'Case Management Note Form', # app/controllers/health/sdh_case_management_note.rb
       }
     end
 
