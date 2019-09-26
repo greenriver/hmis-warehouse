@@ -11,8 +11,8 @@ module WarehouseReports
     def index
       columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id]
       @filter = ::Filters::DateRange.new(date_range_options)
-      @ph_clients = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct.
-        pluck(*columns).
+      ph_scope = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct
+      @ph_clients = ph_scope.pluck(*columns).
         map do |row|
           Hash[columns.zip(row)]
         end.
@@ -20,7 +20,7 @@ module WarehouseReports
 
       @homeless_clients = homeless_source.
         with_service_between(start_date: @filter.start, end_date: @filter.end).
-        where(client_id: @ph_clients.keys).
+        where(client_id: ph_scope.select(:client_id)).
         distinct.
         pluck(*columns).
         map do |row|
@@ -55,8 +55,8 @@ module WarehouseReports
 
       client_ids = @clients.map(&:id)
       enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
-      @homeless_service = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
-      @homeless_service_dates = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+      @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
+      @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
 
       respond_to do |format|
         format.html {}
@@ -73,6 +73,10 @@ module WarehouseReports
 
     def service_source
       GrdaWarehouse::ServiceHistoryService
+    end
+
+    def service_materialized_source
+      GrdaWarehouse::ServiceHistoryServiceMaterialized
     end
 
     def homeless_source

@@ -43,5 +43,6 @@ class GrdaWarehouse::ServiceHistoryServiceMaterialized < GrdaWarehouseBase
     self.connection.add_index :service_history_services_materialized, [:homeless, :project_type, :client_id], name: :index_shsm_homeless_p_type_c_id
     self.connection.add_index :service_history_services_materialized, [:literally_homeless, :project_type, :client_id], name: :index_shsm_literally_homeless_p_type_c_id
     self.connection.add_index :service_history_services_materialized, [:client_id, :date], name: :index_shsm_c_id_date
+    self.connection.add_index :service_history_services_materialized, :service_history_enrollment_id, name: :index_shsm_shse_id
   end
 end
