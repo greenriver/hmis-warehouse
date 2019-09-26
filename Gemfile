@@ -181,6 +181,10 @@ group :development do
   gem 'overcommit'
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
+
+  # boot time/memory profiling
+  gem 'derailed_benchmarks'
+  gem 'bumbler'
 end
 
 group :test do
