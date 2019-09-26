@@ -29,7 +29,7 @@ module HealthCareplan
       file_name = 'care_plan_coversheet'
       coversheet = render_to_string(
         pdf: file_name,
-        template: 'window/health/careplans/_pdf_coversheet',
+        template: 'health/careplans/_pdf_coversheet',
         layout: false,
         encoding: "UTF-8",
         page_size: 'Letter'
@@ -63,7 +63,7 @@ module HealthCareplan
       # @form = @patient.self_sufficiency_matrix_forms.recent.first
       @form = @patient.ssms.last
       if @form.is_a? Health::SelfSufficiencyMatrixForm
-        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
+        @ssm_partial = 'health/self_sufficiency_matrix_forms/show'
       elsif @form.is_a? GrdaWarehouse::HmisForm
         @ssm_partial = 'clients/assessment_form'
       end
@@ -82,20 +82,20 @@ module HealthCareplan
       #   layout: false,
       #   encoding: "UTF-8",
       #   page_size: 'Letter',
-      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+      #   header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
+      #   footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
       #   # Show table of contents by providing the 'toc' property
       #   # toc: {}
       # )
 
       pctp = render_to_string(
         pdf: file_name,
-        template: 'window/health/careplans/show',
+        template: 'health/careplans/show',
         layout: false,
         encoding: "UTF-8",
         page_size: 'Letter',
-        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+        header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )

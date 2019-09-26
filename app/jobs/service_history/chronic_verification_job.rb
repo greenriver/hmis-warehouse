@@ -21,11 +21,9 @@ module ServiceHistory
       options = {
         client_id: @client_id,
         years: @years,
+        host: ENV['HOSTNAME'],
+        protocol: 'https',
       }
-      if Rails.env.development? || Rails.env.test?
-        options[:host] = ENV['HOSTNAME']
-        options[:protocol] = 'https'
-      end
       app.get(pdf_window_client_history_url(options))
     end
 

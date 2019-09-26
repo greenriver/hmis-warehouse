@@ -9,7 +9,7 @@ module HealthGoal
 
   def new
     @goal = Health::Goal::Hpc.new
-    render 'window/health/goals/new'
+    render 'health/goals/new'
   end
 
   def create
@@ -25,13 +25,13 @@ module HealthGoal
       respond_with(@goal, location: after_path)
       return
     else
-      render 'window/health/goals/create'
+      render 'health/goals/create'
     end
   end
 
   def edit
     @goal = ::Health::Goal::Hpc.find(params[:id].to_i)
-    render 'window/health/goals/edit'
+    render 'health/goals/edit'
   end
 
   def update
@@ -41,7 +41,7 @@ module HealthGoal
       respond_with(@goal, location: after_path)
       return
     else
-      render 'window/health/goals/update'
+      render 'health/goals/update'
     end
   end
 
@@ -52,7 +52,7 @@ module HealthGoal
     if !request.xhr?
       respond_with(@goal, location: after_path)
     else
-      render 'window/health/goals/destroy'
+      render 'health/goals/destroy'
     end
   end
 
