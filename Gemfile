@@ -142,6 +142,8 @@ gem 'grosser-pomo'
 gem 'responders'
 gem 'ransack'
 
+gem 'rack-attack'
+
 gem "attr_encrypted", "~> 3.1.0"
 
 group :development, :test do
