@@ -8,10 +8,14 @@
 module Assigned
   class AgenciesController < ApplicationController
 
-    before_action :require_can_manage_agency!
+    before_action :require_can_manage_an_agency!
 
     def index
 
+    end
+
+    def require_can_manage_an_agency!
+      not_authorized! unless can_manage_agency? || can_manage_all_agencies?
     end
   end
 end

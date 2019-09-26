@@ -1,9 +1,18 @@
-- title = "My Agency's Assigned Clients"
+- users = current_user.subordinates
+- if current_user.can_manage_all_agencies?
+  - title = "All Assigned Clients"
+- else
+  - title = "My Agency's Assigned Clients"
+  - users = users.sort_by { |user| user.agency.name }
 - content_for :title, title
 
 %h1.mb-5= content_for :title
 
-- current_user.subordinates.each do |subordinate|
+- agency_name = nil
+- users.each do |subordinate|
+  - if current_user.can_manage_all_agencies? && subordinate.agency.name != agency_name
+    - agency_name = subordinate.agency.name
+    %h2= agency_name
   %h3
     Clients for
     = subordinate.name

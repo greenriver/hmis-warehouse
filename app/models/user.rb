@@ -255,11 +255,15 @@ class User < ActiveRecord::Base
   end
 
   def subordinates
-    return User.none unless can_manage_agency?
+    return User.none unless can_manage_agency? || can_manage_all_agencies?
     return User.none if agency_id.blank?
 
-    # The users in the user's agency
-    User.active.where(agency_id: self.agency_id).order(:first_name, :last_name)
+    users = User.active.order(:first_name, :last_name)
+    unless can_manage_all_agencies?
+      # The users in the user's agency
+      users = users.where(agency_id: self.agency_id)
+    end
+    users
   end
 
   def coc_codes_for_consent
