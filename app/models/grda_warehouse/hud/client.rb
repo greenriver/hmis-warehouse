@@ -674,9 +674,7 @@ module GrdaWarehouse::Hud
     end
 
     def alternate_names
-      names = client_names.map do |m|
-        m[:name]
-      end.uniq
+      names = source_clients.map(&:full_name).uniq
       names -= [full_name]
       names.join(',')
     end
