@@ -255,7 +255,7 @@ class User < ActiveRecord::Base
   end
 
   def subordinates
-    return User.none unless can_manage_agency? || can_manage_all_agencies?
+    return User.none unless can_manage_an_agency?
     return User.none if agency_id.blank?
 
     users = User.active.order(:first_name, :last_name)

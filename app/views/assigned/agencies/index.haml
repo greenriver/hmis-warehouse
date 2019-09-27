@@ -10,8 +10,8 @@
 
 - agency_name = nil
 - users.each do |subordinate|
-  - if current_user.can_manage_all_agencies? && subordinate.agency.name != agency_name
-    - agency_name = subordinate.agency.name
+  - if current_user.can_manage_all_agencies? && subordinate.agency&.name != agency_name
+    - agency_name = subordinate.agency&.name
     %h2= agency_name
   %h3
     Clients for
