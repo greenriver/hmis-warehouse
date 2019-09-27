@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190924134442) do
+ActiveRecord::Schema.define(version: 20190927193254) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -193,6 +193,7 @@ ActiveRecord::Schema.define(version: 20190924134442) do
     t.date     "consent_expires_on"
     t.datetime "pending_date_deleted"
     t.date     "cas_match_override"
+    t.boolean  "vash_eligible",                                      default: false
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
