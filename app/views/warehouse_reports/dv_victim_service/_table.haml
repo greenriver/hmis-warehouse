@@ -1,0 +1,18 @@
+- if @clients.count == 0
+  No clients found.
+- else
+  %p= page_entries_info @clients, entry_name: 'client'
+  %p= paginate @clients
+  %table.table.table-striped
+    %thead
+      %tr
+        %th
+          Client ID
+        %th
+          Client Name
+    %tbody
+      - @clients.each do |source_client|
+        - client = source_client.destination_client
+        %tr
+          %td= client.id
+          %td= link_to source_client.name, client_path(client.id)
