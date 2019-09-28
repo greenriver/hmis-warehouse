@@ -2,7 +2,7 @@
 lock '3.11.0'
 
 set :application, 'warhouse'
-set :repo_url, 'git@github.com:greenriver/hmis-warehouse.git'
+set :repo_url, 'https://github.com/greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
 set :whenever_identifier, ->{ "#{fetch(:client)}-#{fetch(:application)}_#{fetch(:stage)}" }
