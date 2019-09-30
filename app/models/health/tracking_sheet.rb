@@ -47,6 +47,23 @@ module Health
       @care_plan_patient_signed_dates[patient_id]&.to_date
     end
 
+    def care_plan_sent_to_provider_date patient_id
+      @care_plan_sent_to_provider_dates ||= begin
+        signature_request_dates = Health::Careplan.where(patient_id: @patient_ids).
+          group(:patient_id).
+          maximum(:provider_signature_requested_at)
+
+        signature_request_dates.each do |id, date|
+          if date.blank?
+            signature_request_dates[id] = care_plan_provider_signed_date(patient_id)
+          end
+        end
+        signature_request_dates
+      end
+
+      @care_plan_sent_to_provider_dates[patient_id]&.to_date
+    end
+
     def care_plan_provider_signed_date patient_id
       @care_plan_provider_signed_dates ||= Health::Careplan.where(patient_id: @patient_ids).
         group(:patient_id).
@@ -149,6 +166,7 @@ module Health
         'CHA_REVIEWED' => if cha_reviewed_date(patient.id).present? then 'Yes' else 'No' end,
         'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
+        'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),
         'PCTP_PCP_SIGN' => care_plan_provider_signed_date(patient.id),
         'PCTP_RENEWAL_DATE' => care_plan_renewal_date(patient.id),
         'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date(patient.id),
