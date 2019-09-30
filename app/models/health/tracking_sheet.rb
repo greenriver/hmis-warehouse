@@ -171,6 +171,8 @@ module Health
         'PCTP_RENEWAL_DATE' => care_plan_renewal_date(patient.id),
         'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date(patient.id),
         'QA_LAST' => most_recent_qa_from_case_note(patient.id),
+        'literally homeless' => patient.client.literally_homeless_last_three_years,
+        'disabled' => patient.client.currently_disabled? ? 'Y' : 'N',
       }
     end
   end
