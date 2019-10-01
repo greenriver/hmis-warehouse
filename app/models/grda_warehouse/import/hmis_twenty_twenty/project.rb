@@ -64,7 +64,8 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
             data_source_id: data_source_id,
             existing: OpenStruct.new(existing_projects[row[self.hud_key.to_s]]),
           }
-          m << new(row.to_h.merge(extra)) if row.present?
+          next unless row.present?
+          m << new(row.to_h.merge(extra))
         end
       end
     end
