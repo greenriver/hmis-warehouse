@@ -683,9 +683,32 @@ module Health
       # return nil unless housing_stati.any?
       # most_recent = housing_stati.first
       # last_status = housing_stati&.second
-      # if last_status.present? # FIXME
+      # if last_status.present? q# FIXME
       #   most_recent.positive_change
       # end
+    end
+
+    def last_outreach_enrollment_date
+      service = client.
+        service_history_enrollments.
+        visible_in_window_to(current_user).
+        entry.
+        so.
+        order(date: :desc).first
+      service&.date
+    end
+
+    def last_sleeping_location
+      service = client.
+        source_enrollment_services.
+        bed_night.
+        uniqueness_constraint.
+        descending.
+        preload(:project).first
+      {
+        date: service.DateProvided,
+        location: GrdaWarehouse::Hud::Project.confidentialize(name: service.project.name) || 'Unable to determine project name'
+      }
     end
 
     def consented_date
