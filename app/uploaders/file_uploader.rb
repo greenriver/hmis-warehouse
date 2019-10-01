@@ -5,6 +5,7 @@
 ###
 
 # encoding: utf-8
+
 require 'carrierwave/uploader/magic_mime_whitelist'
 
 class FileUploader < CarrierWave::Uploader::Base
@@ -25,6 +26,7 @@ class FileUploader < CarrierWave::Uploader::Base
   def store_dir
     "#{Rails.root}/tmp/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   end
+
   def cache_dir
     "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   end
@@ -72,13 +74,14 @@ class FileUploader < CarrierWave::Uploader::Base
     create_preview(size: '400x400')
   end
 
-  def create_preview size: '1920x1080'
+  def create_preview(size: '1920x1080')
     return unless MANIPULATEABLE.include?(content_type)
+
     # https://github.com/carrierwaveuploader/carrierwave/wiki/How-to:-Efficiently-converting-image-formats#changing-the-format
     manipulate! do |img|
       img.format('jpg') do |c|
         c.auto_orient
-        c.auto_level #FIXME: we probably only want to do this for DICOM images.
+        c.auto_level # FIXME: we probably only want to do this for DICOM images.
       end
       img.strip
       img.resize size
@@ -87,31 +90,31 @@ class FileUploader < CarrierWave::Uploader::Base
   end
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(%w(
-    image/jpeg
-    image/png
-    image/gif
-    application/pdf
-    application/msword
-    application/vnd.openxmlformats-officedocument.wordprocessingml.document
-    text/csv
-    application/vnd.ms-excel
-    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-  ))
+  WHITELIST = IceNine.deep_freeze(%w[
+                                    image/jpeg
+                                    image/png
+                                    image/gif
+                                    application/pdf
+                                    application/msword
+                                    application/vnd.openxmlformats-officedocument.wordprocessingml.document
+                                    text/csv
+                                    application/vnd.ms-excel
+                                    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+                                  ])
 
   MANIPULATEABLE = IceNine.deep_freeze(
     [
       'image/jpeg',
       'image/png',
       'image/gif',
-    ]
+    ],
   )
 
   # normal content_type handling uses this
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
   def content_type_whitelist
-    WHITELIST+%w(application/octet-stream)
+    WHITELIST + %w[application/octet-stream]
   end
 
   # MagicMimeWhitelist content_type handling uses
@@ -134,12 +137,16 @@ class FileUploader < CarrierWave::Uploader::Base
     model.content_type = content_type_from_bytes(file) # use magic for this and NOT ruby's built in lookup
   end
 
-  private def content_type_from_bytes(file_to_test = file)
+  private def content_type_from_bytes(_file_to_test = file)
     @filemagic ||= FileMagic.new(FileMagic::MAGIC_MIME_TYPE)
-    @filemagic.buffer(file.read) rescue nil
+    begin
+      @filemagic.buffer(file.read)
+    rescue StandardError
+      nil
+    end
   end
 
-  alias_method :extract_content_type, :content_type_from_bytes
+  alias extract_content_type content_type_from_bytes
 
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:
@@ -150,7 +157,7 @@ class FileUploader < CarrierWave::Uploader::Base
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   def size_range
-    0..4.megabytes #Up to two megabytes
+    0..4.megabytes # Up to two megabytes
   end
 
   # Override the filename of the uploaded files:
@@ -158,5 +165,4 @@ class FileUploader < CarrierWave::Uploader::Base
   # def filename
   #   "something.jpg" if original_filename
   # end
-
 end

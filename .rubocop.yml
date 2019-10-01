@@ -8,8 +8,12 @@ AllCops:
     - 'spec/**/*.rb'
     - 'app/jobs/**/*.rb'
     - 'app/inputs/**/*.rb'
+    - 'app/helpers/**/*.rb'
+    - 'app/mail_interceptors/**/*.rb'
     - 'app/mailers/**/*.rb'
-    - 'app/mailers/**/*.rb'
+    - 'app/renderers/**/*.rb'
+    - 'app/uploaders/**/*.rb'
+
   Exclude:
     - 'db/**/*'
     - 'config/**/*'
@@ -108,3 +112,12 @@ Layout/SpaceAfterNot:
 
 Layout/MultilineOperationIndentation:
   Enabled: false
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Layout/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
