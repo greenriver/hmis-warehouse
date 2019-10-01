@@ -689,13 +689,13 @@ module Health
     end
 
     def last_outreach_enrollment_date(user)
-      service = client.
+      client.
         service_history_enrollments.
         visible_in_window_to(user).
         entry.
+        ongoing.
         so.
-        order(date: :desc).first
-      service&.date
+        maximum(:first_date_in_program)
     end
 
     def last_sleeping_location
