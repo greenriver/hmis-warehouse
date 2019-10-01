@@ -8,6 +8,8 @@ AllCops:
     - 'spec/**/*.rb'
     - 'app/jobs/**/*.rb'
     - 'app/inputs/**/*.rb'
+    - 'app/mailers/**/*.rb'
+    - 'app/mailers/**/*.rb'
   Exclude:
     - 'db/**/*'
     - 'config/**/*'

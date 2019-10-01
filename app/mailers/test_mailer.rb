@@ -12,10 +12,10 @@ class TestMailer < ApplicationMailer
   default from: ENV.fetch('DEFAULT_FROM')
 
   def ping(email)
-    mail({
+    mail(
       to: [email],
-      subject: 'test'
-    }) do |format|
+      subject: 'test',
+    ) do |format|
       format.text { render plain: "Test #{SecureRandom.hex(6)}" }
     end
   end
