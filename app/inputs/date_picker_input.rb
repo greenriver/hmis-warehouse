@@ -13,10 +13,8 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
       display_value = object.send(attribute_name)
       template.content_tag(:p, display_value, label_html_options)
     else
-      data = {provide: 'datepicker'}
-      if input_html_options[:disabled]
-        data = {}
-      end
+      data = { provide: 'datepicker' }
+      data = {} if input_html_options[:disabled]
       template.content_tag :div, class: 'input-group date datepicker', data: data do
         input = super(wrapper_options)
         input += input_button
@@ -32,8 +30,8 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
   private
 
   def input_button
-    template.content_tag :div,  class: 'input-group-append' do
-      template.content_tag :button,  class: 'btn btn-secondary', type: 'button' do
+    template.content_tag :div, class: 'input-group-append' do
+      template.content_tag :button, class: 'btn btn-secondary', type: 'button' do
         template.content_tag :span, '', class: 'icon-calendar mr-0'
       end
     end
@@ -47,6 +45,7 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
 
   def set_value_html_option
     return unless value.present?
+
     input_html_options[:value] ||= I18n.localize(value, format: display_pattern)
   end
 
@@ -68,9 +67,9 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
 
   def date_options_base
     {
-        locale: I18n.locale.to_s,
-        format: picker_pattern,
-        dayViewHeaderFormat: date_view_header_format
+      locale: I18n.locale.to_s,
+      format: picker_pattern,
+      dayViewHeaderFormat: date_view_header_format,
     }
   end
 
@@ -78,5 +77,4 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
     custom_options = input_html_options[:data][:date_options] || {}
     date_options_base.merge!(custom_options)
   end
-
 end

@@ -14,7 +14,7 @@ class ReadOnlyInput < SimpleForm::Inputs::StringInput
         existing_classes = label_html_options.try(:[], :class)
         existing_classes << 'd-block'
         existing_classes << 'readonly-value'
-        template.content_tag(:p, display_value, label_html_options.merge({class: existing_classes}))
+        template.content_tag(:p, display_value, label_html_options.merge(class: existing_classes))
       end
     else
       super(wrapper_options)
