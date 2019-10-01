@@ -15,8 +15,8 @@ ActiveRecord::Schema.define(version: 20190916190551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "fuzzystrmatch"
   enable_extension "hstore"
+  enable_extension "fuzzystrmatch"
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"

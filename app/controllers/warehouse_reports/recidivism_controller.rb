@@ -48,19 +48,22 @@ module WarehouseReports
         remove.all?
       end
 
-
       @clients = client_source.where(id: @ph_clients.keys & @homeless_clients.keys).
-        order(LastName: :asc, FirstName: :asc).
-        page(params[:page]).per(25)
-
-      client_ids = @clients.map(&:id)
-      enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
-      @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
-      @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+        order(LastName: :asc, FirstName: :asc)
 
       respond_to do |format|
-        format.html {}
+        format.html do
+          @clients = @clients.page(params[:page]).per(25)
+          client_ids = @clients.map(&:id)
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
+          @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+        end
         format.xlsx do
+          client_ids = @clients.map(&:id)
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
+          @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
           filename = "Recidivism-#{@filter.start.strftime('%Y-%m-%d')}-to-#{@filter.end.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
