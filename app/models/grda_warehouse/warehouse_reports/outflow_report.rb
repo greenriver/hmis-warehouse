@@ -119,6 +119,7 @@ module GrdaWarehouse::WarehouseReports
 
       scope = scope.where(p_t[:id].in @filter.project_ids) unless @filter.project_ids.empty?
       scope = scope.where(o_t[:id].in @filter.organization_ids) unless @filter.organization_ids.empty?
+      scope = scope.joins(client: :vispdats) if @filter.limit_to_vispdats
 
       return scope
     end
