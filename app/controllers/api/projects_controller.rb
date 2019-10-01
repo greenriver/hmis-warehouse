@@ -65,7 +65,7 @@ module Api
     end
 
     def set_project_types
-      @project_types = if params[:project_types].present?
+      @project_types = if params[:project_types].present? || params[:project_type_ids].present?
         []
       else
         HUD.project_types.keys
@@ -74,6 +74,7 @@ module Api
         params[:project_types]&.select(&:present?)&.each do |type|
           @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type.to_sym]
         end
+        @project_types = params[:project_type_ids]&.select(&:present?)&.map(&:to_i)
       rescue
         @project_types = HUD.project_types.keys
       end
