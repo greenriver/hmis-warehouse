@@ -683,7 +683,7 @@ module Health
       # return nil unless housing_stati.any?
       # most_recent = housing_stati.first
       # last_status = housing_stati&.second
-      # if last_status.present? q# FIXME
+      # if last_status.present? # FIXME
       #   most_recent.positive_change
       # end
     end
