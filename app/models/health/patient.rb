@@ -698,17 +698,23 @@ module Health
         maximum(:first_date_in_program)
     end
 
-    def last_sleeping_location
-      service = client.
-        source_enrollment_services.
-        bed_night.
-        uniqueness_constraint.
-        descending.
-        preload(:project).first
-      {
-        date: service.DateProvided,
-        location: GrdaWarehouse::Hud::Project.confidentialize(name: service.project.name) || 'Unable to determine project name'
-      }
+    def last_sleeping_location(user)
+      enrollment = client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(GrdaWarehouse::ServiceHistoryService.service_within_date_range(start_date: 90.days.ago.to_date, end_date: Date.current)).
+        visible_in_window_to(user).
+        entry.
+        ongoing.
+        residential.
+        joins(:service_history_services).
+        order(first_date_in_program: :desc).first
+
+      if enrollment.present?
+        {
+          date: enrollment.first_date_in_program,
+          location: GrdaWarehouse::Hud::Project.confidentialize(name: enrollment.project_name) || 'Unable to determine project name'
+        }
+      end
     end
 
     def consented_date
