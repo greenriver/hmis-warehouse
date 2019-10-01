@@ -26,7 +26,6 @@ module GrdaWarehouse::Hud
         :UserID,
         :DateDeleted,
         :ExportID,
-        :data_source_id,
       ].freeze
     end
 
