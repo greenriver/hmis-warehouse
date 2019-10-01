@@ -8,10 +8,11 @@
 module Assigned
   class AgenciesController < ApplicationController
 
-    before_action :require_can_manage_agency!
+    before_action :require_can_manage_an_agency!
 
     def index
 
     end
+
   end
 end

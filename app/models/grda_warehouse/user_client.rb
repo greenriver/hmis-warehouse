@@ -47,7 +47,7 @@ module GrdaWarehouse
       if user.can_view_all_user_client_assignments
         User.all.order(:first_name, :last_name)
       else
-        User.subordinates
+        user.subordinates
       end
     end
 
