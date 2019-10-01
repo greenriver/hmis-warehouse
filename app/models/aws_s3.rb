@@ -27,10 +27,16 @@ class AwsS3
       @access_key_id,
       @secret_access_key
     )
-    Aws.config.update({
-      region: @region,
-      credentials: cred
-    })
+    if @secret_access_key.present? && @secret_access_key != 'unknown'
+      Aws.config.update({
+        region: @region,
+        credentials: cred
+      })
+    else
+       Aws.config.update({
+        region: @region,
+      })
+    end
   end
 
   def exists?

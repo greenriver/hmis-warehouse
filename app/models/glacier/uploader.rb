@@ -9,7 +9,7 @@
 module Glacier
   class Uploader < AwsService
     include ActionView::Helpers::DateHelper
-    
+
     attr_accessor :archive_name
     attr_accessor :file_stream
     attr_accessor :vault_name
@@ -33,13 +33,19 @@ module Glacier
       self.file_stream = file_stream
       self.archive_name = archive_name
 
-      self._client = Aws::Glacier::Client.new({
-        region: 'us-east-1',
-        credentials: Aws::Credentials.new(
-          ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-          ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
-        )
-      })
+      self._client = if ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY').present? && ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY') != 'unknown'
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+          credentials: Aws::Credentials.new(
+            ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+            ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+          )
+        })
+      else
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+        })
+      end
       self.start_at_chunk = start_at_chunk
       self.upload_id = upload_id
     end

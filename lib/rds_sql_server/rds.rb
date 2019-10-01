@@ -39,10 +39,16 @@ class Rds
   def initialize
     self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
 
-    Aws.config.update(
-      region: REGION,
-      credentials: Aws::Credentials.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY),
-    )
+    if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
+      Aws.config.update(
+        region: REGION,
+        credentials: Aws::Credentials.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY),
+      )
+    else
+      Aws.config.update(
+        region: REGION,
+      )
+    end
 
     self.client = Aws::RDS::Client.new(region: REGION)
   end
