@@ -38,6 +38,7 @@ module UserPermissions
         :has_some_patient_access,
         :can_access_some_version_of_clients,
         :has_some_edit_access_to_youth_intakes,
+        :can_manage_an_agency,
       ].freeze
     end
 
@@ -95,6 +96,10 @@ module UserPermissions
     end
 
     def can_view_user_audit_report
+      can_manage_agency? || can_manage_all_agencies?
+    end
+
+    def can_manage_an_agency
       can_manage_agency? || can_manage_all_agencies?
     end
 
