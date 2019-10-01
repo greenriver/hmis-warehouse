@@ -1,5 +1,5 @@
 - homeless_contacts = []
-- homeless_contacts << {date: patient.last_outreach_enrollment_date, location: 'Street Outreach'} if patient.last_outreach_enrollment_date.present?
+- homeless_contacts << {date: patient.last_outreach_enrollment_date, location: 'Street Outreach'} if patient.last_outreach_enrollment_date(current_user).present?
 - homeless_contacts << patient.last_sleeping_location if patient.last_sleeping_location.present?
 - if homeless_contacts.present?
   %table.table-sm
