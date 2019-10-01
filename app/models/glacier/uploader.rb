@@ -68,7 +68,7 @@ module Glacier
     private
 
     def create_vault_if_not_exists!
-      _client.create_vault(vault_name: vault_name)
+      _client.create_vault(vault_name: vault_name) rescue Aws::Glacier::Errors::AccessDeniedException
     end
 
     def initialize_upload!
