@@ -37,11 +37,11 @@ RSpec.describe GrdaWarehouse::Vispdat::Youth, type: :model do
   end
 
   describe 'sleep_score' do
-    %i[
-      sleep_outdoors
-      sleep_couch_surfing
-      sleep_other
-      sleep_refused
+    [
+      :sleep_outdoors,
+      :sleep_couch_surfing,
+      :sleep_other,
+      :sleep_refused,
     ].each do |answer|
       context "when #{answer}" do
         before(:each) { vispdat.sleep_answer = answer }
@@ -51,10 +51,10 @@ RSpec.describe GrdaWarehouse::Vispdat::Youth, type: :model do
       end
     end
 
-    %i[
-      sleep_shelters
-      sleep_transitional_housing
-      sleep_safe_haven
+    [
+      :sleep_shelters,
+      :sleep_transitional_housing,
+      :sleep_safe_haven,
     ].each do |answer|
       context "when #{answer}" do
         before(:each) { vispdat.sleep_answer = answer }
@@ -430,24 +430,24 @@ RSpec.describe GrdaWarehouse::Vispdat::Youth, type: :model do
 
   describe 'section scoring' do
     before(:each) do
-      %i[
-        dob_score
-        sleep_score
-        homeless_score
-        emergency_service_score
-        risk_of_harm_score
-        legal_issues_score
-        risk_of_exploitation_score
-        money_management_score
-        meaningful_activity_score
-        self_care_score
-        social_relationship_score
-        physical_health_score
-        substance_abuse_score
-        mental_health_score
-        tri_morbidity_score
-        medication_score
-        abuse_and_trauma_score
+      [
+        :dob_score,
+        :sleep_score,
+        :homeless_score,
+        :emergency_service_score,
+        :risk_of_harm_score,
+        :legal_issues_score,
+        :risk_of_exploitation_score,
+        :money_management_score,
+        :meaningful_activity_score,
+        :self_care_score,
+        :social_relationship_score,
+        :physical_health_score,
+        :substance_abuse_score,
+        :mental_health_score,
+        :tri_morbidity_score,
+        :medication_score,
+        :abuse_and_trauma_score,
       ].each do |score|
         allow(vispdat).to receive(score).and_return [0, 1].sample
       end

@@ -13,6 +13,7 @@ AllCops:
     - 'app/mailers/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
+    - 'lib/**/*.rb'
 
   Exclude:
     - 'db/**/*'
@@ -33,6 +34,8 @@ Metrics/AbcSize:
   Max: 175
 Metrics/CyclomaticComplexity:
   Max: 50
+  Exclude:
+    - 'lib/util/hud.rb'
 Metrics/PerceivedComplexity:
   Max: 50
 
@@ -121,3 +124,17 @@ Metrics/ModuleLength:
 
 Layout/AlignParameters:
   EnforcedStyle: with_fixed_indentation
+
+Lint/UnusedMethodArgument:
+  Exclude:
+    - 'lib/rds_sql_server/hmis_sql_server.rb'
+
+Style/DoubleNegation:
+  Exclude:
+    - 'lib/rds_sql_server/rds.rb'
+
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
