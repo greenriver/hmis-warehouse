@@ -141,7 +141,7 @@ module ApplicationHelper
 
   # make no less visually salient
   def lighten_no(value)
-    if value == 'No'
+    if strip_tags(value)&.strip&.downcase == 'no'
       content_tag :i, value, class: :light
     else
       value

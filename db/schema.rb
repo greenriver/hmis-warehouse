@@ -37,6 +37,8 @@ ActiveRecord::Schema.define(version: 20190916190551) do
 
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
   add_index "activity_logs", ["created_at", "item_model", "user_id"], name: "index_activity_logs_on_created_at_and_item_model_and_user_id", using: :btree
+  add_index "activity_logs", ["created_at"], name: "activity_logs_created_at_idx", using: :brin
+  add_index "activity_logs", ["created_at"], name: "created_at_idx", using: :brin
   add_index "activity_logs", ["item_model", "user_id", "created_at"], name: "index_activity_logs_on_item_model_and_user_id_and_created_at", using: :btree
   add_index "activity_logs", ["item_model", "user_id"], name: "index_activity_logs_on_item_model_and_user_id", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree

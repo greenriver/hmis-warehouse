@@ -8,7 +8,9 @@
   color: $gray;
 }
 
-.light {
+.light,
+.muted,
+.muted-text {
   color: $light-body-text;
 }
 
