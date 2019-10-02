@@ -14,6 +14,7 @@ module Assigned
       @users = User.
         active.
         where(agency_id: current_user.agency.id).
+        where(id:  GrdaWarehouse::UserClient.active.distinct.pluck(:user_id)).
         order(:first_name, :last_name)
     end
 

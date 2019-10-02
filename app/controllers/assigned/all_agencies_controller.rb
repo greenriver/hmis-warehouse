@@ -11,8 +11,10 @@ module Assigned
     before_action :require_can_manage_all_agencies!
 
     def index
+
       @users = User.
         active.
+        where(id:  GrdaWarehouse::UserClient.active.distinct.pluck(:user_id)).
         order(:first_name, :last_name).
         sort_by { |user| user.agency.name }
     end

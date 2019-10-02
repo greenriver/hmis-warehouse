@@ -8,7 +8,8 @@
   - if user.agency&.name != agency_name
     - agency_name = user.agency&.name
     %h2= agency_name
+  - clients = user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
   %h3
     Clients for
     = user.name
-  = render 'assigned/clients/client_table', clients: user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
+  = render 'assigned/clients/client_table', clients: clients
