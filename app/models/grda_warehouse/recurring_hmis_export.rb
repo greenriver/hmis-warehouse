@@ -71,7 +71,7 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      s3_secret_access_key = s3_secret_access_key.strip
+      s3_secret_access_key = s3_secret_access_key&.strip
 
       @awsS3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
         AwsS3.new(
