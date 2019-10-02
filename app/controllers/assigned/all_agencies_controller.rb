@@ -4,17 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-# Shows up as "My Agency's Clients"
+# Shows up as "All Assigned Clients"
 module Assigned
-  class AgenciesController < ApplicationController
+  class AllAgenciesController < ApplicationController
 
-    before_action :require_can_manage_an_agency!
+    before_action :require_can_manage_all_agencies!
 
     def index
       @users = User.
         active.
-        where(agency_id: current_user.agency.id).
-        order(:first_name, :last_name)
+        order(:first_name, :last_name).
+        sort_by { |user| user.agency.name }
     end
 
   end
