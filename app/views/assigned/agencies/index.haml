@@ -3,8 +3,12 @@
 
 %h1.mb-5= content_for :title
 
-- @users.each do |user|
-  %h3
-    Clients for
-    = user.name
-  = render 'assigned/clients/client_table', clients: user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
+- if @users.any?
+  - @users.each do |user|
+    %h3
+      Clients for
+      = user.name
+    = render 'assigned/clients/client_table', clients: user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
+  = render 'application/js_link', base_path: 'clients/'
+- else
+  %p No assignments found.

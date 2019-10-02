@@ -1,4 +1,4 @@
-- title = "All Assigned Clients"
+- title = "All Assigned Clients by Agency"
 - content_for :title, title
 
 %h1.mb-5= content_for :title
@@ -6,16 +6,20 @@
 = simple_form_for :filter, url: assigned_all_agencies_path, method: :get do |f|
   .row.mb-4
     .col-4
-      = f.input :agency_ids, collection: Agency.order(:name), selected: @selection, label: "Agencies", input_html: {multiple: :multiple, class: :select2}
+      = f.input :agency_id, collection: Agency.order(:name), selected: @selection, label: "Agency", input_html: { class: :select2}, include_blank: false
       = f.button :submit, value: 'Update View'
 
 - agency_name = nil
-- @users.each do |user|
-  - if user.agency&.name != agency_name
-    - agency_name = user.agency&.name
-    %h2= agency_name
-  - clients = user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
-  %h3
-    Clients for
-    = user.name
-  = render 'assigned/clients/client_table', clients: clients
+- if @users.any?
+  - @users.each do |user|
+    - if user.agency&.name != agency_name
+      - agency_name = user.agency&.name
+      %h2= agency_name
+    - clients = user.user_clients.joins(:client).merge(GrdaWarehouse::UserClient.active)
+    %h3
+      Clients for
+      = user.name
+    = render 'assigned/clients/client_table', clients: clients
+  = render 'application/js_link', base_path: 'clients/'
+- else
+  %p No assignments found.
