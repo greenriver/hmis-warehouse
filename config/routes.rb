@@ -369,7 +369,7 @@ Rails.application.routes.draw do
   resources :clients, except: [:update, :destroy] do
     member do
       get :service_range
-      get :rollup
+      get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
       get :image
       get :chronic_days
@@ -424,7 +424,7 @@ Rails.application.routes.draw do
     resources :clients, controller: '/clients' do
       # resources :print, only: [:index]
       healthcare_routes(window: true)
-      get :rollup
+      get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
       get :image
       resource :history, only: [:show], controller: '/clients/history' do

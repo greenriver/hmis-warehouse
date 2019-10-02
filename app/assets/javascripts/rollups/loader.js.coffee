@@ -8,7 +8,7 @@ class App.Rollups.Loader
         $e = $(p)
         $e.append('<div class="rollup-container c-card c-card--flush c-card--block"/>')
         $(document).queue "fx", =>
-          $.get @rollupPath, partial: $e.data('partial'), (data) =>
+          $.get @rollupPath + $e.data('partial'), (data) =>
             $e.find('.rollup-container').append data
             $e.find('[data-toggle=tooltip]').tooltip()
             # dress up all the id dots

@@ -269,17 +269,17 @@ module ClientController
         "/clients/rollup/chronic_notes",
         "/clients/rollup/cohorts",
       ]
-      rollup = allowed_rollups.find do |m|
+      rollup = allowed_rollups.detect do |m|
         m == "/clients/rollup/" + params.require(:partial).underscore
       end
 
       raise 'Rollup not in whitelist' unless rollup.present?
 
-      begin
-        # if request.xhr?
-          render partial: rollup, layout: false
-        # end
+
+      if request.xhr?
+        render partial: rollup, layout: false
       end
+
     end
 
     protected def set_client
