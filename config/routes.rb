@@ -611,6 +611,7 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      patch :reactivate, on: :member
       member do
         post :confirm
       end
