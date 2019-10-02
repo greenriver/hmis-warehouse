@@ -61,7 +61,6 @@ module GrdaWarehouse::Hud
           :YouthBedInventory,
           :CHBedInventory,
           :OtherBedInventory,
-          :TargetPopulation,
           :ESBedType,
           :InventoryStartDate,
           :InventoryEndDate,

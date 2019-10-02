@@ -4,8 +4,7 @@ module Stupidedi
   module Writer
     class Json
       class NullNode
-        def initialize(*)
-        end
+        def initialize(*); end
 
         def reduce(memo, *)
           # do nothing

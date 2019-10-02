@@ -5,12 +5,12 @@
 ###
 
 class CloudwatchEmailInterceptor
-  def self.delivering_email message
-    message.headers({
+  def self.delivering_email(message)
+    message.headers(
       'X-SES-CLIENT' => ENV.fetch('CLIENT') { 'UnknownClient' },
       'X-SES-APP' => 'Warehouse',
       'X-SES-CONFIGURATION-SET' => ENV.fetch('SES_CONFIG_SET') { 'OpenPathConfigSet' },
-      'X-SES-ENVIRONMENT' => Rails.env
-    })
+      'X-SES-ENVIRONMENT' => Rails.env,
+    )
   end
 end

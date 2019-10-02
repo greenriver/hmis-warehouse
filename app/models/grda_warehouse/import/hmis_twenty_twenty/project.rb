@@ -59,6 +59,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
           "#{file_path}/#{data_source_id}/#{file_name}",
           headers: self.hud_csv_headers.map(&:to_s)
         ).drop(1).each do |row|
+          next unless row.present?
           extra = {
             file_path: file_path,
             data_source_id: data_source_id,
