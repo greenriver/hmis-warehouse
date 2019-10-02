@@ -39,7 +39,7 @@ RSpec.describe ClientsController, type: :request do
     end
 
     it 'doesn\'t allow rollup' do
-      get rollup_client_path(destination)
+      get rollup_client_path(destination, partial: :residential_enrollments)
       expect(response).to redirect_to(new_user_session_path)
     end
 
@@ -113,7 +113,7 @@ RSpec.describe ClientsController, type: :request do
 
     it 'doesn\'t allow rollup' do
       sign_in user
-      get rollup_client_path(destination)
+      get rollup_client_path(destination, partial: :residential_enrollments)
       expect(response).to redirect_to(root_path)
     end
 
@@ -194,7 +194,7 @@ RSpec.describe ClientsController, type: :request do
 
     it 'doesn\'t allow rollup' do
       sign_in user
-      get rollup_client_path(destination)
+      get rollup_client_path(destination, partial: :residential_enrollments)
       expect(response).to redirect_to(root_path)
     end
 
@@ -275,8 +275,8 @@ RSpec.describe ClientsController, type: :request do
 
     it 'allows rollup' do
       sign_in user
-      get rollup_client_path(destination, partial: :assessments)
-      expect(response).to render_template('clients/rollup/_assessments')
+      get rollup_client_path(destination, partial: :residential_enrollments)
+      expect(response).to render_template('clients/rollup/_residential_enrollments')
     end
 
     # through can_see_this_client_demographics
@@ -356,8 +356,8 @@ RSpec.describe ClientsController, type: :request do
 
     it 'allows rollup' do
       sign_in user
-      get rollup_client_path(destination, partial: :assessments)
-      expect(response).to render_template('clients/rollup/_assessments')
+      get rollup_client_path(destination, partial: :residential_enrollments)
+      expect(response).to render_template('clients/rollup/_residential_enrollments')
     end
 
     # through can_see_this_client_demographics
@@ -437,7 +437,7 @@ RSpec.describe ClientsController, type: :request do
 
     it 'doesn\'t allow rollup' do
       sign_in user
-      get rollup_client_path(destination)
+      get rollup_client_path(destination, partial: :residential_enrollments)
       expect(response).to redirect_to(root_path)
     end
 

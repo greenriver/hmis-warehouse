@@ -1,37 +1,53 @@
-= cache(['clients', 'disability_types', @client, controller_path], expires_in: 4.hours) do
-  - items = @client.source_enrollment_disabilities.order(InformationDate: :desc).preload( enrollment: :client ).group_by(&:enrollment).sort_by{ |e,_| e.EntryDate }.reverse
+= cache(['clients', 'disability_types', @client, controller_path], expires_in: GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
+  - items = @client.source_enrollment_disabilities.joins( enrollment: :client ).sorted_entry_date_information_date.group_by{|d| [d.enrollment, d.InformationDate]}
   - if items.any?
     %div
       %table.table
         %thead
           %tr
             %th
-            %th Program Entry Date
+            %th Entry Date
+            %th Assessment Type
+            %th Information Date
             %th Substance Abuse
             %th Mental
             %th Physical
             %th Developmental
             %th HIV/AIDS
             %th Chronic Health Condition
-            %th Indefinite and Impairs?
+
         %tbody
-          - items.each do |enrollment, disabilities|
+          - displayed = Set.new
+          - items.each do |(enrollment, information_date), disabilities|
             :ruby
-              aggregated = %w( mental substance physical developmental hiv chronic ).map do |m|
+              aggregated = %w( substance mental physical developmental hiv chronic ).map do |m|
                 method = "#{m}?".to_sym
                 d = disabilities.detect(&method)
-                [ m.to_sym, d.try(:response) ]
+                [
+                  m.to_sym, OpenStruct.new(
+                    response: d&.response&.strip,
+                    indefinite: d&.indefinite_and_impairs?,
+                  )
+                ]
               end.to_h
+            - unless displayed.include?(enrollment.EnrollmentID)
+              - displayed << enrollment.EnrollmentID
+              %tr
+                %th{colspan: 10}
+                  = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_names?)
+
             %tr
               %td.id-sqr{ 'data-id' => enrollment.client.id }
               %td.date-cell= l enrollment.EntryDate
-              %td= lighten_no aggregated[:substance]
-              %td= lighten_no aggregated[:mental]
-              %td= lighten_no aggregated[:physical]
-              %td= lighten_no aggregated[:developmental]
-              %td= lighten_no aggregated[:hiv]
-              %td= lighten_no aggregated[:chronic]
-              %td= lighten_no yes_no disabilities.detect(&:indefinite_and_impairs?)&.indefinite_and_impairs?# lighten_no aggregated[:indefinite_and_impairs]
+              %td= HUD.data_collection_stage(disabilities.first.DataCollectionStage)
+              %td.date-cell= l information_date
+              - aggregated.each do |symptom, result|
+                %td
+                  = lighten_no(yes_no(result.response) || result.response)
+                  - if result.response && result.indefinite
+                    .light.text-small
+                      Indefinite & Impairs
+
   - else
     .no-data
       No disability records found
