@@ -10,6 +10,13 @@ module AuditReports
     include ArelHelper
     before_action :require_can_view_user_audit_report!
 
+    # To see this report, a user needs:
+    # 1. Can manage agency
+    # 2. Can audit users
+    # 3. Can view assigned reports
+    # 4. Assign the report
+    # 5. User needs an agency assigned
+
     def index
       @column = user_sort_options.map{ |i| i[:column] }.detect { |c| c == params[:column] } || 'last_name'
       @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'asc'
@@ -143,6 +150,7 @@ module AuditReports
     end
 
     def user_scope
+      return User.none if current_user.agency.blank?
       scope = User.
         active.
         joins(:agency)

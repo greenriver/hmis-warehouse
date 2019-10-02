@@ -82,7 +82,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(client_id: @client_ids).
           group(:client_id).
           maximum(:date).each do |client_id, date|
-            dates[client_id] = [ dates[client_id], date ].max
+            dates[client_id] = [ dates[client_id], date ].compact.max
           end
 
         dates

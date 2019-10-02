@@ -5,6 +5,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     @delete_later = []
     setup_initial_imports
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+
     Delayed::Worker.new.work_off(2)
   end
   after(:all) do

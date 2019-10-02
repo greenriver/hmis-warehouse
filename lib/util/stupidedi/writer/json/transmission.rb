@@ -12,11 +12,11 @@ module Stupidedi
           @node = node
         end
 
-        def reduce(memo, &block)
+        def reduce(memo)
           if single_child?
-            block.call(child, memo)
+            yield(child, memo)
           else
-            children.map { |c| block.call(c, memo) }
+            children.map { |c| yield(c, memo) }
           end
         end
 
