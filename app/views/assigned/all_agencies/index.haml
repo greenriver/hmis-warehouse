@@ -3,6 +3,12 @@
 
 %h1.mb-5= content_for :title
 
+= simple_form_for :filter, url: assigned_all_agencies_path, method: :get do |f|
+  .row.mb-4
+    .col-4
+      = f.input :agency_ids, collection: Agency.order(:name), selected: @selection, label: "Agencies", input_html: {multiple: :multiple, class: :select2}
+      = f.button :submit, value: 'Update View'
+
 - agency_name = nil
 - @users.each do |user|
   - if user.agency&.name != agency_name
