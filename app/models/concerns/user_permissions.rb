@@ -39,6 +39,7 @@ module UserPermissions
         :can_access_some_version_of_clients,
         :has_some_edit_access_to_youth_intakes,
         :can_manage_an_agency,
+        :can_view_confidential_names,
       ].freeze
     end
 
@@ -145,6 +146,10 @@ module UserPermissions
 
     def has_some_edit_access_to_youth_intakes
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
+    end
+
+    def can_view_confidential_names
+      can_view_projects? && can_view_clients?
     end
 
 

@@ -17,6 +17,9 @@
     .row
       .col-8
         = f.input :no_recent_service_project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @filter.no_recent_service_project_ids, label: 'Additional projects included in "without recent service" calculation', required: false
+      .col-4.d-flex.align-items-center.mt-no-label
+        = f.input :limit_to_vispdats, label: 'Only include clients with a VI-SPDAT?', as: :boolean
+
   - content_for :filter_actions do
     .row
       .col-sm-2.mt-no-label

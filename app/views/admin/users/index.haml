@@ -49,6 +49,7 @@
                 %th Roles
                 %th
                 %th
+                %th
             %tbody
               - @users.each do |user|
                 %tr
@@ -65,10 +66,10 @@
                     = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
                       %i.icon-pencil
                       Edit
-                  %td
+                  %td{style: 'white-space: nowrap;'}
                     = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
                       %i.icon-cross
-                      Delete
+                      De-Activate
 
         %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
   .tab-pane#inactive
@@ -78,9 +79,14 @@
           %tr
             %th Name
             %th Email
+            %th
         %tbody
           - @inactive_users.each do |user|
             %tr
               %td= user.name
               %td
                 = user.email
+              %td
+                = simple_form_for(user, url: reactivate_admin_user_path(user)) do |f|
+                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                    Re-activate

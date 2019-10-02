@@ -10,6 +10,7 @@ module Filters
     attribute :sub_population, Symbol, default: :all_clients
     attribute :no_service_after_date, Date, lazy: true, default: -> (r,_) { r.default_no_service_after_date }
     attribute :no_recent_service_project_ids, Array, default: []
+    attribute :limit_to_vispdats, Boolean, default: false
 
     validates_presence_of :start, :end, :sub_population
 

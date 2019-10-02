@@ -1396,6 +1396,7 @@ module GrdaWarehouse::Hud
         required_minimum_occupancy: _('Minimum occupancy'),
         requires_elevator_access: _('Requires ground floor unit or elevator access'),
         cas_match_override: _('Override CAS Match Date'),
+        vash_eligible: _('VASH Eligible'),
       }
     end
 
