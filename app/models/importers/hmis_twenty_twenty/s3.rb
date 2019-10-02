@@ -27,12 +27,19 @@ module Importers::HmisTwentyTwenty
         debug: debug
       )
 
-      @s3 = AwsS3.new(
-        region: region,
-        bucket_name: bucket_name,
-        access_key_id: access_key_id,
-        secret_access_key: secret_access_key
-      )
+      @s3 = if secret_access_key.present && secret_access_key != 'unknwon'
+        AwsS3.new(
+          region: region,
+          bucket_name: bucket_name,
+          access_key_id: access_key_id,
+          secret_access_key: secret_access_key
+        )
+      else
+        AwsS3.new(
+          region: region,
+          bucket_name: bucket_name
+        )
+      end
       @file_password = file_password
       @s3_path = path
       @file_path = "#{file_path}/#{Time.now.to_i}"

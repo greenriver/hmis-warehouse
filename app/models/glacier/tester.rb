@@ -88,7 +88,8 @@ module Glacier
 
     def simulated_database_backup!
       cmd = "cat #{file_name} | gzip"
-      backup = Backup.new(cmd: cmd, vault_name: 'test-vault')
+      vault_name = "#{ENV.fetch('CLIENT')}-test-vault"
+      backup = Backup.new(cmd: cmd, vault_name: vault_name)
       backup.run!
       Rails.logger.info("PASS")
     end

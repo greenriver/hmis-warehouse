@@ -1,6 +1,5 @@
 require_relative 'sql_server_base'
 module LsaSqlServer
-
   module_function def models_by_filename
     {
       'LSAReport.csv' => LsaSqlServer::LSAReport,
@@ -92,7 +91,7 @@ module LsaSqlServer
     self.table_name = :lsa_Household
     include TsqlImport
 
-     def self.csv_columns
+    def self.csv_columns
       [
         :RowTotal,
         :Stat,
@@ -349,10 +348,10 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-        [
-          :CHandDisability,
-          :HHComposition,
-        ]
-      end
+      [
+        :CHandDisability,
+        :HHComposition,
+      ]
+    end
   end
 end

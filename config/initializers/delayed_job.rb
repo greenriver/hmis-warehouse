@@ -18,7 +18,7 @@ module Delayed
   class Worker
     class Deployment
       def self.deployed_to
-        if Rails.env.development?
+        if Rails.env.development? || Rails.env.test?
           File.realpath(FileUtils.pwd)
         else
           Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}

@@ -6,7 +6,7 @@ class Bootstraper
   end
 
   def hmis_6_11_table_structure!
-    SqlServerBase.connection.execute (<<~SQL);
+    SqlServerBase.connection.execute <<~SQL
       IF EXISTS (SELECT * FROM sysobjects WHERE name='Affiliation' AND xtype='U')
         DROP TABLE [Affiliation]
         CREATE TABLE [Affiliation] (

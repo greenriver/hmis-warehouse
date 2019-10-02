@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Stupidedi
   using Refinements
 
@@ -17,22 +18,21 @@ module Stupidedi
       private
 
       def resolve_traverser(node)
-        case
-        when node.transmission?
+        if node.transmission?
           Transmission
-        when node.interchange?
+        elsif node.interchange?
           Interchange
-        when node.segment?
+        elsif node.segment?
           Segment
-        when node.loop?
+        elsif node.loop?
           Loop
-        when node.element?
+        elsif node.element?
           Element
-        when node.functional_group?
+        elsif node.functional_group?
           FunctionalGroup
-        when node.transaction_set?
+        elsif node.transaction_set?
           TransactionSet
-        when node.table?
+        elsif node.table?
           Table
         else
           NullNode

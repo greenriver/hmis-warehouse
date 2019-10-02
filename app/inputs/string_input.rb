@@ -5,5 +5,4 @@
 ###
 
 class StringInput < ReadOnlyInput
-  
 end
