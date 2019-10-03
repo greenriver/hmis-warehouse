@@ -57,6 +57,9 @@
                   %td= user.first_name
                   %td
                     = user.email
+                    - if user.agency
+                      .user__agency
+                        %em.text-muted= user.agency.name
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
@@ -67,7 +70,7 @@
                       %i.icon-pencil
                       Edit
                   %td{style: 'white-space: nowrap;'}
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
                       %i.icon-cross
                       De-Activate
 
@@ -83,7 +86,8 @@
         %tbody
           - @inactive_users.each do |user|
             %tr
-              %td= user.name
+              %td
+                = user.name
               %td
                 = user.email
               %td
