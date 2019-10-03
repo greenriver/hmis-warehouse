@@ -67,7 +67,7 @@ class ClientsController < ApplicationController
   end
 
   def health_assessment
-    if can_view_client_health?
+    if can_view_patients_for_own_agency?
       @form = health_assessment_scope.find(params.require(:id).to_i)
       @client = @form.client
     else
