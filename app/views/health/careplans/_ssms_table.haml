@@ -16,7 +16,7 @@
             %td= form&.user&.name
           - if form.is_a? GrdaWarehouse::HmisForm
             %td
-              = link_to assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
+              = link_to health_assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
                 %h4=form.assessment_type
                 .pl-2 From Eto
           - if form.is_a? Health::EpicSsm

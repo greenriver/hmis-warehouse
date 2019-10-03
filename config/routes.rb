@@ -371,6 +371,7 @@ Rails.application.routes.draw do
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       get :chronic_days
       patch :merge
@@ -426,6 +427,7 @@ Rails.application.routes.draw do
       healthcare_routes(window: true)
       get 'rollup/:partial', to: '/clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       resource :history, only: [:show], controller: '/clients/history' do
         get :pdf, on: :collection
