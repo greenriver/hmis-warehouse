@@ -94,9 +94,16 @@ RSpec.configure do |config|
   #   # Seed global randomization in this process using the `--seed` CLI option.
   #   # Setting this allows you to use `--seed` to deterministically reproduce
   #   # test failures related to randomization by passing the same `--seed` value
-  #   # as the one that triggered the failure.
+  #   # as the one that triggered the failure.got
   #   Kernel.srand config.seed
   #
 
   config.include Rails.application.routes.url_helpers
+end
+
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
 end
