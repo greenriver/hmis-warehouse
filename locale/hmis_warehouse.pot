@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-02 09:20-0400\n"
-"PO-Revision-Date: 2019-07-02 09:20-0400\n"
+"POT-Creation-Date: 2019-10-04 15:13-0400\n"
+"PO-Revision-Date: 2019-10-04 15:13-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -18,30 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-msgid "\"CHA #{code}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{field.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_SUBTITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_TITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
-msgstr ""
-
-msgid "\"CHA #{section}_Q#{question}_A#{n}\""
-msgstr ""
-
 msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
@@ -49,6 +25,9 @@ msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
 msgid "Alerts"
+msgstr ""
+
+msgid "All Assigned Clients"
 msgstr ""
 
 msgid "Appropriate for sober supportive housing"
@@ -73,6 +52,30 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "CHA #{answer_key}"
+msgstr ""
+
+msgid "CHA #{code}_HEADER"
+msgstr ""
+
+msgid "CHA #{field.upcase}"
+msgstr ""
+
+msgid "CHA #{section_code}_SUBTITLE"
+msgstr ""
+
+msgid "CHA #{section_code}_TITLE"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_HEADER"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_SUBHEADER"
 msgstr ""
 
 msgid "CHA A_Q1"
@@ -3471,10 +3474,16 @@ msgstr ""
 msgid "Date Housed"
 msgstr ""
 
+msgid "Date of Return"
+msgstr ""
+
 msgid "Days to Return"
 msgstr ""
 
 msgid "Delete"
+msgstr ""
+
+msgid "Destination"
 msgstr ""
 
 msgid "Disability Verification on File"
@@ -3580,6 +3589,9 @@ msgid "Minimum occupancy"
 msgstr ""
 
 msgid "Missing Data Percentages"
+msgstr ""
+
+msgid "My Agency's Clients"
 msgstr ""
 
 msgid "My Agency's Patients"
@@ -3694,6 +3706,9 @@ msgid "Upload successful, please let the recipient know the file has been sent."
 msgstr ""
 
 msgid "VA Eligible"
+msgstr ""
+
+msgid "VASH Eligible"
 msgstr ""
 
 msgid "View All Imports"
