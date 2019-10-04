@@ -22,6 +22,7 @@ PreCommit:
     enabled: true
   BundleAudit:
     enabled: true
+    flags: ['--ignore CVE-2019-16676']
   RuboCop:
     enabled: true
     on_warn: fail # Treat all warnings as failures

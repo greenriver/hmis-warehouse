@@ -129,6 +129,10 @@ module GrdaWarehouse::Hud
     # End Standard Cohort Scopes
     #################################
 
+    scope :sorted_entry_date_information_date, -> do
+      order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
+    end
+
     def self.disability_types
       {
         5 => :physical,

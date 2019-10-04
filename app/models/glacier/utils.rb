@@ -9,13 +9,19 @@ module Glacier
     attr_accessor :_client
 
     def initialize
-      self._client = Aws::Glacier::Client.new({
-        region: 'us-east-1',
-        credentials: Aws::Credentials.new(
-          ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-          ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
-        )
-      })
+      self._client = if ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY').present? && ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY') != 'unknown'
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+          credentials: Aws::Credentials.new(
+            ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+            ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+          )
+        })
+      else
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+        })
+      end
     end
 
     def operations
@@ -104,7 +110,7 @@ module Glacier
     def partial_uploads(vault_name)
       _client.list_multipart_uploads(account_id: '-', vault_name: vault_name).uploads_list
     end
-    
+
     def cleanup_partial_uploads!(vault_name)
       partial_uploads(vault_name).each do |upload|
         Rails.logger.info "Removing incomplete #{upload.archive_description} upload from #{vault_name}"

@@ -10,10 +10,10 @@ class TestDatabaseMailer < DatabaseMailer
   default from: 'noreply@greenriver.com'
 
   def ping(email)
-    mail({
+    mail(
       to: [email],
-      subject: 'test'
-    }) do |format|
+      subject: 'test',
+    ) do |format|
       format.text { render plain: "Test #{SecureRandom.hex(6)}" }
     end
   end

@@ -15,13 +15,14 @@ class ClientsController < ApplicationController
 
   before_action :require_can_search_window!, only: [:index]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
-  before_action :check_release, only: [:show]
+
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
+  before_action :check_release, only: [:show]
   after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
@@ -61,6 +62,16 @@ class ClientsController < ApplicationController
       else
         @form = assessment_scope.new
       end
+    end
+    render 'assessment_form'
+  end
+
+  def health_assessment
+    if can_view_patients_for_own_agency?
+      @form = health_assessment_scope.find(params.require(:id).to_i)
+      @client = @form.client
+    else
+      @form = health_assessment_scope.new
     end
     render 'assessment_form'
   end
@@ -249,6 +260,10 @@ class ClientsController < ApplicationController
     else
       GrdaWarehouse::HmisForm.window_with_details
     end
+  end
+
+  private def health_assessment_scope
+    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client

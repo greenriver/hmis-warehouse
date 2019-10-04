@@ -50,6 +50,7 @@ module WarehouseReports
           :end,
           :sub_population,
           :no_service_after_date,
+          :limit_to_vispdats,
           organization_ids: [],
           project_ids: [],
           no_recent_service_project_ids: [],

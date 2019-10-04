@@ -71,10 +71,21 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @awsS3 ||= AwsS3.new(region: s3_region.strip,
+      s3_secret_access_key = s3_secret_access_key&.strip
+
+      @awsS3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
+        AwsS3.new(
+          region: s3_region.strip,
           bucket_name: s3_bucket.strip,
           access_key_id: s3_access_key_id.strip,
-          secret_access_key: s3_secret_access_key.strip )
+          secret_access_key: s3_secret_access_key
+        )
+      else
+        AwsS3.new(
+          region: s3_region.strip,
+          bucket_name: s3_bucket.strip
+        )
+      end
     end
 
     def self.available_s3_regions

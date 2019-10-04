@@ -17,15 +17,14 @@ module Stupidedi
           memo[key] = {
             name: name,
             value: value,
-            type: type
+            type: type,
           }
         end
 
         def type
-          case
-          when node.composite?
+          if node.composite?
             :composite
-          when node.repeated?
+          elsif node.repeated?
             :repeated
           else
             :simple
@@ -49,17 +48,17 @@ module Stupidedi
           def call(*)
             {
               raw: value, # leaf node
-              description: description
+              description: description,
             }
           end
 
           def description
-            if definition.respond_to?(:code_list)
-              if code_list.try(:internal?)
-                code_list.try(:at, value)
-              else
-                value
-              end
+            return unless definition.respond_to?(:code_list)
+
+            if code_list.try(:internal?)
+              code_list.try(:at, value)
+            else
+              value
             end
           end
 
@@ -75,9 +74,9 @@ module Stupidedi
             @node = node
           end
 
-          def call(&block)
+          def call
             node.children.map do |c|
-              block.call(c)
+              yield(c)
             end
           end
         end
@@ -89,9 +88,9 @@ module Stupidedi
             @node = node
           end
 
-          def call(&block)
+          def call
             node.children.map do |c|
-              block.call(c)
+              yield(c)
             end
           end
         end
@@ -104,12 +103,11 @@ module Stupidedi
           end
 
           def reducer
-            case
-            when node.simple?
+            if node.simple?
               SimpleElement
-            when node.repeated?
+            elsif node.repeated?
               RepeatedElement
-            when node.composite?
+            elsif node.composite?
               CompositeElement
             else
               SimpleElement

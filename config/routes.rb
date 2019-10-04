@@ -369,8 +369,9 @@ Rails.application.routes.draw do
   resources :clients, except: [:update, :destroy] do
     member do
       get :service_range
-      get :rollup
+      get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       get :chronic_days
       patch :merge
@@ -424,8 +425,9 @@ Rails.application.routes.draw do
     resources :clients, controller: '/clients' do
       # resources :print, only: [:index]
       healthcare_routes(window: true)
-      get :rollup
+      get 'rollup/:partial', to: '/clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       resource :history, only: [:show], controller: '/clients/history' do
         get :pdf, on: :collection
@@ -461,6 +463,7 @@ Rails.application.routes.draw do
   namespace :assigned do
     resources :clients, only: [:index]
     resources :agencies, only: [:index]
+    resources :all_agencies, only: [:index]
   end
   namespace :expired do
     resources :clients, only: :index
@@ -610,6 +613,7 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      patch :reactivate, on: :member
       member do
         post :confirm
       end

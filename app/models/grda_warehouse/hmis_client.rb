@@ -47,7 +47,7 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     # all active consent gets a full release
     self.consent_active.preload(:destination_client).find_each do |hmis_client|
       d_client = hmis_client.destination_client
-      next if hmis_client.consent_confirmed_on < d_client.consent_form_signed_on
+      next if d_client.consent_form_signed_on.present? && hmis_client.consent_confirmed_on < d_client.consent_form_signed_on
       d_client.consent_form_signed_on = hmis_client.consent_confirmed_on
       d_client.consent_expires_on = hmis_client.consent_expires_on
       d_client.housing_release_status = d_client.class.full_release_string
