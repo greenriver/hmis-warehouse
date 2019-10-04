@@ -11,7 +11,7 @@ Dir.chdir APP_ROOT do
   system 'bundle check || bundle install --without seven_zip'
 
   puts '== Installing NPM =='
-  system! 'npm install'
+  system 'npm install'
 
   ymls = [
     'secrets.yml',
