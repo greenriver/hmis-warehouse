@@ -83,7 +83,6 @@ gem "gmail", require: false
 
 gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
-# for de-duping clients
 gem 'redcarpet'
 
 # For exporting
