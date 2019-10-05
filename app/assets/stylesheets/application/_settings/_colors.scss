@@ -82,12 +82,6 @@ $table-cell-bg-danger: lighten($brand-danger-l, 25%);
 // Tabs
 $tab-bg: #88A6C9; // Primary in HMIS
 
-@if .boston {
-  $brand-primary: red;
-  $white: red;
-  $cob-sg-charles-blue: red;
-}
-
 // Modals
 $modal-header-bg: $gray-015;
 $modal-border: $gray-025;
