@@ -27,10 +27,15 @@
           - if Rails.env.development?
             .git-branch.ml-auto
               = branch_info
-          .rails-env.ml-4.mr-6
-            %p.navbar-text
-              %span.label.label-success
-                = Rails.env
+            .rails-env.ml-4.mr-6
+              %p.navbar-text
+                %span.label.label-success
+                  = Rails.env
+          - else
+            .rails-env.ml-auto.mr-6
+              %p.navbar-text
+                %span.label.label-success
+                  = Rails.env
 
     %header.o-header--page
       .container-fluid.d-flex.align-items-center{class: container_classes}
