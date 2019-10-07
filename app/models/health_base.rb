@@ -7,7 +7,7 @@
 class HealthBase < ActiveRecord::Base
   establish_connection DB_HEALTH
   self.abstract_class = true
-  has_paper_trail class_name: Health::HealthVersion.name
+  has_paper_trail versions: {class_name: Health::HealthVersion.name}
 
   class << self
     cattr_accessor :phi_dictionary
