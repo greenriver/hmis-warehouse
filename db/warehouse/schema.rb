@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190927193254) do
+ActiveRecord::Schema.define(version: 20191007155052) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1146,6 +1146,7 @@ ActiveRecord::Schema.define(version: 20190927193254) do
     t.string   "source_data_source"
     t.string   "event_contact"
     t.string   "event_contact_agency"
+    t.integer  "vacancy_id"
   end
 
   add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
