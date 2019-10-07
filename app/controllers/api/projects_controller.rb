@@ -71,10 +71,12 @@ module Api
         HUD.project_types.keys
       end
       begin
-        params[:project_types]&.select(&:present?)&.each do |type|
-          @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type.to_sym]
+        params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
+          @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
         end
-        @project_types = params[:project_type_ids]&.select(&:present?)&.map(&:to_i)
+        if params[:project_type_ids].present?
+          @project_types += params[:project_type_ids]&.select(&:present?)&.map(&:to_i)
+        end
       rescue
         @project_types = HUD.project_types.keys
       end
@@ -83,7 +85,7 @@ module Api
 
     def project_scope
       @project_scope = if params[:limited]
-        project_source.visible_by(current_user)
+        project_source.viewable_by(current_user)
       else
         project_source
       end
@@ -91,7 +93,6 @@ module Api
         where(computed_project_type: @project_types).
         merge(data_source_source.where(id: @data_source_ids)).
         merge(organization_source.where(id: @organization_ids))
-
     end
 
     def project_source
