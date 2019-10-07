@@ -116,7 +116,7 @@ gem 'exception_notification'
 gem 'puma', '~> 3.7.1'
 gem 'letsencrypt_plugin'
 
-gem 'newrelic_rpm', require: false
+# gem 'newrelic_rpm', require: false
 # gem "temping", require: false
 gem 'dotenv-rails'
 
