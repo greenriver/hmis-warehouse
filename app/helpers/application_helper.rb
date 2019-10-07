@@ -128,6 +128,7 @@ module ApplicationHelper
 
   def body_classes
     [].tap do |result|
+      result << ENV.fetch('CLIENT')
       result << params[:controller]
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?

@@ -72,6 +72,7 @@ jobs:
         DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
         HOSTNAME: openpath.host
         PORT: 80
+        CLIENT: test
       run: |
         bundle exec rake db:schema:load
         bundle exec rake reporting:db:schema:load
@@ -95,5 +96,6 @@ jobs:
         DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
         HOSTNAME: openpath.host
         PORT: 80
+        CLIENT: test
       run: |
         bundle exec rspec --color --format documentation
