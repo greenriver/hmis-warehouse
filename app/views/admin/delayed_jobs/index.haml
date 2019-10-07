@@ -18,7 +18,7 @@
     %tbody
       - @jobs.each do |job|
         - handler = YAML::load(job.handler)
-        - class_name = handler.job_data['job_class'] rescue handler.name
+        - class_name = handler.job_data['job_class'] rescue handler.class.name
         %tr
           %td= class_name
           %td= job.queue
