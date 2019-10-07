@@ -849,7 +849,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
-    combine_pdf (1.0.12)
+    combine_pdf (1.0.16)
       ruby-rc4 (>= 0.1.5)
     composite_primary_keys (8.1.7)
       activerecord (~> 4.2.0)
@@ -922,7 +922,7 @@ GEM
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
     grosser-pomo (0.5.1)
-    grover (0.7.4)
+    grover (0.8.1)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
       schmooze (~> 0.2)
