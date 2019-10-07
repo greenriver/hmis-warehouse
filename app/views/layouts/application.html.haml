@@ -21,17 +21,29 @@
     = csrf_meta_tags
 
   %body{class: body_classes, data: ({spy: :scroll, target: '.scrollspy'} if content_for(:body_data_scrollspy))}
+    - unless Rails.env.production?
+      #non-production-warning
+        .d-flex.pt-2.pb-2
+          - if Rails.env.development?
+            .git-branch.ml-auto
+              = branch_info
+            .rails-env.ml-4.mr-6
+              .navbar-text
+                %span.label.label-success
+                  = Rails.env
+          - else
+            .rails-env.ml-auto.mr-6
+              .navbar-text
+                %span.label.label-success
+                  = Rails.env
+
     %header.o-header--page
       .container-fluid.d-flex.align-items-center{class: container_classes}
         .site-name.d-flex
           .o-header--page__title.site-title
             = link_to root_path do
               = _('Boston DND Warehouse')
-              - unless Rails.env.production?
-                %span.mt-2{style: 'font-size:12px;'}= "[#{Rails.env}]"
         .o-header--page__sub-title.tagline
-          - if Rails.env.development?
-            = branch_info
           = _('Ending Veteran & Chronic Homelessness in Boston')
         = render 'layouts/warehouse_alert'
         = render 'layouts/header_nav'
@@ -57,7 +69,7 @@
       .container-fluid.w-100{class: container_classes}
         .d-flex.flex-column.align-items-center.pt-4.pb-6
           = render 'layouts/footer_seal'
-          %p
+          %p.mt-4
             = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
 
     #d3-tooltip
