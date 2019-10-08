@@ -1,48 +1,41 @@
-GIT
-  remote: https://github.com/randym/axlsx.git
-  revision: 2891eb2246d963a717b213add4dae687e694acdf
-  specs:
-    axlsx (3.0.0.pre)
-      htmlentities (~> 4.3, >= 4.3.4)
-      mimemagic (~> 0.3)
-      nokogiri (~> 1.8, >= 1.8.2)
-      rubyzip (~> 1.2, >= 1.2.1)
-
 GEM
   remote: https://rubygems.org/
   specs:
     acme-client (0.6.3)
       faraday (~> 0.9, >= 0.9.1)
-    actionmailer (4.2.11.1)
-      actionpack (= 4.2.11.1)
-      actionview (= 4.2.11.1)
-      activejob (= 4.2.11.1)
+    actioncable (5.0.7.2)
+      actionpack (= 5.0.7.2)
+      nio4r (>= 1.2, < 3.0)
+      websocket-driver (~> 0.6.1)
+    actionmailer (5.0.7.2)
+      actionpack (= 5.0.7.2)
+      actionview (= 5.0.7.2)
+      activejob (= 5.0.7.2)
       mail (~> 2.5, >= 2.5.4)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
-    actionpack (4.2.11.1)
-      actionview (= 4.2.11.1)
-      activesupport (= 4.2.11.1)
-      rack (~> 1.6)
-      rack-test (~> 0.6.2)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
+      rails-dom-testing (~> 2.0)
+    actionpack (5.0.7.2)
+      actionview (= 5.0.7.2)
+      activesupport (= 5.0.7.2)
+      rack (~> 2.0)
+      rack-test (~> 0.6.3)
+      rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (4.2.11.1)
-      activesupport (= 4.2.11.1)
+    actionview (5.0.7.2)
+      activesupport (= 5.0.7.2)
       builder (~> 3.1)
       erubis (~> 2.7.0)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
+      rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
     active_record_query_trace (1.6.2)
-    activejob (4.2.11.1)
-      activesupport (= 4.2.11.1)
-      globalid (>= 0.3.0)
-    activemodel (4.2.11.1)
-      activesupport (= 4.2.11.1)
-      builder (~> 3.1)
-    activerecord (4.2.11.1)
-      activemodel (= 4.2.11.1)
-      activesupport (= 4.2.11.1)
-      arel (~> 6.0)
+    activejob (5.0.7.2)
+      activesupport (= 5.0.7.2)
+      globalid (>= 0.3.6)
+    activemodel (5.0.7.2)
+      activesupport (= 5.0.7.2)
+    activerecord (5.0.7.2)
+      activemodel (= 5.0.7.2)
+      activesupport (= 5.0.7.2)
+      arel (~> 7.0)
     activerecord-import (1.0.2)
       activerecord (>= 3.2)
     activerecord-session_store (1.1.3)
@@ -51,12 +44,13 @@ GEM
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0)
-    activerecord-sqlserver-adapter (4.2.18)
-      activerecord (~> 4.2.1)
-    activesupport (4.2.11.1)
-      i18n (~> 0.7)
+    activerecord-sqlserver-adapter (5.0.8)
+      activerecord (~> 5.0.0)
+      tiny_tds
+    activesupport (5.0.7.2)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     acts-as-taggable-on (4.0.0)
       activerecord (>= 4.0)
@@ -67,7 +61,7 @@ GEM
     airbrussh (1.3.4)
       sshkit (>= 1.6.1, != 1.7.0)
     ansi (1.5.0)
-    arel (6.0.4)
+    arel (7.1.4)
     ast (2.4.0)
     attr_encrypted (3.1.0)
       encryptor (~> 3.0.0)
@@ -785,6 +779,11 @@ GEM
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
       thread_safe (~> 0.3, >= 0.3.1)
+    axlsx (3.0.0.pre)
+      htmlentities (~> 4.3, >= 4.3.4)
+      mimemagic (~> 0.3)
+      nokogiri (~> 1.8, >= 1.8.2)
+      rubyzip (~> 1.2, >= 1.2.1)
     axlsx_rails (0.6.0)
       actionpack (>= 3.1)
       caxlsx (>= 3.0)
@@ -853,8 +852,8 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.16)
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (8.1.7)
-      activerecord (~> 4.2.0)
+    composite_primary_keys (9.0.10)
+      activerecord (~> 5.0.0, >= 5.0.7)
     concurrent-ruby (1.1.5)
     crass (1.0.4)
     curb (0.9.10)
@@ -876,9 +875,9 @@ GEM
     devise-pwned_password (0.1.6)
       devise (~> 4)
       pwned (~> 1.2.1)
-    devise_invitable (1.7.5)
-      actionmailer (>= 4.1.0)
-      devise (>= 4.0.0)
+    devise_invitable (2.0.1)
+      actionmailer (>= 5.0)
+      devise (>= 4.6)
     diff-lcs (1.3)
     docile (1.3.2)
     domain_name (0.5.20190701)
@@ -968,7 +967,7 @@ GEM
     http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
-    i18n (0.9.5)
+    i18n (1.7.0)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
     iniparse (1.4.4)
@@ -1046,6 +1045,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (5.2.0)
     netrc (0.11.0)
+    nio4r (2.5.2)
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
     nominatim (0.0.6)
@@ -1077,30 +1077,26 @@ GEM
     public_suffix (4.0.1)
     puma (3.7.1)
     pwned (1.2.1)
-    quiet_assets (1.1.0)
-      railties (>= 3.1, < 5.0)
-    rack (1.6.11)
+    rack (2.0.7)
     rack-mini-profiler (1.1.0)
       rack (>= 1.2.0)
     rack-test (0.6.3)
       rack (>= 1.0)
-    rails (4.2.11.1)
-      actionmailer (= 4.2.11.1)
-      actionpack (= 4.2.11.1)
-      actionview (= 4.2.11.1)
-      activejob (= 4.2.11.1)
-      activemodel (= 4.2.11.1)
-      activerecord (= 4.2.11.1)
-      activesupport (= 4.2.11.1)
-      bundler (>= 1.3.0, < 2.0)
-      railties (= 4.2.11.1)
-      sprockets-rails
-    rails-deprecated_sanitizer (1.0.3)
-      activesupport (>= 4.2.0.alpha)
-    rails-dom-testing (1.0.9)
-      activesupport (>= 4.2.0, < 5.0)
-      nokogiri (~> 1.6)
-      rails-deprecated_sanitizer (>= 1.0.1)
+    rails (5.0.7.2)
+      actioncable (= 5.0.7.2)
+      actionmailer (= 5.0.7.2)
+      actionpack (= 5.0.7.2)
+      actionview (= 5.0.7.2)
+      activejob (= 5.0.7.2)
+      activemodel (= 5.0.7.2)
+      activerecord (= 5.0.7.2)
+      activesupport (= 5.0.7.2)
+      bundler (>= 1.3.0)
+      railties (= 5.0.7.2)
+      sprockets-rails (>= 2.0.0)
+    rails-dom-testing (2.0.3)
+      activesupport (>= 4.2.0)
+      nokogiri (>= 1.6)
     rails-erd (1.6.0)
       activerecord (>= 4.2)
       activesupport (>= 4.2)
@@ -1108,9 +1104,10 @@ GEM
       ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.3.0)
       loofah (~> 2.3)
-    railties (4.2.11.1)
-      actionpack (= 4.2.11.1)
-      activesupport (= 4.2.11.1)
+    railties (5.0.7.2)
+      actionpack (= 5.0.7.2)
+      activesupport (= 5.0.7.2)
+      method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rainbow (3.0.0)
@@ -1271,8 +1268,6 @@ GEM
       tins (~> 1.0)
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
-    test_after_commit (1.2.2)
-      activerecord (>= 3.2, < 5.0)
     text (1.3.1)
     thor (0.19.4)
     thread_safe (0.3.6)
@@ -1301,6 +1296,9 @@ GEM
       activemodel (>= 4.2)
       debug_inspector
       railties (>= 4.2)
+    websocket-driver (0.6.5)
+      websocket-extensions (>= 0.1.0)
+    websocket-extensions (0.1.4)
     whenever (1.0.0)
       chronic (>= 0.6.3)
     wicked_pdf (1.4.0)
@@ -1318,7 +1316,7 @@ DEPENDENCIES
   active_record_query_trace
   activerecord-import
   activerecord-session_store
-  activerecord-sqlserver-adapter
+  activerecord-sqlserver-adapter (~> 5.0)
   acts-as-taggable-on (~> 4.0)
   after_commit_exception_notification
   attr_encrypted (~> 3.1.0)
@@ -1329,7 +1327,7 @@ DEPENDENCIES
   awesome_print
   aws-sdk (~> 3)
   aws-sdk-rails
-  axlsx!
+  axlsx (= 3.0.0.pre)
   axlsx_rails
   bcrypt
   bootstrap (~> 4.3.1)
@@ -1346,13 +1344,13 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (~> 8.0)
+  composite_primary_keys (~> 9.0)
   curb
   daemons
   delayed_job_active_record
   devise (~> 4)
   devise-pwned_password
-  devise_invitable
+  devise_invitable (~> 2.0)
   dotenv-rails
   email_check
   exception_notification
@@ -1398,9 +1396,8 @@ DEPENDENCIES
   pg
   pry-rails
   puma (~> 3.7.1)
-  quiet_assets
   rack-mini-profiler
-  rails (~> 4.2.11.1)
+  rails (= 5.0.7.2)
   rails-erd
   ransack
   redcarpet
@@ -1436,7 +1433,6 @@ DEPENDENCIES
   sshkit
   stackprof
   stupidedi
-  test_after_commit
   text
   timecop
   tiny_tds

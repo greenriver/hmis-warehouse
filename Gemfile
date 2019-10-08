@@ -7,12 +7,12 @@ gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 8.0'
+gem 'composite_primary_keys', '~> 9.0'
 gem "pg"
-gem 'activerecord-sqlserver-adapter'
+gem 'activerecord-sqlserver-adapter', '~> 5.0'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 4.2.11.1'
+gem "rails", '5.0.7.2'
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
@@ -37,7 +37,7 @@ gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
-gem 'devise_invitable'
+gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 
 gem 'authtrail' # for logging login attempts
@@ -90,7 +90,7 @@ gem 'redcarpet'
 # depended on nokogiri and rubyzip with active CVE's
 # we needed https://github.com/randym/axlsx/commit/776037c0fc799bb09da8c9ea47980bd3bf296874
 # and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
-gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
+gem 'axlsx', '3.0.0.pre' # git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
 gem 'roo-xls', require: false
@@ -166,7 +166,7 @@ group :development do
   gem 'capistrano-rails'
   gem 'rails-erd'
   gem 'web-console'
-  gem 'quiet_assets'
+  # gem 'quiet_assets'
   gem 'letter_opener'
   gem 'list_matcher', require: false   # for the forms:desmush rake task
 
@@ -189,7 +189,7 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  gem 'test_after_commit'
+  # gem 'test_after_commit'
   gem 'after_commit_exception_notification'
   gem 'simplecov'
   gem 'simplecov-console'
