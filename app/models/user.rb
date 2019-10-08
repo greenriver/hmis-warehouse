@@ -5,6 +5,8 @@
 ###
 
 class User < ActiveRecord::Base
+  devise :two_factor_authenticatable, otp_secret_encryption_key: ENV['ENCRYPTION_KEY']
+
   include Rails.application.routes.url_helpers
   include UserPermissions
   has_paper_trail
@@ -12,9 +14,18 @@ class User < ActiveRecord::Base
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :invitable, :database_authenticatable,
-         :recoverable, :rememberable, :trackable, :validatable,
-         :lockable, :timeoutable, :confirmable, :pwned_password, password_length: 10..128
+  devise :invitable,
+         :recoverable,
+         :rememberable,
+         :trackable,
+         :validatable,
+         :lockable,
+         :timeoutable,
+         :confirmable,
+         :session_limitable,
+         :pwned_password,
+         :expirable,
+         password_length: 10..128
   # has_secure_password # not needed with devise
   # Connect users to login attempts
   has_many :login_activities, as: :user
@@ -121,6 +132,25 @@ class User < ActiveRecord::Base
   def name_with_email
     "#{name} <#{email}>"
   end
+
+  def two_factor_issuer
+    _('Boston DND HMIS Warehouse')
+  end
+
+  def two_factor_label
+    "#{two_factor_issuer} #{email}"
+  end
+
+  # ensure we have a secret
+  def set_initial_two_factor_secret!
+    return if otp_secret
+    update(otp_secret: User.generate_otp_secret)
+  end
+
+  def two_factor_enabled?
+    otp_secret.present? && otp_required_for_login?
+  end
+
 
   def invitation_status
     if invitation_accepted_at.present? || invitation_sent_at.blank?

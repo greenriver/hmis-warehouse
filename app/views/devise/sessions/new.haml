@@ -1,11 +1,15 @@
 %h1 Sign In
-.row
-  .col-sm-6
-    = simple_form_for(resource, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
+= simple_form_for(resource, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
+  .row
+    .col-sm-4
       .form-inputs
         = f.input :email, required: false, autofocus: true
         = f.input :password, required: false
+
+        =# f.input :otp_attempt, required: false, label: 'Two-Factor Authentication Token', hint: 'If enabled'
         =# f.input :remember_me, as: :boolean if devise_mapping.rememberable?
+  .row
+    .col-sm-6
       .form-actions
         = f.button :submit, "Log in"
 = render "devise/shared/links"

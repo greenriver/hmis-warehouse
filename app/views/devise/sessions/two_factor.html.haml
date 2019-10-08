@@ -1,0 +1,6 @@
+%h1 Two-Factor Authentication
+.row
+  .col-sm-4
+    = simple_form_for(resource, as: resource_name, url: session_path(resource_name), method: :post, wrapper: :vertical_form_hint_first) do |f|
+      = f.input :otp_attempt, label: 'Two-Factor Authentication code', required: true, autofocus: true
+      = f.button :submit, "Verify code"

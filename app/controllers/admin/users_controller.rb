@@ -35,6 +35,7 @@ module Admin
 
     def edit
       @agencies = Agency.order(:name)
+      @user.set_initial_two_factor_secret!
     end
 
     def confirm
@@ -130,6 +131,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :otp_required_for_login,
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
