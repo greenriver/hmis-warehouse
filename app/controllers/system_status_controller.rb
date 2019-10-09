@@ -22,7 +22,7 @@ class SystemStatusController < ApplicationController
 
   def cache_status
     set_value = SecureRandom.hex(10)
-    Rails.cache.write('cache-test',  set_value)
+    Rails.cache.write('cache-test', set_value)
     pulled_value = Rails.cache.read('cache-test')
 
     if set_value == pulled_value

@@ -28,7 +28,8 @@ module Health
           user: current_user,
           completed_on: DateTime.current,
           housing_placement_date: last_form&.housing_placement_date,
-          client_phone_number: last_form&.client_phone_number)
+          client_phone_number: last_form&.client_phone_number,
+        )
       @note.activities.build
       @note.save(validate: false)
       redirect_to polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
@@ -36,9 +37,7 @@ module Health
 
     def edit
       @activities = @note.activities.sort_by(&:id)
-      unless @note.health_file
-        @note.build_health_file
-      end
+      @note.build_health_file unless @note.health_file
       respond_with @note
     end
 
@@ -46,9 +45,7 @@ module Health
       @activity_count = @note.activities.size
       @note.assign_attributes(note_params.merge(updated_at: Time.now))
       if params[:commit] == 'Save Case Note'
-        if @note.health_file&.new_record?
-          @note.health_file.set_calculated!(current_user.id, @client.id)
-        end
+        @note.health_file.set_calculated!(current_user.id, @client.id) if @note.health_file&.new_record?
         @note.save
       else
         @note.save(validate: false)
@@ -65,10 +62,10 @@ module Health
 
     def form_url(opts = {})
       if @note.new_record?
-        opts = opts.merge({client_id: @client.id})
+        opts = opts.merge(client_id: @client.id)
         path = sdh_case_management_notes_path_generator
       else
-        opts = opts.merge({client_id: @client.id, id: @note.id})
+        opts = opts.merge(client_id: @client.id, id: @note.id)
         path = sdh_case_management_note_path_generator
       end
       polymorphic_path(path, opts)
@@ -80,13 +77,13 @@ module Health
       result.push(@note.display_basic_info_section)
       result.push(@note.display_basic_note_section)
       result.push(@note.display_note_details_section)
-      result.push({title: 'Qualifying Activities'})
+      result.push(title: 'Qualifying Activities')
       if @note.activities.any?
         @note.activities.each_with_index do |activity, index|
           result.push(activity.display_sections(index))
         end
       else
-        result.push({values: [{value: 'No Activities'}]})
+        result.push(values: [{ value: 'No Activities' }])
       end
       result.push(@note.display_additional_questions_section)
       result
@@ -95,11 +92,9 @@ module Health
 
     private def set_upload_object
       @upload_object = @note
-      if action_name == 'remove_file'
-        @location = polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id)
-      end
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
+      @location = polymorphic_path([:edit] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) if action_name == 'remove_file'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
       @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + sdh_case_management_note_path_generator, client_id: @client.id, id: @note.id) : '#'
     end
 
@@ -115,30 +110,28 @@ module Health
       # NOTE: Remove COPY from activities_attributes -- if this is present in params we get unpermitted params
       # Let me know if there is a better solution @meborn
       # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
-      (params[:health_sdh_case_management_note][:activities_attributes]||{}).reject!{|k,v| k == "COPY"}
+      (params[:health_sdh_case_management_note][:activities_attributes] || {}).reject! { |k, _v| k == 'COPY' }
       # remove :_destroy on ajax
       # remove health_file on ajax
-      if params[:commit] != 'Save Case Note'
-        params[:health_sdh_case_management_note].except!(:health_file_attributes)
-      end
+      params[:health_sdh_case_management_note].except!(:health_file_attributes) if params[:commit] != 'Save Case Note'
       if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
-        (params[:health_sdh_case_management_note][:activities_attributes]||{}).keys.each do |key|
-          (params[:health_sdh_case_management_note][:activities_attributes]||{})[key].reject!{|k,v| k == "_destroy"}
+        (params[:health_sdh_case_management_note][:activities_attributes] || {}).keys.each do |key|
+          (params[:health_sdh_case_management_note][:activities_attributes] || {})[key].reject! { |k, _v| k == '_destroy' }
         end
       end
       # remove empty element from topics array
-      (params[:health_sdh_case_management_note][:topics]||[]).reject!{|v| v.blank?}
+      (params[:health_sdh_case_management_note][:topics] || []).reject!(&:blank?)
       # remove empty element from client action array
-      (params[:health_sdh_case_management_note][:client_action]||[]).reject!{|v| v.blank?}
+      (params[:health_sdh_case_management_note][:client_action] || []).reject!(&:blank?)
     end
 
     private def add_calculated_params_to_activities!(permitted_params)
-      (permitted_params[:activities_attributes]||{}).keys.each do |key|
-        permitted_params[:activities_attributes][key].merge!({
+      (permitted_params[:activities_attributes] || {}).keys.each do |key|
+        permitted_params[:activities_attributes][key].merge!(
           user_id: current_user.id,
           user_full_name: current_user.name,
-          patient_id: @patient.id
-        })
+          patient_id: @patient.id,
+        )
       end
       permitted_params
     end
@@ -169,14 +162,14 @@ module Health
           :activity,
           :date_of_activity,
           :follow_up,
-          :_destroy
+          :_destroy,
         ],
         health_file_attributes: [
           :id,
           :file,
           :file_cache,
-          :note
-        ]
+          :note,
+        ],
       )
       add_calculated_params_to_activities!(permitted_params)
     end

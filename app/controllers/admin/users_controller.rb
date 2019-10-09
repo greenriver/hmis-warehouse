@@ -44,35 +44,35 @@ module Admin
 
     def update
       if adding_admin?
-        if ! current_user.valid_password?(confirmation_params[:confirmation_password])
-          flash[:error] = "User not updated. Incorrect password"
+        unless current_user.valid_password?(confirmation_params[:confirmation_password])
+          flash[:error] = 'User not updated. Incorrect password'
           render :confirm
           return
         end
       end
       existing_health_roles = @user.roles.health.to_a
       begin
-        User.transaction do
-          @user.skip_reconfirmation!
-          # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-          @user.update(user_params)
+       User.transaction do
+         @user.skip_reconfirmation!
+         # Associations don't play well with acts_as_paranoid, so manually clean up user roles
+         @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
+         @user.update(user_params)
 
-          # Restore any health roles we previously had
-          @user.roles = (@user.roles + existing_health_roles).uniq
-          @user.set_viewables viewable_params
-        end
-     rescue Exception => e
+         # Restore any health roles we previously had
+         @user.roles = (@user.roles + existing_health_roles).uniq
+         @user.set_viewables viewable_params
+       end
+      rescue Exception => e
         flash[:error] = 'Please review the form problems below'
         render :edit
         return
      end
-      redirect_to({action: :index}, notice: 'User updated')
+      redirect_to({ action: :index }, notice: 'User updated')
     end
 
     def destroy
       @user.update(active: false)
-      redirect_to({action: :index}, notice: "User #{@user.name} deactivated")
+      redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
     end
 
     def reactivate
@@ -80,16 +80,15 @@ module Admin
       pass = Devise.friendly_token(50)
       @user.update(active: true, password: pass, password_confirmation: pass)
       @user.send_reset_password_instructions
-      redirect_to({action: :index}, notice: "User #{@user.name} re-activated")
-
+      redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end
 
     def title_for_show
       @user.name
     end
-    alias_method :title_for_edit, :title_for_show
-    alias_method :title_for_destroy, :title_for_show
-    alias_method :title_for_update, :title_for_show
+    alias title_for_edit title_for_show
+    alias title_for_destroy title_for_show
+    alias title_for_update title_for_show
 
     def title_for_index
       'User List'
@@ -102,11 +101,11 @@ module Admin
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
           assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
           added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-          added_role_ids.select { |id| id.present? }.each do |id|
+          added_role_ids.select(&:present?).each do |id|
             role = Role.find(id.to_i)
             if role.administrative?
               @admin_role_name = role.role_name
-              adming_admin =  true
+              adming_admin = true
             end
           end
         end
@@ -132,7 +131,7 @@ module Admin
         :notify_on_anomaly_identified,
         role_ids: [],
         coc_codes: [],
-        contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
+        contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       ).tap do |result|
         result[:coc_codes] ||= []
       end
@@ -160,7 +159,7 @@ module Admin
     end
 
     private def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     private def set_user

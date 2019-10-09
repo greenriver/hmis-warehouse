@@ -20,7 +20,7 @@ module Health
       # redirect to edit if there are any on-file
       if @patient.participation_forms.exists?
         @participation_form = @patient.participation_forms.recent.last
-        render :edit and return
+        render(:edit) && return
       else
         @participation_form = @patient.participation_forms.build
       end
@@ -30,9 +30,7 @@ module Health
     def create
       @participation_form = @patient.participation_forms.build(form_params)
       set_upload_object
-      if @participation_form.health_file.present?
-        @participation_form.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @participation_form.health_file.set_calculated!(current_user.id, @client.id) if @participation_form.health_file.present?
       validate_form
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.case_manager = current_user
@@ -41,9 +39,7 @@ module Health
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
-        if @participation_form.valid?
-          saved = Health::ReleaseSaver.new(form: @participation_form, user: current_user).create
-        end
+        saved = Health::ReleaseSaver.new(form: @participation_form, user: current_user).create if @participation_form.valid?
       end
     end
 
@@ -59,16 +55,12 @@ module Health
       validate_form unless @participation_form.health_file.present?
       @participation_form.reviewed_by = current_user if reviewed?
       @participation_form.assign_attributes(form_params)
-      if @participation_form.health_file&.new_record?
-        @participation_form.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @participation_form.health_file.set_calculated!(current_user.id, @client.id) if @participation_form.health_file&.new_record?
       if ! request.xhr?
         saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       else
-        if @participation_form.valid?
-          saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
-        end
+        saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update if @participation_form.valid?
       end
     end
 
@@ -86,8 +78,8 @@ module Health
         health_file_attributes: [
           :id,
           :file,
-          :file_cache
-        ]
+          :file_cache,
+        ],
       )
       if ! current_user.can_approve_participation?
         local_params.except(:reviewed_by_supervisor)
@@ -98,12 +90,10 @@ module Health
 
     def set_upload_object
       @upload_object = @participation_form
-      if action_name == 'remove_file'
-        @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      end
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id ) : '#'
+      @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) if action_name == 'remove_file'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + participation_form_path_generator, client_id: @client.id, id: @participation_form.id) : '#'
     end
 
     def set_form
@@ -114,7 +104,7 @@ module Health
       @blank_participation_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/participation'
     end
 
-    def form_url(opts={})
+    def form_url(_opts = {})
       if @participation_form.new_record?
         polymorphic_path(participation_forms_path_generator, client_id: @client.id)
       else
@@ -129,18 +119,15 @@ module Health
     end
 
     def validate_form
-      if health_file_params_blank? && form_params[:location].blank?
-        @participation_form.errors.add :location, "Please include either a file location or upload."
-      end
+      @participation_form.errors.add :location, 'Please include either a file location or upload.' if health_file_params_blank? && form_params[:location].blank?
     end
 
     def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_participation?
+      form_params[:reviewed_by_supervisor] == 'yes' && current_user.can_approve_participation?
     end
 
     protected def title_for_show
       "#{@client.name} - Health - Participation Form"
     end
-
   end
 end

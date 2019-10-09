@@ -12,8 +12,6 @@ module Health
     before_action :set_client, only: [:careplan]
     before_action :set_hpc_patient, only: [:careplan]
 
-    def careplan
-
-    end
+    def careplan; end
   end
 end

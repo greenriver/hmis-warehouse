@@ -11,7 +11,7 @@ class CensusesController < ApplicationController
   # default view grouped by project
   def index
     # Whitelist census types
-    klass = Censuses::Base.available_census_types.detect{|m| m.to_s == params[:type]} || Censuses::CensusBedNightProgram
+    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusBedNightProgram
     @census = klass.new
     @start_date = params[:start_date].try(:to_date) || 1.month.ago.to_date
     @end_date = params[:end_date].try(:to_date) || 1.day.ago.to_date
@@ -19,7 +19,7 @@ class CensusesController < ApplicationController
   end
 
   def details
-    klass = Censuses::Base.available_census_types.detect{|m| m.to_s == params[:type]} || Censuses::CensusByProgram
+    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
     census = klass.new
     @date = params[:date].to_date
     if params[:project].present?
@@ -32,7 +32,7 @@ class CensusesController < ApplicationController
 
     elsif params[:project_type].present?
       # Whitelist project_types
-      project_type =  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect{|m| m == params[:project_type].downcase.to_sym}
+      project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect { |m| m == params[:project_type].downcase.to_sym }
 
       @census_detail_name = census.detail_name(project_type)
 
@@ -40,12 +40,12 @@ class CensusesController < ApplicationController
         if params[:veteran] == 'Veteran Count'
           @census_detail_name = "Veterans in #{@census_detail_name}"
           @clients = census.clients_for_date(@date, project_type, :veterans)
-          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:veterans).size
+          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type, :veterans).size
           @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans, user: current_user)
         else
           @census_detail_name = "Non-Veterans in #{@census_detail_name}"
           @clients = census.clients_for_date(@date, project_type, :non_veterans)
-          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:non_veterans).size
+          @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type, :non_veterans).size
           @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans, user: current_user)
         end
       else
@@ -58,7 +58,7 @@ class CensusesController < ApplicationController
       @clients = census.clients_for_date(@date)
       @yesterday_client_count = census.clients_for_date(@date - 1.day).size
     end
-    @involved_projects = @clients.map{|row| [row['project_id'], row['ProjectName']]}.to_h
+    @involved_projects = @clients.map { |row| [row['project_id'], row['ProjectName']] }.to_h
     respond_to do |format|
       format.html {}
       format.xlsx {}
@@ -66,7 +66,7 @@ class CensusesController < ApplicationController
   end
 
   def date_range
-    klass = Censuses::Base.available_census_types.detect{|m| m.to_s == params[:type]} || Censuses::CensusByProgram
+    klass = Censuses::Base.available_census_types.detect { |m| m.to_s == params[:type] } || Censuses::CensusByProgram
     @census = klass.new
     start_date = params[:start_date]
     end_date = params[:end_date]
@@ -90,5 +90,4 @@ class CensusesController < ApplicationController
       'Veteran': 'Censuses::CensusVeteran',
     }
   end
-
 end

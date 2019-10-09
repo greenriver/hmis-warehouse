@@ -17,9 +17,7 @@ module Health
 
     def index
       @q = @patients.ransack(params[:q])
-      if params[:q].present?
-        @patients = @q.result(distinct: true)
-      end
+      @patients = @q.result(distinct: true) if params[:q].present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -34,27 +32,21 @@ module Health
 
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
 
-      @agencies = @report.agency_counts()
+      @agencies = @report.agency_counts
 
       @patients = @patients.
         order(last_name: :asc, first_name: :asc).
         page(params[:page].to_i).per(25)
-
     end
 
     def load_active_agency
-      if params[:agency_id].present?
-        @active_agency = current_user.health_agencies.select{|a| a.id.to_s == params[:agency_id]}.first
-      end
-      if !@active_agency.present?
-        @active_agency = current_user.health_agencies.first
-      end
+      @active_agency = current_user.health_agencies.select { |a| a.id.to_s == params[:agency_id] }.first if params[:agency_id].present?
+      @active_agency = current_user.health_agencies.first unless @active_agency.present?
     end
-
 
     def patient_scope
       patient_source.joins(:health_agency, :patient_referral).
-        where(agencies: {id: @active_agency.id}).
+        where(agencies: { id: @active_agency.id }).
         merge(Health::PatientReferral.not_confirmed_rejected)
     end
 
@@ -73,15 +65,14 @@ module Health
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
         order(last_name: :asc, first_name: :asc).
         pluck(:client_id, :first_name, :last_name).map do |client_id, first_name, last_name|
-          OpenStruct.new(
-            client_id: client_id,
-            first_name: first_name,
-            last_name: last_name
-          )
+        OpenStruct.new(
+          client_id: client_id,
+          first_name: first_name,
+          last_name: last_name,
+        )
       end
 
       @agency = Health::Agency.find(@agency_id)
-
     end
 
     def set_dates
@@ -100,6 +91,7 @@ module Health
 
     def require_user_has_health_agency!
       return true if current_user.health_agencies.any?
+
       not_authorized!
     end
   end

@@ -22,14 +22,14 @@ module Admin::Health
         @agency_patient_referral_ids = agency_patient_referral_source.
           where(agency_id: @user_agencies.map(&:id)).
           group_by(&:patient_referral_id).
-          delete_if{|k, v| v.size != @user_agencies.size}.
+          delete_if { |_k, v| v.size != @user_agencies.size }.
           keys
         @patient_referrals = patient_referral_source.
           unassigned.
           includes(relationships: :agency, relationships_claimed: :agency).
           references(relationships: :agency, relationships_claimed: :agency).
           where(hapr_t[:id].eq(nil).or(hapr_t[:patient_referral_id].not_in(@agency_patient_referral_ids))).
-          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+          preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       end
       respond_to do |format|
         format.html do
@@ -37,7 +37,7 @@ module Admin::Health
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=PatientReferrals.xlsx"
+          headers['Content-Disposition'] = 'attachment; filename=PatientReferrals.xlsx'
         end
       end
     end
@@ -48,14 +48,14 @@ module Admin::Health
       @patient_referral_groups = [
         {
           id: 'our patient',
-          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'our patient'})),
+          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge(group: 'our patient')),
           title: 'Reviewed as our patient',
         },
         {
           id: 'not our patient',
-          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge({group: 'not our patient'})),
+          path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params.merge(group: 'not our patient')),
           title: 'Reviewed as not our patient',
-        }
+        },
       ]
       if @user_agencies.any?
         # @patient_referrals = patient_referral_source.
@@ -69,12 +69,12 @@ module Admin::Health
           joins(:patient_referral).
           where(agency_id: @user_agencies.map(&:id)).
           where(claimed: @active_patient_referral_group == 'our patient').
-          where(patient_referrals: {agency_id: nil, rejected: false}).
-          includes(patient_referral: {relationships: :agency, relationships_claimed: :agency}).
-          references(patient_referral: {relationships: :agency, relationships_claimed: :agency}).
-          preload(patient_referral: [:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client}]).
+          where(patient_referrals: { agency_id: nil, rejected: false }).
+          includes(patient_referral: { relationships: :agency, relationships_claimed: :agency }).
+          references(patient_referral: { relationships: :agency, relationships_claimed: :agency }).
+          preload(patient_referral: [:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, { patient: :client }]).
           group_by do |row|
-            @user_agencies.select{|agency| agency.id == row.agency_id}.first
+            @user_agencies.select { |agency| agency.id == row.agency_id }.first
           end
 
       end
@@ -102,9 +102,7 @@ module Admin::Health
     private
 
     def build_relationship(relationship)
-      if request.xhr?
-        @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i)
-      end
+      @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i) if request.xhr?
       # aka agency_patient_referral
       path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
       success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)
@@ -117,7 +115,7 @@ module Admin::Health
         end
       else
         load_index_vars
-        @error = "An error occurred, please try again."
+        @error = 'An error occurred, please try again.'
         flash[:error] = @error
         render 'index' unless request.xhr?
       end
@@ -135,7 +133,7 @@ module Admin::Health
       params.require(:health_agency_patient_referral).permit(
         :claimed,
         :agency_id,
-        :patient_referral_id
+        :patient_referral_id,
       )
     end
 
@@ -150,15 +148,13 @@ module Admin::Health
     def load_agency_users
       @agency_users = current_user.agency_users
       @user_agencies = current_user.health_agencies
-      if !@user_agencies.any?
-        @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
-      end
+      @no_agency_user_warning = 'You are not assigned to an agency at this time.  Please request assignment to an agency.' if @user_agencies.none?
     end
 
     def load_tabs
       @patient_referral_tabs = [
-        {id: 'review', tab_text: "Assignments to Review for #{@agency&.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params)},
-        {id: 'reviewed', tab_text: 'Previously Reviewed', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params)}
+        { id: 'review', tab_text: "Assignments to Review for #{@agency&.name}", path: review_admin_health_agency_patient_referrals_path(tab_path_params) },
+        { id: 'reviewed', tab_text: 'Previously Reviewed', path: reviewed_admin_health_agency_patient_referrals_path(tab_path_params) },
       ]
     end
 
@@ -191,6 +187,5 @@ module Admin::Health
     # def create_patient_referral_success_path
     #   reviewed_admin_health_agency_patient_referrals_path(group: 'our patient')
     # end
-
   end
 end

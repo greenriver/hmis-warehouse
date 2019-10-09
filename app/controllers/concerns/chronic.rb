@@ -13,23 +13,15 @@ module Chronic
       client_table = client_source.arel_table
       filter_query = ct[:age].gt(@filter.min_age).
         and(ct[:days_in_last_three_years].gteq(@filter.min_days_homeless.presence || 0))
-      if @filter.individual
-        filter_query = filter_query.and(ct[:individual].eq(@filter.individual))
-      end
-      if @filter.dmh
-        filter_query = filter_query.and(ct[:dmh].eq(@filter.dmh))
-      end
-      if @filter.veteran
-        filter_query = filter_query.and(client_table[:VeteranStatus].eq(@filter.veteran))
-      end
+      filter_query = filter_query.and(ct[:individual].eq(@filter.individual)) if @filter.individual
+      filter_query = filter_query.and(ct[:dmh].eq(@filter.dmh)) if @filter.dmh
+      filter_query = filter_query.and(client_table[:VeteranStatus].eq(@filter.veteran)) if @filter.veteran
       @clients = client_source.joins(:chronics).
         preload(:chronics).
         preload(:source_disabilities).
         where(filter_query).
         has_homeless_service_between_dates(start_date: (@filter.date - @filter.last_service_after.days), end_date: @filter.date)
-      if @filter.name&.present?
-        @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
-      end
+      @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @filter.name&.present?
     end
     alias_method :load_filter, :load_chronic_filter
 
@@ -38,13 +30,13 @@ module Chronic
       client_at = client_source.arel_table
       @column = params[:sort] || 'homeless_since'
       # whitelist for sort direction
-      @direction = if ['asc', 'desc'].include?(params[:direction])
+      @direction = if %w[asc desc].include?(params[:direction])
         params[:direction]
       else
         'asc'
       end
       # whitelist for column
-      table = if ['FirstName', 'LastName'].include?(@column) 
+      table = if %w[FirstName LastName].include?(@column)
         client_at
       elsif chronic_source.column_names.include?(@column)
         chronic_at

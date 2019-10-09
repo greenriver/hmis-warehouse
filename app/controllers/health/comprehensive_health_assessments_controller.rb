@@ -39,20 +39,16 @@ module Health
     # Don't use the HealthFile concern version, it calls save which loses all the data for some reason.  If we're uploading, we only need to save the attached file, other changes are saved via ajax.
     def upload
       @upload_object.assign_attributes(upload_params)
-      if @upload_object.health_file&.new_record?
-        @upload_object.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @upload_object.health_file.set_calculated!(current_user.id, @client.id) if @upload_object.health_file&.new_record?
 
-      unless @upload_object.health_file.save
-        flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.'
-      end
+      flash[:error] = 'No file was uploaded!  If you are attempting to attach a file, be sure it is in PDF format.' unless @upload_object.health_file.save
       respond_with @upload_object, location: @location
     end
 
     def edit
       if @cha_locked
         flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
-        redirect_to polymorphic_path(cha_path_generator, id: @cha.id) and return
+        redirect_to(polymorphic_path(cha_path_generator, id: @cha.id)) && return
       end
       # For errors in new/edit forms
       @service = Health::Service.new
@@ -97,7 +93,7 @@ module Health
         cha = @patient.comprehensive_health_assessments.build(user: current_user)
       end
       Health::ChaSaver.new(cha: cha, user: current_user).create
-      return cha
+      cha
     end
 
     def flash_interpolation_options
@@ -109,7 +105,7 @@ module Health
         :reviewed_by_supervisor,
         :reviewer,
         :completed,
-        *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS
+        *Health::ComprehensiveHealthAssessment::PERMITTED_PARAMS,
       )
       local_params
     end
@@ -121,9 +117,9 @@ module Health
       elsif action_name == 'remove_file'
         @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       end
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id ) : '#'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + cha_path_generator, client_id: @client.id, id: @cha.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + cha_path_generator, client_id: @client.id, id: @cha.id) : '#'
     end
 
     def set_medications
@@ -145,7 +141,7 @@ module Health
     def reviewed?
       # update anyone can review a cha now
       # form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_cha?
-      form_params[:reviewed_by_supervisor]=='yes'
+      form_params[:reviewed_by_supervisor] == 'yes'
     end
 
     def completed?

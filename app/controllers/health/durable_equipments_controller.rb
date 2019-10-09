@@ -58,9 +58,7 @@ module Health
 
     def destroy
       @equipment.destroy
-      unless request.xhr?
-        respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
-      end
+      respond_with(@equipment, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id)) unless request.xhr?
     end
 
     def equipment_params
@@ -70,7 +68,7 @@ module Health
         :quantity,
         :effective_date,
         :comments,
-        :status
+        :status,
       )
     end
 

@@ -10,14 +10,14 @@ module Admin::Dashboard
     def index
       @imports = data_source_scope.map do |d|
         GrdaWarehouse::ImportLog.where(
-          data_source_id: d.id
+          data_source_id: d.id,
         ).select(
           :id,
           :data_source_id,
           :completed_at,
           :created_at,
           :updated_at,
-          :files
+          :files,
         ).order('id desc').first_or_initialize
       end
 
@@ -29,7 +29,6 @@ module Admin::Dashboard
 
         @source_clients_with_no_destination = (source_clients - matched_sources).size
       end
-
     end
 
     private def client_scope

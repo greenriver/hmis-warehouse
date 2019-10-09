@@ -14,9 +14,7 @@ module WarehouseReports
 
     def index
       @range = ::Filters::DateRangeAndProject.new(report_params[:range])
-      if params[:commit].present?
-        WarehouseReports::RunActiveVeteransJob.perform_later(params.merge(current_user_id: current_user.id))
-      end
+      WarehouseReports::RunActiveVeteransJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
       @reports = report_scope.select(report_scope.column_names - ['data']).ordered.limit(50)
     end
 
@@ -30,7 +28,8 @@ module WarehouseReports
         end
         format.xlsx do
           range = @report.parameters['range'] || {}
-          start_date, end_date = range['start'], range['end']
+          start_date = range['start']
+          end_date = range['end']
           filename = 'Homeless Veterans.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -72,13 +71,16 @@ module WarehouseReports
 
     def report_params
       params.permit(
-        range: [:start, :end, project_type: []]
+        range: [:start, :end, project_type: []],
       )
     end
 
     def sort_clients
       @column, @direction = params.slice(:column, :direction).values
-      @column, @direction = %w(LastName asc) if @column.nil? || @direction.nil?
+      if @column.nil? || @direction.nil?
+        @column = 'LastName'
+        @direction = 'asc'
+      end
       option = sort_options.detect do |row, _|
         row[:column] == @column && row[:direction].to_s == @direction
       end.last
@@ -86,7 +88,7 @@ module WarehouseReports
       @clients = @clients.sort_by do |client|
         client[@column] || option[:default]
       end
-      @clients.reverse! if @direction=='desc'
+      @clients.reverse! if @direction == 'desc'
     end
 
     def sort_options
@@ -95,32 +97,31 @@ module WarehouseReports
         wcpt = GrdaWarehouse::WarehouseClientsProcessed.arel_table
 
         {
-          {column: 'LastName', direction: :asc} => {
+          { column: 'LastName', direction: :asc } => {
             title: 'Last name A-Z',
             column: ct[:LastName].asc,
             param: 'LastName',
             default: 'Z',
           },
-          {column: 'LastName', direction: :desc} => {
+          { column: 'LastName', direction: :desc } => {
             title: 'Last name Z-A',
             column: ct[:LastName].desc,
             param: 'LastName',
             default: 'A',
           },
-          {column: 'days_served', direction: :desc} => {
+          { column: 'days_served', direction: :desc } => {
             title: 'Most served',
             column: wcpt[:days_served].desc,
             param: 'days_served',
             default: 0,
           },
-          {column: 'first_date_served', direction: :asc} => {
+          { column: 'first_date_served', direction: :asc } => {
             title: 'Longest standing',
             column: wcpt[:first_date_served].asc,
             param: 'first_date_served',
             default: Date.current.to_s,
           },
         }
-
       end
     end
 

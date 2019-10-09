@@ -13,24 +13,24 @@ module ClientController
     def sort_filter_index
       # sort / paginate
       at           = @clients.arel_table
-      default_sort = at[sort_column.to_sym].send( sort_direction )
+      default_sort = at[sort_column.to_sym].send(sort_direction)
       sort = if client_processed_sort_columns.include?(sort_column)
         @clients = @clients.joins(:processed_service_history)
         at = GrdaWarehouse::WarehouseClientsProcessed.arel_table
         # nasty hack to prevent nulls from bubbling to the top
         c, ew = if sort_direction == 'asc'
-          [ [at[sort_column.to_sym].eq(nil), 1 ], 0 ]
+          [[at[sort_column.to_sym].eq(nil), 1], 0]
         else
-          [ [at[sort_column.to_sym].eq(nil), 0 ], 1 ]
+          [[at[sort_column.to_sym].eq(nil), 0], 1]
         end
-        [ acase( [c], elsewise: ew ).send(sort_direction), at[sort_column.to_sym].send( sort_direction ) ]
+        [acase([c], elsewise: ew).send(sort_direction), at[sort_column.to_sym].send(sort_direction)]
       elsif sort_column == 'DOB'
         c, ew = if sort_direction == 'asc'
-          [ [at[:DOB].eq(nil), 1], 0 ]
+          [[at[:DOB].eq(nil), 1], 0]
         else
-          [ [at[:DOB].eq(nil), 0], 1 ]
+          [[at[:DOB].eq(nil), 0], 1]
         end
-        [ acase( [c], elsewise: ew ).send(sort_direction), default_sort ]
+        [acase([c], elsewise: ew).send(sort_direction), default_sort]
       else
         [default_sort]
       end
@@ -40,45 +40,43 @@ module ClientController
         @start_date = params[:start_date].to_date
         @end_date = params[:end_date].to_date
         @clients = @clients.where(
-            id: service_history_service_scope
-              .select(:client_id)
-              .distinct
-              .where(date: (@start_date..@end_date))
+          id: service_history_service_scope.
+            select(:client_id).
+            distinct.
+            where(date: (@start_date..@end_date)),
         )
       end
 
       # Filter by population with whitelist
-      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values.include?(params[:population].to_sym)
+      if params[:population].present? && GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(params[:population].to_sym)
         population = params[:population].to_sym
-        if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.values.include?(population)
-          @clients = @clients.public_send(population)
-        end
+        @clients = @clients.public_send(population) if GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.value?(population)
       end
 
       if params[:data_source_id].present?
         @data_source_id = params[:data_source_id].to_i
-        @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: {data_source_id: @data_source_id})
+        @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: { data_source_id: @data_source_id })
       end
 
       vulnerability = params[:vulnerability]
       if vulnerability.present?
         vispdats = case vulnerability
-          when 'low'
-            GrdaWarehouse::Vispdat::Base.low_vulnerability
-          when 'medium'
-            GrdaWarehouse::Vispdat::Base.medium_vulnerability
-          when 'high'
-            GrdaWarehouse::Vispdat::Base.high_vulnerability
-          else
-            GrdaWarehouse::Vispdat::Base.all
-          end
+        when 'low'
+         GrdaWarehouse::Vispdat::Base.low_vulnerability
+        when 'medium'
+         GrdaWarehouse::Vispdat::Base.medium_vulnerability
+        when 'high'
+         GrdaWarehouse::Vispdat::Base.high_vulnerability
+        else
+         GrdaWarehouse::Vispdat::Base.all
+        end
         @clients = @clients.joins(:vispdats).merge(vispdats.active)
       end
 
       age_group = params[:age_group]
       if age_group.present?
         group = GrdaWarehouse::Hud::Client.ahar_age_groups[age_group.to_sym]
-        @clients = @clients.age_group( group.slice(:start_age, :end_age) )
+        @clients = @clients.age_group(group.slice(:start_age, :end_age))
       end
 
       if params[:data_sharing].present? && params[:data_sharing] == '1'
@@ -87,9 +85,9 @@ module ClientController
       end
 
       @clients = @clients.order(*sort) if sort.any?
-      @clients = @clients
-        .preload(:processed_service_history, :users, :user_clients, source_clients: :data_source)
-        .page(params[:page]).per(20)
+      @clients = @clients.
+        preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
+        page(params[:page]).per(20)
 
       @column = sort_column
       @direction = sort_direction
@@ -128,7 +126,7 @@ module ClientController
 
       @existing_matches ||= []
       if ! params_valid
-        flash[:error] = "Unable to create client"
+        flash[:error] = 'Unable to create client'
         render action: :new
       elsif existing_matches.any? && ! clean_params[:bypass_search].present?
         # Show the new page with the option to go to an existing client
@@ -148,11 +146,11 @@ module ClientController
           @client.update(PersonalID: @client.id)
 
           destination_client = client_source.new(clean_params.
-            merge({
+            merge(
               data_source_id: destination_ds_id,
               PersonalID: @client.id,
-              creator_id: current_user.id
-            }))
+              creator_id: current_user.id,
+            ))
           destination_client.send_notifications = true
           destination_client.save
 
@@ -160,18 +158,16 @@ module ClientController
             id_in_source: @client.id,
             source_id: @client.id,
             destination_id: destination_client.id,
-            data_source_id: @client.data_source_id
+            data_source_id: @client.data_source_id,
           )
           if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
             flash[:notice] = "Client #{@client.full_name} created."
             after_create_path = client_path_generator
-            if @client.data_source.after_create_path.present?
-              after_create_path = after_create_path + [@client.data_source.after_create_path]
-            end
+            after_create_path += [@client.data_source.after_create_path] if @client.data_source.after_create_path.present?
             # this is a bit ugly, but some pages are looking for id, others client_id
-            redirect_to polymorphic_path(after_create_path, {id: destination_client.id, client_id: destination_client.id,})
+            redirect_to polymorphic_path(after_create_path, id: destination_client.id, client_id: destination_client.id)
           else
-            flash[:error] = "Unable to create client"
+            flash[:error] = 'Unable to create client'
             render action: :new
           end
         end
@@ -180,7 +176,7 @@ module ClientController
 
     def validate_new_client_params(clean_params)
       valid = true
-      unless [0,9].include?(clean_params[:SSN].length)
+      unless [0, 9].include?(clean_params[:SSN].length)
         @client.errors[:SSN] = 'SSN must contain 9 digits'
         valid = false
       end
@@ -199,16 +195,16 @@ module ClientController
       valid
     end
 
-    def look_for_existing_match attr
+    def look_for_existing_match(attr)
       name_matches = client_search_scope.
         where(
           nf('lower', [c_t[:FirstName]]).eq(attr[:FirstName].downcase).
-          and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase))
+          and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase)),
         ).
         pluck(:id)
 
       ssn_matches = []
-      ssn = attr[:SSN].gsub('-','')
+      ssn = attr[:SSN].delete('-')
       if ::HUD.valid_social?(ssn)
         ssn_matches = client_search_scope.
           where(c_t[:SSN].eq(ssn)).
@@ -218,11 +214,10 @@ module ClientController
         where(DOB: attr[:DOB]).
         pluck(:id)
       all_matches = ssn_matches + birthdate_matches + name_matches
-      obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
-      if obvious_matches.any?
-        return obvious_matches
-      end
-      return []
+      obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 }.compact
+      return obvious_matches if obvious_matches.any?
+
+      []
     end
 
     def client_create_params
@@ -236,7 +231,7 @@ module ClientController
           :Gender,
           :VeteranStatus,
           :bypass_search,
-          :data_source_id
+          :data_source_id,
         )
     end
 
@@ -244,42 +239,38 @@ module ClientController
     def rollup
       @include_confidential_names = user_can_view_confidential_names?
       allowed_rollups = [
-        "/clients/rollup/assessments",
-        "/clients/rollup/verifications",
-        "/clients/rollup/assessments_without_data",
-        "/clients/rollup/case_manager",
-        "/clients/rollup/chronic_days",
-        "/clients/rollup/contact_information",
-        "/clients/rollup/demographics",
-        "/clients/rollup/disability_types",
-        "/clients/rollup/entry_assessments",
-        "/clients/rollup/error",
-        "/clients/rollup/exit_assessments",
-        "/clients/rollup/family",
-        "/clients/rollup/income_benefits",
-        "/clients/rollup/ongoing_residential_enrollments",
-        "/clients/rollup/other_enrollments",
-        "/clients/rollup/residential_enrollments",
-        "/clients/rollup/services",
-        "/clients/rollup/services_full",
-        "/clients/rollup/special_populations",
-        "/clients/rollup/zip_details",
-        "/clients/rollup/zip_map",
-        "/clients/rollup/client_notes",
-        "/clients/rollup/chronic_notes",
-        "/clients/rollup/cohorts",
+        '/clients/rollup/assessments',
+        '/clients/rollup/verifications',
+        '/clients/rollup/assessments_without_data',
+        '/clients/rollup/case_manager',
+        '/clients/rollup/chronic_days',
+        '/clients/rollup/contact_information',
+        '/clients/rollup/demographics',
+        '/clients/rollup/disability_types',
+        '/clients/rollup/entry_assessments',
+        '/clients/rollup/error',
+        '/clients/rollup/exit_assessments',
+        '/clients/rollup/family',
+        '/clients/rollup/income_benefits',
+        '/clients/rollup/ongoing_residential_enrollments',
+        '/clients/rollup/other_enrollments',
+        '/clients/rollup/residential_enrollments',
+        '/clients/rollup/services',
+        '/clients/rollup/services_full',
+        '/clients/rollup/special_populations',
+        '/clients/rollup/zip_details',
+        '/clients/rollup/zip_map',
+        '/clients/rollup/client_notes',
+        '/clients/rollup/chronic_notes',
+        '/clients/rollup/cohorts',
       ]
       rollup = allowed_rollups.detect do |m|
-        m == "/clients/rollup/" + params.require(:partial).underscore
+        m == '/clients/rollup/' + params.require(:partial).underscore
       end
 
       raise 'Rollup not in whitelist' unless rollup.present?
 
-
-      if request.xhr?
-        render partial: rollup, layout: false
-      end
-
+      render partial: rollup, layout: false if request.xhr?
     end
 
     protected def set_client
@@ -304,18 +295,18 @@ module ClientController
     end
 
     protected def client_processed_sort_columns
-      @client_processed_sort_columns ||= [
-        'days_served',
-        'first_date_served',
-        'last_date_served',
+      @client_processed_sort_columns ||= %w[
+        days_served
+        first_date_served
+        last_date_served
       ]
     end
 
     protected def client_sort_columns
-      @client_sort_columns ||= [
-        'LastName',
-        'FirstName',
-        'DOB'
+      @client_sort_columns ||= %w[
+        LastName
+        FirstName
+        DOB
       ]
     end
 
@@ -325,7 +316,7 @@ module ClientController
     end
 
     protected def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     protected def query_string

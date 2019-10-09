@@ -9,9 +9,9 @@ module WarehouseReports
     include WarehouseReportAuthorization
     before_action :set_filter_options, only: [:download]
     before_action :load_responses, only: [:download]
-    
+
     def index
-      options = {search_scope: touch_point_scope}
+      options = { search_scope: touch_point_scope }
       options.merge!(filter_params) if filter_params.present?
       @filter = ::Filters::TouchPointExportsFilter.new(options)
     end
@@ -19,7 +19,7 @@ module WarehouseReports
     def download
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=TouchPoints-#{@name} #{@start_date&.to_date&.strftime("%F")} to #{@end_date&.to_date&.strftime("%F")}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=TouchPoints-#{@name} #{@start_date&.to_date&.strftime('%F')} to #{@end_date&.to_date&.strftime('%F')}.xlsx"
         end
       end
     end
@@ -31,15 +31,15 @@ module WarehouseReports
 
       if @name.blank? || @start_date.blank? || @end_date.blank?
         flash[:notice] = 'Please select a name, start, and end date'
-        redirect_to action: :index and return
+        redirect_to(action: :index) && return
       end
     end
 
     def load_responses
-      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id, :staff). 
-        joins(:hmis_assessment, client: :destination_client). 
-        where(name: @name). 
-        where(collected_at: (@start_date..@end_date)). 
+      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id, :staff).
+        joins(:hmis_assessment, client: :destination_client).
+        where(name: @name).
+        where(collected_at: (@start_date..@end_date)).
         order(:client_id, :collected_at)
       @data = { sections: {} }
       @sections = {}
@@ -67,7 +67,7 @@ module WarehouseReports
     end
 
     def filter_params
-      params.permit( filter: [:name, :start, :end] )[:filter]
+      params.permit(filter: [:name, :start, :end])[:filter]
     end
 
     def report_source
@@ -77,6 +77,5 @@ module WarehouseReports
     def touch_point_scope
       GrdaWarehouse::HMIS::Assessment.non_confidential
     end
-
   end
 end

@@ -16,7 +16,7 @@ class HelloSignController < ActionController::Base
     end
 
     # HelloSign expects this. Do not change or remove:
-    render text: "Hello API Event Received"
+    render text: 'Hello API Event Received'
   end
 
   class CallbackResponse
@@ -27,17 +27,15 @@ class HelloSignController < ActionController::Base
     end
 
     def valid?
-      begin
-        !!_data && !!_signature_request
-      rescue TypeError, JSON::ParserError
-        return false
-      end
+      !!_data && !!_signature_request
+    rescue TypeError, JSON::ParserError
+      false
     end
 
     def signable_document
       return @signable_document unless @signable_document.nil?
 
-      signable_document_id = _signature_request.dig('metadata', 'signable_document_id') 
+      signable_document_id = _signature_request.dig('metadata', 'signable_document_id')
 
       @signable_document = Health::SignableDocument.find(signable_document_id)
     end
@@ -67,7 +65,7 @@ class HelloSignController < ActionController::Base
 
     private
 
-    def _signature_request 
+    def _signature_request
       @signature_request ||= _data.dig('signature_request')
     end
 

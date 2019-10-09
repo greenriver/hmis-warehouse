@@ -14,15 +14,15 @@ module WarehouseReports
     def index
       if @mo.valid?
         @projects_with_counts = {
-          totals: OpenStruct.new({
+          totals: OpenStruct.new(
             clients: 0,
             beds: 0,
             units: 0,
             utilization: 0,
-          })
+          ),
         }
         @mo.organization.projects.each do |project|
-          @projects_with_counts[project.id] ||= OpenStruct.new({
+          @projects_with_counts[project.id] ||= OpenStruct.new(
             id: project.id,
             name: project.ProjectName,
             project_type: project.compute_project_type,
@@ -30,33 +30,45 @@ module WarehouseReports
             beds: 0,
             units: 0,
             utilization: 0,
-          })
+          )
           @projects_with_counts[project.id][:clients] = client_counts_by_project_id[project.id] || 0
           @projects_with_counts[project.id][:beds] = project.inventories.within_range(@mo).map do |inventory|
             inventory.average_daily_inventory(
               range: @mo,
-              field: :BedInventory
+              field: :BedInventory,
             )
           end.sum
 
           @projects_with_counts[project.id][:units] = project.inventories.within_range(@mo).map do |inventory|
             inventory.average_daily_inventory(
               range: @mo,
-              field: :UnitInventory
+              field: :UnitInventory,
             )
           end.sum
-          if @projects_with_counts[project.id][:clients] > 0 && @projects_with_counts[project.id][:beds] > 0
-            @projects_with_counts[project.id][:utilization] = (@projects_with_counts[project.id][:clients].to_f / @projects_with_counts[project.id][:beds] * 100).round rescue 0
+          if @projects_with_counts[project.id][:clients].positive? && @projects_with_counts[project.id][:beds].positive?
+            @projects_with_counts[project.id][:utilization] = begin
+              (@projects_with_counts[project.id][:clients].to_f / @projects_with_counts[project.id][:beds] * 100).round
+            rescue StandardError
+              0
+            end
           end
           @projects_with_counts[:totals][:clients] += @projects_with_counts[project.id][:clients]
           @projects_with_counts[:totals][:beds] += @projects_with_counts[project.id][:beds]
           @projects_with_counts[:totals][:units] += @projects_with_counts[project.id][:units]
         end
-        if @projects_with_counts[:totals][:clients] > 0 && @projects_with_counts[:totals][:beds] > 0
-            @projects_with_counts[:totals][:utilization] = (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round rescue 0
+        if @projects_with_counts[:totals][:clients].positive? && @projects_with_counts[:totals][:beds].positive?
+          @projects_with_counts[:totals][:utilization] = begin
+           (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round
+          rescue StandardError
+            0
+          end
         end
       else
-        @projects_with_counts = ( @mo.organization.projects.viewable_by(current_user).map{ |p| [ p, [] ] } rescue {} )
+        @projects_with_counts = (begin
+                                   @mo.organization.projects.viewable_by(current_user).map { |p| [p, []] }
+                                 rescue StandardError
+                                   {}
+                                 end)
       end
       respond_to :html
     end
@@ -88,6 +100,5 @@ module WarehouseReports
         joins(service_history_enrollment: { project: :organization }).
         merge(organization_scope)
     end
-
   end
 end

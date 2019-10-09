@@ -18,8 +18,8 @@ module WarehouseReports::Health
     def index
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
 
-      @agencies = @report.agency_counts()
-      @totals = @report.total_counts()
+      @agencies = @report.agency_counts
+      @totals = @report.total_counts
     end
 
     def detail
@@ -31,7 +31,6 @@ module WarehouseReports::Health
         order(last_name: :asc, first_name: :asc)
 
       @agency = Health::Agency.find(@agency_id)
-
     end
 
     def set_dates

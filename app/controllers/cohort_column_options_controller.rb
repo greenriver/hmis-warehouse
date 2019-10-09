@@ -13,12 +13,11 @@ class CohortColumnOptionsController < ApplicationController
   def index
     @cohort_column_options = @cohort_column_options.order(cohort_column: :desc, value: :asc)
     @cohort_column_options_in_use = GrdaWarehouse::CohortColumnOption.new.cohort_columns.map do |cohort_column|
-       [
-         cohort_column.column,
-         GrdaWarehouse::CohortClient.where.not(cohort_column.column => nil).distinct.pluck(cohort_column.column)
-       ]
+      [
+        cohort_column.column,
+        GrdaWarehouse::CohortClient.where.not(cohort_column.column => nil).distinct.pluck(cohort_column.column),
+      ]
     end.to_h
-
   end
 
   def new
@@ -31,9 +30,7 @@ class CohortColumnOptionsController < ApplicationController
     respond_with(@cohort_column_option, location: cohort_column_options_path)
   end
 
-  def edit
-
-  end
+  def edit; end
 
   def update
     @cohort_column_option.update(cohort_column_option_params)
@@ -58,14 +55,13 @@ class CohortColumnOptionsController < ApplicationController
   end
 
   private
-    def cohort_column_option_params
-      params.require(:grda_warehouse_cohort_column_option).permit(
-        :cohort_column,
-        :value,
-        :weight,
-        :active,
-      )
-    end
 
-
+  def cohort_column_option_params
+    params.require(:grda_warehouse_cohort_column_option).permit(
+      :cohort_column,
+      :value,
+      :weight,
+      :active,
+    )
+  end
 end

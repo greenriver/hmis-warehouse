@@ -15,7 +15,7 @@ module Clients::Youth
     before_action :set_follow_up, only: [:edit, :update, :destroy]
 
     def new
-      @follow_up =  follow_up_source.new(contacted_on: Date.current)
+      @follow_up = follow_up_source.new(contacted_on: Date.current)
     end
 
     def create
@@ -24,8 +24,7 @@ module Clients::Youth
       respond_with(@follow_up, location: polymorphic_path(youth_intakes_path_generator))
     end
 
-    def edit
-    end
+    def edit; end
 
     def update
       @follow_up.update(follow_up_params)
@@ -50,7 +49,7 @@ module Clients::Youth
     end
 
     def set_follow_up
-      @follow_up =  follow_up_scope.find(params[:id].to_i)
+      @follow_up = follow_up_scope.find(params[:id].to_i)
     end
 
     def follow_up_source

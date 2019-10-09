@@ -6,11 +6,13 @@ AllCops:
     # - 'lib/tasks/**/*'
     # - 'app/**/*'
     - 'spec/**/*.rb'
+    # - 'app/controllers/**/*.rb'
     - 'app/jobs/**/*.rb'
     - 'app/inputs/**/*.rb'
     - 'app/helpers/**/*.rb'
     - 'app/mail_interceptors/**/*.rb'
     - 'app/mailers/**/*.rb'
+    # - 'app/models/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
     - 'lib/**/*.rb'
@@ -125,6 +127,9 @@ Metrics/ModuleLength:
 Layout/AlignParameters:
   EnforcedStyle: with_fixed_indentation
 
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+
 Lint/UnusedMethodArgument:
   Exclude:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
@@ -133,8 +138,8 @@ Style/DoubleNegation:
   Exclude:
     - 'lib/rds_sql_server/rds.rb'
 
-Style/RegexpLiteral:
-  EnforcedStyle: slashes
+Style/WordArray:
+  EnforcedStyle: brackets
 
 Style/SymbolArray:
   EnforcedStyle: brackets

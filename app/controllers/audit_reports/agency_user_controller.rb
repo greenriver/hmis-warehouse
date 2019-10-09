@@ -18,12 +18,10 @@ module AuditReports
     # 5. User needs an agency assigned
 
     def index
-      @column = user_sort_options.map{ |i| i[:column] }.detect { |c| c == params[:column] } || 'last_name'
-      @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'asc'
+      @column = user_sort_options.map { |i| i[:column] }.detect { |c| c == params[:column] } || 'last_name'
+      @direction = %w[asc desc].detect { |c| c == params[:direction] } || 'asc'
 
-      if current_user.can_manage_all_agencies
-        @agencies = Agency.all.order(:name)
-      end
+      @agencies = Agency.all.order(:name) if current_user.can_manage_all_agencies
       @users = user_scope
 
       respond_to do |format|
@@ -33,7 +31,7 @@ module AuditReports
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
-          filename="#{@agency.downcase.gsub(/ /, '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}"
+          filename = "#{@agency.downcase.tr(' ', '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -43,7 +41,7 @@ module AuditReports
       return 0 unless view_history[user.id].present?
       return 0 unless view_history[user.id][months_in_past].present?
 
-      return view_history[user.id][months_in_past]
+      view_history[user.id][months_in_past]
     end
     helper_method :clients_viewed
 
@@ -108,12 +106,12 @@ module AuditReports
 
       # FIXME: this needs to be pushed off to the database
       case @column
-        when 'this_month'
-          sorted = users.sort_by{ |user| clients_viewed(user, 0) }
-        when 'last_month'
-          sorted = users.sort_by{ |user| clients_viewed(user, 1) }
-        when 'prev_month'
-          sorted = users.sort_by{ |user| clients_viewed(user, 2) }
+      when 'this_month'
+        sorted = users.sort_by { |user| clients_viewed(user, 0) }
+      when 'last_month'
+        sorted = users.sort_by { |user| clients_viewed(user, 1) }
+      when 'prev_month'
+        sorted = users.sort_by { |user| clients_viewed(user, 2) }
       end
 
       sorted.reverse! if @direction == 'desc'
@@ -131,31 +129,31 @@ module AuditReports
         }
         User.active.pluck_in_batches(:id, batch_size: 100) do |batch|
           ActivityLog.created_in_range(
-            range: 2.months.ago.beginning_of_month.to_date .. Date.tomorrow
+            range: 2.months.ago.beginning_of_month.to_date..Date.tomorrow,
           ).
-          where(
-            user_id: batch,
-            item_model: GrdaWarehouse::Hud::Client.name,
-          ).
-          group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
-          distinct.
-          count(:item_id).each do |(user_id, month), count|
+            where(
+              user_id: batch,
+              item_model: GrdaWarehouse::Hud::Client.name,
+            ).
+            group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
+            distinct.
+            count(:item_id).each do |(user_id, month), count|
             history[user_id] ||= []
             history[user_id][months[month.to_i]] = count
           end
         end
         history
       end
-
     end
 
     def user_scope
       return User.none if current_user.agency.blank?
+
       scope = User.
         active.
         joins(:agency)
       if current_user.can_manage_all_agencies
-        @agency = "All Agencies"
+        @agency = 'All Agencies'
         if params[:report].present?
           if params[:report][:agency].present?
             agency = Agency.find(params[:report][:agency].to_i)
@@ -169,8 +167,7 @@ module AuditReports
         scope = scope.where(agency: current_user.agency)
       end
       scope.
-      preload(:agency)
+        preload(:agency)
     end
-
   end
 end

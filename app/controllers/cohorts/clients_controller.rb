@@ -27,21 +27,19 @@ module Cohorts
     # for easy poling
     def index
       # Never let the browser cache this response
-      expires_now()
+      expires_now
 
       respond_to do |format|
         format.json do
           if params[:content].present?
             set_cohort_clients
             # Allow for individual refresh
-            if params[:cohort_client_id].present?
-              @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i)
-            end
-            render text: JSON::fast_generate(data_for_table), type: :json
+            @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i) if params[:cohort_client_id].present?
+            render text: JSON.fast_generate(data_for_table), type: :json
             # The above is > 50% faster then
             # render json: data_for_table
           else
-            render json: @cohort.cohort_clients.pluck(:id, :updated_at).map{|k,v| [k, v.to_i]}.to_h
+            render json: @cohort.cohort_clients.pluck(:id, :updated_at).map { |k, v| [k, v.to_i] }.to_h
           end
         end
         format.html do
@@ -56,13 +54,12 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
-        @visible_columns << CohortColumns::Delete.new
-      end
+      @visible_columns << CohortColumns::Delete.new if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
 
       @cohort_clients.each do |cohort_client|
         client = cohort_client.client
         next if client.blank?
+
         row = {}
         @visible_columns.each do |cohort_column|
           cohort_column.cohort = @cohort
@@ -79,13 +76,11 @@ module Cohorts
             comments: cohort_column.comments,
             editable: editable,
           }
-          if cohort_column.column == 'meta'
-            row[cohort_column.column].merge!(cohort_column.metadata)
-          end
+          row[cohort_column.column].merge!(cohort_column.metadata) if cohort_column.column == 'meta'
         end
         data << row
       end
-      return data
+      data
     end
 
     def edit
@@ -111,83 +106,83 @@ module Cohorts
       @populations = begin
         populations = populations_params[:population]&.map(&:to_sym)
         if populations
-          populations.select{|e| GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include? e}
-        elsif populations_params.keys.include?('population')
+          populations.select { |e| GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include? e }
+        elsif populations_params.key?('population')
           [:all_clients]
         else
           false
         end
       end
-      @actives = actives_params()
-      @touchpoints = touch_point_params()
+      @actives = actives_params
+      @touchpoints = touch_point_params
       @client_ids = params[:batch].try(:[], :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
         @hoh_only = _debool(params[:filter][:hoh])
-        load_filter()
+        load_filter
         @clients = @clients.includes(:chronics).
           preload(source_clients: :data_source).
           merge(GrdaWarehouse::Chronic.on_date(date: @filter.date)).
           order(LastName: :asc, FirstName: :asc)
       elsif params[:hud_filter].present?
         @hoh_only = _debool(params[:hud_filter][:hoh])
-        load_hud_filter()
+        load_hud_filter
         @clients = @clients.includes(:hud_chronics).
-            preload(source_clients: :data_source).
-            merge(GrdaWarehouse::HudChronic.on_date(date: @hud_filter.date)).
-            order(LastName: :asc, FirstName: :asc)
+          preload(source_clients: :data_source).
+          merge(GrdaWarehouse::HudChronic.on_date(date: @hud_filter.date)).
+          order(LastName: :asc, FirstName: :asc)
       elsif @actives
         @hoh_only = _debool(@actives[:hoh])
 
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
           joins(:project).
           where(
-            she_t[:client_id].eq(wcp_t[:client_id])
+            she_t[:client_id].eq(wcp_t[:client_id]),
           ).
           # homeless or overrides_homeless_active_status
           where(
             GrdaWarehouse::Hud::Project.project_type_override.in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
-            or(p_t[:active_homeless_status_override].eq(true))
+            or(p_t[:active_homeless_status_override].eq(true)),
           ).
           open_between(start_date: @actives[:start], end_date: @actives[:end])
 
         @clients = client_scope.joins(:processed_service_history).distinct
-          if @actives[:limit_to_last_three_years] == '1'
-            @clients = @clients.where(
-              wcp_t[:days_homeless_last_three_years].gteq(@actives[:min_days_homeless])
-            )
-          else
-            @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
-          end
+        if @actives[:limit_to_last_three_years] == '1'
+          @clients = @clients.where(
+            wcp_t[:days_homeless_last_three_years].gteq(@actives[:min_days_homeless]),
+          )
+        else
+          @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
+        end
 
-          if @actives.key? :actives_population
-            populations = @actives[:actives_population]
-            populations.each do |population|
-              # Force service to fall within the correct age ranges for some populations
-              service_scope = if ['youth', 'children'].include? population.to_s
-                population
-              elsif population.to_s == 'parenting_children'
-                :children
-              elsif population.to_s == 'parenting_youth'
-                :youth
-              elsif population.to_s == 'individual_adult'
-                :adult
-              else
-                :current_scope
-              end
-
-              enrollment_scope = enrollment_scope.with_service_between(
-                start_date: @actives[:start],
-                end_date: @actives[:end],
-                service_scope: service_scope
-              )
-
-              enrollment_scope = enrollment_scope.send(population)
+        if @actives.key? :actives_population
+          populations = @actives[:actives_population]
+          populations.each do |population|
+            # Force service to fall within the correct age ranges for some populations
+            service_scope = if %w[youth children].include? population.to_s
+              population
+            elsif population.to_s == 'parenting_children'
+              :children
+            elsif population.to_s == 'parenting_youth'
+              :youth
+            elsif population.to_s == 'individual_adult'
+              :adult
+            else
+              :current_scope
             end
+
+            enrollment_scope = enrollment_scope.with_service_between(
+              start_date: @actives[:start],
+              end_date: @actives[:end],
+              service_scope: service_scope,
+            )
+
+            enrollment_scope = enrollment_scope.send(population)
           end
-          # Active record seems to have trouble with the complicated nature of this scope
-          @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
+        end
+        # Active record seems to have trouble with the complicated nature of this scope
+        @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
       elsif @populations
         @hoh_only = _debool(populations_params[:hoh])
         enrollment_query = GrdaWarehouse::ServiceHistoryEnrollment.
@@ -196,7 +191,7 @@ module Cohorts
           entry.
           where(she_t[:client_id].eq(c_t[:id])).select(c_t[:id])
         @populations.each do |population|
-          service_scope = if ['youth', 'children'].include? population.to_s
+          service_scope = if %w[youth children].include? population.to_s
             population
           elsif population.to_s == 'parenting_children'
             :children
@@ -209,13 +204,14 @@ module Cohorts
           enrollment_query = enrollment_query.with_service_between(
             start_date: 3.months.ago.to_date,
             end_date: Date.current,
-            service_scope: service_scope)
+            service_scope: service_scope,
+          )
           enrollment_query = enrollment_query.send(population)
         end
         @clients = client_scope.
           where(id: enrollment_query).distinct
       elsif @client_ids.present?
-        @client_ids = @client_ids.strip.split(/\s+/).map{|m| m[/\d+/].to_i}
+        @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
       elsif params[:q].try(:[], :full_text_search).present?
         @q = client_source.ransack(params[:q])
@@ -227,8 +223,8 @@ module Cohorts
         candidate_ids = GrdaWarehouse::WarehouseClient.where(
           source_id: GrdaWarehouse::HmisForm.non_confidential.
             where(collected_at: (start_date..end_date),
-              assessment_id: assessment_id).distinct.select(:client_id)
-          ).distinct.pluck(:destination_id)
+                  assessment_id: assessment_id).distinct.select(:client_id),
+        ).distinct.pluck(:destination_id)
         @clients = client_source.where(id: candidate_ids)
       end
       if @hoh_only
@@ -239,42 +235,33 @@ module Cohorts
       counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.reorder(id: :asc).select(:id)).
         pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
-      @days_homeless = counts.map{|client_id, days_homeless, _, _| [client_id, days_homeless]}.to_h
-      @days_homeless_three_years = counts.map{|client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years]}.to_h
-      @days_literally_homeless_three_years = counts.map{|client_id, _, _, literally_homeless_last_three_years| [client_id, literally_homeless_last_three_years]}.to_h
+      @days_homeless = counts.map { |client_id, days_homeless, _, _| [client_id, days_homeless] }.to_h
+      @days_homeless_three_years = counts.map { |client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years] }.to_h
+      @days_literally_homeless_three_years = counts.map { |client_id, _, _, literally_homeless_last_three_years| [client_id, literally_homeless_last_three_years] }.to_h
       Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
       Rails.logger.info "CLIENTS: #{@clients.count}"
-
     end
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter
       @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       filter_query = hc_t[:age].gt(@hud_filter.min_age)
-      if @hud_filter.individual
-        filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual))
-      end
-      if @hud_filter.dmh
-        filter_query = filter_query.and(hc_t[:dmh].eq(@hud_filter.dmh))
-      end
-      if @hud_filter.veteran
-        filter_query = filter_query.and(c_t[:VeteranStatus].eq(@hud_filter.veteran))
-      end
+      filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual)) if @hud_filter.individual
+      filter_query = filter_query.and(hc_t[:dmh].eq(@hud_filter.dmh)) if @hud_filter.dmh
+      filter_query = filter_query.and(c_t[:VeteranStatus].eq(@hud_filter.veteran)) if @hud_filter.veteran
       @clients = client_source.joins(:hud_chronics).
-          preload(:hud_chronics, :source_disabilities).
-          where(filter_query).
-          has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
-      if @hud_filter.name&.present?
-        @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
-      end
+        preload(:hud_chronics, :source_disabilities).
+        where(filter_query).
+        has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
+      @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @hud_filter.name&.present?
     end
 
     def load_cohort_names
       @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
-      map do |id, name, short_name|
+        map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h
     end
@@ -289,11 +276,11 @@ module Cohorts
       incoming = client_ids.split(',').map(&:to_i)
       existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
       needed = incoming - existing
-      to_add = needed.map{|id| [id, @cohort.id, Time.now, Time.now]}
+      to_add = needed.map { |id| [id, @cohort.id, Time.now, Time.now] }
       cohort_client_source.new.insert_batch(
         cohort_client_source,
         [:client_id, :cohort_id, :created_at, :updated_at],
-        to_add
+        to_add,
       )
       to_restore = incoming & cohort_client_source.only_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
       cohort_client_source.only_deleted.where(cohort_id: @cohort.id, client_id: to_restore).update_all(deleted_at: nil)
@@ -333,7 +320,7 @@ module Cohorts
               updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
-            render json: @response and return
+            render(json: @response) && return
           end
           format.json do
             @response = {
@@ -342,17 +329,15 @@ module Cohorts
               updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
-            render json: @response and return
+            render(json: @response) && return
           end
         end
       else
-        render json: {alert: :danger, message: 'Unable to save change'}
+        render json: { alert: :danger, message: 'Unable to save change' }
       end
     end
 
-    def pre_destroy
-
-    end
+    def pre_destroy; end
 
     def pre_bulk_destroy
       @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',')
@@ -364,9 +349,7 @@ module Cohorts
       removed = 0
       @cohort_clients.each do |client|
         log_removal(client.cohort_id, client.id, params[:cc].try(:[], :reason))
-        if client.destroy
-          removed += 1
-        end
+        removed += 1 if client.destroy
       end
       flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
       redirect_to cohort_path(@cohort)
@@ -382,10 +365,10 @@ module Cohorts
     end
 
     def field
-      column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select{|m| m == params.require(:field)}&.first
+      column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select { |m| m == params.require(:field) }&.first
       if column.present?
         @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
-        @column = column.constantize.new()
+        @column = column.constantize.new
         @column.cohort = @cohort
         @column.cohort_names = @cohort_names
         render layout: false
@@ -417,12 +400,13 @@ module Cohorts
 
     def cohort_params
       params.require(:grda_warehouse_cohort).permit(
-        :client_ids
+        :client_ids,
       )
     end
 
     def populations_params
       return {} unless params[:populations].present?
+
       params.require(:populations).permit(
         :hoh,
         population: [],
@@ -431,6 +415,7 @@ module Cohorts
 
     def actives_params
       return false unless params[:actives].present?
+
       params.require(:actives).permit(
         :start,
         :end,
@@ -443,6 +428,7 @@ module Cohorts
 
     def touch_point_params
       return false unless params[:touchpoints].present?
+
       params.require(:touchpoints).permit(
         :start,
         :end,
@@ -451,7 +437,7 @@ module Cohorts
     end
 
     def cohort_update_params
-      params.require(:cohort_client).permit(*cohort_source.available_columns.select{|m| m.column_editable?}.map(&:column))
+      params.require(:cohort_client).permit(*cohort_source.available_columns.select(&:column_editable?).map(&:column))
     end
 
     def log_create(cohort_id, cohort_client_id)
@@ -509,7 +495,7 @@ module Cohorts
             GrdaWarehouse::WarehouseClient.joins(:data_source).
             where(ds_t[:visible_in_window].eq(true)).
             where(wc_t[:destination_id].eq(c_t[:id])).
-            exists
+            exists,
           )
       else
         client_source.destination
@@ -540,14 +526,12 @@ module Cohorts
       { resource_name: @cohort.name }
     end
 
-
     private def _debool(bool_str)
       case bool_str
-      when true, "yes", "true", "1" then true
+      when true, 'yes', 'true', '1' then true
       else
         false
       end
     end
-
   end
 end

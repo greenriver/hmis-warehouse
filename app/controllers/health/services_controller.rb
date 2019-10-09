@@ -67,9 +67,7 @@ module Health
 
     def destroy
       @service.destroy
-      unless request.xhr?
-        respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id))
-      end
+      respond_with(@service, location: polymorphic_path(health_path_generator + [:services], client_id: @client.id)) unless request.xhr?
     end
 
     def service_params
@@ -108,6 +106,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Services"
     end
-
   end
 end

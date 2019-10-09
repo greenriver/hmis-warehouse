@@ -6,8 +6,7 @@
 
 module Api::Health::Claims::Patients
   class TopConditionsController < BaseController
-    
-    def load_data      
+    def load_data
       # @data = scope.order(sdh_pct: :desc).
       #   select(:description, :sdh_pct).
       #   distinct.

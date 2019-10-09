@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 class ProjectsController < ApplicationController
   before_action :require_can_view_projects!
   before_action :require_can_edit_projects!, only: [:edit, :update]
@@ -22,14 +21,10 @@ class ProjectsController < ApplicationController
     # sort / paginate
     at = project_scope.arel_table
     column = at[sort_column.to_sym]
-    if sort_column == 'organization_id'
-      column = o_t[:OrganizationName]
-    end
+    column = o_t[:OrganizationName] if sort_column == 'organization_id'
     sort = column.send(sort_direction)
     # Filter
-    if params[:project].present?
-      @projects = @projects.filter(filter_columns)
-    end
+    @projects = @projects.filter(filter_columns) if params[:project].present?
     @projects = @projects.
       includes(:organization).
       preload(:geographies).
@@ -41,13 +36,11 @@ class ProjectsController < ApplicationController
   def show
     @clients = @project.service_history_enrollments.entry.
       preload(:client).
-      order(she_t[:first_date_in_program].desc(), she_t[:last_date_in_program].desc()).
+      order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc).
       page(params[:page]).per(25)
   end
 
-  def edit
-
-  end
+  def edit; end
 
   def update
     @project.update(project_params)
@@ -92,10 +85,10 @@ class ProjectsController < ApplicationController
   end
 
   def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
   end
 
   def flash_interpolation_options
-      { resource_name: 'Project' }
+    { resource_name: 'Project' }
     end
 end

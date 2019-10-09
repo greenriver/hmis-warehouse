@@ -18,9 +18,7 @@ module WarehouseReports
 
     respond_to :html, :js
 
-    def index
-
-    end
+    def index; end
 
     def clients
       @clients = if can_see_client_details?
@@ -32,7 +30,7 @@ module WarehouseReports
     end
 
     def describe_computations
-      path = "app/views/warehouse_reports/rrh/README.md"
+      path = 'app/views/warehouse_reports/rrh/README.md'
       description = File.read(path)
       markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)
@@ -69,20 +67,54 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = OpenStruct.new()
-      @filter.start_date = report_params[:start_date]&.to_date rescue @start_months.values[5]
-      @filter.end_date = report_params[:end_date]&.to_date rescue @end_months.values[0]
+      @filter = OpenStruct.new
+      @filter.start_date = begin
+                             report_params[:start_date]&.to_date
+                           rescue StandardError
+                             @start_months.values[5]
+                           end
+      @filter.end_date = begin
+                           report_params[:end_date]&.to_date
+                         rescue StandardError
+                           @end_months.values[0]
+                         end
       # force at least a 2 month coverage
-      if @filter.start_date > @filter.end_date - 1.months
-        @filter.start_date = (@filter.end_date - 1.months).beginning_of_month
-      end
-      @filter.subpopulation = report_params[:subpopulation]&.to_sym&.presence || :all rescue :all
-      @filter.household_type = report_params[:household_type]&.to_sym&.presence || :all rescue :all
-      @filter.race = report_params[:race]&.to_sym&.presence || :all rescue :all
-      @filter.ethnicity = report_params[:ethnicity]&.to_sym&.presence || :all rescue :all
-      @filter.gender = report_params[:gender]&.to_sym&.presence || :all rescue :all
-      @filter.veteran_status = report_params[:veteran_status]&.to_sym&.presence || :all rescue :all
-      p_ids = report_params[:project_ids].select(&:present?).map(&:to_i) rescue nil
+      @filter.start_date = (@filter.end_date - 1.months).beginning_of_month if @filter.start_date > @filter.end_date - 1.months
+      @filter.subpopulation = begin
+                                report_params[:subpopulation]&.to_sym&.presence || :all
+                              rescue StandardError
+                                :all
+                              end
+      @filter.household_type = begin
+                                 report_params[:household_type]&.to_sym&.presence || :all
+                               rescue StandardError
+                                 :all
+                               end
+      @filter.race = begin
+                       report_params[:race]&.to_sym&.presence || :all
+                     rescue StandardError
+                       :all
+                     end
+      @filter.ethnicity = begin
+                            report_params[:ethnicity]&.to_sym&.presence || :all
+                          rescue StandardError
+                            :all
+                          end
+      @filter.gender = begin
+                         report_params[:gender]&.to_sym&.presence || :all
+                       rescue StandardError
+                         :all
+                       end
+      @filter.veteran_status = begin
+                                 report_params[:veteran_status]&.to_sym&.presence || :all
+                               rescue StandardError
+                                 :all
+                               end
+      p_ids = begin
+                report_params[:project_ids].select(&:present?).map(&:to_i)
+              rescue StandardError
+                nil
+              end
       @filter.project_ids = project_ids(p_ids)
     end
 
@@ -100,11 +132,13 @@ module WarehouseReports
       )
     end
 
-    private def project_ids project_ids
+    private def project_ids(project_ids)
       return :all unless project_ids.present?
+
       project_ids = available_projects.map(&:last).
-        select{|m| project_ids.include?(m)}
+        select { |m| project_ids.include?(m) }
       return project_ids.map(&:to_i) if project_ids
+
       :all
     end
 
@@ -129,6 +163,5 @@ module WarehouseReports
       end
     end
     helper_method :can_see_client_details?
-
   end
 end

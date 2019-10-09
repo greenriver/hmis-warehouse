@@ -9,15 +9,13 @@ module Admin
     before_action :require_can_manage_config!
     before_action :set_config
 
-    def index
-
-    end
+    def index; end
 
     def update
       @config.assign_attributes(config_params)
       config_source.invalidate_cache
       if @config.save
-        redirect_to({action: :index}, notice: 'Configuration updated')
+        redirect_to({ action: :index }, notice: 'Configuration updated')
       else
         render action: :index, error: 'The configuration failed to save.'
       end

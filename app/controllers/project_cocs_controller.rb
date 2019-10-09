@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 class ProjectCocsController < ApplicationController
   before_action :require_can_view_projects!
   before_action :require_can_edit_projects!, only: [:edit, :update]
@@ -13,9 +12,7 @@ class ProjectCocsController < ApplicationController
 
   include ArelHelper
 
-  def edit
-
-  end
+  def edit; end
 
   def update
     @project_coc.update(project_coc_params)
@@ -45,6 +42,6 @@ class ProjectCocsController < ApplicationController
   end
 
   def flash_interpolation_options
-      { resource_name: 'ProjectCoC' }
+    { resource_name: 'ProjectCoC' }
     end
 end

@@ -28,16 +28,16 @@ module Clients
     def queue
       @years = (params[:pdf].try(:[], :years) || 3).to_i
       @client.update(generate_manual_history_pdf: true)
-      job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
+      Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: @client.id,
         years: @years,
       ), queue: :default_priority
-      flash[:notice] = "Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes."
+      flash[:notice] = 'Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes.'
       redirect_to action: :show
     end
 
     def pdf
-      @user = User.setup_system_user()
+      @user = User.setup_system_user
       current_user ||= @user
       set_client
       set_pdf_dates
@@ -52,19 +52,19 @@ module Clients
       @dates = @dates.map do |date, data|
         [
           date,
-          data.select{|en| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type])}
+          data.select { |en| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type]) },
         ]
       end.to_h
-      @organization_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:organization_name]}.map{|org, ens| [org, ens.count]}.to_h
-      @project_type_counts = @dates.values.flatten.group_by{|en| HUD.project_type en[:project_type]}.map{|project_type, ens| [project_type, ens.count]}.to_h
-      file_name = "service_history.pdf"
+      @organization_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:organization_name] }.map { |org, ens| [org, ens.count] }.to_h
+      @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.map { |project_type, ens| [project_type, ens.count] }.to_h
+      file_name = 'service_history.pdf'
 
       # DEBUGGING
       # render pdf: file_name, template: "clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
       # return
       # END DEBUGGING
 
-      pdf = render_to_string pdf: file_name, template: "clients/history/pdf", layout: false, encoding: "UTF-8", page_size: 'Letter'
+      pdf = render_to_string pdf: file_name, template: 'clients/history/pdf', layout: false, encoding: 'UTF-8', page_size: 'Letter'
       @file = GrdaWarehouse::ClientFile.new
       begin
         tmp_path = Rails.root.join('tmp', "service_history_pdf_#{@client.id}.pdf")
@@ -73,7 +73,7 @@ module Clients
         @file.file = file
         @file.content = @file.file.read
       ensure
-        tmp_path.unlink()
+        tmp_path.unlink
       end
 
       @file.client_id = @client.id
@@ -109,9 +109,7 @@ module Clients
             project_name: project_name,
             organization_name: nil,
           }
-          unless project_name == GrdaWarehouse::Hud::Project.confidential_project_name
-            record[:organization_name] = enrollment.organization.OrganizationName
-          end
+          record[:organization_name] = enrollment.organization.OrganizationName unless project_name == GrdaWarehouse::Hud::Project.confidential_project_name
           @dates[enrollment.date] << record
           enrollment.service_history_services.each do |service|
             @dates[service.date] ||= []
@@ -151,7 +149,7 @@ module Clients
           end
           @dates[enrollment.date] << record
           enrollment.service_history_services.service_in_prior_years(years: @years).
-          each do |service|
+            each do |service|
             @dates[service.date] ||= []
             record = {
               record_type: service.record_type,
@@ -171,7 +169,7 @@ module Clients
     end
 
     def set_client
-      not_authorized! and return unless current_user || @user
+      not_authorized! && return unless current_user || @user
 
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
@@ -188,12 +186,11 @@ module Clients
         end
       end
     end
-    alias_method :set_client_from_client_id, :set_client
+    alias set_client_from_client_id set_client
 
     def require_client_needing_processing!
-      if @client.generate_history_pdf || @client.generate_manual_history_pdf
-        return true
-      end
+      return true if @client.generate_history_pdf || @client.generate_manual_history_pdf
+
       not_authorized!
     end
 
@@ -201,7 +198,7 @@ module Clients
       GrdaWarehouse::Hud::Client
     end
 
-    private def name_for_project project_name
+    private def name_for_project(project_name)
       if can_view_projects?
         project_name
       else

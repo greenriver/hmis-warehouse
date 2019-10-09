@@ -34,8 +34,8 @@ module Health
 
     def edit
       if @claim_submitted
-        flash.notice = "This qualifying activity has already been submitted and cannot be edited."
-        redirect_to polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id) and return
+        flash.notice = 'This qualifying activity has already been submitted and cannot be edited.'
+        redirect_to(polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id)) && return
       end
       @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form
@@ -106,7 +106,7 @@ module Health
         :time_score,
         :time_notes,
         :collection_location,
-        :completed_at
+        :completed_at,
       )
     end
 
@@ -117,9 +117,9 @@ module Health
       elsif action_name == 'remove_file'
         @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
       end
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id ) : '#'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: @upload_object.id) : '#'
     end
 
     private def set_form
@@ -137,6 +137,5 @@ module Health
     private def title_for_show
       "#{@client.name} - Health - SSM"
     end
-
   end
 end

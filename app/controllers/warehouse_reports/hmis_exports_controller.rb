@@ -17,13 +17,11 @@ module WarehouseReports
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
 
-    def running
-
-    end
+    def running; end
 
     def set_jobs
       @job_reports = Delayed::Job.where(queue: :hmis_six_one_one_export).order(run_at: :desc).map do |job|
-        parameters = YAML.load(job.handler).job_data['arguments'].first
+        parameters = YAML.safe_load(job.handler).job_data['arguments'].first
         parameters.delete('_aj_symbol_keys')
         parameters['project_ids'] = parameters.delete('projects')
         report = GrdaWarehouse::HmisExport.new(parameters)
@@ -41,12 +39,12 @@ module WarehouseReports
       @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
       if @filter.valid?
         frequency = recurrence_params[:every_n_days].to_i || 0
-        if frequency > 0
+        if frequency.positive?
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
           @filter.recurring_hmis_export_id = recurring_export.id
         end
         @filter.adjust_reporting_period
-        if recurring_export && recurring_export.s3_present? && ! recurring_export.s3_valid?
+        if recurring_export&.s3_present? && ! recurring_export.s3_valid?
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
@@ -69,13 +67,11 @@ module WarehouseReports
 
     def show
       # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
-      send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.gsub(',', '')}.zip", type: @export.content_type, disposition: 'attachment'
+      send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 
     def cancel
-      if can_cancel? @export
-        @export.recurring_hmis_export.destroy
-      end
+      @export.recurring_hmis_export.destroy if can_cancel? @export
       redirect_to warehouse_reports_hmis_exports_path
     end
 
@@ -125,7 +121,7 @@ module WarehouseReports
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],
-        data_source_ids: []
+        data_source_ids: [],
       )
     end
 
@@ -149,13 +145,12 @@ module WarehouseReports
         project_ids: [],
         project_group_ids: [],
         organization_ids: [],
-        data_source_ids: []
+        data_source_ids: [],
       )
     end
 
     def flash_interpolation_options
       { resource_name: 'Export' }
     end
-
   end
 end

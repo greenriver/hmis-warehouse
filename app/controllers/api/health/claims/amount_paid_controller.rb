@@ -37,7 +37,6 @@ module Api::Health::Claims
       # @data = group_by_date_and_sum_by_category(source.order(year: :asc, month: :asc))
     end
 
-
     def source
       ::Health::Claims::AmountPaid
     end

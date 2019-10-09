@@ -17,7 +17,7 @@ module WarehouseReports
       @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
     end
 
-    #download
+    # download
     def show
       @file = @report.file
       send_data @file.content,

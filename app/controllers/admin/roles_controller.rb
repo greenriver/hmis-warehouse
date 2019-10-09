@@ -15,17 +15,16 @@ module Admin
 
     def index
       # sort / paginate
-      @roles = role_scope
-        .order(sort_column => sort_direction)
-        .page(params[:page]).per(25)
+      @roles = role_scope.
+        order(sort_column => sort_direction).
+        page(params[:page]).per(25)
     end
 
     def new
       @role = Role.new
     end
 
-    def edit
-    end
+    def edit; end
 
     def update
       @role.update role_params
@@ -39,15 +38,15 @@ module Admin
 
     def destroy
       @role.destroy
-      redirect_to({action: :index}, notice: 'Role deleted')
+      redirect_to({ action: :index }, notice: 'Role deleted')
     end
 
     def title_for_show
       @role.name
     end
-    alias_method :title_for_edit, :title_for_show
-    alias_method :title_for_destroy, :title_for_show
-    alias_method :title_for_update, :title_for_show
+    alias title_for_edit title_for_show
+    alias title_for_destroy title_for_show
+    alias title_for_update title_for_show
 
     def title_for_index
       'Role List'
@@ -55,28 +54,28 @@ module Admin
 
     private
 
-      def set_role
-        @role = role_scope.find(params[:id].to_i)
-      end
+    def set_role
+      @role = role_scope.find(params[:id].to_i)
+    end
 
-      def role_scope
-        Role.editable
-      end
+    def role_scope
+      Role.editable
+    end
 
-      def role_params
-        params.require(:role).
-          permit(
-            :name,
-            Role.permissions(exclude_health: true)
-          )
-      end
-      def sort_column
-        role_scope.column_names.include?(params[:sort]) ? params[:sort] : 'name'
-      end
+    def role_params
+      params.require(:role).
+        permit(
+          :name,
+          Role.permissions(exclude_health: true),
+        )
+    end
 
-      def sort_direction
-        %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
-      end
+    def sort_column
+      role_scope.column_names.include?(params[:sort]) ? params[:sort] : 'name'
+    end
+
+    def sort_direction
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+    end
   end
-
 end

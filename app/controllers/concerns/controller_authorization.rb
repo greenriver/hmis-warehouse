@@ -7,7 +7,7 @@
 module ControllerAuthorization
   extend ActiveSupport::Concern
 
-  delegate *Role.permissions.map{|m| "#{m}?".to_sym}, to: :current_user, allow_nil: true
+  delegate *Role.permissions.map { |m| "#{m}?".to_sym }, to: :current_user, allow_nil: true
 
   # This builds useful methods in the form:
   # require_permission!
@@ -22,6 +22,7 @@ module ControllerAuthorization
 
   def require_can_see_this_client_demographics!
     return true if current_user.can_view_client_window?
+
     # attempt to set the client various ways
     if params[:client_id].present?
       set_client_from_client_id
@@ -29,6 +30,7 @@ module ControllerAuthorization
       set_client
     end
     return true if @client.show_window_demographic_to?(current_user)
+
     not_authorized!
   end
 
@@ -39,10 +41,10 @@ module ControllerAuthorization
   def check_release
     return true unless GrdaWarehouse::Config.get(:window_access_requires_release)
     return true if can_view_clients?
-    if ! @client&.consent_form_valid?
+
+    unless @client&.consent_form_valid?
       flash[:alert] = "Client #{@client&.full_name} is not viewable due to an expired/missing signed release"
       redirect_to clients_path
     end
   end
-
 end

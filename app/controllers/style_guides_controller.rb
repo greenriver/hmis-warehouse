@@ -8,11 +8,9 @@ class StyleGuidesController < ApplicationController
   include PjaxModalController
   include WindowClientPathGenerator
 
-  def alerts
-  end
+  def alerts; end
 
-  def icon_font
-  end
+  def icon_font; end
 
   def careplan
     @patient = Health::Patient.pilot.first
@@ -22,11 +20,9 @@ class StyleGuidesController < ApplicationController
     @goals = @careplan.hpc_goals.order(number: :asc)
   end
 
-  def add_goal
-  end
+  def add_goal; end
 
-  def add_team_member
-  end
+  def add_team_member; end
 
   def health_team
     @member = Health::Team::Member.new

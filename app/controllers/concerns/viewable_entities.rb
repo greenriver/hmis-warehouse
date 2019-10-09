@@ -11,32 +11,32 @@ module ViewableEntities
 
     private def data_source_viewability(base)
       {
-        selected:    @user.data_sources.map(&:id),
-        label:       'Data Sources',
-        input_html:  { class: 'jUserViewable jDataSources', name: "#{base}[data_sources][]" },
-        collection:  GrdaWarehouse::DataSource.source.viewable_by(current_user).order(:name),
+        selected: @user.data_sources.map(&:id),
+        label: 'Data Sources',
+        input_html: { class: 'jUserViewable jDataSources', name: "#{base}[data_sources][]" },
+        collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).order(:name),
         placeholder: 'Data Source',
-        multiple:    true
+        multiple: true,
       }
     end
     helper_method :data_source_viewability
 
     private def organization_viewability(base)
       model = GrdaWarehouse::Hud::Organization.viewable_by(current_user)
-      collection = model
-        .order(:name)
-        .preload(:data_source)
-        .group_by{ |o| o.data_source.name }
+      collection = model.
+        order(:name).
+        preload(:data_source).
+        group_by { |o| o.data_source.name }
       {
-        as:           :grouped_select,
+        as: :grouped_select,
         group_method: :last,
-        selected:     @user.organizations.map(&:id),
-        collection:   collection,
-        placeholder:  'Organization',
-        multiple:     true,
+        selected: @user.organizations.map(&:id),
+        collection: collection,
+        placeholder: 'Organization',
+        multiple: true,
         input_html: {
           class: 'jUserViewable jOrganizations',
-          name:  "#{base}[organizations][]"
+          name: "#{base}[organizations][]",
         },
       }
     end
@@ -44,38 +44,38 @@ module ViewableEntities
 
     private def project_viewability(base)
       model = GrdaWarehouse::Hud::Project.viewable_by(current_user)
-      collection = model
-        .order(:name)
-        .preload( :organization, :data_source )
-        .group_by{ |p| "#{p.data_source&.name} / #{p.organization&.name}" }
+      collection = model.
+        order(:name).
+        preload(:organization, :data_source).
+        group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" }
       {
-        as:           :grouped_select,
+        as: :grouped_select,
         group_method: :last,
-        selected:     @user.projects.map(&:id),
-        collection:   collection,
-        placeholder:  'Project',
-        multiple:     true,
+        selected: @user.projects.map(&:id),
+        collection: collection,
+        placeholder: 'Project',
+        multiple: true,
         input_html: {
           class: 'jUserViewable jProjects',
-          name:  "#{base}[projects][]"
+          name: "#{base}[projects][]",
         },
       }
     end
     helper_method :project_viewability
 
     private def coc_viewability(base)
-      collection = %w[ ProjectCoc EnrollmentCoc ].flat_map do |c|
+      collection = %w[ProjectCoc EnrollmentCoc].flat_map do |c|
         "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck :CoCCode
       end.uniq&.compact&.sort
       {
-        label:       'CoC Codes',
-        selected:    @user.coc_codes,
-        collection:  collection,
+        label: 'CoC Codes',
+        selected: @user.coc_codes,
+        collection: collection,
         placeholder: 'Project',
-        multiple:    true,
+        multiple: true,
         input_html: {
           class: 'jUserViewable jCocCodes',
-          name:  "#{base}[coc_codes][]"
+          name: "#{base}[coc_codes][]",
         },
       }
     end
@@ -83,19 +83,19 @@ module ViewableEntities
 
     private def reports_assignability(base)
       model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.assignable_by(current_user)
-      collection = model.order( :report_group, :name ).map do |rd|
-        [ "#{rd.report_group}: #{rd.name}", rd.id ]
+      collection = model.order(:report_group, :name).map do |rd|
+        ["#{rd.report_group}: #{rd.name}", rd.id]
       end
       unlimitable = model.where(limitable: false).pluck(:id)
       {
-        selected:    @user.reports.map(&:id),
-        collection:  collection,
+        selected: @user.reports.map(&:id),
+        collection: collection,
         placeholder: 'Report',
-        multiple:    true,
+        multiple: true,
         input_html: {
           class: 'jUserViewable jReports',
-          name:  "#{base}[reports][]",
-          data: {unlimitable: unlimitable.to_json}
+          name: "#{base}[reports][]",
+          data: { unlimitable: unlimitable.to_json },
         },
       }
     end
@@ -111,8 +111,8 @@ module ViewableEntities
         multiple: true,
         input_html: {
           class: 'jUserViewable jProjectGroups',
-          name:  "#{base}[project_groups][]",
-        }
+          name: "#{base}[project_groups][]",
+        },
       }
     end
     helper_method :project_groups_editability
@@ -120,13 +120,13 @@ module ViewableEntities
     private def cohort_editability(base)
       model = GrdaWarehouse::Cohort.active.editable_by(current_user)
       {
-        selected:    @user.cohorts.map(&:id),
-        collection:  model.order(:name),
+        selected: @user.cohorts.map(&:id),
+        collection: model.order(:name),
         placeholder: 'Cohort',
-        multiple:    true,
+        multiple: true,
         input_html: {
           class: 'jUserViewable jCohorts',
-          name:  "#{base}[cohorts][]"
+          name: "#{base}[cohorts][]",
         },
       }
     end

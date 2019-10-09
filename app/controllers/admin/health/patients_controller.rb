@@ -17,12 +17,10 @@ module Admin::Health
       @patients = @patients.order(
         patient_source.column_from_sort(
           column: @column,
-          direction: @direction
-        ).to_sql
+          direction: @direction,
+        ).to_sql,
       )
-      if params[:q].present?
-        @patients = @patients.text_search(params[:q])
-      end
+      @patients = @patients.text_search(params[:q]) if params[:q].present?
       @patients = @patients.page(params[:page].to_i).per(50)
     end
 
@@ -30,22 +28,20 @@ module Admin::Health
       @patients = @patients.page(params[:page].to_i).per(50)
       error = false
       patients_params.each do |patient_id, client|
-        begin
-          patient_source.transaction do
-            patient = ::Health::Patient.find(patient_id.to_i)
-            if client[:client_id].present? && client[:client_id].to_i != 0
-              patient.update(client_id: client[:client_id].to_i)
-            else
-              patient.update(client_id: nil)
-            end
+        patient_source.transaction do
+          patient = ::Health::Patient.find(patient_id.to_i)
+          if client[:client_id].present? && client[:client_id].to_i != 0
+            patient.update(client_id: client[:client_id].to_i)
+          else
+            patient.update(client_id: nil)
           end
-        rescue ActiveRecord::ActiveRecordError => e
-          flash[:error] = 'Unable to update patients'
-          error = true
-          render action: :index
         end
+      rescue ActiveRecord::ActiveRecordError => e
+        flash[:error] = 'Unable to update patients'
+        error = true
+        render action: :index
       end
-      redirect_to action: :index if ! error
+      redirect_to action: :index unless error
     end
 
     def patients_params

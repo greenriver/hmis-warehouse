@@ -34,7 +34,7 @@ module WarehouseReports
     end
 
     def describe_computations
-      path = "app/views/warehouse_reports/psh/README.md"
+      path = 'app/views/warehouse_reports/psh/README.md'
       description = File.read(path)
       markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)

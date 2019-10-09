@@ -36,7 +36,7 @@ module Health
           [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
             begin
               # This is trying to ensure we run the same thing here as we do for the callback from HS
-              json = {signature_request: doc.fetch_signature_request}.to_json
+              json = { signature_request: doc.fetch_signature_request }.to_json
               response = HelloSignController::CallbackResponse.new(json)
             rescue HelloSign::Error::NotFound
               Rails.logger.fatal "Ignoring a document we couldn't track down."
@@ -48,7 +48,6 @@ module Health
             rescue Exception => e
               Rails.logger.fatal "Ignoring a document we couldn't track down."
             end
-
           end
         end
       end
@@ -57,7 +56,7 @@ module Health
     def show
       pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def edit
@@ -102,16 +101,14 @@ module Health
         return
       end
       new_id = @careplan.revise!
-      flash[:notice] = "Careplan revised"
+      flash[:notice] = 'Careplan revised'
       redirect_to polymorphic_path([:edit] + careplan_path_generator, id: new_id)
     end
 
     def update
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
-      if @careplan.health_file&.new_record?
-        @careplan.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
       Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: false).update
       @form_button = 'Save Care Plan'
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
@@ -120,7 +117,7 @@ module Health
     def coversheet
       pdf = careplan_pdf_coversheet
       file_name = 'care_plan_coversheet'
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     def form_url
@@ -131,9 +128,9 @@ module Health
     def set_upload_object
       @upload_object = @careplan
       @location = polymorphic_path([:edit] + careplan_path_generator, id: @careplan.id)
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + careplan_path_generator, client_id: @client.id, id: @careplan.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + careplan_path_generator, client_id: @client.id, id: @careplan.id ) : '#'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + careplan_path_generator, client_id: @client.id, id: @careplan.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + careplan_path_generator, client_id: @client.id, id: @careplan.id) : '#'
     end
 
     def self_sufficiency_assessment
@@ -182,8 +179,8 @@ module Health
           health_file_attributes: [
             :id,
             :file,
-            :file_cache
-          ]
+            :file_cache,
+          ],
         )
     end
 

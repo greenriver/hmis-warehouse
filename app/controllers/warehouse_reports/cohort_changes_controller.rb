@@ -16,9 +16,9 @@ module WarehouseReports
         order(c_t[:LastName].asc, c_t[:FirstName].asc).
         preload(cohort_client: [client: [:source_clients, :vispdats]])
       respond_to do |format|
-        format.html {
+        format.html do
           @enrollments = @enrollments.page(params[:page]).per(25)
-        }
+        end
         format.xlsx {}
       end
     end
@@ -29,11 +29,10 @@ module WarehouseReports
 
     def set_report
       @report = WarehouseReport::CohortChanges.new(
-        start_date: @filter.start, 
+        start_date: @filter.start,
         end_date: @filter.end,
         cohort_id: @filter.cohort_id,
       )
-
     end
 
     def filter_options
@@ -42,12 +41,12 @@ module WarehouseReports
         if opts[:start].to_date > opts[:end].to_date
           start = opts[:end]
           opts[:end] = opts[:start]
-          opts[:start] = start          
+          opts[:start] = start
         end
         opts
       else
         {
-          start: default_start.to_date, 
+          start: default_start.to_date,
           end: default_end.to_date,
           cohort_id: GrdaWarehouse::Cohort.active.viewable_by(current_user).first&.id,
         }
@@ -61,7 +60,6 @@ module WarehouseReports
     def default_end
       default_start.end_of_month
     end
-    
 
     def enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
@@ -70,6 +68,5 @@ module WarehouseReports
     def service_source
       GrdaWarehouse::ServiceHistoryService
     end
-
   end
 end

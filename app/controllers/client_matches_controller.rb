@@ -6,7 +6,7 @@
 
 class ClientMatchesController < ApplicationController
   before_action :require_can_edit_clients!
-  include ClientPathGenerator  
+  include ClientPathGenerator
   helper ClientMatchHelper
 
   def index
@@ -15,12 +15,12 @@ class ClientMatchesController < ApplicationController
       'Accepted' => 'accepted',
       'Rejected' => 'rejected',
     }
-    @status = @possible_statuses.values.detect{|s| s == params['status'].to_s} || @possible_statuses.values.first
+    @status = @possible_statuses.values.detect { |s| s == params['status'].to_s } || @possible_statuses.values.first
 
     # score are negative values (we present them as positive in the UI ) so to show better scores first use asc sort order
     ordering = {
-      'candidate' => {defer_count: :asc, score: :asc, id: :asc}
-    }[@status] || {updated_at: :desc}
+      'candidate' => { defer_count: :asc, score: :asc, id: :asc },
+    }[@status] || { updated_at: :desc }
 
     @counts = client_match_scope.joins(:source_client, :destination_client).group(:status).count
 
@@ -29,23 +29,21 @@ class ClientMatchesController < ApplicationController
       preload(
         destination_client: [
           :data_source,
-          destination_client: :destination_client
+          destination_client: :destination_client,
         ],
         source_client: [
           :data_source,
-          destination_client: :destination_client
+          destination_client: :destination_client,
         ],
       ).order(ordering).page(params[:page])
 
-
-    client_ids = @matches.map{|m| [m.destination_client.destination_client.id, m.source_client.destination_client.id]}.flatten
-    @ongoing_enrollments = client_ids.map{|id| [id, []]}.to_h
+    client_ids = @matches.map { |m| [m.destination_client.destination_client.id, m.source_client.destination_client.id] }.flatten
+    @ongoing_enrollments = client_ids.map { |id| [id, []] }.to_h
     GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
       pluck(:client_id, :project_name).each do |row|
         @ongoing_enrollments[row.first] << row.last
-      end   
+      end
   end
-
 
   def defer
     @matches = if params[:destination_client_id]
@@ -59,8 +57,8 @@ class ClientMatchesController < ApplicationController
       end
     end
     respond_to do |format|
-      format.json {render status: 204}
-      format.html {redirect_to (request.referrer.presence || match_clients.path)}
+      format.json { render status: 204 }
+      format.html { redirect_to (request.referrer.presence || match_clients.path) }
     end
   end
 
@@ -77,8 +75,8 @@ class ClientMatchesController < ApplicationController
     end
 
     respond_to do |format|
-      format.json {render json: @client_match.as_json(methods: [:source_group_id])}
-      format.html {redirect_to (request.referrer.presence || match_clients.path)}
+      format.json { render json: @client_match.as_json(methods: [:source_group_id]) }
+      format.html { redirect_to (request.referrer.presence || match_clients.path) }
     end
   rescue ActiveRecord::StaleObjectError => err
     @client_match.errors[:base] = 'Another user has made a change to this record'
@@ -87,7 +85,6 @@ class ClientMatchesController < ApplicationController
   private def client_match_params
     params.require(:client_match).permit(:status)
   end
-
 
   private def client_match_scope
     GrdaWarehouse::ClientMatch

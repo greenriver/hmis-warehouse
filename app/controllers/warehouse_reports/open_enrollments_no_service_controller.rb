@@ -22,13 +22,17 @@ module WarehouseReports
         ongoing.bed_night.
         with_service_between(start_date: cutoff, end_date: Date.current)
       open_enrollments_no_service = open_enrollments - service_in_last_30_days
-      earliest_entry = [open_enrollments.minimum(:first_date_in_program), 3.years.ago.to_date].max rescue 3.years.ago.to_date
+      earliest_entry = begin
+                         [open_enrollments.minimum(:first_date_in_program), 3.years.ago.to_date].max
+                       rescue StandardError
+                         3.years.ago.to_date
+                       end
       @entries = open_enrollments_no_service
       client_ids = @entries.map(&:client_id).uniq
       @clients = client_source.where(id: client_ids).
         pluck(:id, :FirstName, :LastName).map do |row|
           Hash[[:id, :FirstName, :LastName].zip(row)]
-        end.index_by{ |m| m[:id]}
+        end.index_by { |m| m[:id] }
       @max_dates = service_history_service_source.
         where(service_history_enrollment_id: @entries.map(&:id)).
         where(date: (earliest_entry..Date.current)).
@@ -36,14 +40,11 @@ module WarehouseReports
         maximum(:date)
       respond_to do |format|
         format.html do
-
         end
         format.xlsx do
-
         end
       end
     end
-
 
     private def client_source
       GrdaWarehouse::Hud::Client
@@ -55,14 +56,13 @@ module WarehouseReports
       GrdaWarehouse::ServiceHistoryService
     end
 
-
     private def sort_column
-      sort_options.map{|m| m[:column]}.uniq.
+      sort_options.map { |m| m[:column] }.uniq.
         include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program"
     end
 
     private def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     private def sort_options
@@ -80,17 +80,17 @@ module WarehouseReports
         {
           title: 'Project',
           column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.project_name",
-          direction: 'asc'
+          direction: 'asc',
         },
         {
           title: 'Longest',
           column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
-          direction: 'asc'
+          direction: 'asc',
         },
         {
           title: 'Shortest',
           column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
-          direction: 'desc'
+          direction: 'desc',
         },
         # {
         #   title: 'Most Recently Seen',

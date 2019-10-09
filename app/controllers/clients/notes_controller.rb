@@ -27,15 +27,14 @@ module Clients
       type = note_type
       @note = GrdaWarehouse::ClientNotes::Base.new(note_params)
       begin
-        raise "Note type not found" unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+        raise 'Note type not found' unless GrdaWarehouse::ClientNotes::Base.available_types.map(&:to_s).include?(type)
+
         @client.notes.create!(note_params.merge(
-          {
-            client_id: @client.id,
-            user_id: current_user.id,
-            type: type
-          }
-        ))
-        notice = "Added new note"
+                                client_id: @client.id,
+                                user_id: current_user.id,
+                                type: type,
+                              ))
+        notice = 'Added new note'
         # send notifications
         if note_params[:send_notification].present? && note_params[:recipients].present?
           sent = []
@@ -47,9 +46,7 @@ module Clients
               sent << user.name
             end
           end
-          if sent.any?
-            notice += "; sent to: " + sent.join(', ') + '.'
-          end
+          notice += '; sent to: ' + sent.join(', ') + '.' if sent.any?
         end
         flash[:notice] = notice
       rescue Exception => e
@@ -60,18 +57,15 @@ module Clients
     end
 
     def destroy
-      if ! can_edit_client_notes?
-        @note = note_scope.find_by(id: params[:id].to_i, user_id: current_user.id)
-      end
+      @note = note_scope.find_by(id: params[:id].to_i, user_id: current_user.id) unless can_edit_client_notes?
       begin
         @note.destroy!
-        flash[:notice] = "Note was successfully deleted."
+        flash[:notice] = 'Note was successfully deleted.'
       rescue Exception => e
-        flash[:error] = "Note could not be deleted."
+        flash[:error] = 'Note could not be deleted.'
       end
       redirect_to polymorphic_path(client_notes_path_generator, client_id: @client.id)
     end
-
 
     private def note_type
       if can_edit_client_notes?

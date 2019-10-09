@@ -21,16 +21,16 @@ module Census
     def json
       date_range_options = params.permit(:start_date, :end_date)
       @range = ::Filters::DateRange.new(start: date_range_options[:start_date], end: date_range_options[:end_date])
-      @census = Censuses::CensusByProjectType.new()
+      @census = Censuses::CensusByProjectType.new
       scope = homeless_scope
       scope = scope.veteran if params[:veteran].present?
       @data = @census.for_date_range_combined(
-        start_date: @range.start, 
+        start_date: @range.start,
         end_date: @range.end,
-        #scope: scope
+        # scope: scope
       )
-      @data[:title] = {text: 'Daily Census by Project Type'}
-      render json: {all: @data}
+      @data[:title] = { text: 'Daily Census by Project Type' }
+      render json: { all: @data }
     end
 
     def homeless_scope

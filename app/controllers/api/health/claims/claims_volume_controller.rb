@@ -8,7 +8,7 @@ module Api::Health::Claims
   class ClaimsVolumeController < BaseController
     include ArelHelper
 
-    def load_data      
+    def load_data
       a_t = source.arel_table
       @data = source.order(year: :asc, month: :asc).
         group(:year, :month).pluck(

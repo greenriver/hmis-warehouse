@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Admin  
+module Admin
   class TranslationTextController < ApplicationController
     before_action :require_can_edit_translations!
     before_action :find_translation_text
@@ -28,12 +28,12 @@ module Admin
 
     def translation_text_source
       TranslationText
-    end  
-    
+    end
+
     def find_translation_text
       @text = translation_text_source.find(params[:id].to_i)
-    end  
-    
+    end
+
     def text_params
       params.require(:translation_text).permit(:text, :id, :locale)
     end

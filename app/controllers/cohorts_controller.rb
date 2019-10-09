@@ -40,15 +40,13 @@ class CohortsController < ApplicationController
     # leave off the pagination here and return all the data
     @cohort_clients = @cohort.search_clients(population: params[:population], user: current_user)
     # redirect_to cohorts_path(population: ) if @cohort.needs_client_search?
-    @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
+    @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map { |m| [m.id, m.updated_at.to_i] }.to_h
     @population = params[:population]
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
-          @visible_columns << CohortColumns::Delete.new
-        end
+        @visible_columns << CohortColumns::Delete.new if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
@@ -60,35 +58,31 @@ class CohortsController < ApplicationController
           when 'dropdown'
             # header.merge!({type: col.renderer, source: col.available_header})
             # Be more forgiving of drop-down data
-            header.merge!({
-              available_options: [''] + col.available_options,
-              renderer: col.renderer,
-            })
+            header[:available_options] = [''] + col.available_options
+            header[:renderer] = col.renderer
           when 'date', 'checkbox', 'text', 'numeric'
-            header.merge!({renderer: col.renderer})
+            header[:renderer] = col.renderer
           else
-            header.merge!({renderer: col.renderer})
+            header[:renderer] = col.renderer
           end
           header
         end
-        @column_options =  @visible_columns.map do |m|
+        @column_options = @visible_columns.map do |m|
           options = {
-            data: "#{m.column}.value"
+            data: "#{m.column}.value",
           }
-          if m.date_format.present?
-            options[:dateFormat] = m.date_format
-          end
+          options[:dateFormat] = m.date_format if m.date_format.present?
 
           case m.renderer
           when 'dropdown'
             # options.merge!({type: m.renderer, source: m.available_options})
             # Be more forgiving of drop-down data
-            options.merge!({type: 'autocomplete', source: m.available_options, strict: false, filter: false})
+            options.merge!(type: 'autocomplete', source: m.available_options, strict: false, filter: false)
           when 'date', 'checkbox', 'text', 'numeric'
-            options.merge!({type: m.renderer})
+            options[:type] = m.renderer
           else
-            options.merge!({renderer: m.renderer})
-            options.merge!({readOnly: true}) unless m.editable
+            options[:renderer] = m.renderer
+            options[:readOnly] = true unless m.editable
           end
           options
         end
@@ -101,25 +95,23 @@ class CohortsController < ApplicationController
 
   def edit
     @assessment_types = [
-      [ "Youth VI-SPDAT", GrdaWarehouse::Vispdat::Youth ],
-      [ "Individual VI-SPDAT", GrdaWarehouse::Vispdat::Individual ],
-      [ "Family VI-SPDAT", GrdaWarehouse::Vispdat::Family ],
+      ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
+      ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
+      ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
     ]
   end
 
   def destroy
     @cohort.destroy
-    redirect_to cohorts_path()
+    redirect_to cohorts_path
   end
 
   def create
-    begin
-      @cohort = cohort_source.create!(cohort_params)
-      respond_with(@cohort, location: cohort_path(@cohort))
-    rescue Exception => e
-      flash[:error] = e.message
-      redirect_to cohorts_path()
-    end
+    @cohort = cohort_source.create!(cohort_params)
+    respond_with(@cohort, location: cohort_path(@cohort))
+  rescue Exception => e
+    flash[:error] = e.message
+    redirect_to cohorts_path
   end
 
   def update
@@ -145,7 +137,7 @@ class CohortsController < ApplicationController
       :visible_in_cas,
       :assessment_trigger,
       :tag_id,
-      user_ids: []
+      user_ids: [],
     )
   end
 
@@ -154,12 +146,11 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
       map do |id, name, short_name|
-        [id, short_name.presence || name]
-      end.to_h
+      [id, short_name.presence || name]
+    end.to_h
     end
-
 
   def flash_interpolation_options
     { resource_name: @cohort&.name }
@@ -167,10 +158,10 @@ class CohortsController < ApplicationController
 
   def sort_options
     [
-        { title: 'Cohort Names A-Z', column: 'name', direction: 'asc', order: 'LOWER(name) ASC' },
-        { title: 'Cohort Names Z-A', column: 'name', direction: 'desc', order: 'LOWER(name) DESC' },
-        { title: 'Effective Date Ascending', column: 'effective_date', direction: 'asc', order: 'effective_date ASC' },
-        { title: 'Effective Date Decending', column: 'effective_date', direction: 'desc', order: 'effective_date DESC' },
+      { title: 'Cohort Names A-Z', column: 'name', direction: 'asc', order: 'LOWER(name) ASC' },
+      { title: 'Cohort Names Z-A', column: 'name', direction: 'desc', order: 'LOWER(name) DESC' },
+      { title: 'Effective Date Ascending', column: 'effective_date', direction: 'asc', order: 'effective_date ASC' },
+      { title: 'Effective Date Decending', column: 'effective_date', direction: 'desc', order: 'effective_date DESC' },
     ]
   end
   helper_method :sort_options
@@ -183,10 +174,7 @@ class CohortsController < ApplicationController
       m[:column] == @column && m[:direction] == @direction
     end.first[:order]
 
-    if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
-      result += ' NULLS LAST'
-    end
-    return result
+    result += ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    result
   end
-
 end

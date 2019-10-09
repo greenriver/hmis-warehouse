@@ -17,7 +17,6 @@ module Clients::Youth
 
     after_action :log_client
 
-
     def index
       @intakes = @client.youth_intakes.merge(intake_scope)
       @case_managements = @client.case_managements.
@@ -38,8 +37,7 @@ module Clients::Youth
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
     end
 
-    def show
-    end
+    def show; end
 
     def new
       new_source = if @client.youth_intakes.merge(intake_scope).exists?
@@ -64,14 +62,11 @@ module Clients::Youth
 
       set_other_options
       @intake.save
-      if @intake.errors.any?
-        flash[:error] = 'Please correct errors in the intake form.'
-      end
+      flash[:error] = 'Please correct errors in the intake form.' if @intake.errors.any?
       respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
     end
 
-    def destroy
-    end
+    def destroy; end
 
     def edit
       use_other_options
@@ -97,11 +92,7 @@ module Clients::Youth
       ].compact.max
 
       cut_off_date = Date.current - 3.months - 1.week
-      if last_contact.present? && last_contact <= cut_off_date
-        last_contact + 3.months
-      else
-        nil
-      end
+      last_contact + 3.months if last_contact.present? && last_contact <= cut_off_date
     end
 
     def set_client
