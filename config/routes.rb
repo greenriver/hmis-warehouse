@@ -673,6 +673,7 @@ Rails.application.routes.draw do
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
 
+    resources :delayed_jobs, only: [:index, :update, :destroy]
   end
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
