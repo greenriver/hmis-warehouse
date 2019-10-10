@@ -11,39 +11,33 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client.column_names + GrdaWarehouse::Hud::Enrollment.column_names
     ).reject { |n| n =~ /^date|(?<![a-z])(?:id|date)$/i }.sort.freeze
 
-    # got these from chart in PDF I regarded as the spec
-    DEFAULT_COLUMNS = %w[
-      FirstName
-      LastName
-      SSN
-      SSNQuality
-      DOB
-      Ethnicity
-      Gender
-      VeteranStatus
-      DisablingCondition
-      LivingSituation
-      LastPermanentZIP
+    DEFAULT_COLUMNS = [
+      'FirstName',
+      'LastName',
+      'SSN',
+      'SSNQuality',
+      'DOB',
+      'Ethnicity',
+      'Gender',
+      'VeteranStatus',
+      'DisablingCondition',
+      'LivingSituation',
+      'LastPermanentZIP',
     ] & POTENTIAL_COLUMNS
 
     COLUMN_TO_AREL = POTENTIAL_COLUMNS.map do |c|
-      t = [GrdaWarehouse::Hud::Client, GrdaWarehouse::Hud::Enrollment].detect do |t|
-        t.column_names.include? c
+      t = [GrdaWarehouse::Hud::Client, GrdaWarehouse::Hud::Enrollment].detect do |table|
+        table.column_names.include? c
       end
       [c, t.arel_table[c.to_sym]]
     end.to_h.with_indifferent_access.freeze
 
-    SOURCES = %w[
-      all
-      data_source
-      organization
-      project
-    ].map(&:humanize).map(&:titleize).freeze
+    SOURCES = ['all', 'data_source', 'organization', 'project'].map(&:humanize).map(&:titleize).freeze
 
     def index
       report_params = { user: current_user }
       report_params.merge!(params[:q]) if params[:q]
-      @query = MissingValuesQuery.new **report_params.symbolize_keys
+      @query = MissingValuesQuery.new(**report_params.symbolize_keys)
       @query.valid? # this initializes the object so simple form will render it correctly
       respond_to :html, :xlsx
     end
@@ -74,12 +68,12 @@ module WarehouseReports
         @columns.select(&:present?)
       end
 
-      def client_column?(c)
-        COLUMN_TO_AREL[c].relation.engine == GrdaWarehouse::Hud::Client
+      def client_column?(column)
+        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Client
       end
 
-      def enrollment_column?(c)
-        COLUMN_TO_AREL[c].relation.engine == GrdaWarehouse::Hud::Enrollment
+      def enrollment_column?(column)
+        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Enrollment
       end
 
       def client_columns
@@ -119,7 +113,7 @@ module WarehouseReports
               else
                 raise 'we should never get here'
               end
-              if denominator.to_f == 0
+              if denominator.to_f.zero?
                 { na: true }
               else
                 { fraction: v.to_f / denominator }
@@ -206,6 +200,7 @@ module WarehouseReports
 
       # grab in all the necessary names and ids to make the form and queries
       # returns map from type keys to maps from names to ids: { type: { name: id } }
+      # rubocop:disable Metrics/ParameterLists, Lint/ShadowingOuterLocalVariable
       def all_sources
         @all_sources ||= begin
           st = data_sources.arel_table
@@ -259,6 +254,7 @@ module WarehouseReports
           }
         end
       end
+      # rubocop:enable Metrics/ParameterLists, Lint/ShadowingOuterLocalVariable
 
       private
 
@@ -290,7 +286,7 @@ module WarehouseReports
         GrdaWarehouse::Hud::Enrollment.arel_table
       end
 
-      def normalize_hash(h)
+      def normalize_hash(h) # rubocop:disable Naming/UncommunicativeMethodParamName
         h = h.to_hash.first
         h.map { |k, v| [k.tr('_', ' '), v] }.to_h.with_indifferent_access
       end
@@ -310,7 +306,7 @@ module WarehouseReports
               union = cols[1..-1].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
               s = s.select make_count(union, all_missing_clients_field_key.tr(' ', '_'))
             end
-            s = s.select *cols.map { |c| make_count(c.eq(nil), c.name.to_s) }
+            s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
             s = s.select nf('COUNT', [ct[:id]]).as(all_clients_key.tr(' ', '_'))
             normalize_hash s.connection.select_all(s.to_sql)
           else
@@ -329,7 +325,7 @@ module WarehouseReports
               union = cols[1..-1].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
               s = s.select make_count(union, all_missing_enrollments_field_key.tr(' ', '_'))
             end
-            s = s.select *cols.map { |c| make_count(c.eq(nil), c.name.to_s) }
+            s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
             s = s.select nf('COUNT', [et[:id]]).as(all_enrollments_key.tr(' ', '_'))
             normalize_hash s.connection.select_all(s.to_sql)
           else
@@ -340,7 +336,7 @@ module WarehouseReports
 
       # true when enrollments are joined into scope and hence there will be client field repeats
       def needs_distinct?
-        source.in? %w[Organization Project]
+        source.in? ['Organization', 'Project']
       end
 
       def scope

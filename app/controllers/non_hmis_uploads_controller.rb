@@ -9,7 +9,7 @@ class NonHmisUploadsController < ApplicationController
   before_action :set_data_source
 
   def index
-    attributes = GrdaWarehouse::NonHmisUpload.column_names - %w[import_errors content]
+    attributes = GrdaWarehouse::NonHmisUpload.column_names - ['import_errors', 'content']
     @uploads = upload_source.select(*attributes).
       where(data_source_id: @data_source.id).
       page(params[:page].to_i).per(20).order(created_at: :desc)
@@ -34,13 +34,15 @@ class NonHmisUploadsController < ApplicationController
       return
     end
     file = upload_params[:file]
-    @upload = upload_source.new(upload_params.merge(
-                                  percent_complete: 0.0,
-                                  data_source_id: @data_source.id,
-                                  user_id: current_user.id,
-                                  content_type: file.content_type,
-                                  content: file.read,
-                                ))
+    @upload = upload_source.new(
+      upload_params.merge(
+        percent_complete: 0.0,
+        data_source_id: @data_source.id,
+        user_id: current_user.id,
+        content_type: file.content_type,
+        content: file.read,
+      ),
+    )
     if @upload.save
       run_import = true
       flash[:notice] = _('Upload queued to start.')
@@ -49,10 +51,10 @@ class NonHmisUploadsController < ApplicationController
       flash[:alert] = _('Upload failed to queue, did you attach a file?')
       render :new
     end
-    if run_import
-      job = Delayed::Job.enqueue Importing::NonHmisJob.new(upload: @upload, data_source_id: @upload.data_source_id)
-      @upload.update(delayed_job_id: job.id)
-    end
+    return unless run_import
+
+    job = Delayed::Job.enqueue Importing::NonHmisJob.new(upload: @upload, data_source_id: @upload.data_source_id)
+    @upload.update(delayed_job_id: job.id)
   end
 
   private

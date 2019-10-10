@@ -29,10 +29,10 @@ module WarehouseReports
       @start_date = filter_params[:start]
       @end_date = filter_params[:end]
 
-      if @name.blank? || @start_date.blank? || @end_date.blank?
-        flash[:notice] = 'Please select a name, start, and end date'
-        redirect_to(action: :index) && return
-      end
+      return unless @name.blank? || @start_date.blank? || @end_date.blank?
+
+      flash[:notice] = 'Please select a name, start, and end date'
+      redirect_to(action: :index) && return
     end
 
     def load_responses
@@ -46,10 +46,10 @@ module WarehouseReports
       @client_ids = Set.new
       @responses.each do |response|
         answers = response.answers
-        client_name = response.client.name
+        # client_name = response.client.name
         client_id = response.client.destination_client.id
         @client_ids << client_id
-        date = response.collected_at
+        # date = response.collected_at
         response_id = response.id
         answers[:sections].each do |section|
           title = section[:section_title]

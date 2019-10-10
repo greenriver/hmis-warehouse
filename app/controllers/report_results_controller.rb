@@ -102,14 +102,14 @@ class ReportResultsController < ApplicationController
       coc_codes = @result.options['coc_codes'].select(&:present?)
       options[:coc_codes] = coc_codes
     end
-    if run_report_engine
-      job = Delayed::Job.enqueue Reporting::RunReportJob.new(
-        report: @report,
-        result_id: @result.id,
-        options: options,
-      ), queue: :default_priority
-      @result.update(delayed_job_id: job.id)
-    end
+    return unless run_report_engine
+
+    job = Delayed::Job.enqueue Reporting::RunReportJob.new(
+      report: @report,
+      result_id: @result.id,
+      options: options,
+    ), queue: :default_priority
+    @result.update(delayed_job_id: job.id)
   end
 
   # PATCH/PUT /report_results/1
@@ -267,7 +267,7 @@ class ReportResultsController < ApplicationController
   end
 
   def report_result_summary_columns
-    ReportResult.column_names - %w[original_results results support validations]
+    ReportResult.column_names - ['original_results', 'results', 'support', 'validations']
   end
 
   # Use callbacks to share common setup or constraints between actions.
@@ -281,7 +281,7 @@ class ReportResultsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def report_result_params
-    allowed_params = params.require(:report_result).permit(
+    params.require(:report_result).permit(
       :name,
       options: [
         :project,
@@ -308,7 +308,7 @@ class ReportResultsController < ApplicationController
   end
 
   def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'desc'
+    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
   end
 
   def default_pit_date

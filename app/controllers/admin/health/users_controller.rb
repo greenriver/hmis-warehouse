@@ -34,7 +34,7 @@ module Admin::Health
           new_roles = current_roles + Role.where(id: enabled_role_ids) - Role.where(id: disabled_role_ids)
           user.roles = new_roles
         end
-      rescue ActiveRecord::ActiveRecordError => e
+      rescue ActiveRecord::ActiveRecordError
         flash[:error] = 'Unable to update roles'
         error = true
         render action: :index

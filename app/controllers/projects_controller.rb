@@ -85,10 +85,10 @@ class ProjectsController < ApplicationController
   end
 
   def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
   end
 
   def flash_interpolation_options
     { resource_name: 'Project' }
-    end
+  end
 end

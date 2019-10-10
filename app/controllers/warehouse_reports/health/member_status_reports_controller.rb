@@ -23,10 +23,10 @@ module WarehouseReports::Health
     def running; end
 
     def show
-      # CP Member Status and Outreach File: “CP_[CP Short Name]_MH_STATUSOUTREACH_FULL_YYYYMMDD.XLSX”
+      # CP Member Status and Outreach File: "CP_[CP Short Name]_MH_STATUSOUTREACH_FULL_YYYYMMDD.XLSX"
       # i. Example: CP_BHCHP-CP_STATUSOUTREACH_FULL_20180718.XLSX
       #
-      # Summary File: Files sent by ACO, MCO, or CP: “[ACO, MCO or CP]_[ACO, MCO or CP Short Name]_MH_SUMMARY_FULL_YYYYMMDD.XLSX”
+      # Summary File: Files sent by ACO, MCO, or CP: "[ACO, MCO or CP]_[ACO, MCO or CP Short Name]_MH_SUMMARY_FULL_YYYYMMDD.XLSX"
       # iii. Example: CP_BHCHP-CP_MH_SUMMARY_FULL_20180718.XLSX
 
       @patients = @report.member_status_report_patients

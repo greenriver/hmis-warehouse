@@ -10,7 +10,7 @@ class UploadsController < ApplicationController
   before_action :set_upload, only: [:show, :edit]
 
   def index
-    attributes = GrdaWarehouse::Upload.column_names - %w[import_errors content]
+    attributes = GrdaWarehouse::Upload.column_names - ['import_errors', 'content']
     @uploads = upload_source.select(*attributes).
       where(data_source_id: @data_source.id).
       page(params[:page].to_i).per(20).order(created_at: :desc)
@@ -32,13 +32,15 @@ class UploadsController < ApplicationController
       return
     end
     file = upload_params[:file]
-    @upload = upload_source.new(upload_params.merge(
-                                  percent_complete: 0.0,
-                                  data_source_id: @data_source.id,
-                                  user_id: current_user.id,
-                                  content_type: file.content_type,
-                                  content: file.read,
-                                ))
+    @upload = upload_source.new(
+      upload_params.merge(
+        percent_complete: 0.0,
+        data_source_id: @data_source.id,
+        user_id: current_user.id,
+        content_type: file.content_type,
+        content: file.read,
+      ),
+    )
     if @upload.save
       run_import = true
       flash[:notice] = _('Upload queued to start.')
@@ -47,17 +49,17 @@ class UploadsController < ApplicationController
       flash[:alert] = _('Upload failed to queue, did you attach a file?')
       render :new
     end
-    if run_import
-      case params[:grda_warehouse_upload][:import_type]
-      when 'hmis_51'
-        job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
-      when 'hmis_611'
-        job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
-      when 'hmis_2020'
-        job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
-      end
-      @upload.update(delayed_job_id: job.id)
+    return unless run_import
+
+    case params[:grda_warehouse_upload][:import_type]
+    when 'hmis_51'
+      job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
+    when 'hmis_611'
+      job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
+    when 'hmis_2020'
+      job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
     end
+    @upload.update(delayed_job_id: job.id)
   end
 
   private def upload_params

@@ -18,7 +18,7 @@ module Admin
           @text.text = nil
           @text.save
         end
-      rescue Exception => e
+      rescue Exception
         error = true
         render status: 500, json: 'Unable to save translation', layout: false
       end

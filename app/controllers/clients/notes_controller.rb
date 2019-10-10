@@ -61,7 +61,7 @@ module Clients
       begin
         @note.destroy!
         flash[:notice] = 'Note was successfully deleted.'
-      rescue Exception => e
+      rescue Exception
         flash[:error] = 'Note could not be deleted.'
       end
       redirect_to polymorphic_path(client_notes_path_generator, client_id: @client.id)

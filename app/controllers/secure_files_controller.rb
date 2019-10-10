@@ -32,13 +32,14 @@ class SecureFilesController < ApplicationController
       render(:index) && return
     end
     file = file_params[:file]
-    @secure_file = file_source.new(file_params.merge(
-                                     sender_id: current_user.id,
-                                     content_type: file.content_type,
-                                     content: file.read,
-                                   ))
+    @secure_file = file_source.new(
+      file_params.merge(
+        sender_id: current_user.id,
+        content_type: file.content_type,
+        content: file.read,
+      ),
+    )
     if @secure_file.save
-      run_import = true
       flash[:notice] = _('Upload successful, please let the recipient know the file has been sent.')
       redirect_to action: :index
     else

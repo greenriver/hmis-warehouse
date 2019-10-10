@@ -50,7 +50,7 @@ module Health
       else
         @note.save(validate: false)
       end
-      @noteAdded = (@activity_count != @note.activities.size)
+      @note_added = (@activity_count != @note.activities.size)
       @activities = @note.activities.sort_by(&:id)
       respond_with @note, location: polymorphic_path(careplans_path_generator)
     end

@@ -28,13 +28,13 @@ module HudChronic
     def set_hud_chronic_sort
       client_at = client_source.arel_table
       @column = params[:sort] || 'months_in_last_three_years'
-      @direction = if %w[asc desc].include?(params[:direction])
+      @direction = if ['asc', 'desc'].include?(params[:direction])
         params[:direction]
       else
         'desc'
       end
       # whitelist for column
-      table = if %w[FirstName LastName].include?(@column)
+      table = if ['FirstName', 'LastName'].include?(@column)
         client_at
       elsif chronic_source.column_names.include?(@column)
         hc_t

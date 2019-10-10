@@ -36,7 +36,7 @@ module Admin::Health
             patient.update(client_id: nil)
           end
         end
-      rescue ActiveRecord::ActiveRecordError => e
+      rescue ActiveRecord::ActiveRecordError
         flash[:error] = 'Unable to update patients'
         error = true
         render action: :index

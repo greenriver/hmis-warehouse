@@ -33,7 +33,7 @@ module Admin
     end
 
     private def file_params
-      p = params.require(:grda_warehouse_public_file).permit(
+      params.require(:grda_warehouse_public_file).permit(
         :file,
         :name,
       )

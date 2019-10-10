@@ -101,7 +101,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc foo' do
         before do
-          user.coc_codes = %w[foo]
+          user.coc_codes = ['foo']
           user.save
         end
         after do
@@ -115,7 +115,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc bar' do
         before do
-          user.coc_codes = %w[bar]
+          user.coc_codes = ['bar']
           user.save
         end
         after do

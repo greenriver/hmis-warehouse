@@ -111,6 +111,7 @@ module Admin::Health
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
+    # rubocop:disable Style/IfInsideElse
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes(assign_agency_params)
@@ -138,6 +139,7 @@ module Admin::Health
         end
       end
     end
+    # rubocop:enable Style/IfInsideElse
 
     def bulk_assign_agency
       @params = params[:bulk_assignment] || {}

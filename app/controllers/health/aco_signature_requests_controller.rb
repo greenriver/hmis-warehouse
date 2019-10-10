@@ -98,7 +98,7 @@ module Health
         user_id: User.setup_system_user.id,
         expires_at: @expires_at,
       )
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
       if @doc.valid?
         @careplan.class.transaction do
           @doc.save!
@@ -129,7 +129,7 @@ module Health
       @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
       begin
         @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
-      rescue ActiveRecord::RecordNotFound => e
+      rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign ACO')
         render(:new) && return
       end
@@ -165,7 +165,7 @@ module Health
         user_id: current_user.id,
         expires_at: @expires_at,
       )
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
       if @doc.valid?
         @careplan.class.transaction do
           @doc.save!
@@ -193,7 +193,7 @@ module Health
 
     def destroy
       @signature_request.destroy
-      if signable_document = @signature_request.signable_document
+      if (signable_document = @signature_request.signable_document)
         signable_document.destroy
       end
       respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
@@ -255,9 +255,8 @@ module Health
 
     private
 
-    def get_pdf
+    def generate_pdf
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
       @pdf = pdf.to_pdf
     end
 
@@ -270,17 +269,17 @@ module Health
     end
 
     def require_matching_hash!
-      if @doc.signer_hash(params[:email]) != params[:hash]
-        not_authorized!
-        nil
-      end
+      return if @doc.signer_hash(params[:email]) == params[:hash]
+
+      not_authorized!
+      nil
     end
 
     def require_doc_not_expired!
-      if @doc.expired?
-        not_authorized!
-        nil
-      end
+      return unless @doc.expired?
+
+      not_authorized!
+      nil
     end
   end
 end

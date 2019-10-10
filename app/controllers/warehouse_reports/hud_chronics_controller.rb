@@ -49,7 +49,6 @@ module WarehouseReports
     # Present a chart of the counts from the previous three years
     def summary
       @range = ::Filters::DateRange.new(start: 3.years.ago, end: 1.day.ago)
-      ct = chronic_source.arel_table
       @counts = chronic_source.
         where(date: @range.range)
       @counts = @counts.where(individual: true) if @filter.individual

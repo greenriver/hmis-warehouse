@@ -15,7 +15,7 @@ module HUD
 
     return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
     return false if area_number.to_i >= 900 || area_number == '666'
-    return false if %w[219099999 078051120 123456789].include?(ssn)
+    return false if ['219099999', '078051120', '123456789'].include?(ssn)
     return false if ssn.split('').uniq.count == 1 # all the same number
 
     true
@@ -75,102 +75,102 @@ module HUD
   # to the corresponding phrase
   def list(number, id, reverse = false)
     method = case number.to_s
-             when 'race' then :race
-             when '1.1' then :export_period_type
-             when '1.2' then :export_directive
-             when '1.3' then :disability_type
-             when '1.4' then :record_type
-             when '1.5' then :hash_status
-             when '1.6' then :race_none
-             when '1.7' then :no_yes_missing
-             when '1.8' then :no_yes_reasons_for_missing_data
-             when '1.9' then :source_type
-             when '2.4.2' then :project_type
-             when '2.5.1' then :tracking_method
-             when '2.6.1' then :funding_source
-             when '2.7.2' then :household_type
-             when '2.7.3' then :bed_type
-             when '2.7.4' then :availability
-             when '2.7.B' then :youth_age_group
-             when '2.8.7' then :geography_type
-             when '2.8.8' then :housing_type
-             when '2.9.1' then :target_population
-             when '3.1.5' then :name_data_quality
-             when '3.2.2' then :ssn_data_quality
-             when '3.3.2' then :dob_data_quality
-             when '3.5.1' then :ethnicity
-             when '3.6.1' then :gender
-             when '3.917.1' then :living_situation
-             when '3.917.2' then :residence_prior_length_of_stay
-             when '3.3917.4' then :times_homeless_past_three_years
-             when '3.917.5' then :months_homeless_past_three_years
-             when '3.12.1' then :destination
-             when '3.15.1' then :relationship_to_hoh
-             when '4.1.1' then :housing_status
-             when '4.04.A' then :reason_not_insured
-             when '4.9.D' then :p_a_t_h_how_confirmed
-             when '4.9.E' then :p_a_t_h_s_m_i_information
-             when '4.10.2' then :disability_response
-             when '4.11.A' then :when_d_v_occurred
-             when '4.12.2' then :contact_location
-             when '4.14.A', 'P1.2' then :p_a_t_h_services
-             when '4.14.B' then :r_h_y_services
-             when '4.14.C', 'W1.2' then :h_o_p_w_a_services
-             when '4.14.D', 'V2.2' then :s_s_v_f_services
-             when '4.14.D3', 'V2.A' then :s_s_v_f_sub_type3
-             when '4.14.D4', 'V2.4' then :s_s_v_f_sub_type4
-             when '4.14.D5', 'V2.5' then :s_s_v_f_sub_type5
-             when '4.15.A', 'V2.3' then :h_o_p_w_a_financial_assistance
-             when '4.14' then :bed_night
-             when '4.15.B' then :s_s_v_f_financial_assistance
-             when '4.16.A', 'P2.2' then :p_a_t_h_referral
-             when '4.16.B', 'R14.2' then :r_h_y_referral
-             when '4.16.A1' then :p_a_t_h_referral_outcome
-             when '4.18.1' then :housing_assessment_disposition
-             when '4.19.1', 'W5.1' then :housing_assessment_at_exit
-             when '4.19.4' then :assessment_level
-             when '4.19.7' then :prioritization_status
-             when '4.19.A', 'W5.A' then :subsidy_information
-             when '4.20.A', 'P3.A' then :reason_not_enrolled
-             when '4.20.D' then :referral_result
-             when '4.20.2' then :event
-             when '4.22.A', 'R2.A' then :reason_no_services
-             when '4.23.1', 'R3.1' then :sexual_orientation
-             when '4.24.1', 'R4.1' then :last_grade_completed
-             when '4.25.1', 'R5.1' then :school_status
-             when '4.26.A', 'R6.A' then :employment_type
-             when '4.26.B', 'R6.B' then :not_employed_reason
-             when '4.27.1', 'R7.1' then :health_status
-             when '4.31.A', 'R11.A' then :r_h_y_numberof_years
-             when '4.33.A' then :incarcerated_parent_status
-             when '4.34.1', 'R1.1' then :referral_source
-             when '4.35.A', 'R15.B' then :count_exchange_for_sex
-             when '4.36.1' then :exit_action
-             when '4.37.1', 'R17.1' then :project_completion_status
-             when '4.37.A' then :early_exit_reason
-             when '4.37.B', 'R17.A' then :expelled_reason
-             when 'R19.A' then :worker_response
-             when 'R20.2' then :aftercare_provided
-             when '4.39', 'W3' then :no_assistance_reason
-             when '4.41.11', 'V1.11' then :military_branch
-             when '4.41.12', 'V1.12' then :discharge_status
-             when '4.42.1', 'V4.1' then :percent_a_m_i
-             when '4.43.5', 'V5.5' then :address_data_quality
-             when 'V6.1' then :vamcs_station_number
-             when '4.47.B', 'W4.B' then :t_cell_source_viral_load_source
-             when '4.47.3', 'W4.3' then :viral_load_available
-             when '4.48.1', 'V7.1' then :no_points_yes
-             when '4.48.2', 'V7.2' then :time_to_housing_loss
-             when '4.48.4', 'V7.4' then :annual_percent_a_m_i
-             when '4.48.7', 'V7.7' then :eviction_history
-             when '4.48.9', 'V7.9' then :literal_homeless_history
-             when 'V8.1' then :voucher_tracking
-             when 'V9.1' then :cm_exit_reason
-             when '4.49.1' then :crisis_services_use
-             when '5.03.1' then :data_collection_stage
-             when 'ad_hoc_yes_no_1' then :ad_hoc_yes_no_1
-             else
-               raise "unknown controlled vocabulary list: #{number}"
+    when 'race' then :race
+    when '1.1' then :export_period_type
+    when '1.2' then :export_directive
+    when '1.3' then :disability_type
+    when '1.4' then :record_type
+    when '1.5' then :hash_status
+    when '1.6' then :race_none
+    when '1.7' then :no_yes_missing
+    when '1.8' then :no_yes_reasons_for_missing_data
+    when '1.9' then :source_type
+    when '2.4.2' then :project_type
+    when '2.5.1' then :tracking_method
+    when '2.6.1' then :funding_source
+    when '2.7.2' then :household_type
+    when '2.7.3' then :bed_type
+    when '2.7.4' then :availability
+    when '2.7.B' then :youth_age_group
+    when '2.8.7' then :geography_type
+    when '2.8.8' then :housing_type
+    when '2.9.1' then :target_population
+    when '3.1.5' then :name_data_quality
+    when '3.2.2' then :ssn_data_quality
+    when '3.3.2' then :dob_data_quality
+    when '3.5.1' then :ethnicity
+    when '3.6.1' then :gender
+    when '3.917.1' then :living_situation
+    when '3.917.2' then :residence_prior_length_of_stay
+    when '3.3917.4' then :times_homeless_past_three_years
+    when '3.917.5' then :months_homeless_past_three_years
+    when '3.12.1' then :destination
+    when '3.15.1' then :relationship_to_hoh
+    when '4.1.1' then :housing_status
+    when '4.04.A' then :reason_not_insured
+    when '4.9.D' then :p_a_t_h_how_confirmed
+    when '4.9.E' then :p_a_t_h_s_m_i_information
+    when '4.10.2' then :disability_response
+    when '4.11.A' then :when_d_v_occurred
+    when '4.12.2' then :contact_location
+    when '4.14.A', 'P1.2' then :p_a_t_h_services
+    when '4.14.B' then :r_h_y_services
+    when '4.14.C', 'W1.2' then :h_o_p_w_a_services
+    when '4.14.D', 'V2.2' then :s_s_v_f_services
+    when '4.14.D3', 'V2.A' then :s_s_v_f_sub_type3
+    when '4.14.D4', 'V2.4' then :s_s_v_f_sub_type4
+    when '4.14.D5', 'V2.5' then :s_s_v_f_sub_type5
+    when '4.15.A', 'V2.3' then :h_o_p_w_a_financial_assistance
+    when '4.14' then :bed_night
+    when '4.15.B' then :s_s_v_f_financial_assistance
+    when '4.16.A', 'P2.2' then :p_a_t_h_referral
+    when '4.16.B', 'R14.2' then :r_h_y_referral
+    when '4.16.A1' then :p_a_t_h_referral_outcome
+    when '4.18.1' then :housing_assessment_disposition
+    when '4.19.1', 'W5.1' then :housing_assessment_at_exit
+    when '4.19.4' then :assessment_level
+    when '4.19.7' then :prioritization_status
+    when '4.19.A', 'W5.A' then :subsidy_information
+    when '4.20.A', 'P3.A' then :reason_not_enrolled
+    when '4.20.D' then :referral_result
+    when '4.20.2' then :event
+    when '4.22.A', 'R2.A' then :reason_no_services
+    when '4.23.1', 'R3.1' then :sexual_orientation
+    when '4.24.1', 'R4.1' then :last_grade_completed
+    when '4.25.1', 'R5.1' then :school_status
+    when '4.26.A', 'R6.A' then :employment_type
+    when '4.26.B', 'R6.B' then :not_employed_reason
+    when '4.27.1', 'R7.1' then :health_status
+    when '4.31.A', 'R11.A' then :r_h_y_numberof_years
+    when '4.33.A' then :incarcerated_parent_status
+    when '4.34.1', 'R1.1' then :referral_source
+    when '4.35.A', 'R15.B' then :count_exchange_for_sex
+    when '4.36.1' then :exit_action
+    when '4.37.1', 'R17.1' then :project_completion_status
+    when '4.37.A' then :early_exit_reason
+    when '4.37.B', 'R17.A' then :expelled_reason
+    when 'R19.A' then :worker_response
+    when 'R20.2' then :aftercare_provided
+    when '4.39', 'W3' then :no_assistance_reason
+    when '4.41.11', 'V1.11' then :military_branch
+    when '4.41.12', 'V1.12' then :discharge_status
+    when '4.42.1', 'V4.1' then :percent_a_m_i
+    when '4.43.5', 'V5.5' then :address_data_quality
+    when 'V6.1' then :vamcs_station_number
+    when '4.47.B', 'W4.B' then :t_cell_source_viral_load_source
+    when '4.47.3', 'W4.3' then :viral_load_available
+    when '4.48.1', 'V7.1' then :no_points_yes
+    when '4.48.2', 'V7.2' then :time_to_housing_loss
+    when '4.48.4', 'V7.4' then :annual_percent_a_m_i
+    when '4.48.7', 'V7.7' then :eviction_history
+    when '4.48.9', 'V7.9' then :literal_homeless_history
+    when 'V8.1' then :voucher_tracking
+    when 'V9.1' then :cm_exit_reason
+    when '4.49.1' then :crisis_services_use
+    when '5.03.1' then :data_collection_stage
+    when 'ad_hoc_yes_no_1' then :ad_hoc_yes_no_1
+    else
+      raise "unknown controlled vocabulary list: #{number}"
     end
     send method, id, reverse
   end

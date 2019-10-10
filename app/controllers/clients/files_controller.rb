@@ -87,7 +87,7 @@ module Clients
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-      rescue StandardError => e
+      rescue StandardError
         # flash[:error] = e.message
         render action: :new
         return
@@ -133,7 +133,7 @@ module Clients
         # Keep various client fields in sync with files if appropriate
         @client.invalidate_consent! if @client.consent_form_id == @file.id
         @client.sync_cas_attributes_with_files
-      rescue Exception => e
+      rescue Exception
         flash[:error] = 'File could not be deleted.'
       end
       redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
@@ -171,7 +171,7 @@ module Clients
       end
     end
 
-    def has_thumb
+    def has_thumb # rubocop:disable Naming/PredicateName
       @thumb = @file.content_type == 'image/jpeg'
       if @thumb
         head(:ok) && return
@@ -230,7 +230,7 @@ module Clients
 
     def set_client
       @client = client_scope.find(params[:client_id].to_i)
-   end
+    end
 
     def set_file
       @file = all_file_scope.find(params[:id].to_i)

@@ -14,7 +14,6 @@ module WarehouseReports::Cas
       @range = ::Filters::DateRange.new(date_range_options)
       @step_range = ::Filters::StepRange.new(step_params)
 
-
       @matches = step_times(@step_range)
       @all_steps = report_source.
         where(match_id: @matches.keys).
@@ -67,15 +66,15 @@ module WarehouseReports::Cas
       second_step = step_range.second.gsub(/\(\d+\)/, '').strip
       unit        = step_range.unit
       divisor = case unit
-                when 'second'
+      when 'second'
         1
-                when 'minute'
+      when 'minute'
         60
-                when 'hour'
+      when 'hour'
         60 * 60
-                when 'day'
+      when 'day'
         24 * 60 * 60
-                when 'week'
+      when 'week'
         7 * 24 * 60 * 60
       else
         raise "unanticipated time unit: #{unit}"
@@ -84,31 +83,27 @@ module WarehouseReports::Cas
       at2 = Arel::Table.new at.table_name
       at2.table_alias = 'at2'
       query = at.where(at[:match_started_at].between(@range.start..@range.end + 1.day)).
-        join(at2).on(
-          at[:client_id].eq(at2[:client_id]).and(
-            at[:match_id].eq at2[:match_id],
-          ).and(
-            at[:match_step].eq first_step,
-          ).and(
-            at2[:match_step].eq second_step,
-          ),
-      ).where(at2[:match_started_at].between(@range.start..@range.end + 1.day)).
+        join(at2).on(at[:client_id].eq(at2[:client_id]).
+          and(at[:match_id].eq(at2[:match_id])).
+          and(at[:match_step].eq(first_step)).
+          and(at2[:match_step].eq(second_step))).
+        where(at2[:match_started_at].between(@range.start..@range.end + 1.day)).
         project(
-        seconds_diff(at.engine, at2[:updated_at], at[:updated_at]),
-        at[:match_id],
-        at[:program_name],
-        at[:sub_program_name],
-        at[:match_started_at],
-        at[:match_route],
-        at[:client_id],
-        at[:cas_client_id],
-        at[:source_data_source],
-      )
-      times = at.engine.connection.select_rows(query.to_sql).map do |row|
+          seconds_diff(at.engine, at2[:updated_at], at[:updated_at]),
+          at[:match_id],
+          at[:program_name],
+          at[:sub_program_name],
+          at[:match_started_at],
+          at[:match_route],
+          at[:client_id],
+          at[:cas_client_id],
+          at[:source_data_source],
+        )
+      at.engine.connection.select_rows(query.to_sql).map do |row|
         h = Hash[[:days, :id, :program_name, :sub_program_name, :match_started_at, :match_route, :client_id, :cas_client_id, :source_data_source].zip(row)]
         h[:days] = (h[:days].to_f / divisor).round.to_i
         ::OpenStruct.new(h)
-      end.index_by {|m| m.id }
+      end.index_by(&:id)
     end
   end
 end

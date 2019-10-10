@@ -45,5 +45,5 @@ class GeographyController < ApplicationController
 
   def flash_interpolation_options
     { resource_name: 'Geography' }
-    end
+  end
 end

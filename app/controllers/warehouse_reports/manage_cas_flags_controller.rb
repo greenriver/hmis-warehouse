@@ -75,9 +75,9 @@ module WarehouseReports
         client_source.transaction do
           client_ids = bulk_params[@flag.to_s].strip.split(/\s+/).uniq
           unflagged_count = unflag(column: @flag, client_ids: client_ids)
-          flashes << "Removed <strong>#{cas_flags[@flag.to_sym]}</strong> from #{unflagged_count} clients".html_safe if unflagged_count > 0
+          flashes << "Removed <strong>#{cas_flags[@flag.to_sym]}</strong> from #{unflagged_count} clients".html_safe if unflagged_count.positive?
           flagged_count = flag(column: @flag, client_ids: client_ids)
-          flashes << "Added <strong>#{client_source.cas_columns[@flag.to_sym]}</strong> to #{flagged_count} clients".html_safe if flagged_count > 0
+          flashes << "Added <strong>#{client_source.cas_columns[@flag.to_sym]}</strong> to #{flagged_count} clients".html_safe if flagged_count.positive?
         end
         flash[:notice] = flashes.join('<br />').html_safe if flashes.any?
         ::Cas::SyncToCasJob.perform_later
@@ -137,7 +137,7 @@ module WarehouseReports
         'Full HAN Release'
       elsif column == :limited_cas_release
         'Limited CAS Release'
-      elsif default === false || default === 'false'
+      elsif default === false || default === 'false' # rubocop:disable Style/CaseEquality
         true
       else
         Time.now

@@ -80,10 +80,10 @@ module Clients
     end
 
     def remove_child
-      if @vispdat.family?
-        @child = @vispdat.children.where(id: params[:child_id]).first
-        @child&.destroy
-      end
+      return unless @vispdat.family?
+
+      @child = @vispdat.children.where(id: params[:child_id]).first
+      @child&.destroy
     end
 
     def upload_file

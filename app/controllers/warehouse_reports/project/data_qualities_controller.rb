@@ -30,19 +30,19 @@ module WarehouseReports::Project
       @range.validate
       begin
         @project_ids = begin
-                         project_params
-                       rescue StandardError
-                         []
-                       end
+          project_params
+        rescue StandardError
+          []
+        end
         # filter by viewability
         @project_ids = project_scope.where(id: @project_ids).pluck(:id)
         @project_group_ids = begin
-                               project_group_params
-                             rescue StandardError
-                               []
-                             end
+          project_group_params
+        rescue StandardError
+          []
+        end
         raise ActionController::ParameterMissing, 'Parameters missing' if @project_ids.empty? && @project_group_ids.empty?
-      rescue ActionController::ParameterMissing => e
+      rescue ActionController::ParameterMissing
         errors << 'At least one project or project group must be selected'
       end
       if errors.any?
@@ -59,14 +59,14 @@ module WarehouseReports::Project
     def queue_report(id_column:, keys:)
       keys.each do |id|
         if @generate
-          report = report_scope.create(
+          report_scope.create(
             id_column => id,
             start: @range.start,
             end: @range.end,
             requestor_id: current_user.id,
           )
         else
-          report = report_scope.
+          report_scope.
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
@@ -148,9 +148,12 @@ module WarehouseReports::Project
     end
 
     def load_data_quality_report_shells
-      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - %w[report support]). order(id: :asc). index_by(&:project_id)
+      @project_report_shells = report_base_class.where.not(project_id: nil).
+        select(report_base_class.column_names - ['report', 'support']).
+        order(id: :asc).
+        index_by(&:project_id)
       @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
-        select(report_base_class.column_names - %w[report support]).
+        select(report_base_class.column_names - ['report', 'support']).
         order(id: :asc).
         index_by(&:project_group_id)
     end

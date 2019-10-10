@@ -21,14 +21,14 @@ module Admin::Dashboard
         ).order('id desc').first_or_initialize
       end
 
-      if can_edit_anything_super_user?
-        @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
-        @service_history = GrdaWarehouse::GenerateServiceHistoryLog.last
-        source_clients = client_scope.pluck(:id)
-        matched_sources = warehouse_client_source.pluck(:source_id)
+      return unless can_edit_anything_super_user?
 
-        @source_clients_with_no_destination = (source_clients - matched_sources).size
-      end
+      @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
+      @service_history = GrdaWarehouse::GenerateServiceHistoryLog.last
+      source_clients = client_scope.pluck(:id)
+      matched_sources = warehouse_client_source.pluck(:source_id)
+
+      @source_clients_with_no_destination = (source_clients - matched_sources).size
     end
 
     private def client_scope

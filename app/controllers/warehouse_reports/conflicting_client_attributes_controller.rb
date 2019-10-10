@@ -18,11 +18,7 @@ module WarehouseReports
     end
 
     def attributes
-      %w[
-        Gender
-        DOB
-        SSN
-      ]
+      ['Gender', 'DOB', 'SSN']
     end
     helper_method :attributes
 

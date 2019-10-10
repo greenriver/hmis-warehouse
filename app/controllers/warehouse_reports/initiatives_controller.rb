@@ -105,6 +105,7 @@ module WarehouseReports
       not_authorized!
     end
 
+    # rubocop:disable Style/GuardClause
     def access_by_token?
       return false if current_user.present?
 
@@ -118,6 +119,7 @@ module WarehouseReports
         raise ActionController::RoutingError, 'Not Found'
       end
     end
+    # rubocop:enable Style/GuardClause
 
     def median(array)
       mid = array.size / 2

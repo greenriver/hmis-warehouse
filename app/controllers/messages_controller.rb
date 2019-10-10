@@ -9,17 +9,17 @@ class MessagesController < ApplicationController
 
   def index
     @hide_messages = true
-    if id = message_params[:id].presence
+    if (id = message_params[:id].presence)
       @message = messages.find id
       @message.update_attribute :seen_at, DateTime.current unless @message.opened?
     end
     @search = message_params[:search].presence || 'unseen'
     @messages = case @search
-                when 'all'
-                  messages
-                when 'unseen'
-                  @description = 'unread'
-                  messages.unseen
+    when 'all'
+      messages
+    when 'unseen'
+      @description = 'unread'
+      messages.unseen
     end
     @messages = @messages.page(message_params[:page]).per(25)
   end

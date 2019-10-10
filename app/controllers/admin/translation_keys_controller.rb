@@ -72,11 +72,11 @@ module Admin
     end
 
     def self.tbe_config
-      @@tbe_config ||= begin
-                         YAML.safe_load(File.read(Rails.root.join('config', 'translation_db_engine.yml'))).with_indifferent_access
-                       rescue StandardError
-                         {}
-                       end
+      @@tbe_config ||= begin # rubocop:disable Style/ClassVars
+        YAML.safe_load(File.read(Rails.root.join('config', 'translation_db_engine.yml'))).with_indifferent_access
+      rescue StandardError
+        {}
+      end
     end
 
     def choose_layout

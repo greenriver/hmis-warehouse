@@ -62,7 +62,7 @@ module Admin
          @user.roles = (@user.roles + existing_health_roles).uniq
          @user.set_viewables viewable_params
        end
-      rescue Exception => e
+      rescue Exception
         flash[:error] = 'Please review the form problems below'
         render :edit
         return
@@ -95,7 +95,7 @@ module Admin
     end
 
     private def adding_admin?
-      @adming_admin ||= begin
+      @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         adming_admin = false
         existing_roles = @user.user_roles
         unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
@@ -159,7 +159,7 @@ module Admin
     end
 
     private def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     private def set_user

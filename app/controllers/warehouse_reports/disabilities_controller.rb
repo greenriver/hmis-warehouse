@@ -54,19 +54,17 @@ module WarehouseReports
     end
 
     def filter_params
-      filter_params = begin
-        f_params = params.require(:filter).permit(
-          :start,
-          :end,
-          :sub_population,
-          disabilities: [],
-          project_types: [],
-        )
-        f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) } if f_params[:disabilities].present?
-        f_params
-                      rescue StandardError
-                        {}
-      end
+      f_params = params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        disabilities: [],
+        project_types: [],
+      )
+      f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) } if f_params[:disabilities].present?
+      f_params
+    rescue StandardError
+      {}
     end
 
     def report_source

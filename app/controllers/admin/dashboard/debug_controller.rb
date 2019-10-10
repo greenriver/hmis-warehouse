@@ -32,7 +32,7 @@ module Admin::Dashboard
               group(klass.hud_primary_key).
               having(nf('COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]]).gt(1)). # .having("count(#{klass.hud_primary_key}) > 1")
               count.size
-            next unless errors > 0
+            next unless errors.positive?
 
             m[ds.name][klass.table_name] ||= {}
             m[ds.name][klass.table_name][:errors] = errors

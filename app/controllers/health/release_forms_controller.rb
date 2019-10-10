@@ -37,10 +37,10 @@ module Health
       @release_form.user = current_user
 
       if ! request.xhr?
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create if @release_form.valid?
+      elsif @release_form.valid?
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
       end
     end
 
@@ -59,10 +59,10 @@ module Health
 
       @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
       if ! request.xhr?
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update if @release_form.valid?
+      elsif @release_form.valid?
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
       end
     end
 

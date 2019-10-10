@@ -36,7 +36,7 @@ module WarehouseReports::Health
 
     def update
       begin
-        @report = inquiry_scope.select(inquiry_scope.column_names - %w[inquiry result]).find(params[:id].to_i)
+        @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id].to_i)
         Health::EligibilityResponse.create(eligibility_inquiry: @report,
                                            response: update_params[:content].read,
                                            user: current_user,
@@ -71,7 +71,7 @@ module WarehouseReports::Health
     end
 
     def set_reports
-      @reports = inquiry_scope.select(inquiry_scope.column_names - %w[inquiry result]).page(params[:page]).per(20)
+      @reports = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).page(params[:page]).per(20)
     end
 
     def inquiry_scope

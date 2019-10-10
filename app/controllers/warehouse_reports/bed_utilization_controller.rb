@@ -58,17 +58,19 @@ module WarehouseReports
         end
         if @projects_with_counts[:totals][:clients].positive? && @projects_with_counts[:totals][:beds].positive?
           @projects_with_counts[:totals][:utilization] = begin
-           (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round
+            (@projects_with_counts[:totals][:clients].to_f / @projects_with_counts[:totals][:beds] * 100).round
           rescue StandardError
             0
           end
         end
       else
-        @projects_with_counts = (begin
-                                   @mo.organization.projects.viewable_by(current_user).map { |p| [p, []] }
-                                 rescue StandardError
-                                   {}
-                                 end)
+        @projects_with_counts = (
+          begin
+            @mo.organization.projects.viewable_by(current_user).map { |p| [p, []] }
+           rescue StandardError
+             {}
+          end
+        )
       end
       respond_to :html
     end

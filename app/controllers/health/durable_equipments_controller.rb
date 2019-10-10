@@ -31,7 +31,7 @@ module Health
       if request.xhr?
         begin
           Health::DmeSaver.new(equipment: @equipment, user: current_user).update
-        rescue ActiveRecord::RecordInvalid => e
+        rescue ActiveRecord::RecordInvalid
           j render 'create'
         end
       else
@@ -47,7 +47,7 @@ module Health
       if request.xhr?
         begin
           Health::DmeSaver.new(equipment: @equipment, user: current_user).create
-        rescue ActiveRecord::RecordInvalid => e
+        rescue ActiveRecord::RecordInvalid
           j render 'create'
         end
       else

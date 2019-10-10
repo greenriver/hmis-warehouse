@@ -19,6 +19,7 @@ class HelloSignController < ActionController::Base
     render text: 'Hello API Event Received'
   end
 
+  # rubocop:disable Lint/DuplicateMethods, Style/DoubleNegation, Naming/PredicateName
   class CallbackResponse
     attr_accessor :signable_document, :json
 
@@ -73,4 +74,5 @@ class HelloSignController < ActionController::Base
       @_data ||= JSON.parse(json)
     end
   end
+  # rubocop:enable Lint/DuplicateMethods, Style/DoubleNegation, Naming/PredicateName
 end

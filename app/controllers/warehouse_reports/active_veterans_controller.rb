@@ -27,9 +27,9 @@ module WarehouseReports
           sort_clients if @clients&.any?
         end
         format.xlsx do
-          range = @report.parameters['range'] || {}
-          start_date = range['start']
-          end_date = range['end']
+          # range = @report.parameters['range'] || {}
+          # start_date = range['start']
+          # end_date = range['end']
           filename = 'Homeless Veterans.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -84,7 +84,6 @@ module WarehouseReports
       option = sort_options.detect do |row, _|
         row[:column] == @column && row[:direction].to_s == @direction
       end.last
-      veteran_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
         client[@column] || option[:default]
       end

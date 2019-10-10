@@ -58,7 +58,7 @@ class ClientMatchesController < ApplicationController
     end
     respond_to do |format|
       format.json { render status: 204 }
-      format.html { redirect_to (request.referrer.presence || match_clients.path) }
+      format.html { redirect_to(request.referrer.presence || match_clients.path) }
     end
   end
 
@@ -76,9 +76,9 @@ class ClientMatchesController < ApplicationController
 
     respond_to do |format|
       format.json { render json: @client_match.as_json(methods: [:source_group_id]) }
-      format.html { redirect_to (request.referrer.presence || match_clients.path) }
+      format.html { redirect_to(request.referrer.presence || match_clients.path) }
     end
-  rescue ActiveRecord::StaleObjectError => err
+  rescue ActiveRecord::StaleObjectError
     @client_match.errors[:base] = 'Another user has made a change to this record'
   end
 

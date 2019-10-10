@@ -43,5 +43,5 @@ class ProjectCocsController < ApplicationController
 
   def flash_interpolation_options
     { resource_name: 'ProjectCoC' }
-    end
+  end
 end

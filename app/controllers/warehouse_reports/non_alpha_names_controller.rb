@@ -23,7 +23,7 @@ module WarehouseReports
 
     # dbms-agnostic code in place of LastName like '[^a-Z]%' or FirstName like '[^a-Z]%'
     private def fc_non_alpha(exp)
-      nf('LOWER', [nf('SUBSTRING', [exp, 1, 1])]).not_in ('a'..'z').to_a
+      nf('LOWER', [nf('SUBSTRING', [exp, 1, 1])]).not_in(('a'..'z').to_a)
     end
 
     private def client_source

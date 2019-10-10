@@ -54,16 +54,12 @@ class CohortsController < ApplicationController
             editable: col.column_editable? && col.editable,
           }
           header[:pinned] = :left if index <= @cohort.static_column_count
+          header[:renderer] = col.renderer
           case col.renderer
           when 'dropdown'
             # header.merge!({type: col.renderer, source: col.available_header})
             # Be more forgiving of drop-down data
             header[:available_options] = [''] + col.available_options
-            header[:renderer] = col.renderer
-          when 'date', 'checkbox', 'text', 'numeric'
-            header[:renderer] = col.renderer
-          else
-            header[:renderer] = col.renderer
           end
           header
         end
@@ -146,11 +142,11 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name). # rubocop:disable Naming/MemoizedInstanceVariableName
       map do |id, name, short_name|
       [id, short_name.presence || name]
     end.to_h
-    end
+  end
 
   def flash_interpolation_options
     { resource_name: @cohort&.name }

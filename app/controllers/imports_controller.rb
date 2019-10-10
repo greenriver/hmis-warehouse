@@ -27,15 +27,9 @@ class ImportsController < ApplicationController
   def show; end
 
   def download
-    if @upload = @import.upload
-      send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s)) if @upload.content.present?
-    end
-    # reconstitute_path = @upload.file.current_path
-    # puts "Re-constituting upload file to: #{reconstitute_path}"
-    # FileUtils.mkdir_p(File.dirname(reconstitute_path)) unless File.directory?(File.dirname(reconstitute_path))
-    # File.open(reconstitute_path, 'w+b') do |file|
-    #   file.write(@upload.content)
-    # end
+    return unless (@upload = @import.upload)
+
+    send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s)) if @upload.content.present?
   end
 
   # POST /imports
@@ -99,6 +93,6 @@ class ImportsController < ApplicationController
   end
 
   def sort_direction
-    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'desc'
+    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
   end
 end

@@ -6,7 +6,7 @@ AllCops:
     # - 'lib/tasks/**/*'
     # - 'app/**/*'
     - 'spec/**/*.rb'
-    # - 'app/controllers/**/*.rb'
+    - 'app/controllers/**/*.rb'
     - 'app/jobs/**/*.rb'
     - 'app/inputs/**/*.rb'
     - 'app/helpers/**/*.rb'
@@ -143,3 +143,9 @@ Style/WordArray:
 
 Style/SymbolArray:
   EnforcedStyle: brackets
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/RescueEnsureAlignment:
+  Enabled: false

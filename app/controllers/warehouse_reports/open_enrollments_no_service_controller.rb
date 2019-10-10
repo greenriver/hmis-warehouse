@@ -57,12 +57,15 @@ module WarehouseReports
     end
 
     private def sort_column
-      sort_options.map { |m| m[:column] }.uniq.
-        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program"
+      if sort_options.map { |m| m[:column] }.uniq.include?(params[:sort])
+        params[:sort]
+      else
+        "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program"
+      end
     end
 
     private def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     private def sort_options

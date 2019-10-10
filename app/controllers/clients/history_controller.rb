@@ -38,7 +38,7 @@ module Clients
 
     def pdf
       @user = User.setup_system_user
-      current_user ||= @user
+      current_user ||= @user # rubocop:disable Lint/UselessAssignment
       set_client
       set_pdf_dates
 

@@ -22,7 +22,7 @@ module Admin
     end
 
     private def config_params
-      p = params.require(:grda_warehouse_config).permit(
+      params.require(:grda_warehouse_config).permit(
         :last_name,
         :eto_api_available,
         :healthcare_available,

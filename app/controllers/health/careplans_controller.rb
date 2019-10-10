@@ -31,23 +31,23 @@ module Health
       @goals = @careplan&.hpc_goals
 
       # Callbacks don't work in development, so we have to do something like this
-      if Rails.env.development?
-        @careplans.each do |cp|
-          [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
-            begin
-              # This is trying to ensure we run the same thing here as we do for the callback from HS
-              json = { signature_request: doc.fetch_signature_request }.to_json
-              response = HelloSignController::CallbackResponse.new(json)
-            rescue HelloSign::Error::NotFound
-              Rails.logger.fatal "Ignoring a document we couldn't track down."
-            end
-            begin
-              response.process!
-            rescue ActiveRecord::RecordNotFound
-              Rails.logger.fatal "Ignoring a document we couldn't track down."
-            rescue Exception => e
-              Rails.logger.fatal "Ignoring a document we couldn't track down."
-            end
+      return unless Rails.env.development?
+
+      @careplans.each do |cp|
+        [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
+          begin
+            # This is trying to ensure we run the same thing here as we do for the callback from HS
+            json = { signature_request: doc.fetch_signature_request }.to_json
+            response = HelloSignController::CallbackResponse.new(json)
+          rescue HelloSign::Error::NotFound
+            Rails.logger.fatal "Ignoring a document we couldn't track down."
+          end
+          begin
+            response.process!
+          rescue ActiveRecord::RecordNotFound
+            Rails.logger.fatal "Ignoring a document we couldn't track down."
+          rescue Exception
+            Rails.logger.fatal "Ignoring a document we couldn't track down."
           end
         end
       end
@@ -66,11 +66,11 @@ module Health
       @equipments = @patient.equipments
       # make sure we have the most recent-services and DME if
       # the plan is editable
-      if @careplan.editable?
-        @careplan.archive_services
-        @careplan.archive_equipment
-        @careplan.save
-      end
+      return unless @careplan.editable?
+
+      @careplan.archive_services
+      @careplan.archive_equipment
+      @careplan.save
     end
 
     def new

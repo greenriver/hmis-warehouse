@@ -19,7 +19,7 @@ module AuditReports
 
     def index
       @column = user_sort_options.map { |i| i[:column] }.detect { |c| c == params[:column] } || 'last_name'
-      @direction = %w[asc desc].detect { |c| c == params[:direction] } || 'asc'
+      @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'asc'
 
       @agencies = Agency.all.order(:name) if current_user.can_manage_all_agencies
       @users = user_scope

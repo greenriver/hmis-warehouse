@@ -64,7 +64,7 @@ module ViewableEntities
     helper_method :project_viewability
 
     private def coc_viewability(base)
-      collection = %w[ProjectCoc EnrollmentCoc].flat_map do |c|
+      collection = ['ProjectCoc', 'EnrollmentCoc'].flat_map do |c|
         "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck :CoCCode
       end.uniq&.compact&.sort
       {

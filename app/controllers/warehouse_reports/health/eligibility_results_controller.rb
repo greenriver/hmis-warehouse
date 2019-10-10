@@ -16,13 +16,13 @@ module WarehouseReports::Health
         preload(:health_agency, :care_coordinator)
     end
 
-    def has_managed_care(patient)
+    def has_managed_care(patient) # rubocop:disable Naming/PredicateName
       @inquiry.eligibility_response.managed_care_ids.include? patient.medicaid_id
     end
     helper_method :has_managed_care
 
     def set_inquiry
-      @inquiry = inquiry_scope.select(inquiry_scope.column_names - %w[inquiry result]).find(params[:id].to_i)
+      @inquiry = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id].to_i)
     end
 
     def inquiry_scope

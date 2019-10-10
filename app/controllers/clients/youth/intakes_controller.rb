@@ -116,10 +116,10 @@ module Clients::Youth
         @intake.other_language = @intake.client_primary_language
         @intake.client_primary_language = 'Other...'
       end
-      unless @intake.how_hear_options.include?(@intake.how_hear)
-        @intake.other_how_hear = @intake.how_hear
-        @intake.how_hear = 'Other...'
-      end
+      return if @intake.how_hear_options.include?(@intake.how_hear)
+
+      @intake.other_how_hear = @intake.how_hear
+      @intake.how_hear = 'Other...'
     end
 
     private def set_other_options

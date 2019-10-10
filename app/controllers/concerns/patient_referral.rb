@@ -63,32 +63,32 @@ module PatientReferral
   end
 
   def filter_added_before
-    if @filters.added_before.present?
-      @active_filter = true
-      date = DateTime.parse(@filters.added_before)
-      added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
-      @patient_referrals = @patient_referrals.where(hpr_t[:created_at].lt(added_before_date))
-    end
+    return unless @filters.added_before.present?
+
+    @active_filter = true
+    date = DateTime.parse(@filters.added_before)
+    added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
+    @patient_referrals = @patient_referrals.where(hpr_t[:created_at].lt(added_before_date))
   end
 
   def filter_agency
-    if @filters.agency_id.present?
-      @active_filter = true
-      @filter_agency = Health::Agency.find(@filters.agency_id)
-      @patient_referrals = @patient_referrals.
-        where(hapr_t[:agency_id].eq(@filters.agency_id)).
-        references(:relationships)
-    end
+    return unless @filters.agency_id.present?
+
+    @active_filter = true
+    @filter_agency = Health::Agency.find(@filters.agency_id)
+    @patient_referrals = @patient_referrals.
+      where(hapr_t[:agency_id].eq(@filters.agency_id)).
+      references(:relationships)
   end
 
   def filter_assigned_agency
-    if @filters.assigned_agency_id.present?
-      @active_filter = true
-      @filter_agency = Health::Agency.find(@filters.assigned_agency_id)
-      @patient_referrals = @patient_referrals.
-        where(agency_id: @filters.assigned_agency_id).
-        references(:relationships)
-    end
+    return unless @filters.assigned_agency_id.present?
+
+    @active_filter = true
+    @filter_agency = Health::Agency.find(@filters.assigned_agency_id)
+    @patient_referrals = @patient_referrals.
+      where(agency_id: @filters.assigned_agency_id).
+      references(:relationships)
   end
 
   def filter_relationship

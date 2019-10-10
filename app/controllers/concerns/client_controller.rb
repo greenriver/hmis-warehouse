@@ -62,13 +62,13 @@ module ClientController
       if vulnerability.present?
         vispdats = case vulnerability
         when 'low'
-         GrdaWarehouse::Vispdat::Base.low_vulnerability
+          GrdaWarehouse::Vispdat::Base.low_vulnerability
         when 'medium'
-         GrdaWarehouse::Vispdat::Base.medium_vulnerability
+          GrdaWarehouse::Vispdat::Base.medium_vulnerability
         when 'high'
-         GrdaWarehouse::Vispdat::Base.high_vulnerability
+          GrdaWarehouse::Vispdat::Base.high_vulnerability
         else
-         GrdaWarehouse::Vispdat::Base.all
+          GrdaWarehouse::Vispdat::Base.all
         end
         @clients = @clients.joins(:vispdats).merge(vispdats.active)
       end
@@ -295,19 +295,11 @@ module ClientController
     end
 
     protected def client_processed_sort_columns
-      @client_processed_sort_columns ||= %w[
-        days_served
-        first_date_served
-        last_date_served
-      ]
+      @client_processed_sort_columns ||= ['days_served', 'first_date_served', 'last_date_served']
     end
 
     protected def client_sort_columns
-      @client_sort_columns ||= %w[
-        LastName
-        FirstName
-        DOB
-      ]
+      @client_sort_columns ||= ['LastName', 'FirstName', 'DOB']
     end
 
     protected def sort_column
@@ -316,7 +308,7 @@ module ClientController
     end
 
     protected def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
     end
 
     protected def query_string

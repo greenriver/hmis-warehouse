@@ -40,7 +40,7 @@ module Health
       if request.xhr?
         begin
           Health::ServiceSaver.new(service: @service, user: current_user).update
-        rescue ActiveRecord::RecordInvalid => e
+        rescue ActiveRecord::RecordInvalid
           j render 'create'
         end
       else
@@ -56,7 +56,7 @@ module Health
       if request.xhr?
         begin
           Health::ServiceSaver.new(service: @service, user: current_user).update
-        rescue ActiveRecord::RecordInvalid => e
+        rescue ActiveRecord::RecordInvalid
           j render 'create'
         end
       else

@@ -97,6 +97,7 @@ module Cohorts
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     def new
       @hoh_only = false
       @clients = client_scope.none
@@ -160,7 +161,7 @@ module Cohorts
           populations = @actives[:actives_population]
           populations.each do |population|
             # Force service to fall within the correct age ranges for some populations
-            service_scope = if %w[youth children].include? population.to_s
+            service_scope = if ['youth', 'children'].include? population.to_s
               population
             elsif population.to_s == 'parenting_children'
               :children
@@ -191,7 +192,7 @@ module Cohorts
           entry.
           where(she_t[:client_id].eq(c_t[:id])).select(c_t[:id])
         @populations.each do |population|
-          service_scope = if %w[youth children].include? population.to_s
+          service_scope = if ['youth', 'children'].include? population.to_s
             population
           elsif population.to_s == 'parenting_children'
             :children
@@ -244,6 +245,7 @@ module Cohorts
       end
       Rails.logger.info "CLIENTS: #{@clients.count}"
     end
+    # rubocop:enable Metrics/AbcSize
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter
@@ -260,7 +262,7 @@ module Cohorts
     end
 
     def load_cohort_names
-      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).
+      @cohort_names ||= cohort_source.pluck(:id, :name, :short_name). # rubocop:disable Naming/MemoizedInstanceVariableName
         map do |id, name, short_name|
         [id, short_name.presence || name]
       end.to_h

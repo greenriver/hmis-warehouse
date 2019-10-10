@@ -36,10 +36,10 @@ module Health
       @participation_form.case_manager = current_user
 
       if ! request.xhr?
-        saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
+        Health::ParticipationSaver.new(form: @participation_form, user: current_user).create
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        saved = Health::ReleaseSaver.new(form: @participation_form, user: current_user).create if @participation_form.valid?
+      elsif @participation_form.valid?
+        Health::ReleaseSaver.new(form: @participation_form, user: current_user).create
       end
     end
 
@@ -57,10 +57,10 @@ module Health
       @participation_form.assign_attributes(form_params)
       @participation_form.health_file.set_calculated!(current_user.id, @client.id) if @participation_form.health_file&.new_record?
       if ! request.xhr?
-        saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
+        Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
         respond_with @participation_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        saved = Health::ParticipationSaver.new(form: @participation_form, user: current_user).update if @participation_form.valid?
+      elsif @participation_form.valid?
+        Health::ParticipationSaver.new(form: @participation_form, user: current_user).update
       end
     end
 

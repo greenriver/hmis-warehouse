@@ -29,7 +29,7 @@ module Health
 
       @doc = @careplan.signable_documents.build(signers: @signers, primary: true, user_id: current_user.id)
 
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
 
       if @doc.valid?
         @careplan.class.transaction do
@@ -127,9 +127,8 @@ module Health
       Health::SignatureRequests::PatientSignatureRequest
     end
 
-    def get_pdf
+    def generate_pdf
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
       @pdf = pdf.to_pdf
     end
   end

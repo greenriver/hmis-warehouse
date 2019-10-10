@@ -163,7 +163,7 @@ class ApplicationController < ActionController::Base
   helper_method :pjax_request?
 
   def set_hostname
-    @op_hostname ||= begin
+    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
       `hostname`
     rescue StandardError
       'test-server'

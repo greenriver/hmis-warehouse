@@ -47,7 +47,7 @@ module WarehouseReports::Health
     end
 
     def set_unique_referral_dates
-      @referral_dates ||= patient_referral_source.not_confirmed_rejected.
+      @referral_dates ||= patient_referral_source.not_confirmed_rejected. # rubocop:disable Naming/MemoizedInstanceVariableName
         joins(:patient).
         distinct.
         order(enrollment_start_date: :desc).
