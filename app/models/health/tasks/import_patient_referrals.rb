@@ -29,12 +29,12 @@ module Health::Tasks
           remove_files()
           return
         end
-        process_files @unprocessed
+        process_files @unprocessed, config
       end
       remove_files
     end
 
-    def process_files files
+    def process_files files, config
       files.each do |file_path|
         local_path = File.join(directory, file_path)
         notify "Processing patient referrals in #{local_path}"
