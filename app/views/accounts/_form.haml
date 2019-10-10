@@ -9,6 +9,26 @@
         = f.input :phone
         = f.association :agency, disabled: true, input_html: { class: :select2 }
         = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.', input_html: { class: :select2 }
+        - if can_enable_2fa?
+          = f.input :otp_required_for_login, as: :select, label: 'Require two-factor authentication', include_blank: false, input_html: {class: [:select2, :j2Fa]}
+          .well.j2FaEnabled
+            %p
+              This feature is still in beta.  If you enable Two-factor Authentication for a user, that user must use the following QR code to setup a device.
+            .mt-4.mb-4.text-center
+              = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_issuer, issuer: @user.two_factor_label), :svg, level: :h, unit: 2)
 
       .form-actions
         = f.button :submit, value: 'Update Account', class: 'btn btn-primary'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.j2Fa').on('change', function(e){
+        if($(this).val() == 'true') {
+          $('.j2FaEnabled').removeClass('hidden');
+        } else {
+          $('.j2FaEnabled').addClass('hidden');
+        }
+      });
+      $('.j2Fa').trigger('change');
+    });
