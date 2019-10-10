@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class WarehouseAlert < ActiveRecord::Base
+class WarehouseAlert < ApplicationRecord
   belongs_to :user
   acts_as_paranoid
 

@@ -32,7 +32,7 @@ RSpec.describe AccountsController, type: :controller do
     end
 
     before(:each) do
-      patch :update, user: changes
+      patch :update, params: { user: changes }
     end
     it 'updates first_name' do
       expect(User.not_system.first.first_name).to eq changes[:first_name]

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class ReportResultsSummary < ActiveRecord::Base
+class ReportResultsSummary < ApplicationRecord
   require 'csv'
   include ActionView::Helpers::DateHelper
   has_many :reports

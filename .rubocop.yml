@@ -95,10 +95,10 @@ Style/MixinUsage:
 Layout/DotPosition:
   EnforcedStyle: trailing
 
-MultilineMethodCallIndentation:
+Layout/MultilineMethodCallIndentation:
   EnforcedStyle: indented
 
-Documentation:
+Style/Documentation:
   Enabled: false
 
 Style/MultilineBlockChain:

@@ -242,8 +242,8 @@ module Reporting::MonthlyReports
         pluck(
           :client_id,
           :project_type,
-          cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
-          cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
+          cast(datepart(shs_t.class.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
+          cast(datepart(shs_t.class.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
         ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]

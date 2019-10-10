@@ -5,7 +5,7 @@
 ###
 
 module Health
-  class ConvertPaymentPremiumFileJob < ActiveJob::Base
+  class ConvertPaymentPremiumFileJob < ApplicationJob
     queue_as :low_priority
 
     def perform

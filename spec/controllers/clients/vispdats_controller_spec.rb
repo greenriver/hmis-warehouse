@@ -33,7 +33,7 @@ RSpec.describe Clients::VispdatsController, type: :controller do
     it 'assigns all vispdats as @vispdats' do
       vispdat.client = client
       vispdat.save
-      get :index, client_id: vispdat.client.to_param
+      get :index, params: { client_id: vispdat.client.to_param }
       expect(assigns(:vispdats)).to eq([vispdat])
     end
   end
@@ -42,7 +42,7 @@ RSpec.describe Clients::VispdatsController, type: :controller do
     it 'assigns the requested vispdat as @vispdat' do
       vispdat.client = client
       vispdat.save
-      get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
+      get :show, params: { id: vispdat.to_param, client_id: vispdat.client.to_param }
       expect(assigns(:vispdat)).to eq(vispdat)
     end
   end
@@ -51,7 +51,7 @@ RSpec.describe Clients::VispdatsController, type: :controller do
     it 'renders show' do
       vispdat.client = client
       vispdat.save
-      get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
+      get :show, params: { id: vispdat.to_param, client_id: vispdat.client.to_param }
       expect(response).to render_template(:show)
     end
   end
@@ -60,7 +60,7 @@ RSpec.describe Clients::VispdatsController, type: :controller do
     it 'assigns the requested vispdat as @vispdat' do
       vispdat.client = client
       vispdat.save
-      get :edit, id: vispdat.to_param, client_id: vispdat.client.to_param
+      get :edit, params: { id: vispdat.to_param, client_id: vispdat.client.to_param }
       expect(assigns(:vispdat)).to eq(vispdat)
     end
   end
@@ -69,25 +69,25 @@ RSpec.describe Clients::VispdatsController, type: :controller do
     context 'with valid params' do
       it 'creates a new Vispdat' do
         expect do
-          post :create, client_id: client.to_param, params: { vispdat: valid_attributes, type: 'GrdaWarehouse::Vispdat::Individual' }
+          post :create, params: { client_id: client.id, vispdat: valid_attributes, type: 'GrdaWarehouse::Vispdat::Individual' }
         end.to change(GrdaWarehouse::Vispdat::Individual, :count).by(1)
       end
 
       it 'assigns a newly created vispdat as @vispdat' do
-        post :create, client_id: client.to_param, params: { vispdat: valid_attributes }
+        post :create, params: { client_id: client.id, vispdat: valid_attributes }
         expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat::Individual)
         expect(assigns(:vispdat)).to be_persisted
       end
 
       it 'sets the user_id to current_user' do
-        post :create, client_id: client.to_param, params: { vispdat: valid_attributes }
+        post :create, params: { client_id: client.id, vispdat: valid_attributes }
         expect(assigns(:vispdat).user_id).to eq user.id
       end
     end
 
     context 'with invalid params' do
       it 'creates a stub vispdat as @vispdat' do
-        post :create, client_id: client.to_param, params: { vispdat: invalid_attributes }
+        post :create, params: { client_id: client.id, vispdat: invalid_attributes }
         expect(assigns(:vispdat)).to be_a(GrdaWarehouse::Vispdat::Individual)
       end
     end

@@ -74,15 +74,19 @@ module GrdaWarehouse::Report
 
 
     def self.source_client_table
-      @source_client_table ||= Arel::Table.new(
-        GrdaWarehouse::Hud::Client.table_name
-      ).tap{ |t| t.table_alias = 'source_clients' }
+      @source_client_table ||= begin
+        table = GrdaWarehouse::Hud::Client.arel_table.dup
+        table.table_alias = 'source_clients'
+        table
+      end
     end
 
     def self.destination_client_table
-      @destination_client_table ||= Arel::Table.new(
-        GrdaWarehouse::Hud::Client.table_name
-      ).tap{ |t| t.table_alias = 'destination_clients' }
+      @destination_client_table ||= begin
+        table = GrdaWarehouse::Hud::Client.arel_table.dup
+        table.table_alias = 'destination_clients'
+        table
+      end
     end
 
     def self.client_join_table

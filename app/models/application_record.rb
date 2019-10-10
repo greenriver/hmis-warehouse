@@ -3,9 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
-
-module Glacier
-  class Vault < ApplicationRecord
-    has_many :archives, foreign_key: 'glacier_vault_id'
-  end
+#
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
 end

@@ -5,7 +5,7 @@
 ###
 
 module Glacier
-  class Archive < ActiveRecord::Base
+  class Archive < ApplicationRecord
     belongs_to :vault, foreign_key: 'glacier_vault_id'
   end
 end

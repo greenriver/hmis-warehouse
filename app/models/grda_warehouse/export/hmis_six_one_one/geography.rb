@@ -23,7 +23,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       end
       # limit based on id order (this is somewhat arbitrary, but we need something that ensures order)
       d_t1 = GrdaWarehouse::Hud::Geography.arel_table
-      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2 = d_t1.dup
       d_t2.table_alias = 'geography_2'
       export_scope = export_scope.where(
         d_t2.project('1').where(d_t2[:DateDeleted].eq(nil)).

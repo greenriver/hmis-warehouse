@@ -26,7 +26,7 @@ RSpec.describe AccountEmailsController, type: :controller do
   describe 'PUT update' do
     context 'with no current password' do
       before(:each) do
-        patch :update, user: { email: 'info@greenriver.com' }
+        patch :update, params: { user: { email: 'info@greenriver.com' } }
       end
       it 'does not update' do
         expect(User.not_system.first.email).to_not eq 'info@greenriver.com'
@@ -48,7 +48,7 @@ RSpec.describe AccountEmailsController, type: :controller do
       end
 
       before(:each) do
-        patch :update, user: changes
+        patch :update, params: { user: changes }
       end
       it 'updates email' do
         assigns(:user).confirm

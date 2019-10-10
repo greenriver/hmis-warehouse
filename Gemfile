@@ -9,7 +9,7 @@ gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 gem 'composite_primary_keys', '~> 9.0'
 gem "pg"
-gem 'activerecord-sqlserver-adapter', '~> 5.0'
+gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
 gem "rails", '5.0.7.2'
@@ -158,7 +158,7 @@ end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  # gem 'spring'
+  gem 'spring'
   gem 'html2haml'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
@@ -193,6 +193,7 @@ group :test do
   gem 'after_commit_exception_notification'
   gem 'simplecov'
   gem 'simplecov-console'
+  gem 'rails-controller-testing'
 end
 
 group :development, :staging, :test do

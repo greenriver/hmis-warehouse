@@ -5,7 +5,7 @@
 ###
 
 module Health
-  class ProcessEnrollmentChangesJob < ActiveJob::Base
+  class ProcessEnrollmentChangesJob < ApplicationJob
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 

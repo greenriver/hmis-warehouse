@@ -5,7 +5,7 @@
 ###
 
 module SimilarityMetric
-  class Base < ActiveRecord::Base
+  class Base < ApplicationRecord
     self.table_name = :similarity_metrics
 
     scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }

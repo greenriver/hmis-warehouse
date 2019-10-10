@@ -17,11 +17,13 @@ RSpec.describe Clients::NotesController, type: :controller do
 
   describe 'DELETE #destroy' do
     it 'deletes the note' do
-      expect { delete :destroy, id: chronic_justification, client_id: chronic_justification.client_id }.to change(GrdaWarehouse::ClientNotes::ChronicJustification, :count).by(-1)
+      expect do
+        delete :destroy, params: { id: chronic_justification, client_id: chronic_justification.client_id }
+      end.to change(GrdaWarehouse::ClientNotes::ChronicJustification, :count).by(-1)
     end
 
     it 'redirects to Client/#show' do
-      delete :destroy, id: chronic_justification, client_id: chronic_justification.client_id
+      delete :destroy, params: { id: chronic_justification, client_id: chronic_justification.client_id }
       expect(response).to redirect_to(client_notes_path(chronic_justification.client_id))
     end
   end
@@ -29,7 +31,7 @@ RSpec.describe Clients::NotesController, type: :controller do
   describe 'POST #create_note' do
     context 'with valid attributes' do
       before do
-        post :create, note: attributes_for(:grda_warehouse_client_notes_chronic_justification), client_id: client.id
+        post :create, params: { note: attributes_for(:grda_warehouse_client_notes_chronic_justification), client_id: client.id }
       end
 
       it 'creates client note' do
@@ -46,7 +48,9 @@ RSpec.describe Clients::NotesController, type: :controller do
     end
 
     context 'with invalid attributes' do
-      before { post :create, note: { note: '' }, client_id: client.id } # invalid because note is an empty string
+      before do
+        post :create, params: { note: { note: '' }, client_id: client.id } # invalid because note is an empty string
+      end
 
       it 'does not save the new contact' do
         expect(GrdaWarehouse::ClientNotes::ChronicJustification.count).to eq(initial_note_count)

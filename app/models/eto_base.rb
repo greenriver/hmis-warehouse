@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class EtoBase < ActiveRecord::Base
+class EtoBase < ApplicationRecord
   establish_connection :eto rescue nil
   self.abstract_class = true
 

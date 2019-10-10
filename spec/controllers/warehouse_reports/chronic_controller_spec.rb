@@ -13,7 +13,7 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
   describe 'GET index' do
     context 'when commit present' do
       before(:each) do
-        get :index, commit: 'Run'
+        get :index, params: { commit: 'Run' }
       end
       pending 'kicks off a job' do
         expect(Delayed::Job.count).to eq 1
@@ -30,7 +30,7 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
   describe 'GET show' do
     context '.html' do
       before(:each) do
-        get :show, id: chronic_report.id
+        get :show, params: { id: chronic_report.id }
       end
       pending 'assigns @report' do
         expect(assigns(:report)).to eq chronic_report
@@ -41,7 +41,7 @@ RSpec.describe WarehouseReports::ChronicController, type: :controller do
     end
     context '.xlsx' do
       before(:each) do
-        get :show, id: chronic_report.id, format: :xlsx
+        get :show, params: { id: chronic_report.id, format: :xlsx }
       end
       pending 'assigns @report' do
         expect(assigns(:report)).to eq chronic_report

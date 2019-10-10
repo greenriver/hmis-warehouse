@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class Nickname < ActiveRecord::Base
+class Nickname < ApplicationRecord
   belongs_to :nicknames
   scope :for, -> (name) { where(nickname_id: where(name: name.downcase)) }
 

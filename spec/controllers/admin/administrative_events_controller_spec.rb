@@ -42,7 +42,9 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     end
 
     context 'with valid attributes' do
-      before { post :create, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
+      before do
+        post :create, params: { grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
+      end
 
       it 'creates administrative event' do
         expect(GrdaWarehouse::AdministrativeEvent.count).to eq(initial_administrative_event_count + 1)
@@ -54,7 +56,9 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     end
 
     context 'with invalid attributes' do
-      before { post :create, grda_warehouse_administrative_event: invalid_attr }
+      before do
+        post :create, params: { grda_warehouse_administrative_event: invalid_attr }
+      end
 
       it 'does not save the new administrative_event' do
         expect(GrdaWarehouse::AdministrativeEvent.count).to eq(initial_administrative_event_count)
@@ -74,7 +78,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
 
     context 'with valid attributes' do
       before do
-        patch :update, id: administrative_event.id, grda_warehouse_administrative_event: valid_attr
+        patch :update, params: { id: administrative_event.id, grda_warehouse_administrative_event: valid_attr }
         administrative_event.reload
       end
 
@@ -97,7 +101,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
 
     context 'with invalid attributes' do
       before do
-        patch :update, id: administrative_event.id, grda_warehouse_administrative_event: invalid_attr
+        patch :update, params: { id: administrative_event.id, grda_warehouse_administrative_event: invalid_attr }
         administrative_event.reload
       end
 
@@ -123,7 +127,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     before(:each) do
       user.roles << role
       authenticate(user)
-      delete :destroy, id: administrative_event
+      delete :destroy, params: { id: administrative_event }
     end
 
     it 'deletes the note' do

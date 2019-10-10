@@ -45,7 +45,9 @@ module PjaxModalController
         redirect_to_without_xhr_redirect(*args)
       end
     end
-    alias_method_chain :redirect_to, :xhr_redirect
+    alias_method :redirect_to_without_xhr_redirect, :redirect_to
+    alias_method :redirect_to, :redirect_to_with_xhr_redirect
+
     helper_method :pjax_request?
   end
 

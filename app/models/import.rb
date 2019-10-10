@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class Import < ActiveRecord::Base
+class Import < ApplicationRecord
   require 'csv'
   include ActionView::Helpers::DateHelper
   acts_as_paranoid

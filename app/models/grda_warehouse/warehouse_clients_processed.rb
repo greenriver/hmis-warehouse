@@ -102,7 +102,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def homeless_counts
       @homeless_counts ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = Arel::Table.new(shsm_table_name.to_sym)
+        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')
@@ -140,11 +140,10 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       @homeless_counts_plus_overrides ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
         shsm_t = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
-        shsm = Arel::Table.new(shsm_table_name.to_sym)
-        shsm_o = shsm.alias('o')
-        shsm_a = shsm.alias('a')
-        shsm_b = shsm.alias('b')
-        shsm_c = shsm.alias('c')
+        shsm_o = shsm_t.alias('o')
+        shsm_a = shsm_t.alias('a')
+        shsm_b = shsm_t.alias('b')
+        shsm_c = shsm_t.alias('c')
 
         override_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           joins(shsm_t.join(she_t).on(shsm_o[:service_history_enrollment_id].eq(she_t[:id])).join_sources).
@@ -188,7 +187,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def all_literally_homeless_last_three_years
       @all_literally_homeless_last_three_years ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = Arel::Table.new(shsm_table_name.to_sym)
+        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')
@@ -227,7 +226,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def all_homeless_in_last_three_years
       @all_homeless_in_last_three_years ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = Arel::Table.new(shsm_table_name.to_sym)
+        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')
@@ -281,7 +280,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     def chronic_counts
       @chronic_counts ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = Arel::Table.new(shsm_table_name.to_sym)
+        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')

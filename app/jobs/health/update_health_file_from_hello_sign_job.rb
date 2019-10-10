@@ -5,7 +5,7 @@
 ###
 
 module Health
-  class UpdateHealthFileFromHelloSignJob < ActiveJob::Base
+  class UpdateHealthFileFromHelloSignJob < ApplicationJob
     queue_as :low_priority
 
     def perform(signable_document_id)

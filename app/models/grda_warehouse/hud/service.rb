@@ -101,7 +101,7 @@ module GrdaWarehouse::Hud
     # really, the scope below should just be true, but it isn't; this culls things down to the most recent entry of the given type for the date
     scope :uniqueness_constraint, -> {
       st1 = arel_table
-      st2 = Arel::Table.new st1.table_name
+      st2 = st1.dup
       st2.table_alias = 'st2'
       where(
         st2.project(Arel.star).

@@ -119,7 +119,9 @@ module GrdaWarehouse::Tasks
 
     def load_personal_ids
       # This is brittle, if active record decides to change the name of the joined table, it won't work
-      source_client_table = Arel::Table.new 'source_clients_Client'
+      # source_client_table = Arel::Table.new 'source_clients_Client'
+      source_client_table = GrdaWarehouse::Hud::Client.arel_table
+      source_client_table.table_alias = 'source_clients_Client'
 
       client_source.joins(:source_clients).
         where(id: @destinations.keys).

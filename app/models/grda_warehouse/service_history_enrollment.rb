@@ -119,18 +119,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     homeless_scope = entry.
       ongoing(on_date: date).
-      homeless(chronic_types_only: chronic_types_only).
-      select(:id).to_sql
+      homeless(chronic_types_only: chronic_types_only)
 
     housed_scope = entry.ongoing(on_date: date).
       in_project_type(residential_project_types).
-      with_move_in_date_before(date).
-      select(:client_id).to_sql
+      with_move_in_date_before(date)
 
-    where(
-      she_t[:id].in(Arel.sql(homeless_scope)).
-      and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
-    )
+    where(id: homeless_scope).
+      where.not(client_id: housed_scope.select(:client_id))
   end
 
   scope :hud_currently_homeless, -> (date: Date.current, chronic_types_only: false) do
@@ -142,18 +138,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
     homeless_scope = entry.
       ongoing(on_date: date).
-      homeless(chronic_types_only: chronic_types_only).
-      select(:id).to_sql
+      homeless(chronic_types_only: chronic_types_only)
 
     housed_scope = entry.ongoing(on_date: date).
       hud_project_type(residential_project_types).
-      with_move_in_date_before(date).
-      select(:client_id).to_sql
+      with_move_in_date_before(date)
 
-    where(
-      she_t[:id].in(Arel.sql(homeless_scope)).
-      and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
-    )
+    where(id: homeless_scope).
+      where.not(client_id: housed_scope.select(:client_id))
   end
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do

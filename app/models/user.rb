@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
   has_paper_trail

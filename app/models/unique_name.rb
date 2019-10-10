@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class UniqueName < ActiveRecord::Base
+class UniqueName < ApplicationRecord
 
   def self.update!
     Rails.logger.info 'Updating the unique names table'

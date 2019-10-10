@@ -18,16 +18,16 @@ class ApplicationController < ActionController::Base
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
 
-  before_filter :set_paper_trail_whodunnit
-  before_filter :set_notification
-  before_filter :set_hostname
+  before_action :set_paper_trail_whodunnit
+  before_action :set_notification
+  before_action :set_hostname
 
-  around_filter :cache_grda_warehouse_base_queries
+  around_action :cache_grda_warehouse_base_queries
   before_action :compose_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
   after_action :log_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_filter :set_gettext_locale
+  before_action :set_gettext_locale
 
   # Don't start in development if you have pending migrations
   prepend_before_action :check_all_db_migrations

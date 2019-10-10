@@ -106,20 +106,22 @@ module ApplicationHelper
   end
 
   # returns a link appropriate for re-sorting a table
-  def sort_link(link_text, column, directions)
+  def sort_link(link_text, column, directions, permitted_params = [])
     direction = directions[column]
     sort_direction = direction.nil? || direction == 'asc' ? 'desc' : 'asc'
     sort = { 'sort' => column, 'direction' => sort_direction }
-    params.merge!(sort)
-    link_to(link_text, params)
+    clean_params = params.permit(permitted_params + [:q])
+    clean_params.merge!(sort)
+    link_to(link_text, clean_params)
   end
 
   # returns a link appropriate for sorting a table as described
-  def sort_as_link(link_text, column, direction = 'asc')
+  def sort_as_link(link_text, column, direction = 'asc', permitted_params = [])
     sort_direction = direction.nil? || direction == 'asc' ? 'asc' : 'desc'
     sort = { 'sort' => column, 'direction' => sort_direction }
-    params.merge!(sort)
-    link_to(link_text, params)
+    clean_params = params.permit(permitted_params + [:q])
+    clean_params.merge!(sort)
+    link_to(link_text, clean_params)
   end
 
   def enable_responsive?
@@ -218,7 +220,8 @@ module ApplicationHelper
   def embedded_svg(symbol_name, *args)
     options = args.extract_options!
     style = "height: #{options[:height]}; width: #{options[:width]}" if options[:height]
-    content_tag(:div,
+    content_tag(
+      :div,
       content_tag(
         :svg,
         content_tag(
@@ -231,6 +234,7 @@ module ApplicationHelper
         style: style,
       ),
       class: "icon-svg #{options[:wrapper_class]}",
-      style: style)
+      style: style,
+    )
   end
 end

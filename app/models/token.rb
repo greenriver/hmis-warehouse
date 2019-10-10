@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class Token < ActiveRecord::Base
+class Token < ApplicationRecord
 
   # initially make tokens valid for one month
   scope :valid, -> do

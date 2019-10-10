@@ -2,7 +2,7 @@ module ArelExtensions
   module Attribute
     def to_sql
       table = relation
-      connection = table.engine.connection
+      connection = table.class.engine.connection
       table_name = connection.quote_table_name table.table_name
       column_name = connection.quote_column_name name
       "#{table_name}.#{column_name}"

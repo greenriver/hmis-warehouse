@@ -5,7 +5,7 @@
 ###
 
 # email message stowed in database
-class Message < ActiveRecord::Base
+class Message < ApplicationRecord
 
   SCHEDULES = %w(
     immediate

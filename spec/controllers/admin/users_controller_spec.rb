@@ -12,7 +12,7 @@ RSpec.describe Admin::UsersController, type: :controller do
 
   describe 'GET edit' do
     before(:each) do
-      get :edit, id: user.id
+      get :edit, params: { id: user.id }
     end
 
     it 'assigns user' do
@@ -28,7 +28,7 @@ RSpec.describe Admin::UsersController, type: :controller do
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
-        patch :update, id: updated_user.id, user: { notify_on_vispdat_completed: '1' }
+        patch :update, params: { id: updated_user.id, user: { notify_on_vispdat_completed: '1' } }
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_vispdat_completed).to be true
@@ -39,7 +39,7 @@ RSpec.describe Admin::UsersController, type: :controller do
       let(:updated_user) { User.not_system.first }
 
       before(:each) do
-        patch :update, id: updated_user.id, user: { notify_on_client_added: '1' }
+        patch :update, params: { id: updated_user.id, user: { notify_on_client_added: '1' } }
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_client_added).to be true

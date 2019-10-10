@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class UserRole < ActiveRecord::Base
+class UserRole < ApplicationRecord
   has_paper_trail(
       meta: { referenced_user_id: :referenced_user_id, referenced_entity_name: :referenced_entity_name }
   )

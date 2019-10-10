@@ -134,7 +134,7 @@ module GrdaWarehouse::Hud
     has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
     # End cleanup relationships
 
-    has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
+    has_many :organizations, -> { order(:OrganizationName).distinct }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
@@ -711,10 +711,10 @@ module GrdaWarehouse::Hud
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_scope
       d_t1 = GrdaWarehouse::Hud::Disability.arel_table
-      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2 = d_t1.dup
       d_t2.table_alias = 'disability2'
       c_t1 = GrdaWarehouse::Hud::Client.arel_table
-      c_t2 = Arel::Table.new(c_t1.table_name)
+      c_t2 = c_t1.dup
       c_t2.table_alias = 'source_clients'
       GrdaWarehouse::Hud::Client.destination.
         joins(:source_enrollment_disabilities).
@@ -1944,7 +1944,8 @@ module GrdaWarehouse::Hud
           self.update(current_cas_columns)
           self.save()
           prev_destination_client.force_full_service_history_rebuild
-          if prev_destination_client.source_clients(true).empty?
+          prev_destination_client.source_clients.reload
+          if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
             prev_destination_client.delete

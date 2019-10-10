@@ -98,7 +98,7 @@ module WarehouseReports::Cas
         raise "unanticipated time unit: #{unit}"
       end
       at = GrdaWarehouse::CasReport.arel_table
-      at2 = Arel::Table.new at.table_name
+      at2 = at.dup
       at2.table_alias = 'at2'
       query = at.where(at[:match_started_at].between(@range.start..@range.end+1.day)).
         join(at2).on(

@@ -5,7 +5,7 @@
 ###
 
 module Health
-  class FlagIneligiblePatientsJob < ActiveJob::Base
+  class FlagIneligiblePatientsJob < ApplicationJob
     def perform(inquiry_id)
       inquiry = Health::EligibilityInquiry.find(inquiry_id)
       response = inquiry.eligibility_response
