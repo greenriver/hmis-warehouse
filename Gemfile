@@ -125,9 +125,8 @@ gem 'net-sftp', require: false
 gem 'redis-rails'
 
 #AWS SDK
-gem 'aws-sdk-rails', require: false
-gem 'aws-sdk', '~> 3', require: false
-gem 'aws-ses', require: 'aws/ses'
+gem 'aws-sdk-rails'
+gem 'aws-sdk', '~> 3'
 gem 'json'
 gem 'awesome_print'
 

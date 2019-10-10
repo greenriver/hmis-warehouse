@@ -26,6 +26,6 @@
     - if can_add_administrative_event?
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "glacier")}
         = link_to 'Delayed Jobs', admin_delayed_jobs_path, class: 'nav-link'
-    - if can_manage_assessments?
+    - if can_manage_assessments? && GrdaWarehouse::Config.get(:eto_api_available)
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "assessments")}
         = link_to 'TouchPoints', admin_eto_api_assessments_path, class: 'nav-link'

@@ -10,7 +10,7 @@ class Role < ActiveRecord::Base
   validates :name, presence: true
 
   def role_name
-    name.to_s.humanize.gsub('Dnd', 'DND')
+    name.to_s
   end
 
   scope :health, -> do
