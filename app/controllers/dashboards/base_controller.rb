@@ -22,7 +22,13 @@ module Dashboards
     before_action :set_limit_to_vispdat
 
     def index
-      @report = active_report_class.new(months: @report_months, organization_ids: @organization_ids, project_ids: @project_ids, project_types: @project_type_codes, filter: { vispdat: @limit_to_vispdat })
+      @report = active_report_class.new(
+        months: @report_months,
+        organization_ids: @organization_ids,
+        project_ids: @project_ids,
+        project_types: @project_type_codes,
+        filter: { vispdat: @limit_to_vispdat },
+      )
 
       respond_to do |format|
         format.html do
