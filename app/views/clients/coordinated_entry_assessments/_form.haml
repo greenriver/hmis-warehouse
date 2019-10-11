@@ -1,3 +1,6 @@
 %h2 Basic Information
 .well.assessment.assessment-basic-information
-  = f.input :assessor_id, collection: User.all
+  .row
+    .col-sm-6
+      = f.input :assessor_id, collection: User.all
+      = f.input :location, label: 'Current Client Location'
