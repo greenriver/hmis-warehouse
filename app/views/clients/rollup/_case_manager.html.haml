@@ -1,6 +1,7 @@
 - if @client.requires_api_update?
   - @client.update_via_api
-- if @client.caseworkers.any?
+- caseworkers = @client.caseworkers(can_view_client_user_assignments: current_user.can_view_client_user_assignments)
+- if caseworkers.any?
   %table.table.table-striped
     %thead
       %tr
@@ -9,7 +10,7 @@
         %th Type
         %th Source
     %tbody
-      - @client.caseworkers.each do |caseworker|
+      - caseworkers.each do |caseworker|
         %tr
           %td= caseworker[:name]
           %td= caseworker[:phone]
