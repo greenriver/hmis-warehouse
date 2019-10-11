@@ -1,0 +1,19 @@
+.o-page__header
+  .o-page__title
+    %h1= content_for :title
+  .o-page__action
+    - if @client.ce_assessments.in_progress.none?
+      = link_to new_client_coordinated_entry_assessment_path(@client, type: 'GrdaWarehouse::CoordinatedEntryAssessment::Individual'), class: ['btn', 'btn-primary'] do
+        %i.icon-plus
+        New #{_'Coordinated Entry Assessment'}
+
+%table.table.assessment-table
+  %thead
+    %tr
+      %th.text-left Created On
+      %th.text-left Status
+      %th.text-center Total Score
+      %th Completed By
+
+  %tbody
+    = render partial: 'row', collection: @assessments, as: :assessment

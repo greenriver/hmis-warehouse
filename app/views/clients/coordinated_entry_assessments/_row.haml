@@ -1,0 +1,18 @@
+%tr.assessment-row{ id: "assessment-#{assessment.id}" }
+  %td.assessment-row__created_on
+    - if assessment.completed?
+      = link_to_if assessment.visible_by?(current_user), assessment.created_at, client_coordinated_entry_assessment_path(@client, id: assessment.id)
+    - else
+      = link_to assessment.created_at, edit_client_coordinated_entry_assessment_path(@client, id: assessment.id)
+
+  %td
+    - if assessment.completed?
+      %span.label.label-success Complete
+    - else
+      %span.label.label-warning In Progress
+
+  %td.assessment-row__score.text-center
+    = assessment.score
+
+  %td
+    = assessment.user&.name

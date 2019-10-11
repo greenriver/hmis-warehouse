@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190916190551) do
+ActiveRecord::Schema.define(version: 20191011122814) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -360,6 +360,10 @@ ActiveRecord::Schema.define(version: 20190916190551) do
     t.boolean  "can_view_own_agency_youth_intake",                    default: false
     t.boolean  "can_edit_own_agency_youth_intake",                    default: false
     t.boolean  "can_view_clients_with_roi_in_own_coc",                default: false
+    t.boolean  "can_enable_2fa",                                      default: false
+    t.boolean  "can_view_ce_assessment",                              default: false
+    t.boolean  "can_edit_ce_assessment",                              default: false
+    t.boolean  "can_submit_ce_assessment",                            default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -483,6 +487,14 @@ ActiveRecord::Schema.define(version: 20190916190551) do
     t.string   "email_schedule",                    default: "immediate", null: false
     t.boolean  "active",                            default: true,        null: false
     t.integer  "agency_id"
+    t.string   "encrypted_otp_secret"
+    t.string   "encrypted_otp_secret_iv"
+    t.string   "encrypted_otp_secret_salt"
+    t.integer  "consumed_timestep"
+    t.boolean  "otp_required_for_login",            default: false,       null: false
+    t.string   "unique_session_id"
+    t.datetime "last_activity_at"
+    t.datetime "expired_at"
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
