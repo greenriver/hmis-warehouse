@@ -197,15 +197,15 @@ class Role < ActiveRecord::Base
         administrative: false,
       },
       can_view_ce_assessment: {
-        description: "Access to view existing #{_'Coordinated Entry Assessment'}s",
+        description: "Access to view existing Coordinated Entry Assessments",
         administrative: false,
       },
       can_edit_ce_assessment: {
-        description: "Ability to edit existing #{_'Coordinated Entry Assessment'}s",
+        description: "Ability to edit existing Coordinated Entry Assessments",
         administrative: false,
       },
       can_submit_ce_assessment: {
-        description: "Ability to add #{_'Coordinated Entry Assessment'}s",
+        description: "Ability to add Coordinated Entry Assessments",
         administrative: false,
       },
       can_view_youth_intake: {

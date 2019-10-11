@@ -3569,6 +3569,9 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
+msgid "Is there anyplace you do NOT want to live?"
+msgstr ""
+
 msgid "Life-Time Sex Offender"
 msgstr ""
 
@@ -3576,6 +3579,18 @@ msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"
+msgstr ""
+
+msgid "Location Option 1"
+msgstr ""
+
+msgid "Location Option 2"
+msgstr ""
+
+msgid "Location Option 3"
+msgstr ""
+
+msgid "Location Option 4"
 msgstr ""
 
 msgid "Manually entered date at which the client became document ready"
@@ -3609,6 +3624,9 @@ msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
+msgstr ""
+
+msgid "Other city or town:"
 msgstr ""
 
 msgid "Override CAS Match Date"

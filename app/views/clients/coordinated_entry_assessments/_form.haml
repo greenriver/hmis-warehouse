@@ -4,3 +4,80 @@
     .col-sm-6
       = f.input :assessor_id, collection: User.all
       = f.input :location, label: 'Current Client Location'
+
+%h2 Special Considerations
+.well.assessment.assessment-special-considerations
+  .row
+    .col-6
+      = f.input :military_duty, label: 'You have served on active military duty'
+      = f.input :under_25, label: 'You are less than 25 years old'
+      = f.input :over_60, label: 'You are more than 60 years old'
+      = f.input :lgbtq, label: 'You identify as LGBTQ'
+      = f.input :children_under_18, label: 'You have children under 18 with you'
+    .col-6
+      = f.input :fleeing_dv, label: 'You are fleeing a domestic violence situation'
+      = f.input :living_outdoors, label: 'You are living outdoors or someplace not meant for human habitation'
+      = f.input :urgent_health_issue, label: 'You have an urgent health/mental health issue', hint: 'If so – please complete the Vulnerability Index form'
+%h2 Community Preferences
+.well.assessment.assessment-community-preferences
+  .row
+    .col-6
+      = f.input :location_option_1, label: _('Location Option 1')
+      = f.input :location_option_2, label: _('Location Option 2')
+      = f.input :location_option_3, label: _('Location Option 3')
+      = f.input :location_option_4, label: _('Location Option 4')
+    .col-6
+      = f.input :location_option_other, label: _('Other city or town:')
+      = f.input :location_option_no, label: _('Is there anyplace you do NOT want to live?')
+%h2 Assessment of Life Domains
+.well.assessment.assessment-life-domains
+  - @assessment.scored_column_options.each do |column, options|
+    = f.input column, options.merge({input_html: {class: :select2}})
+%h2 Barriers to Housing Placement
+.well.assessment.assessment-housing-barriers
+  .row
+    .col-6
+      = f.input :barrier_no_rental_history, label: 'No rental history'
+      = f.input :barrier_no_income, label: 'No income'
+      = f.input :barrier_poor_credit, label: 'Poor credit history'
+      = f.input :barrier_eviction_history, label: 'Eviction history'
+      = f.input :barrier_eviction_from_public_housing, label: 'Eviction specifically from public housing'
+    .col-6
+      = f.input :barrier_bedrooms_3, label: 'Need 3+ bedrooms'
+      = f.input :barrier_service_animal, label: 'Presence of non-service animal/ pets'
+      = f.input :barrier_cori_issues, label: 'Significant CORI issues'
+      = f.input :barrier_registered_sex_offender, label: 'Must register as a sex offender'
+      = f.input :barrier_other, label: 'Other barriers'
+%h2 Preferences regarding Housing Placement
+.well.assessment.assessment-housing-preferences
+  .row
+    .col-6
+      = f.input :preferences_studio, label: 'Studio or SRO'
+      = f.input :preferences_roomate, label: 'Roommate'
+      = f.input :preferences_pets, label: 'Pets allowed'
+      = f.input :preferences_accessible, label: 'Handicap accessible'
+      = f.input :preferences_quiet, label: 'Quiet neighborhood'
+      = f.input :preferences_public_transport, label: 'Near public transportation'
+      = f.input :preferences_parks, label: 'Near outdoor spaces like parks, trails, playgrounds'
+      = f.input :preferences_other, label: 'Other preferences'
+    .col-6
+%h2 Assessor Rating
+.well.assessment.assessment-housing-preferences
+  .row
+    .col-6
+      = f.input :assessor_rating, label: 'Rate your overall impression of the level of services needed for this household to maintain housing', collection: @assessment.assessor_rating_options, input_html: {class: :select2}
+      = f.input :homeless_six_months, label: ''
+      = f.input :mortality_hospitilization_3, label: ''
+      = f.input :mortality_emergency_room_3, label: ''
+      = f.input :mortality_over_60, label: ''
+      = f.input :mortality_cirrhosis, label: ''
+      = f.input :mortality_renal_disease, label: ''
+      = f.input :mortality_frostbite, label: ''
+      = f.input :mortality_hiv, label: ''
+      = f.input :mortality_tri_morbid, label: ''
+      = f.input :lacks_access_to_shelter, label: ''
+      = f.input :high_potential_for_vicitimization, label: ''
+      = f.input :danger_of_harm, label: ''
+      = f.input :acute_medical_condition, label: ''
+      = f.input :acute_psychiatric_condition, label: ''
+      = f.input :acute_substance_abuse, label: ''

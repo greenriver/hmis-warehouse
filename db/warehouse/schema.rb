@@ -1196,16 +1196,16 @@ ActiveRecord::Schema.define(version: 20191011124048) do
     t.boolean  "location_option_6",                    default: false
     t.string   "location_option_other"
     t.string   "location_option_no"
-    t.integer  "homelessness",                         default: 0
-    t.integer  "substance_use",                        default: 0
-    t.integer  "mental_health",                        default: 0
-    t.integer  "health_care",                          default: 0
-    t.integer  "legal_issues",                         default: 0
-    t.integer  "income",                               default: 0
-    t.integer  "work",                                 default: 0
-    t.integer  "independent_living",                   default: 0
-    t.integer  "community_involvement",                default: 0
-    t.integer  "survival_skills",                      default: 0
+    t.integer  "homelessness"
+    t.integer  "substance_use"
+    t.integer  "mental_health"
+    t.integer  "health_care"
+    t.integer  "legal_issues"
+    t.integer  "income"
+    t.integer  "work"
+    t.integer  "independent_living"
+    t.integer  "community_involvement"
+    t.integer  "survival_skills"
     t.boolean  "barrier_no_rental_history",            default: false
     t.boolean  "barrier_no_income",                    default: false
     t.boolean  "barrier_poor_credit",                  default: false
