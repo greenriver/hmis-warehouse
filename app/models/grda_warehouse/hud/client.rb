@@ -1332,6 +1332,7 @@ module GrdaWarehouse::Hud
     # A useful array of hashes from API data
     def caseworkers
       @caseworkers ||= [].tap do |m|
+        # Caseworkers from HMIS
         source_hmis_clients.each do |c|
           staff_types.each do |staff_type|
             staff_name = c["#{staff_type}_name"]
@@ -1342,9 +1343,20 @@ module GrdaWarehouse::Hud
                 title: staff_type.to_s.titleize,
                 name: staff_name,
                 phone: staff_attributes.try(:[], 'GeneralPhoneNumber'),
+                source: 'HMIS',
               }
             end
           end
+        end
+        # Caseworkers from Warehouse
+        user_clients.each do |uc|
+          next if uc.confidential?
+          m << {
+            title: uc.relationship,
+            name: uc.user.name,
+            phone: uc.user.phone,
+            source: 'Warehouse',
+          }
         end
       end
     end

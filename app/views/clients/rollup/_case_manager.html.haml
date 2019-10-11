@@ -7,12 +7,14 @@
         %th Name
         %th Phone
         %th Type
+        %th Source
     %tbody
       - @client.caseworkers.each do |caseworker|
         %tr
           %td= caseworker[:name]
           %td= caseworker[:phone]
           %td= caseworker[:title]
+          %td= caseworker[:source]
 - else
   .no-data
     No caseworkers on file
