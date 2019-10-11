@@ -112,15 +112,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
       end
     end
 
-    def youth?
-      false
-    end
-
     def individual?
-      false
-    end
-
-    def family?
       false
     end
 
@@ -242,9 +234,9 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     def assessor_rating_options
       (0..9).map do |i|
         if i.zero?
-          ['No services needed', i]
+          ["#{i} - No services needed", i]
         elsif i == 9
-          ['Intensive services needed', i]
+          ["#{i} - Intensive services needed", i]
         else
           [i, i]
         end
@@ -260,91 +252,91 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         homelessness: {
           label: 'Homelessness and Vulnerability',
           collection: {
-            'Chronically homeless (12 consecutive months of homelessness/or 4 episodes in 3 yrs totaling at least 1 year; disability.)' => 3,
-            'Literally homeless ( Non-Chronic – sleeping in shelter, safe haven or place not meant for human habitation.)' => 2,
-            'At immediate risk of homelessness (Housing loss will occur within 48 hours; no other support/housing options.)' => 1,
-            'Unstably housed and/or somewhat at risk of homelessness' => 0,
+            '3 -- Chronically homeless (12 consecutive months of homelessness/or 4 episodes in 3 yrs totaling at least 1 year; disability.)' => 3,
+            '2 -- Literally homeless ( Non-Chronic – sleeping in shelter, safe haven or place not meant for human habitation.)' => 2,
+            '1 -- At immediate risk of homelessness (Housing loss will occur within 48 hours; no other support/housing options.)' => 1,
+            '0 -- Unstably housed and/or somewhat at risk of homelessness' => 0,
           }
         },
         substance_use: {
           label: 'Substance Use',
           collection: {
-            'Vulnerable (Negative consequences due to behaviors associated with substance use. Frequent relapses.)' => 3,
-            'Safe (Ability to identify risks and access tools/support systems to decrease harm. Sporadic relapses.)' => 2,
-            'Building Capacity (Regular use of supports. Positive results due to increased safety. Abstinent < 12 months, no relapse.)' => 1,
-            'Empowered (No history of substance abuse/use. Abstinent 12+ months, without relapse.)' => 0,
+            '3 -- Vulnerable (Negative consequences due to behaviors associated with substance use. Frequent relapses.)' => 3,
+            '2 -- Safe (Ability to identify risks and access tools/support systems to decrease harm. Sporadic relapses.)' => 2,
+            '1 -- Building Capacity (Regular use of supports. Positive results due to increased safety. Abstinent < 12 months, no relapse.)' => 1,
+            '0 -- Empowered (No history of substance abuse/use. Abstinent 12+ months, without relapse.)' => 0,
           }
         },
         mental_health: {
           label: 'Mental Health',
           collection: {
-            'Vulnerable (Danger to self or others. History of no prolonged treatment. No demonstrated ability to utilize support.)' => 3,
-            'Safe (Some ability to identify and access support services. Recurrent MH symptoms, but not a danger to self/others.)' => 2,
-            'Building Capacity (Mild/minimal symptoms are transient. Only slight impairment in functioning. Ongoing use of supports.)' => 1,
-            'Empowered (No history of mental illness. Symptoms are absent or rare.)' => 0,
+            '3 -- Vulnerable (Danger to self or others. History of no prolonged treatment. No demonstrated ability to utilize support.)' => 3,
+            '2 -- Safe (Some ability to identify and access support services. Recurrent MH symptoms, but not a danger to self/others.)' => 2,
+            '1 -- Building Capacity (Mild/minimal symptoms are transient. Only slight impairment in functioning. Ongoing use of supports.)' => 1,
+            '0 -- Empowered (No history of mental illness. Symptoms are absent or rare.)' => 0,
           }
         },
         health_care: {
           label: 'Health Care',
           collection: {
-            'Vulnerable (No medical coverage. High utilizer of emergency services. Significant medical issues.)' => 3,
-            'Safe (Has medical coverage. Some medical issues. Some ability to manage healthcare.)' => 2,
-            'Building Capacity (Ability to participate in healthcare and manage health issues as they arise.)' => 1,
-            'Empowered (Manages and directs own healthcare network. => 0)' => 0,
+            '3 -- Vulnerable (No medical coverage. High utilizer of emergency services. Significant medical issues.)' => 3,
+            '2 -- Safe (Has medical coverage. Some medical issues. Some ability to manage healthcare.)' => 2,
+            '1 -- Building Capacity (Ability to participate in healthcare and manage health issues as they arise.)' => 1,
+            '0 -- Empowered (Manages and directs own healthcare network. => 0)' => 0,
           }
         },
         legal_issues: {
           label: 'Legal Issues',
           collection: {
-            'Vulnerable (Open cases, warrants.)' => 3,
-            'Safe (No recent criminal activity. Probation/parole compliant. No open cases, warrants.)' => 2,
-            'Building Capacity (No recent criminal activity. No probation/parole.)' => 1,
-            'Empowered (No criminal history. No criminal activity in 5+ years.)' => 0,
+            '3 -- Vulnerable (Open cases, warrants.)' => 3,
+            '2 -- Safe (No recent criminal activity. Probation/parole compliant. No open cases, warrants.)' => 2,
+            '1 -- Building Capacity (No recent criminal activity. No probation/parole.)' => 1,
+            '0 -- Empowered (No criminal history. No criminal activity in 5+ years.)' => 0,
           }
         },
         income: {
           label: 'Income',
           collection: {
-            'Vulnerable (No income. Inability to access benefits. Inadequate income and/or spontaneous or inappropriate spending.)' => 3,
-            'Safe (Can meet basic needs with subsidy. Has accessed all mainstream benefits/resources and spending is appropriate.)' => 2,
-            'Building Capacity (Meeting basic needs and managing budget without assistance.)' => 1,
-            'Empowered (Financially stable, has discretionary income, income is well managed and client is saving money.)' => 0,
+            '3 -- Vulnerable (No income. Inability to access benefits. Inadequate income and/or spontaneous or inappropriate spending.)' => 3,
+            '2 -- Safe (Can meet basic needs with subsidy. Has accessed all mainstream benefits/resources and spending is appropriate.)' => 2,
+            '1 -- Building Capacity (Meeting basic needs and managing budget without assistance.)' => 1,
+            '0 -- Empowered (Financially stable, has discretionary income, income is well managed and client is saving money.)' => 0,
           }
         },
         work: {
           label: 'Work',
           collection: {
-            'Vulnerable (Unemployed or underemployed; temporary, seasonal, or part-time work; inadequate pay; no benefits.)' => 3,
-            'Safe (Employed full-time; inadequate pay; few or no benefits.)' => 2,
-            'Building Capacity (Employed full-time with adequate pay and benefits.)' => 1,
-            'Empowered (Maintains full-time employment with adequate pay and benefits.) '=> 0,
+            '3 -- Vulnerable (Unemployed or underemployed; temporary, seasonal, or part-time work; inadequate pay; no benefits.)' => 3,
+            '2 -- Safe (Employed full-time; inadequate pay; few or no benefits.)' => 2,
+            '1 -- Building Capacity (Employed full-time with adequate pay and benefits.)' => 1,
+            '0 -- Empowered (Maintains full-time employment with adequate pay and benefits.) '=> 0,
           }
         },
         independent_living: {
           label: 'Independent Living Skills',
           collection: {
-            'Vulnerable (Unable to meet basic needs such as food, clothing, hygiene, housekeeping, etc.)' => 3,
-            'Safe (Can meet some, but not all daily living needs without assistance.)' => 2,
-            'Building Capacity (Can meet most, but not all daily living needs without assistance.)' => 1,
-            'Empowered (Able to meet all basic needs of daily living without assistance.)' => 0,
+            '3 -- Vulnerable (Unable to meet basic needs such as food, clothing, hygiene, housekeeping, etc.)' => 3,
+            '2 -- Safe (Can meet some, but not all daily living needs without assistance.)' => 2,
+            '1 -- Building Capacity (Can meet most, but not all daily living needs without assistance.)' => 1,
+            '0 -- Empowered (Able to meet all basic needs of daily living without assistance.)' => 0,
           }
         },
         community_involvement: {
           label: 'Community Involvement',
           collection: {
-            'Vulnerable (Negative consequences due to lack of social supports, isolating or anti‐social behavior.)' => 3,
-            'Safe (Ability to identify and utilize support systems. Becoming familiar with resources. "Good neighbor" behavior.)' => 2,
-            'Building Capacity (Regular use of support systems. Some participation in recreation; work; education; vocation programs.)' => 1,
-            'Empowered (Fully participating and engaged in community activities.)' => 0,
+            '3 -- Vulnerable (Negative consequences due to lack of social supports, isolating or anti‐social behavior.)' => 3,
+            '2 -- Safe (Ability to identify and utilize support systems. Becoming familiar with resources. "Good neighbor" behavior.)' => 2,
+            '1 -- Building Capacity (Regular use of support systems. Some participation in recreation; work; education; vocation programs.)' => 1,
+            '0 -- Empowered (Fully participating and engaged in community activities.)' => 0,
           }
         },
         survival_skills: {
           label: 'Survival Skills',
           collection: {
-            'Vulnerable (Vulnerable to exploitation; experiences regular victimization; opts for street; no insight re: dangerous behavior.)' => 3,
-            'Safe (Frequently in dangerous situations; dependent on detrimental social network; communicates some social fears.)' => 2,
-            'Building Capacity (Has some survival skills; occasionally taken advantage of; may need help recognizing unsafe behaviors.)' => 1,
-            'Empowered (Capable of networking and self-advocacy; knows where to go and get there; can maintain safety.)' => 0,
+            '3 -- Vulnerable (Vulnerable to exploitation; experiences regular victimization; opts for street; no insight re: dangerous behavior.)' => 3,
+            '2 -- Safe (Frequently in dangerous situations; dependent on detrimental social network; communicates some social fears.)' => 2,
+            '1 -- Building Capacity (Has some survival skills; occasionally taken advantage of; may need help recognizing unsafe behaviors.)' => 1,
+            '0 -- Empowered (Capable of networking and self-advocacy; knows where to go and get there; can maintain safety.)' => 0,
           },
         },
       }

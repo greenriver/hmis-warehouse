@@ -6,6 +6,8 @@
 
 module GrdaWarehouse::CoordinatedEntryAssessment
   class Individual < Base
-
+    def individual?
+      true
+    end
   end
 end
