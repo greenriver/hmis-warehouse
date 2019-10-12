@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191008163710) do
+ActiveRecord::Schema.define(version: 20191012175639) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,6 +37,8 @@ ActiveRecord::Schema.define(version: 20191008163710) do
 
   add_index "activity_logs", ["controller_name"], name: "index_activity_logs_on_controller_name", using: :btree
   add_index "activity_logs", ["created_at", "item_model", "user_id"], name: "index_activity_logs_on_created_at_and_item_model_and_user_id", using: :btree
+  add_index "activity_logs", ["created_at"], name: "activity_logs_created_at_idx", using: :brin
+  add_index "activity_logs", ["created_at"], name: "created_at_idx", using: :brin
   add_index "activity_logs", ["item_model", "user_id", "created_at"], name: "index_activity_logs_on_item_model_and_user_id_and_created_at", using: :btree
   add_index "activity_logs", ["item_model", "user_id"], name: "index_activity_logs_on_item_model_and_user_id", using: :btree
   add_index "activity_logs", ["item_model"], name: "index_activity_logs_on_item_model", using: :btree
@@ -359,6 +361,9 @@ ActiveRecord::Schema.define(version: 20191008163710) do
     t.boolean  "can_edit_own_agency_youth_intake",                    default: false
     t.boolean  "can_view_clients_with_roi_in_own_coc",                default: false
     t.boolean  "can_enable_2fa",                                      default: false
+    t.boolean  "can_view_ce_assessment",                              default: false
+    t.boolean  "can_edit_ce_assessment",                              default: false
+    t.boolean  "can_submit_ce_assessment",                            default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -490,6 +495,7 @@ ActiveRecord::Schema.define(version: 20191008163710) do
     t.string   "unique_session_id"
     t.datetime "last_activity_at"
     t.datetime "expired_at"
+    t.integer  "confirmed_2fa",                     default: 0,           null: false
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

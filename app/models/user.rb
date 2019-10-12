@@ -148,9 +148,16 @@ class User < ActiveRecord::Base
   end
 
   def two_factor_enabled?
-    otp_secret.present? && otp_required_for_login?
+    otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
   end
 
+  def confirmation_step
+    (confirmed_2fa + 1).ordinalize
+  end
+
+  def passed_2fa_confirmation?
+    confirmed_2fa > 0
+  end
 
   def invitation_status
     if invitation_accepted_at.present? || invitation_sent_at.blank?
