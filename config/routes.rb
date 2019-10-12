@@ -682,7 +682,7 @@ Rails.application.routes.draw do
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:edit, :update, :destroy]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
 

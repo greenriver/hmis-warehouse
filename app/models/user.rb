@@ -5,8 +5,6 @@
 ###
 
 class User < ActiveRecord::Base
-  devise :two_factor_authenticatable, otp_secret_encryption_key: ENV['ENCRYPTION_KEY']
-
   include Rails.application.routes.url_helpers
   include UserPermissions
   has_paper_trail
@@ -25,7 +23,11 @@ class User < ActiveRecord::Base
          :session_limitable,
          :pwned_password,
          :expirable,
-         password_length: 10..128
+         :two_factor_authenticatable,
+         :two_factor_backupable,
+         password_length: 10..128,
+         otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+         otp_number_of_backup_codes: 10
   # has_secure_password # not needed with devise
   # Connect users to login attempts
   has_many :login_activities, as: :user
@@ -157,6 +159,15 @@ class User < ActiveRecord::Base
 
   def passed_2fa_confirmation?
     confirmed_2fa > 0
+  end
+
+  def disable_2fa!
+    otp_secret = nil
+    update(
+      confirmed_2fa: 0,
+      otp_required_for_login: false,
+      otp_backup_codes: nil,
+    )
   end
 
   def invitation_status

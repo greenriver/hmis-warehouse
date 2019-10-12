@@ -57,10 +57,7 @@ module Admin
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
           @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-          if user_params[:otp_required_for_login] == 'false'
-            @user.otp_secret = nil
-            @user.confirmed_2fa = 0
-          end
+          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update(user_params)
 
           # Restore any health roles we previously had

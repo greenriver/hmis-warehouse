@@ -52,7 +52,7 @@ module AuthenticatesWithTwoFactor
   end
 
   private def authenticate_with_two_factor_via_otp(user)
-    if valid_otp_attempt?(user)
+    if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
       # Remove any lingering user data from login
       session.delete(:otp_user_id)
 

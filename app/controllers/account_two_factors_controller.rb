@@ -5,12 +5,19 @@
 ###
 
 class AccountTwoFactorsController < ApplicationController
+  include PjaxModalController
   # before_action :authenticate_user!
   before_action :set_user
 
   def edit
     @user.set_initial_two_factor_secret!
     render 'accounts/edit'
+  end
+
+  # used to create and display backup codes
+  def show
+    @codes = @user.generate_otp_backup_codes!
+    @user.save!
   end
 
   def update
@@ -27,11 +34,7 @@ class AccountTwoFactorsController < ApplicationController
   end
 
   def destroy
-    @user.otp_secret = nil
-    @user.update(
-      confirmed_2fa: 0,
-      otp_required_for_login: false,
-    )
+    @user.disable_2fa!
     redirect_to edit_account_two_factor_path
   end
 

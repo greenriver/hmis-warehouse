@@ -52,4 +52,8 @@ class Users::SessionsController < Devise::SessionsController
     user.validate_and_consume_otp!(user_params[:otp_attempt])
   end
 
+  def valid_backup_code_attempt?(user)
+    user.invalidate_otp_backup_code!(user_params[:otp_attempt])
+  end
+
 end
