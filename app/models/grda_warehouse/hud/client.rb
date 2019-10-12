@@ -2102,17 +2102,38 @@ module GrdaWarehouse::Hud
     # Fetch most recent VI-SPDAT from the warehouse,
     # if not available use the most recent ETO VI-SPDAT
     # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_score
       vispdats.completed.scores.first&.score ||
-        source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
-          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max
+        source_hmis_forms.vispdat.newest_first.
+          pluck(
+            :collected_at,
+            :vispdat_total_score,
+            :vispdat_youth_score,
+            :vispdat_family_score,
+          )&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map{|m| m.drop(1)}&.
+          flatten&.
+          compact&.
+          max
     end
 
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_length_homeless_in_days
       begin
         vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
-         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
-          vispdat_days_homeless || 0
+         source_hmis_forms.vispdat.newest_first.
+          map{|m| [m.collected_at, m.vispdat_days_homeless]}&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map{|m| m.drop(1)}&.
+          flatten&.
+          compact&.
+          max || 0
       rescue
         0
       end
