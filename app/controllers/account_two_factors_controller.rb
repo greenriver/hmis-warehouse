@@ -10,6 +10,7 @@ class AccountTwoFactorsController < ApplicationController
   before_action :set_user
 
   def edit
+    @user.set_initial_two_factor_secret!
     render 'accounts/edit'
   end
 
@@ -20,12 +21,18 @@ class AccountTwoFactorsController < ApplicationController
         flash[:notice] = "Nice work! Two-Factor Authentication has been enabled, you'll need to use it to login from now on."
         @user.update(otp_required_for_login: true)
       end
+    else
+      flash[:error] = 'The code submitted was invalid'
     end
     redirect_to edit_account_two_factor_path
   end
 
   def destroy
-    @user.update(confirmed_2fa: 0, otp_required_for_login: false)
+    @user.otp_secret = nil
+    @user.update(
+      confirmed_2fa: 0,
+      otp_required_for_login: false,
+    )
     redirect_to edit_account_two_factor_path
   end
 
