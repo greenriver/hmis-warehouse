@@ -7,7 +7,14 @@
         %i.icon-cross
         Disable Two-Factor Authentication
     - else
-      %p The process of enabling Two-Factor Authentication involves setting up an App such as Google Authenticator or Authy with the following QR code.  Once the app is setup, you'll be asked to enter two codes to confirm that it is working.
+      %p
+        The process of enabling Two-Factor Authentication involves setting up an App such as
+        = link_to 'https://support.google.com/accounts/answer/1066447?co=GENIE.Platform%3DAndroid&hl=en', target: '_blank' do
+          Google Authenticator
+        or
+        = link_to 'https://authy.com', target: '_blank' do
+          Authy
+        with the following QR code.  Once the app is setup, you'll be asked to enter two codes to confirm that it is working.
       .text-center
         .mt-4.mb-4.well
           = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_issuer, issuer: @user.two_factor_label), :svg, level: :h, unit: 2)
