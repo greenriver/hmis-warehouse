@@ -1,0 +1,53 @@
+- if @user.two_factor_enabled?
+  .row
+    .col-6
+      .alert.alert-info
+        %p
+          Two-Factor Authentication is enabled for this account.
+      %p
+        You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes, but note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
+      %p
+        = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { confirm: 'Clicking OK below will invalidate any prior backup codes. Are you sure you would like to generate new codes?', loads_in_pjax_modal: true } do
+          Generate Backup Codes
+    .col-6
+      .well
+        %p If Two-Factor Authentication is no longer necessary, you may disable it below.
+        = link_to account_two_factor_path, method: :delete, class: ['btn', 'btn-danger'] do
+          %i.icon-cross
+          Disable Two-Factor Authentication
+- else
+  .row
+    .col-sm-8
+      %p
+        The process of enabling Two-Factor Authentication involves setting up an App such as
+        = link_to 'https://support.google.com/accounts/answer/1066447?co=GENIE.Platform%3DAndroid&hl=en', target: '_blank' do
+          Google Authenticator
+        or
+        = link_to 'https://authy.com', target: '_blank' do
+          Authy
+        with the following QR code.  Once the app is setup, you'll be asked to enter two codes to confirm that it is working.
+      .text-center
+        .mt-4.mb-4.well
+          = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_issuer, issuer: @user.two_factor_label), :svg, level: :h, unit: 2)
+        = simple_form_for @user, url: account_two_factor_path, remote: false do |f|
+          = f.error_notification
+          .form-inputs
+            = f.input :otp_attempt, label: "#{@user.confirmation_step} Code", input_html: { style: 'width: 8em', maxlength: 6, class: ['ml-auto', 'mr-auto'], autofocus: true }
+          .form-actions
+            - if @user.confirmed_2fa < 2
+              %p Enter a code from your Two-Factor Authentication app above and press verify. You'll be returned here to enter your second code, you may need to way a few seconds for a new code, using the same one twice won't work.  Once you've verified two, you'll be all set.  Each time you login, you'll need to enter a new code.
+            = f.button :submit, value: 'Verify', class: ['btn', 'btn-primary', 'ml-auto', 'mr-auto']
+
+- if false
+  = content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        $('.j2Fa').on('change', function(e){
+          if($(this).val() == 'true') {
+            $('.j2FaEnabled').removeClass('hidden');
+          } else {
+            $('.j2FaEnabled').addClass('hidden');
+          }
+        });
+        $('.j2Fa').trigger('change');
+      });

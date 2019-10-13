@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191011122814) do
+ActiveRecord::Schema.define(version: 20191012223328) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -495,6 +495,8 @@ ActiveRecord::Schema.define(version: 20191011122814) do
     t.string   "unique_session_id"
     t.datetime "last_activity_at"
     t.datetime "expired_at"
+    t.integer  "confirmed_2fa",                     default: 0,           null: false
+    t.string   "otp_backup_codes",                                                     array: true
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
