@@ -36,10 +36,9 @@ module EtoApi::Tasks
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
-        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
 
-        @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
-        @api.connect
+        api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+        api.connect
         existing_hmis_clients = GrdaWarehouse::HmisClient.joins(:client).
           merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id)).
           pluck(
@@ -66,6 +65,7 @@ module EtoApi::Tasks
               participant_site_identifier: row[:participant_site_identifier],
               site_id: row[:site_id],
               subject_id: row[:subject_id],
+              data_source_id: row[:data_source_id],
             }
           end
         end
@@ -78,11 +78,13 @@ module EtoApi::Tasks
         to_fetch.each do |row|
           # Rails.logger.info "Fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
           GC.start
-          fetch_demographics(
+          save_demographics(
+            api: api,
             client_id: row[:client_id],
             participant_site_identifier: row[:participant_site_identifier],
             site_id: row[:site_id],
-            subject_id: row[:subject_id]
+            subject_id: row[:subject_id],
+            data_source_id: row[:data_source_id],
           )
           # Rails.logger.info "Fetched demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         end
@@ -102,6 +104,7 @@ module EtoApi::Tasks
         :last_updated,
         :site_id,
         :participant_site_identifier,
+        :data_source_id,
       ]
     end
 
@@ -109,10 +112,9 @@ module EtoApi::Tasks
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
-        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
 
-        @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
-        @api.connect
+        api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+        api.connect
         existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id).
           pluck(
             :client_id,
@@ -146,6 +148,7 @@ module EtoApi::Tasks
               assessment_id: row[:assessment_id],
               subject_id: row[:subject_id],
               response_id: row[:response_id],
+              data_source_id: row[:data_source_id],
             }
           end
         end
@@ -159,25 +162,16 @@ module EtoApi::Tasks
         touch_points_saved = 0
         to_fetch.each do |row|
           GC.start
-          # Rails.logger.info "Before fetch: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
-          # puts "Trying: client_id: #{row[:client_id]}, site_id: #{row[:site_id]}, assessment_id: #{row[:assessment_id]}, subject_id: #{row[:subject_id]}, response_id: #{row[:response_id]}"
-          api_response = @api.touch_point_response(
+          saved = save_touch_point(
+            api: api,
             site_id: row[:site_id],
+            touch_point_id: row[:assessment_id],
+            client_id: row[:client_id],
+            subject_id: row[:subject_id],
             response_id: row[:response_id],
-            touch_point_id: row[:assessment_id]
+            data_source_id: row[:data_source_id],
           )
-          # Rails.logger.info "After fetch: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
-          if api_response.present?
-            save_touch_point(
-              site_id: row[:site_id],
-              touch_point_id: row[:assessment_id],
-              api_response: api_response,
-              client_id: row[:client_id],
-              subject_id: row[:subject_id]
-            )
-            touch_points_saved += 1
-            # Rails.logger.info "After save: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
-          end
+          touch_points_saved += 1 if saved
         end
         msg = "Fetched #{touch_points_saved} of #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
@@ -195,13 +189,28 @@ module EtoApi::Tasks
         :subject_id,
         :response_id,
         :last_updated,
+        :data_source_id,
       ]
     end
 
-    def fetch_demographics client_id:, participant_site_identifier:, site_id:, subject_id:
+    def save_demographics api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:
+      hmis_client = fetch_demographics(
+        api: api,
+        client_id: client_id,
+        participant_site_identifier: participant_site_identifier,
+        site_id: site_id,
+        subject_id: subject_id,
+        data_source_id: data_source_id,
+      )
+      hmis_client.save if hmis_client
+    end
+
+    def fetch_demographics api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:
+      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
+
       hmis_client = nil
       # puts "requesting client #{client_id} (#{participant_site_identifier}), from #{site_id}"
-      api_response = @api.client_demographic(client_id: participant_site_identifier, site_id: site_id) rescue nil
+      api_response = api.client_demographic(client_id: participant_site_identifier, site_id: site_id) rescue nil
       # puts api_response.present?
       if api_response
         hmis_client = GrdaWarehouse::HmisClient.where(client_id: client_id, subject_id: subject_id).first_or_initialize
@@ -215,11 +224,11 @@ module EtoApi::Tasks
 
         if @custom_config.present?
           @custom_config.demographic_fields.each do |key,label|
-            hmis_client[key] = defined_value(site_id: site_id, response: api_response, label: label)
+            hmis_client[key] = defined_value(api: api, site_id: site_id, response: api_response, label: label)
           end
 
           @custom_config.demographic_fields_with_attributes.each do |key,details|
-            data = entity(site_id: site_id, response: api_response, entity_label: details['entity_label'])
+            data = entity(api: api, site_id: site_id, response: api_response, entity_label: details['entity_label'])
             if data.present?
               hmis_client[key] = data.try(:[], 'EntityName')
               hmis_client[details['attributes']] = data if hmis_client[key].present?
@@ -235,7 +244,7 @@ module EtoApi::Tasks
               hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
               when 'sexual_orientation'
                 value = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
-                sexual_orientation = defined_demographic_value(value: value, cdid: cdid, site_id: client.site_id_in_data_source)
+                sexual_orientation = defined_demographic_value(api: api, value: value, cdid: cdid, site_id: site_id)
               else
               hmis_client[key] = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
             end
@@ -257,23 +266,29 @@ module EtoApi::Tasks
           consent_expires_on: hmis_client&.consent_expires_on,
           sexual_orientation: hmis_client&.sexual_orientation,
         }
-        hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
-        hmis_client.save
-
+        hmis_client.eto_last_updated = api.parse_date(api_response['AuditDate'])
       end
       hmis_client
     end
 
-    private def defined_demographic_value value:, cdid:, site_id:
-      options = @api.demographic_defined_values(cdid: cdid, site_id: site_id).map do |m|
+    private def defined_demographic_value api:, value:, cdid:, site_id:
+      options = api.demographic_defined_values(cdid: cdid, site_id: site_id).map do |m|
         [m['ID'], m['Text']]
       end.to_h
       options[value]
     end
 
-    private def save_touch_point site_id:, touch_point_id:, api_response:, client_id:, subject_id:
+    def fetch_touch_point api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:
+      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
+
+      api_response = api.touch_point_response(
+        site_id: site_id,
+        response_id: response_id,
+        touch_point_id: touch_point_id,
+      )
+      return nil unless api_response.present?
       # Fetch assessment structure
-      assessment = @api.touch_point(site_id: site_id, id: touch_point_id)
+      assessment = api.touch_point(site_id: site_id, id: touch_point_id)
       assessment_name = assessment['TouchPointName']
 
       # Rails.logger.info "Loading TP: #{assessment_name}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
@@ -372,24 +387,40 @@ module EtoApi::Tasks
       end
 
 
-      staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
+      staff = api.staff(site_id: site_id, id: api_response['AuditStaffID'])
       hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
       hmis_form.staff_email = staff['Email']
       # Add email
-      hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
+      hmis_form.collected_at = api.parse_date(api_response['ResponseCreatedDate'])
       hmis_form.name = assessment_name
-      hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
+      hmis_form.collection_location = api.program(site_id: site_id, id: program_id)
       hmis_form.api_response = api_response
       hmis_form.answers = answers
       hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
       # Persist updated date from ETO
-      hmis_form.eto_last_updated = @api.parse_date(api_response['AuditDate'])
+      hmis_form.eto_last_updated = api.parse_date(api_response['AuditDate'])
+      hmis_form
+    end
+
+    def save_touch_point api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:
+      hmis_form = fetch_touch_point(
+        api: api,
+        site_id: site_id,
+        touch_point_id: touch_point_id,
+        client_id: client_id,
+        subject_id: subject_id,
+        response_id: response_id,
+        data_source_id: data_source_id,
+      )
+      return unless hmis_form
       begin
         hmis_form.save
         hmis_form.create_qualifying_activity!
+        return true
       rescue Exception => e
         # msg = "Failed to save, probably dirty: #{e.message}"
         # notifier.ping msg if send_notifications
+        return false
       end
     end
 
@@ -437,19 +468,19 @@ module EtoApi::Tasks
       address.join(";\n")
     end
 
-    private def entity site_id:, response:, entity_label:
-      item_cdid = @api.attribute_id(attribute_name: entity_label, site_id: site_id)
+    private def entity api:, site_id:, response:, entity_label:
+      item_cdid = api.attribute_id(attribute_name: entity_label, site_id: site_id)
       item_entity_id = response['CustomDemoData'].detect{|m| m['CDID'].to_i == item_cdid}.try(:[], 'value')
-      @api.entity_by_id(entity_id: item_entity_id.to_i, site_id: site_id)
+      api.entity_by_id(entity_id: item_entity_id.to_i, site_id: site_id)
     end
 
-    private def defined_value site_id:, response:, label:
-      item_cdid = @api.attribute_id(attribute_name: label, site_id: site_id)
+    private def defined_value api:, site_id:, response:, label:
+      item_cdid = api.attribute_id(attribute_name: label, site_id: site_id)
       item_value = response['CustomDemoData'].detect do
         |m| m['CDID'].to_i == item_cdid
       end.try(:[], 'value')
       return nil unless item_value.present?
-      defined_demographic_value(value: item_value.to_i, cdid: item_cdid, site_id: site_id)
+      defined_demographic_value(api: api, value: item_value.to_i, cdid: item_cdid, site_id: site_id)
     end
   end
 end

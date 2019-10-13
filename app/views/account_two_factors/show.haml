@@ -1,0 +1,7 @@
+- title = "Backup Two-Factor Codes"
+- content_for :modal_title, title
+
+%p the following codes can be used in-place of a Two-Factor Authentication app.  Each code can only be used once, but you can return here and generate new ones any time you'd like.
+
+.well
+  %p= @codes.join('<br />').html_safe

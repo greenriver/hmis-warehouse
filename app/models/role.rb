@@ -92,6 +92,10 @@ class Role < ActiveRecord::Base
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
       },
+       can_enable_2fa: {
+        description: 'Ability to enable Two-factor authentication for own account',
+        administrative: false,
+      },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
         administrative: true,
