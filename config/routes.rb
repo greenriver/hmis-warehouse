@@ -9,7 +9,11 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: { invitations: 'users/invitations', sessions: 'users/sessions'}
+  devise_for :users, controllers: {
+    invitations: 'users/invitations',
+    sessions: 'users/sessions',
+
+  }
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
@@ -678,6 +682,7 @@ Rails.application.routes.draw do
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
 
