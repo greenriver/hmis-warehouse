@@ -205,6 +205,37 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "36b35863c16487c4b159e6256376dc53950282919cf2d0e6ecdc46f3752e0924",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/account_two_factors/show.haml",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "current_user.generate_otp_backup_codes!.join(\"<br />\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "AccountTwoFactorsController",
+          "method": "show",
+          "line": 21,
+          "file": "app/controllers/account_two_factors_controller.rb",
+          "rendered": {
+            "name": "account_two_factors/show",
+            "file": "app/views/account_two_factors/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "account_two_factors/show"
+      },
+      "user_input": "current_user.generate_otp_backup_codes!.join(\"<br />\")",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "39fbe5b21264364680753579cfb9bbfa2a05b5af5e3646dbe3bdcd6c65579db5",
@@ -241,47 +272,6 @@
         "method": "index"
       },
       "user_input": "sort_column",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "54930659f97d14853f422c91d598d7015225295b3dfff27956072c728934363d",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/admin/users/_form_fields.haml",
-      "line": 28,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "RQRCode.render_qrcode(User.invite!(invite_params, current_user).otp_provisioning_uri(User.invite!(invite_params, current_user).two_factor_issuer, :issuer => User.invite!(invite_params, current_user).two_factor_label), :svg, :level => :h, :unit => 2)",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Users::InvitationsController",
-          "method": "create",
-          "line": 48,
-          "file": "app/controllers/users/invitations_controller.rb",
-          "rendered": {
-            "name": "users/invitations/new",
-            "file": "app/views/users/invitations/new.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "users/invitations/new",
-          "line": 8,
-          "file": "app/views/users/invitations/new.haml",
-          "rendered": {
-            "name": "admin/users/_form_fields",
-            "file": "app/views/admin/users/_form_fields.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "admin/users/_form_fields"
-      },
-      "user_input": "User.invite!(invite_params, current_user).otp_provisioning_uri(User.invite!(invite_params, current_user).two_factor_issuer, :issuer => User.invite!(invite_params, current_user).two_factor_label)",
       "confidence": "Weak",
       "note": ""
     },
@@ -949,6 +939,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-10-08 15:03:04 -0400",
+  "updated": "2019-10-12 20:05:10 -0400",
   "brakeman_version": "4.6.1"
 }
