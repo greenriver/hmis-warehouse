@@ -842,6 +842,7 @@ GEM
       ffi (~> 1.0, >= 1.0.11)
     choice (0.2.0)
     chronic (0.10.2)
+    chunky_png (1.3.11)
     coderay (1.1.2)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -886,6 +887,15 @@ GEM
     devise-pwned_password (0.1.6)
       devise (~> 4)
       pwned (~> 1.2.1)
+    devise-security (0.14.3)
+      devise (>= 4.3.0, < 5.0)
+      rails (>= 4.2.0, < 7.0)
+    devise-two-factor (3.1.0)
+      activesupport (< 6.1)
+      attr_encrypted (>= 1.3, < 4, != 2)
+      devise (~> 4.0)
+      railties (< 6.1)
+      rotp (~> 2.0)
     devise_invitable (1.6.1)
       actionmailer (>= 3.2.6)
       devise (>= 3.2.0)
@@ -1171,6 +1181,11 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
+    rotp (2.1.2)
+    rqrcode (0.10.1)
+      chunky_png (~> 1.0)
+    rqrcode-rails3 (0.1.7)
+      rqrcode (>= 0.4.2)
     rserve-client (0.3.5)
     rserve-simpler (0.0.6)
       rserve-client (~> 0.3.0)
@@ -1376,6 +1391,8 @@ DEPENDENCIES
   derailed_benchmarks
   devise (~> 4)
   devise-pwned_password
+  devise-security
+  devise-two-factor
   devise_invitable
   dotenv-rails
   email_check
@@ -1434,6 +1451,8 @@ DEPENDENCIES
   rest-client (~> 2.0)
   roo
   roo-xls
+  rqrcode (~> 0.4)
+  rqrcode-rails3
   rserve-client
   rserve-simpler
   rspec-mocks

@@ -21,7 +21,7 @@ RSpec.feature 'Accounts', type: :feature do
       fill_in 'Email', with: user.email
       fill_in 'Password', with: user.password
       click_button 'Log in'
-      expect(page).to have_content 'You have successfully signed in.'
+      expect(page).to_not have_content 'Sign In'
     end
 
     feature 'Devise lockable' do
@@ -67,7 +67,7 @@ RSpec.feature 'Accounts', type: :feature do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Log in'
-          expect(page).to have_content 'You have successfully signed in.'
+          expect(page).to_not have_content 'Sign In'
         end
       end
     end
