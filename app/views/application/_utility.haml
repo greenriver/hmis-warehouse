@@ -3,9 +3,8 @@
 
 - notice_types = {'success' => 'success', 'notice' => 'info', 'alert' => 'warning', 'error' => 'danger' }
 - flash.each do |type, msg|
-  - if msg.present? && msg.strip != '__' # allow for some overrides, devise really wants to display messages
+  - if msg.present? && msg.is_a?(String) && msg.strip != '__' # allow for some overrides, devise really wants to display messages
     %div{:class => ["alert", "alert-#{notice_types[type]}", " #{type}"]}
-      - if msg.is_a?(String)
-        = msg.html_safe unless msg.blank?
+      = msg.html_safe unless msg.blank?
       %button.close.ml-auto{href: '#', 'data-dismiss': 'alert', 'aria-label': 'close'}
         %span.icon-cross
