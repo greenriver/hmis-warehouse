@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Import < ActiveRecord::Base
   require 'csv'
   include ActionView::Helpers::DateHelper
@@ -24,7 +30,7 @@ class Import < ActiveRecord::Base
       seconds = ((completed_at - created_at)/1.minute).round * 60
       distance_of_time_in_words(seconds)
     else
-      'incomplete'
+      'processing...'
     end
   end
 

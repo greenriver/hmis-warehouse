@@ -1,15 +1,19 @@
 
 %h2 Project CoC Records
 - if project_cocs.count > 0
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
+        %th
         %th ProjectCoCID
         %th CoC Code
         %th
     %tbody
       - project_cocs.all.each do |p_coc|
         %tr
+          %td
+            - if can_see_raw_hmis_data?
+              = link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= p_coc.ProjectCoCID
           %td
             = p_coc.CoCCode

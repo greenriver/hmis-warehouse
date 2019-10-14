@@ -3,13 +3,18 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 = simple_form_for @filter, as: :filter, url: warehouse_reports_cas_chronic_reconciliation_index_path, method: :get do |f|
-  .row
-    .col-sm-3
-      = f.input :date, collection: @filter.chronic_days, label: 'Chronic date',input_html: {class: 'select2'}
-    .col-sm-3
-      = f.input :homeless_service_after, as: :date_picker, label: 'Homeless service between this date and chronic date'
-    .col-sm-3
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :date, collection: @filter.chronic_days, label: 'Chronic date',input_html: {class: 'select2'}
+      .col-sm-3
+        = f.input :homeless_service_after, as: :date_picker, label: 'Homeless service between this date and chronic date'
+
+    - content_for :filter_actions do
       = button_tag('Update View', class: 'btn btn-primary')
+
+  = render 'warehouse_reports/filters', f:f
+
 .row
   .col-sm-6
     %h3
@@ -17,7 +22,7 @@
       = @date
       Not Flagged for CAS
       = "(#{@missing_in_cas.count})"
-    %table.table.table-condensed
+    %table.table.table-sm.table-hover
       %thead
         %tr
           %th Client
@@ -42,7 +47,7 @@
       Clients Flagged for CAS, Not in Chronic List with more than 365 days from
       = @date
       = "(#{@not_on_list.count})"
-    %table.table.table-condensed
+    %table.table.table-sm.table-hover
       %thead
         %tr
           %th
@@ -60,11 +65,11 @@
                 = client[:FirstName]
                 = client[:LastName]
             %td
-              = client.chronics.find_by_date(@date)&.days_in_last_three_years
+              = client.site_chronics.find_by_date(@date)&.days_in_last_three_years
             %td
-              = client.chronics.find_by_date(@date)&.months_in_last_three_years
+              = client.site_chronics.find_by_date(@date)&.months_in_last_three_years
             %td
-              = client.chronics.find_by_date(@date)&.trigger
+              = client.site_chronics.find_by_date(@date)&.trigger
 
 = content_for :page_js do
   :javascript

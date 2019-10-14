@@ -2,11 +2,13 @@
 - content_for :title, title
 = render 'breadcrumbs'
 
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 = render 'tab_navigation', current: edit_client_path(@client)
 %h1= title
 - if @client.source_clients.size > 1
   = render 'unmerge_form'
+- if @client.splits_from.present? || @client.splits_to.present?
+  = render "disconnected_clients"
 %hr
 .row
   .col-sm-6

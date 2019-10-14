@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Confidence
-  class SourceEnrollmentsJob <BaseJob
+  class SourceEnrollmentsJob < BaseJob
     include ArelHelper
 
-    def initialize client_ids:
+    def initialize(client_ids:)
       @client_ids = client_ids
     end
 
@@ -12,12 +18,10 @@ module Confidence
       end
     end
 
-    def enqueue(job, queue: :low_priority)
-    end
+    def enqueue(job, queue: :low_priority); end
 
     def max_attempts
       2
     end
-
   end
 end

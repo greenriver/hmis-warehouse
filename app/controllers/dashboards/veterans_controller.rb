@@ -1,24 +1,23 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Dashboards
   class VeteransController < BaseController
     include ArelHelper
 
     before_action :require_can_view_censuses!
-    
+
     def sub_population_key
       :veteran
     end
     helper_method :sub_population_key
 
     def active_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients
+      Reporting::MonthlyReports::Veteran
     end
 
-    def housed_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients
-    end
-
-    def entered_report_class
-      GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients
-    end
   end
 end

@@ -1,0 +1,110 @@
+@import '../helpers';
+
+.select2,
+.select2-wrapper {
+  width: 100% !important;
+}
+
+.select2-container {
+  display: inline-flex;
+  width: 100% !important;
+}
+
+.select2-container .selection {
+  width: 100%;
+}
+
+.select2-container--bootstrap.select2-container--focus .select2-selection,
+.select2-container--bootstrap.select2-container--open .select2-selection,
+.select2-selection.select2-selection--single,
+.select2-container--bootstrap.select2-selection--single,
+.select2-container .select2-selection--multiple {
+  @include form-control;
+  height: auto;
+  min-height: 40px;
+  box-shadow: none;
+  border-color: $input-border-color;
+  display: flex;
+  align-items: center;
+  background-color: #f9f9f9;
+}
+
+.select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
+  background-color: $brand-primary;
+}
+
+.select2-container--bootstrap .select2-search--dropdown .select2-search__field {
+  @include form-control;
+  min-height: rem(40px);
+  margin: rem(5px);
+  width: calc(100% - 10px);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &,
+  b {
+    position: static;
+    border-color: $brand-primary transparent transparent transparent;
+  }
+}
+
+.select2--full-width {
+  &,
+  + .select2-container {
+    width: 100% !important; // Override mis-computed inline width
+  }
+}
+
+.select2--with-prepends {
+  + .select2-container .select2-selection {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    flex: 1 1 auto;
+    min-width: 300px;
+  }
+  + .select2-container {
+    width: auto !important;
+    flex: 1 1 auto;
+  }
+}
+
+.select2-container .select2-search--inline .select2-search__field {
+  margin-top: 0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  &:only-child {
+    padding: 0;
+  }
+  li:only-child {
+    width: 100%;
+  }
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  margin: 2px 2px 2px 0;
+}
+
+.select2-select-all {
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  z-index: 10;
+  background: rgba($gray-100, .8);
+  cursor: pointer;
+  color: $link-color;
+  min-height: 40px;
+  &:hover {
+    color: $link-hover-color;
+    cursor: pointer;
+  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: space(6);
+  padding-left: space(4);
+}

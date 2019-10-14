@@ -1,9 +1,10 @@
 
 %h2 Geography Records
 - if geographies.count > 0
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
+        %th
         %th GeographyID
         %th Information Date
         %th Geocode
@@ -17,6 +18,9 @@
     %tbody
       - geographies.all.each do |geography|
         %tr
+          %td
+            - if can_see_raw_hmis_data?
+              = link_to 'HMIS', hmi_path(geography.id, type: 'Geography'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= geography.GeographyID
           %td
             = geography.InformationDate

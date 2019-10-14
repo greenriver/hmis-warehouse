@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-01 11:36-0500\n"
-"PO-Revision-Date: 2019-02-01 11:36-0500\n"
+"POT-Creation-Date: 2019-07-02 09:20-0400\n"
+"PO-Revision-Date: 2019-07-02 09:20-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -46,6 +46,9 @@ msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
 msgid "A claim was submitted for this SSM; it is no longer editable."
+msgstr ""
+
+msgid "Alerts"
 msgstr ""
 
 msgid "Appropriate for sober supportive housing"
@@ -3432,12 +3435,6 @@ msgstr ""
 msgid "CSPECH Eligible"
 msgstr ""
 
-msgid "Case Manager"
-msgstr ""
-
-msgid "Chapter 115"
-msgstr ""
-
 msgid "Children under age 18 in household"
 msgstr ""
 
@@ -3453,7 +3450,16 @@ msgstr ""
 msgid "Clients"
 msgstr ""
 
+msgid "Cohort is visible in CAS"
+msgstr ""
+
+msgid "Cohort is visible on Client dashboard"
+msgstr ""
+
 msgid "Cohorts"
+msgstr ""
+
+msgid "Coordinated Entry Assessment"
 msgstr ""
 
 msgid "DMH Eligible"
@@ -3462,19 +3468,19 @@ msgstr ""
 msgid "Data Sources"
 msgstr ""
 
-msgid "Date Document Ready"
+msgid "Date Housed"
 msgstr ""
 
-msgid "Destination (Program Type)"
+msgid "Days to Return"
+msgstr ""
+
+msgid "Delete"
 msgstr ""
 
 msgid "Disability Verification on File"
 msgstr ""
 
 msgid "Ending Veteran & Chronic Homelessness in Boston"
-msgstr ""
-
-msgid "Exit Destination"
 msgstr ""
 
 msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
@@ -3495,6 +3501,9 @@ msgstr ""
 msgid "HMIS Data Warehouse"
 msgstr ""
 
+msgid "HMIS Source Data"
+msgstr ""
+
 msgid "HSA Contacts"
 msgstr ""
 
@@ -3507,16 +3516,19 @@ msgstr ""
 msgid "Health Report"
 msgstr ""
 
+msgid "Housing"
+msgstr ""
+
 msgid "Housing Authority Eligible"
+msgstr ""
+
+msgid "Housing Exit"
 msgstr ""
 
 msgid "Housing Release Status"
 msgstr ""
 
-msgid "Housing Track Enrolled"
-msgstr ""
-
-msgid "Housing Track Suggested"
+msgid "Housing Search"
 msgstr ""
 
 msgid "If you don't see a patient you claimed in this list, they have been assigned by BHCHP and will appear as a client for your agency staff."
@@ -3546,9 +3558,6 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
-msgid "Legal Barriers"
-msgstr ""
-
 msgid "Life-Time Sex Offender"
 msgstr ""
 
@@ -3556,12 +3565,6 @@ msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"
-msgstr ""
-
-msgid "Location"
-msgstr ""
-
-msgid "Location Type"
 msgstr ""
 
 msgid "Manually entered date at which the client became document ready"
@@ -3588,10 +3591,13 @@ msgstr ""
 msgid "My Patients"
 msgstr ""
 
-msgid "Next Step"
+msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
+msgstr ""
+
+msgid "Override CAS Match Date"
 msgstr ""
 
 msgid "Part of a family"
@@ -3600,10 +3606,10 @@ msgstr ""
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
-msgid "Pre-contemplative Last Date Approached"
+msgid "Pre-Placement"
 msgstr ""
 
-msgid "Primary Housing Track Suggested"
+msgid "Pre-Placement Project"
 msgstr ""
 
 msgid "Process Duplicates"
@@ -3613,9 +3619,6 @@ msgid "Project Groups"
 msgstr ""
 
 msgid "Projects"
-msgstr ""
-
-msgid "Provider"
 msgstr ""
 
 msgid "Report failed to queue."
@@ -3639,22 +3642,22 @@ msgstr ""
 msgid "Requires wheelchair accessible unit"
 msgstr ""
 
-msgid "SIF/PACE Eligible"
+msgid "Search"
 msgstr ""
 
-msgid "School District"
+msgid "Search End"
+msgstr ""
+
+msgid "Search Start"
 msgstr ""
 
 msgid "Shelter Agency Contacts"
 msgstr ""
 
-msgid "Sleeping Location"
+msgid "Stabilization"
 msgstr ""
 
-msgid "St. Francis House"
-msgstr ""
-
-msgid "Subpopulation"
+msgid "Stabilization Project"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
@@ -3681,61 +3684,19 @@ msgstr ""
 msgid "Upload failed to queue, did you attach a file?"
 msgstr ""
 
+msgid "Upload failed, did you attach a file?"
+msgstr ""
+
 msgid "Upload queued to start."
 msgstr ""
 
-msgid "User Boolean 1"
-msgstr ""
-
-msgid "User Boolean 2"
-msgstr ""
-
-msgid "User Boolean 3"
-msgstr ""
-
-msgid "User Boolean 4"
-msgstr ""
-
-msgid "User Date 1"
-msgstr ""
-
-msgid "User Date 2"
-msgstr ""
-
-msgid "User Date 3"
-msgstr ""
-
-msgid "User Date 4"
-msgstr ""
-
-msgid "User Select 1"
-msgstr ""
-
-msgid "User Select 2"
-msgstr ""
-
-msgid "User Select 3"
-msgstr ""
-
-msgid "User Select 4"
-msgstr ""
-
-msgid "User String 1"
-msgstr ""
-
-msgid "User String 2"
-msgstr ""
-
-msgid "User String 3"
-msgstr ""
-
-msgid "User String 4"
+msgid "Upload successful, please let the recipient know the file has been sent."
 msgstr ""
 
 msgid "VA Eligible"
 msgstr ""
 
-msgid "View Imports"
+msgid "View All Imports"
 msgstr ""
 
 msgid "View Report"
@@ -3771,7 +3732,13 @@ msgstr ""
 msgid "cohort enrollment"
 msgstr ""
 
+msgid "housing"
+msgstr ""
+
 msgid "patient"
+msgstr ""
+
+msgid "pre-placement"
 msgstr ""
 
 msgid "qualifying activities"
@@ -3781,6 +3748,12 @@ msgid "report"
 msgstr ""
 
 msgid "role"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "stabilization"
 msgstr ""
 
 msgid "the Boston Emergency Shelter Commission"

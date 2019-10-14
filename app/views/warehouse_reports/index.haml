@@ -3,14 +3,14 @@
 
 %ul.nav.nav-tabs{role: :tablist}
   - @report_definitions.each_with_index do |(group_name, reports), index|
-    %li{role: :presentation, class: (index == 0 ? 'active' : '')}
-      %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: '#{group_name}'}}
+    %li.nav-item{role: :presentation}
+      %a{href: "##{group_name.parameterize.dasherize}", role: :tab, data: {toggle: :tab}, aria: {controls: "#{group_name}"}, class: 'nav-link'}
         #{group_name}
 
-.tab-content
+.tab-content#reports-tab-content
   - @report_definitions.each_with_index do |(group_name, reports), index|
     - dashed_group_name = group_name.parameterize.dasherize
-    %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: dashed_group_name}
+    %div{role: :tabpanel, class: 'tab-pane', id: dashed_group_name}
       %h3
         #{group_name}
       %div.o-card-grid{class: "warehouse-reports__#{dashed_group_name}"}
@@ -27,9 +27,14 @@
 
 = content_for :page_js do
   :javascript
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.nav-tabs li:first-child a").tab('show')
+    }
     $('.nav-tabs a').click(function(e) {
       e.preventDefault();
       $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
     });
     $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
       var id = $(e.target).attr("href").substr(1);

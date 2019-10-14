@@ -4,22 +4,29 @@
   = link_to cohort_path(@cohort) do
     &laquo; Cohort
 = render 'client_search_js'
-%p 
+%p
   Adding clients to the cohort can be done using any of the following forms.  All clients must have at least one source record that is visible in the window.
 %p
   Once you've identified the clients you would like to add, click "add selected clients" on the right.
-.row
-  .col-sm-9
-    #client-search-options.panel-group.panel-collapsible
-      
-      = render 'search_form'
-      = render 'chronic'
-      = render 'population'
-      = render 'active'
-      = render 'batch_add'
-    = render 'results'
-    
-  .col-sm-3
-    = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
-      = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
-      = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?
+
+#client-search-options.panel-group.panel-collapsible.mb-6
+  = render 'search_form'
+  = render 'chronic'
+  = render 'hud_chronic'
+  = render 'population'
+  = render 'active'
+  - if GrdaWarehouse::Config.get(:eto_api_available)
+    = render 'touchpoint'
+  = render 'batch_add'
+
+.mt-4.mb-4
+  = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
+    = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
+    = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?
+
+= render 'results'
+
+.mt-4
+  = simple_form_for @cohort, url: cohort_cohort_clients_path(@cohort), method: :post do |f|
+    = f.input :client_ids, as: :hidden, input_html: {class: 'jClientIDs'} # Eventually, this will be a hidden field
+    = f.submit value: 'Add Selected Clients', class: 'btn btn-primary', disabled: @clients.empty?

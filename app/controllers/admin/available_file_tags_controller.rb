@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Admin
   class AvailableFileTagsController < ApplicationController
     before_action :require_can_manage_config!
@@ -58,7 +64,10 @@ module Admin
           :notification_trigger,
           :document_ready,
           :requires_effective_date,
-          :requires_expiration_date
+          :requires_expiration_date,
+          :required_for,
+          :coc_available,
+          :full_release,
         )
       end
   end

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
 
   # NOTE, this is a join table where the users are in one database and the entities are in another.  You will usually have to pluck ids to be successful.
@@ -10,6 +16,10 @@ module GrdaWarehouse
 
     belongs_to :entity, polymorphic: true
     belongs_to :user
+
+    scope :data_source, -> do
+      where(entity_type: 'GrdaWarehouse::DataSource' )
+    end
 
     def entity_name
       entity.name

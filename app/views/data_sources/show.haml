@@ -15,7 +15,7 @@
 = simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
   .row
     .col-sm-8
-      %table.table.table-condensed
+      %table.table.table-sm
         %tr
           %th Last Import Run
           %td= @data_source.last_imported_at
@@ -38,6 +38,11 @@
         - if can_edit_data_sources?
           %tr
             %th
+              HMIS Export SourceID
+            %td
+              = f.input :source_id, label: false
+          %tr
+            %th
               Visible in the Window into the Warehouse?
             %td
               = f.input :visible_in_window, label: false
@@ -46,6 +51,13 @@
               Import Paused?
             %td
               = f.input :import_paused, label: false
+          - if @data_source.authoritative?
+            %tr
+              %th After Create Path
+              %td= @data_source.after_create_path
+            %tr
+              %th Authoritative Type
+              %td= GrdaWarehouse::DataSource.authoritative_types.invert[@data_source.authoritative_type&.to_sym] || 'blank'
         %tr
           %th Viewable by the following users, regardless of visibility in window
           %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
@@ -61,101 +73,4 @@
           = _('Projects')
         .table-responsive
           - @organizations.each do |org|
-            .c-card--flush.mb-5
-              %header.row.c-card__header
-                .col-sm-8
-                  %h3= org.name
-                  - if org.dmh
-                    Treated as DMH for chronic calculations
-                .col-sm-4.text-right
-                  - if can_edit_organizations?
-                    = link_to organization_contacts_path(organization_id: org.id) do
-                      View/Edit Organization Contacts
-              %table.table.table-condensed
-                %thead
-                  %tr
-                    %th{style: 'width:30%'} Project
-                    %th{style: 'width:10%'} Confidential?
-                    %th{style: 'width:10%'} CoC Code
-                    %th{style: 'width:10%'} Continuum Project
-                    %th{style: 'width:15%'} Housing Type
-                    %th{style: 'width:5%'} Geocode
-                    %th{style: 'width:5%'} Geography Type
-                    %th{style: 'width:5%'} Inventory Record?
-                %tbody
-                  - org.projects.each do |project|
-                    %tr
-                      %td
-                        .project__name.mb-2{id: "project-#{project.id}"}
-                          .d-flex
-                            .enrollment__project_type{class: "client__service_type_#{project.ProjectType}"}
-                              .service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(project.ProjectType)}}
-                                = HUD.project_type_brief project.ProjectType
-                            .ml-2.mb-2.mr-2
-                              = link_to project.name, project_path(project)
-                            - if can_edit_projects?
-                              .ml-auto
-                              = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                                %i.icon-pencil
-                          - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
-                            .o-text--italic.mb-2
-                              Acts as
-                              = HUD.project_type project.act_as_project_type
-
-                        .project__tracking-method.mb-2
-                          %em.small
-                            Tracking Method:
-                            = HUD.tracking_method project.TrackingMethod
-
-                      %td
-                        = checkmark project.confidential
-
-                      %td
-                        .d-flex
-                          .mb-2.mr-2
-                            = project.project_cocs.map(&:CoCCode).join(', ')
-                          - if can_edit_projects? && project.project_cocs.any?
-                            .ml-auto
-                              = link_to edit_project_coc_path(project.project_cocs&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                                %i.icon-pencil
-                        - if project.project_cocs.map(&:hud_coc_code).map(&:presence).any?
-                          .o-text--italic.mb-2
-                            Overridden as
-                            = project.project_cocs.map(&:hud_coc_code).join(', ')
-
-                      %td
-                        .mb-2
-                          = checkmark_or_x(project.ContinuumProject)
-                        - if ! project.hud_continuum_funded.nil?
-                          .o-text--italic.mb-2
-                            Overridden
-                            = checkmark_or_x(project.hud_continuum_funded)
-                      %td
-                        .mb-2
-                          = HUD.housing_type(project.HousingType).presence || 'None'
-                        - if project.housing_type_override.present?
-                          .o-text--italic.mb-2
-                            Overridden as
-                            = HUD.housing_type project.housing_type_override
-                      %td
-                        .d-flex
-                          .mb-2.mr-2
-                            = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
-                          - if can_edit_projects? && project.geographies.any?
-                            .ml-auto
-                              = link_to edit_geography_path(project.geographies&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-                                %i.icon-pencil
-                        - if project.geographies&.map(&:geocode_override).compact.present?
-                          .o-text--italic.mb-2
-                            Overridden as
-                            = project.geographies.map(&:geocode_override).join(', ')
-
-                      %td
-                        .mb-2
-                          = project.geographies&.map{|m| HUD.geography_type(m.GeographyType)}&.join('; ').presence || 'None'
-                        - if project.geographies&.map(&:geography_type_override).compact.present?
-                          .o-text--italic.mb-2
-                            Overridden as
-                            = project.geographies.map{|m| HUD.geography_type m.geography_type_override}.join(', ')
-                      %td
-                        = checkmark_or_x(project.inventories.present? )
+            = render 'organization', org: org

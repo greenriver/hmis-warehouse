@@ -1,21 +1,21 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
     sequence(:ProjectID, 100)
     sequence(:EnrollmentID, 1)
     sequence(:PersonalID, 10)
     sequence(:EntryDate) do |n|
       dates = [
-        Date.today,
+        Date.current,
         8.weeks.ago,
         6.weeks.ago,
         4.weeks.ago,
         2.weeks.ago,
       ]
-      dates[n%5].to_date
+      dates[n % 5].to_date
     end
   end
   factory :grda_warehouse_hud_enrollment, class: 'GrdaWarehouse::Hud::Enrollment' do
-    # EnrollmentID
+    sequence(:EnrollmentID, 1)
     # PersonalID
     # ProjectID
     # EntryDate
@@ -29,7 +29,7 @@ FactoryGirl.define do
     # DateToStreetESSH
     # ContinuouslyHomelessOneYear
     # TimesHomelessPastThreeYears
-    MonthsHomelessPastThreeYears 4
+    MonthsHomelessPastThreeYears { 4 }
     # MonthsHomelessThisTime
     # StatusDocumented
     # HousingStatus

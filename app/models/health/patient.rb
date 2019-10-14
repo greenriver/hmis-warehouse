@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Risk: Describes a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -29,6 +35,8 @@ module Health
     phi_attr :engagement_date, Phi::Date
     phi_attr :death_date, Phi::Date
     phi_attr :care_coordinator_id, Phi::SmallPopulation
+    phi_attr :coverage_level, Phi::SmallPopulation
+    phi_attr :coverage_inquiry_date, Phi::Date
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -81,9 +89,34 @@ module Health
     scope :hpc, -> { where pilot: false }
     scope :bh_cp, -> { where pilot: false }
 
+    scope :participating, -> do
+      joins(:patient_referral).
+      merge(Health::PatientReferral.not_confirmed_rejected)
+    end
+
+    scope :active_on_date, -> (date) do
+      joins(:patient_referral).
+      merge(Health::PatientReferral.where(
+        hpr_t[:enrollment_start_date].lteq(date).
+        and(hpr_t[:disenrollment_date].gt(date).
+          or(hpr_t[:disenrollment_date].eq(nil))
+        )
+      ))
+    end
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}
+
+    scope :with_unsent_eligibility_notification, -> { where eligibility_notification: nil }
+    scope :program_ineligible, -> do
+      where coverage_level: [
+        Health::Patient.coverage_level_none_value,
+        Health::Patient.coverage_level_standard_value
+      ]
+    end
+    scope :no_coverage, -> { where coverage_level: Health::Patient.coverage_level_none_value }
+    scope :standard_coverage, -> { where coverage_level: Health::Patient.coverage_level_standard_value }
 
     scope :full_text_search, -> (text) do
       text_search(text, patient_scope: current_scope)
@@ -188,7 +221,7 @@ module Health
     # patients with no qualifying activities in the past month
     scope :no_recent_qualifying_activities, -> do
       where.not(
-        id: Health::QualifyingActivity.in_range(1.months.ago..Date.today).
+        id: Health::QualifyingActivity.in_range(1.months.ago..Date.current).
           distinct.select(:patient_id)
       )
     end
@@ -196,7 +229,7 @@ module Health
     # patients with no qualifying activities in the current calendar month
     scope :no_qualifying_activities_this_month, -> do
       where.not(
-        id: Health::QualifyingActivity.in_range(Date.today.beginning_of_month..Date.today).
+        id: Health::QualifyingActivity.in_range(Date.current.beginning_of_month..Date.current).
           distinct.select(:patient_id)
       )
     end
@@ -286,7 +319,7 @@ module Health
 
     def days_to_engage
       return 0 unless engagement_date.present?
-      (engagement_date - Date.today).to_i.clamp(0, 365)
+      (engagement_date - Date.current).to_i.clamp(0, 365)
     end
 
     def self.outreach_cutoff_span
@@ -297,7 +330,7 @@ module Health
       if enrollment_start_date.present?
         (enrollment_start_date + self.class.outreach_cutoff_span).to_date
       else
-        (Date.today + self.class.outreach_cutoff_span).to_date
+        (Date.current + self.class.outreach_cutoff_span).to_date
       end
     end
 
@@ -439,6 +472,30 @@ module Health
       end
     end
 
+    def self.coverage_level_none_value
+      'none'
+    end
+
+    def coverage_level_none?
+      coverage_level == Health::Patient.coverage_level_none_value
+    end
+
+    def self.coverage_level_standard_value
+      'standard'
+    end
+
+    def coverage_level_standard?
+      coverage_level == Health::Patient.coverage_level_standard_value
+    end
+
+    def self.coverage_level_managed_value
+      'managed'
+    end
+
+    def coverage_level_managed?
+      coverage_level == Health::Patient.coverage_level_managed_value
+    end
+
     # most recently updated Epic Patient
     def epic_patient
       return false unless epic_patients.exists?
@@ -503,7 +560,7 @@ module Health
       return unless potential_team.any?
       potential_team.each do |epic_member|
         if epic_member.name.include?(',')
-          (last_name, first_name) = epic_member.name.split(', ', 2)
+          (last_name, first_name) = epic_member.name.split(',', 2).map(&:strip)
         else
           (first_name, last_name) = epic_member.name.split(' ', 2)
         end
@@ -629,6 +686,89 @@ module Health
       # if last_status.present? # FIXME
       #   most_recent.positive_change
       # end
+    end
+
+    def last_outreach_enrollment_date(user)
+      client.
+        service_history_enrollments.
+        visible_in_window_to(user).
+        entry.
+        ongoing.
+        so.
+        maximum(:first_date_in_program)
+    end
+
+    def last_sleeping_location(user)
+      enrollment = client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(GrdaWarehouse::ServiceHistoryService.service_within_date_range(start_date: 90.days.ago.to_date, end_date: Date.current)).
+        visible_in_window_to(user).
+        entry.
+        ongoing.
+        residential.
+        joins(:service_history_services).
+        order(first_date_in_program: :desc).first
+
+      if enrollment.present?
+        {
+          date: enrollment.first_date_in_program,
+          location: GrdaWarehouse::Hud::Project.confidentialize(name: enrollment.project_name) || 'Unable to determine project name'
+        }
+      end
+    end
+
+    def consented_date
+      @consented_date ||= participation_forms.signed&.last&.signature_on
+    end
+
+    def ssm_completed_date
+      @ssm_completed_date ||= self_sufficiency_matrix_forms.completed.maximum(:completed_at)&.to_date
+    end
+
+    def cha_completed_date
+      @cha_completed_date ||= comprehensive_health_assessments.complete&.maximum(:completed_at)&.to_date
+    end
+
+    def cha_reviewed_date
+      @cha_reviewed_date ||= comprehensive_health_assessments.complete&.maximum(:reviewed_at)&.to_date
+    end
+
+    def cha_renewal_date
+      @cha_renewal_date ||= if cha_reviewed_date.present?
+        cha_reviewed_date + 1.years
+      end
+    end
+
+    def care_plan_patient_signed_date
+      @care_plan_patient_signed_date ||= careplans.maximum(:patient_signed_on)&.to_date
+    end
+
+    def care_plan_provider_signed_date
+      @care_plan_provider_signed_date ||= careplans.maximum(:provider_signed_on)&.to_date
+    end
+
+    def care_plan_renewal_date
+      if care_plan_provider_signed_date.present?
+        care_plan_provider_signed_date + 1.years
+      end
+    end
+
+    def most_recent_face_to_face_qa_date
+      qualifying_activities.direct_contact.face_to_face.maximum(:date_of_activity)
+    end
+
+    def most_recent_qa_from_case_note
+      Health::QualifyingActivity.
+        where(
+          source_type: [
+            "GrdaWarehouse::HmisForm",
+            "Health::SdhCaseManagementNote",
+            "Health::EpicQualifyingActivity",
+          ]
+        ).
+        joins(:patient).
+        merge(Health::Patient.where(id: id)).
+        maximum(:date_of_activity)
     end
 
     def self.sort_options

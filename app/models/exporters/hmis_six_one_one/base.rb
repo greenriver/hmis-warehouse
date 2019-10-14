@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'zip'
 require 'csv'
 module Exporters::HmisSixOneOne
@@ -23,7 +29,7 @@ module Exporters::HmisSixOneOne
       faked_environment: :development
     )
       setup_notifier('HMIS Exporter 6.11')
-      @file_path = "#{file_path}/#{Time.now.to_i}"
+      @file_path = "#{file_path}/#{Time.now.to_f}"
       @logger = logger
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
@@ -317,6 +323,7 @@ module Exporters::HmisSixOneOne
       ).exists
     end
 
+
     def project_exists_for_enrollment
       project_scope.where(
         p_t[:ProjectID].eq(e_t[:ProjectID]).
@@ -357,10 +364,10 @@ module Exporters::HmisSixOneOne
       export.SourceContactFirst = @user&.first_name || 'Automated'
       export.SourceContactLast = @user&.last_name || 'Export'
       export.SourceContactEmail = @user&.email
-      export.ExportDate = Date.today
+      export.ExportDate = Date.current
       export.ExportStartDate = @range.start
       export.ExportEndDate = @range.end
-      export.SoftwareName = 'Boston HMIS Warehouse'
+      export.SoftwareName = _('OpenPath HMIS Warehouse')
       export.SoftwareVersion = 1
       export.ExportPeriodType = @period_type
       export.ExportDirective = @directive

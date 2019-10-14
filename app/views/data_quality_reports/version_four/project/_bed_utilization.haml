@@ -1,0 +1,20 @@
+.well.overflow-scroll
+  .row
+    .col-sm-3.text-center
+      %br
+      %h3 Bed Inventory
+      %p= pluralize(@report.report_project_group.bed_inventory, 'bed')
+      %hr
+      %h3 Average Daily / Nightly Clients
+
+
+      %p= pluralize(@report.report_project_group.average_nightly_clients, 'client')
+      %hr
+      %h3 Average Bed Utilization
+
+      %p #{@report.report_project_group.average_bed_utilization}%
+
+    .col-sm-9
+      %h3.text-center Nightly Client Census
+      .bed-census-chart.jChart
+        %p.jLoading Loading

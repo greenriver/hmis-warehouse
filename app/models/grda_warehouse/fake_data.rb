@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'faker'
 class GrdaWarehouse::FakeData < GrdaWarehouseBase
   serialize :map, JSON
@@ -59,7 +65,10 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastPermanentZIP: -> (value) { Faker::Address.zip },
       OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(3) else nil end},
       OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(2) else nil end},
-      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location << ' Health' else nil end},
+      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location + ' Health' else nil end},
+      OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
+      OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
+      OtherTypeProvided: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
     }
   end
 

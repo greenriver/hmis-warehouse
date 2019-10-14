@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'newrelic_rpm'
 module ReportGenerators::DataQuality::Fy2017
   class Base
@@ -39,6 +45,11 @@ module ReportGenerators::DataQuality::Fy2017
         joins(:client)
 
       add_filters(scope: client_scope)
+    end
+
+    def active_client_scope
+      all_client_scope.service_within_date_range(start_date: @report_start,
+        end_date: @report_end)
     end
 
     def leavers

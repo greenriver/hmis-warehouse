@@ -2,20 +2,22 @@
   :ruby
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
+    show_demographic = @client.show_window_demographic_to?(current_user) rescue false
     @note_count = 0
-    if can_edit_client_notes?
-      @note_count = @client.notes.count
+    show_notes = can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes?
+    if show_notes
+      @note_count = @client.notes.visible_by(current_user, @client).count
     end
     always_visible = {
       client_path(@client) => {
-        title: 'Dashboard',
-        permission: can_view_clients?,
+        title: 'Dashboard', #'Basic Info & Programs'
+        permission: show_demographic,
       },
     }
     hmis = {
       client_history_path(@client) => {
         title: 'History',
-        permission: can_edit_clients?,
+        permission: show_demographic,
       },
       polymorphic_path(client_chronic_path_generator, client_id: @client.id) => {
         title: 'Chronic',
@@ -23,7 +25,7 @@
       },
       polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
         title: 'Notes',
-        permission: can_edit_client_notes?
+        permission: show_notes
       },
       polymorphic_path(edit_cas_readiness_path_generator, client_id: @client.id) => {
         title: 'CAS Readiness',
@@ -31,15 +33,15 @@
       },
       polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
         title: 'VI-SPDAT',
-        permission: can_view_vspdat?
+        permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
       },
       polymorphic_path(youth_intakes_path_generator, client_id: @client.id) => {
         title: 'Youth Intakes',
         permission: GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
       },
       polymorphic_path(files_path_generator, client_id: @client.id) => {
-        title: 'Files',
-        permission: can_manage_client_files?,
+        title: 'Files', #'File Uploads'
+        permission: GrdaWarehouse::ClientFile.any_visible_by?(current_user),
       },
       polymorphic_path(users_path_generator, client_id: @client) => {
         title: 'Relationships',

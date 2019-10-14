@@ -1,15 +1,21 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Importing
   class RunEtoApiUpdateForClientJob < BaseJob
     queue_as :high_priority
 
-    def perform destination_id:, client_ids:
-      if requires_api_update?(destination_id)
-        EtoApi::Tasks::UpdateClientDemographics.new(
-          client_ids: client_ids,
-          run_time: 15.minutes,
-          one_off: true
-        ).run!
-      end
+    def perform(destination_id:, client_ids:)
+      return unless requires_api_update?(destination_id)
+
+      EtoApi::Tasks::UpdateClientDemographics.new(
+        client_ids: client_ids,
+        run_time: 15.minutes,
+        one_off: true,
+      ).run!
     end
 
     before_enqueue do |job|
@@ -32,6 +38,5 @@ module Importing
       client = GrdaWarehouse::Hud::Client.find(destination_id)
       client.requires_api_update?(check_period: 30.minutes)
     end
-
   end
 end

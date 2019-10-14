@@ -1,7 +1,13 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Some testing code:
 # Most recent LSA needs these options: Report Start: Oct 1, 2016; Report End: Sep 30, 2017; CoC-Code: XX-500
 #
-# reload!; report_id = Reports::Lsa::Fy2018::All.last.id; ReportResult.where(report_id: report_id).last.update(percent_complete: 0); ReportGenerators::Lsa::Fy2018::All.new.run!
+# reload!; report_id = Reports::Lsa::Fy2018::All.last.id; ReportResult.where(report_id: report_id).last.update(percent_complete: 0); rg = ReportGenerators::Lsa::Fy2018::All.new(destroy_rds: false); rg.run!
 #
 # Conversion notes:
 # 1. Break table creation sections into their own methods
@@ -117,14 +123,14 @@ module ReportGenerators::Lsa::Fy2018
           directive: 2,
           hash_status:1,
           include_deleted: false,
-        ).where("project_ids @> ?", system_wide_project_ids.to_json)
+        ).where("project_ids @> ?", @project_ids.to_json)
         &.first
       return existing_export if existing_export.present?
 
       Exporters::HmisSixOneOne::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
-        projects: system_wide_project_ids,
+        projects: @project_ids,
         period_type: 3,
         directive: 2,
         hash_status:1,
@@ -232,7 +238,7 @@ module ReportGenerators::Lsa::Fy2018
       LsaSqlServer::LSAReport.delete_all
       LsaSqlServer::LSAReport.create!(
         ReportID: Time.now.to_i,
-        ReportDate: Date.today,
+        ReportDate: Date.current,
         ReportStart: @report_start,
         ReportEnd: @report_end,
         ReportCoC: @coc_code,
@@ -264,65 +270,206 @@ module ReportGenerators::Lsa::Fy2018
 
     def setup_lsa_table_indexes
       SqlServerBase.connection.execute (<<~SQL);
-        create index ref_Populations_HHType_idx ON [ref_Populations] ([HHType]);
-        create index ref_Populations_HHAdultAge_idx ON [ref_Populations] ([HHAdultAge]);
-        create index ref_Populations_HHVet_idx ON [ref_Populations] ([HHVet]);
-        create index ref_Populations_HHDisability_idx ON [ref_Populations] ([HHDisability]);
-        create index ref_Populations_HHChronic_idx ON [ref_Populations] ([HHChronic]);
-        create index ref_Populations_HHFleeingDV_idx ON [ref_Populations] ([HHFleeingDV]);
-        create index ref_Populations_HHParent_idx ON [ref_Populations] ([HHParent]);
-        create index ref_Populations_HHChild_idx ON [ref_Populations] ([HHChild]);
-        create index ref_Populations_Stat_idx ON [ref_Populations] ([Stat]);
-        create index ref_Populations_PSHMoveIn_idx ON [ref_Populations] ([PSHMoveIn]);
-        create index ref_Populations_HoHRace_idx ON [ref_Populations] ([HoHRace]);
-        create index ref_Populations_HoHEthnicity_idx ON [ref_Populations] ([HoHEthnicity]);
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHType_idx')
+        begin
+          create index ref_Populations_HHType_idx ON [ref_Populations] ([HHType]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHAdultAge_idx')
+        begin
+          create index ref_Populations_HHAdultAge_idx ON [ref_Populations] ([HHAdultAge]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHVet_idx')
+        begin
+          create index ref_Populations_HHVet_idx ON [ref_Populations] ([HHVet]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHDisability_idx')
+        begin
+          create index ref_Populations_HHDisability_idx ON [ref_Populations] ([HHDisability]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHChronic_idx')
+        begin
+          create index ref_Populations_HHChronic_idx ON [ref_Populations] ([HHChronic]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHFleeingDV_idx')
+        begin
+          create index ref_Populations_HHFleeingDV_idx ON [ref_Populations] ([HHFleeingDV]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHParent_idx')
+        begin
+          create index ref_Populations_HHParent_idx ON [ref_Populations] ([HHParent]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HHChild_idx')
+        begin
+          create index ref_Populations_HHChild_idx ON [ref_Populations] ([HHChild]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_Stat_idx')
+        begin
+          create index ref_Populations_Stat_idx ON [ref_Populations] ([Stat]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_PSHMoveIn_idx')
+        begin
+          create index ref_Populations_PSHMoveIn_idx ON [ref_Populations] ([PSHMoveIn]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HoHRace_idx')
+        begin
+          create index ref_Populations_HoHRace_idx ON [ref_Populations] ([HoHRace]);
+        end
+        if not exists (select * from sys.indexes where name = 'ref_Populations_HoHEthnicity_idx')
+        begin
+          create index ref_Populations_HoHEthnicity_idx ON [ref_Populations] ([HoHEthnicity]);
+        end
 
-        create index active_Enrollment_PersonalID_idx ON [active_Enrollment] ([PersonalID]);
-        create index active_Enrollment_HouseholdID_idx ON [active_Enrollment] ([HouseholdID]);
-        create index active_Enrollment_EntryDate_idx ON [active_Enrollment] ([EntryDate]);
-        create index active_Enrollment_ProjectType_idx ON [active_Enrollment] ([ProjectType]);
-        create index active_Enrollment_ProjectID_idx ON [active_Enrollment] ([ProjectID]);
-        create index active_Enrollment_RelationshipToHoH_idx ON [active_Enrollment] ([RelationshipToHoH]);
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_PersonalID_idx')
+        begin
+          create index active_Enrollment_PersonalID_idx ON [active_Enrollment] ([PersonalID]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_HouseholdID_idx')
+        begin
+          create index active_Enrollment_HouseholdID_idx ON [active_Enrollment] ([HouseholdID]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_EntryDate_idx')
+        begin
+          create index active_Enrollment_EntryDate_idx ON [active_Enrollment] ([EntryDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_ProjectType_idx')
+        begin
+          create index active_Enrollment_ProjectType_idx ON [active_Enrollment] ([ProjectType]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_ProjectID_idx')
+        begin
+          create index active_Enrollment_ProjectID_idx ON [active_Enrollment] ([ProjectID]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Enrollment_RelationshipToHoH_idx')
+        begin
+          create index active_Enrollment_RelationshipToHoH_idx ON [active_Enrollment] ([RelationshipToHoH]);
+        end
 
-        create index active_Household_HouseholdID_idx ON [active_Household] ([HouseholdID]);
-        create index active_Household_HoHID_idx ON [active_Household] ([HoHID]);
-        create index active_Household_HHType_idx ON [active_Household] ([HHType]);
+        if not exists (select * from sys.indexes where name = 'active_Household_HouseholdID_idx')
+        begin
+          create index active_Household_HouseholdID_idx ON [active_Household] ([HouseholdID]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Household_HoHID_idx')
+        begin
+          create index active_Household_HoHID_idx ON [active_Household] ([HoHID]);
+        end
+        if not exists (select * from sys.indexes where name = 'active_Household_HHType_idx')
+        begin
+          create index active_Household_HHType_idx ON [active_Household] ([HHType]);
+        end
 
-        create index tmp_Household_HoHID_idx ON [tmp_Household] ([HoHID]);
-        create index tmp_Household_HHType_idx ON [tmp_Household] ([HHType]);
+        if not exists (select * from sys.indexes where name = 'tmp_Household_HoHID_idx')
+        begin
+          create index tmp_Household_HoHID_idx ON [tmp_Household] ([HoHID]);
+        end
+        if not exists (select * from sys.indexes where name = 'tmp_Household_HHType_idx')
+        begin
+          create index tmp_Household_HHType_idx ON [tmp_Household] ([HHType]);
+        end
 
-        create index tmp_Person_CHStart_idx ON [tmp_Person] ([CHStart]);
-        create index tmp_Person_LastActive_idx ON [tmp_Person] ([LastActive]);
-        create index tmp_Person_PersonalID_idx ON [tmp_Person] ([PersonalID]);
+        if not exists (select * from sys.indexes where name = 'tmp_Person_CHStart_idx')
+        begin
+          create index tmp_Person_CHStart_idx ON [tmp_Person] ([CHStart]);
+        end
+        if not exists (select * from sys.indexes where name = 'tmp_Person_LastActive_idx')
+        begin
+          create index tmp_Person_LastActive_idx ON [tmp_Person] ([LastActive]);
+        end
+        if not exists (select * from sys.indexes where name = 'tmp_Person_PersonalID_idx')
+        begin
+          create index tmp_Person_PersonalID_idx ON [tmp_Person] ([PersonalID]);
+        end
 
-        create index ch_Enrollment_PersonalID_idx ON [ch_Enrollment] ([PersonalID]);
-        create index ch_Enrollment_EnrollmentID_idx ON [ch_Enrollment] ([EnrollmentID]);
-        create index ch_Enrollment_StartDate_idx ON [ch_Enrollment] ([StartDate]);
-        create index ch_Enrollment_StopDate_idx ON [ch_Enrollment] ([StopDate]);
-        create index ch_Enrollment_ProjectType_idx ON [ch_Enrollment] ([ProjectType]);
+        if not exists (select * from sys.indexes where name = 'ch_Enrollment_PersonalID_idx')
+        begin
+          create index ch_Enrollment_PersonalID_idx ON [ch_Enrollment] ([PersonalID]);
+        end
+        if not exists (select * from sys.indexes where name = 'ch_Enrollment_EnrollmentID_idx')
+        begin
+          create index ch_Enrollment_EnrollmentID_idx ON [ch_Enrollment] ([EnrollmentID]);
+        end
+        if not exists (select * from sys.indexes where name = 'ch_Enrollment_StartDate_idx')
+        begin
+          create index ch_Enrollment_StartDate_idx ON [ch_Enrollment] ([StartDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'ch_Enrollment_StopDate_idx')
+        begin
+          create index ch_Enrollment_StopDate_idx ON [ch_Enrollment] ([StopDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'ch_Enrollment_ProjectType_idx')
+        begin
+          create index ch_Enrollment_ProjectType_idx ON [ch_Enrollment] ([ProjectType]);
+        end
 
-        create index ch_Exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
+        if not exists (select * from sys.indexes where name = 'ch_Exclude_excludeDate_idx')
+        begin
+          create index ch_Exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
+        end
 
-        create index ch_Episodes_PersonalID_idx ON [ch_Episodes] ([PersonalID]);
+        if not exists (select * from sys.indexes where name = 'ch_Episodes_PersonalID_idx')
+        begin
+          create index ch_Episodes_PersonalID_idx ON [ch_Episodes] ([PersonalID]);
+        end
 
-        create index tmp_CohortDates_CohortStart_idx ON [tmp_CohortDates] ([CohortStart]);
-        create index tmp_CohortDates_CohortEnd_idx ON [tmp_CohortDates] ([CohortEnd]);
+        if not exists (select * from sys.indexes where name = 'tmp_CohortDates_CohortStart_idx')
+        begin
+          create index tmp_CohortDates_CohortStart_idx ON [tmp_CohortDates] ([CohortStart]);
+        end
+        if not exists (select * from sys.indexes where name = 'tmp_CohortDates_CohortEnd_idx')
+        begin
+          create index tmp_CohortDates_CohortEnd_idx ON [tmp_CohortDates] ([CohortEnd]);
+        end
 
-        create index ref_Calendar_theDate_idx ON [ref_Calendar] ([theDate]);
+        if not exists (select * from sys.indexes where name = 'ref_Calendar_theDate_idx')
+        begin
+          create index ref_Calendar_theDate_idx ON [ref_Calendar] ([theDate]);
+        end
 
-        create index ch_Time_chDate_idx ON [ch_Time] ([chDate]);
-        create index ch_Time_PersonalID_idx ON [ch_Time] ([PersonalID]);
+        if not exists (select * from sys.indexes where name = 'ch_Time_chDate_idx')
+        begin
+          create index ch_Time_chDate_idx ON [ch_Time] ([chDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'ch_Time_PersonalID_idx')
+        begin
+          create index ch_Time_PersonalID_idx ON [ch_Time] ([PersonalID]);
+        end
 
-        create index sys_Time_HoHID_idx ON [sys_Time] ([HoHID]);
-        create index sys_Time_HHType_idx ON [sys_Time] ([HHType]);
-        create index sys_Time_sysDate_idx ON [sys_Time] ([sysDate]);
-        create index sys_Time_sysStatus_idx ON [sys_Time] ([sysStatus]);
+        if not exists (select * from sys.indexes where name = 'sys_Time_HoHID_idx')
+        begin
+          create index sys_Time_HoHID_idx ON [sys_Time] ([HoHID]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Time_HHType_idx')
+        begin
+          create index sys_Time_HHType_idx ON [sys_Time] ([HHType]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Time_sysDate_idx')
+        begin
+          create index sys_Time_sysDate_idx ON [sys_Time] ([sysDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Time_sysStatus_idx')
+        begin
+          create index sys_Time_sysStatus_idx ON [sys_Time] ([sysStatus]);
+        end
 
-        create index sys_Enrollment_EnrollmentID_idx ON [sys_Enrollment] ([EnrollmentID]);
-        create index sys_Enrollment_HoHID_idx ON [sys_Enrollment] ([HoHID]);
-        create index sys_Enrollment_HHType_idx ON [sys_Enrollment] ([HHType]);
-        create index sys_Enrollment_EntryDate_idx ON [sys_Enrollment] ([EntryDate]);
-        create index sys_Enrollment_ProjectType_idx ON [sys_Enrollment] ([ProjectType]);
+        if not exists (select * from sys.indexes where name = 'sys_Enrollment_EnrollmentID_idx')
+        begin
+          create index sys_Enrollment_EnrollmentID_idx ON [sys_Enrollment] ([EnrollmentID]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Enrollment_HoHID_idx')
+        begin
+          create index sys_Enrollment_HoHID_idx ON [sys_Enrollment] ([HoHID]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Enrollment_HHType_idx')
+        begin
+          create index sys_Enrollment_HHType_idx ON [sys_Enrollment] ([HHType]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Enrollment_EntryDate_idx')
+        begin
+          create index sys_Enrollment_EntryDate_idx ON [sys_Enrollment] ([EntryDate]);
+        end
+        if not exists (select * from sys.indexes where name = 'sys_Enrollment_ProjectType_idx')
+        begin
+          create index sys_Enrollment_ProjectType_idx ON [sys_Enrollment] ([ProjectType]);
+        end
 
       SQL
     end
@@ -339,8 +486,10 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def validate_lsa_sample_code
-      ::Rds.identifier = sql_server_identifier
-      ::Rds.timeout = 60_000_000
+      unless ENV['NO_LSA_RDS'].present?
+        ::Rds.identifier = sql_server_identifier
+        ::Rds.timeout = 60_000_000
+      end
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
       LsaSqlServer::LSAQueries.new.validate_file
     end

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ReadOnlyInput < SimpleForm::Inputs::StringInput
   def input(wrapper_options = nil)
     if @builder.options[:wrapper] == :readonly
@@ -8,7 +14,7 @@ class ReadOnlyInput < SimpleForm::Inputs::StringInput
         existing_classes = label_html_options.try(:[], :class)
         existing_classes << 'd-block'
         existing_classes << 'readonly-value'
-        template.content_tag(:p, display_value, label_html_options.merge({class: existing_classes}))
+        template.content_tag(:p, display_value, label_html_options.merge(class: existing_classes))
       end
     else
       super(wrapper_options)

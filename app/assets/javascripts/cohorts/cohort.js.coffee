@@ -70,7 +70,7 @@ class App.Cohorts.Cohort
         old_value = 'unknown'
         if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id
           old_value = @editing_initial_value
-        @after_edit(params.colDef.field, cohort_client_id, old_value, params.value)
+        @after_edit(params.colDef.field, cohort_client_id, old_value, params.value, params.rowIndex)
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
@@ -128,6 +128,7 @@ class App.Cohorts.Cohort
         when 'date'
           header.cellRenderer = 'dateCellRenderer'
           header.cellEditor = 'dateCellEditor'
+          header.comparator = @sort_dates
           header.getQuickFilterText = (params) =>
             params.value
         when 'dropdown'
@@ -159,6 +160,12 @@ class App.Cohorts.Cohort
       return 0
     if a then 1 else -1
 
+  # work around our text based date format
+  sort_dates: (a, b) =>
+    if a == b
+      return 0
+    if moment(a, 'MMM DD, YYYY').format('YYYYMMDD') > moment(b, 'MMM DD, YYYY').format('YYYYMMDD') then 1 else -1
+
   enable_searching: () =>
     searchField = $(@search_selector)[0]
     $(searchField).removeAttr('disabled')
@@ -176,8 +183,8 @@ class App.Cohorts.Cohort
       if cohort_client_ids.length > 0
         cc_id_field.attr 'value', cohort_client_ids
       $(form).submit()
-        
-      
+
+
 
   load_pages: () =>
     $(@loading_selector).removeClass('hidden')
@@ -220,7 +227,7 @@ class App.Cohorts.Cohort
     $('.jReRank').removeClass('disabled');
 
 
-  after_edit: (column, cohort_client_id, old_value, new_value) =>
+  after_edit: (column, cohort_client_id, old_value, new_value, rowIndex=null) =>
     # console.log column, cohort_client_id, old_value, new_value
 
     field_name = "cohort_client[#{column}]"
@@ -237,16 +244,21 @@ class App.Cohorts.Cohort
       dataType: 'json'
     }
 
-    $.ajax(options).complete (jqXHR) =>
-      response = JSON.parse(jqXHR.responseText)
-      alert_class = response.alert
-      alert_text = response.message
-      updated_at = response.updated_at
-      cohort_client_id = response.cohort_client_id
+    $.ajax(options).done (data) =>
+      alert_class = data.alert
+      alert_text = data.message
+      updated_at = data.updated_at
+      cohort_client_id = data.cohort_client_id
 
       # Make note of successful update
       @updated_ats[cohort_client_id] = updated_at
 
+      if rowIndex
+        $row = $(".ag-row[row-index=#{rowIndex}]")
+        $row.addClass('highlight-positive')
+        setTimeout ->
+          $row.removeClass('highlight-positive')
+        , 2000
       alert = "<div class='alert alert-#{alert_class}' style='position: fixed; top: 70px; z-index: 1500;'>#{alert_text}</div>"
       $('.utility .alert').remove()
       $('.utility').append(alert)

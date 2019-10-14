@@ -1,0 +1,36 @@
+- title = "HMIS #{@type} Source Data"
+- content_for :title, title
+%h1= content_for :title
+
+%table.table.table-condensed
+  %tr
+    %th Data Source
+    %td= link_to @item.data_source.name, data_source_path(@item.data_source)
+  %tr
+    %th Warehouse ID
+    %td= @item.id
+  - @item.class.hud_csv_headers.each do |key|
+    %tr
+      - if key == :PersonalID && @item.class.name != 'GrdaWarehouse::Hud::Client'
+        %th= key
+        %td
+          = link_to @item[key], hmis_path(search: {id: @item[key], type: 'Client'})
+      - elsif key == :EnrollmentID && @item.class.name != 'GrdaWarehouse::Hud::Enrollment'
+        %th= key
+        %td
+          = link_to @item[key], hmis_path(search: {id: @item[key], type: 'Enrollment'})
+      - elsif key == :OrganizationID && @item.class.name != 'GrdaWarehouse::Hud::Organization'
+        %th= key
+        %td
+          = link_to @item[key], hmis_path(search: {id: @item[key], type: 'Organization'})
+      - elsif key == :ProjectID && @item.class.name != 'GrdaWarehouse::Hud::Project'
+        %th= key
+        %td
+          = link_to @item[key], hmis_path(search: {id: @item[key], type: 'Project'})
+      - elsif key == :ProjectID && @item.class.name != 'GrdaWarehouse::Hud::Project'
+        %th= key
+        %td
+          = link_to @item[key], hmis_path(search: {id: @item[key], type: 'Project'})
+      - else
+        %th= key
+        %td= @item[key]

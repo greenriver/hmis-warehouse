@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class AvailableFileTag < GrdaWarehouseBase
     include DefaultFileTypes
@@ -26,12 +32,28 @@ module GrdaWarehouse
       where(notification_trigger: true)
     end
 
+    def required_by?(client)
+      return true unless required_for.present? && self.class.available_required_for_options.values.include?(required_for)
+
+      GrdaWarehouse::Hud::Client.send(required_for).where(id: client).exists?
+    end
+
+    def self.available_required_for_options
+      {
+        'Veterans' => 'veteran',
+      }
+    end
+
     def self.contains_consent_form?(tag_names=[])
       consent_forms.where(name: tag_names).exists?
     end
 
     def self.full_release?(tag_names=[])
       full_release.where(name: tag_names).exists?
+    end
+
+    def self.coc_level_release?(tag_names=[])
+      full_release.where(name: tag_names, coc_available: true).exists?
     end
 
     def self.partial_consent?(tag_names=[])
@@ -46,6 +68,12 @@ module GrdaWarehouse
       groups = []
 
       self.ordered.group_by{|tag| tag.group}
+    end
+
+    def self.tag_includes(info_type)
+      self.all.select do |tag|
+        tag.included_info.present? && tag.included_info.split(',').map(&:strip).include?(info_type)
+      end
     end
 
     # Taken from here:https://github.com/carrierwaveuploader/carrierwave-i18n/blob/master/rails/locales/en.yml

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Export::HMISSixOneOne
   class Client < GrdaWarehouse::Import::HMISSixOneOne::Client
     include ::Export::HMISSixOneOne::Shared
@@ -7,7 +13,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
-    has_many :enrollments_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Enrollment.name, primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
+    has_many :enrollments_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id]
 
 
     def export! client_scope:, path:, export:

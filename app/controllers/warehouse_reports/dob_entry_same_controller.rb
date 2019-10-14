@@ -1,5 +1,11 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
-  class DobEntrySameController < ApplicationController
+  class DOBEntrySameController < ApplicationController
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
     def index

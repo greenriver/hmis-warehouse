@@ -1,8 +1,11 @@
+= content_for :crumbs do
+  = link_to project_path(@project) do
+    = "« #{@project.ProjectName}"
 - content_for :title, "Project Data Quality Reports for #{@project.ProjectName} at #{@project.organization.OrganizationName}"
 %h1= content_for :title
 
 - if @reports.any?
-  %table.table.table-condensed
+  %table.table.table-sm
     %thead
       %tr
         %th Date Range

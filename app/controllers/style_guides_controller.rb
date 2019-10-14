@@ -1,7 +1,13 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class StyleGuidesController < ApplicationController
   include PjaxModalController
   include WindowClientPathGenerator
-  
+
   def alerts
   end
 
@@ -13,7 +19,7 @@ class StyleGuidesController < ApplicationController
     @client = @patient.client
     @careplan = @patient.careplans.build
     @goal = Health::Goal::Base.new
-    @goals = @careplan.goals.order(number: :asc)
+    @goals = @careplan.hpc_goals.order(number: :asc)
   end
 
   def add_goal

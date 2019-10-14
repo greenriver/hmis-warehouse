@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # provides less verbose versions of stuff that's useful for working with arel
 # these are all two letters both for maximum brevity and because this makes them more includable -- they are unlikely to be stomped on by other methods or functions
 module ArelHelper
@@ -74,9 +80,6 @@ module ArelHelper
   end
 
   # Some shortcuts for arel tables
-  def sh_t
-    GrdaWarehouse::ServiceHistory.arel_table
-  end
   def she_t
     GrdaWarehouse::ServiceHistoryEnrollment.arel_table
   end
@@ -307,9 +310,6 @@ module ArelHelper
 
 
     # Some shortcuts for arel tables
-    def sh_t
-      GrdaWarehouse::ServiceHistory.arel_table
-    end
     def she_t
       GrdaWarehouse::ServiceHistoryEnrollment.arel_table
     end

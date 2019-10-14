@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Cohorts
   class ClientNotesController < ApplicationController
     include PjaxModalController
@@ -7,9 +13,11 @@ module Cohorts
     before_action :set_cohort_and_client
 
     def index
+      @modal_size = :lg
     end
 
     def new
+      @modal_size = :lg
       @note = note_source.new(client_id: @cohort_client.client_id)
     end
 

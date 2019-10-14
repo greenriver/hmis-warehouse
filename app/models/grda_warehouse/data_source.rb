@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   require 'memoist'
   include ArelHelper
@@ -78,7 +84,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
-    if user&.can_see_clients_in_window_for_assigned_data_sources?
+    if user&.can_edit_anything_super_user?
+      current_scope
+    elsif user&.can_see_clients_in_window_for_assigned_data_sources?
+      # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
       ds_ids = user.data_sources.pluck(:id)
       where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
     elsif health_id = self.health_authoritative_id
@@ -94,9 +103,30 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  scope :youth, -> do
+    where(authoritative_type: 'youth')
+  end
+
+  scope :health, -> do
+    where(authoritative_type: 'health')
+  end
+
+  scope :vispdat, -> do
+    where(authoritative_type: 'vispdat')
+  end
+
+  def self.authoritative_types
+    {
+      "Youth" => :youth,
+      "VI-SPDAT" => :vispdat,
+      "Health" => :health,
+    }
+  end
+
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -109,6 +139,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            AND
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
       )
 
     SQL
@@ -118,6 +150,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -132,6 +165,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            AND
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
             #{organization_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
@@ -145,6 +180,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
 
     <<-SQL.squish
 
@@ -159,6 +195,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
             AND
             #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            AND
+            #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
             #{project_table}.#{qc.('data_source_id')} = #{data_source_table}.#{qc.('id')}
             AND
@@ -210,7 +248,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         end
       spans_by_id.each do |ds, dates|
         if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.today
+          spans_by_id[ds][:end_date] = Date.current
         end
       end
       spans_by_id

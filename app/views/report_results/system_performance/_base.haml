@@ -1,10 +1,13 @@
 .table-responsive
-  %table.table.table-condensed.table-hover
+  %table.table.table-hover
     - @result.results.each do |key, result|
       - if result['title'].present?
         - have_support = @result.support.present? && @result.support[key].present? && @result.support[key]['support'].present?
         %tr
-          %th= result['title']  
+          %th
+            = result['title']
+            .description.font-weight-normal
+              (#{key.humanize})
           %td
             - if have_support
               = link_to report_report_result_support_index_path(@report, @result, {key: key}), data: {loads_in_pjax_modal: true} do
@@ -15,4 +18,3 @@
             - if have_support
               = link_to report_report_result_support_index_path(@report, @result, {key: key, format: :xlsx}) do
                 %span.icon-download2
-              

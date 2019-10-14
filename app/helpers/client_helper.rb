@@ -1,9 +1,13 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ClientHelper
-  def enrolled client, window_only:true
+  def enrolled(client, window_only: true)
     enrollments = client.scope_for_ongoing_residential_enrollments
-    if window_only
-      enrollments = enrollments.visible_in_window_to(current_user)
-    end
+    enrollments = enrollments.visible_in_window_to(current_user) if window_only
     enrollments.distinct.pluck(:project_type).map do |project_type|
       if project_type == 13
         [project_type, 'RRH']

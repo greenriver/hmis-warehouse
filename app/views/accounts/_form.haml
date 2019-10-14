@@ -7,9 +7,9 @@
         = f.input :first_name, required: true
         = f.input :last_name, required: true
         = f.input :phone
-        = f.input :agency
-        = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.'
+        = f.association :agency, disabled: true, input_html: { class: :select2 }
+        = f.input :email_schedule, collection: Message::SCHEDULES.map{ |s| [ s.titleize, s ] }, include_blank: false, hint: 'Messages not sent on the "immediate" schedule are sent as a digest.', input_html: { class: :select2 }
 
       .form-actions
-        = f.button :submit, value: 'Update Account'
+        = f.button :submit, value: 'Update Account', class: 'btn btn-primary'
 

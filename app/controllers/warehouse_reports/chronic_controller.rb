@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class ChronicController < ApplicationController
     include ArelHelper
@@ -34,7 +40,7 @@ module WarehouseReports
         format.xlsx do
           filter = @report.parameters['filter']
           date = filter ? filter['on'] : ''
-          headers['Content-Disposition'] = "attachment; filename=Potentially Chronic Clients on #{date}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=Potentially Chronic Clients on #{date.to_date.strftime('%Y-%m-%d')}.xlsx"
         end
       end
     end

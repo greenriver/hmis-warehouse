@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ApplicationMailer < ActionMailer::Base
   default from: ENV['DEFAULT_FROM']
   layout 'mailer'
 
-  if Rails.configuration.sandbox_email_mode
-    ActionMailer::Base.register_interceptor SandboxEmailInterceptor
-  end
+  ActionMailer::Base.register_interceptor SandboxEmailInterceptor if Rails.configuration.sandbox_email_mode
+
+  ActionMailer::Base.register_interceptor CloudwatchEmailInterceptor if ENV['SES_MONITOR_OUTGOING_EMAIL'] == 'true'
 
   def self.prefix
     '[Warehouse]'

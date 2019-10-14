@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
@@ -12,6 +18,7 @@ module GrdaWarehouse
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+    belongs_to :tags, class_name: Cas::Tag.name
 
     attr_accessor :client_ids, :user_ids
 
@@ -42,26 +49,33 @@ module GrdaWarehouse
       end
     end
 
-    def search_clients(page: nil, per: nil, inactive: nil, population: :active)
-      @client_search_scope = if inactive.present?
-        cohort_clients.joins(:client)
+    scope :editable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
+        current_scope
+      elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
+        joins(:user_viewable_entities).
+          where(GrdaWarehouse::UserViewableEntity.table_name => {user_id: user.id})
       else
-        cohort_clients.joins(:client).where(active: true)
+        none
       end
+    end
+
+    def search_clients(page: nil, per: nil, population: :active, user: )
+      @client_search_scope = cohort_clients.joins(:client)
 
       scope = case population&.to_sym
       when :housed
         housed_scope
       when :active
-        active_scope
+        active_scope.where(active: true)
       when :ineligible
         ineligible_scope
-      else
-        @client_search_scope.where(
-          at[:housed_date].eq(nil).
-          or(at[:destination].eq(nil).
-          or(at[:destination].eq('')))
-        ).where(ineligible: [nil, false])
+      when :inactive
+        inactive_scope(user)
+      else # active
+        active_scope.where(active: true)
       end
       if page.present? && per.present?
         scope = scope.order(id: :asc).page(page).per(per)
@@ -72,10 +86,6 @@ module GrdaWarehouse
           client: [:source_clients, :processed_service_history, {cohort_clients: :cohort}]
         }
       )
-    end
-
-    private def needs_client_search
-      raise "call #search_clients first; scope: #{@client_search_scope.present?}; results: #{@client_search_result.count}" unless @client_search_scope.present? && @client_search_result.present?
     end
 
     private def at
@@ -94,9 +104,19 @@ module GrdaWarehouse
         ).where(ineligible: [nil, false])
     end
 
+    # only administrator should have access to the inactive clients
+    def inactive_scope user
+      return @client_search_scope.none unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      @client_search_scope.where(active: false)
+    end
+
+    def show_inactive user
+      return false unless user.can_manage_cohorts? || user.can_edit_cohort_clients?
+      inactive_scope(user).exists?
+    end
+
     # should we show the housed option for the last `client_search`
     def show_housed
-      needs_client_search
       housed_scope.exists?
     end
 
@@ -105,8 +125,7 @@ module GrdaWarehouse
     end
 
     # should we show the inactive option for the last `client_search`
-    def show_inactive
-      needs_client_search
+    def show_ineligible
       ineligible_scope.exists?
     end
 
@@ -120,13 +139,11 @@ module GrdaWarehouse
 
     # full un-paginated scope for the last `client_search`
     def client_search_scope
-      needs_client_search
       @client_search_scope
     end
 
     # paginated/preloaded scope for the last `client_search`
     def client_search_result
-      needs_client_search
       @client_search_result
     end
 
@@ -158,10 +175,17 @@ module GrdaWarehouse
       active_cohort?
     end
 
+    def cas_tag_name
+      Cas::Tag.find(tag_id)&.name rescue nil
+    end
 
-    def visible_columns
+    def visible_columns(user:)
       return self.class.default_visible_columns unless column_state.present?
-      column_state&.select(&:visible)&.presence || self.class.available_columns
+
+      columns = column_state&.select(&:visible)&.presence || self.class.available_columns
+      columns.each do |column|
+        column.current_user = user
+      end
     end
 
     def self.default_visible_columns
@@ -178,10 +202,12 @@ module GrdaWarehouse
         ::CohortColumns::Rank.new(),
         ::CohortColumns::Age.new(),
         ::CohortColumns::Gender.new(),
+        ::CohortColumns::Ssn.new(),
         ::CohortColumns::CalculatedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomeless.new(),
         ::CohortColumns::AdjustedDaysHomelessLastThreeYears.new(),
         ::CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears.new(),
+        ::CohortColumns::DaysHomelessPlusOverrides.new(),
         ::CohortColumns::FirstDateHomeless.new(),
         ::CohortColumns::Chronic.new(),
         ::CohortColumns::Agency.new(),
@@ -235,11 +261,13 @@ module GrdaWarehouse
         ::CohortColumns::VulnerabilityRank.new(),
         ::CohortColumns::ActiveCohorts.new(),
         ::CohortColumns::DestinationFromHomelessness.new(),
+        ::CohortColumns::HmisDestination.new(),
         ::CohortColumns::OpenEnrollments.new(),
         ::CohortColumns::Ineligible.new(),
         ::CohortColumns::ConsentConfirmed.new(),
         ::CohortColumns::DisabilityVerificationDate.new(),
         ::CohortColumns::AvailableForMatchingInCas.new(),
+        ::CohortColumns::DaysSinceCasMatch.new(),
         ::CohortColumns::Sober.new(),
         ::CohortColumns::OriginalChronic.new(),
         ::CohortColumns::NotAVet.new(),
@@ -255,18 +283,38 @@ module GrdaWarehouse
         ::CohortColumns::Race.new(),
         ::CohortColumns::Ethnicity.new(),
         ::CohortColumns::Lgbtq.new(),
+        ::CohortColumns::LgbtqFromHmis.new(),
         ::CohortColumns::SleepingLocation.new(),
         ::CohortColumns::ExitDestination.new(),
         ::CohortColumns::ActiveInCasMatch.new(),
         ::CohortColumns::SchoolDistrict.new(),
+        ::CohortColumns::AssessmentScore.new(),
+        ::CohortColumns::VispdatScoreManual.new(),
+        ::CohortColumns::DaysOnCohort.new(),
+        ::CohortColumns::CasVashEligible.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),
         ::CohortColumns::UserString4.new(),
+        ::CohortColumns::UserString5.new(),
+        ::CohortColumns::UserString6.new(),
+        ::CohortColumns::UserString7.new(),
+        ::CohortColumns::UserString8.new(),
         ::CohortColumns::UserBoolean1.new(),
         ::CohortColumns::UserBoolean2.new(),
         ::CohortColumns::UserBoolean3.new(),
         ::CohortColumns::UserBoolean4.new(),
+        ::CohortColumns::UserBoolean5.new(),
+        ::CohortColumns::UserBoolean6.new(),
+        ::CohortColumns::UserBoolean7.new(),
+        ::CohortColumns::UserBoolean8.new(),
+        ::CohortColumns::UserBoolean9.new(),
+        ::CohortColumns::UserBoolean10.new(),
+        ::CohortColumns::UserBoolean11.new(),
+        ::CohortColumns::UserBoolean12.new(),
+        ::CohortColumns::UserBoolean13.new(),
+        ::CohortColumns::UserBoolean14.new(),
+        ::CohortColumns::UserBoolean15.new(),
         ::CohortColumns::UserSelect1.new(),
         ::CohortColumns::UserSelect2.new(),
         ::CohortColumns::UserSelect3.new(),
@@ -275,6 +323,10 @@ module GrdaWarehouse
         ::CohortColumns::UserDate2.new(),
         ::CohortColumns::UserDate3.new(),
         ::CohortColumns::UserDate4.new(),
+        ::CohortColumns::UserNumeric1.new(),
+        ::CohortColumns::UserNumeric2.new(),
+        ::CohortColumns::UserNumeric3.new(),
+        ::CohortColumns::UserNumeric4.new(),
       ]
     end
 
@@ -310,6 +362,7 @@ module GrdaWarehouse
           related_users: related_users(cc.client),
           disability_verification_date: disability_verification_date(cc.client),
           missing_documents: missing_documents(cc.client),
+          days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
         }
         cc.update(data)
       end
@@ -317,21 +370,21 @@ module GrdaWarehouse
 
 
     private def calculated_days_homeless(client)
-      client.days_homeless(on_date: effective_date || Date.today)
+      client.days_homeless(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
     end
 
     private def days_homeless_last_three_years(client)
-      client.days_homeless_in_last_three_years(on_date: effective_date || Date.today)
+      client.days_homeless_in_last_three_years(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
     end
 
     private def days_literally_homeless_last_three_years(client)
-      client.literally_homeless_last_three_years(on_date: effective_date || Date.today)
+      client.literally_homeless_last_three_years(on_date: effective_date || Date.current)
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
@@ -362,6 +415,10 @@ module GrdaWarehouse
 
     private def disability_verification_date(client)
       client.most_recent_verification_of_disability&.created_at&.to_date
+    end
+
+    private def days_homeless_plus_overrides(client)
+      client.processed_service_history&.days_homeless_plus_overrides
     end
   end
 end

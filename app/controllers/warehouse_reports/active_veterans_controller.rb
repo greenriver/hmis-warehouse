@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class ActiveVeteransController < ApplicationController
     include WarehouseReportAuthorization
@@ -111,7 +117,7 @@ module WarehouseReports
             title: 'Longest standing',
             column: wcpt[:first_date_served].asc,
             param: 'first_date_served',
-            default: Date.today.to_s,
+            default: Date.current.to_s,
           },
         }
 

@@ -6,6 +6,8 @@
 
     = f.input :short_name, input_html: {style: 'width: 10em;', maxlength: 15}, hint: 'A unique identifier for this data source.  Examples include: <strong>DND</strong> or <strong>NECHV</strong>'.html_safe
 
+    = f.input :source_id, hint: 'The SourceID for HMIS data sources, used to check to make sure uploads are for this data source.'
+
     = f.input :after_create_path, label: 'When adding a new client for this data source, which client page should we redirect to?', hint: 'Only applies to authoritative data sources.  Leaving this blank will redirect to the client dashboard.'
 
     = f.input :munged_personal_id, as: :boolean, label: 'Does the Personal ID column contain a UUID?', hint: 'Checking this will add dashes to the Personal ID when displayed, converting 5011A79B04E34BB99D5A002A3E079C61 into 5011A79B-04E3-4BB9-9D5A-002A3E079C61.'
@@ -14,10 +16,25 @@
 
     = f.input :source_type, as: :hidden, value: 'manual'
 
-    = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually'
+    = f.input :authoritative, label: 'This is an authoritative data source', hint: 'If authoritative, uploads will not be allowed, data will need to be entered manually', input_html: { class: 'jAuthoritativeTrigger' }
+
+    .jAuthoritativeType
+      = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, input_html: {class: :select2}
 
     = f.input :import_paused, label: 'Pause imports for this data source?'
 
 
   .form-actions
     = f.button :submit, value: 'Create Data Source', class: 'btn btn-primary'
+
+= content_for :page_js do
+  :javascript
+    $('.jAuthoritativeTrigger').on('change', function(e){
+      if($(this).is(":checked")){
+        $('.jAuthoritativeType').show();
+      }
+      else {
+        $('.jAuthoritativeType').hide();
+      }
+    });
+    $('.jAuthoritativeTrigger').trigger('change');

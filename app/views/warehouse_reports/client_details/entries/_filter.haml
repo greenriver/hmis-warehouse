@@ -1,18 +1,3 @@
-.row.margin-bottom-02
-  .col-sm-12
-    = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
-      = f.error_notification
-      .row
-        .col-sm-3
-          = f.input :start, label: false, as: :date_picker
-        .col-sm-3
-          = f.input :end, label: false, as: :date_picker
-        .col-sm-2
-          = select_tag(:project_type, options_from_collection_for_select(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES, :first, :last, params[:project_type]), class: 'select2')
-        .col-sm-2
-          = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false, input_html: {class: 'select2'}
-        .col-sm-2
-          = f.button :submit, value: 'Update View'
 - content_for :page_js do
   :javascript
     $('#new_range').submit(function(e){
@@ -22,3 +7,29 @@
         $form.find(':input').prop('disabled', true);
       }, 0);
     });
+
+= simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :entries], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    = render 'warehouse_reports/date_range_filters', f:f
+
+    .row.mb-4
+      .col-sm-6
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, required: false, include_blank: false, input_html: {class: 'select2'}
+
+      .col-sm-6
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
+
+    .row
+      .col-sm-6
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+
+      .col-sm-6
+        = f.input :project_type, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, selected: @project_type_codes, input_html: { multiple: true, class: :select2 }
+
+  - content_for :form_js do
+    = render 'warehouse_reports/new_range_js'
+
+  - content_for :filter_actions do
+    = render 'warehouse_reports/update_view_button', f:f
+
+  = render 'warehouse_reports/filters', f:f

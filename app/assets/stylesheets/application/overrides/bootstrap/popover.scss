@@ -1,0 +1,9 @@
+.popover {
+  max-width: 80%; /* Max Width of the popover (depending on the container!) */
+  white-space: pre-wrap;
+}
+
+.popover ol {
+  padding-left: 0 !important;
+  -webkit-padding-start: 10px !important;
+}

@@ -1,8 +1,15 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class HmisExport < GrdaWarehouseBase
     self.table_name = :exports
     attr_accessor :fake_data
     attr_accessor :recurring_hmis_export_id
+    attr_accessor :user_ids
 
     mount_uploader :file, HmisExportUploader
 

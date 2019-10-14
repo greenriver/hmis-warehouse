@@ -2,14 +2,15 @@
 .row
   .col-sm-8
     %h1= content_for :title
-  .col-sm-4.text-right
-    = link_to new_data_source_path, class: 'btn btn-primary' do
-      %span.icon-plus
-      Add Data Source
+  - if can_edit_data_sources?
+    .col-sm-4.text-right
+      = link_to new_data_source_path, class: 'btn btn-primary' do
+        %span.icon-plus
+        Add Data Source
 .row.table-utilities
   .col-sm-12
     .table-responsive
-      %table.table.table-condensed.table-hover
+      %table.table.table-sm.table-hover
         %thead
           %tr
             %th Name
@@ -21,7 +22,7 @@
             %th
         %tbody
           - @data_sources.each do |data_source|
-            - most_recently_completed = data_source.import_logs.maximum(:completed_at)
+            - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
             %tr
               %td
                 = link_to data_source.name, data_source_path(data_source)

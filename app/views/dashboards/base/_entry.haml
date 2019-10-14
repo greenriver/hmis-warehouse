@@ -1,0 +1,52 @@
+:ruby
+  chart_options ||= {}
+  chart_options_small = {}
+  if @pdf
+    chart_options_small = {size: { height: 250, width: 600 }}
+  end
+
+.ho-container.rrh
+  .ho-container__header
+    %h3.mb-0 #{@report.sub_population_title} Entry and Re-Entry
+    .description
+      Re-Entry is calculated as a return to the system after a 60 day break
+  .ho-container__summary.l-page__no-margin.l-page__no-padding-b
+    .rrh__enrolled.chunk.l-page__w-50
+      %h4.title
+        #{@report.sub_population_title.pluralize} Newly Homeless During Time Period
+      .metric
+        = link_to_if can_see_client_details?, pluralize(@report.first_time_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
+    .rrh__enrolled.chunk.l-page__w-50
+      %h4.title
+        #{@report.sub_population_title.pluralize} Re-Entering Homelessness During the Time Period
+      .metric
+        = link_to_if can_see_client_details?, pluralize(@report.re_entry_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
+
+
+  .o-chart
+    .jEntryReEntry
+
+  .row
+    .col-sm-6.o-page__container-6
+      .o-chart
+        %h4.o-chart__title Location of Entry
+        .jEntry
+    .col-sm-6.o-page__container-6
+      .o-chart
+        %h4.o-chart__title Location of Re-Entry
+        .jReEntry
+
+= content_for :page_js do
+  - if can_see_client_details?
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
+  :javascript
+    var entry_support_link = '#{entry_support_link}'
+
+    new App.Dashboards.Clients.Entered('.jEntry', #{@report.homeless_project_types.to_json}, #{@report.first_time_entry_locations.to_json}, '#{@report.sub_population_title}', entry_support_link, #{chart_options_small.to_json});
+
+    var re_entry_support_link = '#{re_entry_support_link}'
+
+    new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', #{@report.entry_re_entry_data.to_json}, '#{@report.sub_population_title}', entry_support_link, re_entry_support_link, #{chart_options.to_json});
+
+    new App.Dashboards.Clients.Entered('.jReEntry', #{@report.homeless_project_types.to_json}, #{@report.re_entry_locations.to_json}, '#{@report.sub_population_title}', re_entry_support_link, #{chart_options_small.to_json});

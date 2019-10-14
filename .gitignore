@@ -22,6 +22,9 @@
 !/.ruby-version
 !/.ruby-gemset
 !/.gitignore
+!/.overcommit.yml
+!/.rubocop.yml
+!/.github
 
 # Ignore operational files
 package.box
@@ -44,6 +47,7 @@ config/letsencrypt_plugin.yml
 .env
 .env.local
 app/mail_interceptors/sandbox_email_interceptor.rb
+node_modules
 
 # Environment normalization:
 /vendor/bundle

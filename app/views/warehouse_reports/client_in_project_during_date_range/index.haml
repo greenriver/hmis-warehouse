@@ -1,35 +1,28 @@
 - title = "Clients in a Project for a Given Date Range"
 - content_for :title, title
-%h1= title
+.row
+  .col-sm-8
+    %h1= title
+
 = render '/warehouse_reports/breadcrumbs'
-= simple_form_for :project, url: warehouse_reports_client_in_project_during_date_range_index_path, html: {method: :get} do |f|
-  .row
-    .col-sm-3
-      = f.input :start, as: :date_picker, input_html: {value: @start}, label: false
-    .col-sm-3
-      = f.input :end, as: :date_picker, input_html: {value: @end}, label: false
-    .col-sm-3
-      = f.input :id, label: false, as: :select, collection: available_projects, selected: @project_id.to_s, input_html: {class: :select2}
-    .col-sm-3
-      = f.button :submit, value: 'Update View'
+= render 'filter'
+
+.row
+  .col-sm-12.text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 .warehouse-reports__chronic
-  .row
-    .col-sm-8
-      %p
-        = page_entries_info @clients, entry_name: 'Client'
-    .col-sm-4
-      .pull-right
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
-  %table.table.table-condensed.table-hover
+  %p= page_entries_info @clients, entry_name: 'Client'
+
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name
         %th First Name
         %th Age
         %th Veteran Status
-        %th= "Cumulative Days Homeless as of #{Date.today}"
-        %th= "Days Homeless in The Past Three Years as of #{Date.today}"
+        %th= "Cumulative Days Homeless as of #{Date.current}"
+        %th= "Days Homeless in The Past Three Years as of #{Date.current}"
     %tbody
       - @clients.each do |client|
         %tr

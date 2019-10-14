@@ -1,9 +1,9 @@
 #= require namespace
 App.init = ->
+  App.select2.init()
   $('abbr').tooltip();
   $('[data-toggle="tooltip"]').tooltip();
   $('[data-toggle="popover"]').popover();
-  $('.select2').select2();
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()
@@ -18,7 +18,9 @@ App.init = ->
 # TODO may also need to do on pjax_modal change
 $ ->
   App.init()
-  $('.datepicker.enable-on-load, .date_picker.enable-on-load').prop('disabled', false).datepicker()
+  $('.datepicker.enable-on-load, .date_picker.enable-on-load')
+    .prop('disabled', false)
+    .datepicker()
 
   poller = $('[data-poll-every]').first()
   if poller.length > 0

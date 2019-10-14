@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Vispdat
   class Base < GrdaWarehouseBase
     self.table_name = :vispdats
@@ -128,6 +134,15 @@ module GrdaWarehouse::Vispdat
       else
         none
       end
+    end
+
+    def self.available_types
+      [
+        'GrdaWarehouse::Vispdat::Individual',
+        'GrdaWarehouse::Vispdat::Child',
+        'GrdaWarehouse::Vispdat::Family',
+        'GrdaWarehouse::Vispdat::Youth',
+      ]
     end
 
     ####################

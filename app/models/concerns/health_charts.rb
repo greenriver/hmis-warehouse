@@ -1,23 +1,26 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module HealthCharts
   extend ActiveSupport::Concern
   included do
 
     def health_housing_stati
       stati = case_management_notes.map do |form|
-        first_section = form.answers[:sections].first
-        if first_section.present?
-          answer = form.answers[:sections].first[:questions].select do |question|
-            question[:question] == "A-6. Where did you sleep last night?"
-          end.first.try(:[], :answer)
-          next unless answer.present?
-          answer = self.class.clean_health_housing_outcome_answer(answer)
-          if self.class.health_housing_outcome(answer)
-            {
-              date: form.collected_at.to_date,
-              score: self.class.health_housing_score(answer),
-              status: answer
-            }
-          end
+        answer = form.housing_status
+        next unless answer.present?
+        answer = self.class.clean_health_housing_outcome_answer(answer)
+        if self.class.health_housing_outcome(answer)
+          {
+            date: form.collected_at.to_date,
+            score: self.class.health_housing_score(answer),
+            status: answer,
+            source: 'ETO',
+            patient_id: patient.id,
+          }
         end
       end.compact
       if patient.housing_status_timestamp.present?
@@ -25,6 +28,8 @@ module HealthCharts
           date: patient.housing_status_timestamp.to_date,
           score: self.class.health_housing_score(patient.housing_status),
           status: patient.housing_status,
+          source: 'EPIC',
+          patient_id: patient.id,
         }
       end
       if patient.sdh_case_management_notes.any?
@@ -35,7 +40,9 @@ module HealthCharts
             {
               date: note.date_of_contact.to_date,
               score: self.class.health_housing_score(note.housing_status),
-              status: note.housing_status
+              status: note.housing_status,
+              source: 'Care Hub',
+              patient_id: patient.id,
             }
           end
       end
@@ -47,7 +54,9 @@ module HealthCharts
             {
               date: note.contact_date.to_date,
               score: self.class.health_housing_score(note.homeless_status),
-              status: note.homeless_status
+              status: note.homeless_status,
+              source: 'EPIC',
+              patient_id: patient.id,
             }
           end
       end

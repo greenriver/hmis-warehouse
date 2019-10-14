@@ -1,5 +1,6 @@
 @import
-  'settings/colors';
+  'application/_settings/colors';
+
 .cha__section .cha__help-text,
 .cha__section .client__assessment-question,
 .cha__section h5,
@@ -284,7 +285,7 @@ $pdf-table-border-color: darken(#f9f9f9, 3%);
   li {
 
       margin-right: 50px;
-    
+
   }
 }
 

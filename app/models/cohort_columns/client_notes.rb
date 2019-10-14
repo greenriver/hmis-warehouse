@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class ClientNotes < Base
     attribute :column, String, lazy: true, default: :client_notes
@@ -34,7 +40,7 @@ module CohortColumns
       note_count = cohort_client.client.cohort_notes.length || 0
       path = cohort_cohort_client_client_notes_path(cohort, cohort_client)
       html = content_tag(:span, note_count, class: "hidden")
-      html += link_to note_count, path, class: 'badge', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html += link_to note_count, path, class: 'badge badge-primary', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
       html
     end
 

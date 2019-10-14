@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::HMIS
   class Assessment < Base
     dub 'assessments'
@@ -53,19 +59,24 @@ module GrdaWarehouse::HMIS
     end
 
     def self.update_touch_points
+      Rails.logger.info 'Fetching Touch Points'
       touch_points = fetch_touch_points()
       assessments = fetch_assessments()
       add_missing(touch_points: touch_points, assessments: assessments)
-      deactivate_inactive(touch_points: touch_points, assessments: assessments)
+      # FIXME: temporarily leave all touch points active
+      # deactivate_inactive(touch_points: touch_points, assessments: assessments)
+      Rails.logger.info 'Touch Points Fetched'
     end
 
     def self.add_missing touch_points:, assessments:
+      api_configs = EtoApi::Base.api_configs.values.index_by{|m| m['data_source_id']}
       touch_points.each do |key, tp|
         next if assessments[key] == tp
+        assessment_id = key[:assessment_id]
         assessment = self.where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: (key[:assessment_id] || ENV['HUD_ASSESSMENT_ID'] || 75)
+          assessment_id: assessment_id
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]
@@ -102,60 +113,28 @@ module GrdaWarehouse::HMIS
         end.to_h
     end
 
-    # This touch point doesn't show up in the API when a list is requested
-    # but can be pulled down for each client, and contains the HUD touch point data
-    def self.hud_touch_point(site_id:, data_source_id:, site_name:)
-      assessment_id = if data_source_id == 1
-        75
-      elsif data_source_id == 3
-        128
-      end
-      {
-        {
-          data_source_id: data_source_id,
-          site_id: site_id,
-          assessment_id: assessment_id
-        } => {
-          name: "HUD Assessment (Entry/Update/Annual/Exit)",
-          site_name: site_name,
-          active: true
-        }
-      }
-    end
-
     def self.fetch_touch_points
-      api_config = EtoApi::Base.api_configs
       touch_points = {}
-      api_config.each do |connection_key, config|
-        data_source_id = config['data_source_id']
-        api = EtoApi::Base.new(trace: false, api_connection: connection_key)
-        api.connect
-        api.sites.each do |site_id, name|
-          touch_points.merge!(hud_touch_point(site_id: site_id, data_source_id: data_source_id, site_name: name))
-          api.programs(site_id: site_id).each do |program_id, program_name|
-            api.set_program(site_id: site_id, program_id: program_id)
-            begin
-              api.touch_points(site_id: site_id, program_id: program_id).each do |touch_point|
-                touch_point = touch_point.with_indifferent_access
-                # puts "#{touch_point[:TouchPointName]} at site #{name} in progam #{program_name}"
-                touch_points[
-                  {
-                    data_source_id: data_source_id,
-                    site_id: site_id,
-                    assessment_id: touch_point[:TouchPointID]
-                  }
-                ] = {
-                  name: touch_point[:TouchPointName],
-                  site_name: name,
-                  active: ! touch_point[:IsDisabled],
-                }
-              end
-            rescue RestClient::ExceptionWithResponse => e
-              Rails.logger.error "Failed to fetch assessments for #{connection_key} in site #{name} with error: #{e}"
-            end
-          end
+      EtoApi::Eto.site_identifiers.each do |identifier, data_source_id|
+        bo = Bo::ClientIdLookup.new(api_site_identifier: identifier)
+        response = bo.fetch_site_touch_point_map
+        break unless response.present?
+        response.each do |row|
+          next unless row[:site_unique_identifier].present?
+          touch_points[
+            {
+              data_source_id: data_source_id,
+              site_id: row[:site_unique_identifier].to_i,
+              assessment_id: row[:touchpoint_unique_identifier].to_i,
+            }
+          ] = {
+            name: row[:touchpoint_name],
+            site_name: row[:site],
+            active: true, # We don't have a means of pulling state currently
+          }
         end
       end
+
       return touch_points
     end
   end

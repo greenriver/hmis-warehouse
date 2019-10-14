@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reports::SystemPerformance::Fy2018
   class Base < Report
     def self.report_name
@@ -85,7 +91,7 @@ module Reports::SystemPerformance::Fy2018
       if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}"
+            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? rescue m}.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"

@@ -8,7 +8,7 @@ class App.Rollups.Loader
         $e = $(p)
         $e.append('<div class="rollup-container c-card c-card--flush c-card--block"/>')
         $(document).queue "fx", =>
-          $.get @rollupPath, partial: $e.data('partial'), (data) =>
+          $.get @rollupPath + $e.data('partial'), (data) =>
             $e.find('.rollup-container').append data
             $e.find('[data-toggle=tooltip]').tooltip()
             # dress up all the id dots
@@ -17,6 +17,8 @@ class App.Rollups.Loader
               # if $id.data().always or @manyClients
               # Just always show the squares since they also provide a means of accessing the client GUID
               id = $id.data().id
+              client = @clients[id]
+              return unless client?
               [ point, personalID, dataSourceID, organization ] = @clients[id]
               $square = App.util.colorSquare
                 point:     point
@@ -37,10 +39,10 @@ class App.Rollups.Loader
                 $org.text organization
               else
                 $org.remove()
-              $square.tooltip html: true, title: $html
+              $square.tooltip html: true, title: $html.html()
               $id.append $square
               $square.click ->
-                App.util.copyToClipboard $(@).closest('tr,body').find('div.tooltip:visible .pid')
+                App.util.copyToClipboard $('div.tooltip:visible .pid')
             $e.find('.rollup-container').siblings('.jRemoveWhenComplete').remove()
             $(document).dequeue("fx")
           .fail ()->

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # This tests that we got the treehash logic right and that things appear to be
 # working on some level.
 
@@ -82,7 +88,8 @@ module Glacier
 
     def simulated_database_backup!
       cmd = "cat #{file_name} | gzip"
-      backup = Backup.new(cmd: cmd, vault_name: 'test-vault')
+      vault_name = "#{ENV.fetch('CLIENT')}-test-vault"
+      backup = Backup.new(cmd: cmd, vault_name: vault_name)
       backup.run!
       Rails.logger.info("PASS")
     end

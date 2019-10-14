@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class HealthMemberStatusReportJob < BaseJob
     queue_as :high_priority
 
     attr_accessor :params, :report_start_date, :report_end_date, :report_id, :current_user_id
 
-    def initialize params
+    def initialize(params)
       @report_start_date = params[:report_start_date]
       @report_end_date = params[:report_end_date]
       @report_id = params[:report_id]
@@ -17,8 +23,7 @@ module WarehouseReports
       NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :low_priority)
-    end
+    def enqueue(job, queue: :low_priority); end
 
     def max_attempts
       1
@@ -33,6 +38,5 @@ module WarehouseReports
     def report_source
       ::Health::MemberStatusReport
     end
-
   end
 end

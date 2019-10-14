@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class CollectionSelectInput < SimpleForm::Inputs::CollectionSelectInput
   def input(wrapper_options = nil)
     if @builder.options[:wrapper] == :readonly
@@ -7,8 +13,8 @@ class CollectionSelectInput < SimpleForm::Inputs::CollectionSelectInput
       label_method = detect_collection_methods.first
       value_method = detect_collection_methods.last
       selected_value = object.send(attribute_name)
-      selected_object = collection.select{|m| m.send(value_method).to_s == selected_value.to_s}
-      value = selected_object.map{|m| m.send(label_method)}.first
+      selected_object = collection.select { |m| m.send(value_method).to_s == selected_value.to_s }
+      value = selected_object.map { |m| m.send(label_method) }.first
       # Rails.logger.info 'ELLIOT' << '----------'
       # Rails.logger.info 'ELLIOT' << selected_value.inspect
       # Rails.logger.info 'ELLIOT' << selected_object.inspect

@@ -1,9 +1,15 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Api::Health::Claims::Patients
   class BaseController < ApplicationController
     before_action :require_can_view_or_edit_client_health!
     before_action :set_patient
     before_action :load_data
-    
+
     def index
       render json: @data
     end
@@ -42,7 +48,7 @@ module Api::Health::Claims::Patients
             [k, v]
           end.to_h
         end.first
-        
+
       end
     end
 
@@ -54,10 +60,5 @@ module Api::Health::Claims::Patients
       @patient = ::Health::Patient.find(params[:patient_id].to_i)
     end
 
-    protected def require_can_view_or_edit_client_health!
-      can_view = can_view_client_health? || can_edit_client_health?
-      return true if can_view
-      not_authorized!      
-    end
   end
 end

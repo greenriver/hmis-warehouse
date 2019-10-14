@@ -1,4 +1,8 @@
 %ul.o-menu__group.list-unstyled
+  - if can_view_some_secure_files?
+    %li.o-menu__item
+      = link_to secure_files_path, class: 'o-menu__link' do
+        Secure Files
   %li.o-menu__item
     = link_to edit_account_path, class: 'o-menu__link' do
       Edit Account

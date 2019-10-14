@@ -1,6 +1,12 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # From the Data Standards
 # When a project reduces inventory, but will continue to serve the same household type with a smaller number of beds, a new record should be added with an 'Information Date’ of the effective date of the decrease; the same Inventory Start Date from the previous record should be used. The earlier record should be closed out by recording an Inventory End Date that is the day prior to the effective date of the decrease.
-# 
+#
 # This is the clearest indication of how the three dates are supposed to function.
 # 1. InventoryStartDate is when the physical beds/units were constructed
 # 2. InformationDate is the start of when the beds can be used/counted
@@ -15,38 +21,90 @@ module GrdaWarehouse::Hud
     require 'csv'
 
     def self.hud_csv_headers(version: nil)
-      [
-        :InventoryID,
-        :ProjectID,
-        :CoCCode,
-        :InformationDate,
-        :HouseholdType,
-        :Availability,
-        :UnitInventory,
-        :BedInventory,
-        :CHBedInventory,
-        :VetBedInventory,
-        :YouthBedInventory,
-        :BedType,
-        :InventoryStartDate,
-        :InventoryEndDate,
-        :HMISParticipatingBeds,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
+      case version
+      when '5.1', '6.11', '6.12'
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHBedInventory,
+          :VetBedInventory,
+          :YouthBedInventory,
+          :BedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :HMISParticipatingBeds,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHVetBedInventory,
+          :YouthVetBedInventory,
+          :VetBedInventory,
+          :CHYouthBedInventory,
+          :YouthBedInventory,
+          :CHBedInventory,
+          :OtherBedInventory,
+          :ESBedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      else
+        [
+          :InventoryID,
+          :ProjectID,
+          :CoCCode,
+          :InformationDate,
+          :HouseholdType,
+          :Availability,
+          :UnitInventory,
+          :BedInventory,
+          :CHBedInventory,
+          :VetBedInventory,
+          :YouthBedInventory,
+          :BedType,
+          :InventoryStartDate,
+          :InventoryEndDate,
+          :HMISParticipatingBeds,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1
     CHILD_ONLY_HOUSEHOLD_TYPE = 4
 
-    belongs_to :export, **hud_belongs(Export), inverse_of: :inventories
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :inventories
     # has_one :project, through: :project_coc, source: :project
-    has_one :project, **hud_belongs(Project), inverse_of: :inventories
+    has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :inventories
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :inventories
+    belongs_to :data_source
 
     alias_attribute :start_date, :InventoryStartDate
     alias_attribute :end_date, :InventoryEndDate
@@ -54,29 +112,10 @@ module GrdaWarehouse::Hud
 
     scope :within_range, -> (range) do
       where(
-        i_t[:InformationDate].eq(nil).and(i_t[:InventoryStartDate].eq(nil)).and(i_t[:InventoryEndDate].eq(nil)).
-        or(
-          i_t[:InformationDate].lt(range.last).
-          and(i_t[:InventoryEndDate].eq(nil))
-        ).
-        or(
-          i_t[:InformationDate].lt(range.last).
-          and(i_t[:InventoryEndDate].gt(range.first))
-        ).
-        or(
-            i_t[:InformationDate].eq(nil).
-            and(i_t[:InventoryStartDate].lt(range.last)).
-            and(i_t[:InventoryEndDate].eq(nil))
-        ).
-        or(
-            i_t[:InformationDate].eq(nil).
-            and(i_t[:InventoryStartDate].lt(range.last)).
-            and(i_t[:InventoryEndDate].gt(range.first))
-        ).
-        or(
-            i_t[:InformationDate].eq(nil).
-            and(i_t[:InventoryStartDate].eq(nil)).
-            and(i_t[:InventoryEndDate].gt(range.first))
+        i_t[:InventoryEndDate].gteq(range.first).
+        or(i_t[:InventoryEndDate].eq(nil)).
+        and(i_t[:InventoryStartDate].lteq(range.last).
+          or(i_t[:InventoryStartDate].eq(nil))
         )
       )
     end
@@ -137,14 +176,19 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def self.relevant_inventory(inventories:, date:)
-      inventories = inventories.select{ |inv| inv.BedInventory.present? }
-      if inventories.any?
-        ref = date.to_time.to_i
-        inventories.sort_by do |inv|
-          ( ( inv.DateUpdated || inv.DateCreated ).to_time.to_i - ref ).abs
-        end.first
-      end
+    def self.related_item_keys
+      [:ProjectID]
+    end
+
+    # field is usually :UnitInventory or :BedInventory
+    # range must be of type Filters::DateRange
+    def average_daily_inventory range:, field:
+      count = self[field]
+      return 0 if count.blank? || count < 1
+      start_date = [range.start, self.InventoryStartDate].compact.max
+      end_date = [range.end, self.InventoryEndDate].compact.min
+      days = (end_date - start_date).to_i
+      (days.to_f * count / range.length).to_i rescue 0
     end
   end
 end

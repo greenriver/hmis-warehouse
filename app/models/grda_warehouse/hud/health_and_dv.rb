@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # health and domestic violence
 module GrdaWarehouse::Hud
   class HealthAndDv < Base
@@ -29,6 +35,48 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :HealthAndDVID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DomesticViolenceVictim,
+          :WhenOccurred,
+          :CurrentlyFleeing,
+          :GeneralHealthStatus,
+          :DentalHealthStatus,
+          :MentalHealthStatus,
+          :PregnancyStatus,
+          :DueDate,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :HealthAndDVID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DomesticViolenceVictim,
+          :WhenOccurred,
+          :CurrentlyFleeing,
+          :GeneralHealthStatus,
+          :DentalHealthStatus,
+          :MentalHealthStatus,
+          :PregnancyStatus,
+          :DueDate,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :HealthAndDVID,
@@ -54,11 +102,19 @@ module GrdaWarehouse::Hud
     end
 
     has_one :client, through: :enrollment, inverse_of: :health_and_dvs
-    belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_health_and_dvs
-    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :health_and_dvs
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_health_and_dvs
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :health_and_dvs
     has_one :project, through: :enrollment
-    belongs_to :export, **hud_belongs(Export), inverse_of: :health_and_dvs
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :health_and_dvs
     has_one :destination_client, through: :client
+    belongs_to :data_source
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
+    end
 
   end
 end

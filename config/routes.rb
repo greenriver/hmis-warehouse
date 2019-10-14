@@ -9,54 +9,71 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: { invitations: 'users/invitations', sessions: 'users/sessions'}
+  devise_for :users, controllers: {
+    invitations: 'users/invitations',
+    sessions: 'users/sessions',
+
+  }
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'users/invitations/confirm', via: :post
+  end
+
+  namespace :users do
+    resources :invitations do
+      collection do
+        post :confirm
+      end
+    end
   end
 
   def healthcare_routes(window:)
     namespace :health do
-      resources :patient, only: [:index, :update]
-      resources :utilization, only: [:index]
-      resources :appointments, only: [:index]
-      resources :medications, only: [:index]
-      resources :problems, only: [:index]
-      resources :self_sufficiency_matrix_forms do
+      resources :patient, only: [:index, :update], controller: '/health/patient'
+      resources :utilization, only: [:index], controller: '/health/utilization'
+      resources :appointments, only: [:index], controller: '/health/appointments' do
+        collection do
+          get :upcoming
+        end
+      end
+      resources :medications, only: [:index], controller: '/health/medications'
+      resources :problems, only: [:index], controller: '/health/problems'
+      resources :self_sufficiency_matrix_forms, controller: '/health/self_sufficiency_matrix_forms' do
         member do
           delete :remove_file
           get :download
           patch :upload
         end
       end
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy] do
+      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy], controller: '/health/sdh_case_management_notes' do
         member do
           delete :remove_file
           get :download
         end
       end
-      resources :services
-      resources :qualifying_activities, only: [:index]
-      resources :durable_equipments, except: [:index]
-      resources :files, only: [:index, :show]
-      resources :team_members, controller: :patient_team_members
-      resources :goals, controller: :patient_goals
-      resources :epic_case_notes, only: [:show]
-      resources :epic_ssms, only: [:show]
-      resources :epic_chas, only: [:show]
-      resources :epic_careplans, only: [:show]
-      resources :careplans, except: [:create] do
-        resources :team_members, except: [:index, :show]
-        resources :goals, except: [:index, :show]
-        resources :signable_documents, only: [:show, :create] do
+      resources :services, controller: '/health/services'
+      resources :qualifying_activities, only: [:index, :destroy], controller: '/health/qualifying_activities'
+      resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
+      resources :files, only: [:index, :show], controller: '/health/files'
+      resources :team_members, controller: '/health/patient_team_members'
+      resources :goals, controller: '/health/patient_goals'
+      resources :epic_case_notes, only: [:show], controller: '/health/epic_case_notes'
+      resources :epic_ssms, only: [:show], controller: '/health/epic_ssms'
+      resources :epic_chas, only: [:show], controller: '/health/epic_chas'
+      resources :epic_careplans, only: [:show], controller: '/health/epic_careplans'
+      resources :careplans, except: [:create], controller: '/health/careplans' do
+        resources :team_members, except: [:index, :show], controller: '/health/team_members'
+        resources :goals, except: [:index, :show], controller: '/health/goals'
+        resources :signable_documents, only: [:show, :create], controller: '/health/signable_documents' do
           member do
             # post :remind
             get :signature
             get :signed
           end
         end
-        resources :pcp_signature_requests, except: [:index]
-        resources :aco_signature_requests, except: [:index] do
+        resources :pcp_signature_requests, except: [:index], controller: '/health/pcp_signature_requests'
+        resources :aco_signature_requests, except: [:index], controller: '/health/aco_signature_requests' do
           member do
             get :download_careplan
           end
@@ -65,36 +82,37 @@ Rails.application.routes.draw do
         get :self_sufficiency_assessment
         get :print
         get :revise, on: :member
+        get :coversheet, on: :member
         member do
           delete :remove_file
           get :download
           patch :upload
         end
       end
-      resources :participation_forms do
+      resources :participation_forms, controller: '/health/participation_forms' do
         member do
           delete :remove_file
           get :download
         end
       end
-      resources :release_forms do
+      resources :release_forms, controller: '/health/release_forms' do
         member do
           delete :remove_file
           get :download
         end
       end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas do
+      resources :comprehensive_health_assessments, path: :chas, as: :chas, controller: '/health/comprehensive_health_assessments' do
         member do
           delete :remove_file
           get :download
           patch :upload
         end
       end
-      resources :metrics, only: [:index]
+      resources :metrics, only: [:index], controller: '/health/metrics'
       namespace :pilot do
-        resources :patient, only: [:index]
-        resources :metrics, only: [:index]
-        resource :careplan, except: [:destroy] do
+        resources :patient, only: [:index], controller: '/health/pilot/patient'
+        resources :metrics, only: [:index], controller: '/health/pilot/metrics'
+        resource :careplan, except: [:destroy], controller: '/health/pilot/careplans' do
           get :self_sufficiency_assessment
           get :print
         end
@@ -124,6 +142,9 @@ Rails.application.routes.draw do
       resources :support, only: [:index], controller: 'report_results/support'
     end
   end
+
+  resources :secure_files, only: [:show, :create, :index, :destroy]
+
   namespace :reports do
     namespace :hic do
       resource :export, only: [:show]
@@ -148,7 +169,16 @@ Rails.application.routes.draw do
   resources :warehouse_reports, only: [:index] do
     resources :support, only: [:index], controller: 'warehouse_reports/support'
   end
+  namespace :audit_reports do
+    resources :agency_user, only: [:index]
+    resources :user_login, only: [:index]
+  end
   namespace :warehouse_reports do
+    resources :dv_victim_service, only: [:index]
+    resources :conflicting_client_attributes, only: [:index]
+    resources :youth_intakes, only: [:index]
+    resources :youth_follow_ups, only: [:index]
+    resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
     resources :dob_entry_same, only: [:index]
@@ -156,10 +186,16 @@ Rails.application.routes.draw do
     resources :future_enrollments, only: [:index]
     resources :long_standing_clients, only: [:index]
     resources :really_old_enrollments, only: [:index]
+    resources :double_enrollments, only: [:index]
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :rrh, only: [:index] do
+      collection do
+        get :clients
+      end
+    end
+    resources :psh, only: [:index] do
       collection do
         get :clients
       end
@@ -224,6 +260,7 @@ Rails.application.routes.draw do
       get :summary, on: :collection
     end
     resources :client_in_project_during_date_range, only: [:index]
+    resources :enrolled_project_type, only: [:index]
     resources :bed_utilization, only: [:index]
     resources :length_of_stay, only: [:index] do
       collection do
@@ -241,7 +278,9 @@ Rails.application.routes.draw do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
       resources :actives, only: [:index]
+      resources :last_permanent_zips, only: [:index]
     end
+    resources :re_entry, only: [:index]
     resources :open_enrollments_no_service, only: [:index]
     resources :manage_cas_flags, only: [:index] do
       post :bulk_update, on: :collection
@@ -250,6 +289,11 @@ Rails.application.routes.draw do
       post :search, on: :collection
     end
     resources :cohort_changes, only: [:index]
+    resources :outflow, only: [:index] do
+      collection do
+        get :details
+      end
+    end
     namespace :project do
       resource :data_quality do
         get :download, on: :member
@@ -262,6 +306,7 @@ Rails.application.routes.draw do
         end
       end
       resources :decline_reason, only: [:index]
+      resources :rrh_desired, only: [:index]
       resources :canceled_matches, only: [:index]
       resources :process, only: [:index]
       resources :apr, only: [:index]
@@ -306,6 +351,12 @@ Rails.application.routes.draw do
         end
       end
       resources :premium_payments, only: [:index, :show, :create, :destroy]
+      resources :eligibility
+      resources :eligibility_results, only: [:show]
+      resources :enrollments
+      resources :housing_status, only: [:index] do
+        get :details, on: :collection
+      end
     end
   end
 
@@ -316,14 +367,15 @@ Rails.application.routes.draw do
   resources :source_clients, only: [:edit, :update] do
     member do
       get :image
+      get :destination
     end
   end
-  resources :clients do
+  resources :clients, except: [:update, :destroy] do
     member do
       get :service_range
-      get :vispdat
-      get :rollup
+      get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       get :chronic_days
       patch :merge
@@ -332,6 +384,7 @@ Rails.application.routes.draw do
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
     end
     resource :history, only: [:show], controller: 'clients/history' do
+      get :pdf, on: :collection
       post :queue, on: :collection
     end
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness'
@@ -348,8 +401,9 @@ Rails.application.routes.draw do
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
+    resources :youth_follow_ups, except: [:index], controller: 'clients/youth/follow_ups'
 
-    resources :files, controller: 'clients/files' do
+    resources :files, controller: 'clients/files', except: [:edit] do
       get :preview, on: :member
       get :thumb, on: :member
       get :has_thumb, on: :member
@@ -364,23 +418,26 @@ Rails.application.routes.draw do
     healthcare_routes(window: false)
   end
 
+  # scope
   namespace :window do
-    resources :source_clients, only: [:edit, :update] do
+    resources :source_clients, only: [:edit, :update], controller: '/source_clients' do
       member do
         get :image
+        get :destination
       end
     end
-    resources :clients do
-      resources :print, only: [:index]
+    resources :clients, controller: '/clients' do
+      # resources :print, only: [:index]
       healthcare_routes(window: true)
-      get :rollup
+      get 'rollup/:partial', to: '/clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
-      resource :history, only: [:show], controller: 'clients/history' do
+      resource :history, only: [:show], controller: '/clients/history' do
         get :pdf, on: :collection
         post :queue, on: :collection
       end
-      resources :vispdats, controller: 'clients/vispdats' do
+      resources :vispdats, controller: '/clients/vispdats' do
         member do
           put :add_child
           delete :remove_child
@@ -388,26 +445,29 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :youth_intakes, controller: 'clients/youth/intakes'
-      resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
-      resources :direct_financial_assistances, except: [:index], controller: 'clients/youth/direct_financial_assistances'
-      resources :youth_referrals, except: [:index], controller: 'clients/youth/referrals'
-      
-      resources :files, controller: 'clients/files' do
+      resources :youth_intakes, controller: '/clients/youth/intakes'
+      resources :youth_case_managements, except: [:index], controller: '/clients/youth/case_managements'
+      resources :direct_financial_assistances, except: [:index], controller: '/clients/youth/direct_financial_assistances'
+      resources :youth_referrals, except: [:index], controller: '/clients/youth/referrals'
+      resources :youth_follow_ups, except: [:index], controller: '/clients/youth/follow_ups'
+
+      resources :files, controller: '/clients/files' do
         get :preview, on: :member
         get :thumb, on: :member
         get :has_thumb, on: :member
         get :show_delete_modal, on: :member
         post :batch_download, on: :collection
       end
-      resources :notes, only: [:index, :create, :destroy], controller: 'clients/notes'
-      resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
-      resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
+      resources :notes, only: [:index, :create, :destroy], controller: '/clients/notes'
+      resource :eto_api, only: [:show, :update], controller: '/clients/eto_api'
+      resources :users, only: [:index, :create, :update, :destroy], controller: '/clients/users'
     end
   end
 
   namespace :assigned do
     resources :clients, only: [:index]
+    resources :agencies, only: [:index]
+    resources :all_agencies, only: [:index]
   end
   namespace :expired do
     resources :clients, only: :index
@@ -475,6 +535,7 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
 
@@ -486,17 +547,26 @@ Rails.application.routes.draw do
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
+      get :answers, on: :member
     end
   end
+
+  resources :hmis, only: [:index, :show]
 
   resources :weather, only: [:index]
 
   resources :notifications, only: [:show] do
     resources :projects, only: [:show] do
-      resources :data_quality_reports, only: [:show]
+      resources :data_quality_reports, only: [:show] do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
     resources :project_groups, only: [:show] do
-      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group'
+      resources :data_quality_reports, only: [:show], controller: 'data_quality_reports_project_group' do
+        get :support, on: :member
+        get :answers, on: :member
+      end
     end
   end
 
@@ -537,6 +607,7 @@ Rails.application.routes.draw do
         resources :top_providers, only: [:index]
       end
     end
+    resources :projects, only: [:index]
   end
 
   namespace :admin do
@@ -546,11 +617,13 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      patch :reactivate, on: :member
       member do
         post :confirm
       end
     end
     resources :roles
+    resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do
       resources :imports, only: [:index]
@@ -570,6 +643,7 @@ Rails.application.routes.draw do
           get :review
           get :assigned
           get :rejected
+          get :disenrolled
           post :bulk_assign_agency
         end
         post :assign_agency
@@ -603,10 +677,12 @@ Rails.application.routes.draw do
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
 
+    resources :delayed_jobs, only: [:index, :update, :destroy]
   end
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
 

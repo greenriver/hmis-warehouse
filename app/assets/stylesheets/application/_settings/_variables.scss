@@ -1,0 +1,68 @@
+@import './breakpoints';
+
+$font-size-default: 14px !default;
+$font-body-size: 14px !default;
+$em-base: 1rem;
+
+// Layout
+$container-max-width: 1000px !default;
+$container-padding: 30px !default;
+$show-menu-on-left: false !default;
+
+// Header
+$header-height: 60px !default;
+$nav-side-width: 185px !default;
+$nav-side-collapsed-width: 65px !default;
+
+// Footer
+$footer-logo-height: 85px !default;
+$footer-logo-padding: 15px !default;
+$footer-height: $footer-logo-height + $footer-logo-padding !default;
+
+$border-radius-default: .35rem;
+
+$directions: (
+ 't': top,
+ 'l': left,
+ 'b': bottom,
+ 'r': right
+) !default;
+
+// Z-index scale
+$zIndex-1:   100;
+$zIndex-2:   200;
+$zIndex-3:   300;
+$zIndex-4:   400;
+$zIndex-5:   500;
+$zIndex-6:   600;
+$zIndex-7:   700;
+$zIndex-8:   800;
+$zIndex-9:   900;
+$zIndex-10: 1000;
+
+$page-z-index: $zIndex-1;
+$dropdown-z-index: $zIndex-6;
+$fixed-nav-z-index: $zIndex-1;
+$loader-z-index: $zIndex-10*2;
+
+// Z-index applications Assigning specific and listing here as handy reference
+$zIndex-2--site-name: $zIndex-2;
+$zIndex-3--notice: $zIndex-3;
+
+// Forms
+$textarea-min-height: 150px;
+
+// Navs
+$nav-tab-active-border-color: darken($brand-primary, 10%);
+$nav-tab-active-active-bg: lighten($tab-bg, 30%);
+$nav-tab-active-color: darken($tab-bg, 40%);
+
+// Font-families
+$font-body   : 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-header : 'Open Sans Condensed', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+$font-weights: (
+  normal   : 400,
+  default  : 400,
+  semibold : 600,
+  bold     : 700,
+);

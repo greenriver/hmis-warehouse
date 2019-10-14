@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class OpenEnrollmentsNoServiceController < ApplicationController
     include WarehouseReportAuthorization
@@ -14,7 +20,7 @@ module WarehouseReports
         ongoing.bed_night
       service_in_last_30_days = service_history_enrollment_source.entry.
         ongoing.bed_night.
-        with_service_between(start_date: cutoff, end_date: Date.today)
+        with_service_between(start_date: cutoff, end_date: Date.current)
       open_enrollments_no_service = open_enrollments - service_in_last_30_days
       earliest_entry = [open_enrollments.minimum(:first_date_in_program), 3.years.ago.to_date].max rescue 3.years.ago.to_date
       @entries = open_enrollments_no_service
@@ -25,7 +31,7 @@ module WarehouseReports
         end.index_by{ |m| m[:id]}
       @max_dates = service_history_service_source.
         where(service_history_enrollment_id: @entries.map(&:id)).
-        where(date: (earliest_entry..Date.today)).
+        where(date: (earliest_entry..Date.current)).
         group(:service_history_enrollment_id).
         maximum(:date)
       respond_to do |format|
@@ -43,7 +49,7 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client
     end
     private def service_history_enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.es.viewable_by(current_user))
     end
     private def service_history_service_source
       GrdaWarehouse::ServiceHistoryService
@@ -52,7 +58,7 @@ module WarehouseReports
 
     private def sort_column
       sort_options.map{|m| m[:column]}.uniq.
-        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program"
+        include?(params[:sort]) ? params[:sort] : "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program"
     end
 
     private def sort_direction
@@ -73,17 +79,17 @@ module WarehouseReports
         # },
         {
           title: 'Project',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.project_name",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.project_name",
           direction: 'asc'
         },
         {
           title: 'Longest',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
           direction: 'asc'
         },
         {
           title: 'Shortest',
-          column: "#{GrdaWarehouse::ServiceHistory.quoted_table_name}.first_date_in_program",
+          column: "#{GrdaWarehouse::ServiceHistoryEnrollment.quoted_table_name}.first_date_in_program",
           direction: 'desc'
         },
         # {

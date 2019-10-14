@@ -1,31 +1,39 @@
-%table.table.table-condensed
-  %thead
-    %tr
-      %th
-        Client
-      %th
-        Release on file?
-      %th
-        Relationship
-      %th
-        Expires On
-      %th
-        Confidential?
-      %th
-  %tbody
-    - clients.each do |uc|
-      - client = uc.client
-      %tr
-        %td
-          - if @client_path && (client.release_valid? || can_view_clients?)
-            = link_to client.name, send(@client_path, id: client.id)
-          - else
-            = client.name
-        %td
-          = checkmark(client.release_valid?)
-        %td
-          = uc.relationship
-        %td
-          = uc.end_date || 'No Expiration'
-        %td
-          = checkmark(uc.confidential)
+.o-page__main-content.mt-3
+  .clients__list
+    - clients.each do |user_client|
+      - client = user_client.client
+      - window_link = client.window_link_for?(current_user)
+      - show_window_link = window_link.present?
+      - if ( akas = client_aliases client ).empty?
+        - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
+      - else
+        - main_client_name = akas.shift
+      .clients__client-card.clients__client.c-card
+        .c-card__content
+          .client__details.client__details--identity
+            .clients__client-additional-names
+              .client__client-name
+                .client-aka
+                  = main_client_name
+              - akas.each_with_index do | aka, i |
+                .client__client-name
+                  .client-aka
+                    = aka
+          .client__details.client__details--status
+            - total_homeless = client.days_homeless
+            %p
+              %strong Days Homeless:
+              = pluralize(total_homeless, 'day')
+              %br
+              %strong Between:
+              = client.date_of_first_service
+              and
+              =client.date_of_last_service
+            = render 'assigned/clients/required_documents', client: client
+          .client__details.client__details--status
+            .client__view_client.mb-4.d-flex
+              - if show_window_link
+                = link_to 'View', window_link, class: 'btn btn-secondary ml-auto'
+            = render 'assigned/clients/consent_form_status', client: client
+            %p
+              = render 'assigned/clients/cas_status', client: client

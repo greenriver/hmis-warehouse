@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # A wrapper around CHA changes to ease Qualifying Activities creation
 module Health
   class ChaSaver
@@ -48,7 +54,7 @@ module Health
         source_type: @cha.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: :cha,
         follow_up: 'Implement Comprehensive Health Assessment',
         reached_client: :yes,

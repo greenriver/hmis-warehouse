@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
@@ -24,6 +30,12 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::Hud::Project,
       GrdaWarehouse::Hud::ProjectCoc,
       GrdaWarehouse::Hud::Geography,
+      GrdaWarehouse::Hud::Assessment,
+      GrdaWarehouse::Hud::CurrentLivingSituation,
+      GrdaWarehouse::Hud::AssessmentQuestion,
+      GrdaWarehouse::Hud::AssessmentResult,
+      GrdaWarehouse::Hud::Event,
+      GrdaWarehouse::Hud::User,
       GrdaWarehouse::Hud::Export,
       GrdaWarehouse::ClientMatch,
       GrdaWarehouse::ImportLog,
@@ -31,6 +43,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::GenerateServiceHistoryLog,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::DataSource,
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
     ]
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")

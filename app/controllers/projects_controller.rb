@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 
 class ProjectsController < ApplicationController
   before_action :require_can_view_projects!
@@ -56,6 +62,8 @@ class ProjectsController < ApplicationController
       :uses_move_in_date,
       :confidential,
       :operating_start_date_override,
+      :active_homeless_status_override,
+      :include_in_days_homeless_override,
     )
   end
 

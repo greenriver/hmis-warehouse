@@ -6,7 +6,7 @@
 = render 'warehouse_reports/limited_by_project_note'
 .warehouse-reports__missing-projects
   %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name
@@ -18,6 +18,6 @@
         %tr
           %td= link_to client.LastName.tr(' ', '⎵'), client_path(client)
           %td= link_to client.FirstName.tr(' ', '⎵'), client_path(client)
-          %td= client.source_enrollments.where(et[:EntryDate].gt(Date.today)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
+          %td= client.source_enrollments.where(et[:EntryDate].gt(Date.current)).map{|m| "#{m.EntryDate} at #{m.project.name}"}.join(', ')
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 %p= paginate @clients

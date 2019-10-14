@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ServiceHistoryServiceConcern
   extend ActiveSupport::Concern
   included do
@@ -18,26 +24,36 @@ module ServiceHistoryServiceConcern
     end
 
     scope :residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-      where(project_type_column => r_non_homeless)
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      where(project_type_column => r_non_homeless).where(homeless: false)
     end
     scope :hud_residential_non_homeless, -> do
-      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-      hud_project_type(r_non_homeless)
+      r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      hud_project_type(r_non_homeless).where(homeless: false)
+    end
+
+    scope :literally_homeless, -> do
+      where(arel_table[:literally_homeless].eq(true))
     end
 
     scope :homeless, -> (chronic_types_only: false) do
       if chronic_types_only
-        project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+        where(arel_table[:literally_homeless].eq(true))
       else
-        project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+        where(arel_table[:homeless].eq(true))
       end
+    end
 
-      where(project_type_column => project_types)
+    scope :non_literally_homeless, -> do
+      where(arel_table[:literally_homeless].eq(false))
+    end
+
+    scope :non_homeless, -> do
+      where(arel_table[:homeless].eq(false))
     end
 
     scope :hud_homeless, -> (chronic_types_only: true) do
-      hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+      homeless(chronic_types_only: true)
     end
 
     scope :in_project_type, -> (project_types) do
@@ -54,7 +70,7 @@ module ServiceHistoryServiceConcern
     }
 
     scope :service_in_prior_years, -> (years: 3) do
-      service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.today)
+      service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.current)
     end
 
     def self.service_types
@@ -62,6 +78,7 @@ module ServiceHistoryServiceConcern
       if GrdaWarehouse::Config.get(:so_day_as_month)
         service_types << 'extrapolated'
       end
+      return service_types
     end
   end
 end

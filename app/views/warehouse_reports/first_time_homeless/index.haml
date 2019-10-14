@@ -2,38 +2,26 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs'
-%p
-  Clients who first received a residential service in the period from
-  = @range.start
-  to
-  = @range.end
 
-= simple_form_for :first_time_homeless, url: warehouse_reports_first_time_homeless_index_path, html: {method: :get, class: 'jFilter'} do |f|
-  .d-flex
-    .ml-2
-      = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-    .ml-2
-      = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jEnd'}, label: false
-    .ml-2
-      = f.input :project_types, collection: ::HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, data: {placeholder: "Limit by project type"}, class: 'select2'}, label: false
-    .ml-2
-      = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, label: false, selected: @sub_population, input_html: {class: 'select2'}
-  .d-flex
-    .ml-auto.mb-4
-      = f.button :submit, value: 'Update View'
+= render 'filter'
 = render 'warehouse_reports/limited_by_project_note'
 
 - if @clients.any?
+  %p
+    Clients who first received a residential service in the period from
+    = @range.start
+    to
+    = @range.end
   %h4 All Clients Added
   .row
     .col-sm-10
       .jCharts
         %p.jLoading.text-center Loading...
     .col-sm-2.text-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
         Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name

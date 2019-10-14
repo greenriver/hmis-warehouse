@@ -1,15 +1,14 @@
-.well
-  = simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-    = f.error_notification
+= simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
     .row
       .col-sm-3
         = f.input :start_date, as: :date_picker
       .col-sm-3
         = f.input :end_date, as: :date_picker
       .col-sm-3
-        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false
+        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, input_html: {class: 'select2'}
       .col-sm-3
-        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false
+        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, input_html: {class: 'select2'}
         %p.muted
 
     .row
@@ -17,7 +16,7 @@
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
       - if can_edit_project_groups?
         .col-sm-6
-          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Project Groups'
+          = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Project Groups'
       .col-sm-6
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
       .col-sm-6
@@ -28,10 +27,13 @@
           Export Directive
         %p Full Refresh
       .col-sm-3
-        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false
+        = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, input_html: {class: 'select2'}
+      .col-sm-3
+        = f.input :version, collection: { 'HMIS 2020' => '2020', 'HMIS CSV 6.x' => '6.11' }, include_blank: false, input_html: {class: 'select2'}
       - if can_export_anonymous_hmis_data?
-        .col-sm-6
-          = f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked? This can be used to export data useful for developers.'
+        .col-sm-3
+          %p
+          = f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
     .row
       .col-sm-12
         %h4 Notes About Choices
@@ -44,6 +46,7 @@
           %strong Reporting period
           and additionally includes any records associated with enrollments that changed during the selected time range.
 
+  - content_for :filter_actions do
     .d-flex
       .ml-auto
         %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse'}, href: '#recurrence_options'}
@@ -52,3 +55,5 @@
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
     #recurrence_options.collapse
       = render 'recurrence_options', f: f
+
+  = render 'warehouse_reports/filters', f:f

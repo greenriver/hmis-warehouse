@@ -25,7 +25,14 @@ Dotenv.load('.env', '.env.local')
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
   rake "grda_warehouse:daily"
+end
+shifted_time = Time.parse(daily_schedule) - 2.hours
+every 1.day, at: shifted_time.strftime('%H:%M %P') do
   rake "grda_warehouse:process_recurring_hmis_exports"
+end
+shifted_time = Time.parse(daily_schedule) - 5.minutes
+every 1.day, at: shifted_time.strftime('%H:%M %P') do
+  rake "grda_warehouse:secure_files:clean_expired"
 end
 
 # refresh this every six hours, during the day
@@ -35,6 +42,10 @@ end
 
 every 1.hour do
   rake "jobs:check_queue"
+end
+
+every 5.minutes do
+  rake 'reporting:run_project_data_quality_reports'
 end
 
 every 4.hours do
@@ -47,8 +58,13 @@ end
 
 # These only happen in some scenarios
 if ENV['ETO_API_SITE1'] != 'unknown'
-  every 1.day, at: '4:00 pm' do
-    rake "eto:import:update_ids_and_demographics"
+  if ENV['ETO_LEGACY_API_UPDATE'] != ''
+    every 1.day, at: '4:00 pm' do
+      rake "eto:import:update_ids_and_demographics"
+    end
+  end
+  every 1.day, at: '6:00 am' do
+    rake "eto:import:demographics_and_touch_points"
   end
 end
 
@@ -60,7 +76,7 @@ if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
 end
 
 if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
-  every 1.day, at: '10:00 am' do
+  every 1.day, at: '11:00 am' do
     rake "health:daily"
   end
 end

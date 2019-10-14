@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
@@ -23,6 +29,38 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :EnrollmentCoCID,
+          :EnrollmentID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :EnrollmentCoCID,
+          :EnrollmentID,
+          :HouseholdID,
+          :ProjectID,
+          :PersonalID,
+          :InformationDate,
+          :CoCCode,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :EnrollmentCoCID,
@@ -42,12 +80,12 @@ module GrdaWarehouse::Hud
       end
     end
 
-    belongs_to :project_coc, **hud_belongs(ProjectCoc), inverse_of: :enrollment_cocs
-    belongs_to :direct_client, **hud_belongs(Client), inverse_of: :direct_enrollment_cocs
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs
     has_one :client, through: :enrollment, inverse_of: :enrollment_cocs
-    belongs_to :export, **hud_belongs(Export), inverse_of: :enrollment_cocs
-    belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment_cocs
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollment_cocs
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs
     has_one :project, through: :enrollment
+    belongs_to :data_source
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
@@ -61,6 +99,14 @@ module GrdaWarehouse::Hud
 
     scope :in_coc, -> (coc_code:) do
       where(CoCCode: coc_code)
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+        :ProjectID,
+      ]
     end
 
   end

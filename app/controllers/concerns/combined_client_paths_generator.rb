@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CombinedClientPathsGenerator
   extend ActiveSupport::Concern
   included do
@@ -130,6 +136,16 @@ module CombinedClientPathsGenerator
       client_path_generator + [:direct_financial_assistances]
     end
     helper_method :direct_financial_assistances_path_generator
+
+    def youth_follow_up_path_generator
+      client_path_generator + [:youth_follow_up]
+    end
+    helper_method :youth_follow_up_path_generator
+
+    def youth_follow_ups_path_generator
+      client_path_generator + [:youth_follow_ups]
+    end
+    helper_method :youth_follow_ups_path_generator
 
     def self_sufficiency_matrix_forms_path_generator
       health_path_generator + [:self_sufficiency_matrix_forms]

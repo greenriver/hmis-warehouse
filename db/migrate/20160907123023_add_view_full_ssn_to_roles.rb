@@ -1,4 +1,5 @@
-class AddViewFullSsnToRoles < ActiveRecord::Migration
+class AddViewFullSSNToRoles < ActiveRecord::Migration
+  # We added an inflector for SSN, noted here in case it breaks the class name
   def up
     Role.ensure_permissions_exist
   end

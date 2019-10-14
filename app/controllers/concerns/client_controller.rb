@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ClientController
   extend ActiveSupport::Concern
 
@@ -239,6 +245,7 @@ module ClientController
       @include_confidential_names = user_can_view_confidential_names?
       allowed_rollups = [
         "/clients/rollup/assessments",
+        "/clients/rollup/verifications",
         "/clients/rollup/assessments_without_data",
         "/clients/rollup/case_manager",
         "/clients/rollup/chronic_days",
@@ -262,17 +269,17 @@ module ClientController
         "/clients/rollup/chronic_notes",
         "/clients/rollup/cohorts",
       ]
-      rollup = allowed_rollups.find do |m|
+      rollup = allowed_rollups.detect do |m|
         m == "/clients/rollup/" + params.require(:partial).underscore
       end
 
       raise 'Rollup not in whitelist' unless rollup.present?
 
-      begin
-        # if request.xhr?
-          render partial: rollup, layout: false
-        # end
+
+      if request.xhr?
+        render partial: rollup, layout: false
       end
+
     end
 
     protected def set_client

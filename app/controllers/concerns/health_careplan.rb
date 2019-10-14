@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module HealthCareplan
   extend ActiveSupport::Concern
 
@@ -17,6 +23,18 @@ module HealthCareplan
 
     def careplan_source
       Health::Careplan
+    end
+
+    def careplan_pdf_coversheet
+      file_name = 'care_plan_coversheet'
+      coversheet = render_to_string(
+        pdf: file_name,
+        template: 'health/careplans/_pdf_coversheet',
+        layout: false,
+        encoding: "UTF-8",
+        page_size: 'Letter'
+      )
+      CombinePDF.parse(coversheet)
     end
 
     # The logic for creating the CarePlan PDF is fairly complicated and needs to be used in both the careplan controllers and the signable document controllers
@@ -45,11 +63,17 @@ module HealthCareplan
       # @form = @patient.self_sufficiency_matrix_forms.recent.first
       @form = @patient.ssms.last
       if @form.is_a? Health::SelfSufficiencyMatrixForm
-        @ssm_partial = 'window/health/self_sufficiency_matrix_forms/show'
+        @ssm_partial = 'health/self_sufficiency_matrix_forms/show'
       elsif @form.is_a? GrdaWarehouse::HmisForm
         @ssm_partial = 'clients/assessment_form'
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
+
+
+      pdf = CombinePDF.new
+
+      pdf << careplan_pdf_coversheet
+
       # debugging
       # render layout: false
 
@@ -58,24 +82,25 @@ module HealthCareplan
       #   layout: false,
       #   encoding: "UTF-8",
       #   page_size: 'Letter',
-      #   header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-      #   footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+      #   header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
+      #   footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
       #   # Show table of contents by providing the 'toc' property
       #   # toc: {}
       # )
 
       pctp = render_to_string(
         pdf: file_name,
-        template: 'window/health/careplans/show',
+        template: 'health/careplans/show',
         layout: false,
         encoding: "UTF-8",
         page_size: 'Letter',
-        header: { html: { template: 'window/health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'window/health/careplans/_pdf_footer'}, spacing: 5 },
+        header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
+        footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )
-      pdf = CombinePDF.parse(pctp)
+
+      pdf << CombinePDF.parse(pctp)
 
       if @careplan.health_file.present?
         pdf << CombinePDF.parse(@careplan.health_file.content)

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Vispdat
   class Family < Base
 
@@ -41,7 +47,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      GrdaWarehouse::Hud::Client.age_on(date: Date.today, dob: parent2_dob)
+      GrdaWarehouse::Hud::Client.age_on(date: Date.current, dob: parent2_dob)
     end
 
     def calculate_score
@@ -62,10 +68,10 @@ module GrdaWarehouse::Vispdat
     # and asks this under family_size_score
     def physical_health_score
       (
-        leave_answer_yes? || 
-        chronic_answer_yes? || 
-        hiv_answer_yes? || 
-        disability_answer_yes? || 
+        leave_answer_yes? ||
+        chronic_answer_yes? ||
+        hiv_answer_yes? ||
+        disability_answer_yes? ||
         avoid_help_answer_yes?
       ) ? 1 : 0
     end
@@ -82,8 +88,8 @@ module GrdaWarehouse::Vispdat
     # family tri morbidity also requires 1 member to have all 3 conditions
     def tri_morbidity_score
       (
-        physical_health_score==1 && 
-        substance_abuse_score==1 && 
+        physical_health_score==1 &&
+        substance_abuse_score==1 &&
         mental_health_score==1
       ) && family_member_tri_morbidity_answer_yes? ? 1 : 0
     end
@@ -164,7 +170,7 @@ module GrdaWarehouse::Vispdat
 
     def parent2_age
       return if parent2_dob.blank?
-      ((Date.today - parent2_dob) / 365.25).to_i
+      ((Date.current - parent2_dob) / 365.25).to_i
     end
 
     def family_size_score

@@ -5,6 +5,29 @@ Dotenv.load('.env', '.env.local')
 
 namespace :reporting do
 
+  desc "Run Project Data Quality Reports"
+  task run_project_data_quality_reports: [:environment] do
+    report_class = GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
+    advisory_lock_key = "project_data_quality_reports"
+    if report_class.advisory_lock_exists?(advisory_lock_key)
+      Rails.logger.info 'Exiting, project data quality reports already running'
+      exit
+    end
+    include NotifierConfig
+    setup_notifier('Project Data Quality Report Runner')
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.with_advisory_lock(advisory_lock_key) do
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.where(completed_at: nil).each do |r|
+        begin
+          r.run!
+        rescue Exception => e
+          Rails.logger.error e.message
+          ExceptionNotifier.notify_exception(e) if @send_notifications
+        end
+      end
+    end
+  end
+
+
   # DB related, provides reporting:db:migrate etc.
   namespace :db do |ns|
 
@@ -55,6 +78,16 @@ namespace :reporting do
 
       task :dump do
         Rake::Task["db:schema:dump"].invoke
+      end
+    end
+
+    namespace :structure do
+      task :load do
+        Rake::Task["db:structure:load"].invoke
+      end
+
+      task :dump do
+        Rake::Task["db:structure:dump"].invoke
       end
     end
 

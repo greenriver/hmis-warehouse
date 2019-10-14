@@ -1,6 +1,14 @@
+- if CasBase.db_exists?
+  - cas_id = client.cas_client&.id rescue nil
 - if client.processed_service_history.present? && client.longterm_stayer? || client.active_in_cas? || client.chronically_homeless_for_cas?
-  %h3.mt-0 CAS
-- cas_id = client.cas_client&.id
+  %h3.mt-0.d-flex
+    .ml-0
+      CAS
+    - if cas_id
+      .ml-auto.mt-2.text-muted.text-small
+        CAS Client ID:
+        = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+          = cas_id
 - if client.processed_service_history.present? && client.longterm_stayer?
   .c-tag.c-tag--warning.client-flag.mb-2
     .c-tag__wrapper

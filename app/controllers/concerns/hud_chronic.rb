@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module HudChronic
   extend ActiveSupport::Concern
   include ArelHelper
   # hc_t => GrdaWarehouse::HudChronic.arel_table
 
   included do
-    def load_filter
+    def load_hud_chronic_filter
       @filter = ::Filters::HudChronic.new(params[:filter])
       filter_query = hc_t[:age].gt(@filter.min_age)
       if @filter.individual
@@ -25,8 +31,9 @@ module HudChronic
         @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
       end
     end
+    alias_method :load_filter, :load_hud_chronic_filter
 
-    def set_sort
+    def set_hud_chronic_sort
       client_at = client_source.arel_table
       @column = params[:sort] || 'months_in_last_three_years'
       @direction = if ['asc', 'desc'].include?(params[:direction])
@@ -45,13 +52,16 @@ module HudChronic
       end
       @order = table[@column].send(@direction)
     end
+    alias_method :set_sort, :set_hud_chronic_sort
 
-    def chronic_source
+    def hud_chronic_source
       GrdaWarehouse::HudChronic
     end
+    alias_method :chronic_source, :hud_chronic_source
 
-    def service_history_source
-      GrdaWarehouse::ServiceHistory
+    def hud_chronic_service_history_source
+      GrdaWarehouse::ServiceHistoryEnrollment
     end
+    alias_method :service_history_source, :hud_chronic_service_history_source
   end
 end

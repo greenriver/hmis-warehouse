@@ -12,7 +12,7 @@ gem "pg"
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 4.2.11'
+gem "rails", '~> 4.2.11.1'
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
@@ -39,6 +39,14 @@ gem 'hellosign-ruby-sdk'
 gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'devise-pwned_password'
+gem 'devise-security'
+gem 'devise-two-factor'
+gem 'rqrcode-rails3'
+gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
+
+gem 'authtrail' # for logging login attempts
+gem 'maxminddb' # for local geocoding of login attempts
+
 gem 'paper_trail'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
@@ -56,14 +64,12 @@ gem "simple_form"
 gem 'virtus'
 
 # Asset related
-gem 'bootstrap-sass'
+gem 'bootstrap', '~> 4.3.1'
 gem "jquery-rails"
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets-es6'
-gem 'select2-rails', git: 'https://github.com/greenriver/select2-rails.git'
-gem 'font-awesome-sass', '~> 5.4.1'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
 gem 'nominatim'
@@ -74,9 +80,12 @@ gem 'htmlentities'
 
 # ETO API related
 gem "rest-client", "~> 2.0"
+gem "curb", require: false
 gem "gmail", require: false
+# gem 'savon'
+# gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', require: false, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
+gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
 # for de-duping clients
 gem 'redcarpet'
@@ -92,9 +101,12 @@ gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false
 gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soundex
+
+# PDF Exports
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'combine_pdf'
+gem 'grover'
 
 gem 'whenever', require: false
 gem 'ruby-progressbar', require: false
@@ -117,8 +129,8 @@ gem 'net-sftp', require: false
 gem 'redis-rails'
 
 #AWS SDK
-gem 'aws-sdk-rails', require: false
-gem 'aws-sdk', '~> 3', require: false
+gem 'aws-sdk-rails'
+gem 'aws-sdk', '~> 3'
 gem 'json'
 gem 'awesome_print'
 
@@ -144,14 +156,14 @@ group :development, :test do
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
   gem 'rspec-rails'
-  gem 'factory_girl_rails'
+  gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
-  gem 'rb-readline'
+  # gem 'rb-readline'
 end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
+  # gem 'spring'
   gem 'html2haml'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
@@ -170,6 +182,13 @@ group :development do
   gem 'stackprof'     # For Ruby MRI 2.1+
   gem 'active_record_query_trace'
   # gem 'rb-readline'
+  gem 'overcommit'
+  gem 'rubocop', require: false
+  gem 'rubocop-rspec', require: false
+
+  # boot time/memory profiling
+  gem 'derailed_benchmarks'
+  gem 'bumbler'
 end
 
 group :test do
@@ -181,6 +200,8 @@ group :test do
   gem 'timecop'
   gem 'test_after_commit'
   gem 'after_commit_exception_notification'
+  gem 'simplecov'
+  gem 'simplecov-console'
 end
 
 group :development, :staging, :test do

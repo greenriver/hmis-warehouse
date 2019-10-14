@@ -1,23 +1,4 @@
-- @show_census = false
-= render 'index_title'
-= render 'report_picker'
-
-.jRemoteActive
-  %h2 Active Clients
-  .text-center
-    Loading...
-
-.jRemoteEntered
-  %h2 Clients Entering Programs
-  .text-center
-    Loading...
-
-.jRemoteHoused
-  %h2 Clients Housed
-  .text-center
-    Loading...
-
-- if @show_census
-  = render 'census'
-= content_for :page_js do
-  = render 'index_js'
+- if @html
+  = render 'index'
+- elsif @pdf
+  = render 'index_pdf'

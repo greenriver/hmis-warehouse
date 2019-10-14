@@ -1,25 +1,37 @@
 #= require ./namespace
 
-class App.Dashboards.Clients.Entered
-  constructor: (@chart, @labels, @data) ->
-    Chart.defaults.global.defaultFontSize = 10
-    Chart.defaults.global.elements.rectangle.backgroundColor = '#45789C'
-    Chart.defaults.global.elements.rectangle.borderColor = '#45789C'
-    Chart.defaults.global.elements.rectangle.borderWidth = 1
+class App.Dashboards.Clients.Entered extends App.Dashboards.Clients.Base
+  constructor: (@chart_selector, @data, @columns, @sub_population, @support_url, options) ->
+    super(@chart_selector, @data, @sub_population, @support_url, options)
 
-    data = 
-      labels: (v for k, v of @labels),
-      datasets: (v for k, v of @data),
 
-    housed_chart = new Chart @chart,
+  _build_chart: () =>
+    data =
+      x: 'x'
       type: 'bar',
+      onclick: @_follow_link
+      color: @_colors
+      groups: [@data],
+      columns: @columns
+    @chart = bb.generate({
       data: data,
-      options: 
-        bezierCurve: false,
-        scales: 
-          xAxes: [
-            stacked: false
-          ],
-          yAxes: [
-            stacked: false
-          ]
+      axis:
+        x:
+          type: 'category'
+          tick:
+            count: 4
+        y:
+          tick:
+            count: 7
+            format: d3.format(",.0f")
+          max: 100
+          padding: 0
+      tooltip:
+        format:
+          value: (v) ->
+            "#{v}%"
+      legend:
+        position: @options.legend.position
+      size: @options.size
+      bindto: @chart_selector
+    })

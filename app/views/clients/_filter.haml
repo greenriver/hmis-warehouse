@@ -4,8 +4,8 @@
   - filter_class = 'client__filter'
 
 .dropdown.o-filtration{class: filter_class}
-  %button.btn.btn-secondary.dropdown-toggle{data: {toggle: 'dropdown'}}
-    Filter
+  %button.btn.btn-secondary.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}, aria: {haspopup:"true", expanded:"false"}}
+    %span Filter
     %span.caret
 
   .o-filtration__container.dropdown-menu.dropdown-menu-left.options
@@ -28,16 +28,18 @@
           .o-filtration__option-row
             .input-group.date{data: {provide: :datepicker}}
               %input.form-control{name: :start_date, type: :text, value: @start_date}
-              %span.input-group-addon.icon-calendar
+              .input-group-append
+                %button.icon-calendar.btn.btn-secondary{type: 'button'}
             .o-filtration__separator to
             .input-group.date{data: {provide: :datepicker}}
               %input.form-control{name: :end_date, type: :text, value: @end_date}
-              %span.input-group-addon.icon-calendar
+              %span.input-group-append
+                %button.icon-calendar.btn.btn-secondary{type: 'button'}
 
       .o-filtration__option.row.mb-4
         .col-sm-4.mb-3
           %label Data Source
-          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.source.each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
+          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.source.viewable_by(current_user).each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
 
         - if can_view_vspdat?
           .col-sm-4.mb-3

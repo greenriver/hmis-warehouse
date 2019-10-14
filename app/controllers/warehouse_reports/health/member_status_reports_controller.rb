@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Health
   class MemberStatusReportsController < ApplicationController
     include WarehouseReportAuthorization
@@ -29,9 +35,9 @@ module WarehouseReports::Health
       respond_to do |format|
         format.xlsx do
           if params[:summary].present?
-            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_SUMMARY_FULL_#{Date.today.strftime('%Y%m%d')}.xlsx\""
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_SUMMARY_FULL_#{Date.current.strftime('%Y%m%d')}.xlsx\""
           else
-            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_STATUSOUTREACH_FULL_#{Date.today.strftime('%Y%m%d')}.xlsx\""
+            response.headers['Content-Disposition'] = "attachment; filename=\"CP_#{@sender.short_name}_MH_STATUSOUTREACH_FULL_#{Date.current.strftime('%Y%m%d')}.xlsx\""
           end
         end
       end

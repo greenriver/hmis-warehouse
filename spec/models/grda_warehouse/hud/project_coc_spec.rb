@@ -2,7 +2,6 @@ require 'rails_helper'
 
 model = GrdaWarehouse::Hud::ProjectCoc
 RSpec.describe model, type: :model do
-
   let!(:admin_role) { create :admin_role }
 
   let!(:user) { create :user }
@@ -10,12 +9,11 @@ RSpec.describe model, type: :model do
   let!(:pc1) { create :hud_project_coc, CoCCode: 'foo' }
   let!(:pc2) { create :hud_project_coc, CoCCode: 'bar' }
 
-  user_ids = -> (user) { model.viewable_by(user).pluck(:id).sort }
-  ids      = -> (*pcs) { pcs.map(&:id).sort }
+  user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
+  ids      = ->(*pcs) { pcs.map(&:id).sort }
 
   describe 'scopes' do
     describe 'viewability' do
-
       describe 'ordinary user' do
         it 'sees nothing' do
           expect(model.viewable_by(user).exists?).to be false
@@ -30,7 +28,7 @@ RSpec.describe model, type: :model do
           user.roles = []
         end
         it 'sees both' do
-          expect(user_ids[user]).to eq ids[ pc1, pc2 ]
+          expect(user_ids[user]).to eq ids[pc1, pc2]
         end
       end
 
@@ -49,6 +47,4 @@ RSpec.describe model, type: :model do
       end
     end
   end
-
-
 end

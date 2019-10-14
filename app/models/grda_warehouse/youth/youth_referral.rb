@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Youth
   class YouthReferral < GrdaWarehouseBase
     include ArelHelper
     has_paper_trail
     acts_as_paranoid
 
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_referrals
 
     validates_presence_of :referred_on, :referred_to
 
@@ -14,20 +20,33 @@ module GrdaWarehouse::Youth
       order(referred_on: :desc)
     end
 
+    scope :between, -> (start_date:, end_date:) do
+      at = arel_table
+      where(at[:referred_on].gteq(start_date).and(at[:referred_on].lteq(end_date)))
+    end
+
     scope :visible_by?, -> (user) do
+      # users at your agency, plus your own user in case you have no agency.
+      agency_user_ids = User.
+        with_deleted.
+        where.not(agency_id: nil).
+        where(agency_id: user.agency_id).
+        pluck(:id) + [user.id]
       if user.can_edit_anything_super_user?
         all
-      # If you can see any, then show yours and those for anyone with a full release
+      # If you can see any, then show yours, those for your agency, and those for anyone with a full release
       elsif user.can_view_youth_intake? || user.can_edit_youth_intake?
-        joins(:client).where(
-          c_t[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].eq(user.id))
+        where(
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+          or(arel_table[:user_id].in(agency_user_ids))
         )
+      # If you can see your agancy's, then show yours and those for your agency
+      elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
+        where(user_id: agency_user_ids)
       else
         none
       end
     end
-
 
     def available_referrals
       @available_referrals ||= [

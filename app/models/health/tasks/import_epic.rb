@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'net/sftp'
 require 'csv'
 require 'charlock_holmes'
@@ -37,7 +43,7 @@ module Health::Tasks
       end
     end
 
-    # This does not remove any data coming from EPIC, only upsirt
+    # This does not remove any data coming from EPIC, only upsert
     def import klass:, file:
       path = "#{@config['destination']}/#{file}"
       handle = read_csv_file(path: path)

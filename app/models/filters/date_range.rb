@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # provides validation for date ranges
 module Filters
   class DateRange < ::ModelForm
@@ -34,7 +40,11 @@ module Filters
     end
 
     def default_end
-      Date.today
+      Date.current
+    end
+
+    def length
+      (self.end - self.start).to_i rescue 0
     end
 
     class MonthDefault < DateRange

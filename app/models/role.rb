@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Role < ActiveRecord::Base
   has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :users, through: :user_roles
   validates :name, presence: true
 
   def role_name
-    name.to_s.humanize.gsub('Dnd', 'DND')
+    name.to_s
   end
 
   scope :health, -> do
@@ -85,6 +91,10 @@ class Role < ActiveRecord::Base
       can_edit_users: {
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
+      },
+       can_enable_2fa: {
+        description: 'Ability to enable Two-factor authentication for own account',
+        administrative: false,
       },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
@@ -198,6 +208,14 @@ class Role < ActiveRecord::Base
         description: 'Ability to add or edit Youth Intake records',
         administrative: false,
       },
+      can_view_own_agency_youth_intake: {
+        description: 'Access to existing Youth Intake records associated with the User\'s agency',
+        administrative: false,
+      },
+      can_edit_own_agency_youth_intake: {
+        description: 'Ability to add or edit Youth Intake records associated with the User\'s agency,',
+        administrative: false,
+      },
       can_create_clients: {
         description: 'Given an authoritative data source, users can add clients that don\'t exist in HMIS',
         administrative: false,
@@ -274,10 +292,10 @@ class Role < ActiveRecord::Base
         description: 'Drill-down access to client level details on project data quality reports',
         administrative: true,
       },
-      can_manage_organization_users: {
-        description: 'Can assign users to organizations',
-        administrative: true,
-      },
+      # can_manage_organization_users: {
+      #   description: 'Can assign users to organizations',
+      #   administrative: true,
+      # },
       can_view_all_user_client_assignments: {
         description: 'Administrative permission to see all assignments',
         administrative: true,
@@ -306,6 +324,26 @@ class Role < ActiveRecord::Base
         description: 'Access to upload the non-HMIS files for use in the Tableau dashboard export',
         administrative: false,
       },
+      can_view_all_secure_uploads: {
+        description: 'Access to see all "secure" uploaded files',
+        administrative: true,
+      },
+      can_view_assigned_secure_uploads: {
+        description: 'Access to see assigned "secure" uploaded files',
+        administrative: false,
+      },
+      can_manage_agency: {
+        description: 'Ability to manage users associated with my agency',
+        administrative: true,
+      },
+      can_manage_all_agencies: {
+        description: 'Ability to manage all agencies',
+        administrative: true,
+      },
+      can_view_clients_with_roi_in_own_coc: {
+        description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
+        administrative: false,
+      }
     }
   end
 
@@ -397,6 +435,10 @@ class Role < ActiveRecord::Base
       },
       can_view_member_health_reports: {
         description: 'Use for downloading individual member reports',
+        administrative: true,
+      },
+      can_unsubmit_submitted_claims: {
+        description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
       },
     }

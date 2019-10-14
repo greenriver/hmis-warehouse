@@ -1,33 +1,20 @@
-.row
-  .col-sm-12
-    %h3 Actions
-.row
-  %table.table
-    %thead
-      %tr
-        %th
-          Generate
+.fixed-bottom.pdq_actions
+  %h3 Actions
+  .d-flex
+    %div
+      .mr-4.d-flex
+        .mr-2
+          = f.input :generate, as: :boolean, input_html: {checked: @generate}
+        .mr-2
           %i.icon-info{data: { toggle: :tooltip, title: 'Generate new versions of selected reports'}}
-        %th
-          Email
+      .mr-4.d-flex
+        .mr-2
+          = f.input :email, as: :boolean, input_html: {checked: @email}
+        .mr-2
           %i.icon-info{data: { toggle: :tooltip, title: 'Email selected reports, new versions will be generated first if generate is selected'}}
-        %th
-          Start
-        %th
-          End
-        %th
-    %tbody
-      %tr
-        %td.text-center
-          = f.input :generate, as: :boolean, label: false, input_html: {checked: @generate}
-        %td.text-center
-          = f.input :email, as: :boolean, label: false, input_html: {checked: @email}
-        %td{style: 'width: 12em;'}
-          = f.input :start, as: :date_picker, label: false, input_html: {class: 'form-control', value: @range.start}
-        %td{style: 'width: 12em;'}
-          = f.input :end, as: :date_picker, label: false, input_html: {class: 'form-control', value: @range.end}
-        %td
-          = f.button :submit, value: 'Run Selected Reports'
-        %td
-          = link_to download_warehouse_reports_project_data_quality_path(format: :xlsx), class: 'btn btn-secondary' do
-            Download most-recent reports
+    .mr-2
+      = f.input :start, as: :date_picker, input_html: {class: 'form-control', value: @range.start}
+    .mr-2
+      = f.input :end, as: :date_picker, input_html: {class: 'form-control', value: @range.end}
+    .mr-auto.mt-no-label
+      = f.button :submit, value: 'Run Selected Reports'

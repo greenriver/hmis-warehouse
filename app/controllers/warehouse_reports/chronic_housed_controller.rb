@@ -1,11 +1,18 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class ChronicHousedController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    include SiteChronic
     before_action :set_range
 
     def index
-      @chronics = chronic_source.where(date: @range.range).group_by(&:client_id)
+      @chronics = site_chronic_source.where(date: @range.range).group_by(&:client_id)
       @clients = client_source.joins(:service_history_enrollments).
         where(
           she_t[:last_date_in_program].gt(@range.start).
@@ -46,10 +53,5 @@ module WarehouseReports
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end
-
-    def chronic_source
-      GrdaWarehouse::Chronic
-    end
-
   end
 end

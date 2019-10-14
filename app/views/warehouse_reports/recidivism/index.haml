@@ -1,49 +1,57 @@
 - title = "Recidivism Report"
 - content_for :title, title
-%h1= content_for :title
+.d-flex
+  %h1= content_for :title
+
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 = render 'form'
-.pull-right
-  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-    Download Excel
-%p
-  The following clients have an open PH enrollment between
-  = @filter.start
-  and
-  = @filter.end
-  and received service within at an emergency shelter or had a street outreach contact during the same time frame.
+
 - if @clients.present?
+  %p
+    The following clients have an open PH enrollment between
+    = @filter.start
+    and
+    = @filter.end
+    and opened an enrollment at an emergency shelter or had a street outreach contact between the PH move-in date and PH exit.
+
+  .text-right
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
   .row
-    .col-sm-6
+    .col-sm-12
+      .mb-4= page_entries_info @clients, entry_name: 'Clients'
       = paginate(@clients)
-    .col-sm-6
-      = page_entries_info @clients, entry_name: 'Clients'
+
   - @clients.each do |client|
-    .client
-      %h4
-        = link_to client_path(client) do
-          = client.full_name
+    .warehouse-reports__client
+      .warehouse-reports__client-name
+        %h4
+          = link_to client_path(client) do
+            = client.full_name
       .row
         .col-sm-6
           %h4 PH Enrollments
-          %table.table.table-condensed
+          %table.table.table-sm.table-hover
             %thead
               %tr
                 %th Project
                 %th Entry Date
+                %th Move-in Date
                 %th Exit Date
             %tbody
               - @ph_clients[client.id].each do |enrollment|
                 %tr
                   %td= enrollment[:project_name]
                   %td= enrollment[:first_date_in_program]
+                  %td= enrollment[:move_in_date]
                   %td= enrollment[:last_date_in_program]
         .col-sm-6
           %h4 ES and SO Enrollments
-          %table.table.table-condensed
+          %table.table.table-sm.table-hover
             %thead
               %tr
                 %th Project
+                %th Project Type
                 %th Entry Date
                 %th Exit Date
                 %th Last Service
@@ -52,6 +60,7 @@
               - @homeless_clients[client.id].each do |enrollment|
                 %tr
                   %td= enrollment[:project_name]
+                  %td= HUD.project_type_brief enrollment[:computed_project_type]
                   %td= enrollment[:first_date_in_program]
                   %td= enrollment[:last_date_in_program]
                   %td= @homeless_service_dates[enrollment[:id]]

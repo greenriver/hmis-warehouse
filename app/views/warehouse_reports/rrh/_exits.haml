@@ -1,10 +1,10 @@
 .ho-container.rrh
   .ho-container__header 
-    %h3.margin-bottom-00 
+    %h3.mb-0 
       Exits to Permanent Housing
-    %p.margin-top-01 Clients that exited Rapid Rehousing Programs to a permanent housing destination
+    %p.mt-1 Clients that exited Rapid Rehousing Programs to a permanent housing destination
   .row.rrh-row
-    .col-xs-12.col-md-6.text-center
+    .col-sm-12.col-md-6.text-center
       = content_for :program_1_title
       %h3
         = @charts.report.ph_exits_1
@@ -14,7 +14,7 @@
         = @charts.report.shelter_exits_1
         %br
         %small of those who exited the reference program
-    .col-xs-12.col-md-6.text-center
+    .col-sm-12.col-md-6.text-center
       = content_for :program_2_title
       %h3
         = @charts.report.ph_exits_2

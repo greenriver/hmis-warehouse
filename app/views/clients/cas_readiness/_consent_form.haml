@@ -4,7 +4,7 @@
     .d-flex.flex-wrap
       %dl.mr-10.mb-2
         %dd.d-inline-block
-          = render 'window/clients/consent_form_status_tags'
+          = render 'clients/consent_form_status_tags'
       %dl.mr-8.mb-2
         %dt Release Type
         %dd
@@ -36,6 +36,3 @@
       %p
         = checkmark_or_x(@client.ha_eligible)
         %span= GrdaWarehouse::Hud::Client.cas_columns[:ha_eligible]
-      %p
-        = checkmark_or_x(@client.disability_verified_on.present?)
-        %span= GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on]

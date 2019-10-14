@@ -1,5 +1,5 @@
 -# %img{ src: "//maps.googleapis.com/maps/api/staticmap?#{params.map(&:to_query).join('&')}", style: 'display:block;margin: 0 auto;' }
-- addresses = @client.previous_permanent_locations_for_display.select{|m| m[:lat].present?}
+- addresses = @client.previous_permanent_locations_for_display(current_user).select{|m| m[:lat].present?}
 - markers = addresses.map{|m| [m[:lat], m[:lon]]}.uniq
 - labels = addresses.map{|m| m[:label]}.uniq
 - if addresses.any?

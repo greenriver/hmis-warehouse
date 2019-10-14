@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class Affiliation < Base
     include HudSharedScopes
@@ -18,8 +24,14 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :affiliations
-    belongs_to :residential_project, class_name: GrdaWarehouse::Hud::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ResProjectID, :data_source_id], inverse_of: :affiliations
-    belongs_to :export, **hud_belongs(Export), inverse_of: :affiliations
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :affiliations
+    # NOTE: you can't use hud_assoc for residential project, the keys don't match
+    belongs_to :residential_project, class_name: 'GrdaWarehouse::Hud::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ResProjectID, :data_source_id], inverse_of: :affiliations
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :affiliations
+    belongs_to :data_source
+
+    def self.related_item_keys
+      [:ProjectID]
+    end
   end
 end

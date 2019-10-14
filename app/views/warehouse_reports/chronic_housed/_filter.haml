@@ -1,21 +1,11 @@
-.row.margin-bottom-02
-  .col-sm-12
-    = simple_form_for @range, as: :range, url: warehouse_reports_chronic_housed_index_path, html: { method: :get, class: 'jFilter' } do |f|
-      = f.error_notification
-      .row
-        .col-sm-3
-          = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-        .col-sm-3
-          = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
-        .col-sm-4
-          = f.button :submit, value: 'Update View'
+= simple_form_for @range, as: :range, url: warehouse_reports_chronic_housed_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_l do
+    = render 'warehouse_reports/date_range_filters', f:f
 
-- content_for :page_js do
-  :javascript
-    $('#new_range').submit(function(e){
-      var $form = $(this);
-      // disable things *immediately after* submit
-      setTimeout(function(){
-        $form.find(':input').prop('disabled', true);
-      }, 0);
-    });
+  - content_for :form_js do
+    = 'warehouse_reports/new_range_js'
+
+  - content_for :filter_actions do
+    = render 'warehouse_reports/update_view_button', f:f
+
+  = render 'warehouse_reports/filters', f:f

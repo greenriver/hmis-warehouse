@@ -4,15 +4,14 @@
   = title
 = render '/warehouse_reports/breadcrumbs'
 
-.warehouse-reports__active-veterans
+.warehouse-reports__active-veterans.mb-4
   = render 'parameters', report: @report
-  = render 'sort', sort_options: @sort_options
-  .pull-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+  .d-flex
+    = render 'sort', sort_options: @sort_options
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
-%hr
 
-%table.table.table-condensed.table-hover
+%table.table.table-sm
   %thead
     %tr
       %th{rowspan: 2} ID

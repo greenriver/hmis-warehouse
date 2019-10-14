@@ -1,0 +1,41 @@
+= simple_form_for :filter, url: warehouse_reports_dv_victim_service_index_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-3
+        = f.input :start, label: 'Start Date', as: :date_picker, input_html: {value: @start_date}
+      .col-3
+        = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @end_date}
+      .col-3
+        = f.input :project_types, collection: HUD.project_types.invert, selected: @project_types, input_html: { multiple: true, class: ['select2', 'jProjectTypes'] }
+      .col-3
+        = f.input :project_ids, collection: filtered_project_list, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2', 'jProjects'] }, selected: @project_ids, label: 'Projects', required: false
+    .row
+      .col-sm-12
+        Clients are included in the report if they are recorded as currently fleeing domestic violence in the reporting range.
+  - content_for :filter_actions do
+    .row
+      .col-sm-2.mt-no-label
+        = f.button :submit, value: 'Update View'
+
+
+  = render 'warehouse_reports/filters', f:f
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jProjectTypes').on('change', function(e){
+        var project_type_ids = $('.jProjectTypes').val();
+        if(project_type_ids == null) {
+          project_types_ids = [2, 3, 13]
+        }
+        var selected_project_ids = $('.jProjects').val();
+        $.get('#{api_projects_path()}', {
+          project_type_ids: project_type_ids,
+          selected_project_ids: selected_project_ids
+        }, function(data){
+          $('.jProjects').html(data);
+        });
+      });
+      $('.jProjectTypes').trigger('change');
+    });
+

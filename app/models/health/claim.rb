@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Attached claims_file contains EDI serialized PHI
 # Control: PHI attributes documented
@@ -118,9 +124,9 @@ module Health
         @hl += 1
         pr = patient.patient_referral
 
-        city_state_zip = [pr.address_city, pr.address_state, pr.address_zip]
+        city_state_zip = [pr.address_city, pr.address_state, pr.address_zip.delete('^0-9')]
         if city_state_zip.reject(&:blank?).count != 3
-          city_state_zip = [@sender.city, @sender.state, @sender.zip]
+          city_state_zip = [@sender.city, @sender.state, @sender.zip.delete('^0-9')]
         end
         b.HL @hl, '1', '22', '0'
           b.SBR 'P', '18', nil, nil, nil, nil, nil, nil, 'MC'
@@ -231,7 +237,7 @@ module Health
     end
 
     def mark_qualifying_activites_as_submitted
-      qualifying_activities.payable.update_all(claim_submitted_on: Date.today)
+      qualifying_activities.payable.update_all(claim_submitted_on: Date.current)
     end
 
     def status

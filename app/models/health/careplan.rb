@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -189,8 +195,8 @@ module Health
 
     def revsion_attributes
       attributes = self.attributes.except('id', 'patient_signed_on', 'responsible_team_member_signed_on', 'representative_signed_on', 'provider_signed_on')
-      attributes['initial_date'] = Date.today
-      attributes['review_date'] = Date.today + 6.months
+      attributes['initial_date'] = Date.current
+      attributes['review_date'] = Date.current + 6.months
       return attributes
     end
 

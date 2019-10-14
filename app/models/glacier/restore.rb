@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'open3'
 require 'tempfile'
 
@@ -19,13 +25,19 @@ module Glacier
       self.vault          = archive.vault
       self.download_path  = download_path
       self.processing_cmd = processing_cmd
-      self._client        = Aws::Glacier::Client.new({
-        region: 'us-east-1',
-        credentials: Aws::Credentials.new(
-          ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-          ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
-        )
-      })
+      self._client = if ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY').present? && ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY') != 'unknown'
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+          credentials: Aws::Credentials.new(
+            ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+            ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
+          )
+        })
+      else
+        Aws::Glacier::Client.new({
+          region: 'us-east-1',
+        })
+      end
 
       no_output   = self.download_path.blank? && self.processing_cmd.blank?
       two_outputs = self.download_path.present? && self.processing_cmd.present?

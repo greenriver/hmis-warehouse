@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Health
   class ClaimsController < ApplicationController
     include ArelHelper
@@ -183,7 +189,7 @@ module WarehouseReports::Health
     def show
       respond_to do |format|
         format.text do
-          date = @report.submitted_at || Date.today
+          date = @report.submitted_at || Date.current
           response.headers['Content-Disposition'] = "attachment; filename=\"CLAIMS_#{date.strftime('%Y%m%d')}.txt\""
         end
         format.html do
@@ -259,7 +265,7 @@ module WarehouseReports::Health
     end
 
     def default_date
-      (Date.today - 1.months).end_of_month
+      (Date.current - 1.months).end_of_month
     end
     helper_method :default_date
 

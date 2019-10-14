@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Tasks
   class PushClientsToCas
     require 'ruby-progressbar'
@@ -8,29 +14,50 @@ module GrdaWarehouse::Tasks
       self.logger = Rails.logger
     end
 
+    private def advisory_lock_key
+      'push-clients-to-cas'
+    end
+
     # Update the ProjectClient table in the CAS with clients flagged with sync_with_cas
     def sync!
       # Fail gracefully if there's no CAS database setup
       return unless CasBase.db_exists?
-      @client_ids = client_source.pluck(:id)
-      updated_clients = Cas::ProjectClient.transaction do
-        Cas::ProjectClient.update_all(sync_with_cas: false)
-        client_source.where(id: @client_ids).each do |client|
-          project_client = Cas::ProjectClient.
-            where(data_source_id: data_source.id, id_in_data_source: client.id).
-            first_or_initialize
-          project_client_columns.map do |destination, source|
-            project_client[destination] = client.send(source)
-          end
-          project_client.needs_update = true
-          project_client.save!
-        end
+      if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
+        msg = 'Other CAS Sync in progress, exiting.'
+        logger.warn msg
+        @notifier.ping(msg) if @send_notifications
+        return
       end
-      maintain_cas_availability_table(@client_ids)
+      GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
+        @client_ids = client_source.pluck(:id)
+        updated_clients = Cas::ProjectClient.transaction do
+          Cas::ProjectClient.update_all(sync_with_cas: false)
+          client_source.where(id: @client_ids).each do |client|
+            project_client = Cas::ProjectClient.
+              where(data_source_id: data_source.id, id_in_data_source: client.id).
+              first_or_initialize
+            project_client_columns.map do |destination, source|
+              project_client[destination] = client.send(source)
+            end
 
-      if updated_clients.size > 0
-        msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
-        @notifier.ping msg if @send_notifications
+            case GrdaWarehouse::Config.get(:cas_days_homeless_source)
+            when 'days_homeless_plus_overrides'
+              project_client.days_homeless = client.processed_service_history&.days_homeless_plus_overrides || client.days_homeless
+            else
+              project_client.days_homeless = client.days_homeless
+            end
+
+            project_client.date_days_homeless_verified = Date.current
+            project_client.needs_update = true
+            project_client.save!
+          end
+        end
+        maintain_cas_availability_table(@client_ids)
+
+        if updated_clients.size > 0
+          msg = "Updated #{updated_clients.size} ProjectClients in CAS and marked them available"
+          @notifier.ping msg if @send_notifications
+        end
       end
     end
 
@@ -46,7 +73,7 @@ module GrdaWarehouse::Tasks
       (client_ids - already_available).each do |id|
         client = GrdaWarehouse::Hud::Client.find id
         GrdaWarehouse::CasAvailability.create(
-          client_id: id, 
+          client_id: id,
           available_at: available_at,
           part_of_a_family: client.family_member,
           age_at_available_at: client.age,
@@ -107,7 +134,7 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
-        days_homeless: :days_homeless,
+        # days_homeless: :days_homeless,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
@@ -121,7 +148,7 @@ module GrdaWarehouse::Tasks
         sober_housing: :sober_housing,
         enrolled_project_ids: :ongoing_enrolled_project_ids,
         active_cohort_ids: :cohort_ids_for_cas,
-        assessment_score: :score_for_rrh_assessment,
+        assessment_score: :assessment_score_for_cas,
         ssvf_eligible: :ssvf_eligible,
         rrh_desired: :rrh_desired,
         youth_rrh_desired: :youth_rrh_desired,
@@ -135,6 +162,11 @@ module GrdaWarehouse::Tasks
         required_number_of_bedrooms: :required_number_of_bedrooms,
         required_minimum_occupancy: :required_minimum_occupancy,
         requires_elevator_access: :requires_elevator_access,
+        neighborhood_interests: :neighborhood_ids_for_cas,
+        interested_in_set_asides: :interested_in_set_asides,
+        default_shelter_agency_contacts: :default_shelter_agency_contacts,
+        tags: :cas_tags,
+        vash_eligible: :vash_eligible,
       }
     end
   end

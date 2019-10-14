@@ -1,26 +1,38 @@
-%p Before qualifying activities can be converted to claims, they must be evaluated for payability.  Click the button below to begin this process.
-%p This initial step will limit the qualifying activities included for the claims submission.  After clicking the button below, new qualifying activities arriving in the warehouse will not be included in this submission.  It will not limit changes to qualifying activities at this time.
-%p Claims files only cover one month, generally, you'll want to select the last date of the month below.
-%p
-  - if @months_unsubmitted.any?
-    The following months contain un-submitted Qualifying Activities:
-    %ul
-      - @months_unsubmitted.each do |month, first_of_month|
-        %li= link_to month, patients_warehouse_reports_health_claims_path(date: first_of_month.to_date), data: { loads_in_pjax_modal: true }
-  - else
-    All Qualifying Activities have been submitted.
-
-- if @recent_report
-  %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
 = simple_form_for :report, url: precalculate_warehouse_reports_health_claims_path do |f|
-  .row
-    .col-sm-6
-      = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities within the month specified on or before'
-      = f.submit 'Calculate Payability', class: "btn btn-primary"
+  - content_for :filters_col_full do
+    %p
+      Before qualifying activities can be converted to claims, they must be evaluated for payability.
+      Click the button below to begin this process.
+    %p
+      This initial step will limit the qualifying activities included for the claims submission.
+      After clicking the button below, new qualifying activities arriving in the warehouse will not be included in this
+      submission.  It will not limit changes to qualifying activities at this time.
+    %p
+      Claims files only cover one month, generally, you'll want to select the last date of the month below.
+    %p
+      - if @months_unsubmitted.any?
+        The following months contain un-submitted Qualifying Activities:
+        %ul
+          - @months_unsubmitted.each do |month, first_of_month|
+            %li= link_to month, patients_warehouse_reports_health_claims_path(date: first_of_month.to_date), data: { loads_in_pjax_modal: true }
+      - else
+        All Qualifying Activities have been submitted.
+
+    - if @recent_report
+      %p The last claims file was generated on #{@recent_report.completed_at.to_date} and submitted to #{@sender.receiver_name} on #{@recent_report.submitted_at.to_date}.
+
+    .row
+      .col-sm-6
+        = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities within the month specified on or before'
+
+  - content_for :filter_actions do
+    = f.submit 'Calculate Payability', class: "btn btn-primary"
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
 
 - if @completed_reports.any?
   %h2 Previously Submitted Claims Files
-  %table.table.table-condensed
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Submitted On

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
@@ -33,6 +39,50 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :DisabilitiesID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DisabilityType,
+          :DisabilityResponse,
+          :IndefiniteAndImpairs,
+          :TCellCountAvailable,
+          :TCellCount,
+          :TCellSource,
+          :ViralLoadAvailable,
+          :ViralLoad,
+          :ViralLoadSource,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :DisabilitiesID,
+          :EnrollmentID,
+          :PersonalID,
+          :InformationDate,
+          :DisabilityType,
+          :DisabilityResponse,
+          :IndefiniteAndImpairs,
+          :TCellCountAvailable,
+          :TCellCount,
+          :TCellSource,
+          :ViralLoadAvailable,
+          :ViralLoad,
+          :ViralLoadSource,
+          :DataCollectionStage,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :DisabilitiesID,
@@ -58,12 +108,13 @@ module GrdaWarehouse::Hud
       end
     end
 
-    belongs_to :direct_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:PersonalID, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :direct_disabilities
+    belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
     has_one :client, through: :enrollment, inverse_of: :disabilities
-    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :disabilities
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     has_one :project, through: :enrollment
-    belongs_to :export, class_name: 'GrdaWarehouse::Hud::Export', primary_key: [:ExportID, :data_source_id], foreign_key: [:ExportID, :data_source_id], inverse_of: :disabilities
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities
     has_one :destination_client, through: :client
+    belongs_to :data_source
 
     #################################
     # Standard Cohort Scopes
@@ -77,6 +128,10 @@ module GrdaWarehouse::Hud
 
     # End Standard Cohort Scopes
     #################################
+
+    scope :sorted_entry_date_information_date, -> do
+      order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
+    end
 
     def self.disability_types
       {
@@ -111,6 +166,13 @@ module GrdaWarehouse::Hud
 
     def disability_type_text
       ::HUD::disability_type self.DisabilityType
+    end
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :EnrollmentID,
+      ]
     end
   end
 end

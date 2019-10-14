@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Tasks
   class CensusImport
     include TsqlImport
     include ArelHelper
-    
+
     def initialize replace_all = nil
       if replace_all.present?
         @replace_all = true
@@ -16,13 +22,15 @@ module GrdaWarehouse::Tasks
         Rails.logger.info 'Replacing all GrdaWarehouse::Census census records'
       end
 
+      return unless GrdaWarehouse::ServiceHistoryEnrollment.exists?
+
       # Determine the appropriate date range
       if @replace_all
         # never build back beyond 2010
         start_date = [GrdaWarehouse::ServiceHistoryEnrollment.minimum(:first_date_in_program), '2010-01-01'.to_date].max
-        end_date = Date.today
+        end_date = Date.current
       else
-        end_date = Date.today
+        end_date = Date.current
         start_date = end_date - 3.years
       end
       GrdaWarehouse::Census::CensusBuilder.new.create_census(start_date, end_date)

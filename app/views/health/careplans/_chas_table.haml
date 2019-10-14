@@ -1,0 +1,34 @@
+- if @patient.chas.any?
+  %table.table.table-sm.datatable-ssm
+    %thead
+      %tr
+        %th Assessment
+        %th Status
+        %th Completed By
+    %tbody
+      - @patient.chas.each do |form|
+        - if form.is_a? Health::ComprehensiveHealthAssessment
+          %tr
+            %td
+              = link_to polymorphic_path(cha_path_generator, client_id: @client.id, id: form.id), data: { loads_in_pjax_modal: true } do
+                %h4.mb-0.mt-0 CHA
+            %td
+              - if form.reviewed_at.present?
+                = "Reviewed on #{form.reviewed_at.to_date}"
+              - elsif form.completed_at.present?
+                Awaiting Review
+              - else
+                In Progress
+            %td= form&.user&.name
+        - elsif form.is_a? Health::EpicCha
+          %tr
+            %td
+              = link_to polymorphic_path(health_path_generator + [:epic_cha], id: form.id), data: { loads_in_pjax_modal: true } do
+                %h4.mb-0.mt-0 CHA
+                .pl-2 From Epic
+            %td
+              - if form.reviewer_name.present?
+                = "Reviewed by #{form.reviewer_name}"
+            %td= form&.staff
+- else
+  %p.no-data No Comprehensive Health Assessment on file

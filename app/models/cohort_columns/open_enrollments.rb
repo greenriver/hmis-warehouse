@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class OpenEnrollments < ReadOnly
     include ArelHelper
@@ -22,7 +28,9 @@ module CohortColumns
     end
 
     def text_value cohort_client
-      value(cohort_client).map(&:last).join(' ')
+      v = value(cohort_client)
+      return '' unless v.present?
+      v&.map(&:last)&.join(' ')
     end
 
     def display_for user

@@ -3,5 +3,5 @@
     = hidden_field_tag(:agency_id, params[:agency_id].to_i)
   .input-group{style: 'margin-bottom: 20px;'}
     = f.search_field :full_text_search, label: false, class: 'form-control'
-    %span.input-group-btn
+    %span.input-group-append
       %button.btn.btn-secondary{type: :submit} Search

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Censuses
   class ProgramBase < Base
     include ArelHelper
@@ -35,26 +41,26 @@ module Censuses
     #   }
     # }
 
-    def for_date_range (start_date, end_date, data_source_id = 0, project_id = 0)
+    def for_date_range (start_date, end_date, data_source_id = 0, project_id = 0, user:)
       @shape ||= {}
 
       if data_source_id != 0 && project_id != 0
-        for_project_id(start_date, end_date, data_source_id, project_id)
+        for_project_id(start_date, end_date, data_source_id, project_id, user: user)
       else
-        census_projects_scope.each do | project |
-          for_project_id(start_date, end_date, project.data_source_id, project.id)
+        census_projects_scope(user: user).each do | project |
+          for_project_id(start_date, end_date, project.data_source_id, project.id, user: user)
         end
 
         @shape.keys.each do | data_source_id |
           # only include data source summary if the source contains more than one organization
           if @shape[data_source_id].count > 1
-            for_data_source_id(start_date, end_date, data_source_id)
+            for_data_source_id(start_date, end_date, data_source_id, user: user)
           end
 
           @shape[data_source_id].keys.each do | organization_id |
             if @shape[data_source_id][organization_id].count > 1
               # only include the organization summary if the organization contains more than one project
-              for_organization_id(start_date, end_date, data_source_id, organization_id)
+              for_organization_id(start_date, end_date, data_source_id, organization_id, user: user)
             end
           end
         end
@@ -68,28 +74,28 @@ module Censuses
       @shape
     end
 
-    private def for_project_id (start_date, end_date, data_source_id, project_id)
+    private def for_project_id (start_date, end_date, data_source_id, project_id, user: nil)
       project = GrdaWarehouse::Hud::Project.find(project_id)
       project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.select{|k, v| v.include?(project[:ProjectType])}.keys.first&.upcase
       return if project_type.blank?
 
-      dimension_scope = census_data_scope.by_project_id(project_id)
+      dimension_scope = census_data_scope(user: user).by_project_id(project_id)
       organization_id = project.organization.id
       dimension_label = "#{project.name} (#{project_type}) < #{project.organization.name} < #{project.data_source.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 
-    private def for_data_source_id (start_date, end_date, data_source_id)
+    private def for_data_source_id (start_date, end_date, data_source_id, user: nil)
       data_source_name = GrdaWarehouse::DataSource.find(data_source_id).name
       dimension_label = "All programs from #{data_source_name}"
-      dimension_scope = census_data_scope.by_data_source_id(data_source_id)
+      dimension_scope = census_data_scope(user: user).by_data_source_id(data_source_id)
       compute_dimension(start_date, end_date, data_source_id, 'all', 'all', dimension_label, dimension_scope)
     end
 
-    private def for_organization_id (start_date, end_date, data_source_id, organization_id)
+    private def for_organization_id (start_date, end_date, data_source_id, organization_id, user: nil)
       organization_name = GrdaWarehouse::Hud::Organization.find(organization_id).name
       dimension_label = "All programs from #{organization_name}"
-      dimension_scope = census_data_scope.by_organization_id(organization_id)
+      dimension_scope = census_data_scope(user: user).by_organization_id(organization_id)
       compute_dimension(start_date, end_date, data_source_id, organization_id, 'all', dimension_label, dimension_scope)
     end
 
@@ -179,11 +185,11 @@ module Censuses
         end
     end
 
-    def prior_year_averages (year, data_source = nil, organization = nil, project = nil)
+    def prior_year_averages (year, data_source = nil, organization = nil, project = nil, user: nil)
       start_date = Date.new(year).beginning_of_year
       end_date = Date.new(year).end_of_year
 
-      local_census_scope = census_data_scope.for_date_range(start_date, end_date)
+      local_census_scope = census_data_scope(user: user).for_date_range(start_date, end_date)
       if data_source && data_source != 'all'
         local_census_scope = local_census_scope.by_data_source_id(data_source.to_i)
       end

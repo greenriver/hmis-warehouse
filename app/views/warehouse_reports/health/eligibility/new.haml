@@ -1,0 +1,21 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "Eligibility Determination"
+- content_for :title, title
+%h1= content_for :title
+
+= simple_form_for :report, url: warehouse_reports_health_eligibility_index_path, method: :post do |f|
+  - content_for :filters_col_full do
+    %p
+      This report will generate a Benefit Eligibility Inquiry (270). After the report has been uploaded and processed by
+      #{@sender.receiver_name}, return to this page to upload the Benefit Eligibility Response (271).
+
+    .row
+      .col-sm-6
+        = f.input :eligibility_date, as: :date_picker, input_html: { value: Date.current}, label: 'Determine if patients are eligible on'
+
+  - content_for :filter_actions do
+    = f.submit 'Generate Eligibility File', class: "btn btn-primary mt-no-label"
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
+
+= render 'reports'

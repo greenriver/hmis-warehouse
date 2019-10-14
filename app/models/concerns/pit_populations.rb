@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module PitPopulations
   extend ActiveSupport::Concern
   POPULATIONS = {
     homeless: {
       family: {
-        total_number_of_households: {}, 
-        number_of_children: {}, 
+        total_number_of_households: {},
+        number_of_children: {},
         number_of_youth: {},
         number_of_adults: {},
         female: {},
@@ -21,10 +27,10 @@ module PitPopulations
         multiple_races: {},
         chronically_homeless_households: {},
         chronically_homeless_persons: {},
-      }, 
+      },
       children: {
-        total_number_of_households: {}, 
-        number_of_children: {}, 
+        total_number_of_households: {},
+        number_of_children: {},
         female: {},
         male: {},
         transgender: {},
@@ -38,9 +44,9 @@ module PitPopulations
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
         chronically_homeless_persons: {},
-      }, 
+      },
       adults:{
-        total_number_of_households: {}, 
+        total_number_of_households: {},
         number_of_youth: {},
         number_of_adults: {},
         female: {},
@@ -72,8 +78,8 @@ module PitPopulations
     },
     youth: {
       unaccompanied_youth: {
-        total_number_of_households: {}, 
-        number_of_children: {}, 
+        total_number_of_households: {},
+        number_of_children: {},
         number_of_youth: {},
         female: {},
         male: {},
@@ -88,10 +94,10 @@ module PitPopulations
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
         chronically_homeless_persons: {},
-      }, 
+      },
       youth_family: {
-        total_number_of_households: {}, 
-        number_of_parenting_children: {}, 
+        total_number_of_households: {},
+        number_of_parenting_children: {},
         number_of_parenting_youth: {},
         number_of_children: {},
         female: {},
@@ -109,11 +115,11 @@ module PitPopulations
         chronically_homeless_households: {},
         chronically_homeless_persons: {},
       }
-    }, 
+    },
     veteran: {
       veteran_family: {
-        total_number_of_households: {}, 
-        number_of_persons: {}, 
+        total_number_of_households: {},
+        number_of_persons: {},
         number_of_veterans: {},
         female: {},
         male: {},
@@ -130,10 +136,10 @@ module PitPopulations
         chronically_homeless: {},
         chronically_homeless_persons: {},
         chronically_homeless_households: {},
-      }, 
+      },
       veteran_adults: {
-        total_number_of_households: {}, 
-        number_of_persons: {}, 
+        total_number_of_households: {},
+        number_of_persons: {},
         number_of_veterans: {},
         female: {},
         male: {},
@@ -155,7 +161,7 @@ module PitPopulations
   HOMELESS_BREAKDOWNS = [:es, :th, :so]
   HOMELESS_CHILD_BREAKDOWNS = [:es, :th, :sh, :so]
   HOMELESS_ADULT_BREAKDOWNS = [:es, :th, :sh, :so]
-  HOMELESS_SUB_BREAKDOWNS = [:es, :sh, :so]
+  HOMELESS_SUB_BREAKDOWNS = [:es, :th, :sh, :so]
   UNACCOMPANIED_YOUTH_BREAKDOWNS = [:es, :th, :sh, :so]
   PARENTING_YOUTH_BREAKDOWNS = [:es, :th, :so]
   VETERAN_FAMILY_BREAKDOWNS = [:es, :th, :so]
@@ -174,7 +180,7 @@ module PitPopulations
       end
       @answers[:homeless_sub].each do |tab, questions|
         questions.each do |q, breakdowns|
-          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map{|m| [m, 0]}.to_h) 
+          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map{|m| [m, 0]}.to_h)
         end
       end
       @answers[:youth][:youth_family].each do |q, breakdowns|

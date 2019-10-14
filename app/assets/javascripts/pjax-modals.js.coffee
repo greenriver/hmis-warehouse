@@ -10,13 +10,12 @@ $ ->
   class PjaxModal
     constructor: ->
       @modal = $(".modal[data-pjax-modal]")
-      @container = @modal.find("[data-pjax-modal-container]")
-      @title = @modal.find("[data-pjax-modal-title]")
-      @body = @modal.find("[data-pjax-modal-body]")
-      @footer = @modal.find("[data-pjax-modal-footer]")
-      @linkTriggers = $('[data-loads-in-pjax-modal]')
-      @formTriggers = $('[data-submits-to-pjax-modal]')
-      @loading = @modal.find("[data-pjax-modal-loading]")
+      @containerAttr = "[data-pjax-modal-container]"
+      @container = @modal.find(@containerAttr)
+      @linkTriggerAttr = '[data-loads-in-pjax-modal]'
+      @linkTriggers = $(@linkTriggerAttr)
+      @formTriggerAttr = '[data-submits-to-pjax-modal]'
+      @formTriggers = $(@formTriggerAttr)
 
     listen: ->
       @_registerLoadingIndicator()
@@ -25,22 +24,22 @@ $ ->
       @_registerClose()
 
     _registerLoadingIndicator: ->
-      $(document).on 'pjax:send', =>
-        @loading.show()
+      $(document).on 'pjax:send', (event) =>
+        @reset()
       $(document).on 'pjax:complete', =>
-        @loading.hide()
+        @modal.find("[data-pjax-modal-loading]").hide()
 
     _registerLinks: ->
-      $(document).pjax @linkTriggers.selector, @container.selector, timeout: false, push: false, scrollTo: false
-      $(document).on 'click', @linkTriggers.selector, (e) =>
-        @body.hide()
-        @footer.hide()
+      $(document).pjax @linkTriggerAttr, @containerAttr, timeout: false, push: false, scrollTo: false
+      $(document).on 'click', @linkTriggerAttr, (e) =>
+        @modal.find("[data-pjax-modal-body]").hide()
+        @modal.find("[data-pjax-modal-footer]").hide()
         @open()
 
     _registerForms: ->
-      $(document).on 'submit', @formTriggers.selector, (evt) =>
+      $(document).on 'submit', @formTriggerAttr, (evt) =>
         @open()
-        $.pjax.submit evt, @container.selector, timeout: false, push: false
+        $.pjax.submit evt, @containerAttr, timeout: false, push: false
 
     _registerClose: ->
       $('body').on 'click', '[pjax-modal-close]', (e) =>
@@ -54,9 +53,9 @@ $ ->
       @modal.modal('show')
 
     reset: ->
-      @title.html("")
-      @body.html("")
-      @footer.html("")
-      @loading.show()      
+      @modal.find("[data-pjax-modal-title]").html('')
+      @modal.find("[data-pjax-modal-body]").html('')
+      @modal.find("[data-pjax-modal-footer]").html('')
+      @modal.find("[data-pjax-modal-loading]").show()
 
   (new PjaxModal).listen()

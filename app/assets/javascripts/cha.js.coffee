@@ -69,6 +69,8 @@ scrollToElement = (event, offset=0, duration=1000) ->
     $('html, body').animate { scrollTop: $target.offset().top - offset }, duration
 
 $('a[href*="#"]')
+  .not('.nav-link')
+  .not('.panel-heading')
   .not('[href="#"]')
   .not('[href="#0"]').on 'click', (event) ->
     scrollToElement event, 20

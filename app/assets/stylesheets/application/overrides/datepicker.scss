@@ -1,0 +1,16 @@
+@import '../helpers';
+
+.datepicker {
+  padding: 0;
+}
+
+.datepicker-dropdown {
+  // Above header
+  // Use Important flag because z-index is strangely added inline by library
+  // higher than bootstrap $zindex-modal
+  z-index: $zindex-tooltip !important;
+}
+
+.datepicker input {
+  padding: $input-padding-y $input-padding-x;
+}

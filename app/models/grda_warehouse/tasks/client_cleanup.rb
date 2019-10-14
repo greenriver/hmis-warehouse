@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # NOTE: To force a rebuild that includes data that isn't the dates involved, you need to 
 # also set the processed_hash on the enrollment to nil
 
@@ -297,11 +303,11 @@ module GrdaWarehouse::Tasks
         Gender: c_t[:Gender].to_sql,
         VeteranStatus: c_t[:VeteranStatus].to_sql,
         verified_veteran_status: c_t[:verified_veteran_status].to_sql,
-        NameDataQuality: cl(c_t[:NameDataQuality], 99).to_sql, 
-        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).to_sql, 
-        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).to_sql, 
-        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).to_sql,
-        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).to_sql,
+        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql, 
+        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql, 
+        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql, 
+        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
+        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
       }
     end
 
@@ -437,7 +443,7 @@ module GrdaWarehouse::Tasks
         to_fix.each do |client_id|
           client = GrdaWarehouse::Hud::Client.find(client_id)
           GrdaWarehouse::Hud::Enrollment.where(
-            id: client.service_history.
+            id: client.service_history_enrollments.
               where(age: nil).
               joins(:enrollment).
               select(e_t[:id].as('id').to_sql)

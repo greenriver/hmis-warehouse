@@ -1,8 +1,21 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class HmisExport < ::ModelForm
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
-    attribute :end_date, Date, default: Date.today
+    attribute :end_date, Date, default: Date.current
+    attribute :version, String, default: -> (r,_) do
+      if Date.current >= '2019-10-01'.to_date || ! Rails.env.production?
+        '2020'
+      else
+        '6.11'
+      end
+    end
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
@@ -38,7 +51,7 @@ module Filters
 
     def options_for_hmis_export export_version
       case export_version
-      when :six_one_one
+      when :six_one_one, 2020
         options = {
           start_date: start_date,
           end_date: end_date,
@@ -71,8 +84,8 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
-      return [] unless user.can_edit_project_groups?
       GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
         where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
         pluck(p_t[:id].as('project_id').to_sql)
     end
@@ -96,14 +109,14 @@ module Filters
         when 'fixed'
           return
         when 'n_days'
-          @end_date = Date.today
+          @end_date = Date.current
           @start_date = end_date - reporting_range_days.days
         when 'month'
-          last_month = Date.today.last_month
+          last_month = Date.current.last_month
           @end_date = last_month.end_of_month
           @start_date = last_month.beginning_of_month
         when 'year'
-          last_year = Date.today.last_year
+          last_year = Date.current.last_year
           @end_date = last_year.end_of_year
           @start_date = last_year.beginning_of_year
       end

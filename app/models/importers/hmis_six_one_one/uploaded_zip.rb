@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'zip'
 module Importers::HMISSixOneOne
   class UploadedZip < Base
@@ -124,6 +130,16 @@ module Importers::HMISSixOneOne
         file.write(@upload.content)
       end
       reconstitute_path
+    end
+
+    def next_version?
+      file_path = reconstitute_upload()
+      file_names = Zip::File.open(file_path) { |zip| zip.entries.map(&:name) }.
+        map{ |m| File.basename(m) }.
+        select{ |m| m.include?('.csv') }
+      remove_import_files
+      check_files = Importers::HmisTwentyTwenty::Base.importable_files.keys - self.class.importable_files.keys
+      (check_files & file_names).any?
     end
 
   end

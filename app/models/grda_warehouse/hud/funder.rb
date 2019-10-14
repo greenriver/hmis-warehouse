@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class Funder < Base
     include HudSharedScopes
@@ -6,23 +12,56 @@ module GrdaWarehouse::Hud
     acts_as_paranoid column: :DateDeleted
 
     def self.hud_csv_headers(version: nil)
-      [
-        :FunderID,
-        :ProjectID,
-        :Funder,
-        :GrantID,
-        :StartDate,
-        :EndDate,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
+      case version
+      when '5.1', '6.11', '6.12'
+        [
+          :FunderID,
+          :ProjectID,
+          :Funder,
+          :GrantID,
+          :StartDate,
+          :EndDate,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :FunderID,
+          :ProjectID,
+          :Funder,
+          :OtherFunder,
+          :GrantID,
+          :StartDate,
+          :EndDate,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      else
+        [
+          :FunderID,
+          :ProjectID,
+          :Funder,
+          :GrantID,
+          :StartDate,
+          :EndDate,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      end
     end
 
-    belongs_to :project, **hud_belongs(Project), inverse_of: :funders
-    belongs_to :export, **hud_belongs(Export), inverse_of: :funders
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders
+    belongs_to :data_source
 
     scope :open_between, -> (start_date:, end_date: ) do
       at = arel_table
@@ -41,13 +80,17 @@ module GrdaWarehouse::Hud
     def valid_funder_code?
       self.class.valid_funder_code?(self.Funder)
     end
-    
+
     def self.valid_funder_code? funder
       HUD.funding_sources.keys.include?(funder)
     end
 
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
+    end
+
+    def self.related_item_keys
+      [:ProjectID]
     end
   end
 end

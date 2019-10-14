@@ -1,9 +1,27 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module PjaxModalController
   extend ActiveSupport::Concern
 
   included do
     layout ->(c) { pjax_request? ? pjax_layout : nil }
     after_action :set_pjax_url, if: :pjax_request?
+
+    def modal_size
+      case @modal_size
+      when :xl
+        'modal-xl'
+      when :lg
+        'modal-lg'
+      else
+        ''
+      end
+    end
+    helper_method :modal_size
 
     def form_html_options
       Hash.new.tap do |result|

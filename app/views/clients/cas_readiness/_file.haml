@@ -21,6 +21,8 @@
                 = f.input :dmh_eligible, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:dmh_eligible], wrapper_html: check_wrapper_class
             = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false
             = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false
+            - if GrdaWarehouse::Config.get(:client_details).include?('cas_match_override')
+              = f.input :cas_match_override, as: :date_picker, label: "Override Date Matched In CAS"
           .form-group.mb-6.col-md-4
             - if GrdaWarehouse::Config.get(:client_details).include?('chronically_homeless_for_cas')
               = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
@@ -28,6 +30,9 @@
   .row
     .col-lg-8.col-xl-6
       = render 'consent_form', f: f, show_file_existence: true
+  .row
+    .col-lg-8.col-xl-6
+      = render 'disability_verification', f: f
 
   .row
     .col-lg-8.col-xl-6
@@ -35,7 +40,23 @@
 
   .row
     .col-lg-8.col-xl-6
+      = render 'assessment', f: f
+
+  .row
+    .col-lg-8.col-xl-6
+      = render 'cas_tags', f: f
+
+  .row
+    .col-lg-8.col-xl-6
       = render 'veteran', f: f
+
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'set_asides', f: f
+
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'rrh', f: f
 
   %section.o-section-card.row
     .col-lg-8.col-xl-6

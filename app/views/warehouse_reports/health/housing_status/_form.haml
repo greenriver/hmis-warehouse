@@ -1,0 +1,14 @@
+= simple_form_for :filter, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-4
+        = f.input :aco, collection: Health::AccountableCareOrganization.active, label: 'ACO', selected: @aco, input_html: { class: :select2,  multiple: true }
+      .col-sm-4
+        = f.input :start_date, as: :date_picker, input_html: { value: @start_date }
+      .col-sm-4
+        = f.input :end_date, as: :date_picker, input_html: { value: @end_date }
+
+  - content_for :filter_actions do
+    = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil

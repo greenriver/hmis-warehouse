@@ -1,0 +1,140 @@
+AllCops:
+  Include:
+    # TODO: as these are cleaned, add them back for overcommit
+    - '**/Rakefile'
+    # - '**/config.ru'
+    # - 'lib/tasks/**/*'
+    # - 'app/**/*'
+    - 'spec/**/*.rb'
+    - 'app/jobs/**/*.rb'
+    - 'app/inputs/**/*.rb'
+    - 'app/helpers/**/*.rb'
+    - 'app/mail_interceptors/**/*.rb'
+    - 'app/mailers/**/*.rb'
+    - 'app/renderers/**/*.rb'
+    - 'app/uploaders/**/*.rb'
+    - 'lib/**/*.rb'
+
+  Exclude:
+    - 'db/**/*'
+    - 'config/**/*'
+    - 'script/**/*'
+    - 'bin/{rails,rake}'
+    - 'app/assets/**/*'
+
+# We don't care about method length, since we check method cyclomatic
+# complexity.
+Metrics/MethodLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/AbcSize:
+  # The ABC size is a calculated magnitude, so this number can be a Fixnum or
+  # a Float.
+  Max: 175
+Metrics/CyclomaticComplexity:
+  Max: 50
+  Exclude:
+    - 'lib/util/hud.rb'
+Metrics/PerceivedComplexity:
+  Max: 50
+
+# Trailing commas make for clearer diffs because the last line won't appear
+# to have been changed, as it would if it lacked a comma and had one added.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# Cop supports --auto-correct.
+# Configuration parameters: PreferredDelimiters.
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    # Using `[]` for string arrays instead of `()`, since normal arrays are
+    # indicated with `[]` not `()`.
+    '%w': '[]'
+    '%W': '[]'
+
+Style/AndOr:
+  Enabled: true
+
+Style/ClassAndModuleChildren:
+  Exclude:
+    - 'app/controllers/**/*'
+    - 'app/jobs/**/*'
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/FormatStringToken:
+  Enabled: false
+
+Metrics/LineLength:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/RescueStandardError:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Naming/VariableNumber:
+  Enabled: false
+
+Style/MixinUsage:
+  Enabled: false
+
+Layout/DotPosition:
+  EnforcedStyle: trailing
+
+MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Documentation:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Lint/RescueException:
+  Enabled: false
+
+Layout/SpaceAfterNot:
+  Enabled: false
+
+Layout/MultilineOperationIndentation:
+  Enabled: false
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Layout/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+Lint/UnusedMethodArgument:
+  Exclude:
+    - 'lib/rds_sql_server/hmis_sql_server.rb'
+
+Style/DoubleNegation:
+  Exclude:
+    - 'lib/rds_sql_server/rds.rb'
+
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets

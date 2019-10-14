@@ -304,12 +304,11 @@ class App.Cohorts.Cohort
           dataType: 'json'
         }
 
-        $.ajax(options).complete (jqXHR) =>
-          response = JSON.parse(jqXHR.responseText)
-          alert_class = response.alert
-          alert_text = response.message
-          updated_at = response.updated_at
-          cohort_client_id = response.cohort_client_id
+        $.ajax(options).done (data) =>
+          alert_class = data.alert
+          alert_text = data.message
+          updated_at = data.updated_at
+          cohort_client_id = data.cohort_client_id
 
           # Make note of successful update
           @updated_ats[cohort_client_id] = updated_at

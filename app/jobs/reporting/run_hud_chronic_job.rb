@@ -1,6 +1,11 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting
   class RunHudChronicJob < BaseJob
-
     queue_as :low_priority
 
     def perform(client_ids, date)
@@ -8,8 +13,8 @@ module Reporting
       date = Date.parse(date)
 
       client_ids.each_with_index do |id, index|
-        client = GrdaWarehouse::Hud::Client.where( id: id ).first
-        next unless client && client.hud_chronic?(on_date: date)
+        client = GrdaWarehouse::Hud::Client.where(id: id).first
+        next unless client&.hud_chronic?(on_date: date)
 
         log " #{index} => Client #{id} is HUD chronic"
 
@@ -21,7 +26,7 @@ module Reporting
         hc.months_in_last_three_years = data[:months_in_last_three_years]
         hc.individual = !client.presented_with_family?(after: date - 3.years, before: date)
         hc.age = client.age_on(date)
-        hc.homeless_since = client.service_history.first_date&.first.try(:date)
+        hc.homeless_since = client.date_of_first_service
         hc.dmh = any_dmh_for?(client_id: id, on_date: date)
         hc.trigger = data[:trigger]
 
@@ -29,16 +34,16 @@ module Reporting
       end
     end
 
-    def any_dmh_for? client_id:, on_date:
+    def any_dmh_for?(client_id:, on_date:)
       @dmh_ids ||= GrdaWarehouse::Hud::Organization.dmh.ids
-      GrdaWarehouse::ServiceHistory.ongoing(on_date: on_date).where(client_id: client_id, organization_id: @dmh_ids).any?
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing(on_date: on_date).where(client_id: client_id, organization_id: @dmh_ids).any?
     end
 
-    def log msg, underline: false
+    def log(msg, underline: false)
       return unless Rails.env.development?
-      Rails.logger.info msg
-      Rails.logger.info "="*msg.length if underline
-    end
 
+      Rails.logger.info msg
+      Rails.logger.info '=' * msg.length if underline
+    end
   end
 end

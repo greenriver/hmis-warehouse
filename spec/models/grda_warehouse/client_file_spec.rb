@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ClientFile, type: :model do
-
   describe 'Creating a client file' do
     let!(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
     let!(:other_tag) { create :available_file_tag, consent_form: false, name: 'Other Tag' }
@@ -42,7 +41,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
 
       it 'client release is still not valid' do
-        expect(file.client.consent_form_valid?).to be false      
+        expect(file.client.consent_form_valid?).to be false
       end
 
       describe 'when the consent file has been confirmed' do
@@ -54,7 +53,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
 
         it 'active release is set to the consent form' do
-          expect(file.active_consent_form?).to be true     
+          expect(file.active_consent_form?).to be true
         end
 
         describe 'when a new consent form is uploaded that is not confirmed' do
@@ -67,12 +66,12 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
             expect(GrdaWarehouse::AvailableFileTag.contains_consent_form?(second_file.tag_list)).to be true
           end
 
-           it 'client release remains valid' do
+          it 'client release remains valid' do
             expect(file.client.consent_form_valid?).to be true
           end
 
           it 'active release is still set to the original consent form' do
-            expect(file.active_consent_form?).to be true     
+            expect(file.active_consent_form?).to be true
           end
 
           it 'does not change the client consent_form_signed_on' do
@@ -90,7 +89,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
             end
 
             it 'active release is set to the new consent form' do
-              expect(second_file.active_consent_form?).to be true   
+              expect(second_file.active_consent_form?).to be true
             end
             describe 'when the new consent form is un-confirmed' do
               before :each do
@@ -103,28 +102,26 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               it 'the active release remains the same' do
                 expect(second_file.active_consent_form?).to be true
               end
-              
+
               describe 'when the original consent is un-confirmed' do
                 before :each do
-                  # rspec seems to get confused with all of the callbacks, this gets around that   
-                  file.reload
-                  file.consent_form_confirmed = false
-                  file.save!
+                  # rspec seems to get confused with all of the callbacks, this gets around that
+                  second_file.update_columns(consent_form_confirmed: false)
+                  file.update_columns(consent_form_confirmed: false)
+                  # This usually gets called in a callback, but acts as taggable hates transactions
+                  file.set_client_consent
                 end
                 it 'the client release should no longer be valid' do
-                  expect(file.client.consent_form_valid?).to be false
+                  expect(file.client.reload.consent_form_valid?).to be false
                 end
-
               end
-              
             end
           end
-
         end
 
         # describe 'when a new consent form is uploaded that is confirmed' do
-        #   before :each do 
-            
+        #   before :each do
+
         #   end
         #   it 'does changes the client consent_form_signed_on' do
         #     file.save!
@@ -139,7 +136,5 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         # end
       end
     end
-    
   end
-
 end

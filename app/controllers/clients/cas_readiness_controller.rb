@@ -1,15 +1,23 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Clients
   class CasReadinessController < ApplicationController
     include ClientPathGenerator
-    
+
     before_action :require_can_edit_clients!
     before_action :set_client
     after_action :log_client
 
     def edit
-
+      if Cas::Neighborhood.db_exists?
+        @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name)
+      end
     end
-    
+
     def update
       update_params = cas_readiness_params
       if GrdaWarehouse::Config.get(:cas_flag_method).to_s != 'file'
@@ -19,13 +27,13 @@ module Clients
           nil
         end
       end
-      
+
       if @client.update(update_params)
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
         # Maintain the veteran status
         @client.adjust_veteran_status
-        
+
         flash[:notice] = 'Client updated'
         ::Cas::SyncToCasJob.perform_later
         redirect_to action: :edit

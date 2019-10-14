@@ -8,7 +8,7 @@ if params[:summary].present?
       @sender.short_name,
       @patients.count,
       Health::MemberStatusReport.spreadsheet_columns.count,
-      Date.today.strftime('%Y%m%d'),
+      Date.current.strftime('%Y%m%d'),
       receiver,
     ]
     sheet.add_row(row)

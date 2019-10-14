@@ -1,5 +1,35 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Fetch client demographics via the ETO API for clients
 # who have a record in ApiClientDataSourceId
+
+# NB: To bring in additional data, you may need to setup some ETO configs.  Here's an example
+
+# config = GrdaWarehouse::EtoApiConfig.create(
+#   data_source_id: 3,
+#   demographic_fields: {
+#     consent_form_status: 'Consent Form:',
+#     outreach_counselor_name: 'Main Outreach Counselor',
+#   },
+#   demographic_fields_with_attributes: {
+#     case_manager_name: {entity_label: 'Case Manager/Advocate', attributes: :case_manager_attributes},
+#     assigned_staff_name: {entity_label: 'AssignedStaffID', attributes: :assigned_staff_attributes},
+#     counselor_name: {entity_label: 'Assigned Counselor', attributes: :counselor_attributes},
+#   },
+#   additional_fields: {
+#     hud_last_permanent_zip: 422,
+#     hud_last_permanent_zip_quality: 423,
+#   },
+#   touchpoint_fields: {
+#     assessment_type: 'A-1. At what point is this data being collected?',
+#     housing_status: 'A-6. Where did you sleep last night?',
+#   },
+# )
+
 module EtoApi::Tasks
   class UpdateClientDemographics
     include ActionView::Helpers::DateHelper
@@ -8,7 +38,6 @@ module EtoApi::Tasks
 
     # optionally pass an array of client source ids
     def initialize client_ids:[], batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false
-      @clients = []
       @client_ids = client_ids || []
       @trace = trace
       @batch_time = batch_time
@@ -35,24 +64,28 @@ module EtoApi::Tasks
       # 1062 = consent form status
 
       # 331 = Case Manager/Advocate - EntityId
-      # 439 = Assigened Staff (pine street) 597 (HomeStart)
+      # 439 = Assigned Staff (pine street) 597 (HomeStart)
       #
       # 635 = Assigned Counselor
       #
       # 639 = Main Outreach Counselor
-       
-      # 422 Zip Code of Last Permanant Address (HUD) - BPHC only
-      # 423 Zip Code Type (HUD) - BPHC only 
+
+      # 422 Zip Code of Last Permanent Address (HUD) - BPHC only
+      # 423 Zip Code Type (HUD) - BPHC only
 
       # Loop over all items in the config
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
+        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
 
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect
 
-        cs = load_candidates(type: :demographic)
+        # This number may be larger than the original client_id list since each client may be
+        # in more than one site
+        cs = candidate_scope(type: :demographic)
+
         current_hmis_clients = GrdaWarehouse::HmisClient.count
         current_hmis_forms = GrdaWarehouse::HmisForm.count
         if @one_off
@@ -63,19 +96,23 @@ module EtoApi::Tasks
         end
         Rails.logger.info msg if msg.present?
         notifier.ping msg if send_notifications && msg.present?
-        @clients = load_candidates(type: :demographic)
-        @clients.find_in_batches(batch_size: 10) do |clients|
+        candidate_ids = candidate_scope(type: :demographic).pluck(:id)
+        candidate_ids.each_slice(10) do |ids|
+          clients = candidate_scope(type: :demographic).
+            where(id: ids)
           clients.each do |client|
+            next unless client.present?
             begin
               found = fetch_demographics(client)
               if found.present?
                 fetch_assessments(client)
               end
+              client.update(temporary_high_priority: false) if client.temporary_high_priority
               if Time.now > @restart
                 Rails.logger.info "Restarting after #{time_ago_in_words(@batch_time.from_now)}"
                 @api = nil
                 sleep(5)
-                @api = EtoApi::Detail.new(trace: @trace)
+                @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
                 @api.connect
                 @restart = Time.now + @batch_time
               end
@@ -88,14 +125,10 @@ module EtoApi::Tasks
                 return
               end
             rescue Exception => e
-              raise "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
+              notifier.ping "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
             end
           end
         end
-        # @clients = load_candidates(type: :assessment)
-        # @clients.each do |client|
-        #   fetch_assessments(client)
-        # end
       end
       return true
     end
@@ -103,13 +136,10 @@ module EtoApi::Tasks
     def fetch_assessments client
       subject_id = client.hmis_client.subject_id
       return unless subject_id.present?
-      # hard-coding touch_point_id: 75 because that's the only one we care about at the moment
-
       site_id = client.site_id_in_data_source
 
       # See /admin/eto_api/assessments for details
-      # 75 = HUD Entry/Exit Assessment
-      # 211 = Add Triage assessment
+      # HUD assessments don't show up in the API list, ids are hard coded in ENV['ETO_API_HUD_TOUCH_POINT_ID1']
       assessment_ids = GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).pluck(:assessment_id)
 
       assessment_ids.each do |tp_id|
@@ -134,43 +164,73 @@ module EtoApi::Tasks
         hmis_client.response = api_response.to_json
 
         hmis_client.subject_id = api_response['SubjectID']
-        hmis_client.consent_form_status = defined_value(client: client, response: api_response, label: 'Consent Form:')
-        hmis_client.outreach_counselor_name = defined_value(client: client, response: api_response, label: 'Main Outreach Counselor')
 
-        cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
-        hmis_client.case_manager_name = cm.try(:[], 'EntityName')
-        hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
+        # overridden with custom attributes
+        hud_last_permanent_zip = nil
+        hud_last_permanent_zip_quality = nil
 
-        staff = entity(client: client, response: api_response, entity_label: 'AssignedStaffID')
-        hmis_client.assigned_staff_name = staff.try(:[], 'EntityName')
-        hmis_client.assigned_staff_attributes = staff if hmis_client.assigned_staff_name.present?
+        if @custom_config.present?
+          @custom_config.demographic_fields.each do |key,label|
+            hmis_client[key] = defined_value(client: client, response: api_response, label: label)
+          end
 
-        counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
-        hmis_client.counselor_name = staff.try(:[], 'EntityName')
-        hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
+          # cm = entity(client: client, response: api_response, entity_label: 'Case Manager/Advocate')
+          # hmis_client.case_manager_name = cm.try(:[], 'EntityName')
+          # hmis_client.case_manager_attributes = cm if hmis_client.case_manager_name.present?
 
-        # This is only valid for Boston...
-        if @data_source_id == 3
-          hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
-          hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
-        else
-          hud_last_permanent_zip = nil
-          hud_last_permanent_zip_quality = nil
+          # staff = entity(client: client, response: api_response, entity_label: 'AssignedStaffID')
+          # hmis_client.assigned_staff_name = staff.try(:[], 'EntityName')
+          # hmis_client.assigned_staff_attributes = staff if hmis_client.assigned_staff_name.present?
+
+          # counselor = entity(client: client, response: api_response, entity_label: 'Assigned Counselor')
+          # hmis_client.counselor_name = staff.try(:[], 'EntityName')
+          # hmis_client.counselor_attributes = counselor if hmis_client.counselor_name.present?
+
+          @custom_config.demographic_fields_with_attributes.each do |key,details|
+            data = entity(client: client, response: api_response, entity_label: details['entity_label'])
+            if data.present?
+              hmis_client[key] = data.try(:[], 'EntityName')
+              hmis_client[details['attributes']] = data if hmis_client[key].present?
+            end
+          end
+
+          # This is only valid for Boston...
+          # if @data_source_id == 3
+          #   hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == 422}&.first&.try(:[], 'value')
+          #   hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == 423}&.first&.try(:[], 'value')
+
+          # Special cases for fields that don't exist on hmis_client
+          @custom_config.additional_fields.each do |key, cdid|
+            case key
+            when 'hud_last_permanent_zip'
+              hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+            when 'hud_last_permanent_zip_quality'
+              hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+              when 'sexual_orientation'
+                value = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+                sexual_orientation = defined_demographic_value(value: value, cdid: cdid, site_id: client.site_id_in_data_source)
+            else
+              hmis_client[key] = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+            end
+          end
         end
-        
+
         hmis_client.processed_fields = {
-          consent_form_status: hmis_client.consent_form_status,
-          outreach_counselor_name: hmis_client.outreach_counselor_name,
-          case_manager_name: hmis_client.case_manager_name,
-          case_manager_attributes: hmis_client.case_manager_attributes,
-          assigned_staff_name: hmis_client.assigned_staff_name,
-          assigned_staff_attributes: hmis_client.assigned_staff_attributes,
-          counselor_name: hmis_client.counselor_name,
-          counselor_attributes: hmis_client.counselor_attributes,
+          consent_form_status: hmis_client&.consent_form_status,
+          outreach_counselor_name: hmis_client&.outreach_counselor_name,
+          case_manager_name: hmis_client&.case_manager_name,
+          case_manager_attributes: hmis_client&.case_manager_attributes,
+          assigned_staff_name: hmis_client&.assigned_staff_name,
+          assigned_staff_attributes: hmis_client&.assigned_staff_attributes,
+          counselor_name: hmis_client&.counselor_name,
+          counselor_attributes: hmis_client&.counselor_attributes,
           hud_last_permanent_zip: hud_last_permanent_zip,
           hud_last_permanent_zip_quality: hud_last_permanent_zip_quality,
+          consent_confirmed_on: hmis_client&.consent_confirmed_on,
+          consent_expires_on: hmis_client&.consent_expires_on,
+          sexual_orientation: hmis_client&.sexual_orientation,
         }
-
+        hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?
           hmis_client.save
         else
@@ -257,9 +317,16 @@ module EtoApi::Tasks
               answer: value,
               type: element_type,
             }
-            # Some special cases
-            if element['Stimulus'] == 'A-1. At what point is this data being collected?'
-               hmis_form.assessment_type = value
+            if @custom_config.present?
+              # Some special cases
+              # if element['Stimulus'] == 'A-1. At what point is this data being collected?'
+              #    hmis_form.assessment_type = value
+              # end
+              @custom_config.touchpoint_fields.each do |key, stimulus|
+                if element['Stimulus'] == stimulus
+                  hmis_form[key] = value
+                end
+              end
             end
           end
         end
@@ -274,12 +341,15 @@ module EtoApi::Tasks
 
         staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
         hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        hmis_form.staff_email = staff['Email']
+        # Add email
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])
         hmis_form.name = assessment_name
         hmis_form.collection_location = @api.program(site_id: site_id, id: program_id)
         hmis_form.api_response = api_response
         hmis_form.answers = answers
         hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
+        hmis_form.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         begin
           hmis_form.save
           hmis_form.create_qualifying_activity!
@@ -349,9 +419,17 @@ module EtoApi::Tasks
       defined_demographic_value(value: item_value.to_i, cdid: item_cdid, site_id: client.site_id_in_data_source)
     end
 
-    private def load_candidates type:
-      return [] unless type.present?
-      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client)
+    # Use client_ids passed in,
+    # OR
+    # If we have anyone flagged as high-priority, process those
+    # OR
+    # any client who we've created a record in ApiClientDataSourceId for who hasn't been
+    # updated in the past 3 days
+    private def candidate_scope type:
+      return GrdaWarehouse::ApiClientDataSourceId.joins(:client).none unless type.present?
+      scope = GrdaWarehouse::ApiClientDataSourceId.joins(:client).
+        includes(:hmis_client).
+        references(:hmis_client)
       if @client_ids.any?
         # Force a specific candidate set
         scope.where(client_id: @client_ids, data_source_id: @data_source_id)
@@ -359,13 +437,17 @@ module EtoApi::Tasks
         # Load anyone who's not been updated recently
         case type
         when :demographic
-          # scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id)).
-          #   where(data_source_id: @data_source_id).
-          #   order(last_contact: :desc)
-          scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
-            where(['updated_at < ?', 3.days.ago.to_date])
-          ).
-          where(data_source_id: @data_source_id)
+          # any high-priority?
+          if GrdaWarehouse::ApiClientDataSourceId.high_priority.exists?
+            scope = scope.high_priority
+          else
+            hc_t = GrdaWarehouse::HmisClient.arel_table
+            scope.where.not(client_id: GrdaWarehouse::HmisClient.select(:client_id).
+              where(hc_t[:updated_at].lt(3.days.ago.to_date))
+            ).
+            where(data_source_id: @data_source_id).
+            order(Arel.sql("#{hc_t[:updated_at].asc.to_sql} NULLS FIRST"))
+          end
         when :assessment
           scope.joins(:hmis_client)
             # .where(['updated_at < ?', 1.week.ago.to_date])

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Census
   class CensusBuilder
     def create_census (start_date, end_date)
@@ -21,16 +27,15 @@ module GrdaWarehouse::Census
 
           # Save the new batch
           # batch_by_project_type.by_count.values.each(&:save)
-          
           headers = batch_by_project_type.by_count.values.first.attributes.except('id').keys
 
-          values = batch_by_project_type.by_count.values.map{|m| m.attributes.except('id')}.map do |m| 
+          values = batch_by_project_type.by_count.values.map{|m| m.attributes.except('id')}.map do |m|
             m['created_at'] = Time.now
             m['updated_at'] = Time.now
             m.values
           end
           ByProjectType.new.insert_batch(ByProjectType, headers, values, transaction: false, batch_size: 500)
-        
+
 
           # By Project
           batch_by_project = ProjectBatch.new(batch_start_date, batch_end_date)

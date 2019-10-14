@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Health
   class PatientReferralsController < ApplicationController
     include ArelHelper
@@ -9,7 +15,7 @@ module WarehouseReports::Health
     before_action :set_date
     before_action :set_unique_referral_dates
     before_action :set_referral_date
-    
+
     def index
       columns = {
         id: hp_t[:id].to_sql,
@@ -33,9 +39,9 @@ module WarehouseReports::Health
       redirect_to action: :index
     end
 
-    private 
+    private
       def set_date
-        @date = Date.today.beginning_of_month.to_date + 3.months
+        @date = Date.current.beginning_of_month.to_date + 3.months
         @date = params[:filter].try(:[], :date).presence || @date
       end
 

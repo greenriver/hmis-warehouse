@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
@@ -132,6 +138,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :service,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
@@ -141,14 +149,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :extrapolated,
+        homeless: homeless?(date),
+        literally_homeless: literally_homeless?(date),
       })
     end
 
     # build out all days within the month
     # don't build for any dates we already have
+    # never build past today, it makes counts and display very odd
     def add_extrapolated_days dates, type_provided
       extrapolated_dates = dates.map do |date|
-        (date.beginning_of_month .. date.end_of_month).to_a
+        stop_on = [date.end_of_month, Date.current].min
+        (date.beginning_of_month .. stop_on).to_a
       end.flatten(1).uniq
       # Don't build extrapolations for any day we already have
       extrapolated_dates -= dates
@@ -271,39 +283,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         pluck(nf('CONCAT', hash_columns).to_sql)
     end
 
-    # def self.service_history_rows(id)
-    #   # setup a somewhat complicated join with service history
-    #   join_sh_t_sql = e_t.join(sh_t).
-    #   on(e_t[:ProjectID].eq(sh_t[:project_id]).
-    #     and(e_t[:data_source_id].eq(sh_t[:data_source_id])).
-    #     and(e_t[:EnrollmentID].eq(sh_t[:enrollment_group_id]))
-    #   ).to_sql.gsub('SELECT FROM "Enrollment"', '')
-
-    #   # This must be explicitly ordered since the database doesn't always
-    #   # return data in the same order
-    #   where(id: id).
-    #     joins(:destination_client).
-    #     where(Client: {id: sh_t[:client_id]}).
-    #     joins(join_sh_t_sql).
-    #     where(service_history_source.table_name => {record_type: [:entry, :exit, :service]}).
-    #     order(*service_history_hash_columns_order).
-    #     pluck(*service_history_hash_columns)
-    # end
-
-    # even with the load of the enrollment via active record, this is *way* faster
-    # def self.service_history_rows(id)
-    #   en = self.find(id)
-    #   service_history_source.
-    #     where(
-    #       service_history_source.table_name => {record_type: [:entry, :exit, :service]},
-    #       client_id: en.destination_client.id,
-    #       enrollment_group_id: en.EnrollmentID,
-    #       data_source_id: en.data_source_id,
-    #       project_id: en.ProjectID,
-    #     ).order(*service_history_hash_columns_order).
-    #     pluck(*service_history_hash_columns)
-    # end
-
     def default_day
       @default_day ||= {
         client_id: destination_client.id,
@@ -337,6 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         individual_adult: individual_adult?,
         individual_elder: individual_elder?,
         presented_as_individual: presented_as_individual?,
+        move_in_date: move_in_date,
       }
     end
 
@@ -350,7 +330,33 @@ module GrdaWarehouse::Tasks::ServiceHistory
         record_type: nil,
         client_id: destination_client.id,
         project_type: project.computed_project_type,
+        homeless: false,
+        literally_homeless: false,
       }
+    end
+
+    # Service is considered a homeless service if it is in ES, SO, SH or TH.
+    # Service is explicitly NOT homeless if it is in PH after the move-in date.
+    # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
+    # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
+    # or non_homeless scopes"?
+    def homeless? date
+      return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return nil
+    end
+
+    # The day only counts as literally homeless if it's in ES, SO, SH.
+    # TH or PH after move-in date negates literally homeless
+    # Others don't negate it, but don't count as such
+    def literally_homeless? date
+      return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type) &&
+        (self.MoveInDate.present? && date > self.MoveInDate)
+      return nil
     end
 
     def household_birthdates
@@ -521,10 +527,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
         self.PersonalID
       else
         self.class.where(
-          EnrollmentID: self.EnrollmentID,
           data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
+          RelationshipToHoH: [1, nil]
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:PersonalID)&.first || self.PersonalID
+      end
+    end
+
+    def move_in_date
+      @move_in_date ||= if head_of_household?
+        self.MoveInDate
+      else
+        self.class.where(
+          data_source_id: data_source_id,
+          HouseholdID: self.HouseholdID,
+          ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
-        ).pluck(:PersonalID)&.first || self.PersonalID
+        ).
+        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
 
@@ -533,7 +557,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1 # 1 = Self
+      @hoh ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
     end
 
     def entry_exit_tracking?
@@ -579,13 +603,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # NOTE: this is limited to the end of next year, sometimes we get exit dates that are *very* far in the future.  This will preserve the ability to set future end dates and prevent extra rebuilds, but will continue extending the days into the future.
         [
           exit_date,
-          (Date.today + 1.year).end_of_year
+          (Date.current + 1.year).end_of_year
         ].min
       else
         [
           export.effective_export_end_date,
           export.ExportEndDate,
-          Date.today,
+          Date.current,
         ].compact.min.to_date
       end
     end
@@ -655,6 +679,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: :ProjectID,
         deleted_at: :DateDeleted,
         household_id: :HouseholdID,
+        head_of_household: :RelationshipToHoH,
+        move_in_date: :MoveInDate,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -664,6 +691,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         destination: :Destination,
+        updated_at: :DateUpdated,
       }
     end
 
@@ -672,6 +700,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
+        updated_at: :DateUpdated,
       }
     end
 

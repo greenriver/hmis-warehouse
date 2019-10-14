@@ -1,13 +1,21 @@
-# bundle exec rails runner 'TestMailer.ping("somebody@greenriver.com").deliver_now'
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
 
-class TestMailer < ActionMailer::Base
+# bundle exec rails runner 'TestMailer.ping("somebody@greenriver.com").deliver_now'
+# bundle exec rails runner 'TestMailer.ping("bounce@simulator.amazonses.com").deliver_now'
+# bundle exec rails runner 'TestMailer.ping("complaint@simulator.amazonses.com").deliver_now'
+
+class TestMailer < ApplicationMailer
   default from: ENV.fetch('DEFAULT_FROM')
 
   def ping(email)
-    mail({
+    mail(
       to: [email],
-      subject: 'test'
-    }) do |format|
+      subject: 'test',
+    ) do |format|
       format.text { render plain: "Test #{SecureRandom.hex(6)}" }
     end
   end

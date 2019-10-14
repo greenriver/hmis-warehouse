@@ -2,7 +2,7 @@
 - content_for :title, title
 = render 'clients/breadcrumbs'
 
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 = render 'clients/tab_navigation', current: client_audits_path(@client)
 
 %h1=content_for :title
@@ -10,7 +10,7 @@
 .row.table-utilities
   .col-sm-12
     .table-responsive
-      %table.table.table-condensed.table-hover
+      %table.table.table-sm.table-hover
         %thead
           %tr
             %th Date

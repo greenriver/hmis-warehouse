@@ -1,0 +1,35 @@
+- if @client.health_touch_points.any? || @patient.sdh_case_management_notes.any? || @patient.epic_case_notes.any?
+  %table.table.table-sm.datatable-sdh
+    %thead
+      %tr
+        %th Assessment
+        %th Date Completed
+        %th Case Manager
+    %tbody
+      - @patient.case_notes_for_display.each do |form|
+        - case form[:type]
+        - when :touch_point
+          - url = health_assessment_client_path(id: form[:id])
+        - when :epic
+          - url = polymorphic_path(health_path_generator + [:epic_case_note], client_id: @client.id, id: form[:id])
+        - else
+          - url = polymorphic_path(sdh_case_management_note_path_generator, client_id: @client.id, id: form[:id])
+        %tr
+          %td
+            = link_to url, data: { loads_in_pjax_modal: true } do
+              %h4= form[:title]
+              .pl-2= form[:sub_title]
+          %td= form[:date]
+          %td= form[:user]
+- else
+  %p.no-data No Case Management Notes on file
+
+= content_for :page_js do
+  :javascript
+    $('.datatable-sdh').DataTable({
+      searching: false,
+      ordering: false,
+      pageLength: 10,
+      lengthChange: false,
+      pagingType: 'simple'
+    })

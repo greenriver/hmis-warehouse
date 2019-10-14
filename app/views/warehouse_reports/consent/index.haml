@@ -7,7 +7,7 @@
   %h3
     Unconfirmed Consent
   = simple_form_for :clients, url: update_clients_warehouse_reports_consent_index_path, method: :post do |f|
-    %table.table.table-condensed.table-hover.datatable
+    %table.table.table-sm.table-hover.datatable
       %thead
         %tr
           %th Client
@@ -52,6 +52,8 @@
               - if file.present?
                 = link_to preview_client_file_path(client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
+                - if file.tag_list.present?
+                  %br= file.tag_list.join(', ')
             %td.text-center
               - if client.disability_verified_on
                 = client.disability_verified_on

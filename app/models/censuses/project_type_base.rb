@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Censuses
   class ProjectTypeBase < Base
     include ArelHelper
@@ -31,7 +37,7 @@ module Censuses
         end
     end
 
-    def prior_year_averages (year, project_type, population)
+    def prior_year_averages (year, project_type, population, user: nil)
       {
           year: year,
           ave_client_count: census_values_scope(year).average(values_column_name(project_type, population)).round(2),

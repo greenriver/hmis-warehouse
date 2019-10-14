@@ -23,6 +23,8 @@
               = f.input :required_number_of_bedrooms, collection: (1..5), include_blank: false
             - if GrdaWarehouse::Config.get(:client_details).include?('required_minimum_occupancy')
               = f.input :required_minimum_occupancy, collection: (1..10), include_blank: false
+            - if GrdaWarehouse::Config.get(:client_details).include?('cas_match_override')
+              = f.input :cas_match_override, as: :date_picker, label: "Override Date Matched In CAS"
           .form-group.col-md-4
             = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
   .row
@@ -34,11 +36,18 @@
             .mr-10
               = f.input :disability_verified_on, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:disability_verified_on], input_html: {checked: @client.disability_verified_on.present?}
             .mr-10.pt-2
-              - file = @client.client_files.tagged_with(['Disability Verification', 'Verification of Disability'], any: true).order(:created_at).last
+              - tags = GrdaWarehouse::AvailableFileTag.tag_includes('Verification of Disability').map(&:name)
+              - file = @client.client_files.tagged_with(tags, any: true).order(:created_at).last
               - if file.present?
                 File:
+                - if file.tag_list.present?
+                  = file.tag_list.join(', ')
+                  %br
                 = link_to preview_client_file_path(@client, file), target: '_blank' do
                   = file.effective_date&.to_date || file.updated_at&.to_date
+              - elsif @client.disability_verification_sources.exists?
+                - @client.disability_verification_sources.each do |v|
+                  .disability_verification Disability Verified at #{v.location} on #{v.verified_at&.to_date}
               - else
                 No file present
   .row
@@ -51,11 +60,27 @@
 
   .row
     .col-lg-8.col-xl-6
+      = render 'assessment', f: f
+
+  .row
+    .col-lg-8.col-xl-6
+      = render 'cas_tags', f: f
+
+  .row
+    .col-lg-8.col-xl-6
       = render 'veteran', f: f
 
   .row.mb-4
     .col-lg-8.col-xl-6
-      = render 'window/clients/required_documents'
+      = render 'set_asides', f: f
+
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'rrh', f: f
+
+  .row.mb-4
+    .col-lg-8.col-xl-6
+      = render 'clients/required_documents'
 
   %section.o-section-card.row
     .col-lg-8.col-xl-6

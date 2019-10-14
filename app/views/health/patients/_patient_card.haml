@@ -7,17 +7,22 @@
       .patient__dob
         DOB:
         = patient.birthdate
-    .patient__care_coordinator.ml-4.mr-auto
-      - if patient.client.present?
-        = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
-          = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator]}
-      - else
-        Patient record is not correctly assigned
-    .ml-3
-      - if ! patient.engaged?
-        = render 'window/health/patient/remaining_to_engage', patient: patient
+      .patient__care_coordinator.mt-4
+        %hr
+        - if patient.client.present?
+          = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
+            = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}
+        - else
+          Patient record is not correctly assigned
+    .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
+      = render 'health/patients/homeless_service', patient: patient
+      %section#appointments-list.jAppointments{data: {path: upcoming_window_client_health_appointments_path(client_id: patient.client.id)}}
     .patient__action-needed
-      = render 'window/health/patient/engagement', patient: patient
-      .patient__link.text-right.mt-4
+      .mb-4
+        = render 'health/patient/engagement', patient: patient
+      .ml-3.mb-4
+        - if ! patient.engaged?
+          = render 'health/patient/remaining_to_engage', patient: patient
+      .patient__link.text-right
         - if patient.client.present?
           = link_to 'View', url, class: 'btn btn-sm btn-secondary'

@@ -5,11 +5,12 @@
     .o-filtration
       .input-group.date{data: {provide: :datepicker}}
         %input.form-control{name: :date, type: :text, value: @date}
-        %span.input-group-addon.icon-calendar
+        .input-group-append
+          %button.icon-calendar.btn.btn-secondary{type: 'button'}
     .o-filtration.ml-auto
       %button.btn.btn-secondary{type: :submit} Re-calculate
 
-%table.table.table-striped.margin-top-03
+%table.table.table-striped.mt-3
   %tbody
     %tr
       %td Months in ES, SH, SO, or TH in the last 3 years
@@ -21,7 +22,7 @@
         = @client.months_homeless_in_last_year(on_date: date)
     %tr
       %td Homeless episodes in the last 3 years
-      %td= @client.homeless_episodes_since(date: (date - 3.years))
+      %td= @client.homeless_episodes_between(start_date: (date - 3.years), end_date: date)
     %tr
       %td
         Days homeless in the last 3 years

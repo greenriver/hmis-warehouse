@@ -1,18 +1,34 @@
-%h1 Alerts
-.alert.alert-success
-  Hi this needs a link
-  %a{href: '#'} This goes no where.
-.alert.alert-info
-  Hi this needs a link
-  %a{href: '#'} This goes no where.
+%section.mb-6
+  %h1 Alerts
+  %article.px-2
+    %h2 Default collection with close button on right
+    .alert.alert-success.alert-dismissible.fade.show{role:'alert'}
+      Hi this needs a link
+      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+        %span{'aria-hidden':'true'} &times;
 
-.alert.alert-warning
-  Hi this needs a link
-  %a{href: '#'} This goes no where.
+    .alert.alert-info.alert-dismissible.fade.show{role:'alert'}
+      Hi this needs a link
+      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+        %span{'aria-hidden':'true'} &times;
 
-.alert.alert-danger
-  Hi this needs a link
-  %a{href: '#'} This goes no where.
+    .alert.alert-warning.alert-dismissible.fade.show{role:'alert'}
+      Hi this needs a link
+      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+        %span{'aria-hidden':'true'} &times;
+
+    .alert.alert-danger.alert-dismissible.fade.show{role:'alert'}
+      Hi this needs a link
+      %button.close{type: 'button', 'data-dismis': 'alert', 'aria-label': 'Close'}
+        %span{'aria-hidden':'true'} &times;
+
+  %article.px-2
+    %h2 Alert With custom button
+    .alert.alert-success{role:'alert'}
+      Hi this needs a link
+      %button.btn.btn-default.ml-auto{type: 'button'}
+        Call to action
+
 
 .mb-6
   = render 'buttons'
@@ -42,7 +58,7 @@
         .c-tag__icon
           .icon-house
         .c-tag__content
-          %span Housed in CAS on #{Date.today}
+          %span Housed in CAS on #{Date.current}
 
 .label.label-success 44
 .label.label-warning 44
@@ -51,7 +67,7 @@
 
 .cohorts
   %h3 Cohort Table
-  %table.table-condensed.table-striped.table-right-border
+  %table.table-sm.table-striped.table-right-border
     %thead
       %tr
         %th Header

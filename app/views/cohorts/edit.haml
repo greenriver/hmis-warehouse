@@ -10,14 +10,15 @@
   = f.input :static_column_count, label: 'Number of static columns', input_html: {style: 'width: 6em;'}
   = f.input :show_on_client_dashboard, label: 'Show cohort in client dashboard?'
   = f.input :visible_in_cas, label: 'Show cohort in CAS?'
+  = f.input :tag_id, collection: Cas::Tag.available_cohort_tags, label: 'CAS Tag', hint: 'A CAS tag should only be applied to one cohort at a time.  It is used in conjunction with the Rank prioritization scheme to determine which cohort client rank to use for a client.', input_html: {class: :select2}
   = f.input :only_window, label: 'Limit client selection to window only', hint: 'Clients must have at least one source client that is visible in the window to be eligible for inclusion on this cohort.'
   - hint = "The cohort will be sorted by the first column".html_safe
   - if @cohort.column_state.present?
     - hint += ", currently: <strong>#{@cohort.column_state&.first&.title}</strong>".html_safe
   - if can_view_vspdat? # for the moment these are only ever triggered by vspdats
-    = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:'
-  = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint
-  = f.input :user_ids, collection: User.all, selected: @cohort.user_viewable_entities.pluck(:user_id), input_html: {multiple: :multiple, class: 'select2', style: 'width: 100%;'}, label: 'Grant access to specific users', hint: 'Users specified below who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
+    = f.input :assessment_trigger, collection: @assessment_types, label: 'Assessment submission triggers client addition to cohort:', input_html: {class: :select2}
+  = f.input :default_sort_direction, collection: @cohort.class.sort_directions.invert, include_blank: false, selected: @cohort.default_sort_direction, hint: hint, input_html: {class: :select2}
+  = f.input :user_ids, collection: User.all, selected: @cohort.user_viewable_entities.pluck(:user_id), input_html: {multiple: :multiple, class: :select2, style: 'width: 100%;'}, label: 'Grant access to specific users', hint: 'Users specified below who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
   .row
     .col-sm-6
       = link_to cohort_path(@cohort), method: :delete, class: 'btn btn-danger' do

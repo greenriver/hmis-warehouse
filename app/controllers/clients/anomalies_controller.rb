@@ -1,10 +1,16 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Clients
   class AnomaliesController < ApplicationController
     before_action :require_can_track_anomalies!
     before_action :set_anomaly, only: [:edit, :update, :destroy]
     before_action :set_client
     after_action :log_client
-    
+
     def index
       @anomalies = @client.anomalies.group_by(&:status)
     end
@@ -15,31 +21,32 @@ module Clients
 
     def update
       @anomaly.update(anomaly_params)
-      NotifyUser.anomaly_updated( 
-        client_id: @client.id, 
+      NotifyUser.anomaly_updated(
+        client_id: @client.id,
         user_id: current_user.id,
-        involved_user_ids: @anomaly.involved_user_ids
+        involved_user_ids: @anomaly.involved_user_ids,
+        anomaly_id: @anomaly.id
       ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: @anomaly.status))
     end
 
     def create
       @anomaly = @client.anomalies.build(anomaly_params.merge(
-        status: :new, 
+        status: :new,
         submitted_by: current_user.id
       ))
       @anomaly.save
-      NotifyUser.anomaly_identified( 
-        client_id: @client.id, 
-        user_id: current_user.id 
+      NotifyUser.anomaly_identified(
+        client_id: @client.id,
+        user_id: current_user.id
       ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
     end
 
     def destroy
-      
+
     end
-    
+
     def set_anomaly
       @anomaly = anomaly_scope.find(params[:id].to_i)
     end

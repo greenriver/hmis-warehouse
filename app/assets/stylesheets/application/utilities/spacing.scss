@@ -1,0 +1,9 @@
+$label-spacing-adjustment: 28px;
+
+.mt-no-label {
+  margin-top: $label-spacing-adjustment !important;
+}
+
+.pt-no-label {
+  padding-top: $label-spacing-adjustment !important;
+}

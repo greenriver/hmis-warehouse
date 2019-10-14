@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Admin
   class UsersController < ApplicationController
     include ViewableEntities
@@ -20,16 +26,20 @@ module Admin
       end
 
       # sort / paginate
-      @users = @users
-        .order(sort_column => sort_direction)
-        .page(params[:page]).per(25)
+      @users = @users.
+        preload(:roles).
+        order(sort_column => sort_direction).
+        page(params[:page]).per(25)
       @inactive_users = User.inactive
     end
 
     def edit
+      @agencies = Agency.order(:name)
+      @user.set_initial_two_factor_secret!
     end
 
     def confirm
+      @agencies = Agency.order(:name)
       update unless adding_admin?
     end
 
@@ -47,6 +57,7 @@ module Admin
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
           @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
+          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update(user_params)
 
           # Restore any health roles we previously had
@@ -63,7 +74,16 @@ module Admin
 
     def destroy
       @user.update(active: false)
-      redirect_to({action: :index}, notice: 'User deactivated')
+      redirect_to({action: :index}, notice: "User #{@user.name} deactivated")
+    end
+
+    def reactivate
+      @user = User.inactive.find(params[:id].to_i)
+      pass = Devise.friendly_token(50)
+      @user.update(active: true, password: pass, password_confirmation: pass)
+      @user.send_reset_password_instructions
+      redirect_to({action: :index}, notice: "User #{@user.name} re-activated")
+
     end
 
     def title_for_show
@@ -78,19 +98,22 @@ module Admin
     end
 
     private def adding_admin?
-      existing_roles = @user.user_roles
-      return false if existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
-
-      assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
-      added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
-      added_role_ids.select { |id| id.present? }.each do |id|
-        role = Role.find(id.to_i)
-        if role.administrative?
-          @admin_role_name = role.role_name
-          return true
+      @adming_admin ||= begin
+        adming_admin = false
+        existing_roles = @user.user_roles
+        unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
+          assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
+          added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
+          added_role_ids.select { |id| id.present? }.each do |id|
+            role = Role.find(id.to_i)
+            if role.administrative?
+              @admin_role_name = role.role_name
+              adming_admin =  true
+            end
+          end
         end
+        adming_admin
       end
-      false
     end
 
     private def user_scope
@@ -104,11 +127,12 @@ module Admin
         :first_name,
         :email,
         :phone,
-        :agency,
+        :agency_id,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :otp_required_for_login,
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
@@ -129,7 +153,8 @@ module Admin
         organizations: [],
         projects: [],
         reports: [],
-        cohorts: []
+        cohorts: [],
+        project_groups: [],
       )
     end
 

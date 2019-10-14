@@ -1,0 +1,56 @@
+- title = "Client Incomes Report"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+.row
+  .col-sm-8
+    %h1= title
+
+= render 'filter'
+
+.row
+  .col-sm-12.text-right
+    - if  can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+.row.mt-4
+  .col-sm-12.d-flex.align-items-center.mb-4
+    %p.mr-4= page_entries_info @enrollments, entry_name: _('client')
+    %p= paginate @enrollments
+  .col-sm-12
+    %table.table.table-hover
+      %thead
+        %tr
+          %th
+            Client
+          %th
+            Incomes at Entry
+          %th
+            Most Recent Update
+          %th
+            Gender
+          %th
+            Race
+          %th
+            Ethnicity
+      %tbody
+        - @enrollments.each do |record|
+          %tr
+            %td
+              = link_to client_path(record.client) do
+                = record.client.name
+            %td
+              %ul.list-unstyled
+                - record.enrollment.income_benefits_at_entry&.sources_and_amounts&.each do |name, amount|
+                  %li= "#{name.to_s.titleize}: $#{amount}"
+            %td
+              %ul.list-unstyled
+                - record.enrollment.income_benefits_update.last&.sources_and_amounts&.each do |name, amount|
+                  %li= "#{name.to_s.titleize}: $#{amount}"
+            %td
+              = record.client.gender
+            %td
+              = record.client.race_description
+            %td
+              = HUD.ethnicity(record.client.Ethnicity)
+    = paginate @enrollments

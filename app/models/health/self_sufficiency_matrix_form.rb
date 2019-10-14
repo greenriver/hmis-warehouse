@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -301,6 +307,16 @@ module Health
       community_score: "Community Involvement ",
       time_score: "Daily Time Management "
     }
+
+    def self.collection_for section_key
+      SECTIONS[section_key].map do |k,v|
+        label = "[#{k}] #{v}"
+        [
+          label,
+          k
+        ]
+      end
+    end
 
     def completed?
       completed_at.present?

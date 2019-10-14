@@ -1,0 +1,18 @@
+.well.overflow-scroll
+  %h3.text-center Data Completeness
+  .row
+    .col-sm-6.text-center
+      %h4 Goal
+      %hr
+      %p
+        %strong #{@report.completeness_goal}% complete
+    .col-sm-6.text-center
+      %h4 This Project
+      %hr
+      %p
+        %strong #{@report.completeness_percentage}% complete
+
+  - @report.projects.each_with_index do |project, index|
+    %h4= project.ProjectName
+    .completeness-chart.jChart{class: "completeness-chart-#{index}"}
+      %p.jLoading Loading

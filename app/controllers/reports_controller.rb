@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ReportsController < ApplicationController
   before_action :require_can_view_all_reports!
   before_action :set_report, only: [:show, :edit, :update, :destroy]
@@ -52,7 +58,7 @@ class ReportsController < ApplicationController
     end
 
     def report_scope
-      Report.all
+      Report.active
     end
 
     # Use callbacks to share common setup or constraints between actions.

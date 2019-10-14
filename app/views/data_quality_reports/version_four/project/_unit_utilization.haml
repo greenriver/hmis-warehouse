@@ -1,0 +1,25 @@
+.well.overflow-scroll
+  .row
+    .col-sm-3.text-center
+      %br
+      %h3 Unit Inventory
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{pluralize(rp.unit_inventory, 'unit')}
+      %hr
+      %h3 Average Daily / Nightly Clients
+
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{pluralize(rp.average_nightly_households, 'household')}
+      %hr
+      %h3 Average Unit Utilization
+
+      %ul.list-unstyled
+        - @report.report_projects.each do |rp|
+          %li #{rp.project_name}: #{rp.average_unit_utilization}%
+
+    .col-sm-9
+      %h3.text-center Nightly Household Census
+      .unit-census-chart.jChart
+        %p.jLoading Loading

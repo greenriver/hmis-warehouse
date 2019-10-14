@@ -1,28 +1,31 @@
 - title = 'Clients Housed, Previously on the Chronic List'
 - content_for :title, title
-%h1= title
-= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 .row
-  .col-sm-10
-    %p
-      Limit to clients on the chronic list within a date range.
-    = render 'filter'
-  .col-sm-2
-    .pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+  .col-sm-8
+    %h1
+      = title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+
+%p
+  Limit to clients on the chronic list within a date range.
+= render 'filter'
+
 .row
   .col-sm-12
     .warehouse-reports
       - if @clients.any?
+        .row
+          .col-sm-12.text-right
+            = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+              Download Excel
         %p
           Found
           %strong
             = @clients.size
-          clients housed in permanent destinations and on the chronic lists between: 
+          clients housed in permanent destinations and on the chronic lists between:
           %strong
             = "#{@range.start} and #{@range.end}."
-      %table.table.table-condensed.table-hover
+      %table.table.table-sm.table-hover
         %thead
           %tr
             %th Client

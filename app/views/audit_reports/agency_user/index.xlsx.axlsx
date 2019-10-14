@@ -1,0 +1,31 @@
+wb = xlsx_package.workbook
+month = Date.current.month
+
+wb.add_worksheet(name: "#{@agency}") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+
+  sheet.add_row([
+    'First Name',
+    'Last Name',
+    'Email',
+    'Agency',
+    'Last Login',
+    "Clients in #{Date::MONTHNAMES[month]}",
+    "Clients in #{Date::MONTHNAMES[month - 1]}",
+    "Clients in #{Date::MONTHNAMES[month - 2]}",
+  ], :style => title)
+
+  @users.each do |user|
+    row = [
+      user.first_name,
+      user.last_name,
+      user.email,
+      user.agency.name,
+      user.current_sign_in_at,
+      clients_viewed(user, 0),
+      clients_viewed(user, 1),
+      clients_viewed(user, 2),
+    ]
+    sheet.add_row(row)
+  end
+end

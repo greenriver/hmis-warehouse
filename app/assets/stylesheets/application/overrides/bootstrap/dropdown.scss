@@ -1,0 +1,19 @@
+@import '../../helpers';
+
+.dropdown-menu {
+  padding: space(4);
+}
+
+.dropdown-menu li {
+  margin-bottom: rem(5px);
+}
+
+.caret {
+  margin-right: 0 !important;
+  &::before {
+    margin-left: space(2);
+    margin-right: 0;
+    content: '\e920';
+    font-family: 'icons';
+  }
+}

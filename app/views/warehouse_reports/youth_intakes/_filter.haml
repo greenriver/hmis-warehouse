@@ -1,0 +1,12 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_youth_intakes_path,  html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_l do
+    .row
+      .col-sm-6
+        = f.input :start, label: false, as: :date_picker
+      .col-sm-6
+        = f.input :end, label: false, as: :date_picker
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update View'
+
+  = render 'warehouse_reports/filters', f:f

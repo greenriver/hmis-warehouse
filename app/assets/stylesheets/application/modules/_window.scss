@@ -1,0 +1,15 @@
+@import '../helpers';
+
+.clients__client-card {
+  margin-bottom: space(3);
+}
+
+.clients__client-card .c-card__content{
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.client__view_client {
+
+}

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortClients
   extend ActiveSupport::Concern
 
@@ -6,8 +12,8 @@ module CohortClients
       @cohort_clients = @cohort.search_clients(
         page: params[:page].to_i,
         per: params[:per].to_i,
-        inactive:  params[:inactive],
         population: params[:population],
+        user: current_user,
       )
     end
   end

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class Chronic < GrdaWarehouseBase
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :chronics, required: true
@@ -12,7 +18,7 @@ module GrdaWarehouse
       if self.count > 0
         self.maximum(:date)
       else
-        Date.today
+        Date.current
       end
     end
 

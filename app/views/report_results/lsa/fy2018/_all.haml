@@ -1,3 +1,6 @@
+%p.note.alert.alert-warning
+  %i.icon-warning.mr-2
+  Please note, the following summaries are generated using the LSA sample code.  There are known issues with these calculations.  The numbers below are provided as a rough order of magnitude and may not match (or even be similar to) the numbers you'll see after uploading to the HDX.
 - if summary = @result.results.try(:[], 'summary')
   - if people = summary.try(:[], 'people')
     %h3 Client Summary

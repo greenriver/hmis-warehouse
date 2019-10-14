@@ -1,9 +1,15 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Admin::Health
   class PatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :new]
+    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :disenrolled, :new]
 
     include PatientReferral
     include PjaxModalController
@@ -50,6 +56,13 @@ module Admin::Health
       render 'index'
     end
 
+    def disenrolled
+      @active_patient_referral_tab = 'disenrolled'
+      @patient_referrals = Health::PatientReferral.pending_disenrollment # TODO
+      load_index_vars
+      render 'index'
+    end
+
     def reject
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes!(reject_params)
@@ -59,9 +72,22 @@ module Admin::Health
           # Don't destroy the patient, we'll limit patients
           # to patient_referrals.not_confirmed_rejected
           # patient.destroy if patient.present?
+
+          # Removal accepts a pending disenrollment
+          if @patient_referral.pending_disenrollment_date.present?
+            disenrollment_date = @patient_referral.pending_disenrollment_date
+            @patient_referral.update(
+              disenrollment_date: disenrollment_date,
+              pending_disenrollment_date: nil,
+              removal_acknowledged: true,
+            )
+          end
+
           flash[:notice] = "Patient has been rejected."
         else
           patient.restore if patient.present?
+          # Clean up any removal acknowledgement with the patient
+          @patient_referral.update(removal_acknowledged: false)
           flash[:notice] = "Patient rejection removed."
         end
       else
@@ -144,7 +170,8 @@ module Admin::Health
       @patient_referral_tabs = [
         {id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params)},
         {id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params)},
-        {id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params)}
+        {id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params)},
+        {id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params)},
       ]
     end
 

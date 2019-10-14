@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     include WarehouseReportAuthorization
@@ -5,12 +11,12 @@ module WarehouseReports::Project
     before_action :set_projects, :set_project_groups, :load_data_quality_report_shells
 
     def show
-      if Date.today.month < 10
-        start_date = Date.new(Date.today.year-2,10,1)
-        end_date = Date.new(Date.today.year-1,9,30)
+      if Date.current.month < 10
+        start_date = Date.new(Date.current.year-2,10,1)
+        end_date = Date.new(Date.current.year-1,9,30)
       else
-        start_date = Date.new(Date.today.year-1,10,1)
-        end_date = Date.new(Date.today.year,9,30)
+        start_date = Date.new(Date.current.year-1,10,1)
+        end_date = Date.new(Date.current.year,9,30)
       end
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
@@ -27,7 +33,7 @@ module WarehouseReports::Project
       begin
         @project_ids = project_params rescue []
         # filter by viewability
-        @project_ids = current_user.projects.where( id: @project_ids ).pluck(:id)
+        @project_ids = project_scope.where( id: @project_ids ).pluck(:id)
         @project_group_ids = project_group_params rescue []
         if @project_ids.empty? && @project_group_ids.empty?
           raise ActionController::ParameterMissing, 'Parameters missing'
@@ -52,14 +58,15 @@ module WarehouseReports::Project
           report = report_scope.create(
             id_column => id,
             start: @range.start,
-            end: @range.end
+            end: @range.end,
+            requestor_id: current_user.id
           )
         else
           report = report_scope.
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
-        Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
+        # Reporting::RunProjectDataQualityJob.perform_later(report_id: report.id, generate: @generate, send_email: @email)
       end
     end
 
@@ -82,7 +89,7 @@ module WarehouseReports::Project
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
       end
-      render xlsx: :download, filename: "project_data_quality_report #{Date.today}.xlsx"
+      render xlsx: :download, filename: "project_data_quality_report #{Date.current}.xlsx"
     end
 
     def generate_param
@@ -111,12 +118,12 @@ module WarehouseReports::Project
     end
 
     def project_group_scope
-      GrdaWarehouse::ProjectGroup.all
+      GrdaWarehouse::ProjectGroup.viewable_by current_user
     end
 
     # The version of the report we are currently generating
     def report_scope
-      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionTwo
+      GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFour
     end
 
     def report_base_class
@@ -137,10 +144,10 @@ module WarehouseReports::Project
     end
 
     def load_data_quality_report_shells
-      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - ['report', 'support']). order(started_at: :asc). index_by(&:project_id)
+      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - ['report', 'support']). order(id: :asc). index_by(&:project_id)
       @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
         select(report_base_class.column_names - ['report', 'support']).
-        order(started_at: :asc).
+        order(id: :asc).
         index_by(&:project_group_id)
     end
 

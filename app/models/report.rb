@@ -1,10 +1,25 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Report < ActiveRecord::Base
   require 'csv'
   include Rails.application.routes.url_helpers
+
+  self.table_name = :reports
+
   belongs_to :report_results_summary
   has_many :report_results
 
-  self.table_name = 'reports'
+  scope :active, -> do
+    where enabled: true
+  end
+
+  scope :inactive, -> do
+    where endabled: false
+  end
 
   def model_name
     ActiveModel::Name.new self, nil, 'report'

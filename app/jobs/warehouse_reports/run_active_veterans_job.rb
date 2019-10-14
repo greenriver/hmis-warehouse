@@ -1,9 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class RunActiveVeteransJob < BaseJob
-
     queue_as :active_veterans_report
 
-    def perform params
+    def perform(params)
       report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.new
       report.started_at = DateTime.now
       report.parameters = params
@@ -13,16 +18,14 @@ module WarehouseReports
       report.parameters[:visible_projects] = if user.can_edit_anything_super_user?
         [:all, 'All']
       else
-          GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
+        GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id, :ProjectName)
       end
 
       range = ::Filters::DateRangeAndProject.new(params['range'])
       scope = service_history_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
 
       project_types = range.project_type.select(&:present?).map(&:to_sym)
-      if project_types.any?
-        scope = scope.where( service_history_source.project_type_column => project_types.flat_map{ |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] } )
-      end
+      scope = scope.where(service_history_source.project_type_column => project_types.flat_map { |t| project_source::RESIDENTIAL_PROJECT_TYPES[t] }) if project_types.any?
 
       served_client_ids = scope.service_within_date_range(start_date: range.start, end_date: range.end).distinct.select(:client_id)
 
@@ -39,26 +42,24 @@ module WarehouseReports
         where(client_id: clients.map(&:id)).pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
-        end.compact.
-        group_by{|m| m[:client_id]}
+        end.
+        compact.
+        group_by { |m| m[:client_id] }
 
       # remove anyone who doesn't actually have an open enrollment during the time (these can be added by extrapolated SO or poor data where we have service on the exit date)
-      clients = clients.select{|c| enrollments.keys.include?(c.id)}
+      clients = clients.select { |c| enrollments.key?(c.id) }
 
       data = clients.map do |client|
-
         data_sources = client.source_clients.map do |sc|
-          if sc.VeteranStatus == 1
-            GrdaWarehouse::DataSource.short_name(sc.data_source_id)
-          end
+          GrdaWarehouse::DataSource.short_name(sc.data_source_id) if sc.VeteranStatus == 1
         end
         client.attributes.merge(
           name: client.name,
           enrollments: enrollments[client.id],
-          first_service_history: client&.first_service_history&.date,
+          first_service_history: client.date_of_first_service,
           data_sources: data_sources.uniq.compact,
           days_served: client.processed_service_history.days_served,
-          first_date_served: client.processed_service_history.first_date_served
+          first_date_served: client.processed_service_history.first_date_served,
         )
       end
       report.client_count = clients.size
@@ -81,7 +82,7 @@ module WarehouseReports
     def service_history_columns
       enrollment_table = GrdaWarehouse::Hud::Enrollment.arel_table
       ds_table = GrdaWarehouse::DataSource.arel_table
-      service_history_columns = {
+      {
         client_id: :client_id,
         project_id: :project_id,
         first_date_in_program: :first_date_in_program,
@@ -97,6 +98,5 @@ module WarehouseReports
     def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
-
   end
 end

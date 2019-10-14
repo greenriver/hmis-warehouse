@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
 
@@ -13,6 +19,15 @@ module GrdaWarehouse::WarehouseReports
         current_scope
       elsif user.can_view_assigned_reports?
         joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+      else
+        none
+      end
+    end
+
+    scope :assignable_by, -> (user) do
+      return none unless user
+      if user.can_view_all_reports?
+        current_scope
       else
         none
       end

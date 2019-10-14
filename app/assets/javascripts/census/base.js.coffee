@@ -19,13 +19,13 @@ class App.Census.Base
 
   charts: ->
     @charts
-    
+
   _build_charts: ->
-    
+
     @_build_census()
 
   _individual_chart: (data, id, census_detail_slug, options) ->
-    chart_id = "census-chart-#{id}" 
+    chart_id = "census-chart-#{id}"
     $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
 
     # console.log(data, id, census_detail_slug, options)
@@ -33,7 +33,7 @@ class App.Census.Base
     @chart_data[chart_id] = {}
     @chart_data[chart_id]['title'] = data.title.text
     @chart_data[chart_id]['census_detail_slug'] = census_detail_slug
-    
+
     columns = []
 
     x_axis = $.map data.datasets[0].data, (row) ->
@@ -41,7 +41,7 @@ class App.Census.Base
     x_axis.unshift('x')
     columns.push(x_axis)
     max_value = 0
-    $(data.datasets).each (i) => 
+    $(data.datasets).each (i) =>
       @chart_data[chart_id][i] = {}
       column = $.map data.datasets[i].data, (row) ->
         max_value = row['y'] if row['y'] > max_value
@@ -65,8 +65,8 @@ class App.Census.Base
       first_line = Math.round(max_value/2)
       tick_values = [0, first_line, max_value]
 
-    chart_options = 
-      data: 
+    chart_options =
+      data:
         x: 'x'
         columns: columns
         onclick: @_follow_link
@@ -77,18 +77,19 @@ class App.Census.Base
           tick:
             count: 10
             format: "%b %e, %Y"
-        y: 
+        y:
+          padding: 0
           min: 0
           max: max_value
           tick:
             values: tick_values
             format: (x) ->
               Math.round(x)
-     
+
       grid:
         y:
           show: true
-      tooltip: 
+      tooltip:
         contents: (d, defaultTitleFormat, defaultValueFormat, color) =>
           @_tooltip_contents(chart_id, d, defaultTitleFormat, defaultValueFormat, color)
       legend:
@@ -96,20 +97,24 @@ class App.Census.Base
     chart = bb.generate($.extend chart_options, options)
     @charts[chart_id] = chart
 
-        
   _tooltip_contents: (chart_id, d, defaultTitleFormat, defaultValueFormat, color) =>
-    # Somewhat reverse engineered from here: 
+    # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
     chart = @charts[chart_id]
     date = d[0].x.toISOString().split('T')[0]
     tooltip_title = moment(date).format('ll')
-    html = "<table class='#{chart.internal.CLASS.tooltip}'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
+    html = "<table class='bb-tooltip'><tr><th colspan='4'>#{tooltip_title}</th></tr>"
     $(d).each (i) =>
       row = d[i]
-
+      client_count = 0
+      inventory_count = 0
+      if d[0].value?
+        client_count = d[0].value
+      if d[1].value?
+        inventory_count = d[1].value
       if row?
         bg_color = color(row.id)
-        html += "<tr class='#{chart.internal.CLASS.tooltipName}#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
+        html += "<tr class='bb-tooltip-name-#{chart.internal.getTargetSelectorSuffix(row.id)}'>"
         box = "<td class='name'><svg><rect style='fill:#{bg_color}' width='10' height='10'></rect></svg>#{row.name}</td>"
         value = "<td>#{row.value}</td>"
         html += box
@@ -132,14 +137,20 @@ class App.Census.Base
           html += box
           html += value
         # html += '</tr>'
+        else if client_count > 0 && inventory_count > 0
+          html += '<td>Utilization</td>'
+          html += '<td>'
+          html += d3.format(".0%")(client_count / inventory_count)
+          html += '</td>'
         else
-          html += '<td></td><td></td>'
+          html += '<td colspan="2"></td>'
 
     html += '</table>'
     html
 
   # Override as necessary
   _follow_link: (d, element) =>
+    return unless @options.follow_link == 'true'
     chart_id = $(element).closest('.jChart').attr('id')
     date = d.x.toISOString().split('T')[0]
     project = @chart_data[chart_id]['census_detail_slug']
@@ -193,7 +204,7 @@ class App.Census.Base
     csvString = csv.map((d) ->
       d.join()
     ).join('\n')
- 
+
     data_url = 'data:attachment/csv;census.csv,' + encodeURIComponent(csvString)
     html = '<a href="' + image_url + '" target="_blank">Download Image</a>'
     html += '<br /><a href="' + data_url + '" target="_blank" download="census.csv">Download Data</a>'
@@ -204,4 +215,4 @@ class App.Census.Base
 
   _height: ->
     40
-    
+

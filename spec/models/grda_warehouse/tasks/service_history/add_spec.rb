@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
   describe 'When processing service history using add' do
     before(:all) do
       @delete_later = []
-      setup_initial_imports()
+      setup_initial_imports
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -50,7 +50,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
   describe 'When adding complex service histories ' do
     before(:all) do
       @delete_later = []
-      setup_complex_import()
+      setup_complex_import
     end
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
@@ -77,17 +77,15 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
     end
     it 'it should ignore service records that fall outside of the enrollment dates' do
       client = GrdaWarehouse::Hud::Client.destination.where(PersonalID: '1-1').first
-      expect(client.service_history.service.count).to eq(7)
+      expect(client.service_history_services.count).to eq(7)
     end
     it 'it should generate service history records for entry-exit projects' do
-
     end
   end # end
 
-
   def setup_complex_import
     ds_1 = GrdaWarehouse::DataSource.create(name: 'First Data Source', short_name: 'FDS', source_type: :sftp)
-    warehouse_ds = GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
+    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
     {
       'spec/fixtures/files/service_history/tracking_methods' => ds_1,
     }.each do |path, data_source|
@@ -100,12 +98,15 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       importer = Importers::HMISSixOneOne::Base.new(
         file_path: path,
         data_source_id: data_source.id,
-        remove_files: false
+        remove_files: false,
       )
       importer.import!
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+    end
     GrdaWarehouse::Tasks::ServiceHistory::Update.new(force_sequential_processing: true).run!
     Delayed::Worker.new.work_off(2)
   end
@@ -113,7 +114,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
   def setup_initial_imports
     ds_1 = GrdaWarehouse::DataSource.create(name: 'First Data Source', short_name: 'FDS', source_type: :sftp)
     ds_2 = GrdaWarehouse::DataSource.create(name: 'Second Data Source', short_name: 'SDS', source_type: :sftp)
-    warehouse_ds = GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
+    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
     {
       'spec/fixtures/files/service_history/initial_ds_1' => ds_1,
       'spec/fixtures/files/service_history/initial_ds_2' => ds_2,
@@ -127,11 +128,11 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Add, type: :model do
       importer = Importers::HMISSixOneOne::Base.new(
         file_path: path,
         data_source_id: data_source.id,
-        remove_files: false
+        remove_files: false,
       )
       importer.import!
     end
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
   end
 end

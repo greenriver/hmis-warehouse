@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Cas
   class VacanciesController < ApplicationController
     include ArelHelper
@@ -19,8 +25,8 @@ module WarehouseReports::Cas
       date_range_options = params.permit(range: [:start, :end])[:range]
       unless date_range_options.present?
         date_range_options = {
-            start: Date.today - 1.month,
-            end: Date.today,
+            start: Date.current - 1.month,
+            end: Date.current,
         }
       end
       @range = ::Filters::DateRange.new(date_range_options)

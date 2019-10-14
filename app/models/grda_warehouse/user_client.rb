@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class UserClient < GrdaWarehouseBase
     has_paper_trail
     acts_as_paranoid
-    
+
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user
 
@@ -18,12 +24,12 @@ module GrdaWarehouse
 
     scope :active, -> do
       at = self.arel_table
-      where(at[:end_date].gteq(Date.today).or(at[:end_date].eq(nil)))
+      where(at[:end_date].gteq(Date.current).or(at[:end_date].eq(nil)))
     end
 
     scope :expired, -> do
       at= self.arel_table
-      where(at[:end_date].lt(Date.today))
+      where(at[:end_date].lt(Date.current))
     end
 
     def expired?
@@ -35,8 +41,14 @@ module GrdaWarehouse
       [start_date, ' - ', to].join
     end
 
-    def self.available_users
-      User.all
+    def self.available_users(user)
+      return User.none unless user.can_manage_agency
+
+      if user.can_view_all_user_client_assignments
+        User.all.order(:first_name, :last_name)
+      else
+        user.subordinates
+      end
     end
 
     def self.available_relationships
@@ -49,7 +61,7 @@ module GrdaWarehouse
       ].sort.freeze
     end
 
-    private 
+    private
 
     def date_range
       errors.add(:end_date, "should be after start date") if end_date && start_date && end_date <= start_date

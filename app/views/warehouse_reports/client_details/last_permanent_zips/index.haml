@@ -1,0 +1,53 @@
+- title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Last Permanent Zip Detail"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+= render '/warehouse_reports/breadcrumbs'
+
+= render 'filter'
+
+.row
+  .col.text-right
+    - if can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+%p
+  The following is last permanent zip code information for clients with open enrollments between
+  = @range.start
+  and
+  = "#{@range.end}."
+= render 'warehouse_reports/limited_by_project_note'
+
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Client
+      %th Last Permanent Zip
+      %th Unaccompanied?
+      %th Age
+      %th Parenting?
+      %th Entry Date
+      %th Project Name
+      %th Head of Household?
+  %tbody
+    - @clients.each do |client_id, records|
+      %tr
+        - record = records.map{|h| h.compact}.reduce(&:merge)
+        %td
+          = link_to client_path(id: client_id) do
+            = "#{record[:first_name]} #{record[:last_name]}"
+        %td
+          = record[:last_permanent_zip]
+        %td
+          = checkmark(record[:unaccompanied_youth])
+        %td
+          = record[:age]
+        %td
+          = checkmark(record[:parenting_youth] || record[:parenting_juvenile])
+        %td
+          = record[:first_date_in_program]
+        %td
+          = record[:project_name]
+        %td
+          = checkmark(record[:head_of_household])

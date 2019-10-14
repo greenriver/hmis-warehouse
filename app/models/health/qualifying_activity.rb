@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -455,7 +461,7 @@ module Health
       # Meets general restrictions
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
-      self.naturally_payable = procedure_valid?
+      self.naturally_payable = procedure_valid? && occurred_after_enrollment?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -497,6 +503,10 @@ module Health
 
     def any_submitted_of_type_for_day_for_patient?
       same_of_type_for_day_for_patient.submitted.exists?
+    end
+
+    def occurred_after_enrollment?
+      date_of_activity.present? && patient&.patient_referral.present? && date_of_activity >= patient.patient_referral.enrollment_start_date
     end
 
     def occurred_within_three_months_of_enrollment

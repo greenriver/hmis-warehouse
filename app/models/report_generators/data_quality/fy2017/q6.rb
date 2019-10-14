@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::DataQuality::Fy2017
   class Q6 < Base
     def run!
@@ -59,7 +65,7 @@ module ReportGenerators::DataQuality::Fy2017
           headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
           data: clients.map do |id, enrollment|
             [
-              id, 
+              id,
               enrollment[:project_name],
               enrollment[:first_date_in_program],
               enrollment[:last_date_in_program],
@@ -96,6 +102,7 @@ module ReportGenerators::DataQuality::Fy2017
       }
 
       leavers.keys.each do |id|
+        next unless @all_clients[id].present?
         enrollment = @all_clients[id].last
         date_diff = (enrollment[:last_date_in_program].to_date - enrollment[:exit_created_at].to_date).abs
         buckets.each do |k,bucket|
@@ -113,7 +120,7 @@ module ReportGenerators::DataQuality::Fy2017
           headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
           data: clients.map do |id, enrollment|
             [
-              id, 
+              id,
               enrollment[:project_name],
               enrollment[:first_date_in_program],
               enrollment[:last_date_in_program],
@@ -127,15 +134,15 @@ module ReportGenerators::DataQuality::Fy2017
 
     def fetch_all_clients
       columns = {
-        client_id: :client_id, 
+        client_id: :client_id,
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
         project_name: :project_name,
         entry_created_at: e_t[:DateCreated].to_sql,
         exit_created_at: ex_t[:DateCreated].to_sql,
       }
-      
-      all_client_scope.
+
+      active_client_scope.
         joins(:enrollment).
         includes(enrollment: :exit).
         order(date: :asc).
@@ -201,7 +208,7 @@ module ReportGenerators::DataQuality::Fy2017
           title:  'Number of Project Exit Records - 11+ days',
           value: 0,
         },
-        
+
       }
     end
   end

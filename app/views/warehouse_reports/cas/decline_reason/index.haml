@@ -3,30 +3,42 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'cas'
 .row
-  .col-sm-10
-    %p
-      Limit to matches created within a date range.
+  .col-sm-12
     = render 'filter'
-  .col-sm-2
-    .pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-        Download Excel
+
+.row
+  .col-sm-2.ml-auto.mb-2
+    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      Download Excel
 .row
   .col-sm-12
     .warehouse-reports
-      %table.table.table-condensed.table-hover
+      %table.table.table-hover
         %thead
           %tr
-            %th Reason
-            %th Count
+            %th Program
+            %th Sub-Program
+            %th Referred
+            %th Declined
+            %th Canceled
+
 
         %tbody
-          - if @reasons.empty?
+          - if @report.reasons.empty?
             %tr
               %td(colspan=2 style="text-align:center;")
                 %em no decline reasons are recorded
           - else
-            - @reasons.each do |reason, n|
+            - @report.referrals_by_agency.each do |(program_name, sub_program_name), referral_count|
               %tr
-                %td= reason
-                %td= n
+                %td= program_name
+                %td= sub_program_name
+                %td= referral_count
+                %td
+                  - count = @report.declines_by_agency[[program_name, sub_program_name]] || 0
+                  - percent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
+                  = "#{count} (#{percent}%)"
+                %td
+                  - count = @report.cancels_by_agency[[program_name, sub_program_name]] || 0
+                  - percent = ((count / referral_count.to_f).round(2) * 100).round rescue 0
+                  = "#{count} (#{percent}%)"

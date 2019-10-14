@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting
   class Return < ReportingBase
     self.table_name = :warehouse_returns
@@ -15,11 +21,11 @@ module Reporting
 
     def source_data
       @source_data ||= begin
-        GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: :project).
+        GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
         homeless.
         # in_project_type([1,2,4,8]).
         where(client_id: client_ids).
-        where(date: ('2016-10-01'.to_date..Date.today)). # arbitrary cut-off, date of first RRH in Boston
+        where(date: ('2016-10-01'.to_date..Date.current)). # arbitrary cut-off, date of first RRH in Boston
         order(service_history_enrollment_id: :asc, date: :asc).
         pluck(*source_columns.values).map do |row|
           Hash[source_columns.keys.zip(row)]
@@ -80,7 +86,7 @@ module Reporting
         project_id: p_t[:id].to_sql,
         destination: she_t[:destination].to_sql,
         project_name: she_t[:project_name].to_sql,
-        organization_id: she_t[:organization_id].to_sql,
+        organization_id: o_t[:id].to_sql,
         unaccompanied_youth: she_t[:unaccompanied_youth].to_sql,
         parenting_youth: she_t[:parenting_youth].to_sql,
       }

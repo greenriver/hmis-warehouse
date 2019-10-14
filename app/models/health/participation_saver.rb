@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # A wrapper around Participation form changes to ease Qualifying Activities creation
 module Health
   class ParticipationSaver
@@ -35,7 +41,7 @@ module Health
         source_type: @form.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.today,
+        date_of_activity: Date.current,
         activity: :outreach,
         follow_up: 'Engage Patient',
         reached_client: :yes,

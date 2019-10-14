@@ -6,9 +6,9 @@
     %h3.c-columns__column-title=name.pluralize
     .c-columns__column-buttons
       = link_to '#', class: 'j-add', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Add #{name}" do
-        = icon('fas', 'plus')
+        %i.icon-plus
       = link_to '#', class: 'j-remove-all-toggle', data: {toggle: 'tooltip', placement: 'bottom'}, title: "Remove All #{name.pluralize}" do
-        = icon('fas', 'times-circle')
+        %i.icon-cross
 
   .c-columns__column-actions
     .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add

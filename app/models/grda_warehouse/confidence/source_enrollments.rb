@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Record the number of source enrollments for all homeless clients
 # on the day this is run, we don't have any way to look back to how many
 # we had on a given day, so we'll just look for spikes
@@ -14,13 +20,13 @@ module GrdaWarehouse::Confidence
 
     def self.collection_dates_for_client client_id
       [{
-        census: Date.today,
+        census: Date.current,
         calculate_after: Date.yesterday,
         iteration: 0,
         of_iterations: 1,
         resource_id: client_id,
         type: name,
-      }]    
+      }]
     end
 
     def self.queue_batch force_run: false, force_create: false
@@ -40,7 +46,7 @@ module GrdaWarehouse::Confidence
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
-          ::Confidence::SourceEnrollmentsJob.new(client_ids: batch), 
+          ::Confidence::SourceEnrollmentsJob.new(client_ids: batch),
           queue: :low_priority
         )
       end
@@ -51,7 +57,7 @@ module GrdaWarehouse::Confidence
         joins(:source_enrollments).count
       se = queued.where(resource_id: client_id).first
       se.value = source_enrollment_count
-      se.calculated_on = Date.today
+      se.calculated_on = Date.current
       if previous = previous_census_date(client_id: client_id, source_enrollment: se)
         previous_iteration = find_by(
           resource_id: client_id,
@@ -69,7 +75,7 @@ module GrdaWarehouse::Confidence
     end
 
     def self.batch_scope
-      GrdaWarehouse::ServiceHistory.entry.homeless.ongoing
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.homeless.ongoing
     end
   end
 end

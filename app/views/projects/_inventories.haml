@@ -1,8 +1,9 @@
 %h2 Inventory
 - if inventories.count > 0
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
+        %th
         %th InventoryID
         %th Availability
         %th Dates
@@ -11,23 +12,24 @@
         %th HMIS Participating Beds
         %th Child Bed Inventory
         %th Veteran Bed Inventory
-        %th Youth Bed Inventory
-        %th Youth Age Group
+        %th CoC Code
 
     %tbody
       - inventories.all.each do |inventory|
         %tr
+          %td
+            - if can_see_raw_hmis_data?
+              = link_to 'HMIS', hmi_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
           %td= inventory.InventoryID
           %td= HUD.availability inventory.Availability
           %td
-            - if inventory.InformationDate.present?
-              = "#{inventory.InformationDate} - #{inventory.InventoryEndDate || 'ongoing'}"
+            - if inventory.InventoryStartDate.present?
+              = "#{inventory.InventoryStartDate} - #{inventory.InventoryEndDate || 'ongoing'}"
           %td= inventory.UnitInventory
           %td= inventory.BedInventory
           %td= inventory.HMISParticipatingBeds
           %td= inventory.CHBedInventory
           %td= inventory.VetBedInventory
-          %td= inventory.YouthBedInventory
-          %td= HUD.youth_age_group inventory.YouthAgeGroup
+          %td= inventory.CoCCode
 - else
   %p.text-center No inventory

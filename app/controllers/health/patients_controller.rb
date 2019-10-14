@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Health
   class PatientsController < HealthController
     before_action :require_can_view_patients_for_own_agency!
@@ -79,7 +85,7 @@ module Health
     end
 
     def set_dates
-      @start_date = Date.today.beginning_of_month.to_date
+      @start_date = Date.current.beginning_of_month.to_date
       @end_date = @start_date.end_of_month
 
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date

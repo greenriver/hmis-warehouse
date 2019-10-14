@@ -1,6 +1,7 @@
 - title = "File Uploads"
 - content_for :title, title
 = render 'clients/breadcrumbs'
-= render 'window/clients/aliases'
+
+= render 'clients/aliases'
 = render 'clients/tab_navigation', current: client_files_path(@client)
-= render 'window/clients/files/index'
+= render 'clients/files/index'

@@ -1,23 +1,28 @@
-.row.margin-bottom-02
-  .col-sm-12
-    = simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :actives], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
-      = f.error_notification
-      .row
-        .col-sm-3
-          = f.input :start, label: false, as: :date_picker
-        .col-sm-3
-          = f.input :end, label: false, as: :date_picker
-        .col-sm-3
-          = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, label: false, include_blank: false, input_html: {class: 'select2'}
-        .col-sm-3
-          = f.button :submit, value: 'Update View'
+= simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :actives], sub_population: @sub_population), html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row.mb-4
+      .col-md-8
+        = render 'warehouse_reports/date_range_filters', f:f
+      .col-md-4.d-flex.align-items-center
+        .form-group.form-check.mt-no-label
+          = check_box_tag(:ph, true, params[:ph].present?, class: 'form-check-input')
+          %label.form-check-label{for: :ph} PH Only
 
-- content_for :page_js do
-  :javascript
-    $('#new_range').submit(function(e){
-      var $form = $(this);
-      // disable things *immediately after* submit
-      setTimeout(function(){
-        $form.find(':input').prop('disabled', true);
-      }, 0);
-    });
+    .row
+      .col-md-4
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, input_html: {class: 'select2'}
+
+      .col-md-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
+
+      .col-md-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+
+
+  - content_for :form_js do
+    = render 'warehouse_reports/new_range_js'
+
+  - content_for :filter_actions do
+    = render 'warehouse_reports/update_view_button', f:f
+
+  = render 'warehouse_reports/filters', f:f

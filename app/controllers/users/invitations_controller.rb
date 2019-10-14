@@ -1,14 +1,37 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class Users::InvitationsController < Devise::InvitationsController
   prepend_before_action :require_can_edit_users!, only: [:new, :create]
   include ViewableEntities
 
   # GET /resource/invitation/new
   def new
+    @agencies = Agency.order(:name)
     @user = User.new
+  end
+
+  def confirm
+    @user = User.new
+    if ! creating_admin?
+      create
+    end
   end
 
   # POST /resource/invitation
   def create
+    if creating_admin?
+      if ! current_user.valid_password?(confirmation_params[:confirmation_password])
+        flash[:error] = "User not updated. Incorrect password"
+        @user = User.new
+        render :confirm
+        return
+      end
+    end
+
     if User.with_deleted.find_by_email(invite_params[:email]).present?
       @user = User.with_deleted.find_by_email(invite_params[:email]).restore
     end
@@ -21,6 +44,7 @@ class Users::InvitationsController < Devise::InvitationsController
       end
       redirect_to admin_users_path
     else
+      @agencies = Agency.order(:name)
       render :new
     end
   end
@@ -48,7 +72,7 @@ class Users::InvitationsController < Devise::InvitationsController
         :first_name,
         :email,
         :phone,
-        :agency,
+        :agency_id,
         :receive_file_upload_notifications,
         :notify_on_vispdat_completed,
         :notify_on_client_added,
@@ -67,6 +91,24 @@ class Users::InvitationsController < Devise::InvitationsController
         reports: [],
         cohorts: []
       )
+    end
+
+    def confirmation_params
+      params.require(:user).permit(
+        :confirmation_password
+      )
+    end
+
+    def creating_admin?
+      role_ids = invite_params[:role_ids]&.select{|v| v.present?}&.map(&:to_i) || []
+      role_ids.each do |id|
+        role = Role.find(id)
+        if role.administrative?
+          @admin_role_name = role.name.humanize
+          return true
+        end
+      end
+      return false
     end
 
 end

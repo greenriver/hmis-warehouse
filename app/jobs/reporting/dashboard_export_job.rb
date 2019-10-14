@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting
   class DashboardExportJob < BaseJob
     attr_accessor :coc_code
@@ -5,7 +11,7 @@ module Reporting
 
     queue_as :high_priority
 
-    def initialize coc_code:, report_id:, current_user_id:
+    def initialize(coc_code:, report_id:, current_user_id:)
       GrdaWarehouse::DashboardExportReport.find(report_id).update(started_at: Time.now)
 
       @coc_code = coc_code
@@ -29,8 +35,6 @@ module Reporting
       NotifyUser.dashboard_export_report_finished(@current_user_id, @report_id).deliver_later
     end
 
-    def enqueue(job)
-
-    end
+    def enqueue(job); end
   end
 end

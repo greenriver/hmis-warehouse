@@ -1,0 +1,22 @@
+.well.overflow-scroll
+  %h3.text-center Data Completeness
+  .col-sm-6
+    %h4.text-center Goal
+    %hr
+    %h3.text-center #{@report.completeness_goal}% complete
+  .col-sm-6
+    %h4.text-center 
+      - if @report.projects.count == 1
+        This Project
+      - else
+        The Project Group
+    %hr
+    %h3.text-center #{@report.report['completeness_percentage']}% complete
+
+  %br
+  - @report.report['project_missing'].keys.each_with_index do |project, index|
+    - if @report.report['project_missing'].size > 1
+      %h4
+        = project
+    .completeness-chart.jChart{class: "completeness-chart-#{index}"}
+      %p.jLoading Loading

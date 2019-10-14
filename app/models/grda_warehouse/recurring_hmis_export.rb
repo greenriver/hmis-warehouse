@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
     serialize :project_ids, Array
@@ -14,9 +20,9 @@ module GrdaWarehouse
     has_many :hmis_exports, through: :recurring_hmis_export_links
 
     def should_run?
-      if hmis_exports.present?
-        last_export_finished_on = recurring_hmis_export_links.last.exported_at
-        return Date.today - last_export_finished_on >= every_n_days
+      if hmis_exports.exists?
+        last_export_finished_on = recurring_hmis_export_links.maximum(:exported_at)
+        return Date.current - last_export_finished_on >= every_n_days
       else
         # Don't re-run the export on the day it was requested
         return ! updated_at.today?
@@ -26,12 +32,16 @@ module GrdaWarehouse
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
       filter.adjust_reporting_period
-      ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json,
-        report_url: nil)
+      case filter.version
+      when '6.11'
+        ::WarehouseReports::HmisSixOneOneExportJob.perform_later(filter.options_for_hmis_export(:six_one_one).as_json, report_url: nil)
+      when '2020'
+        ::WarehouseReports::HmisTwentyTwentyExportJob.perform_later(filter.options_for_hmis_export(2020).as_json, report_url: nil)
+      end
     end
 
     def s3_present?
-      s3_region.present? && s3_bucket.present? && s3_access_key_id.present? && s3_secret_access_key.present?
+      s3_region.present? && s3_bucket.present?
     end
 
     def s3_valid?
@@ -49,7 +59,7 @@ module GrdaWarehouse
       if s3_prefix.present?
         prefix = "#{s3_prefix.strip}-"
       end
-      date = Date.today.strftime('%Y%m%d')
+      date = Date.current.strftime('%Y%m%d')
       "#{prefix}#{date}-#{report.export_id}.zip"
     end
 
@@ -61,10 +71,19 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @awsS3 ||= AwsS3.new(region: s3_region.strip,
+      @awsS3 ||= if self.s3_secret_access_key.present?
+        AwsS3.new(
+          region: s3_region.strip,
           bucket_name: s3_bucket.strip,
-          access_key_id: s3_access_key_id.strip,
-          secret_access_key: s3_secret_access_key.strip )
+          access_key_id: self.s3_access_key_id.strip,
+          secret_access_key: self.s3_secret_access_key
+        )
+      else
+        AwsS3.new(
+          region: s3_region.strip,
+          bucket_name: s3_bucket.strip
+        )
+      end
     end
 
     def self.available_s3_regions
@@ -86,7 +105,7 @@ module GrdaWarehouse
         'sa-east-1',
       ]
     end
-        
+
 
     def filter_hash
       hash = self.slice(

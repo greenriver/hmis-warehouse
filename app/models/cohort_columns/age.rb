@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class Age < ReadOnly
     attribute :column, String, lazy: true, default: :age
@@ -6,7 +12,7 @@ module CohortColumns
 
 
     def value(cohort_client) # OK
-      cohort_client.client.age_on(cohort_client.cohort.effective_date || Date.today)
+      cohort_client.client.age_on(cohort_client.cohort.effective_date || Date.current)
     end
   end
 end

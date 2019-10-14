@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
@@ -14,7 +20,7 @@ module Importers::HMISSixOneOne
     include TsqlImport
     include NotifierConfig
 
-    attr_accessor :logger, :notifier_config
+    attr_accessor :logger, :notifier_config, :import, :range
 
     def initialize(
       file_path: 'var/hmis_import',
@@ -44,10 +50,8 @@ module Importers::HMISSixOneOne
       # Provide Application locking so we can be sure we aren't already importing this data source
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{@data_source.id}") do
         @export = load_export_file()
-        if @export.blank?
-          log("Exiting, failed to find a valid export file")
-          return
-        end
+        return unless export_file_valid?
+
         begin
           @range = set_date_range()
           clean_source_files()
@@ -85,14 +89,61 @@ module Importers::HMISSixOneOne
           @import.save
           import_services()
 
+          delete_remaining_pending_deletes()
           complete_import()
           match_clients()
-          update_project_types()
+          project_cleanup()
           log("Import complete")
         ensure
+          cleanup_any_pending_deletes()
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
+    end
+
+    def export_file_valid?
+      if @export.blank?
+        log("Exiting, failed to find a valid export file")
+        return false
+      end
+      if @data_source.source_id.present?
+        source_id = @export[:SourceID]
+        if @data_source.source_id.casecmp(source_id) != 0
+          # Construct a valid file_path for add_error
+          file_path = "#{@file_path}/#{@data_source.id}/Export.csv"
+          msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
+
+          add_error(file_path: file_path, message: msg, line: '')
+
+          # Populate @import for error reporting
+          @import.files << 'Export.csv'
+          @import.summary['Export.csv'][:total_lines] = 1
+          complete_import()
+          return false
+        end
+      end
+      return true
+    end
+
+    def delete_remaining_pending_deletes()
+      # If a pending delete is still present, the associated record is not in the import, and should be
+      # marked as deleted
+      soft_deletable_sources.each do |source|
+        source.where(data_source_id: @data_source.id).
+          where.not(pending_date_deleted: nil).
+          update_all(DateDeleted: @soft_delete_time, pending_date_deleted: nil)
+      end
+    end
+
+    def cleanup_any_pending_deletes
+      log("Resetting pending deletes")
+      # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
+      soft_deletable_sources.each do |source|
+        source.where(data_source_id: @data_source.id).
+          where.not(pending_date_deleted: nil). # Note, postgres won't index nulls, this speeds this up tremendously
+          update_all(pending_date_deleted: nil)
+      end
+      log("Pending deletes reset")
     end
 
     def remove_import_files
@@ -101,8 +152,8 @@ module Importers::HMISSixOneOne
       FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
     end
 
-    def update_project_types
-      GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
+    def project_cleanup
+      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     end
 
     def match_clients
@@ -111,8 +162,8 @@ module Importers::HMISSixOneOne
     end
 
     def complete_import
-      @data_source.update(last_imported_at: Time.now)
-      @import.completed_at = Time.now
+      @data_source.update(last_imported_at: Time.zone.now)
+      @import.completed_at = Time.zone.now
       @import.upload_id = @upload.id if @upload.present?
       @import.save
     end
@@ -188,12 +239,12 @@ module Importers::HMISSixOneOne
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
       involved_exit_ids = exit_source.involved_exits(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_exit_ids.each_slice(1000) do |ids|
-        exit_source.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        exit_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
       end
       @import.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
       involved_enrollment_ids = enrollment_source.involved_enrollments(projects: @projects, range: @range, data_source_id: @data_source.id)
       involved_enrollment_ids.each_slice(1000) do |ids|
-        enrollment_source.where(id: ids).update_all(DateDeleted: @soft_delete_time)
+        enrollment_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
       end
       @import.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
     end
@@ -338,7 +389,7 @@ module Importers::HMISSixOneOne
       row = csv.shift
       headers = csv.headers
       csv.rewind # go back to the start for processing
-      
+
       if headers.blank?
         msg = "Unable to import #{File.basename(read_from.path)}, no data"
         add_error(file_path: read_from.path, message: msg, line: '')
@@ -359,7 +410,10 @@ module Importers::HMISSixOneOne
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
-      csv.each do |row|
+      # Reopen the file with corrected headers
+      csv = CSV.new(read_from, headers: header)
+      # since we're providing headers, skip the header row
+      csv.drop(1).each do |row|
         begin
           # remove any internal newlines
           row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
@@ -384,8 +438,9 @@ module Importers::HMISSixOneOne
     end
 
     def header_valid?(line, klass)
-      # just make sure we don't have anything we don't know how to process
-      (line&.map(&:downcase)&.map(&:to_sym) - klass.hud_csv_headers.map(&:downcase)).blank?
+      incoming_headers = line&.map(&:downcase)&.map(&:to_sym)
+      hud_headers = klass.hud_csv_headers.map(&:downcase)
+      (hud_headers & incoming_headers).count == hud_headers.count
     end
 
     def short_line?(line, comma_count)
@@ -400,10 +455,18 @@ module Importers::HMISSixOneOne
       @export_id_addition ||= @range.start.strftime('%Y%m%d')
     end
 
+    # The HMIS spec limits the field to 50 characters
+    EXPORT_ID_FIELD_WIDTH = 50
+
     # make sure we have an ExportID in every file that
     # reflects the start date of the export
+    # NOTE: The white-listing process seems to add extra commas to the CSV
+    # These can break the useful export_id, so we need to remove any
+    # from the existing row before tacking on the new value
     def set_useful_export_id(row:, export_id:)
-      row['ExportID'] = "#{row['ExportID']}_#{export_id_addition}"
+      # Make sure there i enough room to append the underscore and suffix
+      truncated = row['ExportID'].chomp(', ')[0, EXPORT_ID_FIELD_WIDTH - export_id.length - 1]
+      row['ExportID'] = "#{truncated}_#{export_id}"
       row
     end
 
@@ -451,6 +514,15 @@ module Importers::HMISSixOneOne
         lines_restored: 0,
         total_errors: 0,
       }
+    end
+
+    def soft_deletable_sources
+      self.class.soft_deletable_sources
+      # importable_files.values - [ export_source ]
+    end
+
+    def self.soft_deletable_sources
+      importable_files.values - [ export_source ]
     end
 
     def importable_files
@@ -606,6 +678,10 @@ module Importers::HMISSixOneOne
       @import.import_errors = {}
       @import.files = []
       @import.save
+    end
+
+    def remove_import!
+      @import.destroy
     end
 
     def log(message)

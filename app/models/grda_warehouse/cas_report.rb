@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   # gets dumped into by CAS
   class CasReport < GrdaWarehouseBase
@@ -12,6 +18,10 @@ module GrdaWarehouse
 
     scope :canceled, -> do
       where.not(administrative_cancel_reason: nil)
+    end
+
+    scope :declined, -> do
+      where.not( decline_reason: nil )
     end
 
     scope :canceled_between, -> (start_date:, end_date:) do

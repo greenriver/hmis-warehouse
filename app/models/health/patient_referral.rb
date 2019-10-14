@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
@@ -61,7 +67,7 @@ module Health
     phi_attr :snf_discharge, Phi::NeedsReview
     phi_attr :identification, Phi::LicenceNumber #Phi::NeedsReview ??
     # phi_attr :record_status
-    phi_attr :updated_on, Phi::Date
+    phi_attr :record_updated_on, Phi::Date
     phi_attr :exported_on, Phi::Date
     # phi_attr :removal_acknowledge
     phi_attr :disenrollment_date, Phi::Date
@@ -81,6 +87,7 @@ module Health
       'ACO/MCO requested change' => 6,
       Medical_exception: 8,
       Reported_Eligibility_Loss: 9,
+      Disengaged: 10,
       Deceased: 7,
     }
 
@@ -94,6 +101,7 @@ module Health
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end
+    scope :pending_disenrollment, -> { where.not(pending_disenrollment_date: nil) }
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true
@@ -148,7 +156,7 @@ module Health
 
     def age
       if birthdate.present?
-        GrdaWarehouse::Hud::Client.age(dob: birthdate.to_date, date: Date.today)
+        GrdaWarehouse::Hud::Client.age(dob: birthdate.to_date, date: Date.current)
       else
         'Unknown'
       end
@@ -242,7 +250,7 @@ module Health
     def convert_to_patient
       # nothing to do if we have a client already
       return if client.present?
-      update(effective_date: Date.today)
+      update(effective_date: Date.current)
       # look for an existing patient
       if Health::Patient.where(medicaid_id: medicaid_id).exists?
         patient = Health::Patient.where(medicaid_id: medicaid_id).first

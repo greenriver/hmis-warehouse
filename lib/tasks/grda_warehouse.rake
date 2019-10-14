@@ -123,32 +123,6 @@ namespace :grda_warehouse do
     GrdaWarehouse::Grades::Base.install_default_grades!
   end
 
-  desc "Import Many HUD CSVs for development"
-  task import_dev_hud_csvs: [:environment, "log:info_to_stdout"] do
-    # FIXME: this no longer works with the new importer, we need a new exporter first
-    # loop over data sources, looking for sub directories, find the first one
-    # copy all files into the data source import path
-    # delete the folder, run samba import for that DS
-    # GrdaWarehouse::DataSource.importable.each do |ds|
-    #   directories = Dir["#{ds.file_path}/*"].select{ |f| File.directory?(f)}
-    #   directories.each do |dir|
-    #     puts "Moving #{dir}/* to #{ds.file_path}"
-    #     Dir["#{dir}/*"].each do |f|
-    #       FileUtils.mv(f, ds.file_path) if File.extname(f) == '.csv'
-    #     end
-    #     puts "Removing #{dir}"
-    #     FileUtils.rmdir(dir)
-    #     puts "Importing #{ds.id}"
-    #     Importers::Samba.new(ds.id).run!
-    #   end
-    # end
-  end
-
-  desc "Dump Many HUD CSVs from Production for Development"
-  task :dump_hud_csvs_for_dev, [:n,:env] => [:environment] do |t, args|
-    GrdaWarehouse::Tasks::DumpHmisSubset.new(n: args.n || 500, env: args.env || :development).run!
-  end
-
   desc "SFTP Import HUD Zips from all Data Sources"
   task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
     hmis_version = args.hmis_version || 'hmis_51'
@@ -158,11 +132,6 @@ namespace :grda_warehouse do
         ds = GrdaWarehouse::DataSource.find_by_short_name(key)
         Importers::HMISSixOneOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
       end
-    else
-      Importers::HMISFiveOne::Sftp.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-        Importers::HMISFiveOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
-      end
     end
   end
 
@@ -171,21 +140,7 @@ namespace :grda_warehouse do
     hmis_version = args.hmis_version || 'hmis_611'
 
     case hmis_version
-    when 'hmis_51'
-      Importers::HMISFiveOne::S3.available_connections.each do |key, conf|
-
-        options = {
-          data_source_id: conf['data_source_id'],
-          region: conf['region'],
-          access_key_id: conf['access_key_id'],
-          secret_access_key: conf['secret_access_key'],
-          bucket_name: conf['bucket_name'],
-          path: conf['path'],
-          file_password: conf['file_password']
-        }
-        Importers::HMISFiveOne::S3.new(options).import!
-      end
-    else
+    when 'hmis_611'
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
 
         options = {
@@ -212,6 +167,35 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
   end
 
+  desc "Initialize ServiceHistortService homeless fields"
+  task initialize_service_service_homelessness: [:environment, "log:info_to_stdout"] do
+    # Clients enrolled in homeless projects are homeless
+    GrdaWarehouse::ServiceHistoryService.
+      in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
+      update_all(homeless: true)
+
+    # Clients enrolled in chronic projects are literally homeless
+    GrdaWarehouse::ServiceHistoryService.
+      in_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+      update_all(literally_homeless: true)
+
+    # Clients enrolled in TH are not literally homeless
+    # literally_homeless is defaulted to false, so we don't need to do this
+    #
+    # GrdaWarehouse::ServiceHistoryService.
+    #   in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]).
+    #   update_all(literally_homeless: false)
+
+    # Clients enrolled in PH are literally homeless until their move-in date, or if they don't have one
+    s_t = GrdaWarehouse::ServiceHistoryService.arel_table
+    e_t = GrdaWarehouse::Hud::Enrollment.arel_table
+    GrdaWarehouse::ServiceHistoryService.
+      joins(service_history_enrollment: :enrollment).
+      in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]).
+      where(s_t[:date].lt(e_t[:MoveInDate]).or(e_t[:MoveInDate].eq(nil))).
+      update_all(homeless: true, literally_homeless: true)
+  end
+
   desc "Populate/replace nicknames"
   task nicknames_populate: [:environment, "log:info_to_stdout"] do
     Nickname.populate!
@@ -222,9 +206,9 @@ namespace :grda_warehouse do
     UniqueName.update!
   end
 
-  desc "Calculate chronic homelessness ['2017-01-15']; defaults: date=Date.today"
+  desc "Calculate chronic homelessness ['2017-01-15']; defaults: date=Date.current"
   task :calculate_chronic_homelessness, [:date] => [:environment, "log:info_to_stdout"] do |task, args|
-    date = (args.date || Date.today).to_date
+    date = (args.date || Date.current).to_date
     GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
     GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
   end
@@ -307,6 +291,30 @@ namespace :grda_warehouse do
   desc "Process Recurring HMIS Exports"
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
+  end
+
+  namespace :secure_files do
+    desc "Remove expired secure files"
+    task clean_expired: [:environment] do
+      GrdaWarehouse::SecureFile.clean_expired
+    end
+  end
+
+  desc "Remove data based on import"
+  task :remove_import_data, [:import_id] => [:environment, "log:info_to_stdout"] do |task, args|
+    import_id = args.import_id.to_i
+    exit unless import_id.present? && import_id.to_s == args.import_id
+    GrdaWarehouse::ImportRemover.new(import_id).run!
+  end
+
+  desc "Force rebuild for homeless enrollments"
+  task :force_rebuild_for_homeless_enrollments, [] => [:environment, "log:info_to_stdout"] do |task, args|
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).update_all(processed_as: nil)
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.update_all(processed_as: nil)
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+    end
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.delay.rebuild!
   end
 
 end

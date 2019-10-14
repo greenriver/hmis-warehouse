@@ -1,5 +1,12 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class CensusesController < ApplicationController
-  before_action :require_can_view_censuses!
+  before_action :require_can_view_censuses!, except: [:date_range]
+  before_action :require_can_view_clients!, only: [:details]
   include ArelHelper
   # default view grouped by project
   def index
@@ -21,36 +28,30 @@ class CensusesController < ApplicationController
       @clients = census.clients_for_date(@date, ds_id, org_id, p_id)
 
       @yesterday_client_count = census.clients_for_date(@date - 1.day, ds_id, org_id, p_id).size
-      @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id)
-  
+      @prior_year_averages = census.prior_year_averages(@date.year - 1, ds_id, org_id, p_id, user: current_user)
+
     elsif params[:project_type].present?
       # Whitelist project_types
       project_type =  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.keys.detect{|m| m == params[:project_type].downcase.to_sym}
 
       @census_detail_name = census.detail_name(project_type)
 
-      pt_codes = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type]
-      sh_scope = GrdaWarehouse::ServiceHistory.service.joins(:client).where(project_type: pt_codes).
-          where(GrdaWarehouse::ServiceHistory.table_name => {date: @date})
-
-      base_project_scope = project_scope.joins(:service_history).distinct
-
       if params[:veteran].present?
         if params[:veteran] == 'Veteran Count'
           @census_detail_name = "Veterans in #{@census_detail_name}"
           @clients = census.clients_for_date(@date, project_type, :veterans)
           @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:veterans).size
-          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans)
+          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :veterans, user: current_user)
         else
           @census_detail_name = "Non-Veterans in #{@census_detail_name}"
           @clients = census.clients_for_date(@date, project_type, :non_veterans)
           @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type,:non_veterans).size
-          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans)
+          @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :non_veterans, user: current_user)
         end
       else
         @clients = census.clients_for_date(@date, project_type)
         @yesterday_client_count = census.clients_for_date(@date - 1.day, project_type).size
-        @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :all_clients)
+        @prior_year_averages = census.prior_year_averages(@date.year - 1, project_type, :all_clients, user: current_user)
       end
     else
       @census_detail_name = 'All'
@@ -71,9 +72,9 @@ class CensusesController < ApplicationController
     end_date = params[:end_date]
     # Allow single program display
     if params[:project_id].present? && params[:data_source_id].present?
-      render json: @census.for_date_range(start_date, end_date, params[:data_source_id].to_i, params[:project_id].to_i)
+      render json: @census.for_date_range(start_date, end_date, params[:data_source_id].to_i, params[:project_id].to_i, user: current_user)
     else
-      render json: @census.for_date_range(start_date, end_date)
+      render json: @census.for_date_range(start_date, end_date, user: current_user)
     end
   end
 

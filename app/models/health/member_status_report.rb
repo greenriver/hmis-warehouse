@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # ### HIPPA Risk Assessment
 # Risk: Indirectly relates to a patient
 # Control: PHI attributes documented
@@ -74,7 +80,7 @@ module Health
           # report_end_date: report_end_date&.strftime('%Y%M%d'),
           record_status: pr.record_status,
           record_update_date: patient_updated_at.to_date,
-          export_date: Date.today,
+          export_date: Date.current,
         }
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver

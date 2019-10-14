@@ -1,8 +1,7 @@
-- title = "VISPDATs"
-- content_for :title, title
-
+- content_for :title, "VISPDATs"
 = render 'clients/breadcrumbs'
 
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 = render 'clients/tab_navigation', current: client_vispdats_path(client_id: @client.id)
+
 = render 'list'

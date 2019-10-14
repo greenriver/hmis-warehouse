@@ -1,0 +1,8 @@
+:javascript
+  $('#new_range').submit(function(e){
+    var $form = $(this);
+    // disable things *immediately after* submit
+    setTimeout(function(){
+      $form.find(':input').prop('disabled', true);
+    }, 0);
+  });

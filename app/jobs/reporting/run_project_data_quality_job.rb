@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Reporting
   class RunProjectDataQualityJob < BaseJob
     queue_as :high_priority
@@ -14,10 +20,8 @@ module Reporting
           @report.update(processing_errors: [e.message, e.backtrace].to_json)
         end
       end
-      if @send_email
-        @report.send_notifications
-      end
+      @report.notify_requestor
+      @report.send_notifications if @send_email
     end
-
   end
 end

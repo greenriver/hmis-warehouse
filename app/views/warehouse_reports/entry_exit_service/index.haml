@@ -6,12 +6,12 @@
   .row
     .col-sm-8
       %h1= title
-    .col-sm-4.pt-4.text-right
+    .col-sm-4.pt-4.text-right.mb-2
       = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
         Download Excel
 - if @enrollments.any?
   = render 'warehouse_reports/limited_by_project_note'
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name

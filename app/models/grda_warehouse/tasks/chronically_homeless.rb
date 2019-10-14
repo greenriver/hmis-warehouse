@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 # Figure out who is chronically homeless
 # Our working definition of chronic homelessness is:
 # 1. Currently Homeless in ES (1), SH (8) or SO (4) and not currently housed (other residential types)
@@ -29,7 +35,7 @@ module GrdaWarehouse::Tasks
 
     # Pass client_ids as an array
     def initialize(
-      date: Date.today,
+      date: Date.current,
       count_so_as_full_month: true,
       dry_run: false,
       client_ids: nil,
@@ -135,7 +141,7 @@ module GrdaWarehouse::Tasks
 
     def load_active_clients
       @clients = active_client_scope unless @limited
-      # before we return, sanity check these clients, then load them again if 
+      # before we return, sanity check these clients, then load them again if
       # any don't pass
       if @sanity_check
         if GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(1, @clients).run!
@@ -161,8 +167,8 @@ module GrdaWarehouse::Tasks
       @client_details[client.id][:days_in_last_three_years] = days_served.length
       @client_details[client.id][:age] = client.age_on(@date)
       @client_details[client.id][:individual] = GrdaWarehouse::Hud::Client.where(id: client.id).homeless_individual(on_date: @date, chronic_types_only: true).exists?
-      
-      @client_details[client.id][:homeless_since] = client.service_history.first_date&.first.try(:date)
+
+      @client_details[client.id][:homeless_since] = client.date_of_first_service
       @client_details[client.id][:months_in_last_three_years] = months_homeless
       @client_details[client.id][:trigger] = chronic_trigger
       @client_details[client.id][:dmh] = dmh
@@ -171,9 +177,21 @@ module GrdaWarehouse::Tasks
 
     # the end of the most recent 90+ day residential, non-homeless enrollment
     # that is open within the range
+    # NOTE, if the non-homeless enrollment is PH, it must also have a move-in date
     def homeless_reset(client_id:)
       @homeless_reset ||= service_history_enrollments_source.hud_residential_non_homeless.
         open_between(start_date: @date - 3.years, end_date: @date).
+        where(
+          she_t[:move_in_date].not_eq(nil).and(
+            she_t[:computed_project_type].in(
+              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+            )
+          ).or(
+            she_t[:computed_project_type].in(
+              GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+            )
+          )
+        ).
         where(she_t[:last_date_in_program].lteq(@date)).
         where( datediff( service_history_enrollments_source, 'day', she_t[:last_date_in_program], she_t[:first_date_in_program] ).gteq(90)).
         where(client_id: client_id).
@@ -198,11 +216,12 @@ module GrdaWarehouse::Tasks
         service_history_columns.keys.zip(row).to_h
       end
       # Throw out any dates that fall outside of the enrollment
-      all_dates.reject! do |m| 
-        m[:last_date_in_program].present?&& m[:last_date_in_program] < m[:date]
+      # Unless this is SO and we allow them
+      all_dates.reject! do |m|
+        m[:last_date_in_program].present? && m[:last_date_in_program] < m[:date] && ! count_so_as_full_month?(m)
       end
       debug_log "Found #{all_dates.size} days in the residential history"
-      
+
       # group by enrollment and then calculated adjusted dates for each enrollment
       enrollments_by_project_entry = all_dates.group_by do |m|
         [m[:enrollment_group_id], m[:project_id], m[:data_source_id]]
@@ -221,22 +240,7 @@ module GrdaWarehouse::Tasks
         e.sort_by!{|m| m[:date]}
         meta = e.first
         dates_served = e.map{|m| m[:date]}.uniq
-        # special treatment for SO
-        # Count all days in any month served
-        # if count_so_as_full_month?(meta)
-        #   so_dates_served = []
-        #   dates_served.map do |date|
-        #     Date.new(date.year, date.month, 01)
-        #   end.uniq.each do |first_of_month|
-        #     last_of_month = first_of_month.end_of_month
-        #     first_of_month.upto(last_of_month) do |d|
-        #       so_dates_served << d
-        #     end
-        #   end
-        #   debug_log "SO Dates Served in #{meta[:project_name]}: #{so_dates_served.size}"
-        #   # debug_log so_dates_served.inspect
-        #   dates_served = so_dates_served.uniq
-        # end
+
         # days that are not also served by a later enrollment of the same project type
         # unless this is a bed-night style project, in which case we count all nights
         count_until = if bed_night?(meta)
@@ -247,10 +251,10 @@ module GrdaWarehouse::Tasks
         # days included in adjusted days that are not also served by a residential project
         # If the project uses bed-night tracking, just count them all
         # otherwise ignore overlapping dates (this allows for overlapping SO from two sources)
-        # We dedup dates later, none will be double counted
+        # We de-dupe dates later, none will be double counted
         if count_all_dates?(meta)
           adj_dates = adjusted_dates(dates: dates_served, stop_date: @hard_stop)
-          debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}"
+          debug_log "Adding #{adj_dates.count} days from: #{meta[:project_name]}, entry: #{meta[:first_date_in_program]}, until: #{count_until}"
           all_homeless_dates += adj_dates
         else
           adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
@@ -318,12 +322,13 @@ module GrdaWarehouse::Tasks
       dates.select{|date| date < stop_date}
     end
 
+    # days served in PH *after* the move-in-date
     def residential_dates enrollments:
-      @non_homeless_types ||= project_source::RESIDENTIAL_PROJECT_TYPE_IDS - project_source::CHRONIC_PROJECT_TYPES
+      @non_homeless_types ||= GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       @residential_dates ||= enrollments.select do |e|
         e[:project_type].in? @non_homeless_types
       end.map do |e|
-       e[:date]
+        e[:date] if e[:move_in_date].present? && e[:move_in_date] < e[:date]
      end.compact.uniq
     end
 
@@ -350,27 +355,8 @@ module GrdaWarehouse::Tasks
       (@last_12_months - months).blank?
     end
 
-    # count months for which we had at least one day of service in a homeless project type
-    # that doesn't overlap other non-homeless residential project types
-    # def months_homeless(client_id, client_service_history)
-    #   months = Set[]
-    #   client_service_history.group_by{|s| s[:date]}.each do |date, services|
-    #     homeless = false
-    #     other = false
-    #     services.each do |service|
-    #       homeless = CHRONIC_PROJECT_TYPES.include?(service[:project_type])
-    #       other = RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE.include?(service[:project_type])
-    #       break if other
-    #     end
-    #     if homeless && ! other
-    #       months << date.to_time.strftime("%Y-%m")
-    #     end
-    #   end
-    #   return months
-    # end
-
     def disabled?(client_id)
-      @disabled_clients ||= GrdaWarehouse::Hud::Client.disabled_client_ids
+      @disabled_clients ||= GrdaWarehouse::Hud::Client.where(id: @clients).disabled_client_ids
       @disabled_clients.include? client_id
     end
 
@@ -414,6 +400,7 @@ module GrdaWarehouse::Tasks
         project_id: :project_id,
         project_tracking_method: :project_tracking_method,
         project_name: :project_name,
+        move_in_date: :move_in_date,
       }
     end
 

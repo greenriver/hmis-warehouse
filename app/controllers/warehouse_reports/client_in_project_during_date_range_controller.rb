@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class ClientInProjectDuringDateRangeController < ApplicationController
     include WarehouseReportAuthorization
@@ -15,7 +21,6 @@ module WarehouseReports
 
       @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
 
-      st = service_history_source.arel_table
       @enrollments = service_history_source.entry.
         where( project_id: @project.ProjectID, data_source_id: @project.data_source_id ).
         open_between(start_date: @start, end_date: @end).
@@ -45,7 +50,7 @@ module WarehouseReports
     # AHAR reporting dates
     private def oct_1
       @oct_1 ||= begin
-        d1 = Date.today
+        d1 = Date.current
         d2 = "#{ d1.year - 1 }-10-01".to_date
         d2 -= 1.year while d2 + 1.year - 1.day > d1
         d2

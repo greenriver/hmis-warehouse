@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class UploadsController < ApplicationController
   before_action :require_can_upload_hud_zips!
   before_action :set_data_source
@@ -49,6 +55,8 @@ class UploadsController < ApplicationController
         job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
       when 'hmis_611'
         job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
+      when 'hmis_2020'
+        job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
       end
       @upload.update(delayed_job_id: job.id)
     end

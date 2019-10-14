@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
   serialize :files
@@ -17,7 +23,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     elsif upload.present?
       upload.import_time(details: details)
     else
-      'incomplete'
+      'processing...'
     end
   end
 end

@@ -5,13 +5,12 @@
 
 .warehouse-reports__missing-projects
   .row
-    .col-sm-8
-      %p The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
-    .col-sm-4
-      = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
-        Download Excel
+    %p The following clients have characters in their names that are unsual.  For clarity, spaces have been replaced with ⎵.
+  .text-right
+    = link_to({format: :xlsx},{class: 'btn btn-primary'}) do
+      Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-condensed.table-hover
+  %table.table.table-sm.table-hover
     %thead
       %tr
         %th Last Name

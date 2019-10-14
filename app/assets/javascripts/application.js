@@ -13,13 +13,15 @@
 /////////////////////
 // Vendor libs
 ////////////////////
-//= require jquery
+//= require jquery3
+//= require popper
+//= require bootstrap-sprockets
 //= require bootstrap
 //= require vis.min
 //= require jquery_ujs
 //= require DataTables/datatables.min
 //= require handlebars.runtime
-//= require select2-full
+//= require select2
 //= require bootstrap-datepicker
 //= require Chart.bundle.min
 //= require jquery-ui/widgets/sortable
@@ -55,6 +57,7 @@
 //= require table_search
 //= require selectable_list
 //= require viewable_entities
+//= require select_2
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps
@@ -74,5 +77,7 @@
 //= require_directory ./users
 //= require_directory ./cohorts/viewers
 //= require_directory ./cohorts/editors
+//= require_directory ./data_quality_reports
+//= require affix
 
 //= require init

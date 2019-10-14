@@ -1,0 +1,57 @@
+@import '../helpers';
+
+.nav-tabs {
+  margin-left: (-$container-padding);
+  margin-right: (-$container-padding);
+  margin-bottom: space(4);
+  padding-left: $container-padding;
+  padding-right: $container-padding;
+  background: $white;
+  border-bottom: 1px solid $gray-015;
+  margin-top: space(4);
+  margin-bottom: space(4);
+  width: calc(100% + 60px);
+  &.affixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: $fixed-nav-z-index;
+    padding: 0 30px;
+    margin: 0;
+  }
+}
+
+.nav-tabs > li {
+  margin-bottom: 0;
+}
+
+.nav-tabs > li > a:hover,
+.nav-tabs > li > a:focus {
+  background: $body-bg;
+  box-shadow: inset 0px 2px 0px 0px darken($brand-primary, 10%);
+  color: $black;
+}
+
+.nav-tabs > li.nav-item.active > a,
+.nav-tabs > li.nav-item.active > a:hover,
+.nav-tabs > li.nav-item.active > a:focus,
+.nav-tabs > li.nav-item > a.active,
+.nav-tabs > li.nav-item > a.active:hover,
+.nav-tabs > li.nav-item > a.active:focus {
+  border: 0;
+  border-radius: 0;
+  background: lighten($tab-bg, 30%);
+  color: darken($tab-bg, 40%);
+  font-weight: 800;
+  box-shadow: inset 0px 2px 0px 0px darken($tab-bg, 10%);
+}
+
+.nav-tabs > li {
+  margin-bottom: -2px;
+}
+
+.nav-tabs .nav-link {
+  border: 0;
+  height: 100%;
+}

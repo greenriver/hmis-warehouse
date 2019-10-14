@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class MonthAndOrganization < ::Filters::DateRange::MonthDefault
     attribute :org, Integer, default: -> (s,_) {s.default_org}
-    attribute :month, Integer, default: Date.today.month
-    attribute :year, Integer, default: Date.today.year
+    attribute :month, Integer, default: Date.current.month
+    attribute :year, Integer, default: Date.current.year
     attribute :user, User, default: nil
 
     validates :org, presence: true
@@ -12,7 +18,7 @@ module Filters
     end
 
     def organizations
-      @organizations ||= organization_scope.distinct.order(:OrganizationName)
+      @organizations ||= organization_scope.distinct.order(:OrganizationName).preload(projects: :inventories)
     end
 
     def disambiguated_organizations
@@ -61,11 +67,11 @@ module Filters
     end
 
     def earliest_year
-      @earliest_year ||= GrdaWarehouse::Hud::Inventory.order(:DateCreated).limit(1).pluck(:DateCreated)&.first&.year || Date.today.year
+      @earliest_year ||= GrdaWarehouse::Hud::Inventory.order(:DateCreated).limit(1).pluck(:DateCreated)&.first&.year || Date.current.year
     end
 
     def latest_year
-      @latest_year ||= Date.today.year
+      @latest_year ||= Date.current.year
     end
 
     def organization_scope

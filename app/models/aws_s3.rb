@@ -1,10 +1,17 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'aws-sdk'
-class AwsS3  
+class AwsS3
+  attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key
   def initialize(
-    region:, 
-    bucket_name:, 
-    access_key_id:, 
-    secret_access_key:
+    region:,
+    bucket_name:,
+    access_key_id: nil,
+    secret_access_key: nil
   )
     @region = region
     @bucket_name = bucket_name
@@ -14,34 +21,40 @@ class AwsS3
     @s3 = Aws::S3::Resource.new
     @bucket = @s3.bucket(@bucket_name)
   end
-  
+
   def connect
     cred = Aws::Credentials.new(
-      @access_key_id, 
+      @access_key_id,
       @secret_access_key
     )
-    Aws.config.update({
-      region: @region, 
-      credentials: cred
-    })
+    if @secret_access_key.present? && @secret_access_key != 'unknown'
+      Aws.config.update({
+        region: @region,
+        credentials: cred
+      })
+    else
+       Aws.config.update({
+        region: @region,
+      })
+    end
   end
 
   def exists?
     return @bucket.exists? rescue false
   end
-  
+
   def list(prefix: '')
-    return @bucket.objects(prefix: prefix).limit(500).each do |obj|
+    return @bucket.objects(prefix: prefix).each do |obj|
       puts " #{obj.key} => #{obj.etag}"
     end
   end
 
   def fetch_key_list(prefix: '')
-    @bucket.objects(prefix: prefix).limit(500).map do |obj|
+    @bucket.objects(prefix: prefix).map do |obj|
       obj.key
     end
   end
-  
+
   def fetch(file_name:, prefix: nil, target_path:)
     if prefix
       file_path = "#{prefix}/#{File.basename(file_name)}"
@@ -51,7 +64,7 @@ class AwsS3
     file = @bucket.object(file_path)
     file.get(response_target: target_path)
   end
-  
+
   def put(file_name:, prefix:)
     name = "#{prefix}/#{File.basename(file_name)}"
     obj = @bucket.object(name)

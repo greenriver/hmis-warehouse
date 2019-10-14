@@ -1,0 +1,16 @@
+- title = 'Housing Status Detail'
+- content_for :modal_title, title
+
+- client_scope = GrdaWarehouse::Hud::Client.visible_in_window_to(current_user)
+%table.table
+  %thead
+    %th
+      Client
+    %th
+      Homeless Data Source
+  %tbody
+    - @details.each do |detail|
+      %tr
+        - client = client_scope.find(detail.first)
+        %td= link_to client.name, destination_window_source_client_path(client)
+        %td= detail.last

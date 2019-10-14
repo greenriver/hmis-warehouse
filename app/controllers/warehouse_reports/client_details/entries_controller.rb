@@ -1,9 +1,17 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::ClientDetails
   class EntriesController < ApplicationController
     include ArelHelper
     include ApplicationHelper
     include WarehouseReportAuthorization
     before_action :set_limited, only: [:index]
+    before_action :set_projects
+    before_action :set_organizations
 
     CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
 
@@ -11,8 +19,11 @@ module WarehouseReports::ClientDetails
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      @project_type_code = params[:project_type]&.to_sym || :es
-      @project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[@project_type_code]
+      @project_type_codes = params[:project_type].map(&:presence).map(&:to_sym) rescue [:es]
+      @project_type = []
+      @project_type_codes.each do |code|
+        @project_type += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
+      end
 
       @start_date = @range.start
       @end_date = @range.end
@@ -83,7 +94,14 @@ module WarehouseReports::ClientDetails
     def homeless_service_history_source
       scope = service_history_source.
         in_project_type(@project_type)
-      history_scope(scope, @sub_population)
+      hsh_scope = history_scope(scope, @sub_population)
+      if @organization_ids.any?
+        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
+      end
+      if @project_ids.any?
+        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
+      end
+      return hsh_scope
     end
 
     def entered_columns
@@ -152,6 +170,14 @@ module WarehouseReports::ClientDetails
 
     def days_since_last_entry enrollments
       enrollments.first(2).map{|m| m[:first_date_in_program]}.reduce(:-).abs
+    end
+
+    def set_organizations
+      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+    end
+
+    def set_projects
+      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
     end
 
   end

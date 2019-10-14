@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Health
   class AgencyPerformanceController < ApplicationController
     include ArelHelper
@@ -21,21 +27,15 @@ module WarehouseReports::Health
       @section = params[:section]
       @patient_ids = params[:patient_ids]&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
-        order(last_name: :asc, first_name: :asc).
-        pluck(:client_id, :first_name, :last_name).map do |client_id, first_name, last_name|
-          OpenStruct.new(
-            client_id: client_id,
-            first_name: first_name,
-            last_name: last_name
-          )
-      end
+        preload(:care_coordinator).
+        order(last_name: :asc, first_name: :asc)
 
       @agency = Health::Agency.find(@agency_id)
 
     end
 
     def set_dates
-      @start_date = Date.today.beginning_of_month.to_date
+      @start_date = Date.current.beginning_of_month.to_date
       @end_date = @start_date.end_of_month
 
       @start_date = params[:filter].try(:[], :start_date).presence || @start_date

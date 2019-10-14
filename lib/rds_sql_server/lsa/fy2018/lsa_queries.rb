@@ -1,5 +1,5 @@
 # require_relative 'sql_server_base'
-require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s
+require Rails.root.join('lib/rds_sql_server/sql_server_base').to_s unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer
   class LSAQueries
     attr_accessor :project_ids
@@ -87,27 +87,28 @@ module LsaSqlServer
       ]
     end
 
-    def exists_in_code? key
+    def exists_in_code?(key)
       code.scan(/(?=#{Regexp.escape(key)})/).count == 1
     end
 
-    def execute_lsa_query key
+    def execute_lsa_query(key)
       SqlServerBase.connection.execute(query_for(key))
     end
 
-    def run_query step
+    def run_query(step)
       key = send(step)
       execute_lsa_query(key)
     end
 
-    def validate_step step
+    def validate_step(step)
       # TODO: this may want to call query_for key and then check query length.  Currently it is valid, even if finding a query fails
       key = send(step)
-      raise "Unable to find section (or found multiple): #{key}" if ! exists_in_code? key
-      return true
+      raise "Unable to find section (or found multiple): #{key}" unless exists_in_code? key
+
+      true
     end
 
-    def query_for key
+    def query_for(key)
       ss = StringScanner.new(code)
 
       # find the first instance of the key
@@ -120,12 +121,12 @@ module LsaSqlServer
       query.gsub('GO', '')
     end
 
-    def start_regex key
-      /\/\*+\n^#{Regexp.escape(key)}.*\n/
+    def start_regex(key)
+      %r{/\*+\n^#{Regexp.escape(key)}.*\n}
     end
 
     def end_of_comment
-      /\*+\//
+      %r{\*+/}
     end
 
     def stop_sequence
@@ -137,7 +138,7 @@ module LsaSqlServer
     end
 
     def clear
-      SqlServerBase.connection.execute (<<~SQL);
+      SqlServerBase.connection.execute <<~SQL
         delete from lsa_Inventory
         delete from lsa_Geography
         delete from lsa_Funder
@@ -149,7 +150,7 @@ module LsaSqlServer
     def insert_projects
       # Limit the projects that are reported to those selected
       if project_ids.present?
-        SqlServerBase.connection.execute (<<~SQL);
+        SqlServerBase.connection.execute <<~SQL
           insert into lsa_Project
             (ProjectID, OrganizationID, ProjectName
              , OperatingStartDate, OperatingEndDate
@@ -172,7 +173,7 @@ module LsaSqlServer
             and hp.ProjectID in(#{project_ids.join(',')})
         SQL
       else
-        SqlServerBase.connection.execute (<<~SQL);
+        SqlServerBase.connection.execute <<~SQL
           insert into lsa_Project
             (ProjectID, OrganizationID, ProjectName
              , OperatingStartDate, OperatingEndDate
@@ -225,11 +226,11 @@ module LsaSqlServer
     end
 
     def four_ten
-      '4.10 Set HHType for Active HouseholdIDs '
+      '4.10 Set HHType for Active HouseholdIDs'
     end
 
     def four_eleven
-      '4.11 Get Active Clients for tmp_Person '
+      '4.11 Get Active Clients for tmp_Person'
     end
 
     def four_twelve
@@ -310,13 +311,16 @@ module LsaSqlServer
 
     def four_twenty_nine_a
       '4.29.a Get Earliest EntryDate from Active Enrollments'
-   end
-   def four_twenty_nine_b
+    end
+
+    def four_twenty_nine_b
       '4.29.b Get EnrollmentID for Latest Exit in Two Years Prior to FirstEntry'
     end
+
     def four_twenty_nine_c
       '4.29.c Set System Engagement Status for tmp_Household'
     end
+
     def four_twenty_nine_d
       '4.29.d Set ReturnTime for tmp_Household'
     end

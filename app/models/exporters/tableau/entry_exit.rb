@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Exporters::Tableau::EntryExit
   include ArelHelper
   include TableauExport
@@ -5,7 +11,7 @@ module Exporters::Tableau::EntryExit
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       model = she_t.engine
-      export_scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: nil)
+      export_scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: coc_code)
 
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|

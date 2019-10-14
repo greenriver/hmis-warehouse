@@ -1,21 +1,26 @@
-.row.margin-bottom-02
-  .col-sm-12
-    = simple_form_for @range, as: :range, url: warehouse_reports_cas_canceled_matches_path, html: { method: :get, class: 'jFilter' } do |f|
-      = f.error_notification
-      .row
-        .col-sm-3
-          = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-        .col-sm-3
-          = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
-        .col-sm-4
-          = f.button :submit, value: 'Update View'
+= simple_form_for @range, as: :range, url: warehouse_reports_cas_canceled_matches_path, html: { method: :get, class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    %p
+      Limit to matches canceled within a date range.
+    .row.mb-2
+      .col-sm-12
+        .row
+          .col-sm-4
+            = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
+          .col-sm-4
+            = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
 
-- content_for :page_js do
-  :javascript
-    $('#new_range').submit(function(e){
-      var $form = $(this);
-      // disable things *immediately after* submit
-      setTimeout(function(){
-        $form.find(':input').prop('disabled', true);
-      }, 0);
-    });
+  - content_for :filter_actions do
+    = f.submit 'Update Range', class: 'btn btn-primary'
+
+  - content_for :form_js do
+    :javascript
+      $('#new_range').submit(function(e){
+        var $form = $(this);
+        // disable things *immediately after* submit
+        setTimeout(function(){
+          $form.find(':input').prop('disabled', true);
+        }, 0);
+      });
+
+  = render 'warehouse_reports/filters', f:f

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module ReportGenerators::SystemPerformance::Fy2018
   class MeasureFive < Base
     LOOKBACK_STOP_DATE = '2012-10-01'
@@ -10,7 +16,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1)
     # SH = [8]
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
-    
+
 
     def run!
       # Disable logging so we don't fill the disk
@@ -24,8 +30,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
     def calculate
       if start_report(Reports::SystemPerformance::Fy2018::MeasureFive.first)
-        @report_start ||= @report.options['report_start'].to_date
-        @report_end ||= @report.options['report_end'].to_date
+        set_report_start_and_end()
         Rails.logger.info "Starting report #{@report.report.name}"
         # Overview: Determine the number of clients in the system in specific programs during the
         # report period.  Of those, were any active in the two years prior?
@@ -56,7 +61,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     end
 
     def add_es_sh_th_answers
-      # 5.1 
+      # 5.1
       # Select clients entering any of the applicable project types in the report date range.
       relevent_project_types = ES + SH + TH
       set_client_universe(relevent_project_types)
@@ -72,7 +77,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:five1_c3][:value] = previous_clients.size
       @support[:five1_c3][:support] = {
         headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
-        counts: previous_clients.map do |id, _| 
+        counts: previous_clients.map do |id, _|
           [
             id,
             @clients[id][:start_date],
@@ -84,9 +89,9 @@ module ReportGenerators::SystemPerformance::Fy2018
       # save our progress
       update_report_progress(percent: 50)
     end
-    
+
     def add_es_sh_th_ph_answers
-      # 5.2 
+      # 5.2
       # Select clients entering any of the applicable project types in the report date range.
       relevent_project_types = ES + SH + TH + PH
       set_client_universe(relevent_project_types)
@@ -102,7 +107,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:five2_c3][:value] = previous_clients.size
       @support[:five2_c3][:support] = {
         headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
-        counts: previous_clients.map do |id, _| 
+        counts: previous_clients.map do |id, _|
           [
             id,
             @clients[id][:start_date],

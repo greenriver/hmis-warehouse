@@ -1,17 +1,17 @@
 - title = 'Track Issues'
 - content_for :title, title
 = render 'breadcrumbs'
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 %h1= content_for :title
 = render 'form'
 - if @anomalies.any?
   %ul.nav.nav-tabs{role: :tablist}
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
       - active = if slug == :new then 'active' end
-      %li{class: active}
-        %a{href: "##{slug}", 'aria-controls' => slug}
+      %li.nav-item{class: active}
+        %a{href: "##{slug}", 'aria-controls' => slug, class: 'nav-link'}
           = status
-  .tab-content.margin-top-02
+  .tab-content.mt-2
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
       - active = if slug == :new then 'active' end
       .tab-pane{role: :tabpanel, id: slug, class: active}

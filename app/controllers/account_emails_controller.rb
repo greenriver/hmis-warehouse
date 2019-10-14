@@ -1,8 +1,15 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class AccountEmailsController < ApplicationController
   # before_action :authenticate_user!
   before_action :set_user
 
   def edit
+    @user.set_initial_two_factor_secret!
     render "accounts/edit"
   end
 

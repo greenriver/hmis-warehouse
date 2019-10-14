@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class CohortsController < ApplicationController
   include PjaxModalController
   include CohortAuthorization
@@ -27,20 +33,19 @@ class CohortsController < ApplicationController
   end
 
   def show
+    @modal_size = :lg
     params[:population] ||= :active
     load_cohort_names
     @cohort = cohort_scope.find(cohort_id)
     # leave off the pagination here and return all the data
-    @cohort_clients = @cohort.search_clients(
-      inactive:  params[:inactive],
-      population: params[:population],
-    )
+    @cohort_clients = @cohort.search_clients(population: params[:population], user: current_user)
+    # redirect_to cohorts_path(population: ) if @cohort.needs_client_search?
     @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map{|m| [m.id, m.updated_at.to_i]}.to_h
     @population = params[:population]
     respond_to do |format|
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
-        @visible_columns += @cohort.visible_columns
+        @visible_columns += @cohort.visible_columns(user: current_user)
         if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
           @visible_columns << CohortColumns::Delete.new
         end
@@ -139,6 +144,7 @@ class CohortsController < ApplicationController
       :show_on_client_dashboard,
       :visible_in_cas,
       :assessment_trigger,
+      :tag_id,
       user_ids: []
     )
   end

@@ -1,29 +1,39 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 class ClientsController < ApplicationController
   include PjaxModalController
   include ClientController
   include ArelHelper
-  include ClientPathGenerator   
+  include ClientPathGenerator
 
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_view_clients!, only: [:show, :index, :service_range]
-  before_action :require_can_view_clients_or_window!, only: [:rollup, :image, :create_note]
-  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge, :update]
+  before_action :require_can_search_window!, only: [:index]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
+
+  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
+  before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :update, :create_note]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
-  after_action :log_client, only: [:show, :edit, :update, :destroy, :merge, :unmerge]
+  before_action :check_release, only: [:show]
+  after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
   helper_method :sort_column, :sort_direction
 
   def index
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
     @clients = if params[:q].present?
-      client_source.text_search(params[:q], client_scope: client_source)
+      client_source.text_search(params[:q], client_scope: client_search_scope)
     else
-      client_scope
+      client_scope.none
     end
     @clients = @clients.preload(:processed_service_history)
     sort_filter_index()
@@ -40,14 +50,29 @@ class ClientsController < ApplicationController
     end
   end
 
-  def update
-    
-  end
-
   # display an assessment form in a modal
   def assessment
-    @form = GrdaWarehouse::HmisForm.find(params.require(:id).to_i)
-    @client = @form.client
+    if can_view_clients?
+      @form = assessment_scope.find(params.require(:id).to_i)
+      @client = @form.client
+    else
+      @client = client_scope.find(params[:client_id].to_i)
+      if @client&.consent_form_valid?
+        @form = assessment_scope.find(params.require(:id).to_i)
+      else
+        @form = assessment_scope.new
+      end
+    end
+    render 'assessment_form'
+  end
+
+  def health_assessment
+    if can_view_patients_for_own_agency?
+      @form = health_assessment_scope.find(params.require(:id).to_i)
+      @client = @form.client
+    else
+      @form = health_assessment_scope.new
+    end
     render 'assessment_form'
   end
 
@@ -98,25 +123,45 @@ class ClientsController < ApplicationController
   def unmerge
     begin
       to_unmerge = client_params['unmerge'].reject(&:empty?)
+      hmis_receiver = client_params['hmis_receiver']
+      health_receiver = client_params['health_receiver']
       unmerged = []
       @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
       # FIXME: Transaction kills this for some reason
       # GrdaWarehouse::Hud::Base.transaction do
-        Rails.logger.info to_unmerge.inspect
-        to_unmerge.each do |id|
-          c = client_source.find(id)
-          if c.warehouse_client_source.present?
-            c.warehouse_client_source.delete
-          end
-          destination_client = c.dup
-          destination_client.data_source = @dnd_warehouse_data_source
-          destination_client.save
-          GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-          unmerged << c.full_name
-        # end
-        Rails.logger.info '@client.invalidate_service_history'
-        @client.invalidate_service_history
+      Rails.logger.info "Unmerging #{to_unmerge.inspect}"
+      to_unmerge.each do |id|
+        c = client_source.find(id)
+        if c.warehouse_client_source.present?
+          c.warehouse_client_source.destroy
+        end
+        destination_client = c.dup
+        destination_client.data_source = @dnd_warehouse_data_source
+        destination_client.save
+
+        receive_hmis = hmis_receiver == id
+        receive_health = health_receiver == id
+        GrdaWarehouse::ClientSplitHistory.create(
+          split_from: @client.id,
+          split_into: destination_client.id,
+          receive_hmis: receive_hmis,
+          receive_health: receive_health,
+        )
+
+        GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
+
+        if receive_hmis
+          destination_client.move_dependent_hmis_items(@client.id, destination_client.id)
+        end
+        if receive_health
+          destination_client.move_dependent_health_items(@client.id, destination_client.id)
+        end
+
+        unmerged << c.full_name
       end
+      Rails.logger.info '@client.invalidate_service_history'
+      @client.invalidate_service_history
+      # end
 
       Importing::RunAddServiceHistoryJob.perform_later
       redirect_to({action: :edit}, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
@@ -136,10 +181,11 @@ class ClientsController < ApplicationController
     end
   end
 
+  # This is only valid for Potentially chronic (not HUD Chronic)
   def chronic_days
     days = @client.
       chronics.
-      #where(date: 1.year.ago.to_date..Date.today).
+      #where(date: 1.year.ago.to_date..Date.current).
       order(date: :asc).
       map do |c|
         [c[:date], c[:days_in_last_three_years]]
@@ -159,7 +205,12 @@ class ClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    send_data @client.image(max_age), type: MimeMagic.by_magic(@client.image), disposition: 'inline'
+    image = @client.image(max_age)
+    if image && ! Rails.env.test?
+      send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
+    else
+      head :forbidden and return
+    end
   end
 
   protected def client_source
@@ -167,7 +218,9 @@ class ClientsController < ApplicationController
   end
 
   private def client_scope
-    client_source.destination
+    client_source.destination.
+      joins(source_clients: :data_source).
+      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
   end
 
   private def project_scope
@@ -175,7 +228,7 @@ class ClientsController < ApplicationController
   end
 
   private def service_history_service_scope
-    GrdaWarehouse::ServiceHistory.service
+    GrdaWarehouse::ServiceHistoryService
   end
 
   private def set_client_start_date
@@ -190,13 +243,27 @@ class ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
+        :hmis_receiver,
+        :health_receiver,
         merge: [],
         unmerge: []
       )
   end
 
   def client_search_scope
-    client_source.source
+    client_source.searchable.joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+  end
+
+  private def assessment_scope
+    if can_view_clients?
+      GrdaWarehouse::HmisForm
+    else
+      GrdaWarehouse::HmisForm.window_with_details
+    end
+  end
+
+  private def health_assessment_scope
+    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client
@@ -209,7 +276,7 @@ class ClientsController < ApplicationController
   helper_method :dp
 
   def user_can_view_confidential_names?
-    can_view_projects?
+    can_view_projects? && can_view_clients?
   end
 
 end

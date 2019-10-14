@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   class Enrollment < Base
     include ArelHelper
@@ -115,6 +121,153 @@ module GrdaWarehouse::Hud
           :DateDeleted,
           :ExportID
         ].freeze
+      when '6.11', '6.12'
+        [
+          :EnrollmentID,
+          :PersonalID,
+          :ProjectID,
+          :EntryDate,
+          :HouseholdID,
+          :RelationshipToHoH,
+          :LivingSituation,
+          :LengthOfStay,
+          :LOSUnderThreshold,
+          :PreviousStreetESSH,
+          :DateToStreetESSH,
+          :TimesHomelessPastThreeYears,
+          :MonthsHomelessPastThreeYears,
+          :DisablingCondition,
+          :DateOfEngagement,
+          :MoveInDate,
+          :DateOfPATHStatus,
+          :ClientEnrolledInPATH,
+          :ReasonNotEnrolled,
+          :WorstHousingSituation,
+          :PercentAMI,
+          :LastPermanentStreet,
+          :LastPermanentCity,
+          :LastPermanentState,
+          :LastPermanentZIP,
+          :AddressDataQuality,
+          :DateOfBCPStatus,
+          :EligibleForRHY,
+          :ReasonNoServices,
+          :RunawayYouth,
+          :SexualOrientation,
+          :FormerWardChildWelfare,
+          :ChildWelfareYears,
+          :ChildWelfareMonths,
+          :FormerWardJuvenileJustice,
+          :JuvenileJusticeYears,
+          :JuvenileJusticeMonths,
+          :UnemploymentFam,
+          :MentalHealthIssuesFam,
+          :PhysicalDisabilityFam,
+          :AlcoholDrugAbuseFam,
+          :InsufficientIncome,
+          :IncarceratedParent,
+          :ReferralSource,
+          :CountOutreachReferralApproaches,
+          :UrgentReferral,
+          :TimeToHousingLoss,
+          :ZeroIncome,
+          :AnnualPercentAMI,
+          :FinancialChange,
+          :HouseholdChange,
+          :EvictionHistory,
+          :SubsidyAtRisk,
+          :LiteralHomelessHistory,
+          :DisabledHoH,
+          :CriminalRecord,
+          :SexOffender,
+          :DependentUnder6,
+          :SingleParent,
+          :HH5Plus,
+          :IraqAfghanistan,
+          :FemVet,
+          :HPScreeningScore,
+          :ThresholdScore,
+          :VAMCStation,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
+      when '2020'
+        [
+          :EnrollmentID,
+          :PersonalID,
+          :ProjectID,
+          :EntryDate,
+          :HouseholdID,
+          :RelationshipToHoH,
+          :LivingSituation,
+          :LengthOfStay,
+          :LOSUnderThreshold,
+          :PreviousStreetESSH,
+          :DateToStreetESSH,
+          :TimesHomelessPastThreeYears,
+          :MonthsHomelessPastThreeYears,
+          :DisablingCondition,
+          :DateOfEngagement,
+          :MoveInDate,
+          :DateOfPATHStatus,
+          :ClientEnrolledInPATH,
+          :ReasonNotEnrolled,
+          :WorstHousingSituation,
+          :PercentAMI,
+          :LastPermanentStreet,
+          :LastPermanentCity,
+          :LastPermanentState,
+          :LastPermanentZIP,
+          :AddressDataQuality,
+          :DateOfBCPStatus,
+          :EligibleForRHY,
+          :ReasonNoServices,
+          :RunawayYouth,
+          :SexualOrientation,
+          :SexualOrientationOther,
+          :FormerWardChildWelfare,
+          :ChildWelfareYears,
+          :ChildWelfareMonths,
+          :FormerWardJuvenileJustice,
+          :JuvenileJusticeYears,
+          :JuvenileJusticeMonths,
+          :UnemploymentFam,
+          :MentalHealthIssuesFam,
+          :PhysicalDisabilityFam,
+          :AlcoholDrugAbuseFam,
+          :InsufficientIncome,
+          :IncarceratedParent,
+          :ReferralSource,
+          :CountOutreachReferralApproaches,
+          :UrgentReferral,
+          :TimeToHousingLoss,
+          :ZeroIncome,
+          :AnnualPercentAMI,
+          :FinancialChange,
+          :HouseholdChange,
+          :EvictionHistory,
+          :SubsidyAtRisk,
+          :LiteralHomelessHistory,
+          :DisabledHoH,
+          :CriminalRecord,
+          :SexOffender,
+          :DependentUnder6,
+          :SingleParent,
+          :HH5Plus,
+          :IraqAfghanistan,
+          :FemVet,
+          :HPScreeningScore,
+          :ThresholdScore,
+          :VAMCStation,
+          :DateCreated,
+          :DateUpdated,
+          :UserID,
+          :DateDeleted,
+          :ExportID,
+        ].freeze
       else
         [
           :EnrollmentID,
@@ -194,9 +347,9 @@ module GrdaWarehouse::Hud
     alias_attribute :date, :EntryDate
 
     belongs_to :data_source, inverse_of: :enrollments, autosave: false
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :enrollments, autosave: false
-    belongs_to :export, **hud_belongs(Export), inverse_of: :enrollments, autosave: false
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments, autosave: false
+    belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments
+    belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :enrollments
     has_one :organization, through: :project, autosave: false
 
     has_many :enrollment_extras, class_name: 'GrdaWarehouse::EnrollmentExtra', dependent: :destroy, inverse_of: :enrollment
@@ -205,23 +358,66 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :client, autosave: false
 
     # Client-Enrollment related relationships
-    has_one :exit,  class_name: GrdaWarehouse::Hud::Exit.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment, autosave: false
-    has_many :disabilities, class_name: GrdaWarehouse::Hud::Disability.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :health_and_dvs, class_name: GrdaWarehouse::Hud::HealthAndDv.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :income_benefits, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :services, class_name: GrdaWarehouse::Hud::Service.name, foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], primary_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :enrollment_cocs, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
-    has_many :employment_educations, class_name: GrdaWarehouse::Hud::EmploymentEducation.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], inverse_of: :enrollment
+    has_one :exit, **hud_enrollment_belongs('Exit'), inverse_of: :enrollment
+    has_many :disabilities, **hud_enrollment_belongs('Disability'), inverse_of: :enrollment
+    has_many :health_and_dvs, **hud_enrollment_belongs('HealthAndDv'), inverse_of: :enrollment
+    has_many :income_benefits, **hud_enrollment_belongs('IncomeBenefit'), inverse_of: :enrollment
+    has_many :services, **hud_enrollment_belongs('Service'), inverse_of: :enrollment
+    has_many :enrollment_cocs, **hud_enrollment_belongs('EnrollmentCoc'), inverse_of: :enrollment
+    has_many :employment_educations, **hud_enrollment_belongs('EmploymentEducation'), inverse_of: :enrollment
+    has_many :events, **hud_enrollment_belongs('Event'), inverse_of: :enrollment
+    has_many :assessments, **hud_enrollment_belongs('Assessment'), inverse_of: :enrollment
+    has_many :direct_assessment_questions, **hud_enrollment_belongs('AssessmentQuestion'), inverse_of: :enrollment
+    has_many :assessment_questions, through: :assessments
+    has_many :direct_assessment_results, **hud_enrollment_belongs('AssessmentResult'), inverse_of: :enrollment
+    has_many :assessment_results, through: :assessments
 
-    has_one :enrollment_coc_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::EnrollmentCoc.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_entry, -> {where(DataCollectionStage: 1)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_one :income_benefits_at_exit, -> {where(DataCollectionStage: 3)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], autosave: false
-    has_many :income_benefits_annual_update, -> {where(DataCollectionStage: 5)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
-    has_many :income_benefits_update, -> {where(DataCollectionStage: 2)}, class_name: GrdaWarehouse::Hud::IncomeBenefit.name, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
+    has_one :enrollment_coc_at_entry, -> do
+      where(DataCollectionStage: 1)
+    end, **hud_enrollment_belongs('EnrollmentCoc')
+
+    # Income benefits at various stages
+    has_one :income_benefits_at_entry, -> do
+      at_entry
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_one :income_benefits_at_entry_all_sources_refused, -> do
+      at_entry.all_sources_refused
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_one :income_benefits_at_entry_all_sources_missing, -> do
+      at_entry.all_sources_missing
+    end, **hud_enrollment_belongs('IncomeBenefit')
+
+    has_one :income_benefits_at_exit, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_one :income_benefits_at_exit_all_sources_refused, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_refused
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_one :income_benefits_at_exit_all_sources_missing, -> do
+      GrdaWarehouse::Hud::IncomeBenefit.at_exit.all_sources_missing
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_annual_update, -> do
+      at_annual_update
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_annual_update_all_sources_refused, -> do
+      at_annual_update.all_sources_refused
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_annual_update_all_sources_missing, -> do
+      at_annual_update.all_sources_missing
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_update, -> do
+      at_update
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_update_all_sources_refused, -> do
+      at_update.all_sources_refused
+    end, **hud_enrollment_belongs('IncomeBenefit')
+    has_many :income_benefits_update_all_sources_missing, -> do
+      at_update.all_sources_missing
+    end, **hud_enrollment_belongs('IncomeBenefit')
+
+
     # NOTE: you will want to limit this to a particular record_type
-    has_many :service_histories, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], inverse_of: :enrollment
-    has_one :service_history_entry, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistory.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
-    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+    has_one :service_history_enrollment, -> {where(record_type: :entry)}, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
 
     scope :residential, -> do
       joins(:project).merge(Project.residential)
@@ -256,6 +452,9 @@ module GrdaWarehouse::Hud
     scope :hud_non_residential, -> do
       joins(:project).merge(Project.hud_non_residential)
     end
+    scope :with_project_type, -> (project_types) do
+      joins(:project).merge(Project.with_project_type(project_types))
+    end
 
     scope :visible_in_window_to, -> (user) do
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
@@ -275,10 +474,14 @@ module GrdaWarehouse::Hud
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :open_on_date, -> (date=Date.today) do
+    scope :open_on_date, -> (date=Date.current) do
       range = ::Filters::DateRange.new(start: date, end: date)
       open_during_range(range)
     end
+
+    scope :heads_of_households, -> {
+      where(RelationshipToHoH: 1)
+    }
 
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 
@@ -309,6 +512,13 @@ module GrdaWarehouse::Hud
 
     # End Standard Demographic Scopes
     #################################
+
+    def self.related_item_keys
+      [
+        :PersonalID,
+        :ProjectID,
+      ]
+    end
 
     def self.youth_columns
       {
@@ -369,85 +579,90 @@ module GrdaWarehouse::Hud
       return nil
     end
 
-    def days_served
-      client.destination_client.service_history.where(record_type: 'service', enrollment_group_id: self.EnrollmentID).select(:date).distinct
-    end
+    # Removed 8/14/2019
+    # def days_served
+    #   client.destination_client.service_history_enrollment.entry.
+    #     joins(:service_history_services).
+    #     where(enrollment_group_id: self.EnrollmentID).
+    #     merge(GrdaWarehouse::ServiceHistoryservice.where(record_type: 'service')).
+    #     select(:date).distinct
+    # end
     # If another enrollment with the same project type starts before this ends,
-    # Only count days in this enrollment that occured before the other starts
-    def adjusted_days
-      non_overlapping_days( Project.arel_table[:ProjectType].eq self.project.ProjectType )
-    end
+    # Only count days in this enrollment that occurred before the other starts
+    # Removed 8/14/2019
+    # def adjusted_days
+    #   non_overlapping_days( Project.arel_table[:ProjectType].eq self.project.ProjectType )
+    # end
 
     # days served for this enrollment that will not be assigned to some other enrollment as selected by the condition parameter
-    def non_overlapping_days(condition)
-      ds = days_served
-      et = Enrollment.arel_table
-      st = ds.engine.arel_table
-      conflicting_enrollments = client.destination_client.source_enrollments.joins(:project).
-        where(condition).
-        where( et[:id].not_eq self.id ).
-        where(
-          et[:EntryDate].between( self.EntryDate + 1.day .. exit_date ).
-          or(
-            et[:EntryDate].eq(self.EntryDate).and( et[:id].lt self.id )   # if they start on the same day, the earlier-id enrollments get to count the day
-          )
-        )
-      ds.where.not(
-        date: ds.engine.service.joins(:enrollment).merge(conflicting_enrollments).select(st[:date])
-      )
-    end
+    # Removed 8/14/2019
+    # def non_overlapping_days(condition)
+    #   ds = days_served
+    #   et = Enrollment.arel_table
+    #   st = ds.engine.arel_table
+    #   conflicting_enrollments = client.destination_client.source_enrollments.joins(:project).
+    #     where(condition).
+    #     where( et[:id].not_eq self.id ).
+    #     where(
+    #       et[:EntryDate].between( self.EntryDate + 1.day .. exit_date ).
+    #       or(
+    #         et[:EntryDate].eq(self.EntryDate).and( et[:id].lt self.id )   # if they start on the same day, the earlier-id enrollments get to count the day
+    #       )
+    #     )
+    #   ds.where.not(
+    #     date: ds.engine.service.joins(:enrollment).merge(conflicting_enrollments).select(st[:date])
+    #   )
+    # end
 
     def exit_date
       @exit_date ||= if exit.present?
         exit.ExitDate
       else
-        Date.today
+        Date.current
       end
     end
 
-    def homeless?
-      project.ProjectType.in? Project::CHRONIC_PROJECT_TYPES
-    end
-
-    # days when the user is in a homeless project and *not* in a residential project
-    # an enrollment gets credit for its days preceding the beginning of another enrollment regardless
-    # of overlap with a preceding enrollment
-    def days_homeless
-      if homeless?
-        non_overlapping_days( Project.arel_table[:ProjectType].in Project::RESIDENTIAL_PROJECT_TYPE_IDS )
-      else
-        self.class.none
-      end
-    end
-
-    def most_recent_service_date
-      days_served.maximum(:date)
-    end
-
-    # If we haven't been in a homeless project type in the last 30 days, this is a new episode
-    # If we don't currently have a non-homeless residential enrollment and we have had one for the past 90 days, this is a new episode
+    # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
+    # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode?
       return false unless GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(self.project.ProjectType)
       thirty_days_ago = self.EntryDate - 30.days
       ninety_days_ago = self.EntryDate - 90.days
-      no_other_homeless = ! client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: thirty_days_ago...self.EntryDate)
-        .where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
-        .where.not(enrollment_group_id: self.EnrollmentID)
-        .exists?
 
       non_homeless_residential = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-      current_residential = client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: self.EntryDate)
-        .where(project_type: non_homeless_residential).exists?
-      residential_for_past_90_days = client.destination_client.service_history
-        .where(record_type: 'service')
-        .where(date: ninety_days_ago...self.EntryDate)
-        .where(project_type: non_homeless_residential)
-        .count >= 90
-      no_other_homeless || (! current_residential && residential_for_past_90_days)
+      currently_housed = client.destination_client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service', date: self.EntryDate
+          )
+        ).
+        where(project_type: non_homeless_residential).exists?
+
+      housed_for_week_in_past_90_days = client.destination_client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service', date: (ninety_days_ago...self.EntryDate)
+          )
+        ).
+        where(project_type: non_homeless_residential).
+        count >= 7
+
+      other_homeless = client.destination_client.service_history_enrollments.
+        joins(:service_history_services).
+        merge(
+          GrdaWarehouse::ServiceHistoryService.where(
+            record_type: 'service',
+            date: thirty_days_ago...self.EntryDate
+          )
+        ).
+        where(project_type: GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES).
+        where.not(enrollment_group_id: self.EnrollmentID).
+        exists?
+      return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
+
+      return ! other_homeless
     end
   end # End Enrollment
 end

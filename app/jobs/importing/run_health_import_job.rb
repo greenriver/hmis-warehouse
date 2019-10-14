@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Importing
   class RunHealthImportJob < BaseJob
     queue_as :low_priority
@@ -13,18 +19,17 @@ module Importing
       end
       Health::Patient.update_demographic_from_sources
 
-      if change_counts.values.sum > 0
-        User.can_administer_health.each do |user|
-          HealthConsentChangeMailer.consent_changed(
-            new_patients: change_counts[:new_patients],
-            consented: change_counts[:consented],
-            revoked_consent: change_counts[:revoked_consent],
-            unmatched: change_counts[:unmatched],
-            user: user
-          ).deliver_later
-        end
+      return unless change_counts.values.sum.positive?
+
+      User.can_administer_health.each do |user|
+        HealthConsentChangeMailer.consent_changed(
+          new_patients: change_counts[:new_patients],
+          consented: change_counts[:consented],
+          revoked_consent: change_counts[:revoked_consent],
+          unmatched: change_counts[:unmatched],
+          user: user,
+        ).deliver_later
       end
     end
-
   end
 end

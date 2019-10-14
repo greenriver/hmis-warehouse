@@ -1,0 +1,99 @@
+// colors
+$light-body-text: lighten(#404040, 40%) !default;
+
+$white: rgba(255, 255, 255, 1) !default;
+$gray-015: rgb(242, 242, 242) !default; // #f2f2f2 COB-sg lightest gray (bg)
+$gray-020: rgb(233, 231, 237) !default; // #E9E7ED
+$gray-025: rgb(228, 228, 228) !default; // #e4e4e4 COB-sg 2nd-to-lightest gray
+$gray-030: rgb(216, 213, 219) !default; // #D8D5DB
+$gray-034: rgb(210, 210, 210) !default; // #d2d2d2 COB-sg 2nd darkest gray
+$gray-040: rgb(196, 193, 199) !default; // #C4C1C7
+$gray-050: rgb(158, 156, 161) !default; // #9E9CA1
+$gray-060: rgb(130, 130, 130) !default; // #828282 COB-sg darkest gray (body)
+$gray-065: rgb(102, 102, 102) !default; // #666
+$gray-070: rgb(64, 64, 64) !default; // #404040
+$gray-080: rgb(51, 51, 51) !default; // #333
+$black: rgba(0, 0, 0, 1) !default;
+
+$gray-base:              #000 !default;
+$gray-darker:            lighten($gray-base, 13.5%) !default; // #222
+$gray-dark:              lighten($gray-base, 20%) !default;   // #333
+$gray:                   lighten($gray-base, 33.5%) !default; // #555
+$gray-light:             lighten($gray-base, 46.7%) !default; // #777
+$gray-lighter:           lighten($gray-base, 93.5%) !default; // #eee
+
+$brand-primary:         #457687 !default;
+$brand-primary-l:       #81adb9 !default;
+$brand-primary-ll:      #d8e7ea !default;
+$brand-primary-d:       darken($brand-primary, 5%) !default;
+$brand-secondary:       #7D5226 !default;
+$brand-secondary-l:     lighten($brand-secondary, 25%) !default;
+$brand-success:         #009f44 !default;
+$brand-success-l:       #81e7a7 !default;
+$brand-success-ll:      lighten($brand-success-l, 25%) !default;
+$brand-success-d:       #68c27f !default;
+$brand-positive:        $brand-success !default;
+$brand-positive-l:      $brand-success-l !default;
+$brand-info:            $brand-primary-ll !default;
+$brand-warning:         #bc6923 !default;
+$brand-warning-l:       #ffcb9b !default;
+$brand-warning-d:       #e5b17e !default;
+$brand-danger:          #bb2716 !default;
+$brand-danger-d:        #df9489 !default;
+$brand-danger-l:        #ffa69b !default;
+
+// COB-sg colors
+$cob-sg-freedom-trail-red: rgb(251, 77, 66) !default; // #FB4D42
+$cob-sg-charles-blue: rgb(9, 31, 47) !default; // #091F2F
+$cob-sg-optimistic-blue: rgb(40, 139, 238) !default; // #288BE4
+// supporting blues
+$cob-sg-blue-002: #061622 !default;
+$cob-sg-blue-003: #0C2639 !default;
+$cob-sg-blue-004: #45789C !default; // desaturated
+$cob-sg-blue-005: #51ACFF !default; // brightest for blue on dark bg
+$cob-sg-blue-006: #495F79 !default; // action button
+
+$link-blue: #288BEE !default; //rgb(40,139,238)
+
+// initial cas colors from GR
+// $cas-blue: rgb(73, 95, 121); // #495F79
+$cas-blue: $cob-sg-charles-blue !default;
+$cas-red: rgb(119, 55, 71) !default; // #773747
+$cas-green: rgb(50, 88, 71) !default; // #495F79
+$cas-red-green: rgb(231, 223, 221) !default; // #E7DFDD
+
+// additional cas colors
+$cas-blue-007: #90A4BC !default;
+
+// Data Source Colors
+$dnd: rgb(86, 114, 170) !default; // #5672AA
+$bphc: rgb(45, 118, 124) !default; // #2D767C
+$nechv: rgb(112, 76, 112) !default; // #704C70
+$ma-state: rgb(120, 115, 39) !default; // #787327
+$vi-spdat: rgb(147, 12, 0) !default;
+// next rgb(143, 78, 69); // #8F4E45
+
+// Tables
+$table-border-color: #DDDDDD !default;
+$table-cell-bg-positive: lighten($brand-success-l, 25%);
+$table-cell-bg-warning: lighten($brand-warning-l, 25%);
+$table-cell-bg-danger: lighten($brand-danger-l, 25%);
+
+// Tabs
+$tab-bg: #88A6C9 !default; // Primary in HMIS
+
+// Modals
+$modal-header-bg: $gray-015;
+$modal-border: $gray-025;
+$modal-content-bg: lighten($gray-015, 3%);
+
+$theme-colors: (
+  "primary":    $brand-primary,
+  "secondary":  $brand-secondary,
+  "success":    $brand-success,
+  "info":       $brand-info,
+  "warning":    $brand-warning,
+  "danger":     $brand-danger,
+  "light":      $white,
+  "dark":       $gray-080
+);

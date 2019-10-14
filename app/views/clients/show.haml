@@ -1,4 +1,4 @@
-- title = "#{@client.full_name}"
+- title = @client.full_name
 - content_for :title, title
 :css
   .rollup-container:empty:after {
@@ -11,7 +11,7 @@
   .o-page__header.d-block
     .row
       .col-sm-10
-        = render 'window/clients/aliases'
+        = render 'clients/aliases'
       .col-sm-2.text-right
         .o-page__action.d-block
           - if can_track_anomalies?
@@ -20,75 +20,23 @@
   = render 'tab_navigation', current: client_path(@client)
   %section.o-dashboard__block--primary.client__summary
     = render 'client_summary'
+  - if can_view_clients?
+    = render 'rollups'
+  - else
+    = render 'rollups_limited'
 
-  %section.row.o-dashboard__block--primary
-    .col-sm-12
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :demographics}}
-        %header
-          %h1.h3 Demographics
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'special-populations'}}
-        %header
-          %h1.h3 Special Populations
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
-        %header
-          %h1.h3 Residential Enrollments
-          .ml-2
-            = link_to enrollment_history_index_path(@client) do
-              %i.icon-settings_backup_restore
-          .c-color-key.ml-auto
-            %span.c-color-key__swatch.enrollment__new-episode--key
-            %span.c-color-key__title New Episode
-
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
-        %header
-          %h1.h3 Other Enrollments
-      - if GrdaWarehouse::Config.get(:eto_api_available)
-        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :assessments}}
-          %header
-            %h1.h3 Assessments
-
-  %section.row.o-dashboard__block--primary
-    .col-sm-6
-      - if GrdaWarehouse::Config.get(:eto_api_available)
-        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :contact_information}}
-          %header
-            %h1.h3 Contact Information
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :services}}
-        %header
-          %h1.h3 Services &mdash; Aggregated Bed Register
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-full'}}
-        %header
-          %h1.h3 Services &mdash; Full Bed Register
-    .col-sm-6
-      - if GrdaWarehouse::Config.get(:eto_api_available)
-        %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'case_manager'}}
-          %header
-            %h1.h3 Case Manager
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'zip-map'}}
-        %header
-          %h1.h3 Zip Code of Last Permanent Address
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'zip-details'}}
-        %header
-          %h1.h3 Zip Details
-    .col-sm-12
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
-        %header
-          %h1.h3 Income and Benefits
-
-
-  %section.row.o-dashboard__block--primary
-    .col-sm-12
-      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disability-types'}}
-        %header
-          %h1.h3 Disability Types
   #scratchpad
 
   -# load in all the bits of aggregate statistics via ajax
   = content_for :page_js do
     - source_clients = @client.source_clients.preload(:data_source, :organizations)
+    - if can_view_clients?
+      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h
+    - else
+      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map{ |o| o.name unless source_clients.joins(enrollments: :project).where(Project: {OrganizationID: o.OrganizationID, data_source_id: o.data_source_id}).where(Project: {confidential: true}).any?}.to_sentence] ] }.to_h
     :javascript
-      var rollupPath = #{rollup_client_path(@client).to_json};
-      var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
+      var rollupPath = #{rollup_client_path(@client, partial: '').to_json};
+      var clients = #{js_clients.to_json};
       var manyClients = #{source_clients.many?.to_json};
       var high = #{@client.source_clients.size + 1};
       var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);

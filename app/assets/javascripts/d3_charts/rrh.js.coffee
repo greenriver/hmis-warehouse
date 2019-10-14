@@ -58,7 +58,7 @@ class App.D3Chart.RRHCharts
 
   _getProgramData: () ->
     path = @button.data('path')
-    @container.html("<div class='text-center margin-top-04'><div class='c-spinner c-spinner--gray'></div></div>")
+    @container.html("<div class='text-center mt-4'><div class='c-spinner c-spinner--gray'></div></div>")
     $('#rrh-report__loading').show()
     $.get(path, {program_1_id: @program_1.val(), program_2_id: @program_2.val()}, (response) =>
       console.log('Loading charts')

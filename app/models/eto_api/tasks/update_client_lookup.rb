@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 require 'gmail'
 require 'csv'
 # Fix for bug in imap date conversion
@@ -33,7 +39,7 @@ module EtoApi::Tasks
       @csv = CSV.parse(data, headers: true, return_headers: false)
       unless @csv.first.headers == @expected_headers
         logger.warn "CSV file does not appear valid, found:"
-        logger.warn @csv.first.inspect
+        logger.warn @csv.first.headers.inspect
         logger.warn "expected:"
         logger.warn @expected_headers.inspect
         return nil

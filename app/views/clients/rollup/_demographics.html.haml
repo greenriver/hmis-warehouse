@@ -13,6 +13,7 @@
         %th Veteran Status
         %th
         %th
+        %th
     %tbody
       %tr
         %td.id_sqr.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
@@ -30,10 +31,13 @@
         %td= @client.race_fields.map{ |f| HUD::race f }.join ', '
         %td= HUD::ethnicity @client.Ethnicity
         %td= HUD::no_yes_reasons_for_missing_data @client.VeteranStatus
-      - if controller_path.include?('window')
-        - source_clients = @client.source_clients.visible_in_window_to(current_user)
-      - else
+        %td{colspan: 3}
+
+      - if current_user.can_view_clients?
         - source_clients = @client.source_clients
+      - else
+        - source_clients = @client.source_clients.visible_in_window_to(current_user)
+
       - source_clients.each do |client|
         = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids
 

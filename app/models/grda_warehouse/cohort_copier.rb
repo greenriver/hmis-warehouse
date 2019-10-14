@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class CohortCopier
 
@@ -21,6 +27,8 @@ module GrdaWarehouse
               notes = GrdaWarehouse::CohortClientNote.where(cohort_client_id: original_cohort_client_id)
               notes.each do |note|
                 new_note = note.dup
+                new_note.created_at = note.created_at
+                new_note.updated_at = note.updated_at
                 new_note.cohort_client_id = client.id
                 new_note.save!
               end

@@ -18,8 +18,8 @@ class AddPatientReferralReport < ActiveRecord::Migration
           report_group: group,
           url: report[:url],
           name: report[:name],
-          description: report[:description],
-          limitable: report[:limitable],
+          description: report[:description]
+          #limitable: report[:limitable],
         )
       end
     end

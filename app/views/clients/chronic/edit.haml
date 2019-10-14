@@ -1,6 +1,6 @@
 - title = "Chronic Details"
 - content_for :title, title
-= render 'window/clients/aliases'
+= render 'clients/aliases'
 = render 'clients/tab_navigation', current: edit_client_chronic_path(@client)
 %h1= content_for :title
 = render 'clients/breadcrumbs'
@@ -9,9 +9,10 @@
   = render 'clients/chronic_flags', client: @client
 .row
   .col-sm-6
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_days}}
-      %header
-        %h1.h3 Chronic Days
+    - if GrdaWarehouse::Config.get(:chronic_definition).to_sym == :chronics
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :chronic_days}}
+        %header
+          %h1.h3 Chronic Days
     = render "chronic_calculator", date: @date
   .col-sm-6
     =render "clients/note_form"
@@ -29,7 +30,7 @@
 = content_for :page_js do
   - source_clients = @client.source_clients.preload(:data_source, :organizations)
   :javascript
-    var rollupPath = #{rollup_client_path(@client).to_json};
+    var rollupPath = #{rollup_client_path(@client, partial: '').to_json};
     var clients = #{source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h.to_json};
     var manyClients = #{source_clients.many?.to_json};
     var high = #{@client.source_clients.size + 1};

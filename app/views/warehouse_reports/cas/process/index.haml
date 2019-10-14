@@ -9,17 +9,7 @@
       %strong Please note:
       The list of steps in the second drop-down are limited to those that proceed the steps in the first drop-down.  If you don't see the step in the second drop-down that you are looking for, you may need to change the first option and click update.
     = simple_form_for @step_range, as: :steps, url: warehouse_reports_cas_process_index_path, html: { method: :get } do |f|
-      .form-group
-        %p
-          Limit to matches created within a date range.
-          = render 'filter', f: f
-        .row
-          .col-sm-5
-            = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
-          .col-sm-5
-            = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
-          .col-sm-2
-            = f.submit 'Update', class: 'btn btn-primary mt-no-label'
+      = render 'filter', f: f
 
 - if @matches.any?
   .row
@@ -29,16 +19,16 @@
         %strong #{@step_range.first}
         and
         %strong #{@step_range.second}.
-    .col-sm-2
-      .pull-right
-        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
-          Download Excel
-  %table.table.table-condensed
+    .col-sm-2.ml-auto
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
+  %table.table.table-hover
     %thead
       %tr
         %th Program
         %th Sub-Program
         %th Days Between Steps
+        %th Route
         %th Terminal Step
         %th Terminal Date
         %th Result
@@ -50,9 +40,9 @@
           %td= match.program_name
           %td= match.sub_program_name
           %td= match.days
+          %td= match.match_route
           %td= terminal_step&.match_step
           %td= terminal_step&.updated_at&.to_date
           %td= terminal_step&.terminal_status
           %td
             = link_to match.id, "#{GrdaWarehouse::Config.get(:cas_url)}/matches/#{match.id}", target: "_blank"
-

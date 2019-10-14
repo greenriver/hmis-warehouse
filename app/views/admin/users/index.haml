@@ -6,19 +6,20 @@
 = render :partial => 'menus/admin_tabs'
 .o-page
   .o-page__header
+    - @prompt = t '.search_prompt'
+
+    .o-page__controls
+      .o-page__search
+        = render 'search_form'
     .o-page__action.o-page__action--stacked
-      = link_to new_user_invitation_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+      = link_to new_user_invitation_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-plus
         Add a User Account
       = link_to 'Manage Roles', admin_roles_path
-  - @prompt = t '.search_prompt'
-
-  .o-page__controls
-    .o-page__search
-      = render 'search_form'
+      = link_to 'Manage Agencies', admin_agencies_path
 
 %ul.nav.nav-tabs
-  %li.nav-item.active
+  %li.nav-item
     %a.nav-link.active{href: '#active', role: "presentation", data: {toggle: :tab}}
       Active Accounts
   %li.nav-item
@@ -37,7 +38,7 @@
     .row
       .col-sm-12
         .table-responsive
-          %table.table.table-condensed
+          %table.table.table-sm
             %thead
               %tr
                 - titles.each do | k, title |
@@ -48,6 +49,7 @@
                 %th Roles
                 %th
                 %th
+                %th
             %tbody
               - @users.each do |user|
                 %tr
@@ -55,31 +57,40 @@
                   %td= user.first_name
                   %td
                     = user.email
+                    - if user.agency
+                      .user__agency
+                        %em.text-muted= user.agency.name
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
-                    = link_to admin_user_audit_path(user) do
-                      %span.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+                    = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                      %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
                   %td
-                    = link_to action: :edit, id: user do
-                      %span.icon-pencil
+                    = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
+                      %i.icon-pencil
                       Edit
-                  %td
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"} do
-                      %span.icon-cross
-                      Delete
+                  %td{style: 'white-space: nowrap;'}
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
+                      %i.icon-cross
+                      De-Activate
 
         %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
   .tab-pane#inactive
     .table-responsive
-      %table.table.table-condensed
+      %table.table.table-sm
         %thead
           %tr
             %th Name
             %th Email
+            %th
         %tbody
           - @inactive_users.each do |user|
             %tr
-              %td= user.name
+              %td
+                = user.name
               %td
                 = user.email
+              %td
+                = simple_form_for(user, url: reactivate_admin_user_path(user)) do |f|
+                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                    Re-activate

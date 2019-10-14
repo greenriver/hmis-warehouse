@@ -1,5 +1,5 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: @data['title'].slice(0,30)) do |sheet|
+wb.add_worksheet(name: @data['title'].slice(0,30).gsub(':', ' ')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(@data['support']['headers'], :style => title)
   @data['support']['counts'].each do |row|

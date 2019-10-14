@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module CohortColumns
   class Base < ::ModelForm
     include ActionView::Helpers
@@ -12,6 +18,7 @@ module CohortColumns
     attribute :cohort_names
     attribute :cohort_client
     attribute :editable, Boolean, lazy: false, default: true
+    attribute :current_user
 
     def display_as_editable? user, cohort_client
       # cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible? && editable)

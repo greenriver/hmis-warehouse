@@ -1,11 +1,17 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
     include TsqlImport
     belongs_to :client
     validates_presence_of :on, :client_id
 
-    def self.generate_for_date!(date: Date.today)
-      range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
+    def self.generate_for_date!(date: Date.current)
+      range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
       GrdaWarehouse::Hud::Client.destination.distinct.
         joins(:source_enrollments).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
@@ -26,7 +32,7 @@ module GrdaWarehouse
 
     def self.attributes_for_client_on_date client:, date:
       attributes_for_client = {
-        client_id: client.id, 
+        client_id: client.id,
         on: date,
         created_at: Time.now,
         updated_at: Time.now,

@@ -1,0 +1,3 @@
+InventoryID,ProjectID,CoCCode,HouseholdType,Availability,UnitInventory,BedInventory,CHVetBedInventory,YouthVetBedInventory,VetBedInventory,CHYouthBedInventory,YouthBedInventory,CHBedInventory,OtherBedInventory,ESBedType,InventoryStartDate,InventoryEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,469,XX-500,1,1,50,50,,,,,0,,,,2013-01-01,2013-12-31,2017-04-0113:03:00,2017-04-0113:03:00,cordell,,77ebf652741208fa9a36c52556058416
+2,469,XX-500,1,1,50,50,,,,,,,,,2017-01-01,2017-12-31,2016-04-0113:03:00,2016-04-0113:03:00,cordell,,77ebf652741208fa9a36c52556058416

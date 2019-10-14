@@ -1,19 +1,25 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class RunEnrolledDisabledJob < BaseJob
-
     queue_as :enrolled_disabled_report
 
-    def perform params
+    def perform(params)
       report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new
       report.started_at = DateTime.now
       report.parameters = params
 
       @user = User.find(params[:current_user_id])
+
       report.user_id = @user.id
       report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
         [:all, 'All']
       else
-          GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
+        GrdaWarehouse::Hud::Project.viewable_by(@user).pluck(:id, :ProjectName)
       end
 
       filter_params = params[:filter]
@@ -22,18 +28,32 @@ module WarehouseReports
       if filter_params[:disabilities].empty?
         clients = client_source.none
       else
+        start_date = filter_params[:start].to_date
+        end_date = filter_params[:end].to_date
+
+        enrollment_scope = service_history_enrollment_source.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          in_project_type(filter_params[:project_types])
+
+        population = service_history_enrollment_source.know_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
+        enrollment_scope = enrollment_scope.send(population) if population.present?
+
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          where(Disabilities: {DisabilityType: filter_params[:disabilities], DisabilityResponse: [1,2,3]}).
-          where(Project: {project_source.project_type_column => filter_params[:project_types]}).
-          merge(service_history_enrollment_source.entry.ongoing.in_project_type(filter_params[:project_types])).
+          where(Disabilities: { DisabilityType: filter_params[:disabilities], DisabilityResponse: [1, 2, 3] }).
+          where(Project: { project_source.project_type_column => filter_params[:project_types] }).
+          merge(enrollment_scope).
           distinct.
-          includes(source_disabilities: :project).
+          includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
           order(LastName: :asc, FirstName: :asc)
       end
 
       data = clients.map do |client|
         disabilities = client.source_disabilities.map(&:disability_type_text).uniq
-        client.attributes.merge(disabilities: disabilities)
+        attrs = client.attributes.merge(disabilities: disabilities)
+
+        enrollments = client.source_enrollments.map(&:service_history_enrollment).compact
+        enrollment = enrollments.map { |r| r.attributes.compact }.reduce(&:merge)
+        attrs.merge(enrollment: enrollment)
       end
 
       report.client_count = clients.size
@@ -55,6 +75,5 @@ module WarehouseReports
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
     end
-
   end
 end

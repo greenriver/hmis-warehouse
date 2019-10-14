@@ -8,6 +8,7 @@ namespace :health do
   desc "Import and match health data"
   task daily: [:environment, "log:info_to_stdout"] do
     Importing::RunHealthImportJob.new.perform
+    Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
   end
 
   desc "Create Healthcare for the Homeless Data Source"
@@ -154,6 +155,16 @@ namespace :health do
 
       task :dump do
         Rake::Task["db:schema:dump"].invoke
+      end
+    end
+
+    namespace :structure do
+      task :load do
+        Rake::Task["db:structure:load"].invoke
+      end
+
+      task :dump do
+        Rake::Task["db:structure:dump"].invoke
       end
     end
 

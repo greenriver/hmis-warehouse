@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::WarehouseReports
   class InitiativeReport < Base
     include ArelHelper
@@ -545,7 +551,7 @@ module GrdaWarehouse::WarehouseReports
             label = age_bucket[:name].parameterize.underscore
             data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{label}"
             data[data_key] ||= []
-            age = GrdaWarehouse::Hud::Client.age(date: Date.today, dob: row[:dob])
+            age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: row[:dob])
             data[data_key] << row if age_bucket[:range].include?(age)
           end
         end
@@ -574,7 +580,7 @@ module GrdaWarehouse::WarehouseReports
             label = age_bucket[:name].parameterize.underscore
             data_key = "#{row[:project_id]}__#{label}"
             data[data_key] ||= []
-            age = GrdaWarehouse::Hud::Client.age(date: Date.today, dob: row[:dob])
+            age = GrdaWarehouse::Hud::Client.age(date: Date.current, dob: row[:dob])
             data[data_key] << row if age_bucket[:range].include?(age)
           end
         end

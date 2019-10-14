@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Censuses
   class CensusVeteran < ProjectTypeBase
     # JSON shape
@@ -30,7 +36,7 @@ module Censuses
     #   }
     # }
 
-    def for_date_range (start_date, end_date)
+    def for_date_range (start_date, end_date, user: nil)
       # Move the start of the range to include "yesterday"
       yesterday = nil
       adjusted_start_date = start_date.to_date - 1.day

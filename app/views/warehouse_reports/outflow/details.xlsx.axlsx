@@ -1,0 +1,34 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @report.metrics[@key].slice(0,30)) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'First Name',
+      'Last Name',
+      'Project Name',
+      'First Date In Program',
+      'Last Date In Program',
+      'Destination',
+    ],
+    :style => title,
+  )
+  @enrollments.keys.each do |client_id|
+    enrollments = @enrollments[client_id]
+    enrollments.each do |enrollment|
+      client = enrollment.client
+      sheet.add_row(
+        [
+          client.id,
+          client.FirstName,
+          client.LastName,
+          enrollment.project_name,
+          enrollment.service_type_brief,
+          enrollment.first_date_in_program,
+          enrollment.last_date_in_program,
+          HUD.destination(enrollment.destination)
+        ]
+      )
+    end
+  end
+end

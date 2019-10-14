@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse
   class Config < GrdaWarehouseBase
     serialize :client_details, Array
@@ -8,6 +14,7 @@ module GrdaWarehouse
       {
         'Use Available in CAS flag' => :cas_flag,
         'Use potentially chronic report' => :chronic,
+        'Use HUD chronic report' => :hud_chronic,
         'All clients with a release on file' => :release_present,
       }
     end
@@ -27,7 +34,32 @@ module GrdaWarehouse
     end
 
     def self.available_release_durations
-      ["Indefinite", "One Year"]
+      [
+        'Indefinite',
+        'One Year',
+        'Use Expiration Date',
+      ]
+    end
+
+    def self.available_chronic_definitions
+      {
+        "Potentially chronic" => :chronics,
+        "HUD definition" => :hud_chronics,
+      }
+    end
+
+    def self.available_vispdat_prioritization_schemes
+      {
+        'Length of time Homeless' => :length_of_time,
+        'Veteran status' => :veteran_status,
+      }
+    end
+
+    def self.available_days_homeless_sources
+      {
+        'Calculated days homeless' => :days_homeless,
+        'Calculated days homeless + verified additional days' => :days_homeless_plus_overrides,
+      }
     end
 
     def self.cache_store

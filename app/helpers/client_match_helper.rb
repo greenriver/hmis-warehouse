@@ -1,10 +1,16 @@
-module ClientMatchHelper
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
 
+module ClientMatchHelper
   def data_qaulity_warning(type, value)
-    return '' if value.blank? || [1,99].include?(value.to_i)
+    return '' if value.blank? || [1, 99].include?(value.to_i)
+
     label = HUD.send("#{type.downcase}_data_quality", value)
     content_tag :abbr, title: label do
-      "!!"
+      '!!'
     end
   end
 
@@ -20,13 +26,14 @@ module ClientMatchHelper
   end
 
   private def match_flag(score, exact_match, threshold: 2)
-    return '' unless score.present? or exact_match
+    return '' unless score.present? || exact_match
+
     # http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=5
-    color, icon, color2, title = if score.nil? || score.abs < threshold.abs/2
+    color, icon, color2, title = if score.nil? || score.abs < threshold.abs / 2
       ['#dddddd', "\u00A0~", '#ffffff', 'neutral']
     elsif score < -threshold.abs
       ['#1a9641', '++', '#ffffff', 'strong evidence for']
-    elsif score < 0
+    elsif score.negative?
       ['#a6d96a', "\u00A0+", '#000000', 'evidence for']
     elsif score < threshold.abs
       ['#fdae61', "\u00A0-", '#000000', 'evidence against']
@@ -36,7 +43,7 @@ module ClientMatchHelper
     title = "#{title}/exact match" if exact_match
     title = "#{title}: #{score.round(2)}" if score
     content_tag(:abbr, title: title, style: "font-family: monospace; border-radius: 4px; font-weight: bold; background-color:#{color}; color:#{color2}; padding:1px 2px; margin:1px;") do
-      exact_match ? icon.gsub(/[-+~]/,'=') : icon
+      exact_match ? icon.gsub(/[-+~]/, '=') : icon
     end
   end
 
@@ -49,9 +56,9 @@ module ClientMatchHelper
       [match_flag(0, true), 'Exact match - neutral'],
       [match_flag(0, false), 'Neutral'],
       [match_flag(1, false), 'Evidence against'],
-      #[match_flag(1, true), 'Exact match/Evidence against'],
+      # [match_flag(1, true), 'Exact match/Evidence against'],
       [match_flag(10, false), 'Strong evidence against'],
-      #[match_flag(10, true), 'Exact match/Strong evidence against'],
+      # [match_flag(10, true), 'Exact match/Strong evidence against'],
     ].map do |icon, text|
       "#{raw icon}: #{text}"
     end.join('<br/>').html_safe

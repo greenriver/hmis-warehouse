@@ -1,6 +1,44 @@
-= simple_form_for :choose_report, method: :get do |f|
-  .row
-    .col-sm-4
-      = f.input :month, collection: @months.sort.reverse.map{ | k, v | [v, k]}, selected: @selected, label: false
-    .col-sm-4
-      = f.button :submit, 'Show Month'
+.ho-container
+  .ho-container__header
+    %h3.mt-0 Options
+  = simple_form_for :choose_report, method: :get do |f|
+    .row
+      .col-4
+        = f.input :project_types, collection: GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert, selected: @project_type_codes, input_html: { multiple: true, class: 'select2 jProjectTypes' }
+      .col-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jOrganizations'}, selected: @organization_ids, label: 'Organizations', required: false
+      .col-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2 jProjects'}, selected: @project_ids, label: 'Projects', required: false
+    .row
+      - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
+        .col-4
+          = f.input :limit_to_vispdat, collection: vispdat_limits, selected: @limit_to_vispdat, label: 'Limit Clients',input_html: { class: :select2 }, required: false
+      .col-4
+        = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
+      .col-4
+        = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
+
+    .w-20
+      = f.button :submit, 'Update View'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jProjectTypes, .jOrganizations').on('change', function(e){
+        var project_types = $('.jProjectTypes').val();
+        if(project_types == null) {
+          project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json}
+        }
+        var organization_ids = $('.jOrganizations').val();
+        var selected_project_ids = $('.jProjects').val();
+        $.get('#{api_projects_path()}', {
+          project_types: project_types,
+          organization_ids: organization_ids,
+          selected_project_ids: selected_project_ids
+        }, function(data){
+          $('.jProjects').html(data);
+        });
+      });
+      $('.jProjectTypes, .jOrganizations').trigger('change');
+    });
+

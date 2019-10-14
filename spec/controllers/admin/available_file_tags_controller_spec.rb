@@ -19,21 +19,20 @@ require 'rails_helper'
 # that an instance is receiving a specific message.
 
 RSpec.describe Admin::AvailableFileTagsController, type: :controller do
-
   # This should return the minimal set of attributes required to create a valid
   # GrdaWarehouse::AvailableFileTag. As you add validations to GrdaWarehouse::AvailableFileTag, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) {
+  let(:valid_attributes) do
     build(:available_file_tag).attributes.with_indifferent_access
-  }
+  end
 
-  let(:invalid_attributes) {
+  let(:invalid_attributes) do
     {
       somthing: 5,
     }
-  }
+  end
 
-  let(:user)       { create(:user) }
+  let(:user) { create(:user) }
   let(:admin)       { create(:user) }
   let(:admin_role)  { create :admin_role }
 
@@ -42,19 +41,18 @@ RSpec.describe Admin::AvailableFileTagsController, type: :controller do
     admin.roles << admin_role
   end
 
-  describe "GET #index" do
-    it "assigns all available_file_tags as @available_file_tags" do
+  describe 'GET #index' do
+    it 'assigns all available_file_tags as @available_file_tags' do
       available_file_tag = GrdaWarehouse::AvailableFileTag.create! valid_attributes
       get :index, params: {}
       expect(assigns(:available_file_tags)).to eq([available_file_tag])
     end
   end
 
-  describe "GET #new" do
-    it "assigns a new available_file_tag as @available_file_tag" do
+  describe 'GET #new' do
+    it 'assigns a new available_file_tag as @available_file_tag' do
       get :new, params: {}
       expect(assigns(:available_file_tag)).to be_a_new(GrdaWarehouse::AvailableFileTag)
     end
   end
-
 end

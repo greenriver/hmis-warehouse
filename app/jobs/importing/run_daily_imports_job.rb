@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Importing
   class RunDailyImportsJob < BaseJob
     include ActionView::Helpers::DateHelper
@@ -11,20 +17,20 @@ module Importing
     end
 
     def advisory_lock_key
-      "run_daily_imports_job"
+      'run_daily_imports_job'
     end
-    
+
     def perform
       # refuse to run if there's already a nightly process running
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Nightly process already running EXITING!!!'
         logger.warn msg
-        @notifier.ping() if @send_notifications
+        @notifier.ping(msg) if @send_notifications
         return
       end
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_key) do
         lock_checks = 4
-        while active_imports? && lock_checks > 0
+        while active_imports? && lock_checks.positive?
           sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
           lock_checks -= 1
         end
@@ -33,14 +39,26 @@ module Importing
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         @notifier.ping('Revoked expired client consent if appropriate') if @send_notifications
+        # Update consent if it comes from HMIS Client
+        if GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
+          GrdaWarehouse::HmisClient.maintain_client_consent
+          @notifier.ping('Set client consent if appropriate') if @send_notifications
+        end
+
+        if GrdaWarehouse::HmisForm.vispdat.exists?
+          GrdaWarehouse::HmisForm.set_missing_vispdat_scores
+          @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+          GrdaWarehouse::HmisForm.set_part_of_a_family
+          @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
+        end
 
         # Disable CAS for anyone who's been housed in CAS
         GrdaWarehouse::CasHoused.inactivate_clients
 
         # Maintain ETO based CAS flags
-        GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new().run!
+        GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
 
-        GrdaWarehouse::Tasks::PushClientsToCas.new().sync!
+        GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
         @notifier.ping('Pushed Clients to CAS') if @send_notifications
 
         # Importers::Samba.new.run!
@@ -49,9 +67,9 @@ module Importing
         @notifier.ping('Duplicates identified') if @send_notifications
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
-        # on large data operations
-        GrdaWarehouse::Tasks::CalculateProjectTypes.new.run!
-        @notifier.ping('Project types calculated') if @send_notifications
+        # on large data operations, and any other project data cleanup
+        GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+        @notifier.ping('Projects cleaned') if @send_notifications
         # Sometimes client data changes in such a way as to leave behind stub
         # clients with no enrollments, this clears those out.
         # GrdaWarehouse::Tasks::ClientCleanup.new.remove_clients_without_enrollments! unless active_imports?
@@ -61,7 +79,7 @@ module Importing
         GrdaWarehouse::Tasks::ClientCleanup.new.run!
         @notifier.ping('Clients cleaned') if @send_notifications
 
-        range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.today)
+        range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
         GrdaWarehouse::Hud::Enrollment.open_during_range(range).
           joins(:project, :destination_client).
           pluck_in_batches(:id, batch_size: 250) do |batch|
@@ -82,7 +100,7 @@ module Importing
         GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
         @notifier.ping('Full sanity check complete') if @send_notifications
         # Rebuild residential first dates
-        GrdaWarehouse::Tasks::EarliestResidentialService.new().run!
+        GrdaWarehouse::Tasks::EarliestResidentialService.new.run!
         @notifier.ping('Earliest residential services generated') if @send_notifications
 
         # Update the materialized view that we use to search by client_id and project_type
@@ -110,14 +128,14 @@ module Importing
 
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
-        if start_time.to_date.day.in?([1,15])
+        if start_time.to_date.day.in?([1, 15])
           months_to_build = 6
           dates = []
           months_to_build.times do |i|
             dates << i.months.ago.change(day: 15).to_date
             dates << i.months.ago.change(day: 1).to_date
           end
-          dates.select!{|m| m <= Date.today}
+          dates.select! { |m| m <= Date.current }
 
           dates.each do |date|
             GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
@@ -145,14 +163,14 @@ module Importing
 
         Rails.cache.clear
         warm_cache
-        
-        # take snapshots of client enrollments 
+
+        # take snapshots of client enrollments
         GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
 
         # Generate some duplicates if we need to, but not too many
         opts = {
           threshold: -1.45,
-          batch_size: 10000,
+          batch_size: 10_000,
           run_length: 10,
         }
         SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
@@ -171,13 +189,9 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type.each do |report_type, reports|
-          reports.each do |sub_population, _|
-            WarehouseReports::DashboardReportJob.perform_later(report_type.to_s, sub_population.to_s)
-          end
-        end
+        Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
 
-        seconds = ((Time.now - start_time)/1.minute).round * 60
+        seconds = ((Time.now - start_time) / 1.minute).round * 60
         run_time = distance_of_time_in_words(seconds)
         msg = "RunDailyImportsJob completed in #{run_time}"
         Rails.logger.info msg
@@ -206,7 +220,6 @@ module Importing
       # re-set cache key for delayed job
       Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
       GrdaWarehouse::DataSource.data_spans_by_id
-
     end
   end
 end

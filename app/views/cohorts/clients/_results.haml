@@ -1,59 +1,64 @@
-- if @clients.any?
-  %p= "Found #{@clients.count} matching clients" 
-  %table.table.table-condensed.small
-    %thead
-      %tr
-        %th
-          Check All
-          %br
-          = check_box_tag(:check_all, 1, false, class: :check_all, id: :client)
-        %th
-          Last Name
-        %th
-          First Name
-        %th
-          DOB
-        %th
-          SSN
-        %th
-          Gender
-        %th
-          Veteran
-        %th
-          Days Homeless
-        %th
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
-          Days Homeless in Past 3 Years
-        %th
-          %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
-          Days Literally Homeless
-          
-    %tbody
-      - @clients.each do |client|
-        %tr
-          %td
-            = check_box_tag("client_#{client[:id]}", client[:id], false, {class: 'client jClient', 'data-client-id': client[:id]})
-          %td
-            = link_to client_path(client[:id]) do
-              = client[:LastName]
-          %td
-            = link_to client_path(client[:id]) do
-              = client[:FirstName]
-          %td.nobr
-            - if client[:DOB].present?
-              = client[:DOB]
+.c-card
+  - if @clients.any?
+    .c-card__content.c-card__content--flush
+      %p.p-4.pb-1.font-weight-bold= "Found #{@clients.count} matching clients"
+      %table.table.table-sm.small
+        %thead
+          %tr
+            %th
+              Check All
               %br
-              Age:
-              = GrdaWarehouse::Hud::Client.age date: Date.today, dob: client[:DOB]
-          %td
-            = masked_ssn(client[:SSN])
-          %td
-            = HUD.gender(client[:Gender])
-          %td
-            = HUD.veteran_status(client[:VeteranStatus])
-          %td
-            = @days_homeless[client[:id]]
-          %td
-            = @days_homeless_three_years[client[:id]]
-          %td
-            = @days_literally_homeless_three_years[client[:id]]
+              = check_box_tag(:check_all, 1, false, class: :check_all, id: :client)
+            %th
+              Last Name
+            %th
+              First Name
+            %th
+              DOB
+            %th
+              SSN
+            %th
+              Gender
+            %th
+              Veteran
+            %th
+              Days Homeless
+            %th
+              %i.icon-info{data: {toggle: :tooltip, title: 'Days Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
+              Days Homeless in Past 3 Years
+            %th
+              %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
+              Days Literally Homeless
+
+        %tbody
+          - @clients.each do |client|
+            %tr
+              %td
+                = check_box_tag("client_#{client[:id]}", client[:id], false, {class: 'client jClient', 'data-client-id': client[:id]})
+              %td
+                = link_to client_path(client[:id]) do
+                  = client[:LastName]
+              %td
+                = link_to client_path(client[:id]) do
+                  = client[:FirstName]
+              %td.nobr
+                - if client[:DOB].present?
+                  = client[:DOB]
+                  %br
+                  Age:
+                  = GrdaWarehouse::Hud::Client.age date: Date.current, dob: client[:DOB]
+              %td
+                = masked_ssn(client[:SSN])
+              %td
+                = HUD.gender(client[:Gender])
+              %td
+                = HUD.veteran_status(client[:VeteranStatus])
+              %td
+                = @days_homeless[client[:id]]
+              %td
+                = @days_homeless_three_years[client[:id]]
+              %td
+                = @days_literally_homeless_three_years[client[:id]]
+  - else
+    .c-card__content
+      No clients found

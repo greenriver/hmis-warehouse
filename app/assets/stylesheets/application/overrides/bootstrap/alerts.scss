@@ -1,0 +1,33 @@
+@import '../../helpers';
+
+.alert {
+  z-index: $zIndex-3--notice;
+  @include open-sans-medium;
+  color: rgba($black, .75);
+  display: flex;
+  align-items: center;
+}
+
+.alert a {
+  color: rgba($black, .75);
+}
+
+.alert a:link {
+  text-decoration: underline;
+}
+
+.alert a:hover,
+.alert a:focus {
+  text-decoration: none;
+}
+
+.alert .close {
+  font-size: 1rem;
+  padding-left: space(4);
+}
+
+.alert p {
+  &:only-child {
+    margin-bottom: 0;
+  }
+}

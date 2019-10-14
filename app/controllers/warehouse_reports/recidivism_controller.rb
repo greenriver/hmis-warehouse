@@ -1,12 +1,18 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports
   class RecidivismController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
     def index
-      columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :id]
+      columns = [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id]
       @filter = ::Filters::DateRange.new(date_range_options)
-      @ph_clients = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct.
-        pluck(*columns).
+      ph_scope = ph_source.open_between(start_date: @filter.start, end_date: @filter.end).distinct
+      @ph_clients = ph_scope.pluck(*columns).
         map do |row|
           Hash[columns.zip(row)]
         end.
@@ -14,7 +20,7 @@ module WarehouseReports
 
       @homeless_clients = homeless_source.
         with_service_between(start_date: @filter.start, end_date: @filter.end).
-        where(client_id: @ph_clients.keys).
+        where(client_id: ph_scope.select(:client_id)).
         distinct.
         pluck(*columns).
         map do |row|
@@ -29,44 +35,35 @@ module WarehouseReports
         es_start_dates = enrollments.map{|en| en[:first_date_in_program]}
         remove = []
         ph.each do |enrollment|
-          if es_start_dates.all?{|st_date| st_date < enrollment[:first_date_in_program]}
+          if enrollment[:move_in_date].blank?
             remove << true
-          else
+          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].present? && st_date.in?(enrollment[:move_in_date]..enrollment[:last_date_in_program])}
             remove << false
+          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].blank? && st_date > enrollment[:move_in_date]}
+            remove << false
+          else # es enrollment opened after exit from PH
+            remove << true
           end
         end
         remove.all?
       end
-
-      @homeless_clients.delete_if do |client_id, enrollments|
-        ph = @ph_clients[client_id]
-        es_start_dates = enrollments.map{|en| en[:first_date_in_program]}
-        remove = []
-        ph.each do |enrollment|
-          if enrollment[:last_date_in_program].blank?
-            remove << false
-          elsif es_start_dates.all?{|st_date| st_date > enrollment[:last_date_in_program]}
-            remove << true
-          else
-            remove << false
-          end
-        end
-        remove.all?
-      end
-
 
       @clients = client_source.where(id: @ph_clients.keys & @homeless_clients.keys).
-        order(LastName: :asc, FirstName: :asc).
-        page(params[:page]).per(25)
-
-      client_ids = @clients.map(&:id)
-      enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
-      @homeless_service = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
-      @homeless_service_dates = service_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+        order(LastName: :asc, FirstName: :asc)
 
       respond_to do |format|
-        format.html {}
+        format.html do
+          @clients = @clients.page(params[:page]).per(25)
+          client_ids = @clients.map(&:id)
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
+          @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
+        end
         format.xlsx do
+          client_ids = @clients.map(&:id)
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
+          @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
           filename = "Recidivism-#{@filter.start.strftime('%Y-%m-%d')}-to-#{@filter.end.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -79,6 +76,10 @@ module WarehouseReports
 
     def service_source
       GrdaWarehouse::ServiceHistoryService
+    end
+
+    def service_materialized_source
+      GrdaWarehouse::ServiceHistoryServiceMaterialized
     end
 
     def homeless_source

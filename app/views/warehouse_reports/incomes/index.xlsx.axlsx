@@ -1,0 +1,38 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Client Incomes Detail") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = [
+      'Client ID',
+      'First Name',
+      'Last Name',
+   ] +
+      GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map { |source| "#{source.to_s.titleize} at Entry"  } +
+      GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map { |source| "#{source.to_s.titleize} at Update" } +
+   [
+      'Gender',
+      'Race',
+      'Ethnicity',
+    ]
+  sheet.add_row(row, :style => title)
+  @enrollments.each do |record|
+    row = [
+        record.client.id,
+        record.client.FirstName,
+        record.client.LastName,
+    ]
+    at_entry = record.enrollment.income_benefits_at_entry
+    GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.each do |field|
+        row << at_entry&.send(field) || field
+    end
+    at_update = record.enrollment.income_benefits_update.last
+    GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.each do |field|
+        row << at_update&.send(field) || field
+    end
+    row = row + [
+        record.client.gender,
+        record.client.race_description,
+        HUD.ethnicity(record.client.Ethnicity)
+    ]
+    sheet.add_row(row)
+  end
+end

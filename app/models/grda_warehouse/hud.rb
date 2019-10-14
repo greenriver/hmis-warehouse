@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module GrdaWarehouse::Hud
   # look up a model class from HUD csv filenames (e.g. 'Client.csv')
   # raises KeyError if filename is not in the hud standard
@@ -27,5 +33,14 @@ module GrdaWarehouse::Hud
       'Services.csv' => GrdaWarehouse::Hud::Service,
       'Geography.csv' => GrdaWarehouse::Hud::Geography,
     }.freeze
+  end
+
+  module_function def hud_csv_names
+    models_by_hud_filename.keys.map{|m| m.gsub('.csv', '')}.sort
+  end
+
+  module_function def class_from_csv_name name
+    key = "#{name}.csv"
+    models_by_hud_filename[key]
   end
 end

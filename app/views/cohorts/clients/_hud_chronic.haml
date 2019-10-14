@@ -1,0 +1,24 @@
+- content_for :panel_collapse_content_hud_chronic do
+  = simple_form_for @hud_filter, as: :hud_filter, url: new_cohort_cohort_client_path(@cohort), method: :get do |f|
+    = f.error_notification
+    .row
+      .col-sm-3
+        = f.input :on, collection: @hud_filter.chronic_days, label: 'Chronic on Date',input_html: {class: 'select2 jFilterOn'}
+      .col-sm-2
+        = f.input :min_age, collection: @hud_filter.ages, include_blank: false, label: 'Minimum Age', class: 'form-control'
+      .col-sm-4
+        = f.input :individual, as: :boolean, label: 'Individuals only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients who have not presented with a family in the last 3 years.'}}
+        = f.input :dmh, as: :boolean, label: 'DMH only', class: 'form-control', wrapper_html: {class: 'mb-0', data: {toggle: 'tooltip', title: 'Limit to clients enrolled in a DMH Project.'}}
+        = f.input :veteran, as: :boolean, label: 'Veterans only', class: 'form-control', wrapper_html: {class: 'mb-0'}
+        = f.input :hoh, as: :boolean, label: 'Heads-of-household only', class: 'form-control', wrapper_html: {class: 'mb-0'}
+    .row
+      .col-sm-4
+        = f.input :last_service_after, label: 'Received Homeless Service After', collection: @hud_filter.date_ranges, include_blank: false
+
+    .panel-footer
+      = f.button :submit, value: 'Search'
+
+= render 'common/panel_collapse',
+  id: 'hud_chronic',
+  title: 'Pick from HUD chronic lists',
+  content: '_hud_chronic'

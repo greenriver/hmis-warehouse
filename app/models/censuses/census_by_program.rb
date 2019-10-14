@@ -1,14 +1,24 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Censuses
   class CensusByProgram < ProgramBase
 
     # what projects should be included?
-    def census_projects_scope
-      GrdaWarehouse::Hud::Project.order(:data_source_id, :OrganizationID).residential
+    def census_projects_scope user:
+      GrdaWarehouse::Hud::Project.residential.
+        viewable_by(user).
+        order(:data_source_id, :OrganizationID)
     end
 
     # what data should be included?
-    def census_data_scope
-      GrdaWarehouse::Census::ByProject.all
+    def census_data_scope user:
+      GrdaWarehouse::Census::ByProject.all.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
     # # what data should appear in the detail view?

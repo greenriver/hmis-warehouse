@@ -1,0 +1,18 @@
+= f.input :contacted_on, as: :date_picker, label: 'Date of Follow Up'
+= f.input :housing_status, collection: @follow_up.class.youth_housing_status_options, label: "Is The Youth Stably Housed?", selected: 'No', input_html: { class: [:select2, :jHousingStatus] }
+.jZipCode
+  = f.input :zip_code, hidden: true, label: 'In What Zip Code?'
+
+- content_for :page_js do
+  :javascript
+    $(function() {
+      $('.select2').select2();
+      $('.jHousingStatus').change(function() {
+        if ($('.jHousingStatus').val() != "No") {
+          $('.jZipCode').show()
+        } else {
+          $('.jZipCode').hide()
+        }
+      });
+      $('.jHousingStatus').trigger('change')
+    })

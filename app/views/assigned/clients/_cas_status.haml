@@ -1,0 +1,34 @@
+- cas_id = client.cas_client&.id
+- if client.active_in_cas?
+  %h3.mt-0.d-flex
+    .ml-0
+      CAS
+    - if cas_id
+      .ml-auto.mt-2.text-muted.text-small
+        CAS Client ID:
+        = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+          = cas_id
+
+  - if client.cas_reports.where( current_step: true ).any?
+    .c-tag.c-tag--success.client-flag
+    .c-tag__wrapper
+      .c-tag__icon
+        .icon-user
+      .c-tag__content
+        %span
+          Active in a Match
+          - if cas_id.present?
+            = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+              View in CAS
+
+  - else
+    .c-tag.c-tag--warning.client-flag
+      .c-tag__wrapper
+        .c-tag__icon
+          .icon-user
+        .c-tag__content
+          %span
+            Available in CAS
+            - if cas_id.present?
+              = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
+                View in CAS

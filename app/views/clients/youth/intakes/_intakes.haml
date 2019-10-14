@@ -1,0 +1,34 @@
+- if @follow_up_due.present?
+  - if @follow_up_due >= Date.current
+    %div.alert.alert-warning
+      %i.alert__icon.icon-warning
+      A 3-month follow up is due for #{@client.name} on #{@follow_up_due}
+  - else
+    %div.alert.alert-danger
+      %i.alert__icon.icon-warning
+      A 3-month follow up was due for #{@client.name} on #{@follow_up_due}
+= render 'intake_list'
+= render 'case_management_list'
+
+.row
+  .col-sm-6
+    = render 'financial_assistance_list'
+  .col-sm-6
+    = render 'referrals_list'
+
+.row
+  .col-sm-12
+    = render 'follow_up_list'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function(){
+      $('.jOtherTrigger').on('change', function(e){
+        if($(this).val() == 'Other') {
+          $(this).closest('.form-group').next().removeClass('hidden');
+        }
+        else {
+          $(this).closest('.form-group').next().addClass('hidden');
+        }
+      });
+    });

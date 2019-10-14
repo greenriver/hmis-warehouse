@@ -1,20 +1,27 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module WarehouseReports::Cas
   class ChronicReconciliationController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    include SiteChronic
 
     def index
       @filter = Filter.new(filter_params)
-      
-      chronic_ids = client_source.joins(:chronics).
+
+      chronic_ids = client_source.joins(site_chronics_table).
         where(ch_t[:date].eq(@filter.date)).
         where(ch_t[:days_in_last_three_years].gteq(365)).
         has_homeless_service_between_dates(start_date: @filter.homeless_service_after, end_date: @filter.date).
         pluck(:id)
 
       cas_ids = client_source.cas_active.pluck(:id)
-      @missing_in_cas = client_source.joins(:chronics).
-        where(chronics: {date: @filter.date}).
+      @missing_in_cas = client_source.joins(site_chronics_table).
+        merge(site_chronic_source.on_date(date: @date)).
         where(id: (chronic_ids - cas_ids)).
         order(last_name: :asc, first_name: :asc).
         pluck(*client_columns.values).
@@ -25,7 +32,7 @@ module WarehouseReports::Cas
       @not_on_list = client_source.
         where(id: (cas_ids - chronic_ids)).
         order(last_name: :asc, first_name: :asc).
-        includes(:chronics)
+        includes(site_chronics_table)
     end
 
     def client_columns
@@ -39,16 +46,12 @@ module WarehouseReports::Cas
       }
     end
 
-    def chronic_source
-      GrdaWarehouse::Chronic
-    end
-
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end
 
     def ch_t
-      chronic_source.arel_table
+      site_chronic_source.arel_table
     end
 
     def c_t
@@ -61,14 +64,18 @@ module WarehouseReports::Cas
     end
 
     class Filter < ModelForm
-      attribute(:date, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date)) rescue Date.today
-      attribute(:homeless_service_after, Date, lazy: true, default: GrdaWarehouse::Chronic.maximum(:date) - 31.days) rescue Date.today
+      include SiteChronic
+
+      attribute(:date, Date, lazy: true,
+          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) rescue Date.current })
+      attribute(:homeless_service_after, Date, lazy: true,
+          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) - 31.days rescue Date.current })
 
       def chronic_days
-        GrdaWarehouse::Chronic.order(date: :desc).distinct.limit(30).pluck(:date)
+        site_chronic_source.order(date: :desc).distinct.limit(30).pluck(:date)
       end
 
     end
-    
+
   end
 end

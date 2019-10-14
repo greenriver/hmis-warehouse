@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2019 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
 module Filters
   class Chronic < ::ModelForm
     attribute :on, Date, default: -> (r,_) { GrdaWarehouse::Chronic.most_recent_day }
@@ -6,6 +12,7 @@ module Filters
     attribute :individual, Boolean, default: false
     attribute :dmh, Boolean, default: false
     attribute :veteran, Boolean, default: false
+    attribute :hoh, Boolean, default: false
     attribute :last_service_after, Integer, default: 30
     attribute :name, String
 
