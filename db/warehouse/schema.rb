@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191007155052) do
+ActiveRecord::Schema.define(version: 20191011124048) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -264,7 +264,10 @@ ActiveRecord::Schema.define(version: 20191007155052) do
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "Disabilities", ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
   add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
@@ -781,11 +784,14 @@ ActiveRecord::Schema.define(version: 20191007155052) do
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -1159,6 +1165,88 @@ ActiveRecord::Schema.define(version: 20191007155052) do
 
   add_index "cas_vacancies", ["program_id"], name: "index_cas_vacancies_on_program_id", using: :btree
   add_index "cas_vacancies", ["sub_program_id"], name: "index_cas_vacancies_on_sub_program_id", using: :btree
+
+  create_table "ce_assessments", force: :cascade do |t|
+    t.integer  "user_id",                                              null: false
+    t.integer  "client_id",                                            null: false
+    t.string   "type",                                                 null: false
+    t.datetime "submitted_at"
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
+    t.datetime "deleted_at"
+    t.boolean  "active",                               default: true
+    t.integer  "score",                                default: 0
+    t.integer  "priority_score",                       default: 0
+    t.integer  "assessor_id",                                          null: false
+    t.string   "location"
+    t.string   "client_email"
+    t.boolean  "military_duty",                        default: false
+    t.boolean  "under_25",                             default: false
+    t.boolean  "over_60",                              default: false
+    t.boolean  "lgbtq",                                default: false
+    t.boolean  "children_under_18",                    default: false
+    t.boolean  "fleeing_dv",                           default: false
+    t.boolean  "living_outdoors",                      default: false
+    t.boolean  "urgent_health_issue",                  default: false
+    t.boolean  "location_option_1",                    default: false
+    t.boolean  "location_option_2",                    default: false
+    t.boolean  "location_option_3",                    default: false
+    t.boolean  "location_option_4",                    default: false
+    t.boolean  "location_option_5",                    default: false
+    t.boolean  "location_option_6",                    default: false
+    t.string   "location_option_other"
+    t.string   "location_option_no"
+    t.integer  "homelessness"
+    t.integer  "substance_use"
+    t.integer  "mental_health"
+    t.integer  "health_care"
+    t.integer  "legal_issues"
+    t.integer  "income"
+    t.integer  "work"
+    t.integer  "independent_living"
+    t.integer  "community_involvement"
+    t.integer  "survival_skills"
+    t.boolean  "barrier_no_rental_history",            default: false
+    t.boolean  "barrier_no_income",                    default: false
+    t.boolean  "barrier_poor_credit",                  default: false
+    t.boolean  "barrier_eviction_history",             default: false
+    t.boolean  "barrier_eviction_from_public_housing", default: false
+    t.boolean  "barrier_bedrooms_3",                   default: false
+    t.boolean  "barrier_service_animal",               default: false
+    t.boolean  "barrier_cori_issues",                  default: false
+    t.boolean  "barrier_registered_sex_offender",      default: false
+    t.string   "barrier_other"
+    t.boolean  "preferences_studio",                   default: false
+    t.boolean  "preferences_roomate",                  default: false
+    t.boolean  "preferences_pets",                     default: false
+    t.boolean  "preferences_accessible",               default: false
+    t.boolean  "preferences_quiet",                    default: false
+    t.boolean  "preferences_public_transport",         default: false
+    t.boolean  "preferences_parks",                    default: false
+    t.string   "preferences_other"
+    t.integer  "assessor_rating"
+    t.boolean  "homeless_six_months",                  default: false
+    t.boolean  "mortality_hospitilization_3",          default: false
+    t.boolean  "mortality_emergency_room_3",           default: false
+    t.boolean  "mortality_over_60",                    default: false
+    t.boolean  "mortality_cirrhosis",                  default: false
+    t.boolean  "mortality_renal_disease",              default: false
+    t.boolean  "mortality_frostbite",                  default: false
+    t.boolean  "mortality_hiv",                        default: false
+    t.boolean  "mortality_tri_morbid",                 default: false
+    t.boolean  "lacks_access_to_shelter",              default: false
+    t.boolean  "high_potential_for_vicitimization",    default: false
+    t.boolean  "danger_of_harm",                       default: false
+    t.boolean  "acute_medical_condition",              default: false
+    t.boolean  "acute_psychiatric_condition",          default: false
+    t.boolean  "acute_substance_abuse",                default: false
+  end
+
+  add_index "ce_assessments", ["assessor_id"], name: "index_ce_assessments_on_assessor_id", using: :btree
+  add_index "ce_assessments", ["client_id"], name: "index_ce_assessments_on_client_id", using: :btree
+  add_index "ce_assessments", ["deleted_at"], name: "index_ce_assessments_on_deleted_at", using: :btree
+  add_index "ce_assessments", ["type"], name: "index_ce_assessments_on_type", using: :btree
+  add_index "ce_assessments", ["user_id"], name: "index_ce_assessments_on_user_id", using: :btree
 
   create_table "census_by_project_types", force: :cascade do |t|
     t.integer "ProjectType",                  null: false
@@ -1590,10 +1678,10 @@ ActiveRecord::Schema.define(version: 20191007155052) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
-    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
   end
 
   add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
@@ -2314,7 +2402,6 @@ ActiveRecord::Schema.define(version: 20191007155052) do
     t.string   "last_zipcode"
     t.string   "source_hash"
     t.datetime "pending_date_deleted"
-    t.string   "SexualOrientationOther",                       limit: 100
     t.integer  "demographic_id"
     t.integer  "client_id"
   end
@@ -2483,9 +2570,6 @@ ActiveRecord::Schema.define(version: 20191007155052) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
   end
-
-  add_index "service_history_services", ["date"], name: "index_service_history_services_on_date", using: :btree
-  add_index "service_history_services", ["project_type"], name: "index_service_history_services_on_project_type", using: :btree
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
     t.integer "id",                                       default: "nextval('service_history_services_id_seq'::regclass)", null: false
@@ -3770,8 +3854,8 @@ ActiveRecord::Schema.define(version: 20191007155052) do
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.integer  "days_homeless_plus_overrides"
     t.string   "lgbtq_from_hmis"
+    t.integer  "days_homeless_plus_overrides"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
@@ -4686,5 +4770,6 @@ ActiveRecord::Schema.define(version: 20191007155052) do
   add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id", using: :btree
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id", using: :btree
 
 end
