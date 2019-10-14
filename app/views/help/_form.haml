@@ -1,0 +1,8 @@
+.row
+  .col-8
+    - if params[:path]
+      = f.input :path, as: :hidden, input_html: { value: params[:path] }
+    - elsif @help.path.blank?
+      = f.input :path
+    = f.input :title
+    = f.input :content
