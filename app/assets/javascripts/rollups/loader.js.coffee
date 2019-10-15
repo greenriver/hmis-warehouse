@@ -17,6 +17,8 @@ class App.Rollups.Loader
               # if $id.data().always or @manyClients
               # Just always show the squares since they also provide a means of accessing the client GUID
               id = $id.data().id
+              client = @clients[id]
+              return unless client?
               [ point, personalID, dataSourceID, organization ] = @clients[id]
               $square = App.util.colorSquare
                 point:     point
