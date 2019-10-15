@@ -190,11 +190,15 @@ module GrdaWarehouse::Tasks
         personal_id_matches = check_personal_ids(client.PersonalID)
         all_matches += personal_id_matches
       end
-      obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
+      obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1 && !split?(client, i))}.compact
       if obvious_matches.any?
         return obvious_matches.first
       end
       return nil
+    end
+
+    private def split?(client, candidate_id)
+      client.splits_to.where(split_into: candidate_id).exists?
     end
 
     private def check_personal_ids(personal_id)
