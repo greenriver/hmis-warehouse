@@ -35,6 +35,7 @@ module Admin
 
     def edit
       @agencies = Agency.order(:name)
+      @user.set_initial_two_factor_secret!
     end
 
     def confirm
@@ -56,6 +57,7 @@ module Admin
           @user.skip_reconfirmation!
           # Associations don't play well with acts_as_paranoid, so manually clean up user roles
           @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
+          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
           @user.update(user_params)
 
           # Restore any health roles we previously had
@@ -130,6 +132,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :otp_required_for_login,
         role_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]

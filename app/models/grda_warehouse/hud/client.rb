@@ -95,7 +95,9 @@ module GrdaWarehouse::Hud
     has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
 
-    has_one :api_id, class_name: GrdaWarehouse::ApiClientDataSourceId.name
+    has_one :api_id, class_name: 'GrdaWarehouse::ApiClientDataSourceId'
+    has_many :eto_client_lookups, class_name: 'GrdaWarehouse::EtoQaaws::ClientLookup'
+    has_many :eto_touch_point_lookups, class_name: 'GrdaWarehouse::EtoQaaws::TouchPointLookup'
     has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
 
     has_many :service_history_enrollments
@@ -158,6 +160,8 @@ module GrdaWarehouse::Hud
     has_many :staff_x_clients, class_name: GrdaWarehouse::HMIS::StaffXClient.name, inverse_of: :client
     has_many :staff, class_name: GrdaWarehouse::HMIS::Staff.name, through: :staff_x_clients
     has_many :source_api_ids, through: :source_clients, source: :api_id
+    has_many :source_eto_client_lookups, through: :source_clients, source: :eto_client_lookups
+    has_many :source_eto_touch_point_lookups, through: :source_clients, source: :eto_touch_point_lookups
     has_many :source_hmis_clients, through: :source_clients, source: :hmis_client
     has_many :source_hmis_forms, through: :source_clients, source: :hmis_forms
     has_many :source_non_confidential_hmis_forms, through: :source_clients, source: :non_confidential_hmis_forms
@@ -1313,6 +1317,47 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def accessible_via_qaaws?
+      GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
+    end
+
+    def fetch_updated_source_hmis_clients
+      return nil unless accessible_via_qaaws?
+      source_eto_client_lookups.map do |api_client|
+        api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_client.data_source_id}
+        next unless api_config
+        key = api_config.first
+        api = EtoApi::Detail.new(api_connection: key)
+        EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(
+          api: api,
+          client_id: api_client.client_id,
+          participant_site_identifier: api_client.participant_site_identifier,
+          site_id: api_client.site_id,
+          subject_id: api_client.subject_id,
+          data_source_id: api_client.data_source_id,
+        )
+      end.compact
+    end
+
+    def fetch_updated_source_hmis_forms
+      return nil unless accessible_via_qaaws?
+      source_eto_touch_point_lookups.map do |api_touch_point|
+        api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_touch_point.data_source_id}
+        next unless api_config
+        key = api_config.first
+        api = EtoApi::Detail.new(api_connection: key)
+        EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(
+          api: api,
+          client_id: api_touch_point.client_id,
+          touch_point_id: api_touch_point.assessment_id,
+          site_id: api_touch_point.site_id,
+          subject_id: api_touch_point.subject_id,
+          response_id: api_touch_point.response_id,
+          data_source_id: api_touch_point.data_source_id,
+        )
+      end.compact
+    end
+
     def api_status
       return nil unless accessible_via_api?
       most_recent_update = (source_hmis_clients.pluck(:updated_at) + [api_last_updated_at]).compact.max
@@ -1330,8 +1375,9 @@ module GrdaWarehouse::Hud
     end
 
     # A useful array of hashes from API data
-    def caseworkers
+    def caseworkers(can_view_client_user_assignments: false)
       @caseworkers ||= [].tap do |m|
+        # Caseworkers from HMIS
         source_hmis_clients.each do |c|
           staff_types.each do |staff_type|
             staff_name = c["#{staff_type}_name"]
@@ -1342,9 +1388,21 @@ module GrdaWarehouse::Hud
                 title: staff_type.to_s.titleize,
                 name: staff_name,
                 phone: staff_attributes.try(:[], 'GeneralPhoneNumber'),
+                source: 'HMIS',
               }
             end
           end
+        end
+        return m unless can_view_client_user_assignments
+        # Caseworkers from Warehouse
+        user_clients.each do |uc|
+          # next if uc.confidential? # should we ever not show confidential relationships
+          m << {
+            title: uc.relationship,
+            name: uc.user.name,
+            phone: uc.user.phone,
+            source: 'Warehouse',
+          }
         end
       end
     end
@@ -2057,17 +2115,38 @@ module GrdaWarehouse::Hud
     # Fetch most recent VI-SPDAT from the warehouse,
     # if not available use the most recent ETO VI-SPDAT
     # The ETO VI-SPDAT are prioritized by max score on the most recent assessment
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_score
       vispdats.completed.scores.first&.score ||
-        source_hmis_forms.vispdat.order(collected_at: :desc).limit(1).
-          pluck(:vispdat_total_score, :vispdat_youth_score, :vispdat_family_score)&.first&.compact&.max
+        source_hmis_forms.vispdat.newest_first.
+          pluck(
+            :collected_at,
+            :vispdat_total_score,
+            :vispdat_youth_score,
+            :vispdat_family_score,
+          )&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map{|m| m.drop(1)}&.
+          flatten&.
+          compact&.
+          max
     end
 
+    # NOTE: if we have more than one VI-SPDAT on the same day, the calculation is complicated
     def most_recent_vispdat_length_homeless_in_days
       begin
         vispdats.completed.order(submitted_at: :desc).limit(1).first&.days_homeless ||
-         source_hmis_forms.vispdat.order(collected_at: :desc).limit(1)&.first&.
-          vispdat_days_homeless || 0
+         source_hmis_forms.vispdat.newest_first.
+          map{|m| [m.collected_at, m.vispdat_days_homeless]}&.
+          group_by(&:first)&.
+          first&.
+          last&.
+          map{|m| m.drop(1)}&.
+          flatten&.
+          compact&.
+          max || 0
       rescue
         0
       end
