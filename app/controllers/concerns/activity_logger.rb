@@ -30,7 +30,6 @@ module ActivityLogger
     def compose_activity
       attrs = {
         user_id: current_user.try(:id),
-        params: params,
         controller_name: params[:controller],
         ip_address: request.remote_ip,
         action_name: action_name,
