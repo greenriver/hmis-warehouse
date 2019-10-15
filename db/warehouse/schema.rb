@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191011124048) do
+ActiveRecord::Schema.define(version: 20191014144407) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1809,6 +1809,21 @@ ActiveRecord::Schema.define(version: 20191011124048) do
   end
 
   add_index "grades", ["type"], name: "index_grades_on_type", using: :btree
+
+  create_table "helps", force: :cascade do |t|
+    t.string   "controller_path", null: false
+    t.string   "action_name",     null: false
+    t.string   "external_url"
+    t.string   "title",           null: false
+    t.text     "content",         null: false
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "helps", ["controller_path", "action_name"], name: "index_helps_on_controller_path_and_action_name", unique: true, using: :btree
+  add_index "helps", ["created_at"], name: "index_helps_on_created_at", using: :btree
+  add_index "helps", ["updated_at"], name: "index_helps_on_updated_at", using: :btree
 
   create_table "hmis_assessments", force: :cascade do |t|
     t.integer  "assessment_id",                                  null: false
