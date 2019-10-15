@@ -1,6 +1,4 @@
 - content_for :title, 'Edit Help Document'
 %h1= content_for :title
-
-= simple_form_for @help, url: help_path do |f|
-  = render 'form', f: f
-  = f.submit 'Save Help Document'
+.help-form
+  = render 'form'

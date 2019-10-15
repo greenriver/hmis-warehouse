@@ -1,8 +1,34 @@
-.row
-  .col-8
-    - if params[:path]
-      = f.input :path, as: :hidden, input_html: { value: params[:path] }
-    - elsif @help.path.blank?
-      = f.input :path
-    = f.input :title
-    = f.input :content
+= simple_form_for @help, url: @form_url, remote: request.xhr? do |f|
+  - row_class = if request.xhr? then '' else 'row' end
+  %div{ class: "#{row_class}"}
+    - col_class = if request.xhr? then '' else 'col-8' end
+    %div{ class: "#{col_class}"}
+      - if params[:controller_path] && params[:action_name]
+        = f.input :controller_path, as: :hidden, input_html: { value: params[:controller_path] }
+        = f.input :action_name, as: :hidden, input_html: { value: params[:action_name] }
+      - elsif @help.controller_path.blank? || @help.action_name.blank?
+        = f.input :controller_path
+        = f.input :action_name
+      = f.input :location, collection: {'Local (enter below)' => :internal, 'External (add a url)' => :external}, include_blank: false, input_html: { class: 'select2 jSwitcher' }
+      .well
+        .jInternal
+          = f.input :title
+          = f.input :content
+        .jExternal
+          = f.input :external_url
+      = f.submit @submit_text
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jSwitcher').on('change', function(e){
+        if($('.jSwitcher').val() == 'internal'){
+          $('.jInternal').show();
+          $('.jExternal').hide();
+        } else {
+          $('.jInternal').hide();
+          $('.jExternal').show();
+        }
+      });
+      $('.jSwitcher').trigger('change');
+    });

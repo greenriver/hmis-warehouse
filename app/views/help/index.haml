@@ -8,14 +8,21 @@
         %thead
           %tr
             %th Document
-            %th Path
+            %th Linked From
+            %th External?
             %th Last Updated
             %th
         %tbody
           - @help.each do |help|
             %tr
-              %td= link_to help.title, edit_help_path(help)
-              %td= help.path
+              %td= link_to help.title.presence || 'External', edit_help_path(help)
+              %td
+                Section:
+                = help.controller_path
+                %br
+                Page:
+                = help.action_name
+              %td= checkmark(help.location == :external)
               %td= help.updated_at
               %td
                 = link_to help_path(help), action: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this help document?'} do

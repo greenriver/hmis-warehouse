@@ -13,20 +13,31 @@ class HelpController < ApplicationController
   end
 
   def new
-    @help = if params[:path]
-      help_source.where(path: params[:path]).first_or_initialize
+    @form_url = help_index_path
+    @submit_text = 'Create Help Document'
+    @help = if params[:controller_path]
+      help_source.where(
+        controller_path: params[:controller_path],
+        action_name: params[:action_name],
+      ).first_or_initialize
     else
       help_source.new
     end
   end
 
   def create
+    @form_url = help_index_path
+    @submit_text = 'Create Help Document'
     @help = help_source.create(help_params)
-    respond_with(@help, location: help_index_path)
+    @help.valid?
+    if ! request.xhr?
+      respond_with(@help, location: help_index_path)
+    end
   end
 
   def edit
-
+    @form_url = help_path
+    @submit_text = 'Save Help Document'
   end
 
   def index
@@ -34,8 +45,13 @@ class HelpController < ApplicationController
   end
 
   def update
+    @form_url = help_path
+    @submit_text = 'Save Help Document'
     @help.update(help_params)
-    respond_with(@help, location: help_index_path)
+    @help.valid?
+    if ! request.xhr?
+      respond_with(@help, location: help_index_path)
+    end
   end
 
   def destroy
@@ -54,7 +70,9 @@ class HelpController < ApplicationController
   private def help_params
     param_key = help_source.model_name.param_key
     params.require( param_key ).permit(
-      :path,
+      :controller_path,
+      :action_name,
+      :external_url,
       :title,
       :content,
     )
