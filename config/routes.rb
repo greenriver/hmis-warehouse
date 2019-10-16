@@ -144,6 +144,7 @@ Rails.application.routes.draw do
   end
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :help
 
   namespace :reports do
     namespace :hic do

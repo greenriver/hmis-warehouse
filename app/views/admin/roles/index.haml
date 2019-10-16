@@ -1,6 +1,7 @@
 = render 'admin/users/breadcrumbs'
 - content_for(:title, t('.title'))
 %h1= t '.title'
+= render partial: 'menus/admin_tabs'
 .table-responsive
   %table.table.c-table.c-table--striped.j-table
     %thead

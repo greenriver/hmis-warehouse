@@ -8,20 +8,18 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-    .o-page__action.o-page__action--stacked
-      = link_to new_admin_agency_path, class: 'btn btn-primary pull-right margin-bottom-02' do
+    = render partial: 'menus/admin_tabs'
+
+
+  - @prompt = "Search agencies..."
+  .row
+    .col-8
+      = render 'search_form'
+    .col-4.text-right
+      = link_to new_admin_agency_path, class: 'btn btn-primary mb-2' do
         %span.icon-plus
         Add an Agency
-
-  .row
-    .col-sm-12
-      - @prompt = "Search agencies..."
-      .row
-        .col-sm-6
-          = render 'search_form'
-  .row
-    .col-sm-8
-      %p= page_entries_info @agencies
+  %p.mt-2= page_entries_info @agencies
 
   .row.table-utilities
     .col-sm-12
@@ -29,19 +27,16 @@
         %table.table.table-condensed
           %thead
             %tr
-              %th
-                Name
-              %th
+              %th Name
+              %th Assigned Users
               %th
           %tbody
             - @agencies.each do |agency|
               %tr
                 %td
-                  = agency.name
+                  = link_to agency.name, edit_admin_agency_path(agency)
                 %td
-                  = link_to edit_admin_agency_path(agency), class: ['btn', 'btn-sm', 'btn-secondary'] do
-                    %span.icon-pencil
-                    Edit
+                  = agency.users.count
                 %td
                   - unless agency.users.count > 0
                     = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
