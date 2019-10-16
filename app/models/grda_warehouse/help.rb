@@ -13,6 +13,7 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
     order(title: :asc)
   end
 
+  validates_presence_of :controller_path, :action_name
   validates :external_url, url: { allow_blank: true, no_local: true }
 
   def self.cleaned_path controller_path:, action_name:
