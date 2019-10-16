@@ -1,0 +1,12 @@
+- if help_link || can_edit_help?
+  %ul.o-menu__group.list-unstyled
+    - if can_edit_help?
+      %li.o-menu__item
+        = link_to 'Help Documents', help_index_path, class: 'o-menu__link'
+      %li.o-menu__item
+        - if help_link
+          = link_to 'Edit Help', edit_help_path(help_for_path), class: 'o-menu__link', data: { loads_in_pjax_modal: true }
+        - else
+          = link_to 'Add Help Here', new_help_path(controller_path: controller_path, action_name: action_name), class: 'o-menu__link', data: { loads_in_pjax_modal: true }
+    %li.o-menu__item
+      = help_link
