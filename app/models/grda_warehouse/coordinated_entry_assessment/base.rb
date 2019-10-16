@@ -73,7 +73,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     end
 
     def self.any_modifiable_by(user)
-      user.can_edit_vspdat? || user.can_submit_vspdat?
+      user.can_edit_ce_assessment? || user.can_submit_ce_assessment?
     end
 
     def show_as_readonly?
@@ -126,6 +126,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         acute_substance_abuse,
       ].count(true)
     end
+
     def calculate_score!
       calculate_score
       save
