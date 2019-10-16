@@ -1324,6 +1324,9 @@ GEM
       unf_ext
     unf_ext (0.0.7.5)
     unicode-display_width (1.5.0)
+    validate_url (1.0.8)
+      activemodel (>= 3.0.0)
+      public_suffix
     validates_email_format_of (1.6.3)
       i18n
     virtus (1.0.5)
@@ -1485,6 +1488,7 @@ DEPENDENCIES
   timecop
   tiny_tds
   uglifier
+  validate_url
   validates_email_format_of
   virtus
   web-console

@@ -343,7 +343,11 @@ class Role < ActiveRecord::Base
       can_view_clients_with_roi_in_own_coc: {
         description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
         administrative: false,
-      }
+      },
+      can_edit_help: {
+        description: 'Ability to maintain help documents',
+        administrative: true,
+      },
     }
   end
 

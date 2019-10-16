@@ -48,6 +48,7 @@ gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 
 gem 'paper_trail'
+gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
 gem "email_check"
