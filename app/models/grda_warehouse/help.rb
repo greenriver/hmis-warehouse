@@ -5,16 +5,16 @@
 ###
 
 class GrdaWarehouse::Help < GrdaWarehouseBase
-  acts_as_paranoid
   has_paper_trail
-  attr_accessor :location
 
   scope :sorted, -> do
     order(title: :asc)
   end
 
   validates_presence_of :controller_path, :action_name
-  validates :external_url, url: { allow_blank: true, no_local: true }
+  validates_presence_of :title, :content, if: :internal?
+  validates :external_url, url: { no_local: true, allow_blank: true }
+  validates_presence_of :external_url, if: :external?
 
   def self.cleaned_path controller_path:, action_name:
     "#{controller_path}/#{action_name}"
@@ -24,11 +24,18 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
     find_by(controller_path: controller_path, action_name: action_name)
   end
 
-  def location
-    @location = if external_url.blank?
-      :internal
-    else
-      :external
-    end
+  def internal?
+    location.to_sym == :internal
+  end
+
+  def external?
+    location.to_sym == :external
+  end
+
+  def available_locations
+    {
+      'Local (enter below)' => :internal,
+      'External (add a url)' => :external,
+    }
   end
 end
