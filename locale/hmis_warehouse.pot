@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-11 13:15-0400\n"
-"PO-Revision-Date: 2019-10-11 13:15-0400\n"
+"POT-Creation-Date: 2019-10-17 13:38-0500\n"
+"PO-Revision-Date: 2019-10-17 13:38-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3568,6 +3568,12 @@ msgid "Import was successfully updated."
 msgstr ""
 
 msgid "Ineligible Immigrant (Including Undocumented)"
+msgstr ""
+
+msgid "Invalid Email or password"
+msgstr ""
+
+msgid "Invalid two-factor code."
 msgstr ""
 
 msgid "Is there anyplace you do NOT want to live?"

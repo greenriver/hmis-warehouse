@@ -3569,6 +3569,12 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
+msgid "Invalid Email or password"
+msgstr ""
+
+msgid "Invalid two-factor code."
+msgstr ""
+
 msgid "Is there anyplace you do NOT want to live?"
 msgstr ""
 

@@ -50,6 +50,9 @@ module Clients
       else
         @assessment = @client.ce_assessments.in_progress.first
       end
+      if params[:commit] == 'Complete'
+        @assessment.submitted_at = Time.now
+      end
       @assessment.update(assessment_params)
       respond_with(@assessment, location: client_coordinated_entry_assessment_index_path(client_id: @client.id))
     end
