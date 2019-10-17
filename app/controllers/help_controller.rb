@@ -8,7 +8,8 @@ class HelpController < ApplicationController
   include PjaxModalController
 
   before_action :require_can_edit_help!, except: [ :show ]
-  before_action :load_help, except: [ :index, :new , :create]
+  before_action :load_help, except: [ :index, :new , :create ]
+  before_action :set_paths, only: [ :new, :create ]
 
   def show
     @modal_size = :xl
@@ -17,20 +18,24 @@ class HelpController < ApplicationController
   def new
     @form_url = help_index_path
     @submit_text = 'Create Help Document'
-    @help = if params[:controller_path]
+    @help = if @help_controller_path
       help_source.where(
-        controller_path: params[:controller_path],
-        action_name: params[:action_name],
+        controller_path: @help_controller_path,
+        action_name: @help_action_name,
       ).first_or_initialize
     else
-      help_source.new
+      help_source.new()
     end
   end
 
   def create
     @form_url = help_index_path
     @submit_text = 'Create Help Document'
-    @help = help_source.create(help_params)
+    @help = help_source.create(help_params.merge(
+        controller_path: @help_controller_path,
+        action_name: @help_action_name,
+      )
+    )
     @help.valid?
     if ! request.xhr?
       respond_with(@help, location: help_index_path)
@@ -70,14 +75,23 @@ class HelpController < ApplicationController
   end
 
   private def help_params
-    param_key = help_source.model_name.param_key
     params.require( param_key ).permit(
       :controller_path,
       :action_name,
       :external_url,
       :title,
       :content,
+      :location,
     )
+  end
+
+  private def param_key
+    @param_key ||= help_source.model_name.param_key
+  end
+
+  private def set_paths
+    @help_controller_path = params[:controller_path].presence || params.try(:[], param_key).try(:[], :controller_path)
+    @help_action_name = params[:action_name].presence || params.try(:[], param_key).try(:[], :action_name)
   end
 
   def flash_interpolation_options
