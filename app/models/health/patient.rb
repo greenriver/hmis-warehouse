@@ -705,7 +705,7 @@ module Health
         merge(GrdaWarehouse::ServiceHistoryEnrollment.visible_in_window_to(user).entry.ongoing.residential).
         order(date: :desc).first
 
-      if enrollment.present?
+      if service.present?
         {
           date: service.date,
           location: service.service_history_enrollment&.organization&.name || 'Unable to determine location'
