@@ -432,8 +432,18 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :full_housing_release_on_file, -> do
-      where(housing_release_status: full_release_string)
+    scope :full_housing_release_on_file, ->(coc_codes: nil) do
+      # where(housing_release_status: full_release_string)
+      or_clauses = c_t[:housing_release_status].eq("#{full_release_string} for all CoCs")
+      if coc_codes.present?
+        coc_codes.each do |coc_code|
+          or_clauses = or_clauses.or(c_t[:housing_release_status].eq("#{full_release_string} for #{coc_code}"))
+        end
+      end
+      where(
+        c_t[:housing_release_status].eq(full_release_string).
+          or(or_clauses)
+      )
     end
 
     scope :limited_cas_release_on_file, -> do

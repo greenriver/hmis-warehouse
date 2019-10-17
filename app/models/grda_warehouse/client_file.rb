@@ -41,7 +41,7 @@ module GrdaWarehouse
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files?
         window.where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
+          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file(coc_codes: user.coc_codes_for_consent).select(:id).to_sql)).
           or(arel_table[:user_id].eq(user.id))
         )
       # You can only see files you uploaded
