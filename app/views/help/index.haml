@@ -22,7 +22,7 @@
                 %br
                 Page:
                 = help.action_name
-              %td= checkmark(help.location == :external)
+              %td= checkmark(help.external?)
               %td= help.updated_at
               %td
                 = link_to help_path(help), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this help document?'} do
