@@ -17,5 +17,6 @@
   %td
     = assessment.user&.name
   %td
-    = link_to client_coordinated_entry_assessment_path(@client, id: assessment.id), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you sure you want to delete this #{_('Coordinated Entry Assessment')}?" } do
-      %i.icon-cross
+    - if can_edit_ce_assessment?
+      = link_to client_coordinated_entry_assessment_path(@client, id: assessment.id), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you sure you want to delete this #{_('Coordinated Entry Assessment')}?" } do
+        %i.icon-cross
