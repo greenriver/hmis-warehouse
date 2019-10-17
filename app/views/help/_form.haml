@@ -9,7 +9,7 @@
       - elsif @help.controller_path.blank? || @help.action_name.blank?
         = f.input :controller_path
         = f.input :action_name
-      = f.input :location, collection: @help.available_locations, include_blank: false, input_html: { class: 'select2 jSwitcher' }
+      = f.input :location, collection: @help.available_locations, label: 'Help display method', include_blank: false, input_html: { class: 'select2 jSwitcher' }
       .well
         .jInternal
           = f.input :title
