@@ -117,7 +117,15 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     end
 
     def calculate_score
-      self.score = [
+      score = [
+        mortality_hospitilization_3,
+        mortality_emergency_room_3,
+        mortality_over_60,
+        mortality_cirrhosis,
+        mortality_renal_disease,
+        mortality_frostbite,
+        mortality_hiv,
+        mortality_tri_morbid,
         lacks_access_to_shelter,
         high_potential_for_vicitimization,
         danger_of_harm,
@@ -125,6 +133,19 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         acute_psychiatric_condition,
         acute_substance_abuse,
       ].count(true)
+      score += [
+        homelessness,
+        substance_use,
+        mental_health,
+        health_care,
+        legal_issues,
+        income,
+        work,
+        independent_living,
+        community_involvement,
+        survival_skills,
+      ].compact.sum
+      self.score = score
     end
 
     def calculate_score!
