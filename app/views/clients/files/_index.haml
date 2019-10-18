@@ -56,18 +56,17 @@
 
 - content_for :page_js do
   :javascript
-    var url = document.location.toString();
-    if (url.match('#')) {
-      $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.nav-tabs li:first-child a").tab('show')
     }
-
-    $('.nav-tabs a[data-toggle="tab"]').click(function(e) {
+    $('.nav-tabs a').click(function(e) {
       e.preventDefault();
       $(this).tab('show');
       $(this).parent().siblings().removeClass('active')
     });
-
-    // Change hash for page-reload
-    $('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      window.location.hash = e.target.hash;
-    })
+    $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+    });
+    var hash = window.location.hash;
+    $('.nav-tabs a[href="' + hash + '"]').tab('show');

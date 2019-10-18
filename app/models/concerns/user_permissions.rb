@@ -22,6 +22,8 @@ module UserPermissions
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
+        :can_access_ce_assessment_list,
+        :can_create_or_modify_ce_assessment,
         :can_access_youth_intake_list,
         :can_edit_some_youth_intakes,
         :can_edit_window_client_notes_or_own_window_client_notes,
@@ -79,6 +81,14 @@ module UserPermissions
 
     def can_create_or_modify_vspdat
       GrdaWarehouse::Vispdat::Base.any_modifiable_by(self)
+    end
+
+    def can_access_ce_assessment_list
+      GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(self)
+    end
+
+    def can_create_or_modify_ce_assessment
+      GrdaWarehouse::CoordinatedEntryAssessment::Base.any_modifiable_by(self)
     end
 
     def can_access_youth_intake_list
