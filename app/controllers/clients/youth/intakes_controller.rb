@@ -37,7 +37,8 @@ module Clients::Youth
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
     end
 
-    def show; end
+    def show
+    end
 
     def new
       new_source = if @client.youth_intakes.merge(intake_scope).exists?
@@ -66,7 +67,8 @@ module Clients::Youth
       respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
     end
 
-    def destroy; end
+    def destroy
+    end
 
     def edit
       use_other_options

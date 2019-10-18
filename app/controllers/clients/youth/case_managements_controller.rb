@@ -16,7 +16,8 @@ module Clients::Youth
     before_action :set_client
     after_action :log_client
 
-    def index; end
+    def index
+    end
 
     def new
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id, engaged_on: Date.current)
@@ -29,7 +30,8 @@ module Clients::Youth
       respond_with(@entity, location: polymorphic_path(youth_intakes_path_generator))
     end
 
-    def edit; end
+    def edit
+    end
 
     def update
       @entity.assign_attributes(entity_params)

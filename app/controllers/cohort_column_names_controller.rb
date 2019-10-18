@@ -8,7 +8,8 @@ class CohortColumnNamesController < ApplicationController
   before_action :require_can_manage_cohorts!
   before_action :set_columns
 
-  def new; end
+  def new
+  end
 
   def create
     translate_columns(params[:translation]) if params.include? :translation

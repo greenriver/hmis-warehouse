@@ -12,7 +12,8 @@ class ProjectCocsController < ApplicationController
 
   include ArelHelper
 
-  def edit; end
+  def edit
+  end
 
   def update
     @project_coc.update(project_coc_params)

@@ -9,7 +9,8 @@ module Admin
     before_action :require_can_manage_config!
     before_action :set_config
 
-    def index; end
+    def index
+    end
 
     def update
       @config.assign_attributes(config_params)

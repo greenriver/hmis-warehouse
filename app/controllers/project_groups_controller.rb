@@ -50,7 +50,8 @@ class ProjectGroupsController < ApplicationController
     redirect_to action: :index
   end
 
-  def destroy; end
+  def destroy
+  end
 
   def update_permissions(_project_group)
     user_ids = user_params[:users].reject(&:empty?).map(&:to_i) + [current_user.id]

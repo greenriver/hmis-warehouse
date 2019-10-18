@@ -29,7 +29,8 @@ class SecureFilesController < ApplicationController
     unless file_params[:file]
       @secure_file = file_source.new
       flash[:alert] = _('You must attach a file in the form.')
-      render(:index) && return
+      render(:index)
+      return
     end
     file = file_params[:file]
     @secure_file = file_source.new(

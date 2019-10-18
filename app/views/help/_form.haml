@@ -1,0 +1,20 @@
+= simple_form_for @help, url: @form_url, remote: request.xhr? do |f|
+  - row_class = if request.xhr? then '' else 'row' end
+  %div{ class: "#{row_class}"}
+    - col_class = if request.xhr? then '' else 'col-8' end
+    %div{ class: "#{col_class}"}
+      - if @help_controller_path && @help_action_name
+        = f.input :controller_path, as: :hidden, input_html: { value: @help_controller_path }
+        = f.input :action_name, as: :hidden, input_html: { value: @help_action_name }
+      - elsif @help.controller_path.blank? || @help.action_name.blank?
+        = f.input :controller_path
+        = f.input :action_name
+      = f.input :location, collection: @help.available_locations, label: 'Help display method', include_blank: false, input_html: { class: 'select2 jSwitcher' }
+      .well
+        .jInternal
+          = f.input :title
+          = f.input :content
+        .jExternal
+          = f.input :external_url
+      = f.submit @submit_text
+

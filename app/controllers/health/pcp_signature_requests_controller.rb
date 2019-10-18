@@ -23,9 +23,11 @@ module Health
       @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
     end
 
-    def edit; end
+    def edit
+    end
 
-    def update; end
+    def update
+    end
 
     def create
       @signature_request = signature_source.new
@@ -34,7 +36,8 @@ module Health
         @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
       rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign PCP')
-        render(:new) && return
+        render(:new)
+        return
       end
       @expires_at = Time.now + signature_source.expires_in
 
@@ -55,7 +58,8 @@ module Health
         # TODO: view button to delete request
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
-        render(:new) && return
+        render(:new)
+        return
       end
     end
 

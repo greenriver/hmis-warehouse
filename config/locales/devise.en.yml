@@ -7,7 +7,7 @@ en:
       send_instructions: "You will receive an email with confirmation instructions within a few minutes."
       send_paranoid_instructions: "If your email address exists in our database, you will receive an email with confirmation instructions within a few minutes."
     failure:
-      already_authenticated: "You are already signed in."
+      already_authenticated: ''
       inactive: "This account has not been activated yet."
       invalid: "Invalid %{authentication_keys} or password."
       locked: "Your account is locked."
@@ -43,7 +43,7 @@ en:
       update_needs_confirmation: "You updated your account successfully, but we need to verify your new email address. Please check your email and follow the confirm link to confirm your new email address."
       updated: "Your account has been updated successfully."
     sessions:
-      signed_in: "You have successfully signed in."
+      signed_in: "__"
       signed_out: ""
       already_signed_out: "Signed out successfully."
       warn_pwned: "We have recently implemented additional account security checks.  Your password occurs in at least one publicly available password list; please change it under the Edit Account option in the menu."

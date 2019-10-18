@@ -24,7 +24,8 @@ module Clients::Youth
       respond_with(@follow_up, location: polymorphic_path(youth_intakes_path_generator))
     end
 
-    def edit; end
+    def edit
+    end
 
     def update
       @follow_up.update(follow_up_params)

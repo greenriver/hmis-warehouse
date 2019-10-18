@@ -14,7 +14,8 @@ module Admin::Health
     include PatientReferral
     include PjaxModalController
 
-    def new; end
+    def new
+    end
 
     def edit
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)

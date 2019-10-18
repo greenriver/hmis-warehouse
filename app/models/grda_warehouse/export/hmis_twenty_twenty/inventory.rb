@@ -13,11 +13,5 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories
 
-    # Sometimes we don't have inventory InformationDate but we do have InventoryStartDate
-    def apply_overrides row, data_source_id:
-      row[:InformationDate] = row[:InventoryStartDate] if row[:InformationDate].blank?
-      return row
-    end
-
   end
 end

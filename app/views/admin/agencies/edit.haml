@@ -4,3 +4,14 @@
   Edit Agency
 
 = render 'form'
+
+- if @agency.users.exists?
+
+  %table.table.table-hover.mt-6
+    %thead
+      %tr
+        %th Users
+    %tbody
+      - @agency.users.each do |user|
+        %tr
+          %td= user.name_with_email

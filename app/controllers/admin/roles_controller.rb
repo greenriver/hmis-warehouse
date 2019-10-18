@@ -24,7 +24,8 @@ module Admin
       @role = Role.new
     end
 
-    def edit; end
+    def edit
+    end
 
     def update
       @role.update role_params

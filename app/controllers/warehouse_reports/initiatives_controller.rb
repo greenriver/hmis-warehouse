@@ -20,7 +20,8 @@ module WarehouseReports
       @users = User.where(id: @reports.pluck(:user_id)).index_by(&:id)
     end
 
-    def running; end
+    def running
+    end
 
     def set_jobs
       @job_reports = Delayed::Job.where(queue: :initiative_reports).order(run_at: :desc).map do |job|
@@ -111,7 +112,8 @@ module WarehouseReports
 
       # need to fetch the token and updated_at to check access
       @report = report_source.select(:updated_at, :token, :id).find(params[:id].to_i)
-      raise(ActionController::RoutingError, 'Not Found') && return if params[:token].blank?
+      raise(ActionController::RoutingError, 'Not Found') if params[:token].blank?
+
       if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
         @report = report_source.find(params[:id].to_i)
         return true

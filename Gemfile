@@ -39,11 +39,16 @@ gem 'hellosign-ruby-sdk'
 gem 'devise', '~> 4'
 gem 'devise_invitable'
 gem 'devise-pwned_password'
+gem 'devise-security'
+gem 'devise-two-factor'
+gem 'rqrcode-rails3'
+gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 
 gem 'paper_trail'
+gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
 gem "email_check"

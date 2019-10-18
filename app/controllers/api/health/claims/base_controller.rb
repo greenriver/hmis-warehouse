@@ -21,7 +21,7 @@ module Api::Health::Claims
     def group_by_date_and_sum_by_category(input_data)
       sums = Hash.new(0)
       input_data.group_by do |row|
-        Date.new(row.year, row.month, 0o1)
+        Date.new(row.year, row.month, 1)
       end.map do |date, data|
         data = data.map do |row|
           row.attributes.with_indifferent_access.

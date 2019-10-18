@@ -18,7 +18,8 @@ module WarehouseReports
 
     respond_to :html, :js
 
-    def index; end
+    def index
+    end
 
     def clients
       @clients = if can_see_client_details?

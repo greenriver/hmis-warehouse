@@ -13,9 +13,11 @@ class Admin::AdministrativeEventsController < ApplicationController
   end
 
   def create
-    @event = administrative_event_source.create(administrative_event_params.merge(
-                                                  user_id: current_user.id,
-                                                ))
+    @event = administrative_event_source.create(
+      administrative_event_params.merge(
+        user_id: current_user.id,
+      ),
+    )
     respond_with(@event, location: admin_administrative_events_path)
   end
 
@@ -23,7 +25,8 @@ class Admin::AdministrativeEventsController < ApplicationController
     @event = administrative_event_source.new
   end
 
-  def edit; end
+  def edit
+  end
 
   def update
     @event.update(administrative_event_params)

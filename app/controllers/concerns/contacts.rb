@@ -21,7 +21,8 @@ module Contacts
       render layout: false if params[:layout] == 'false'
     end
 
-    def edit; end
+    def edit
+    end
 
     def create
       @contact = contact_source.new(contact_params)

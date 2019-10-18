@@ -10,7 +10,8 @@ module WarehouseReports::Cas
     include WarehouseReportAuthorization
     before_action :load_vars
 
-    def index; end
+    def index
+    end
 
     def chart
       render json: @data, layout: false

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-02 09:20-0400\n"
-"PO-Revision-Date: 2019-07-02 09:20-0400\n"
+"POT-Creation-Date: 2019-10-17 13:38-0500\n"
+"PO-Revision-Date: 2019-10-17 13:38-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,6 +17,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "\"CHA #{answer_key}\""
+msgstr ""
 
 msgid "\"CHA #{code}_HEADER\""
 msgstr ""
@@ -39,9 +42,6 @@ msgstr ""
 msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
 msgstr ""
 
-msgid "\"CHA #{section}_Q#{question}_A#{n}\""
-msgstr ""
-
 msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
@@ -49,6 +49,9 @@ msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
 msgid "Alerts"
+msgstr ""
+
+msgid "All Assigned Clients"
 msgstr ""
 
 msgid "Appropriate for sober supportive housing"
@@ -3462,6 +3465,9 @@ msgstr ""
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
+msgid "Coordinated Entry Assessments"
+msgstr ""
+
 msgid "DMH Eligible"
 msgstr ""
 
@@ -3471,10 +3477,16 @@ msgstr ""
 msgid "Date Housed"
 msgstr ""
 
+msgid "Date of Return"
+msgstr ""
+
 msgid "Days to Return"
 msgstr ""
 
 msgid "Delete"
+msgstr ""
+
+msgid "Destination"
 msgstr ""
 
 msgid "Disability Verification on File"
@@ -3558,6 +3570,15 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
+msgid "Invalid Email or password"
+msgstr ""
+
+msgid "Invalid two-factor code."
+msgstr ""
+
+msgid "Is there anyplace you do NOT want to live?"
+msgstr ""
+
 msgid "Life-Time Sex Offender"
 msgstr ""
 
@@ -3565,6 +3586,18 @@ msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"
+msgstr ""
+
+msgid "Location Option 1"
+msgstr ""
+
+msgid "Location Option 2"
+msgstr ""
+
+msgid "Location Option 3"
+msgstr ""
+
+msgid "Location Option 4"
 msgstr ""
 
 msgid "Manually entered date at which the client became document ready"
@@ -3582,6 +3615,9 @@ msgstr ""
 msgid "Missing Data Percentages"
 msgstr ""
 
+msgid "My Agency's Clients"
+msgstr ""
+
 msgid "My Agency's Patients"
 msgstr ""
 
@@ -3595,6 +3631,9 @@ msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
+msgstr ""
+
+msgid "Other city or town:"
 msgstr ""
 
 msgid "Override CAS Match Date"
@@ -3694,6 +3733,9 @@ msgid "Upload successful, please let the recipient know the file has been sent."
 msgstr ""
 
 msgid "VA Eligible"
+msgstr ""
+
+msgid "VASH Eligible"
 msgstr ""
 
 msgid "View All Imports"

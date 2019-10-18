@@ -24,7 +24,8 @@ class ImportsController < ApplicationController
     @import = import_source.new
   end
 
-  def show; end
+  def show
+  end
 
   def download
     return unless (@upload = @import.upload)

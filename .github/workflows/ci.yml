@@ -73,6 +73,7 @@ jobs:
         HOSTNAME: openpath.host
         PORT: 80
         CLIENT: test
+        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       run: |
         bundle exec rake db:schema:load
         bundle exec rake reporting:db:schema:load
@@ -97,5 +98,6 @@ jobs:
         HOSTNAME: openpath.host
         PORT: 80
         CLIENT: test
+        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       run: |
         bundle exec rspec --color --format documentation

@@ -322,7 +322,8 @@ module Cohorts
               updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
-            render(json: @response) && return
+            render(json: @response)
+            return
           end
           format.json do
             @response = {
@@ -331,7 +332,8 @@ module Cohorts
               updated_at: @client.updated_at.to_i,
               cohort_client_id: @client.id,
             }
-            render(json: @response) && return
+            render(json: @response)
+            return
           end
         end
       else
@@ -339,7 +341,8 @@ module Cohorts
       end
     end
 
-    def pre_destroy; end
+    def pre_destroy
+    end
 
     def pre_bulk_destroy
       @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',')

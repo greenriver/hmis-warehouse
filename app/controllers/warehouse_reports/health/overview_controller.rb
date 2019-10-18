@@ -11,6 +11,7 @@ module WarehouseReports::Health
 
     helper HealthOverviewHelper
 
-    def index; end
+    def index
+    end
   end
 end

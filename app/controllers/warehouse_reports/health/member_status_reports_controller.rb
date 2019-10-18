@@ -20,7 +20,8 @@ module WarehouseReports::Health
       @report = OpenStruct.new(options)
     end
 
-    def running; end
+    def running
+    end
 
     def show
       # CP Member Status and Outreach File: "CP_[CP Short Name]_MH_STATUSOUTREACH_FULL_YYYYMMDD.XLSX"
@@ -56,7 +57,8 @@ module WarehouseReports::Health
       respond_with @report, location: warehouse_reports_health_member_status_reports_path
     end
 
-    def destroy; end
+    def destroy
+    end
 
     def set_reports
       @reports = report_scope.order(created_at: :desc).page(params[:page]).per(20)

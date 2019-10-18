@@ -21,7 +21,8 @@ class ReportsController < ApplicationController
   end
 
   # GET /services/1/edit
-  def edit; end
+  def edit
+  end
 
   # POST /services
   def create

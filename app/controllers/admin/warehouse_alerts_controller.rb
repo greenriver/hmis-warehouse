@@ -25,7 +25,8 @@ module Admin
       @alert = warehouse_alert_source.find params[:id]
     end
 
-    def new; end
+    def new
+    end
 
     def create
       @alert = warehouse_alert_source.new(warehouse_alert_params)
@@ -37,7 +38,8 @@ module Admin
       end
     end
 
-    def edit; end
+    def edit
+    end
 
     def update
       if @alert.update(warehouse_alert_params)

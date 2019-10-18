@@ -35,7 +35,8 @@ module Health
     def edit
       if @claim_submitted
         flash.notice = 'This qualifying activity has already been submitted and cannot be edited.'
-        redirect_to(polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id)) && return
+        redirect_to(polymorphic_path(self_sufficiency_matrix_form_path_generator, id: @form.id))
+        return
       end
       @blank_ssm_url = GrdaWarehouse::PublicFile.url_for_location 'patient/ssm'
       respond_with @form

@@ -15,7 +15,8 @@ module Clients
       @anomalies = @client.anomalies.group_by(&:status)
     end
 
-    def edit; end
+    def edit
+    end
 
     def update
       @anomaly.update(anomaly_params)
@@ -41,7 +42,8 @@ module Clients
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
     end
 
-    def destroy; end
+    def destroy
+    end
 
     def set_anomaly
       @anomaly = anomaly_scope.find(params[:id].to_i)

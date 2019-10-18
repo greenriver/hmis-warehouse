@@ -12,7 +12,8 @@ class GeographyController < ApplicationController
 
   include ArelHelper
 
-  def edit; end
+  def edit
+  end
 
   def update
     @geography.update(geography_params)

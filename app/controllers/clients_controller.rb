@@ -197,7 +197,8 @@ class ClientsController < ApplicationController
     if image && ! Rails.env.test?
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
-      head(:forbidden) && return
+      head(:forbidden)
+      return
     end
   end
 

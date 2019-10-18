@@ -21,6 +21,7 @@ module WarehouseReports::Project
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
 
+    # TODO: rewrite this so we aren't using errors as flow control
     def create
       errors = []
       @generate = generate_param == 1

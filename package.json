@@ -9,7 +9,7 @@
     "test": "test"
   },
   "dependencies": {
-    "puppeteer": "^1.18.1"
+    "puppeteer": "^1.20.0"
   },
   "devDependencies": {},
   "scripts": {

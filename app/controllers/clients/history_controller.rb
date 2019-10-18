@@ -169,7 +169,10 @@ module Clients
     end
 
     def set_client
-      not_authorized! && return unless current_user || @user
+      if current_user.blank? && @user.blank?
+        not_authorized!
+        return
+      end
 
       # Do we have this client?
       # If not, attempt to redirect to the most recent version

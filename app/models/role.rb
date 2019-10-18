@@ -92,6 +92,10 @@ class Role < ActiveRecord::Base
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
       },
+       can_enable_2fa: {
+        description: 'Ability to enable Two-factor authentication for own account',
+        administrative: false,
+      },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
         administrative: true,
@@ -194,6 +198,18 @@ class Role < ActiveRecord::Base
       },
       can_submit_vspdat: {
         description: 'Ability to add VI-SPDAT records',
+        administrative: false,
+      },
+      can_view_ce_assessment: {
+        description: "Access to view existing Coordinated Entry Assessments",
+        administrative: false,
+      },
+      can_edit_ce_assessment: {
+        description: "Ability to edit existing Coordinated Entry Assessments",
+        administrative: false,
+      },
+      can_submit_ce_assessment: {
+        description: "Ability to add Coordinated Entry Assessments",
         administrative: false,
       },
       can_view_youth_intake: {
@@ -339,7 +355,11 @@ class Role < ActiveRecord::Base
       can_view_clients_with_roi_in_own_coc: {
         description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
         administrative: false,
-      }
+      },
+      can_edit_help: {
+        description: 'Ability to maintain help documents',
+        administrative: true,
+      },
     }
   end
 

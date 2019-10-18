@@ -40,7 +40,8 @@ class ProjectsController < ApplicationController
       page(params[:page]).per(25)
   end
 
-  def edit; end
+  def edit
+  end
 
   def update
     @project.update(project_params)

@@ -129,7 +129,7 @@ module AuditReports
         }
         User.active.pluck_in_batches(:id, batch_size: 100) do |batch|
           ActivityLog.created_in_range(
-            range: 2.months.ago.beginning_of_month.to_date..Date.tomorrow,
+            range: 2.months.ago.beginning_of_month.to_date .. Date.tomorrow,
           ).
             where(
               user_id: batch,

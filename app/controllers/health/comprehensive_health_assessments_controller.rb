@@ -48,7 +48,8 @@ module Health
     def edit
       if @cha_locked
         flash.notice = _('A claim was submitted for this CHA; it is no longer editable.')
-        redirect_to(polymorphic_path(cha_path_generator, id: @cha.id)) && return
+        redirect_to(polymorphic_path(cha_path_generator, id: @cha.id))
+        return
       end
       # For errors in new/edit forms
       @service = Health::Service.new

@@ -13,7 +13,8 @@ module WarehouseReports
     before_action :set_report
     before_action :set_modal_size
 
-    def index; end
+    def index
+    end
 
     def details
       raise 'Key required' if params[:key].blank?

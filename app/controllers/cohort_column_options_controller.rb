@@ -30,7 +30,8 @@ class CohortColumnOptionsController < ApplicationController
     respond_with(@cohort_column_option, location: cohort_column_options_path)
   end
 
-  def edit; end
+  def edit
+  end
 
   def update
     @cohort_column_option.update(cohort_column_option_params)

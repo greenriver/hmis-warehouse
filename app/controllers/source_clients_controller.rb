@@ -13,7 +13,8 @@ class SourceClientsController < ApplicationController
   before_action :set_destination_client
   after_action :log_client, except: [:image]
 
-  def edit; end
+  def edit
+  end
 
   def update
     clean_params = client_params
@@ -50,7 +51,8 @@ class SourceClientsController < ApplicationController
     if image && ! Rails.env.test?
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
-      head(:forbidden) && return
+      head(:forbidden)
+      return
     end
   end
 

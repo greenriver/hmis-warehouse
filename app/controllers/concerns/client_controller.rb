@@ -295,11 +295,19 @@ module ClientController
     end
 
     protected def client_processed_sort_columns
-      @client_processed_sort_columns ||= ['days_served', 'first_date_served', 'last_date_served']
+      @client_processed_sort_columns ||= [
+        'days_served',
+        'first_date_served',
+        'last_date_served',
+      ]
     end
 
     protected def client_sort_columns
-      @client_sort_columns ||= ['LastName', 'FirstName', 'DOB']
+      @client_sort_columns ||= [
+        'LastName',
+        'FirstName',
+        'DOB',
+      ]
     end
 
     protected def sort_column

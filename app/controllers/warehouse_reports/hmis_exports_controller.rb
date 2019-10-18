@@ -17,7 +17,8 @@ module WarehouseReports
       @all_project_names = GrdaWarehouse::Hud::Project.order(ProjectName: :asc).pluck(:ProjectName)
     end
 
-    def running; end
+    def running
+    end
 
     def set_jobs
       @job_reports = Delayed::Job.where(queue: :hmis_six_one_one_export).order(run_at: :desc).map do |job|

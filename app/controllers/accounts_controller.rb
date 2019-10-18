@@ -7,7 +7,9 @@
 class AccountsController < ApplicationController
   before_action :set_user
 
-  def edit; end
+  def edit
+    @user.set_initial_two_factor_secret!
+  end
 
   def update
     changed_notes = []
@@ -31,6 +33,7 @@ class AccountsController < ApplicationController
         :last_name,
         :phone,
         :email_schedule,
+        :otp_required_for_login,
       )
   end
 

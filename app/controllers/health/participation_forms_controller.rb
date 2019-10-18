@@ -20,7 +20,8 @@ module Health
       # redirect to edit if there are any on-file
       if @patient.participation_forms.exists?
         @participation_form = @patient.participation_forms.recent.last
-        render(:edit) && return
+        render(:edit)
+        return
       else
         @participation_form = @patient.participation_forms.build
       end

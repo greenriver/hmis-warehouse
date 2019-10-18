@@ -51,7 +51,8 @@ module Health
       @signature_request.errors.add(:to_email, 'PCP email must belong to a known agency. See list at the bottom of the page') if signature_params[:to_email].blank? || ! Health::Agency.email_valid?(signature_params[:to_email])
       if @signature_request.errors.any?
         @state = :valid # force the form to show again
-        render(:edit) && return
+        render(:edit)
+        return
       end
       (first_name, last_name) = signature_params[:to_name].split(' ')
       email = signature_params[:to_email]
@@ -84,7 +85,8 @@ module Health
         queue_pcp_email
         flash[:notice] = 'Thank you. The Care Plan Signature request will be sent to the PCP.'
       else
-        render(:edit) && return
+        render(:edit)
+        return
       end
     end
 
@@ -131,7 +133,8 @@ module Health
         @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
       rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign ACO')
-        render(:new) && return
+        render(:new)
+        return
       end
       @expires_at = Time.now + signature_source.expires_in
 
@@ -151,7 +154,8 @@ module Health
         queue_aco_email
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
-        render(:new) && return
+        render(:new)
+        return
       end
     end
 

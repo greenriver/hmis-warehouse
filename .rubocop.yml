@@ -149,3 +149,9 @@ Layout/CaseIndentation:
 
 Layout/RescueEnsureAlignment:
   Enabled: false
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Layout/SpaceInsideRangeLiteral:
+  Enabled: false

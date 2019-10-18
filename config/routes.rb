@@ -9,7 +9,11 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: { invitations: 'users/invitations', sessions: 'users/sessions'}
+  devise_for :users, controllers: {
+    invitations: 'users/invitations',
+    sessions: 'users/sessions',
+
+  }
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
@@ -140,6 +144,7 @@ Rails.application.routes.draw do
   end
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :help
 
   namespace :reports do
     namespace :hic do
@@ -393,6 +398,7 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
+    resources :coordinated_entry_assessment, controller: 'clients/coordinated_entry_assessments'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
@@ -441,6 +447,7 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
+      resources :coordinated_entry_assessment, controller: '/clients/coordinated_entry_assessments'
       resources :youth_intakes, controller: '/clients/youth/intakes'
       resources :youth_case_managements, except: [:index], controller: '/clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: '/clients/youth/direct_financial_assistances'
@@ -678,6 +685,7 @@ Rails.application.routes.draw do
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
 

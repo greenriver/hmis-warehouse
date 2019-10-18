@@ -12,7 +12,8 @@ module Cohorts
     before_action :load_cohort
     before_action :load_new, only: [:new]
 
-    def new; end
+    def new
+    end
 
     def create
       copy_params = params[:copy] || {}

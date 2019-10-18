@@ -32,7 +32,8 @@ module WarehouseReports
       return unless @name.blank? || @start_date.blank? || @end_date.blank?
 
       flash[:notice] = 'Please select a name, start, and end date'
-      redirect_to(action: :index) && return
+      redirect_to(action: :index)
+      nil
     end
 
     def load_responses

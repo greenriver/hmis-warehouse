@@ -20,7 +20,8 @@ class UploadsController < ApplicationController
     @upload = upload_source.new
   end
 
-  def show; end
+  def show
+  end
 
   def create
     run_import = false
