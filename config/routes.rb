@@ -144,6 +144,7 @@ Rails.application.routes.draw do
   end
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :help
 
   namespace :reports do
     namespace :hic do
@@ -397,6 +398,7 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
+    resources :coordinated_entry_assessment, controller: 'clients/coordinated_entry_assessments'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
@@ -445,6 +447,7 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
+      resources :coordinated_entry_assessment, controller: '/clients/coordinated_entry_assessments'
       resources :youth_intakes, controller: '/clients/youth/intakes'
       resources :youth_case_managements, except: [:index], controller: '/clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: '/clients/youth/direct_financial_assistances'

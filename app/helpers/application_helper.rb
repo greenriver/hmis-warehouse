@@ -234,4 +234,23 @@ module ApplicationHelper
       class: "icon-svg #{options[:wrapper_class]}",
       style: style)
   end
+
+  def help_link
+    @help_link ||= begin
+      return nil unless help_for_path
+
+      if help_for_path.external?
+        link_to 'Help', help_for_path.external_url, class: 'o-menu__link', target: :_blank
+      else
+        link_to 'Help', help_path(help_for_path), class: 'o-menu__link', data: { loads_in_pjax_modal: true }
+      end
+    end
+  end
+
+  def help_for_path
+    @help_for_path ||= GrdaWarehouse::Help.select(:id, :external_url, :location).for_path(
+      controller_path: controller_path,
+      action_name: action_name,
+    )
+  end
 end

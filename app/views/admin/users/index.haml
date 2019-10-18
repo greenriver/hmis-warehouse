@@ -3,7 +3,7 @@
     &laquo; Client search
 - content_for :title, t('.title')
 %h1= content_for :title
-= render :partial => 'menus/admin_tabs'
+= render partial: 'menus/admin_tabs'
 .o-page
   .o-page__header
     - @prompt = t '.search_prompt'
@@ -15,8 +15,6 @@
       = link_to new_user_invitation_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-plus
         Add a User Account
-      = link_to 'Manage Roles', admin_roles_path
-      = link_to 'Manage Agencies', admin_agencies_path
 
 %ul.nav.nav-tabs
   %li.nav-item

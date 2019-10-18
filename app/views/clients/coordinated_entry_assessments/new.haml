@@ -1,0 +1,14 @@
+- title = "New #{_'Coordinated Entry Assessment'} for #{@client.name}"
+- content_for :title, title
+.o-page
+  = render 'clients/breadcrumbs'
+  = render 'clients/aliases'
+
+.o-page__header
+  .o-page__title
+    %h1= title
+
+  = render 'clients/tab_navigation', current: client_coordinated_entry_assessment_index_path(client_id: @client.id)
+
+= simple_form_for @assessment, url: client_coordinated_entry_assessment_index_path(@client) do |f|
+  = render 'form', f: f, readonly: false
