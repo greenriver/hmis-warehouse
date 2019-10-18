@@ -2425,7 +2425,7 @@ module GrdaWarehouse::Hud
     def enrollments_for en_scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
-        enrollments = en_scope.
+        enrollments = en_scope.joins(:project).
           includes(:service_history_services, :project, :organization, :source_client).
           order(first_date_in_program: :desc)
         enrollments.
