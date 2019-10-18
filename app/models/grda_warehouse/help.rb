@@ -34,8 +34,8 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
 
   def available_locations
     {
-      'Local (enter below)' => :internal,
-      'External (add a url)' => :external,
+      'Pop-up window (add title and content below)' => :internal,
+      'Link to an external site (add a url)' => :external,
     }
   end
 end

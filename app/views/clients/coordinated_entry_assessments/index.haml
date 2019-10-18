@@ -1,0 +1,7 @@
+- content_for :title, _("Coordinated Entry Assessments")
+= render 'clients/breadcrumbs'
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: client_coordinated_entry_assessment_index_path(client_id: @client.id)
+
+= render 'list'

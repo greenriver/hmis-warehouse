@@ -1,0 +1,103 @@
+%h3 Basic Information
+.well.assessment.assessment-basic-information
+  .row
+    .col-sm-6
+      = f.input :assessor_id, collection: User.all
+      = f.input :location, label: 'Current Client Location'
+
+%h3 Special Considerations
+.well.assessment.assessment-special-considerations
+  .row
+    .col-6
+      = f.input :military_duty, label: 'You have served on active military duty'
+      = f.input :under_25, label: 'You are less than 25 years old'
+      = f.input :over_60, label: 'You are more than 60 years old'
+      = f.input :lgbtq, label: 'You identify as LGBTQ'
+      = f.input :children_under_18, label: 'You have children under 18 with you'
+    .col-6
+      = f.input :fleeing_dv, label: 'You are fleeing a domestic violence situation'
+      = f.input :living_outdoors, label: 'You are living outdoors or someplace not meant for human habitation'
+      = f.input :urgent_health_issue, label: 'You have an urgent health/mental health issue', hint: 'If so – please complete the Vulnerability Index form'
+%h3 Community Preferences
+.well.assessment.assessment-community-preferences
+  .row
+    .col-6
+      = f.input :location_option_1, label: _('Location Option 1')
+      = f.input :location_option_2, label: _('Location Option 2')
+      = f.input :location_option_3, label: _('Location Option 3')
+      = f.input :location_option_4, label: _('Location Option 4')
+    .col-6
+      = f.input :location_option_other, label: _('Other city or town:')
+      = f.input :location_option_no, label: _('Is there anyplace you do NOT want to live?')
+%h3 Assessment of Life Domains
+.well.assessment.assessment-life-domains
+  - @assessment.scored_column_options.each do |column, options|
+    = f.input column, options.merge({input_html: {class: :select2}})
+%h3 Barriers to Housing Placement
+.well.assessment.assessment-housing-barriers
+  .row
+    .col-6
+      = f.input :barrier_no_rental_history, label: 'No rental history'
+      = f.input :barrier_no_income, label: 'No income'
+      = f.input :barrier_poor_credit, label: 'Poor credit history'
+      = f.input :barrier_eviction_history, label: 'Eviction history'
+      = f.input :barrier_eviction_from_public_housing, label: 'Eviction specifically from public housing'
+    .col-6
+      = f.input :barrier_bedrooms_3, label: 'Need 3+ bedrooms'
+      = f.input :barrier_service_animal, label: 'Presence of non-service animal/ pets'
+      = f.input :barrier_cori_issues, label: 'Significant CORI issues'
+      = f.input :barrier_registered_sex_offender, label: 'Must register as a sex offender'
+      = f.input :barrier_other, label: 'Other barriers'
+%h3 Preferences Regarding Housing Placement
+.well.assessment.assessment-housing-preferences
+  .row
+    .col-6
+      = f.input :preferences_studio, label: 'Studio or SRO'
+      = f.input :preferences_roomate, label: 'Roommate'
+      = f.input :preferences_pets, label: 'Pets allowed'
+      = f.input :preferences_accessible, label: 'Handicap accessible'
+    .col-6
+      = f.input :preferences_quiet, label: 'Quiet neighborhood'
+      = f.input :preferences_public_transport, label: 'Near public transportation'
+      = f.input :preferences_parks, label: 'Near outdoor spaces like parks, trails, playgrounds'
+      = f.input :preferences_other, label: 'Other preferences'
+%h3 Assessor Rating
+.well.assessment.assessment-assessor-rating
+  .row
+    .col-6
+      = f.input :assessor_rating, label: 'Rate your overall impression of the level of services needed for this household to maintain housing', collection: @assessment.assessor_rating_options, input_html: {class: :select2}
+%hr.mt-8
+%h2.mt-8 Vulnerability and Prioritization Worksheet
+.well.assessment.assessment-vulnerability-worksheet
+  %p
+    Please complete the questions below if the person is unsheltered and/or there is an acute or debilitating condition.
+  = f.input :client_email, as: :email
+%h3 Length of Homelessness
+.well.assessment.assessment-homelessness
+  .row
+    .col-8
+      = f.input :homeless_six_months, label: 'Check this box if the person has been homeless for 6 months or more'
+  %p.alert.alert-danger
+    %i.icon-warning.mr-2
+    Please stop here if the length of time homeless is not 6 months or more.
+%h3 Mortality Factors
+.well.assessment.assessment-mortality-factors
+  = f.input :mortality_hospitilization_3, label: 'More than three hospitalizations or emergency room visits in a year'
+  = f.input :mortality_emergency_room_3, label: 'More than three emergency room visits in the previous three months'
+  = f.input :mortality_over_60, label: 'Age 60 or Older'
+  = f.input :mortality_cirrhosis, label: 'Cirrhosis of the liver'
+  = f.input :mortality_renal_disease, label: 'End stage renal disease'
+  = f.input :mortality_frostbite, label: 'History of frostbite, immersion foot, or hypothermia'
+  = f.input :mortality_hiv, label: 'HIV, AIDS'
+  = f.input :mortality_tri_morbid, label: 'Tri-morbidity (co-occurring psychiatric, substance abuse, and chronic medical condition)'
+%h3 Additional Risk Factors Information
+.well.assessment.assessment-additional-risks
+  = f.input :lacks_access_to_shelter, label: 'Lacks access to homeless shelters (e.g. Due to shelter capacity issues or being barred)'
+  = f.input :high_potential_for_vicitimization, label: 'High Potential for victimization'
+  = f.input :danger_of_harm, label: 'Danger of self harm or harm to others/community'
+  = f.input :acute_medical_condition, label: 'Chronic or acute medical condition w/extreme lack of judgment regarding safety'
+  = f.input :acute_psychiatric_condition, label: 'Chronic or acute Psychiatric Condition with extreme lack of judgment regarding safety'
+  = f.input :acute_substance_abuse, label: 'Chronic or acute Substance Abuse with extreme lack of judgment regarding safety'
+- unless @assessment.completed?
+  = f.submit 'Save for later', class: 'btn btn-primary'
+  = f.submit 'Complete', class: 'btn btn-secondary'
