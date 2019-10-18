@@ -8,9 +8,9 @@ module Reports
   class Hic::SitesController < Hic::BaseController
 
     def show
-      pt = GrdaWarehouse::Hud::Project.arel_table
       @sites = GrdaWarehouse::Hud::Geography.joins(:project).
-        where(Project: {computed_project_type: PROJECT_TYPES}).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
         distinct
       respond_to do |format|
         format.html

@@ -14,7 +14,7 @@ class ReportResultsController < ApplicationController
 
   # GET /report_results
   def index
-    @results = report_result_scope
+    @results = report_result_scope.select(*report_result_summary_columns)
 
     if @report.class.name.include?('::Lsa::')
       set_missing_data
@@ -80,7 +80,7 @@ class ReportResultsController < ApplicationController
       redirect_to action: :index
       return
     end
-    options = {}
+    options = {user_id: current_user.id}
     if @report.has_project_option?
       p_id, ds_id = JSON.parse(@result.options['project'])
       options.merge!({project: p_id, data_source_id: ds_id})
@@ -262,21 +262,18 @@ class ReportResultsController < ApplicationController
     end
 
     def report_result_scope
-      ReportResult.where(report_id: params[:report_id].to_i).
-        select(*report_result_summary_columns)
+      report_result_source.viewable_by(current_user).
+        joins(:user).
+        where(report_id: params[:report_id].to_i)
     end
 
     def report_result_summary_columns
-      ReportResult.column_names - ['original_results', 'results', 'support', 'validations']
+      report_result_source.column_names - ['original_results', 'results', 'support', 'validations']
     end
 
     # Use callbacks to share common setup or constraints between actions.
     def set_report_result
       @result = report_result_scope.find(params[:id].to_i)
-    end
-
-    def report_result_scope
-      report_result_source.viewable_by(current_user)
     end
 
     def report_result_source

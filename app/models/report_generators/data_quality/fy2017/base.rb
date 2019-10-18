@@ -12,6 +12,10 @@ module ReportGenerators::DataQuality::Fy2017
     include ApplicationHelper
     attr_reader :all_clients
 
+    def initialize options
+      @user = User.find(options[:user_id].to_i)
+    end
+
     def add_filters scope:
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
@@ -40,6 +44,8 @@ module ReportGenerators::DataQuality::Fy2017
       @report_start ||= @report.options['report_start'].to_date
       @report_end ||= @report.options['report_end'].to_date
       client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
         open_between(start_date: @report_start,
           end_date: @report_end).
         joins(:client)

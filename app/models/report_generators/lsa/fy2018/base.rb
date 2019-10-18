@@ -12,6 +12,7 @@ module ReportGenerators::Lsa::Fy2018
     def initialize destroy_rds: true, hmis_export_id: nil
       @destroy_rds = destroy_rds
       @hmis_export_id = hmis_export_id
+      @user = User.find(options[:user_id].to_i)
     end
 
     def setup_filters
@@ -40,7 +41,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def system_wide_project_ids
-      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.in_coc(coc_code: @coc_code).
+      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).in_coc(coc_code: @coc_code).
         with_hud_project_type([1, 2, 3, 4, 8, 9, 10, 13]).
         pluck(:id).sort
     end

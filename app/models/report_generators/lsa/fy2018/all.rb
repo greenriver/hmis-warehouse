@@ -34,6 +34,11 @@ module ReportGenerators::Lsa::Fy2018
     include TsqlImport
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
+
+    def initialize options
+      @user = User.find(options[:user_id].to_i)
+    end
+
     def run!
       setup_notifier('LSA')
       # Disable logging so we don't fill the disk
