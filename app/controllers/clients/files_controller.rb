@@ -15,7 +15,7 @@ module Clients
     before_action :set_window
     before_action :set_file, only: [:show, :update, :preview, :thumb, :has_thumb]
 
-    before_action :require_can_manage_client_files!, only: [:update]
+    #before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
 
     def index
@@ -102,10 +102,14 @@ module Clients
     end
 
     def update
-      attrs = if current_user.can_confirm_housing_release?
-        file_params
-      else
+      if can_manage_client_files? && can_confirm_housing_release?
+        attrs = file_params
+      elsif can_manage_client_files?
         file_params.except(:consent_form_confirmed)
+      elsif can_confirm_housing_release?
+        attrs = consent_params
+      else
+        not_authorized!
       end
 
       if attrs.key?(:consent_form_signed_on)
@@ -235,6 +239,13 @@ module Clients
         )
     end
 
+    def consent_params
+      params.require(:grda_warehouse_client_file).
+        permit(
+          :consent_form_confirmed,
+        )
+    end
+
     def batch_params
       params.require(:batch_download).permit(:file_ids)
     end
@@ -273,7 +284,7 @@ module Clients
     end
 
     def consent_editable?
-      can_confirm_housing_release?
+      can_confirm_housing_release? || can_manage_client_files?
     end
 
     def all_file_scope
