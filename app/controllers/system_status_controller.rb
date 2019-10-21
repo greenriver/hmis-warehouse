@@ -13,7 +13,7 @@ class SystemStatusController < ApplicationController
     user_count = User.all.count
     data_source_count = GrdaWarehouse::DataSource.count
     patient_count = Health::Patient.count
-    if user_count > 0 && data_source_count.present? && patient_count.present?
+    if user_count.positive? && data_source_count.present? && patient_count.present?
       render plain: 'OK'
     else
       render status: 500, plain: 'FAIL'
@@ -22,7 +22,7 @@ class SystemStatusController < ApplicationController
 
   def cache_status
     set_value = SecureRandom.hex(10)
-    Rails.cache.write('cache-test',  set_value)
+    Rails.cache.write('cache-test', set_value)
     pulled_value = Rails.cache.read('cache-test')
 
     if set_value == pulled_value

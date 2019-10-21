@@ -52,5 +52,4 @@ class AccountTwoFactorsController < ApplicationController
   private def valid_otp_attempt?
     @user.validate_and_consume_otp!(account_params[:otp_attempt])
   end
-
 end

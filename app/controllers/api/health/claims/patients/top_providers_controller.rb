@@ -6,8 +6,7 @@
 
 module Api::Health::Claims::Patients
   class TopProvidersController < BaseController
-    
-    def load_data      
+    def load_data
       @data = scope.order(indiv_pct: :desc).
         select(:rank, :provider_name, :indiv_pct, :sdh_pct).
         distinct.

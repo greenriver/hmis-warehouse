@@ -24,10 +24,10 @@ module WarehouseReports::Health
     end
 
     def show
-      # CP Member Status and Outreach File: “CP_[CP Short Name]_MH_STATUSOUTREACH_FULL_YYYYMMDD.XLSX”
+      # CP Member Status and Outreach File: "CP_[CP Short Name]_MH_STATUSOUTREACH_FULL_YYYYMMDD.XLSX"
       # i. Example: CP_BHCHP-CP_STATUSOUTREACH_FULL_20180718.XLSX
       #
-      # Summary File: Files sent by ACO, MCO, or CP: “[ACO, MCO or CP]_[ACO, MCO or CP Short Name]_MH_SUMMARY_FULL_YYYYMMDD.XLSX”
+      # Summary File: Files sent by ACO, MCO, or CP: "[ACO, MCO or CP]_[ACO, MCO or CP Short Name]_MH_SUMMARY_FULL_YYYYMMDD.XLSX"
       # iii. Example: CP_BHCHP-CP_MH_SUMMARY_FULL_20180718.XLSX
 
       @patients = @report.member_status_report_patients
@@ -48,17 +48,16 @@ module WarehouseReports::Health
       job = Delayed::Job.enqueue(
         ::WarehouseReports::HealthMemberStatusReportJob.new(
           report_params.merge(
-            report_id: @report.id, current_user_id: current_user.id
-          )
+            report_id: @report.id, current_user_id: current_user.id,
+          ),
         ),
-        queue: :low_priority
+        queue: :low_priority,
       )
       @report.update(job_id: job.id)
       respond_with @report, location: warehouse_reports_health_member_status_reports_path
     end
 
     def destroy
-
     end
 
     def set_reports
@@ -76,7 +75,7 @@ module WarehouseReports::Health
       params.require(:report).permit(
         :report_start_date,
         :report_end_date,
-        :receiver
+        :receiver,
       )
     end
 

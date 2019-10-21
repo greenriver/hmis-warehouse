@@ -14,12 +14,12 @@ module HealthGoal
 
   def create
     existing_count = @patient.hpc_goals.count
-    opts = goal_params.merge({
+    opts = goal_params.merge(
       name: 'HPC Goal',
       number: existing_count,
       patient_id: @patient.id,
       user_id: current_user.id,
-    })
+    )
     @goal = Health::Goal::Hpc.create(opts)
     if ! request.xhr?
       respond_with(@goal, location: after_path)
@@ -66,5 +66,4 @@ module HealthGoal
       :responsible_team_member_id,
     )
   end
-
 end

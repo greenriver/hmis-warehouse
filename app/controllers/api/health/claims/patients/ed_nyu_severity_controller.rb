@@ -6,12 +6,11 @@
 
 module Api::Health::Claims::Patients
   class EdNyuSeverityController < BaseController
-    
-    def load_data      
+    def load_data
       @data = begin
-        implementation = {group: @patient.client.name}
+        implementation = { group: @patient.client.name }
         implementation_visits = 0
-        baseline = {group: 'Baseline'}
+        baseline = { group: 'Baseline' }
         baseline_visits = 0
         scope.each do |row|
           implementation[row.category] = row.indiv_pct

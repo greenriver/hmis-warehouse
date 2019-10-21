@@ -6,8 +6,7 @@
 
 module Api::Health::Claims
   class RosterController < BaseController
-    
-    def load_data      
+    def load_data
       @data = 'FIXME'
     end
 

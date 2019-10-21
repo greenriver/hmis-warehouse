@@ -9,15 +9,13 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization
-    
+
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      if params[:commit].present?
-        WarehouseReports::RunHudChronicJob.perform_later(params.merge(current_user_id: current_user.id))
-      end
+      WarehouseReports::RunHudChronicJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
       @jobs = Delayed::Job.where(queue: 'hud_chronic_report').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
     end
@@ -50,19 +48,12 @@ module WarehouseReports
 
     # Present a chart of the counts from the previous three years
     def summary
-      @range = ::Filters::DateRange.new({start: 3.years.ago, end: 1.day.ago})
-      ct = chronic_source.arel_table
+      @range = ::Filters::DateRange.new(start: 3.years.ago, end: 1.day.ago)
       @counts = chronic_source.
         where(date: @range.range)
-      if @filter.individual
-        @counts = @counts.where(individual: true)
-      end
-      if @filter.dmh
-        @counts = @counts.where(dmh: true)
-      end
-      if @filter.veteran
-        @counts = @counts.joins(:client).where(Client: {VeteranStatus: 1})
-      end
+      @counts = @counts.where(individual: true) if @filter.individual
+      @counts = @counts.where(dmh: true) if @filter.dmh
+      @counts = @counts.joins(:client).where(Client: { VeteranStatus: 1 }) if @filter.veteran
       @counts = @counts.group(:date).
         order(date: :asc).
         count
@@ -77,15 +68,18 @@ module WarehouseReports
       GrdaWarehouse::Hud::Client.destination
     end
 
-    private 
+    private
 
     def set_report
       @report = report_source.find params[:id].to_i
     end
 
     def sort_clients
-      @column, @direction = params.slice(:column, :direction).values 
-      @column, @direction = %w(chronic.homeless_since desc) if @column.nil? || @direction.nil?
+      @column, @direction = params.slice(:column, :direction).values
+      if @column.nil? || @direction.nil?
+        @column = 'chronic.homeless_since'
+        @direction = 'desc'
+      end
       chronic_sort = @column.split('.')
       @clients = @clients.sort_by do |client|
         if chronic_sort.size == 2
@@ -94,29 +88,28 @@ module WarehouseReports
           client[@column]
         end
       end
-      @clients.reverse! if @direction=='desc'
+      @clients.reverse! if @direction == 'desc'
     end
 
     def sort_options
       [
-        {title: 'Last name A-Z', column: 'LastName', direction: 'asc'},
-        {title: 'Last name Z-A', column: 'LastName', direction: 'desc'},
-        {title: 'First name A-Z', column: 'FirstName', direction: 'asc'},
-        {title: 'First name Z-A', column: 'FirstName', direction: 'desc'},
-        {title: 'Age (asc)', column: 'age', direction: 'asc'},
-        {title: 'Age (desc)', column: 'age', direction: 'desc'},
-        {title: 'Homeless since (asc)', column: 'chronic.homeless_since', direction: 'asc'},
-        {title: 'Homeless since (desc)', column: 'chronic.homeless_since', direction: 'desc'},
-        {title: 'Days in 3 yrs (asc)', column: 'chronic.days_in_last_three_years', direction: 'asc'},
-        {title: 'Days in 3 yrs (desc)', column: 'chronic.days_in_last_three_years', direction: 'desc'},
-        {title: 'Months in 3 yrs (asc)', column: 'chronic.months_in_last_three_years', direction: 'asc'},
-        {title: 'Months in 3 yrs (desc)', column: 'chronic.months_in_last_three_years', direction: 'desc'},
+        { title: 'Last name A-Z', column: 'LastName', direction: 'asc' },
+        { title: 'Last name Z-A', column: 'LastName', direction: 'desc' },
+        { title: 'First name A-Z', column: 'FirstName', direction: 'asc' },
+        { title: 'First name Z-A', column: 'FirstName', direction: 'desc' },
+        { title: 'Age (asc)', column: 'age', direction: 'asc' },
+        { title: 'Age (desc)', column: 'age', direction: 'desc' },
+        { title: 'Homeless since (asc)', column: 'chronic.homeless_since', direction: 'asc' },
+        { title: 'Homeless since (desc)', column: 'chronic.homeless_since', direction: 'desc' },
+        { title: 'Days in 3 yrs (asc)', column: 'chronic.days_in_last_three_years', direction: 'asc' },
+        { title: 'Days in 3 yrs (desc)', column: 'chronic.days_in_last_three_years', direction: 'desc' },
+        { title: 'Months in 3 yrs (asc)', column: 'chronic.months_in_last_three_years', direction: 'asc' },
+        { title: 'Months in 3 yrs (desc)', column: 'chronic.months_in_last_three_years', direction: 'desc' },
       ]
     end
 
     def flash_interpolation_options
       { resource_name: 'HUD Chronic Clients Report' }
     end
-
   end
 end

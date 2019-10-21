@@ -10,7 +10,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     def index
-      filter_params = {user_id: current_user.id}
+      filter_params = { user_id: current_user.id }
       filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
       @filter = ::Filters::DateRangeAndSources.new(filter_params)
 
@@ -18,15 +18,15 @@ module WarehouseReports
       @end_date = @filter.end
 
       @enrollments = enrollment_source.
-          open_between(start_date: @start_date, end_date: @end_date).
-          in_project(@filter.effective_project_ids).
-          joins(:client, :enrollment).
-          order(first_date_in_program: :asc)
+        open_between(start_date: @start_date, end_date: @end_date).
+        in_project(@filter.effective_project_ids).
+        joins(:client, :enrollment).
+        order(first_date_in_program: :asc)
 
       respond_to do |format|
-        format.html {
+        format.html do
           @enrollments = @enrollments.page(params[:page].to_i).per(25)
-        }
+        end
         format.xlsx do
           require_can_view_clients!
         end
@@ -36,18 +36,18 @@ module WarehouseReports
     private def report_params
       params.permit(
         filter: [
-            :start,
+          :start,
           :end,
           project_ids: [],
           project_group_ids: [],
           organization_ids: [],
           data_source_ids: [],
-        ]
+        ],
       )
     end
 
     private def enrollment_source
-    GrdaWarehouse::ServiceHistoryEnrollment.
+      GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end

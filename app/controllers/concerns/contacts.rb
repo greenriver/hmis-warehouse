@@ -6,7 +6,7 @@
 
 module Contacts
   extend ActiveSupport::Concern
-  
+
   included do
     before_action :require_can_view_imports!
     before_action :set_entity
@@ -20,9 +20,8 @@ module Contacts
       @contact = contact_source.new
       render layout: false if params[:layout] == 'false'
     end
-    
-    def edit
 
+    def edit
     end
 
     def create
@@ -46,10 +45,8 @@ module Contacts
           redirect_to action: :index
         end
         format.js do
-
         end
       end
-      
     end
 
     def update
@@ -74,13 +71,10 @@ module Contacts
       end
       respond_to do |format|
         format.html do
-          if @error.present?
-            flash[:error] = e
-          end
+          flash[:error] = e if @error.present?
           redirect_to action: :index
         end
         format.js do
-
         end
       end
     end

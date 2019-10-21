@@ -31,8 +31,8 @@ module HealthCareplan
         pdf: file_name,
         template: 'health/careplans/_pdf_coversheet',
         layout: false,
-        encoding: "UTF-8",
-        page_size: 'Letter'
+        encoding: 'UTF-8',
+        page_size: 'Letter',
       )
       CombinePDF.parse(coversheet)
     end
@@ -43,9 +43,9 @@ module HealthCareplan
       @readonly = false
       file_name = 'care_plan'
       # If we already have a document with a signature, use that to try and avoid massive duplication
-      if health_file_id = @careplan.most_appropriate_pdf_id
-        if health_file = Health::HealthFile.find(health_file_id)
-          return pdf = CombinePDF.parse(health_file.content)
+      if (health_file_id = @careplan.most_appropriate_pdf_id)
+        if (health_file = Health::HealthFile.find(health_file_id))
+          return CombinePDF.parse(health_file.content)
         end
       end
       # If we haven't sent this for signatures, build out the PDF
@@ -69,7 +69,6 @@ module HealthCareplan
       end
       @cha = @patient.comprehensive_health_assessments.recent.first
 
-
       pdf = CombinePDF.new
 
       pdf << careplan_pdf_coversheet
@@ -92,26 +91,20 @@ module HealthCareplan
         pdf: file_name,
         template: 'health/careplans/show',
         layout: false,
-        encoding: "UTF-8",
+        encoding: 'UTF-8',
         page_size: 'Letter',
         header: { html: { template: 'health/careplans/_pdf_header' }, spacing: 1 },
-        footer: { html: { template: 'health/careplans/_pdf_footer'}, spacing: 5 },
+        footer: { html: { template: 'health/careplans/_pdf_footer' }, spacing: 5 },
         # Show table of contents by providing the 'toc' property
         # toc: {}
       )
 
       pdf << CombinePDF.parse(pctp)
 
-      if @careplan.health_file.present?
-        pdf << CombinePDF.parse(@careplan.health_file.content)
-      end
-      if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
-        pdf << CombinePDF.parse(@form.health_file.content)
-      end
-      if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
-        pdf << CombinePDF.parse(@cha.health_file.content)
-      end
-      return pdf
+      pdf << CombinePDF.parse(@careplan.health_file.content) if @careplan.health_file.present?
+      pdf << CombinePDF.parse(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
+      pdf << CombinePDF.parse(@cha.health_file.content) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      pdf
     end
   end
 end

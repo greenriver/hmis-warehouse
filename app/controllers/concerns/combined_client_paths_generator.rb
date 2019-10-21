@@ -75,12 +75,12 @@ module CombinedClientPathsGenerator
     def file_path_generator
       client_path_generator + [:file]
     end
-    helper_method :file_path_generator 
+    helper_method :file_path_generator
 
     def files_path_generator
       client_path_generator + [:files]
     end
-    helper_method :files_path_generator    
+    helper_method :files_path_generator
 
     def files_batch_download_path_generator
       [:batch_download] + files_path_generator
@@ -210,7 +210,7 @@ module CombinedClientPathsGenerator
     def client_note_path_generator
       client_path_generator + [:note]
     end
-    helper_method :client_note_path_generator 
+    helper_method :client_note_path_generator
 
     def client_notes_path_generator
       client_path_generator + [:notes]

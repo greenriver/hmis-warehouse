@@ -15,7 +15,7 @@ module PatientReferral
     :agency_id,
     :assigned_agency_id,
     :acknowledged_by_mass_health,
-    :sort_by
+    :sort_by,
   )
 
   private
@@ -42,7 +42,7 @@ module PatientReferral
       filter_params[:agency_id],
       filter_params[:assigned_agency_id],
       filter_params[:acknowledged_by_mass_health],
-      (filter_params[:sort_by]||'created_at')
+      (filter_params[:sort_by] || 'created_at'),
     )
     load_search
     filter_added_before
@@ -54,43 +54,41 @@ module PatientReferral
   end
 
   def load_search
-    if @filters.search.present?
-      @patient_referrals = @patient_referrals.text_search(@filters.search)
-    end
+    @patient_referrals = @patient_referrals.text_search(@filters.search) if @filters.search.present?
   end
 
   def load_sort
-    order = @filters.sort_by == 'last_name' ? 'last_name' : hpr_t[:created_at].desc().to_sql
+    order = @filters.sort_by == 'last_name' ? 'last_name' : hpr_t[:created_at].desc.to_sql
     @patient_referrals = @patient_referrals.order(order)
   end
 
   def filter_added_before
-    if @filters.added_before.present?
-      @active_filter = true
-      date = DateTime.parse(@filters.added_before)
-      added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
-      @patient_referrals = @patient_referrals.where(hpr_t[:created_at].lt(added_before_date))
-    end
+    return unless @filters.added_before.present?
+
+    @active_filter = true
+    date = DateTime.parse(@filters.added_before)
+    added_before_date = DateTime.current.change(year: date.year, month: date.month, day: date.day).beginning_of_day
+    @patient_referrals = @patient_referrals.where(hpr_t[:created_at].lt(added_before_date))
   end
 
   def filter_agency
-    if @filters.agency_id.present?
-      @active_filter = true
-      @filter_agency = Health::Agency.find(@filters.agency_id)
-      @patient_referrals = @patient_referrals.
-        where(hapr_t[:agency_id].eq(@filters.agency_id)).
-        references(:relationships)
-    end
+    return unless @filters.agency_id.present?
+
+    @active_filter = true
+    @filter_agency = Health::Agency.find(@filters.agency_id)
+    @patient_referrals = @patient_referrals.
+      where(hapr_t[:agency_id].eq(@filters.agency_id)).
+      references(:relationships)
   end
 
   def filter_assigned_agency
-    if @filters.assigned_agency_id.present?
-      @active_filter = true
-      @filter_agency = Health::Agency.find(@filters.assigned_agency_id)
-      @patient_referrals = @patient_referrals.
-        where(agency_id: @filters.assigned_agency_id).
-        references(:relationships)
-    end
+    return unless @filters.assigned_agency_id.present?
+
+    @active_filter = true
+    @filter_agency = Health::Agency.find(@filters.assigned_agency_id)
+    @patient_referrals = @patient_referrals.
+      where(agency_id: @filters.assigned_agency_id).
+      references(:relationships)
   end
 
   def filter_relationship
@@ -124,7 +122,7 @@ module PatientReferral
   end
 
   def tab_path_params
-    {filters: params[:filters]}
+    { filters: params[:filters] }
   end
 
   def load_new_patient_referral
@@ -189,7 +187,7 @@ module PatientReferral
       :identification,
       :record_status,
       :removal_acknowledged,
-      relationships_attributes: [:agency_id, :claimed]
+      relationships_attributes: [:agency_id, :claimed],
     )
   end
 end

@@ -15,9 +15,7 @@ module Health
 
     def index
       set_hpc_patient
-      if @patient.blank?
-        set_patient
-      end
+      set_patient if @patient.blank?
       @problems = @patient.problems.order(onset_date: :desc)
 
       render layout: !request.xhr?
@@ -26,6 +24,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Problems"
     end
-
   end
 end

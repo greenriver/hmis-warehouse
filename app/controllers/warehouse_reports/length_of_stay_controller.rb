@@ -19,8 +19,8 @@ module WarehouseReports
       if @filter.valid?
         length_of_stay
         render json: {
-          form:  render_to_string( partial: 'form', layout: false ),
-          table: @data
+          form: render_to_string(partial: 'form', layout: false),
+          table: @data,
         }
       else
         render status: 400, partial: 'form', layout: false
@@ -35,13 +35,12 @@ module WarehouseReports
           open_between(start_date: @filter.start, end_date: @filter.end).
           where(project_id: projects.keys, data_source_id: projects.values.first.data_source_id)
 
-
-        lengths = Rails.cache.fetch(["length_of_stay_controller", params[:mo].to_s], expires_in: 10.minutes) do
+        lengths = Rails.cache.fetch(['length_of_stay_controller', params[:mo].to_s], expires_in: 10.minutes) do
           service_history_service_source.where(service_history_enrollment_id: enrollments.select(:id)).
-          where(date: (@filter.start - 3.years..@filter.end)).
-          distinct.
-          group(:service_history_enrollment_id).
-          count(:date)
+            where(date: (@filter.start - 3.years..@filter.end)).
+            distinct.
+            group(:service_history_enrollment_id).
+            count(:date)
         end
 
         enrollments = enrollments.group_by(&:project_id)
@@ -58,6 +57,7 @@ module WarehouseReports
           project_lengths = []
 
           next unless enrollments[project_id].present?
+
           enrollments[project_id].each do |enrollment|
             count = lengths[enrollment.id] || 0
             project_lengths << count
@@ -74,7 +74,7 @@ module WarehouseReports
             end
             project_buckets[bucket] += 1
           end
-          project_buckets['average'] = (project_lengths.sum / project_lengths.size.to_f ).round
+          project_buckets['average'] = (project_lengths.sum / project_lengths.size.to_f).round
           data << [project.ProjectName, project_buckets]
         end
         data
@@ -91,12 +91,12 @@ module WarehouseReports
         '1 Year to 2 Years',
         '2 Years to 3 Years',
         'More than 3 Years',
-        'average'
+        'average',
       ]
       @filter = if params[:mo].present?
         ::Filters::MonthAndOrganization.new params.require(:mo).merge(user: current_user)
       else
-        ::Filters::MonthAndOrganization.new({user: current_user})
+        ::Filters::MonthAndOrganization.new(user: current_user)
       end
     end
 
@@ -107,6 +107,5 @@ module WarehouseReports
     def service_history_service_source
       GrdaWarehouse::ServiceHistoryService
     end
-
   end
 end

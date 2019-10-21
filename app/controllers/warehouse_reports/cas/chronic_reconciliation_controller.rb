@@ -59,7 +59,8 @@ module WarehouseReports::Cas
     end
 
     private def filter_params
-      return {} unless params.has_key? :filter
+      return {} unless params.key? :filter
+
       params.require(:filter).permit(:date, :homeless_service_after)
     end
 
@@ -67,15 +68,25 @@ module WarehouseReports::Cas
       include SiteChronic
 
       attribute(:date, Date, lazy: true,
-          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) rescue Date.current })
+                             default: lambda { |filter, _|
+                                        begin
+                                                                            filter.site_chronic_source.maximum(:date)
+                                        rescue StandardError
+                                          Date.current
+                                                                          end
+                                      })
       attribute(:homeless_service_after, Date, lazy: true,
-          default: -> (filter, _) { filter.site_chronic_source.maximum(:date) - 31.days rescue Date.current })
+                                               default: lambda { |filter, _|
+                                                          begin
+                                                                                              filter.site_chronic_source.maximum(:date) - 31.days
+                                                          rescue StandardError
+                                                            Date.current
+                                                                                            end
+                                                        })
 
       def chronic_days
         site_chronic_source.order(date: :desc).distinct.limit(30).pluck(:date)
       end
-
     end
-
   end
 end

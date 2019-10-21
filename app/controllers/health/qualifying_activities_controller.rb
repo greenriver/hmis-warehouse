@@ -29,10 +29,10 @@ module Health
 
     def set_qualifying_activities
       # search / paginate
-      @qualifying_activities = @patient.qualifying_activities
-        .date_search(params[:start_date], params[:end_date])
-        .order(date_of_activity: :desc)
-        .page(params[:page]).per(25)
+      @qualifying_activities = @patient.qualifying_activities.
+        date_search(params[:start_date], params[:end_date]).
+        order(date_of_activity: :desc).
+        page(params[:page]).per(25)
     end
 
     protected def title_for_show
@@ -46,7 +46,5 @@ module Health
     def flash_interpolation_options
       { resource_name: 'Qualifying Activity' }
     end
-
   end
 end
-

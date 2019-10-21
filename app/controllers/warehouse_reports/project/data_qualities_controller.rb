@@ -12,33 +12,38 @@ module WarehouseReports::Project
 
     def show
       if Date.current.month < 10
-        start_date = Date.new(Date.current.year-2,10,1)
-        end_date = Date.new(Date.current.year-1,9,30)
+        start_date = Date.new(Date.current.year - 2, 10, 1)
+        end_date = Date.new(Date.current.year - 1, 9, 30)
       else
-        start_date = Date.new(Date.current.year-1,10,1)
-        end_date = Date.new(Date.current.year,9,30)
+        start_date = Date.new(Date.current.year - 1, 10, 1)
+        end_date = Date.new(Date.current.year, 9, 30)
       end
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
     end
 
+    # TODO: rewrite this so we aren't using errors as flow control
     def create
       errors = []
       @generate = generate_param == 1
       @email = email_param == 1
-      if date_range_params[:start].blank? || date_range_params[:end].blank?
-        errors << 'A date range is required'
-      end
+      errors << 'A date range is required' if date_range_params[:start].blank? || date_range_params[:end].blank?
       @range = ::Filters::DateRange.new(date_range_params)
       @range.validate
       begin
-        @project_ids = project_params rescue []
-        # filter by viewability
-        @project_ids = project_scope.where( id: @project_ids ).pluck(:id)
-        @project_group_ids = project_group_params rescue []
-        if @project_ids.empty? && @project_group_ids.empty?
-          raise ActionController::ParameterMissing, 'Parameters missing'
+        @project_ids = begin
+          project_params
+        rescue StandardError
+          []
         end
-      rescue ActionController::ParameterMissing => e
+        # filter by viewability
+        @project_ids = project_scope.where(id: @project_ids).pluck(:id)
+        @project_group_ids = begin
+          project_group_params
+        rescue StandardError
+          []
+        end
+        raise ActionController::ParameterMissing, 'Parameters missing' if @project_ids.empty? && @project_group_ids.empty?
+      rescue ActionController::ParameterMissing
         errors << 'At least one project or project group must be selected'
       end
       if errors.any?
@@ -55,14 +60,14 @@ module WarehouseReports::Project
     def queue_report(id_column:, keys:)
       keys.each do |id|
         if @generate
-          report = report_scope.create(
+          report_scope.create(
             id_column => id,
             start: @range.start,
             end: @range.end,
-            requestor_id: current_user.id
+            requestor_id: current_user.id,
           )
         else
-          report = report_scope.
+          report_scope.
             where(id_column => id).
             order(id: :desc).first_or_initialize
         end
@@ -134,7 +139,7 @@ module WarehouseReports::Project
       @projects = project_scope.joins(:organization, :data_source).
         order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
         preload(:contacts, :data_source, organization: :contacts).
-        group_by{ |m| [m.data_source.short_name, m.organization]}
+        group_by { |m| [m.data_source.short_name, m.organization] }
     end
 
     def set_project_groups
@@ -144,7 +149,10 @@ module WarehouseReports::Project
     end
 
     def load_data_quality_report_shells
-      @project_report_shells = report_base_class.where.not(project_id: nil). select(report_base_class.column_names - ['report', 'support']). order(id: :asc). index_by(&:project_id)
+      @project_report_shells = report_base_class.where.not(project_id: nil).
+        select(report_base_class.column_names - ['report', 'support']).
+        order(id: :asc).
+        index_by(&:project_id)
       @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
         select(report_base_class.column_names - ['report', 'support']).
         order(id: :asc).
@@ -152,7 +160,7 @@ module WarehouseReports::Project
     end
 
     def related_report
-      url = url_for(action: :show, only_path: true).sub(/^\//, '')
+      url = url_for(action: :show, only_path: true).sub(%r{^/}, '')
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
   end
