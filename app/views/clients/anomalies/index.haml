@@ -7,14 +7,12 @@
 - if @anomalies.any?
   %ul.nav.nav-tabs{role: :tablist}
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      - active = if slug == :new then 'active' end
-      %li.nav-item{class: active}
-        %a{href: "##{slug}", 'aria-controls' => slug, class: 'nav-link'}
+      %li.nav-item{role: :presentation}
+        %a{href: "##{slug}", 'aria-controls' => slug, role: :tab, data: {toggle: :tab}, class: 'nav-link'}
           = status
-  .tab-content.mt-2
+  .tab-content#anomalies-tab-content
     - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      - active = if slug == :new then 'active' end
-      .tab-pane{role: :tabpanel, id: slug, class: active}
+      .tab-pane{role: :tabpanel, id: slug}
         = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
 - else
   %p.note
@@ -22,13 +20,17 @@
 
 = content_for :page_js do
   :javascript
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.nav-tabs li:first-child a").tab('show')
+    }
     $('.nav-tabs a').click(function(e) {
       e.preventDefault();
       $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
     });
     $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
       var id = $(e.target).attr("href").substr(1);
-      window.location.hash = id;
     });
     var hash = window.location.hash;
     $('.nav-tabs a[href="' + hash + '"]').tab('show');

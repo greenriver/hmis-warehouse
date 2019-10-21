@@ -255,7 +255,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.string   "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "disabilities_date_created", using: :btree
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
+    t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
     t.index ["DateUpdated"], name: "disabilities_date_updated", using: :btree
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
@@ -762,11 +765,14 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.string   "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "income_benefits_date_created", using: :btree
+    t.index ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
     t.index ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
+    t.index ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
     t.index ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
     t.index ["ExportID"], name: "income_benefits_export_id", using: :btree
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+    t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
     t.index ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
     t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -869,7 +875,6 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.integer  "HMISParticipatingProject"
     t.boolean  "active_homeless_status_override",               default: false
     t.boolean  "include_in_days_homeless_override",             default: false
-    t.index "(COALESCE(act_as_project_type, \"ProjectType\"))", name: "project_project_override_index", using: :btree
     t.index ["DateCreated"], name: "project_date_created", using: :btree
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id", using: :btree
     t.index ["DateUpdated"], name: "project_date_updated", using: :btree
@@ -1126,6 +1131,87 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.datetime "first_matched_at"
     t.index ["program_id"], name: "index_cas_vacancies_on_program_id", using: :btree
     t.index ["sub_program_id"], name: "index_cas_vacancies_on_sub_program_id", using: :btree
+  end
+
+  create_table "ce_assessments", force: :cascade do |t|
+    t.integer  "user_id",                                              null: false
+    t.integer  "client_id",                                            null: false
+    t.string   "type",                                                 null: false
+    t.datetime "submitted_at"
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
+    t.datetime "deleted_at"
+    t.boolean  "active",                               default: true
+    t.integer  "score",                                default: 0
+    t.integer  "priority_score",                       default: 0
+    t.integer  "assessor_id",                                          null: false
+    t.string   "location"
+    t.string   "client_email"
+    t.boolean  "military_duty",                        default: false
+    t.boolean  "under_25",                             default: false
+    t.boolean  "over_60",                              default: false
+    t.boolean  "lgbtq",                                default: false
+    t.boolean  "children_under_18",                    default: false
+    t.boolean  "fleeing_dv",                           default: false
+    t.boolean  "living_outdoors",                      default: false
+    t.boolean  "urgent_health_issue",                  default: false
+    t.boolean  "location_option_1",                    default: false
+    t.boolean  "location_option_2",                    default: false
+    t.boolean  "location_option_3",                    default: false
+    t.boolean  "location_option_4",                    default: false
+    t.boolean  "location_option_5",                    default: false
+    t.boolean  "location_option_6",                    default: false
+    t.string   "location_option_other"
+    t.string   "location_option_no"
+    t.integer  "homelessness"
+    t.integer  "substance_use"
+    t.integer  "mental_health"
+    t.integer  "health_care"
+    t.integer  "legal_issues"
+    t.integer  "income"
+    t.integer  "work"
+    t.integer  "independent_living"
+    t.integer  "community_involvement"
+    t.integer  "survival_skills"
+    t.boolean  "barrier_no_rental_history",            default: false
+    t.boolean  "barrier_no_income",                    default: false
+    t.boolean  "barrier_poor_credit",                  default: false
+    t.boolean  "barrier_eviction_history",             default: false
+    t.boolean  "barrier_eviction_from_public_housing", default: false
+    t.boolean  "barrier_bedrooms_3",                   default: false
+    t.boolean  "barrier_service_animal",               default: false
+    t.boolean  "barrier_cori_issues",                  default: false
+    t.boolean  "barrier_registered_sex_offender",      default: false
+    t.string   "barrier_other"
+    t.boolean  "preferences_studio",                   default: false
+    t.boolean  "preferences_roomate",                  default: false
+    t.boolean  "preferences_pets",                     default: false
+    t.boolean  "preferences_accessible",               default: false
+    t.boolean  "preferences_quiet",                    default: false
+    t.boolean  "preferences_public_transport",         default: false
+    t.boolean  "preferences_parks",                    default: false
+    t.string   "preferences_other"
+    t.integer  "assessor_rating"
+    t.boolean  "homeless_six_months",                  default: false
+    t.boolean  "mortality_hospitilization_3",          default: false
+    t.boolean  "mortality_emergency_room_3",           default: false
+    t.boolean  "mortality_over_60",                    default: false
+    t.boolean  "mortality_cirrhosis",                  default: false
+    t.boolean  "mortality_renal_disease",              default: false
+    t.boolean  "mortality_frostbite",                  default: false
+    t.boolean  "mortality_hiv",                        default: false
+    t.boolean  "mortality_tri_morbid",                 default: false
+    t.boolean  "lacks_access_to_shelter",              default: false
+    t.boolean  "high_potential_for_vicitimization",    default: false
+    t.boolean  "danger_of_harm",                       default: false
+    t.boolean  "acute_medical_condition",              default: false
+    t.boolean  "acute_psychiatric_condition",          default: false
+    t.boolean  "acute_substance_abuse",                default: false
+    t.index ["assessor_id"], name: "index_ce_assessments_on_assessor_id", using: :btree
+    t.index ["client_id"], name: "index_ce_assessments_on_client_id", using: :btree
+    t.index ["deleted_at"], name: "index_ce_assessments_on_deleted_at", using: :btree
+    t.index ["type"], name: "index_ce_assessments_on_type", using: :btree
+    t.index ["user_id"], name: "index_ce_assessments_on_user_id", using: :btree
   end
 
   create_table "census_by_project_types", force: :cascade do |t|
@@ -1541,10 +1627,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
-    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
     t.index ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id", using: :btree
   end
@@ -2262,7 +2348,6 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.string   "last_zipcode"
     t.string   "source_hash"
     t.datetime "pending_date_deleted"
-    t.string   "SexualOrientationOther",                       limit: 100
     t.integer  "demographic_id"
     t.integer  "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index", using: :btree
@@ -2425,15 +2510,13 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.integer "project_type",                  limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
-    t.index ["date"], name: "index_service_history_services_on_date", using: :btree
-    t.index ["project_type"], name: "index_service_history_services_on_project_type", using: :btree
   end
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2448,10 +2531,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2001", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2466,10 +2549,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2002", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2484,10 +2567,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2003", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2502,10 +2585,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2004", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2520,10 +2603,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2005", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2538,10 +2621,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2006", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2556,10 +2639,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2007", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2574,10 +2657,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2008", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2592,10 +2675,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2009", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2610,10 +2693,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2010", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2628,10 +2711,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2011", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2646,10 +2729,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2012", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2664,10 +2747,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2013", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2682,10 +2765,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2014", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2700,10 +2783,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2015", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2718,10 +2801,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2016", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2736,10 +2819,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2017", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2754,10 +2837,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2018", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2772,10 +2855,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2019", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2790,10 +2873,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2020", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2808,10 +2891,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2021", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2826,10 +2909,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2022", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2844,10 +2927,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2023", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2862,10 +2945,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2024", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2880,10 +2963,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2025", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2898,10 +2981,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2026", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2916,10 +2999,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2027", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2934,10 +3017,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2028", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2952,10 +3035,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2029", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2970,10 +3053,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2030", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -2988,10 +3071,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2031", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3006,10 +3089,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2032", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3024,10 +3107,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2033", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3042,10 +3125,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2034", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3060,10 +3143,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2035", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3078,10 +3161,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2036", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3096,10 +3179,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2037", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3114,10 +3197,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2038", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3132,10 +3215,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2039", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3150,10 +3233,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2040", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3168,10 +3251,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2041", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3186,10 +3269,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2042", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3204,10 +3287,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2043", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3222,10 +3305,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2044", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3240,10 +3323,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2045", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3258,10 +3341,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2046", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3276,10 +3359,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2047", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3294,10 +3377,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2048", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3312,10 +3395,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2049", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3330,10 +3413,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_2050", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3348,10 +3431,10 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   end
 
   create_table "service_history_services_remainder", id: false, force: :cascade do |t|
-    t.integer "id",                                       default: -> { "nextval('service_history_services_id_seq'::regclass)" }, null: false
-    t.integer "service_history_enrollment_id",                                                                                    null: false
-    t.string  "record_type",                   limit: 50,                                                                         null: false
-    t.date    "date",                                                                                                             null: false
+    t.integer "id",                                       default: 0, null: false
+    t.integer "service_history_enrollment_id",                        null: false
+    t.string  "record_type",                   limit: 50,             null: false
+    t.date    "date",                                                 null: false
     t.integer "age",                           limit: 2
     t.integer "service_type",                  limit: 2
     t.integer "client_id"
@@ -3652,8 +3735,8 @@ ActiveRecord::Schema.define(version: 20191017141927) do
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.integer  "days_homeless_plus_overrides"
     t.string   "lgbtq_from_hmis"
+    t.integer  "days_homeless_plus_overrides"
     t.index ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
     t.index ["days_served"], name: "index_warehouse_clients_processed_on_days_served", using: :btree
     t.index ["homeless_days"], name: "index_warehouse_clients_processed_on_homeless_days", using: :btree
@@ -4547,5 +4630,6 @@ ActiveRecord::Schema.define(version: 20191017141927) do
   add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id", using: :btree
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id", using: :btree
 
 end

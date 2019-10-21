@@ -14,6 +14,16 @@ class NotifyUser < DatabaseMailer
     end
   end
 
+  def ce_assessment_completed(assessment_id)
+    # NOTE: this is not setup currently
+    # @assessment = GrdaWarehouse::CoordinatedEntryAssessment::Base.where(id: assessment_id).first
+    # @user = User.where(id: @assessment.user_id).first
+    # users_to_notify = User.where(notify_on_ce_assessment_completed: true).where.not(id: @user.id)
+    # users_to_notify.each do |user|
+    #   mail(to: user.email, subject: "A #{_'Coordinated Entry Assessment'} was completed."")
+    # end
+  end
+
   def client_added(client_id)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     @user = User.where(id: @client.creator_id).first

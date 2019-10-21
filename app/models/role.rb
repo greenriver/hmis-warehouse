@@ -200,6 +200,18 @@ class Role < ApplicationRecord
         description: 'Ability to add VI-SPDAT records',
         administrative: false,
       },
+      can_view_ce_assessment: {
+        description: "Access to view existing Coordinated Entry Assessments",
+        administrative: false,
+      },
+      can_edit_ce_assessment: {
+        description: "Ability to edit existing Coordinated Entry Assessments",
+        administrative: false,
+      },
+      can_submit_ce_assessment: {
+        description: "Ability to add Coordinated Entry Assessments",
+        administrative: false,
+      },
       can_view_youth_intake: {
         description: 'Access to existing Youth Intake records',
         administrative: false,

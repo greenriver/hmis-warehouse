@@ -88,7 +88,8 @@ module Importers::HmisTwentyTwenty
           @import.save
           import_services()
           @import.save
-          import_current_living_situations()
+          # FIXME: commented out 10/19/2019 until HMIS's correct export implementations
+          # import_current_living_situations()
           import_assessments()
           import_assessment_questions()
           import_assessment_results()

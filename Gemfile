@@ -26,7 +26,7 @@ gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false
 
 # File processing
-gem 'carrierwave'
+gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
 gem 'ruby-filemagic'
 gem 'mini_magick'
@@ -70,6 +70,7 @@ gem "jquery-rails"
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
+gem 'sprockets', '~> 3'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'

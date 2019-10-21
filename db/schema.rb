@@ -324,6 +324,9 @@ ActiveRecord::Schema.define(version: 20191015142006) do
     t.boolean  "can_view_clients_with_roi_in_own_coc",                default: false
     t.boolean  "can_enable_2fa",                                      default: false
     t.boolean  "can_edit_help",                                       default: false
+    t.boolean  "can_view_ce_assessment",                              default: false
+    t.boolean  "can_edit_ce_assessment",                              default: false
+    t.boolean  "can_submit_ce_assessment",                            default: false
     t.index ["name"], name: "index_roles_on_name", using: :btree
   end
 
