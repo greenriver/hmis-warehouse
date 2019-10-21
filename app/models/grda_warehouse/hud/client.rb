@@ -25,6 +25,7 @@ module GrdaWarehouse::Hud
     has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
     has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
+    has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
     has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
     has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
     has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
@@ -2435,7 +2436,7 @@ module GrdaWarehouse::Hud
     def enrollments_for en_scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
-        enrollments = en_scope.
+        enrollments = en_scope.joins(:project).
           includes(:service_history_services, :project, :organization, :source_client).
           order(first_date_in_program: :desc)
         enrollments.
