@@ -1,0 +1,14 @@
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.help-form').on('change', '.jSwitcher', function(e){
+        if($('.jSwitcher').val() == 'internal'){
+          $('.jInternal').show();
+          $('.jExternal').hide();
+        } else {
+          $('.jInternal').hide();
+          $('.jExternal').show();
+        }
+      });
+      $('.jSwitcher').trigger('change');
+    });

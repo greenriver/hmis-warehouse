@@ -9,7 +9,11 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: { invitations: 'users/invitations', sessions: 'users/sessions'}
+  devise_for :users, controllers: {
+    invitations: 'users/invitations',
+    sessions: 'users/sessions',
+
+  }
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
@@ -140,6 +144,7 @@ Rails.application.routes.draw do
   end
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :help
 
   namespace :reports do
     namespace :hic do
@@ -371,6 +376,7 @@ Rails.application.routes.draw do
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       get :chronic_days
       patch :merge
@@ -426,6 +432,7 @@ Rails.application.routes.draw do
       healthcare_routes(window: true)
       get 'rollup/:partial', to: '/clients#rollup', as: :rollup
       get :assessment
+      get :health_assessment
       get :image
       resource :history, only: [:show], controller: '/clients/history' do
         get :pdf, on: :collection
@@ -671,10 +678,12 @@ Rails.application.routes.draw do
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
 
+    resources :delayed_jobs, only: [:index, :update, :destroy]
   end
   resource :account, only: [:edit, :update]
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
 

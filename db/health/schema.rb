@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -103,10 +102,9 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "patient_signature_requested_at"
     t.datetime "provider_signature_requested_at"
     t.integer  "health_file_id"
+    t.index ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
+    t.index ["user_id"], name: "index_careplans_on_user_id", using: :btree
   end
-
-  add_index "careplans", ["patient_id"], name: "index_careplans_on_patient_id", using: :btree
-  add_index "careplans", ["user_id"], name: "index_careplans_on_user_id", using: :btree
 
   create_table "claims", force: :cascade do |t|
     t.integer  "user_id"
@@ -126,9 +124,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "precalculated_at"
     t.string   "result"
     t.integer  "transaction_acknowledgement_id"
+    t.index ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
   end
-
-  add_index "claims", ["deleted_at"], name: "index_claims_on_deleted_at", using: :btree
 
   create_table "claims_amount_paid_location_month", force: :cascade do |t|
     t.string  "medicaid_id",  null: false
@@ -143,9 +140,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer "total"
     t.string  "year_month"
     t.string  "study_period"
+    t.index ["medicaid_id"], name: "index_claims_amount_paid_location_month_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_amount_paid_location_month", ["medicaid_id"], name: "index_claims_amount_paid_location_month_on_medicaid_id", using: :btree
 
   create_table "claims_claim_volume_location_month", force: :cascade do |t|
     t.string  "medicaid_id",  null: false
@@ -160,9 +156,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer "total"
     t.string  "year_month"
     t.string  "study_period"
+    t.index ["medicaid_id"], name: "index_claims_claim_volume_location_month_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_claim_volume_location_month", ["medicaid_id"], name: "index_claims_claim_volume_location_month_on_medicaid_id", using: :btree
 
   create_table "claims_ed_nyu_severity", force: :cascade do |t|
     t.string "medicaid_id",           null: false
@@ -171,9 +166,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.float  "sdh_pct"
     t.float  "baseline_visits"
     t.float  "implementation_visits"
+    t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_ed_nyu_severity", ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id", using: :btree
 
   create_table "claims_roster", force: :cascade do |t|
     t.string  "medicaid_id",                      null: false
@@ -205,9 +199,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.string  "housing_status"
     t.integer "baseline_admits"
     t.integer "implementation_admits"
+    t.index ["medicaid_id"], name: "index_claims_roster_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_roster", ["medicaid_id"], name: "index_claims_roster_on_medicaid_id", using: :btree
 
   create_table "claims_top_conditions", force: :cascade do |t|
     t.string  "medicaid_id",         null: false
@@ -217,9 +210,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.float   "sdh_pct"
     t.float   "baseline_paid"
     t.float   "implementation_paid"
+    t.index ["medicaid_id"], name: "index_claims_top_conditions_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_top_conditions", ["medicaid_id"], name: "index_claims_top_conditions_on_medicaid_id", using: :btree
 
   create_table "claims_top_ip_conditions", force: :cascade do |t|
     t.string  "medicaid_id",         null: false
@@ -229,9 +221,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.float   "sdh_pct"
     t.float   "baseline_paid"
     t.float   "implementation_paid"
+    t.index ["medicaid_id"], name: "index_claims_top_ip_conditions_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_top_ip_conditions", ["medicaid_id"], name: "index_claims_top_ip_conditions_on_medicaid_id", using: :btree
 
   create_table "claims_top_providers", force: :cascade do |t|
     t.string  "medicaid_id",         null: false
@@ -241,9 +232,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.float   "sdh_pct"
     t.float   "baseline_paid"
     t.float   "implementation_paid"
+    t.index ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id", using: :btree
   end
-
-  add_index "claims_top_providers", ["medicaid_id"], name: "index_claims_top_providers_on_medicaid_id", using: :btree
 
   create_table "comprehensive_health_assessments", force: :cascade do |t|
     t.integer  "patient_id"
@@ -257,12 +247,11 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "completed_at"
     t.datetime "reviewed_at"
     t.string   "reviewer"
+    t.index ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id", using: :btree
+    t.index ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id", using: :btree
+    t.index ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id", using: :btree
+    t.index ["user_id"], name: "index_comprehensive_health_assessments_on_user_id", using: :btree
   end
-
-  add_index "comprehensive_health_assessments", ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id", using: :btree
-  add_index "comprehensive_health_assessments", ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id", using: :btree
-  add_index "comprehensive_health_assessments", ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id", using: :btree
-  add_index "comprehensive_health_assessments", ["user_id"], name: "index_comprehensive_health_assessments_on_user_id", using: :btree
 
   create_table "cps", force: :cascade do |t|
     t.string   "pid"
@@ -382,9 +371,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer  "data_source_id"
     t.datetime "created_at",                null: false
     t.datetime "updated_at",                null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id", using: :btree
   end
-
-  add_index "epic_case_notes", ["patient_id"], name: "index_epic_case_notes_on_patient_id", using: :btree
 
   create_table "epic_chas", force: :cascade do |t|
     t.string   "patient_id"
@@ -427,9 +415,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
     t.integer  "data_source_id",           default: 1, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
   end
-
-  add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
 
   create_table "epic_patients", force: :cascade do |t|
     t.string   "id_in_source",                             null: false
@@ -529,9 +516,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.string   "name"
     t.float    "size"
     t.integer  "parent_id"
+    t.index ["type"], name: "index_health_files_on_type", using: :btree
   end
-
-  add_index "health_files", ["type"], name: "index_health_files_on_type", using: :btree
 
   create_table "health_goals", force: :cascade do |t|
     t.integer  "user_id"
@@ -576,10 +562,9 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.string   "status"
     t.integer  "responsible_team_member_id"
     t.integer  "patient_id"
+    t.index ["patient_id"], name: "index_health_goals_on_patient_id", using: :btree
+    t.index ["user_id"], name: "index_health_goals_on_user_id", using: :btree
   end
-
-  add_index "health_goals", ["patient_id"], name: "index_health_goals_on_patient_id", using: :btree
-  add_index "health_goals", ["user_id"], name: "index_health_goals_on_user_id", using: :btree
 
   create_table "medications", force: :cascade do |t|
     t.date     "start_date"
@@ -629,9 +614,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "created_at",                                 null: false
     t.datetime "updated_at",                                 null: false
     t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_member_status_report_patients_on_deleted_at", using: :btree
   end
-
-  add_index "member_status_report_patients", ["deleted_at"], name: "index_member_status_report_patients_on_deleted_at", using: :btree
 
   create_table "member_status_reports", force: :cascade do |t|
     t.integer  "user_id"
@@ -649,9 +633,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "created_at",                         null: false
     t.datetime "updated_at",                         null: false
     t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_member_status_reports_on_deleted_at", using: :btree
   end
-
-  add_index "member_status_reports", ["deleted_at"], name: "index_member_status_reports_on_deleted_at", using: :btree
 
   create_table "participation_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -662,12 +645,11 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer  "health_file_id"
     t.datetime "reviewed_at"
     t.string   "reviewer"
+    t.index ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
+    t.index ["health_file_id"], name: "index_participation_forms_on_health_file_id", using: :btree
+    t.index ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
+    t.index ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
   end
-
-  add_index "participation_forms", ["case_manager_id"], name: "index_participation_forms_on_case_manager_id", using: :btree
-  add_index "participation_forms", ["health_file_id"], name: "index_participation_forms_on_health_file_id", using: :btree
-  add_index "participation_forms", ["patient_id"], name: "index_participation_forms_on_patient_id", using: :btree
-  add_index "participation_forms", ["reviewed_by_id"], name: "index_participation_forms_on_reviewed_by_id", using: :btree
 
   create_table "patient_referral_imports", force: :cascade do |t|
     t.string   "file_name",  null: false
@@ -681,14 +663,14 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.date     "birthdate"
     t.string   "ssn"
     t.string   "medicaid_id"
-    t.datetime "created_at",                                                       null: false
-    t.datetime "updated_at",                                                       null: false
+    t.datetime "created_at",                                                null: false
+    t.datetime "updated_at",                                                null: false
     t.integer  "agency_id"
-    t.boolean  "rejected",                         default: false,                 null: false
-    t.integer  "rejected_reason",                  default: 0,                     null: false
+    t.boolean  "rejected",                         default: false,          null: false
+    t.integer  "rejected_reason",                  default: 0,              null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date",                   default: '2018-12-14 20:51:35'
+    t.datetime "effective_date",                   default: -> { "now()" }
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"
@@ -773,10 +755,9 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "eligibility_notification"
     t.string   "aco_name"
     t.string   "previous_aco_name"
+    t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)", using: :btree
+    t.index ["medicaid_id"], name: "index_patients_on_medicaid_id", using: :btree
   end
-
-  add_index "patients", ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)", using: :btree
-  add_index "patients", ["medicaid_id"], name: "index_patients_on_medicaid_id", using: :btree
 
   create_table "premium_payments", force: :cascade do |t|
     t.integer  "user_id"
@@ -788,9 +769,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.jsonb    "converted_content"
     t.datetime "started_at"
     t.datetime "completed_at"
+    t.index ["deleted_at"], name: "index_premium_payments_on_deleted_at", using: :btree
   end
-
-  add_index "premium_payments", ["deleted_at"], name: "index_premium_payments_on_deleted_at", using: :btree
 
   create_table "problems", force: :cascade do |t|
     t.date     "onset_date"
@@ -827,13 +807,12 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "sent_at"
     t.integer  "duplicate_id"
     t.string   "epic_source_id"
+    t.index ["claim_id"], name: "index_qualifying_activities_on_claim_id", using: :btree
+    t.index ["date_of_activity"], name: "index_qualifying_activities_on_date_of_activity", using: :btree
+    t.index ["patient_id"], name: "index_qualifying_activities_on_patient_id", using: :btree
+    t.index ["source_id"], name: "index_qualifying_activities_on_source_id", using: :btree
+    t.index ["source_type"], name: "index_qualifying_activities_on_source_type", using: :btree
   end
-
-  add_index "qualifying_activities", ["claim_id"], name: "index_qualifying_activities_on_claim_id", using: :btree
-  add_index "qualifying_activities", ["date_of_activity"], name: "index_qualifying_activities_on_date_of_activity", using: :btree
-  add_index "qualifying_activities", ["patient_id"], name: "index_qualifying_activities_on_patient_id", using: :btree
-  add_index "qualifying_activities", ["source_id"], name: "index_qualifying_activities_on_source_id", using: :btree
-  add_index "qualifying_activities", ["source_type"], name: "index_qualifying_activities_on_source_type", using: :btree
 
   create_table "release_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -844,12 +823,11 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer  "reviewed_by_id"
     t.datetime "reviewed_at"
     t.string   "reviewer"
+    t.index ["health_file_id"], name: "index_release_forms_on_health_file_id", using: :btree
+    t.index ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
+    t.index ["reviewed_by_id"], name: "index_release_forms_on_reviewed_by_id", using: :btree
+    t.index ["user_id"], name: "index_release_forms_on_user_id", using: :btree
   end
-
-  add_index "release_forms", ["health_file_id"], name: "index_release_forms_on_health_file_id", using: :btree
-  add_index "release_forms", ["patient_id"], name: "index_release_forms_on_patient_id", using: :btree
-  add_index "release_forms", ["reviewed_by_id"], name: "index_release_forms_on_reviewed_by_id", using: :btree
-  add_index "release_forms", ["user_id"], name: "index_release_forms_on_user_id", using: :btree
 
   create_table "sdh_case_management_notes", force: :cascade do |t|
     t.integer  "user_id"
@@ -871,9 +849,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "completed_on"
     t.integer  "health_file_id"
     t.string   "client_action_medication_reconciliation_clinician"
+    t.index ["health_file_id"], name: "index_sdh_case_management_notes_on_health_file_id", using: :btree
   end
-
-  add_index "sdh_case_management_notes", ["health_file_id"], name: "index_sdh_case_management_notes_on_health_file_id", using: :btree
 
   create_table "self_sufficiency_matrix_forms", force: :cascade do |t|
     t.integer  "patient_id"
@@ -960,9 +937,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "updated_at"
     t.datetime "expires_at"
     t.integer  "health_file_id"
+    t.index ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
   end
-
-  add_index "signable_documents", ["signable_id", "signable_type"], name: "index_signable_documents_on_signable_id_and_signable_type", using: :btree
 
   create_table "signature_requests", force: :cascade do |t|
     t.string   "type",                 null: false
@@ -979,12 +955,11 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "updated_at"
     t.datetime "deleted_at"
     t.integer  "signable_document_id"
+    t.index ["careplan_id"], name: "index_signature_requests_on_careplan_id", using: :btree
+    t.index ["deleted_at"], name: "index_signature_requests_on_deleted_at", using: :btree
+    t.index ["patient_id"], name: "index_signature_requests_on_patient_id", using: :btree
+    t.index ["type"], name: "index_signature_requests_on_type", using: :btree
   end
-
-  add_index "signature_requests", ["careplan_id"], name: "index_signature_requests_on_careplan_id", using: :btree
-  add_index "signature_requests", ["deleted_at"], name: "index_signature_requests_on_deleted_at", using: :btree
-  add_index "signature_requests", ["patient_id"], name: "index_signature_requests_on_patient_id", using: :btree
-  add_index "signature_requests", ["type"], name: "index_signature_requests_on_type", using: :btree
 
   create_table "soap_configs", force: :cascade do |t|
     t.string "name"
@@ -1011,10 +986,9 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer  "user_id"
     t.string   "phone"
     t.integer  "patient_id"
+    t.index ["patient_id"], name: "index_team_members_on_patient_id", using: :btree
+    t.index ["type"], name: "index_team_members_on_type", using: :btree
   end
-
-  add_index "team_members", ["patient_id"], name: "index_team_members_on_patient_id", using: :btree
-  add_index "team_members", ["type"], name: "index_team_members_on_type", using: :btree
 
   create_table "teams", force: :cascade do |t|
     t.integer  "patient_id"
@@ -1023,9 +997,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "updated_at"
     t.integer  "user_id"
     t.integer  "careplan_id"
+    t.index ["careplan_id"], name: "index_teams_on_careplan_id", using: :btree
   end
-
-  add_index "teams", ["careplan_id"], name: "index_teams_on_careplan_id", using: :btree
 
   create_table "transaction_acknowledgements", force: :cascade do |t|
     t.integer  "user_id"
@@ -1034,9 +1007,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
     t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_transaction_acknowledgements_on_deleted_at", using: :btree
   end
-
-  add_index "transaction_acknowledgements", ["deleted_at"], name: "index_transaction_acknowledgements_on_deleted_at", using: :btree
 
   create_table "user_care_coordinators", force: :cascade do |t|
     t.integer  "user_id"
@@ -1056,9 +1028,8 @@ ActiveRecord::Schema.define(version: 20190905170546) do
     t.integer  "user_id"
     t.string   "session_id"
     t.string   "request_id"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id", using: :btree
   end
-
-  add_index "versions", ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id", using: :btree
 
   create_table "visits", force: :cascade do |t|
     t.string   "department"

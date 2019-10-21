@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -145,10 +144,9 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.integer  "income_at_penultimate_non_employment_cash"
     t.integer  "income_at_penultimate_overall"
     t.integer  "income_at_penultimate_response"
+    t.index ["report_id", "active", "entered", "head_of_household", "enrolled"], name: "pdq_rep_act_ent_head_enr", using: :btree
+    t.index ["report_id", "active", "exited", "head_of_household", "enrolled"], name: "pdq_rep_act_ext_head_enr", using: :btree
   end
-
-  add_index "warehouse_data_quality_report_enrollments", ["report_id", "active", "entered", "head_of_household", "enrolled"], name: "pdq_rep_act_ent_head_enr", using: :btree
-  add_index "warehouse_data_quality_report_enrollments", ["report_id", "active", "exited", "head_of_household", "enrolled"], name: "pdq_rep_act_ext_head_enr", using: :btree
 
   create_table "warehouse_data_quality_report_project_groups", force: :cascade do |t|
     t.integer  "report_id"
@@ -161,9 +159,8 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.jsonb    "nightly_client_census"
     t.jsonb    "nightly_household_census"
     t.datetime "calculated_at",              null: false
+    t.index ["report_id"], name: "pdq_p_groups_report_id", using: :btree
   end
-
-  add_index "warehouse_data_quality_report_project_groups", ["report_id"], name: "pdq_p_groups_report_id", using: :btree
 
   create_table "warehouse_data_quality_report_projects", force: :cascade do |t|
     t.integer  "report_id"
@@ -187,9 +184,8 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.jsonb    "nightly_client_census"
     t.jsonb    "nightly_household_census"
     t.datetime "calculated_at",               null: false
+    t.index ["report_id", "project_id"], name: "pdq_projects_report_id_project_id", using: :btree
   end
-
-  add_index "warehouse_data_quality_report_projects", ["report_id", "project_id"], name: "pdq_projects_report_id_project_id", using: :btree
 
   create_table "warehouse_houseds", force: :cascade do |t|
     t.date    "search_start"
@@ -217,23 +213,21 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.integer "age_at_search_end"
     t.integer "age_at_housed_date"
     t.integer "age_at_housing_exit"
+    t.index ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree
+    t.index ["housed_date"], name: "index_warehouse_houseds_on_housed_date", using: :btree
+    t.index ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
+    t.index ["project_type", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_h_dates_p_id", using: :btree
+    t.index ["project_type", "search_start", "search_end", "service_project", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_s_dates_h_dates_p_id", using: :btree
+    t.index ["project_type", "search_start", "search_end", "service_project", "project_id"], name: "housed_p_type_s_dates_p_id", using: :btree
+    t.index ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
+    t.index ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
   end
-
-  add_index "warehouse_houseds", ["client_id"], name: "index_warehouse_houseds_on_client_id", using: :btree
-  add_index "warehouse_houseds", ["housed_date"], name: "index_warehouse_houseds_on_housed_date", using: :btree
-  add_index "warehouse_houseds", ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit", using: :btree
-  add_index "warehouse_houseds", ["project_type", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_h_dates_p_id", using: :btree
-  add_index "warehouse_houseds", ["project_type", "search_start", "search_end", "service_project", "housed_date", "housing_exit", "project_id"], name: "housed_p_type_s_dates_h_dates_p_id", using: :btree
-  add_index "warehouse_houseds", ["project_type", "search_start", "search_end", "service_project", "project_id"], name: "housed_p_type_s_dates_p_id", using: :btree
-  add_index "warehouse_houseds", ["search_end"], name: "index_warehouse_houseds_on_search_end", using: :btree
-  add_index "warehouse_houseds", ["search_start"], name: "index_warehouse_houseds_on_search_start", using: :btree
 
   create_table "warehouse_monthly_client_ids", force: :cascade do |t|
     t.string  "report_type", null: false
     t.integer "client_id",   null: false
+    t.index ["report_type", "client_id"], name: "index_warehouse_monthly_client_ids_on_report_type_and_client_id", using: :btree
   end
-
-  add_index "warehouse_monthly_client_ids", ["report_type", "client_id"], name: "index_warehouse_monthly_client_ids_on_report_type_and_client_id", using: :btree
 
   create_table "warehouse_monthly_reports", force: :cascade do |t|
     t.integer  "month",                                     null: false
@@ -258,29 +252,28 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.integer  "prior_exit_destination_id"
     t.datetime "calculated_at",                             null: false
     t.integer  "enrollment_id",                             null: false
+    t.index ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
+    t.index ["client_id"], name: "index_warehouse_monthly_reports_on_client_id", using: :btree
+    t.index ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled", using: :btree
+    t.index ["entered"], name: "index_warehouse_monthly_reports_on_entered", using: :btree
+    t.index ["exited"], name: "index_warehouse_monthly_reports_on_exited", using: :btree
+    t.index ["head_of_household"], name: "index_warehouse_monthly_reports_on_head_of_household", using: :btree
+    t.index ["household_id"], name: "index_warehouse_monthly_reports_on_household_id", using: :btree
+    t.index ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
+    t.index ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
+    t.index ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
+    t.index ["type", "destination_id", "enrolled"], name: "idx_dest_type_enr", using: :btree
+    t.index ["type", "month", "year", "active", "entered", "head_of_household"], name: "idx_year_month_type_act_ent", using: :btree
+    t.index ["type", "month", "year", "active", "exited", "head_of_household"], name: "idx_year_month_type_act_ext", using: :btree
+    t.index ["type", "month", "year", "enrolled"], name: "idx_year_month_type_enr", using: :btree
+    t.index ["type", "month", "year", "head_of_household"], name: "idx_year_month_type_head", using: :btree
+    t.index ["type", "month", "year", "project_type", "active", "entered", "head_of_household"], name: "idx_year_month_type_proj_act_ent", using: :btree
+    t.index ["type", "month", "year", "project_type", "active", "exited", "head_of_household"], name: "idx_year_month_type_proj_act_ext", using: :btree
+    t.index ["type", "month", "year", "project_type", "enrolled"], name: "idx_year_month_type_proj_enr", using: :btree
+    t.index ["type", "month", "year", "project_type", "head_of_household"], name: "idx_year_month_type_proj_head", using: :btree
+    t.index ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
+    t.index ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
   end
-
-  add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
-  add_index "warehouse_monthly_reports", ["client_id"], name: "index_warehouse_monthly_reports_on_client_id", using: :btree
-  add_index "warehouse_monthly_reports", ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled", using: :btree
-  add_index "warehouse_monthly_reports", ["entered"], name: "index_warehouse_monthly_reports_on_entered", using: :btree
-  add_index "warehouse_monthly_reports", ["exited"], name: "index_warehouse_monthly_reports_on_exited", using: :btree
-  add_index "warehouse_monthly_reports", ["head_of_household"], name: "index_warehouse_monthly_reports_on_head_of_household", using: :btree
-  add_index "warehouse_monthly_reports", ["household_id"], name: "index_warehouse_monthly_reports_on_household_id", using: :btree
-  add_index "warehouse_monthly_reports", ["month"], name: "index_warehouse_monthly_reports_on_month", using: :btree
-  add_index "warehouse_monthly_reports", ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id", using: :btree
-  add_index "warehouse_monthly_reports", ["project_id"], name: "index_warehouse_monthly_reports_on_project_id", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "destination_id", "enrolled"], name: "idx_dest_type_enr", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "active", "entered", "head_of_household"], name: "idx_year_month_type_act_ent", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "active", "exited", "head_of_household"], name: "idx_year_month_type_act_ext", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "enrolled"], name: "idx_year_month_type_enr", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "head_of_household"], name: "idx_year_month_type_head", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "active", "entered", "head_of_household"], name: "idx_year_month_type_proj_act_ent", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "active", "exited", "head_of_household"], name: "idx_year_month_type_proj_act_ext", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "enrolled"], name: "idx_year_month_type_proj_enr", using: :btree
-  add_index "warehouse_monthly_reports", ["type", "month", "year", "project_type", "head_of_household"], name: "idx_year_month_type_proj_head", using: :btree
-  add_index "warehouse_monthly_reports", ["type"], name: "index_warehouse_monthly_reports_on_type", using: :btree
-  add_index "warehouse_monthly_reports", ["year"], name: "index_warehouse_monthly_reports_on_year", using: :btree
 
   create_table "warehouse_returns", force: :cascade do |t|
     t.integer "service_history_enrollment_id", null: false
@@ -300,13 +293,12 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.date    "start_date"
     t.date    "end_date"
     t.integer "length_of_stay"
+    t.index ["client_id"], name: "index_warehouse_returns_on_client_id", using: :btree
+    t.index ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program", using: :btree
+    t.index ["project_type"], name: "index_warehouse_returns_on_project_type", using: :btree
+    t.index ["record_type"], name: "index_warehouse_returns_on_record_type", using: :btree
+    t.index ["service_history_enrollment_id"], name: "index_warehouse_returns_on_service_history_enrollment_id", using: :btree
+    t.index ["service_type"], name: "index_warehouse_returns_on_service_type", using: :btree
   end
-
-  add_index "warehouse_returns", ["client_id"], name: "index_warehouse_returns_on_client_id", using: :btree
-  add_index "warehouse_returns", ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program", using: :btree
-  add_index "warehouse_returns", ["project_type"], name: "index_warehouse_returns_on_project_type", using: :btree
-  add_index "warehouse_returns", ["record_type"], name: "index_warehouse_returns_on_record_type", using: :btree
-  add_index "warehouse_returns", ["service_history_enrollment_id"], name: "index_warehouse_returns_on_service_history_enrollment_id", using: :btree
-  add_index "warehouse_returns", ["service_type"], name: "index_warehouse_returns_on_service_type", using: :btree
 
 end

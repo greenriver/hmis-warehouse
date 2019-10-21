@@ -39,11 +39,16 @@ gem 'hellosign-ruby-sdk'
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
+gem 'devise-security'
+gem 'devise-two-factor'
+gem 'rqrcode-rails3'
+gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 
 gem 'paper_trail'
+gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
 gem "email_check"
@@ -124,8 +129,8 @@ gem 'net-sftp', require: false
 gem 'redis-rails'
 
 #AWS SDK
-gem 'aws-sdk-rails', require: false
-gem 'aws-sdk', '~> 3', require: false
+gem 'aws-sdk-rails'
+gem 'aws-sdk', '~> 3'
 gem 'json'
 gem 'awesome_print'
 
@@ -180,6 +185,10 @@ group :development do
   gem 'overcommit'
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
+
+  # boot time/memory profiling
+  gem 'derailed_benchmarks'
+  gem 'bumbler'
 end
 
 group :test do

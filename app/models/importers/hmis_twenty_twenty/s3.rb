@@ -27,7 +27,7 @@ module Importers::HmisTwentyTwenty
         debug: debug
       )
 
-      @s3 = if secret_access_key.present && secret_access_key != 'unknwon'
+      @s3 = if secret_access_key.present? && secret_access_key != 'unknwon'
         AwsS3.new(
           region: region,
           bucket_name: bucket_name,

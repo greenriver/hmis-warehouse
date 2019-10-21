@@ -66,20 +66,16 @@ class NotifyUser < DatabaseMailer
   def anomaly_identified(client_id:, user_id:)
     @client = GrdaWarehouse::Hud::Client.where(id: client_id).first
     users_to_notify = User.where(notify_on_anomaly_identified: true).
-      where.not(id: user_id)
-    users_to_notify.each do |user|
-      mail(to: user.email, subject: 'Client anomaly identified')
-    end
+      where.not(id: user_id).map(&:email)
+    mail(to: users_to_notify, subject: 'Client anomaly identified')
   end
 
   def anomaly_updated(client_id:, user_id:, involved_user_ids:, anomaly_id:)
     @client = GrdaWarehouse::Hud::Client.find(client_id.to_i)
     @anomaly = GrdaWarehouse::Anomaly.find(anomaly_id.to_i)
     users_to_notify = User.where(id: involved_user_ids).
-      where.not(id: user_id)
-    users_to_notify.each do |user|
-      mail(to: user.email, subject: 'Client anomaly updated')
-    end
+      where.not(id: user_id).map(&:email)
+    mail(to: users_to_notify, subject: 'Client anomaly updated')
   end
 
   def chronic_report_finished(user_id, report_id)

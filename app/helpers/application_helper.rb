@@ -130,6 +130,7 @@ module ApplicationHelper
 
   def body_classes
     [].tap do |result|
+      result << ENV.fetch('CLIENT')
       result << params[:controller]
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?
@@ -143,7 +144,7 @@ module ApplicationHelper
 
   # make no less visually salient
   def lighten_no(value)
-    if strip_tags(value)&.strip&.downcase == 'no'
+    if strip_tags(value&.to_s)&.strip&.downcase == 'no'
       content_tag :i, value, class: :light
     else
       value
@@ -198,7 +199,7 @@ module ApplicationHelper
 
   def branch_info
     branch_name = `git rev-parse --abbrev-ref HEAD`
-    content_tag :p, class: 'navbar-text' do
+    content_tag :div, class: 'navbar-text' do
       content_tag :span, branch_name, class: 'label label-warning'
     end
   end
@@ -235,6 +236,25 @@ module ApplicationHelper
       ),
       class: "icon-svg #{options[:wrapper_class]}",
       style: style,
+    )
+  end
+
+  def help_link
+    @help_link ||= begin
+      return nil unless help_for_path
+
+      if help_for_path.external?
+        link_to 'Help', help_for_path.external_url, class: 'o-menu__link', target: :_blank
+      else
+        link_to 'Help', help_path(help_for_path), class: 'o-menu__link', data: { loads_in_pjax_modal: true }
+      end
+    end
+  end
+
+  def help_for_path
+    @help_for_path ||= GrdaWarehouse::Help.select(:id, :external_url, :location).for_path(
+      controller_path: controller_path,
+      action_name: action_name,
     )
   end
 end

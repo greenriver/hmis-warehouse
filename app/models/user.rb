@@ -12,9 +12,22 @@ class User < ApplicationRecord
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :invitable, :database_authenticatable,
-         :recoverable, :rememberable, :trackable, :validatable,
-         :lockable, :timeoutable, :confirmable, :pwned_password, password_length: 10..128
+  devise :invitable,
+         :recoverable,
+         :rememberable,
+         :trackable,
+         :validatable,
+         :lockable,
+         :timeoutable,
+         :confirmable,
+         :session_limitable,
+         :pwned_password,
+         :expirable,
+         :two_factor_authenticatable,
+         :two_factor_backupable,
+         password_length: 10..128,
+         otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
+         otp_number_of_backup_codes: 10
   # has_secure_password # not needed with devise
   # Connect users to login attempts
   has_many :login_activities, as: :user
@@ -120,6 +133,41 @@ class User < ApplicationRecord
 
   def name_with_email
     "#{name} <#{email}>"
+  end
+
+  def two_factor_issuer
+    _('Boston DND HMIS Warehouse')
+  end
+
+  def two_factor_label
+    "#{two_factor_issuer} #{email}"
+  end
+
+  # ensure we have a secret
+  def set_initial_two_factor_secret!
+    return if otp_secret
+    update(otp_secret: User.generate_otp_secret)
+  end
+
+  def two_factor_enabled?
+    otp_secret.present? && otp_required_for_login? && passed_2fa_confirmation?
+  end
+
+  def confirmation_step
+    (confirmed_2fa + 1).ordinalize
+  end
+
+  def passed_2fa_confirmation?
+    confirmed_2fa > 0
+  end
+
+  def disable_2fa!
+    otp_secret = nil
+    update(
+      confirmed_2fa: 0,
+      otp_required_for_login: false,
+      otp_backup_codes: nil,
+    )
   end
 
   def invitation_status

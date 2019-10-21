@@ -3,7 +3,7 @@
     &laquo; Client search
 - content_for :title, t('.title')
 %h1= content_for :title
-= render :partial => 'menus/admin_tabs'
+= render partial: 'menus/admin_tabs'
 .o-page
   .o-page__header
     - @prompt = t '.search_prompt'
@@ -15,8 +15,6 @@
       = link_to new_user_invitation_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-plus
         Add a User Account
-      = link_to 'Manage Roles', admin_roles_path
-      = link_to 'Manage Agencies', admin_agencies_path
 
 %ul.nav.nav-tabs
   %li.nav-item
@@ -57,6 +55,9 @@
                   %td= user.first_name
                   %td
                     = user.email
+                    - if user.agency
+                      .user__agency
+                        %em.text-muted= user.agency.name
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
@@ -67,7 +68,7 @@
                       %i.icon-pencil
                       Edit
                   %td{style: 'white-space: nowrap;'}
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
                       %i.icon-cross
                       De-Activate
 
@@ -83,7 +84,8 @@
         %tbody
           - @inactive_users.each do |user|
             %tr
-              %td= user.name
+              %td
+                = user.name
               %td
                 = user.email
               %td

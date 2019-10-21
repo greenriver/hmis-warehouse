@@ -6,22 +6,22 @@ RSpec.describe Health::Tasks::ImportPatientReferrals, type: :model do
   end
 
   it 'loads the active/new referrals' do
-    @importer.process_files ['first_full.csv']
+    @importer.process_files ['first_full.csv'], nil
     expect(Health::PatientReferral.count).to eq 2
   end
 
   it 'doesn\'t duplicate referrals' do
-    @importer.process_files ['first_full.csv']
-    @importer.process_files ['first_full.csv']
+    @importer.process_files ['first_full.csv'], nil
+    @importer.process_files ['first_full.csv'], nil
     expect(Health::PatientReferral.count).to eq 2
   end
 
   it 'reactivates removed referrals' do
-    @importer.process_files ['first_full.csv']
+    @importer.process_files ['first_full.csv'], nil
     client = Health::PatientReferral.find_by(medicaid_id: 123)
     client.update!(rejected: true, rejected_reason: 1, removal_acknowledged: true)
 
-    @importer.process_files ['first_full.csv']
+    @importer.process_files ['first_full.csv'], nil
     expect(Health::PatientReferral.count).to eq 2
 
     client.reload

@@ -23,7 +23,7 @@
 
 = content_for :page_js do
   :javascript
-    (function($){
+    $(document).ready(function() {
       $('.jProjectTypes, .jOrganizations').on('change', function(e){
         var project_types = $('.jProjectTypes').val();
         if(project_types == null) {
@@ -39,5 +39,6 @@
           $('.jProjects').html(data);
         });
       });
+      $('.jProjectTypes, .jOrganizations').trigger('change');
     });
-    $('.jProjectTypes, .jOrganizations').trigger('change');
+

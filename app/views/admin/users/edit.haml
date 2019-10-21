@@ -1,5 +1,10 @@
 = render 'breadcrumbs'
 %h1
-  Edit User Account: 
+  Edit User Account:
   = @user.name
+- if @user.reset_password_period_valid?
+  .alert.alert-info
+    %p
+      = @user.name
+      has an active password reset request.
 = render 'form'

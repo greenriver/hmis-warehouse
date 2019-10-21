@@ -10,7 +10,7 @@ class Role < ApplicationRecord
   validates :name, presence: true
 
   def role_name
-    name.to_s.humanize.gsub('Dnd', 'DND')
+    name.to_s
   end
 
   scope :health, -> do
@@ -91,6 +91,10 @@ class Role < ApplicationRecord
       can_edit_users: {
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
+      },
+       can_enable_2fa: {
+        description: 'Ability to enable Two-factor authentication for own account',
+        administrative: false,
       },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
@@ -339,7 +343,11 @@ class Role < ApplicationRecord
       can_view_clients_with_roi_in_own_coc: {
         description: 'This permission grants access to clients who have a release of information that includes a CoC assigned to the user, or an ROI with no CoC specified',
         administrative: false,
-      }
+      },
+      can_edit_help: {
+        description: 'Ability to maintain help documents',
+        administrative: true,
+      },
     }
   end
 
