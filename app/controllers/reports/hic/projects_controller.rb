@@ -6,7 +6,6 @@
 
 module Reports
   class Hic::ProjectsController < Hic::BaseController
-
     def show
       @projects = GrdaWarehouse::Hud::Project.joins(:organization).
         viewable_by(current_user).

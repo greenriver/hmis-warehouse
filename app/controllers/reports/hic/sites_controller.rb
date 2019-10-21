@@ -6,7 +6,6 @@
 
 module Reports
   class Hic::SitesController < Hic::BaseController
-
     def show
       @sites = GrdaWarehouse::Hud::Geography.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).

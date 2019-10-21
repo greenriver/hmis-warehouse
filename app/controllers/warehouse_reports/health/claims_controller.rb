@@ -60,7 +60,7 @@ module WarehouseReports::Health
           distinct.
           order(date_of_activity: :desc).
           pluck(:date_of_activity).map do |date|
-            ["#{date.strftime("%B")} - #{date.year}", date.beginning_of_month]
+            ["#{date.strftime('%B')} - #{date.year}", date.beginning_of_month]
           end.uniq.to_h
         @state = :initial
       end
@@ -69,28 +69,27 @@ module WarehouseReports::Health
     def patients
       date = params[:date]&.to_date
       if date.present?
-        @month = "#{date.strftime("%B")} - #{date.year}"
+        @month = "#{date.strftime('%B')} - #{date.year}"
         @client_ids = Health::Patient.
           joins(:qualifying_activities).
           merge(Health::QualifyingActivity.submittable.unsubmitted.
-            where(date_of_activity: (date.beginning_of_month..date.end_of_month))
-          ).
+            where(date_of_activity: (date.beginning_of_month..date.end_of_month))).
           distinct.
           pluck(:client_id)
         @clients = GrdaWarehouse::Hud::Client.where(id: @client_ids).select(:id, :FirstName, :LastName).
           order(LastName: :asc, FirstName: :asc)
       else
-        @month = "Unknown"
+        @month = 'Unknown'
         @client_ids = []
         @clients = []
       end
-
     end
 
     def precalculated
       @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
       @report = Health::Claim.precalculated.last
       return unless @report
+
       @payable = {}
       @unpayable = {}
       @duplicate = {}
@@ -104,8 +103,8 @@ module WarehouseReports::Health
           @duplicate[qa.patient_id] ||= []
           @duplicate[qa.patient_id] << qa
         elsif qa.naturally_payable? && qa.valid_unpayable?
-            @valid_unpayable[qa.patient_id] ||= []
-            @valid_unpayable[qa.patient_id] << qa
+          @valid_unpayable[qa.patient_id] ||= []
+          @valid_unpayable[qa.patient_id] << qa
         elsif ! qa.naturally_payable?
           @unpayable[qa.patient_id] ||= []
           @unpayable[qa.patient_id] << qa
@@ -122,7 +121,7 @@ module WarehouseReports::Health
       force_list = []
       no_force_list = []
       params[:force_payable].each do |qa_id, force_payable|
-        if force_payable == "true"
+        if force_payable == 'true'
           force_list << qa_id.to_i
         else
           no_force_list << qa_id.to_i
@@ -144,13 +143,13 @@ module WarehouseReports::Health
           ::WarehouseReports::HealthQualifyingActivitiesPayabilityJob.new(
             report_id: @report.id,
             current_user_id: current_user.id,
-            max_date: @report.max_date
+            max_date: @report.max_date,
           ),
-          queue: :low_priority
+          queue: :low_priority,
         )
         @report.update(job_id: job.id)
         redirect_to action: :index
-      rescue
+      rescue StandardError
         respond_with @report, location: warehouse_reports_health_claims_path
       end
     end
@@ -206,9 +205,9 @@ module WarehouseReports::Health
         ::WarehouseReports::HealthClaimsJob.new(
           report_id: @report.id,
           current_user_id: current_user.id,
-          max_date: @report.max_date
+          max_date: @report.max_date,
         ),
-        queue: :low_priority
+        queue: :low_priority,
       )
       @report.update(job_id: job.id, started_at: Time.now)
       respond_with @report, location: warehouse_reports_health_claims_path
@@ -232,13 +231,14 @@ module WarehouseReports::Health
 
     def acknowledge
       ta = Health::TransactionAcknowledgement.create(
-          user: current_user,
-          content: ta_params[:content].read,
-          original_filename: ta_params[:content].original_filename)
+        user: current_user,
+        content: ta_params[:content].read,
+        original_filename: ta_params[:content].original_filename,
+      )
       sent_at = Time.now
       claim_result = ta.transaction_result
       if claim_result == 'error'
-        flash[:error] = "Error reading file"
+        flash[:error] = 'Error reading file'
         respond_with @report, location: warehouse_reports_health_claims_path
       else
         Health::Claim.transaction do

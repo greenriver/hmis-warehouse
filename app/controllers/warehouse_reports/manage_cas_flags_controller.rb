@@ -10,76 +10,74 @@ module WarehouseReports
     before_action :set_flag, only: [:index]
 
     def index
-      
       case @flag
       when :sync_with_cas
         @clients = hashed(
           client_scope.cas_active.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :full_housing_release
         @clients = hashed(
           client_scope.full_housing_release_on_file.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :limited_cas_release
         @clients = hashed(
           client_scope.limited_cas_release_on_file.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :disability_verified_on
         @clients = hashed(
           client_scope.verified_disability.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :dmh_eligible
         @clients = hashed(
           client_scope.dmh_eligible.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :va_eligible
         @clients = hashed(
           client_scope.va_eligible.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :hues_eligible
         @clients = hashed(
           client_scope.hues_eligible.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       when :hiv_positive
         @clients = hashed(
           client_scope.hiv_positive.
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       else
         @clients = hashed(
           client_scope.where(@flag => true).
             order(:LastName, :FirstName).
-            pluck(*client_fields)
+            pluck(*client_fields),
         )
       end
     end
 
     def bulk_update
-      @flag = available_flags.detect{|m| m == bulk_params[:flag]&.to_sym}
+      @flag = available_flags.detect { |m| m == bulk_params[:flag]&.to_sym }
       if @flag.present?
-        flashes =[]
-        client_source.transaction do 
+        flashes = []
+        client_source.transaction do
           client_ids = bulk_params[@flag.to_s].strip.split(/\s+/).uniq
           unflagged_count = unflag(column: @flag, client_ids: client_ids)
-          flashes << "Removed <strong>#{cas_flags[@flag.to_sym]}</strong> from #{unflagged_count} clients".html_safe if unflagged_count > 0
+          flashes << "Removed <strong>#{cas_flags[@flag.to_sym]}</strong> from #{unflagged_count} clients".html_safe if unflagged_count.positive?
           flagged_count = flag(column: @flag, client_ids: client_ids)
-          flashes << "Added <strong>#{client_source.cas_columns[@flag.to_sym]}</strong> to #{flagged_count} clients".html_safe if flagged_count > 0
-
+          flashes << "Added <strong>#{client_source.cas_columns[@flag.to_sym]}</strong> to #{flagged_count} clients".html_safe if flagged_count.positive?
         end
         flash[:notice] = flashes.join('<br />').html_safe if flashes.any?
         ::Cas::SyncToCasJob.perform_later
@@ -90,7 +88,7 @@ module WarehouseReports
     end
 
     private def set_flag
-      @flag = available_flags.detect{|m| m == params[:cas_flag]&.to_sym} || :sync_with_cas
+      @flag = available_flags.detect { |m| m == params[:cas_flag]&.to_sym } || :sync_with_cas
     end
 
     def available_flags
@@ -98,10 +96,9 @@ module WarehouseReports
     end
 
     def cas_flags
-      GrdaWarehouse::Hud::Client.cas_columns.reject{|m| m == :housing_release_status}
+      GrdaWarehouse::Hud::Client.cas_columns.reject { |m| m == :housing_release_status }
     end
     helper_method :cas_flags
-
 
     def client_fields
       [
@@ -114,7 +111,7 @@ module WarehouseReports
     def bulk_params
       params.require(:cas_flags).permit(
         *client_source.cas_readiness_parameters,
-        :flag
+        :flag,
       )
     end
 
@@ -127,6 +124,7 @@ module WarehouseReports
     def unflag(column:, client_ids:)
       # Don't unflag housing_release_status since it's a ternary
       return 0 if housing_release_types.include?(column)
+
       default = column_default(column: column)
       client_scope.where.not(column_name(column: column) => default).
         where.not(id: client_ids).
@@ -139,7 +137,7 @@ module WarehouseReports
         'Full HAN Release'
       elsif column == :limited_cas_release
         'Limited CAS Release'
-      elsif default === false || default === 'false'
+      elsif default === false || default === 'false' # rubocop:disable Style/CaseEquality
         true
       else
         Time.now
@@ -148,7 +146,7 @@ module WarehouseReports
         update_all(column_name(column: column) => set_to)
     end
 
-    def column_default column:
+    def column_default(column:)
       if housing_release_types.include?(column)
         nil
       else
@@ -156,11 +154,11 @@ module WarehouseReports
       end
     end
 
-    def column_name column:
+    def column_name(column:)
       if housing_release_types.include?(column)
         :housing_release_status
       else
-       column
+        column
       end
     end
 

@@ -15,7 +15,7 @@ class ReportsController < ApplicationController
     @reports = group_reports(@reports)
   end
 
-    # GET /services/new
+  # GET /services/new
   def new
     @report = report_source.new
   end
@@ -53,44 +53,45 @@ class ReportsController < ApplicationController
   end
 
   private
-    def report_source
-      Report
+
+  def report_scope
+    report_source.active
+  end
+
+  def report_source
+    Report
+  end
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_report
+    @report = Report.find(params[:id].to_i)
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def report_params
+    params.require(:report).permit(
+      :name,
+    )
+  end
+
+  def sort_column
+    report_source.column_names.include?(params[:sort]) ? params[:sort] : 'name'
+  end
+
+  def sort_direction
+    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
+  end
+
+  def group_reports(reports)
+    grouped_reports = {}
+    reports.each do |r|
+      report_category = r.report_group_name
+      report_year = r.type.split('::')[0...-1].join('::')
+      grouped_reports[report_category] ||= {}
+      grouped_reports[report_category][report_year] ||= []
+      grouped_reports[report_category][report_year] << r
     end
 
-    def report_scope
-      report_source.active
-    end
-
-    # Use callbacks to share common setup or constraints between actions.
-    def set_report
-      @report = Report.find(params[:id].to_i)
-    end
-
-    # Only allow a trusted parameter "white list" through.
-    def report_params
-      params.require(:report).permit(
-        :name,
-      )
-    end
-
-    def sort_column
-      report_source.column_names.include?(params[:sort]) ? params[:sort] : 'name'
-    end
-
-    def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
-    end
-
-    def group_reports reports
-      grouped_reports = {}
-      reports.each do |r|
-        report_category = r.report_group_name
-        report_year = r.type.split('::')[0...-1].join('::')
-        grouped_reports[report_category] ||= {}
-        grouped_reports[report_category][report_year] ||= []
-        grouped_reports[report_category][report_year] << r
-      end
-
-      return grouped_reports
-    end
+    grouped_reports
+  end
 end

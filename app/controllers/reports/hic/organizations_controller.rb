@@ -6,7 +6,6 @@
 
 module Reports
   class Hic::OrganizationsController < Hic::BaseController
-
     def show
       @organizations = organization_scope.joins(:projects).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).

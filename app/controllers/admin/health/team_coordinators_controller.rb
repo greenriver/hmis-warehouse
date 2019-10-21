@@ -13,9 +13,8 @@ module Admin::Health
     before_action :load_coordinators, only: [:index, :create]
 
     def index
-     @coordinator = user_coordinator_source.new
+      @coordinator = user_coordinator_source.new
     end
-
 
     def create
       @coordinator = user_coordinator_source.create(allowed_params)
@@ -58,7 +57,7 @@ module Admin::Health
     def allowed_params
       params.require(:team_coordinator).permit(
         :user_id,
-        :care_coordinator_id
+        :care_coordinator_id,
       )
     end
 

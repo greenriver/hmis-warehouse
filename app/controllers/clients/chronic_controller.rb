@@ -23,11 +23,7 @@ module Clients
 
     def update
       update_params = chronic_params
-      update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
-        @client.disability_verified_on || Time.now
-      else
-        nil
-      end
+      update_params[:disability_verified_on] = (@client.disability_verified_on || Time.now if update_params[:disability_verified_on] == '1')
 
       if @client.update(update_params)
         flash[:notice] = 'Client updated'
@@ -41,20 +37,20 @@ module Clients
 
     protected
 
-      def set_client
-        @client = client_source.destination.find(params[:client_id].to_i)
-      end
+    def set_client
+      @client = client_source.destination.find(params[:client_id].to_i)
+    end
 
-      def cas_readiness_params
-        params.require(:readiness).permit(*client_source.cas_readiness_parameters)
-      end
+    def cas_readiness_params
+      params.require(:readiness).permit(*client_source.cas_readiness_parameters)
+    end
 
-      def client_source
-        GrdaWarehouse::Hud::Client
-      end
+    def client_source
+      GrdaWarehouse::Hud::Client
+    end
 
-      def title_for_show
-        "#{@client.name} - Chronic"
-      end
+    def title_for_show
+      "#{@client.name} - Chronic"
+    end
   end
 end

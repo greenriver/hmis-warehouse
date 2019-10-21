@@ -35,7 +35,8 @@ module Reporting
       NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later if user_id
     end
 
-    def enqueue(job); end
+    def enqueue(job)
+    end
 
     def error(job, exception)
       result = ReportResult.find(YAML.safe_load(job.handler).result_id.to_i)

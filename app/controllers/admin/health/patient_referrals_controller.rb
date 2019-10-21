@@ -25,14 +25,14 @@ module Admin::Health
       @active_patient_referral_tab = 'review'
       @patient_referrals = Health::PatientReferral.unassigned.
         includes(:relationships, relationships_claimed: :agency).
-        preload(:assigned_agency, :aco, :relationships, :relationships_unclaimed, {patient: :client})
+        preload(:assigned_agency, :aco, :relationships, :relationships_unclaimed, patient: :client)
       respond_to do |format|
         format.html do
           load_index_vars
           render 'index'
         end
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=PatientReferrals.xlsx"
+          headers['Content-Disposition'] = 'attachment; filename=PatientReferrals.xlsx'
         end
       end
     end
@@ -41,7 +41,7 @@ module Admin::Health
       @active_patient_referral_tab = 'assigned'
       @patient_referrals = Health::PatientReferral.assigned.
         includes(:relationships, relationships_claimed: :agency).
-        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
       render 'index'
     end
@@ -50,7 +50,7 @@ module Admin::Health
       @active_patient_referral_tab = 'rejected'
       @patient_referrals = Health::PatientReferral.rejected.
         includes(:relationships, relationships_claimed: :agency).
-        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, {patient: :client})
+        preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
       @sender = Health::Cp.sender.first
       render 'index'
@@ -83,12 +83,12 @@ module Admin::Health
             )
           end
 
-          flash[:notice] = "Patient has been rejected."
+          flash[:notice] = 'Patient has been rejected.'
         else
           patient.restore if patient.present?
           # Clean up any removal acknowledgement with the patient
           @patient_referral.update(removal_acknowledged: false)
-          flash[:notice] = "Patient rejection removed."
+          flash[:notice] = 'Patient rejection removed.'
         end
       else
         @error = 'An error occurred, please try again.'
@@ -101,9 +101,7 @@ module Admin::Health
       @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
       @new_patient_referral.enrollment_start_date = @new_patient_referral.effective_date
       if @new_patient_referral.save
-        if clean_patient_referral_params[:agency_id].present?
-          @new_patient_referral.convert_to_patient()
-        end
+        @new_patient_referral.convert_to_patient if clean_patient_referral_params[:agency_id].present?
       end
       respond_with(@new_patient_referral, location: review_admin_health_patient_referrals_path)
     end
@@ -114,10 +112,11 @@ module Admin::Health
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
+    # rubocop:disable Style/IfInsideElse
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
       if @patient_referral.update_attributes(assign_agency_params)
-        @patient_referral.convert_to_patient()
+        @patient_referral.convert_to_patient
         if request.xhr?
           if @patient_referral.assigned_agency.present?
             @success = "Patient assigned to #{@patient_referral.assigned_agency&.name}."
@@ -141,6 +140,7 @@ module Admin::Health
         end
       end
     end
+    # rubocop:enable Style/IfInsideElse
 
     def bulk_assign_agency
       @params = params[:bulk_assignment] || {}
@@ -148,42 +148,39 @@ module Admin::Health
       @patient_referrals = Health::PatientReferral.where(id: (@params[:patient_referral_ids] || []))
       if @patient_referrals.any? && @agency.present?
         @patient_referrals.update_all(agency_id: @agency.id)
-        @patient_referrals.each do |patient_referral|
-          patient_referral.convert_to_patient()
-        end
+        @patient_referrals.each(&:convert_to_patient)
         size = @patient_referrals.size
         flash[:notice] = "#{size} #{'Patient'.pluralize(size)} have been assigned to #{@agency.name}"
         redirect_to assigned_admin_health_patient_referrals_path
       elsif !@agency.present?
         flash[:error] = 'Error: Please select an agency to assign patients to.'
         redirect_to review_admin_health_patient_referrals_path
-      elsif !@patient_referrals.any?
+      elsif @patient_referrals.none?
         flash[:error] = 'Error: Please select patients to assign.'
         redirect_to review_admin_health_patient_referrals_path
       end
-
     end
 
     private
 
     def load_tabs
       @patient_referral_tabs = [
-        {id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params)},
-        {id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params)},
-        {id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params)},
-        {id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params)},
+        { id: 'review', tab_text: 'Assignments to Review', path: review_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params) },
       ]
     end
 
     def reject_params
       params.require(:health_patient_referral).permit(
-        :rejected_reason
+        :rejected_reason,
       )
     end
 
     def assign_agency_params
       params.require(:health_patient_referral).permit(
-        :agency_id
+        :agency_id,
       )
     end
 
@@ -220,7 +217,7 @@ module Admin::Health
       if @new_patient_referral.assigned_agency.present?
         "New patient added and assigned to #{@new_patient_referral.assigned_agency&.name}"
       else
-        "New patient added."
+        'New patient added.'
       end
     end
 

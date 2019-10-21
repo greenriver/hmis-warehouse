@@ -31,7 +31,7 @@ module WarehouseReports::ClientDetails
       end
     end
 
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -49,12 +49,12 @@ module WarehouseReports::ClientDetails
     def service_history_columns
       {
         client_id: she_t[:client_id].to_sql,
-        project_id:  she_t[:project_id].to_sql,
-        first_date_in_program:  she_t[:first_date_in_program].to_sql,
-        last_date_in_program:  she_t[:last_date_in_program].to_sql,
-        project_name:  she_t[:project_name].to_sql,
-        project_type:  she_t[service_history_source.project_type_column].to_sql,
-        organization_id:  she_t[:organization_id].to_sql,
+        project_id: she_t[:project_id].to_sql,
+        first_date_in_program: she_t[:first_date_in_program].to_sql,
+        last_date_in_program: she_t[:last_date_in_program].to_sql,
+        project_name: she_t[:project_name].to_sql,
+        project_type: she_t[service_history_source.project_type_column].to_sql,
+        organization_id: she_t[:organization_id].to_sql,
         first_name: c_t[:FirstName].to_sql,
         last_name: c_t[:LastName].to_sql,
         enrollment_group_id: she_t[:enrollment_group_id].to_sql,
@@ -63,7 +63,7 @@ module WarehouseReports::ClientDetails
       }
     end
 
-    def active_client_service_history range:
+    def active_client_service_history(range:)
       homeless_service_history_source.joins(:client, :enrollment).
         with_service_between(start_date: range.start, end_date: range.end).
         open_between(start_date: range.start, end_date: range.end).
@@ -73,7 +73,7 @@ module WarehouseReports::ClientDetails
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
         end.
-        group_by{|m| m[:client_id]}
+        group_by { |m| m[:client_id] }
     end
 
     def service_history_source
@@ -82,22 +82,25 @@ module WarehouseReports::ClientDetails
 
     def homeless_service_history_source
       hsh_scope = history_scope(service_history_source.homeless, @sub_population)
-      if @organization_ids.any?
-        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-      end
-      if @project_ids.any?
-        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
-      end
-      return hsh_scope
+      hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
+      hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
+      hsh_scope
     end
 
     def set_organizations
-      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
-
   end
 end

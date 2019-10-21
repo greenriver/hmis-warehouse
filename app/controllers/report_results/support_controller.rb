@@ -14,6 +14,7 @@ module ReportResults
     # Requires a key to fetch the appropriate chunk of support
     def index
       raise 'Key required' if params[:key].blank?
+
       key = params[:key].to_s
       support = @result.support
       @data = support[key]

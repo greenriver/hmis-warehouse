@@ -41,24 +41,25 @@ module Admin::Health
     end
 
     private
-      def flash_interpolation_options
-        { resource_name: 'Accountable Care Organization' }
-      end
 
-      def accountable_care_organization_source
-        Health::AccountableCareOrganization
-      end
+    def flash_interpolation_options
+      { resource_name: 'Accountable Care Organization' }
+    end
 
-      def accountable_care_organization_scope
-        accountable_care_organization_source.all
-      end
+    def accountable_care_organization_source
+      Health::AccountableCareOrganization
+    end
 
-      def set_accountable_care_organization
-        @accountable_care_organization = accountable_care_organization_scope.find(params[:id].to_i)
-      end
+    def accountable_care_organization_scope
+      accountable_care_organization_source.all
+    end
 
-      def accountable_care_organization_params
-        params.require(:health_accountable_care_organization).permit(:name, :short_name, :mco_pid, :mco_sl)
-      end
+    def set_accountable_care_organization
+      @accountable_care_organization = accountable_care_organization_scope.find(params[:id].to_i)
+    end
+
+    def accountable_care_organization_params
+      params.require(:health_accountable_care_organization).permit(:name, :short_name, :mco_pid, :mco_sl)
+    end
   end
 end

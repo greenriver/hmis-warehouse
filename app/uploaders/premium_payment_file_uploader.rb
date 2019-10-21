@@ -29,9 +29,7 @@ class PremiumPaymentFileUploader < CarrierWave::Uploader::Base
   process :extract_file_metadata!
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(%w[
-                                    text/plain
-                                  ])
+  WHITELIST = IceNine.deep_freeze(['text/plain'])
 
   MANIPULATEABLE = IceNine.deep_freeze(
     [
@@ -45,7 +43,7 @@ class PremiumPaymentFileUploader < CarrierWave::Uploader::Base
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
   def content_type_whitelist
-    WHITELIST + %w[application/octet-stream]
+    WHITELIST + ['application/octet-stream']
   end
 
   # MagicMimeWhitelist content_type handling uses
@@ -81,7 +79,7 @@ class PremiumPaymentFileUploader < CarrierWave::Uploader::Base
 
   # Add a white list of extensions which are allowed to be uploaded.
   def extension_white_list
-    %w[.*]
+    ['.*']
   end
 
   # Provide a range of file sizes which are allowed to be uploaded

@@ -25,7 +25,7 @@ module WarehouseReports
           @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
         end
 
-        set_first_time_homeless_client_ids()
+        set_first_time_homeless_client_ids
 
         @clients = client_source.joins(first_service_history: [project: :organization]).
           merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
@@ -33,21 +33,17 @@ module WarehouseReports
           where(she_t[:record_type].eq('first')).
           where(id: @first_time_client_ids.to_a).
           distinct.
-          select( :id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB ).
-          order( she_t[:date], :LastName, :FirstName )
-        if @organization_ids.any?
-          @clients = @clients.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-        end
-        if @project_ids.any?
-          @clients = @clients.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
-        end
+          select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB).
+          order(she_t[:date], :LastName, :FirstName)
+        @clients = @clients.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
+        @clients = @clients.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
       else
         @clients = client_source.none
       end
       respond_to do |format|
-        format.html {
+        format.html do
           @clients = @clients.page(params[:page]).per(25)
-        }
+        end
         format.xlsx {}
       end
     end
@@ -58,13 +54,12 @@ module WarehouseReports
       end
     end
 
-    def first_time_homeless_within_range project_type
+    def first_time_homeless_within_range(project_type)
       first_scope = enrollment_source.entry.in_project_type(project_type).
         with_service_between(start_date: @range.start, end_date: @range.end).
         where(client_id: enrollment_source.first_date.
           started_between(start_date: @range.start, end_date: @range.end).
-          in_project_type(project_type).select(:client_id)
-        )
+          in_project_type(project_type).select(:client_id))
 
       history_scope(first_scope, @sub_population)
     end
@@ -81,14 +76,12 @@ module WarehouseReports
       @project_types = params.try(:[], :project_types) || '[]'
       @project_types = JSON.parse(params[:project_types])
       @project_types.map!(&:to_i)
-      if @project_types.empty?
-        @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
-      end
+      @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS if @project_types.empty?
       @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
 
-      @range = ::Filters::DateRange.new({start: start_date, end: end_date})
+      @range = ::Filters::DateRange.new(start: start_date, end: end_date)
 
-      set_first_time_homeless_client_ids()
+      set_first_time_homeless_client_ids
 
       @counts = enrollment_source.first_date.
         select(:date, :client_id).
@@ -96,12 +89,12 @@ module WarehouseReports
         where(date: @range.range).
         in_project_type(@project_types).
         order(date: :asc).pluck(:date, :client_id).
-        group_by{|date, client_id| date}.
-        map{|date, clients| [date, clients.count]}.to_h
+        group_by { |date, _client_id| date }.
+        map { |date, clients| [date, clients.count] }.to_h
       render json: @counts
     end
 
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -125,11 +118,19 @@ module WarehouseReports
     end
 
     def set_organizations
-      @organization_ids = params[:first_time_homeless][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:first_time_homeless][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:first_time_homeless][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:first_time_homeless][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
   end
 end

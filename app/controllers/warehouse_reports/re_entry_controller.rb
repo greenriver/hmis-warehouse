@@ -29,12 +29,8 @@ module WarehouseReports
         where(id: re_entry_enrollment_ids)
 
       # limit to chosen organizations and projects
-      if @organization_ids.any?
-        @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-      end
-      if @project_ids.any?
-        @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
-      end
+      @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
+      @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
 
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
@@ -48,8 +44,7 @@ module WarehouseReports
       end
     end
 
-
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -83,11 +78,19 @@ module WarehouseReports
     end
 
     def set_organizations
-      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
 
     def set_sub_population
