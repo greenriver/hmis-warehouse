@@ -29,6 +29,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :locale
   before_filter :set_gettext_locale
+  before_action :enforce_2fa!
 
   # Don't start in development if you have pending migrations
   prepend_before_action :check_all_db_migrations
@@ -135,6 +136,26 @@ class ApplicationController < ActionController::Base
     else
       root_path
     end
+  end
+
+  # If a user must have Two-factor authentication turned on, only let them go
+  # to their 2FA page and their account page
+  def enforce_2fa!
+    return unless current_user
+    return unless current_user.enforced_2fa?
+    return if current_user.two_factor_enabled?
+    return if controller_path.in?(
+      [
+        'users/sessions',
+        'accounts',
+        'account_two_factors',
+        'account_emails',
+        'account_passwords',
+      ],
+    )
+
+    flash[:alert] = 'Two factor authentication must be enabled for this account.'
+    redirect_to edit_account_two_factor_path
   end
 
   def check_all_db_migrations
