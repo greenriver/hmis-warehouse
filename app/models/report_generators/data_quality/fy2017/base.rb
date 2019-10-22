@@ -17,6 +17,9 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_filters scope:
+      # Limit to only those projects the user who queued the report can see
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
+
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
