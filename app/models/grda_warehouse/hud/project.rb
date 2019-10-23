@@ -479,7 +479,9 @@ module GrdaWarehouse::Hud
                   #{project_coc_table}.#{qc[:CoCCode]} IN (#{user.coc_codes.map{ |c| q[c] }.join ',' })
                   AND
                   (
-                    #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL or #{project_coc_table}.#{qc[:hud_coc_code]} = ''
+                    #{project_coc_table}.#{qc[:hud_coc_code]} IS NULL
+                    OR
+                    #{project_coc_table}.#{qc[:hud_coc_code]} = ''
                   )
                 )
                 OR
