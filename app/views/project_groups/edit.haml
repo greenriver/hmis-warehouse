@@ -20,21 +20,22 @@
           %dd= @project_group.projects.count
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
-  %h3 Contacts
-  %table.table.table-sm
-    %thead
-      %tr
-        %th Name
-        %th email
-    %tbody
-      - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
-        %tr
-          %td
-            = name
-          %td
-            = email
-- if @reports.any?
   .mt-6
+    %h3 Contacts
+    %table.table.table-sm
+      %thead
+        %tr
+          %th Name
+          %th email
+      %tbody
+        - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
+          %tr
+            %td
+              = name
+            %td
+              = email
+.mt-6
+  - if @reports.any?
     %h3 Project Data Quality Reports
     %table.table.table-sm
       %thead
@@ -51,6 +52,6 @@
               = report.started_at
             %td
               = report.completed_at
-- else
-  %p
-    No reports on file
+  - else
+    %p
+      No reports on file
