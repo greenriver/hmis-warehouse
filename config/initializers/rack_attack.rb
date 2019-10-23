@@ -4,12 +4,17 @@ class Rack::Attack
   end
 
   # track any remote ip that exceeds our basic request rate limits
-  throttle('req/ip', limit: 10, period: 1.second) do |req|
+
+  tracker = Rails.env.test? ? :throttle : :track
+
+
+  send(tracker, 'req/ip', limit: 10, period: 1.second) do |req|
     if tracking_enabled?(req)
       req.ip
     end
   end
 end
+
 # #Custom limit response
 # Rack::Attack.throttled_response = lambda do |env|
 #   #puts "throttleDDDD"
