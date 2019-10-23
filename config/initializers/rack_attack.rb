@@ -1,27 +1,35 @@
 class Rack::Attack
-  # FIXME?: whitelist non production environments?
-  unless Rails.env.production?
-    # local testings
-    safelist_ip('127.0.0.1')
-    safelist_ip('::1')
-    # safelist_ip('...')
-    # block anything else
-    blocklist('prevent access to non-production environment') do
-      true
-    end
+  def self.tracking_enabled?(req)
+    !Rails.env.test? || /t|1/.match?(req.params['rack_attack_enabled'].to_s)
   end
 
   # track any remote ip that exceeds our basic request rate limits
-  track('req/ip', limit: 10, period: 1.second) do |req|
-    req.ip # unless req.path.start_with?('/assets')
+  throttle('req/ip', limit: 10, period: 1.second) do |req|
+    if tracking_enabled?(req)
+      req.ip
+    end
   end
 end
+# #Custom limit response
+# Rack::Attack.throttled_response = lambda do |env|
+#   #puts "throttleDDDD"
+#   match_data = env['rack.attack.match_data']
+#   now = match_data[:epoch_time]
+
+#   headers = {
+#     'X-RateLimit-Limit' => match_data[:limit].to_s,
+#     'X-RateLimit-Remaining' => '0',
+#     'X-RateLimit-Reset' => (now + (match_data[:period] - now % match_data[:period])).to_s
+#   }
+
+#   [ 429, headers, ["Throttled\n"]]
+# end
+
 
 ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, request_id, payload|
   request =  payload[:request]
 
-  # ignore in test and if this is aafelist match
-  next if Rails.env.test?
+  # safelist matches are un-interesting
   next if request.env['rack.attack.match_type'].to_s.in?(%w/safelist/)
 
   # collect some useful data
@@ -71,9 +79,5 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
       attachments: [attachment],
       http_options: { open_timeout: 1 }
     )
-  else
-    Rails.logger.err 'rack_attack notifications are NOT CONFIGURED'
   end
 end
-
-Rails.application.config.middleware.use Rack::Attack
