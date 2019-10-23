@@ -27,6 +27,7 @@
         %th Last Name
         %th First Name
         %th Age at entry
+        %th Age today
         %th Veteran Status
         %th Date of First Service
         %th Project Type
@@ -41,6 +42,7 @@
           %td
             %nobr= link_to client.FirstName, client_path(client)
           %td= client.first_service_history.age
+          %td= client.age()
           %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
           %td= client.first_service_history.date
           %td
