@@ -3,7 +3,7 @@
   <% form = f%>
 <% end %>
 
-var noteAdded = "<%= j @noteAdded.to_json %>"
+var noteAdded = "<%= j @note_added.to_json %>"
 if(noteAdded === 'true') {
   var container = $(behaviorSelector('activities'));
   container.empty();

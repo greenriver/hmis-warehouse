@@ -6,7 +6,17 @@ AllCops:
     # - 'lib/tasks/**/*'
     # - 'app/**/*'
     - 'spec/**/*.rb'
+    - 'app/controllers/**/*.rb'
     - 'app/jobs/**/*.rb'
+    - 'app/inputs/**/*.rb'
+    - 'app/helpers/**/*.rb'
+    - 'app/mail_interceptors/**/*.rb'
+    - 'app/mailers/**/*.rb'
+    # - 'app/models/**/*.rb'
+    - 'app/renderers/**/*.rb'
+    - 'app/uploaders/**/*.rb'
+    - 'lib/**/*.rb'
+
   Exclude:
     - 'db/**/*'
     - 'config/**/*'
@@ -26,6 +36,8 @@ Metrics/AbcSize:
   Max: 175
 Metrics/CyclomaticComplexity:
   Max: 50
+  Exclude:
+    - 'lib/util/hud.rb'
 Metrics/PerceivedComplexity:
   Max: 50
 
@@ -104,4 +116,42 @@ Layout/SpaceAfterNot:
   Enabled: false
 
 Layout/MultilineOperationIndentation:
+  Enabled: false
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Layout/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+Style/RegexpLiteral:
+  EnforcedStyle: slashes
+
+Lint/UnusedMethodArgument:
+  Exclude:
+    - 'lib/rds_sql_server/hmis_sql_server.rb'
+
+Style/DoubleNegation:
+  Exclude:
+    - 'lib/rds_sql_server/rds.rb'
+
+Style/WordArray:
+  EnforcedStyle: brackets
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/RescueEnsureAlignment:
+  Enabled: false
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Layout/SpaceInsideRangeLiteral:
   Enabled: false

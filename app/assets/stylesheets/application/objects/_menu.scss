@@ -9,8 +9,8 @@
   background-color: $cob-sg-charles-blue;
   overflow: auto;
   padding: space(6) space(4) space(4);
-  border-top: 2px solid $black;
-  border-bottom: 2px solid $black;
+  border-top: 2px solid darken($cob-sg-charles-blue, 8%);
+  border-bottom: 2px solid darken($cob-sg-charles-blue, 8%);;
   &.on-canvas {
     z-index: $zIndex-1/2;
   }

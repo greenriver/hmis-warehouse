@@ -14,6 +14,7 @@ module WarehouseReports
     def index
       raise 'Key required' if params[:key].blank?
       raise 'Section required' if params[:section].blank?
+
       @key = params[:key].to_s
       @section = params[:section].to_s
       @data = OpenStruct.new(@report[@section])

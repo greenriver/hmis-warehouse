@@ -31,7 +31,7 @@ module Admin
     def update
       @available_file_tag = GrdaWarehouse::AvailableFileTag.find(params[:id].to_i)
       @available_file_tag.update(available_file_tag_params)
-      respond_with(@available_file_tag, location:admin_available_file_tags_path)
+      respond_with(@available_file_tag, location: admin_available_file_tags_path)
     end
 
     def create
@@ -49,26 +49,27 @@ module Admin
     end
 
     private
-      def set_available_file_tag
-        @available_file_tag = GrdaWarehouse::AvailableFileTag.find(params[:id])
-      end
 
-      def available_file_tag_params
-        params.require(:available_file_tag).permit(
-          :name,
-          :group,
-          :included_info,
-          :weight,
-          :note,
-          :consent_form,
-          :notification_trigger,
-          :document_ready,
-          :requires_effective_date,
-          :requires_expiration_date,
-          :required_for,
-          :coc_available,
-          :full_release,
-        )
-      end
+    def set_available_file_tag
+      @available_file_tag = GrdaWarehouse::AvailableFileTag.find(params[:id])
+    end
+
+    def available_file_tag_params
+      params.require(:available_file_tag).permit(
+        :name,
+        :group,
+        :included_info,
+        :weight,
+        :note,
+        :consent_form,
+        :notification_trigger,
+        :document_ready,
+        :requires_effective_date,
+        :requires_expiration_date,
+        :required_for,
+        :coc_available,
+        :full_release,
+      )
+    end
   end
 end

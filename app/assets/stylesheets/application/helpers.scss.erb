@@ -1,0 +1,16 @@
+<%
+  sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', "#{ENV['CLIENT']}.scss")
+  if ENV['CLIENT'].present? && File.exists?(sheet)
+%>
+@import "./_custom/<%=ENV['CLIENT']%>";
+<% end %>
+<%
+  sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', 'env', "#{ENV['RAILS_ENV']}.scss")
+  if ENV['RAILS_ENV'].present? && File.exists?(sheet)
+%>
+@import "./_custom/env/<%=ENV['RAILS_ENV']%>";
+<% end %>
+@import './_settings/*';
+@import './_tools/*';
+@import 'bootstrap/variables';
+

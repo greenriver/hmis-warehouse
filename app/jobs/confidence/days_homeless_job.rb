@@ -18,7 +18,8 @@ module Confidence
       end
     end
 
-    def enqueue(job, queue: :low_priority); end
+    def enqueue(job, queue: :low_priority)
+    end
 
     def max_attempts
       2

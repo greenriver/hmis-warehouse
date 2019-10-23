@@ -9,7 +9,7 @@ class MessagesController < ApplicationController
 
   def index
     @hide_messages = true
-    if id = message_params[:id].presence
+    if (id = message_params[:id].presence)
       @message = messages.find id
       @message.update_attribute :seen_at, DateTime.current unless @message.opened?
     end
@@ -35,13 +35,13 @@ class MessagesController < ApplicationController
 
   def poll
     ids = params[:ids] || []
-    query = messages.unseen.where.not( id: ids )
+    query = messages.unseen.where.not(id: ids)
     @unseen_count = query.count
     @messages = query.limit(10)
-    paths_and_subjects = @messages.pluck( :id, :subject ).reverse.map do |id, subj|
-      [ view_context.message_path(id), id, subj ]
+    paths_and_subjects = @messages.pluck(:id, :subject).reverse.map do |id, subj|
+      [view_context.message_path(id), id, subj]
     end
-    render json: {messages: paths_and_subjects, count: @unseen_count}
+    render json: { messages: paths_and_subjects, count: @unseen_count }
   end
 
   def seen
@@ -51,7 +51,6 @@ class MessagesController < ApplicationController
   end
 
   private def messages
-    current_user.messages.order( created_at: :desc )
+    current_user.messages.order(created_at: :desc)
   end
-
 end

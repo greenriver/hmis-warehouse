@@ -14,9 +14,7 @@ module WarehouseReports
     def index
       @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
 
-      if params[:commit].present?
-        WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id))
-      end
+      WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
       @reports = report_source.ordered.limit(50)
     end
 
@@ -26,7 +24,7 @@ module WarehouseReports
       respond_to do |format|
         format.html
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Enrolled Clients with Disabilities.xlsx"
+          headers['Content-Disposition'] = 'attachment; filename=Enrolled Clients with Disabilities.xlsx'
         end
       end
     end
@@ -38,6 +36,7 @@ module WarehouseReports
 
     def yes_no(bool)
       return 'unknown' if bool.nil?
+
       bool ? 'yes' : 'no'
     end
     helper_method :yes_no
@@ -55,21 +54,17 @@ module WarehouseReports
     end
 
     def filter_params
-      filter_params = begin
-        f_params = params.require(:filter).permit(
-          :start,
-          :end,
-          :sub_population,
-          disabilities: [],
-          project_types: [],
-        )
-        if f_params[:disabilities].present?
-          f_params[:disabilities] = f_params[:disabilities].select{|m| available_disabilities.values.include?(m.to_i)}
-        end
-        f_params
-      rescue
-        {}
-      end
+      f_params = params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        disabilities: [],
+        project_types: [],
+      )
+      f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) } if f_params[:disabilities].present?
+      f_params
+    rescue StandardError
+      {}
     end
 
     def report_source

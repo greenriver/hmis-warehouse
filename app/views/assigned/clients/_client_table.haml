@@ -2,6 +2,8 @@
   .clients__list
     - clients.each do |user_client|
       - client = user_client.client
+      - window_link = client.window_link_for?(current_user)
+      - show_window_link = window_link.present?
       - if ( akas = client_aliases client ).empty?
         - main_client_name = client.source_clients.first.try(:data_source).try(:short_name)
       - else
@@ -29,8 +31,9 @@
               =client.date_of_last_service
             = render 'assigned/clients/required_documents', client: client
           .client__details.client__details--status
-            .client__view_client
-              = link_to 'View', window_client_path(client), class: 'btn btn-secondary'
+            .client__view_client.mb-4.d-flex
+              - if show_window_link
+                = link_to 'View', window_link, class: 'btn btn-secondary ml-auto'
             = render 'assigned/clients/consent_form_status', client: client
             %p
               = render 'assigned/clients/cas_status', client: client

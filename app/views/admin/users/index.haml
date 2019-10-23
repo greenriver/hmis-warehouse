@@ -3,7 +3,7 @@
     &laquo; Client search
 - content_for :title, t('.title')
 %h1= content_for :title
-= render :partial => 'menus/admin_tabs'
+= render partial: 'menus/admin_tabs'
 .o-page
   .o-page__header
     - @prompt = t '.search_prompt'
@@ -15,8 +15,6 @@
       = link_to new_user_invitation_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-plus
         Add a User Account
-      = link_to 'Manage Roles', admin_roles_path
-      = link_to 'Manage Agencies', admin_agencies_path
 
 %ul.nav.nav-tabs
   %li.nav-item
@@ -49,6 +47,7 @@
                 %th Roles
                 %th
                 %th
+                %th
             %tbody
               - @users.each do |user|
                 %tr
@@ -56,6 +55,9 @@
                   %td= user.first_name
                   %td
                     = user.email
+                    - if user.agency
+                      .user__agency
+                        %em.text-muted= user.agency.name
                   %td= render 'user_invitation_status', user: user
                   %td= user.roles.map(&:name).join(', ')
                   %td
@@ -65,10 +67,10 @@
                     = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
                       %i.icon-pencil
                       Edit
-                  %td
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to delete the account for: #{user.name}?"}, class: 'btn btn-link d-flex' do
+                  %td{style: 'white-space: nowrap;'}
+                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
                       %i.icon-cross
-                      Delete
+                      De-Activate
 
         %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
   .tab-pane#inactive
@@ -78,9 +80,15 @@
           %tr
             %th Name
             %th Email
+            %th
         %tbody
           - @inactive_users.each do |user|
             %tr
-              %td= user.name
+              %td
+                = user.name
               %td
                 = user.email
+              %td
+                = simple_form_for(user, url: reactivate_admin_user_path(user)) do |f|
+                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                    Re-activate

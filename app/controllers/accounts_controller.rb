@@ -8,22 +8,15 @@ class AccountsController < ApplicationController
   before_action :set_user
 
   def edit
+    @user.set_initial_two_factor_secret!
   end
 
   def update
     changed_notes = []
-    if @user.first_name != account_params[:first_name] || @user.last_name != account_params[:last_name]
-      changed_notes << "Account name was updated."
-    end
-    if @user.email_schedule != account_params[:email_schedule]
-      changed_notes << "Email schedule was updated."
-    end
-    if @user.phone != account_params[:phone]
-      changed_notes << "Phone number was updated."
-    end
-    if @user.agency != account_params[:agency]
-      changed_notes << "Agency name was updated."
-    end
+    changed_notes << 'Account name was updated.' if @user.first_name != account_params[:first_name] || @user.last_name != account_params[:last_name]
+    changed_notes << 'Email schedule was updated.' if @user.email_schedule != account_params[:email_schedule]
+    changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
+    changed_notes << 'Agency name was updated.' if @user.agency != account_params[:agency]
 
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')
@@ -40,11 +33,11 @@ class AccountsController < ApplicationController
         :last_name,
         :phone,
         :email_schedule,
+        :otp_required_for_login,
       )
   end
 
   private def set_user
     @user = current_user
   end
-
 end

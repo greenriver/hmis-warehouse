@@ -12,7 +12,7 @@
     = render 'clients/files/blank_file_list', file_list_title: 'Blank Files'
 
 - if @client.client_files.any? || @deleted_files.any?
-  %ul.nav.nav-tabs
+  %ul.files-nav.nav.nav-tabs
     %li.nav-item
       %a.nav-link.active{href: '#consent', role: "presentation", data: {toggle: :tab}}
         Consent Forms
@@ -56,18 +56,17 @@
 
 - content_for :page_js do
   :javascript
-    var url = document.location.toString();
-    if (url.match('#')) {
-      $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.files-nav.nav-tabs li:first-child a").tab('show')
     }
-
-    $('.nav-tabs a[data-toggle="tab"]').click(function(e) {
+    $('.files-nav.nav-tabs a').click(function(e) {
       e.preventDefault();
       $(this).tab('show');
       $(this).parent().siblings().removeClass('active')
     });
-
-    // Change hash for page-reload
-    $('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      window.location.hash = e.target.hash;
-    })
+    $("ul.files-nav.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+    });
+    var hash = window.location.hash;
+    $('.files-nav.nav-tabs a[href="' + hash + '"]').tab('show');

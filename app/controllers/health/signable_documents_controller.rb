@@ -29,7 +29,7 @@ module Health
 
       @doc = @careplan.signable_documents.build(signers: @signers, primary: true, user_id: current_user.id)
 
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
 
       if @doc.valid?
         @careplan.class.transaction do
@@ -45,16 +45,16 @@ module Health
             requestor_name: current_user.name,
             sent_at: Time.now,
             expires_at: @expires_at,
-            signable_document_id: @doc.id
+            signable_document_id: @doc.id,
           )
           @doc.make_document_signable!
         end
 
         flash[:notice] = "Careplan signature requested from #{@doc.signers.map(&:email).join('; ')}"
       else
-        flash[:error] = "#{@doc.errors.full_messages.join('. ')}"
+        flash[:error] = @doc.errors.full_messages.join('. ').to_s
       end
-      url_params = {client_id: @client.id, careplan_id: @careplan.id, id: @doc.id, email: @patient.current_email, hash: @doc.signer_hash(@patient.current_email)}
+      url_params = { client_id: @client.id, careplan_id: @careplan.id, id: @doc.id, email: @patient.current_email, hash: @doc.signer_hash(@patient.current_email) }
       url_params[:sign_out] = true if params[:sign_out].present?
       redirect_to polymorphic_path([:signature] + careplan_path_generator + [:signable_document], url_params)
       # redirect_back fallback_location: client_health_careplans_path(@client)
@@ -73,22 +73,17 @@ module Health
     def signature
       @state = :valid
       @doc = Health::SignableDocument.find(params[:id])
-      if current_user.present?
-        @doc.update(expires_at: Health::SignableDocument.patient_expiration_window)
-      end
+      @doc.update(expires_at: Health::SignableDocument.patient_expiration_window) if current_user.present?
       sign_out(:user) if params[:sign_out].present?
 
       if @doc.signer_hash(params[:email]) == params[:hash] && ! @doc.expired? && ! @doc.signed?
-        if @doc.signature_request && @doc.signature_request.pcp_request?
+        if @doc.signature_request&.pcp_request?
           params[:post_sign_path] = polymorphic_path([:signed] + careplan_path_generator + [:signable_document],
-            {
-              client_id: params[:client_id],
-              careplan_id: params[:careplan_id],
-              id: @doc.id,
-              hash: params[:hash],
-              email: params[:email],
-            }
-          )
+            client_id: params[:client_id],
+            careplan_id: params[:careplan_id],
+            id: @doc.id,
+            hash: params[:hash],
+            email: params[:email])
         end
         @signature_request_url = @doc.signature_request_url(params[:email])
       elsif @doc.signed?
@@ -100,7 +95,6 @@ module Health
         not_authorized!
         return
       end
-
     rescue HelloSign::Error, HelloSign::Error::Conflict
       render 'error'
     end
@@ -116,7 +110,7 @@ module Health
             # make sure the PCP listed on the careplan is the same one we collected the signature from
             careplan.assign_attributes(
               provider_id: @doc.team_member.id,
-              provider_signed_on: signed_at
+              provider_signed_on: signed_at,
             )
           end
           # This gets called by a non-user, log this as a system user
@@ -133,12 +127,9 @@ module Health
       Health::SignatureRequests::PatientSignatureRequest
     end
 
-    def get_pdf
+    def generate_pdf
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
       @pdf = pdf.to_pdf
-
     end
-
   end
 end

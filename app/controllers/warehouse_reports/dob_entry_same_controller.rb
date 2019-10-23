@@ -14,7 +14,7 @@ module WarehouseReports
         joins(source_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         preload(source_enrollments: :project).
-        where( client_source.arel_table[:DOB].eq et[:EntryDate] ). #'Client.DOB = EntryDate')
+        where(client_source.arel_table[:DOB].eq et[:EntryDate]). # 'Client.DOB = EntryDate')
         where.not(DOB: nil).
         order(DOB: :asc).
         page(params[:page]).per(25)
@@ -31,6 +31,5 @@ module WarehouseReports
     private def data_source_source
       GrdaWarehouse::DataSource
     end
-
   end
 end

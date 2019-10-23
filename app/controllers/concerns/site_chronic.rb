@@ -20,28 +20,28 @@ module SiteChronic
     alias_method :site_chronics_table, :site_chronic_definition
 
     def site_chronics
-      self.send(site_chronic_definition)
+      send(site_chronic_definition)
     end
 
     def site_chronics_in_range(range)
       case site_chronic_definition
-        when :chronics
-          chronics_in_range(range)
-        when :hud_chronics
-          hud_chronics_in_range(range)
-        else
-          raise NotImplementedError
+      when :chronics
+        chronics_in_range(range)
+      when :hud_chronics
+        hud_chronics_in_range(range)
+      else
+        raise NotImplementedError
       end
     end
 
     def site_chronic_source
       case site_chronic_definition
-        when :chronics
-          potentially_chronic_source
-        when :hud_chronics
-          hud_chronic_source
-        else
-          raise NotImplementedError
+      when :chronics
+        potentially_chronic_source
+      when :hud_chronics
+        hud_chronic_source
+      else
+        raise NotImplementedError
       end
     end
     # alias_method :chronic_source, :site_chronic_source
@@ -52,24 +52,24 @@ module SiteChronic
 
     def site_load_chronic_filter
       case site_chronic_definition
-        when :chronics
-          load_chronic_filter
-        when :hud_chronics
-          load_hud_chronic_filter
-        else
-          raise NotImplementedError
+      when :chronics
+        load_chronic_filter
+      when :hud_chronics
+        load_hud_chronic_filter
+      else
+        raise NotImplementedError
       end
     end
     # alias_method :load_filter, :site_load_chronic_filter
 
     def site_set_chronic_sort
       case site_chronic_definition
-        when :chronics
-          set_chronic_sort
-        when :hud_chronics
-          set_hud_chronic_sort
-        else
-          raise NotImplementedError
+      when :chronics
+        set_chronic_sort
+      when :hud_chronics
+        set_hud_chronic_sort
+      else
+        raise NotImplementedError
       end
     end
     # alias_method :set_sort, :site_set_chronic_sort

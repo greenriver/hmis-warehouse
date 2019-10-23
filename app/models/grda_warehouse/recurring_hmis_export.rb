@@ -41,7 +41,7 @@ module GrdaWarehouse
     end
 
     def s3_present?
-      s3_region.present? && s3_bucket.present? && s3_access_key_id.present? && s3_secret_access_key.present?
+      s3_region.present? && s3_bucket.present?
     end
 
     def s3_valid?
@@ -71,10 +71,19 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @awsS3 ||= AwsS3.new(region: s3_region.strip,
+      @awsS3 ||= if self.s3_secret_access_key.present?
+        AwsS3.new(
+          region: s3_region.strip,
           bucket_name: s3_bucket.strip,
-          access_key_id: s3_access_key_id.strip,
-          secret_access_key: s3_secret_access_key.strip )
+          access_key_id: self.s3_access_key_id.strip,
+          secret_access_key: self.s3_secret_access_key
+        )
+      else
+        AwsS3.new(
+          region: s3_region.strip,
+          bucket_name: s3_bucket.strip
+        )
+      end
     end
 
     def self.available_s3_regions

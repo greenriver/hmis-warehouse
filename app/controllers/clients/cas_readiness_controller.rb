@@ -13,19 +13,13 @@ module Clients
     after_action :log_client
 
     def edit
-      if Cas::Neighborhood.db_exists?
-        @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name)
-      end
+      @neighborhoods = Cas::Neighborhood.order(:name).pluck(:id, :name) if Cas::Neighborhood.db_exists?
     end
 
     def update
       update_params = cas_readiness_params
       if GrdaWarehouse::Config.get(:cas_flag_method).to_s != 'file'
-        update_params[:disability_verified_on] = if update_params[:disability_verified_on] == '1'
-          @client.disability_verified_on || Time.now
-        else
-          nil
-        end
+        update_params[:disability_verified_on] = (@client.disability_verified_on || Time.now if update_params[:disability_verified_on] == '1')
       end
 
       if @client.update(update_params)
@@ -45,21 +39,20 @@ module Clients
 
     protected
 
-      def set_client
-        @client = client_source.destination.find(params[:client_id].to_i)
-      end
+    def set_client
+      @client = client_source.destination.find(params[:client_id].to_i)
+    end
 
-      def cas_readiness_params
-        params.require(:readiness).permit(*client_source.cas_readiness_parameters)
-      end
+    def cas_readiness_params
+      params.require(:readiness).permit(*client_source.cas_readiness_parameters)
+    end
 
-      def client_source
-        GrdaWarehouse::Hud::Client
-      end
+    def client_source
+      GrdaWarehouse::Hud::Client
+    end
 
-      def title_for_show
-        "#{@client.name} - CAS Readiness"
-      end
-
+    def title_for_show
+      "#{@client.name} - CAS Readiness"
+    end
   end
 end

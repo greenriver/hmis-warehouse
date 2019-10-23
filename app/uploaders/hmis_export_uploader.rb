@@ -7,7 +7,6 @@
 # encoding: utf-8
 
 class HmisExportUploader < CarrierWave::Uploader::Base
-
   # Include RMagick or MiniMagick support:
   # include CarrierWave::RMagick
   # include CarrierWave::MiniMagick
@@ -20,6 +19,7 @@ class HmisExportUploader < CarrierWave::Uploader::Base
   def store_dir
     "#{Rails.root}/tmp/uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   end
+
   def cache_dir
     "#{Rails.root}/tmp/uploads-cache/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}"
   end
@@ -47,9 +47,9 @@ class HmisExportUploader < CarrierWave::Uploader::Base
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:
   def extension_white_list
-    %w(zip)
+    ['zip']
   end
-  
+
   # Provide a range of file sizes which are allowed to be uploaded
   # NOT WORKING
   # def size_range
@@ -61,5 +61,4 @@ class HmisExportUploader < CarrierWave::Uploader::Base
   # def filename
   #   "something.jpg" if original_filename
   # end
-
 end

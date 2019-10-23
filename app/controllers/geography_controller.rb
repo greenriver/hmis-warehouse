@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 class GeographyController < ApplicationController
   before_action :require_can_view_projects!
   before_action :require_can_edit_projects!, only: [:edit, :update]
@@ -14,7 +13,6 @@ class GeographyController < ApplicationController
   include ArelHelper
 
   def edit
-
   end
 
   def update
@@ -47,6 +45,6 @@ class GeographyController < ApplicationController
   end
 
   def flash_interpolation_options
-      { resource_name: 'Geography' }
-    end
+    { resource_name: 'Geography' }
+  end
 end

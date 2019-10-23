@@ -25,7 +25,7 @@ module Api
               :id,
               :ProjectName,
               :computed_project_type,
-              o_t[:OrganizationName].to_sql
+              o_t[:OrganizationName].to_sql,
             ).each do |id, p_name, type, o_name|
               @data[o_name] ||= []
               @data[o_name] << [
@@ -39,9 +39,9 @@ module Api
       end
     end
 
-    def select2ize data
+    def select2ize(data)
       formatted = {
-        results: []
+        results: [],
       }
       data.each do |org_name, projects|
         group = {
@@ -53,15 +53,23 @@ module Api
         end
         formatted[:results] << group
       end
-      return formatted
+      formatted
     end
 
     def set_data_sources
-      @data_source_ids = params[:data_source_ids].select(&:present?).map(&:to_i) rescue data_source_source.pluck(:id)
+      @data_source_ids = begin
+                           params[:data_source_ids].select(&:present?).map(&:to_i)
+                         rescue StandardError
+                           data_source_source.pluck(:id)
+                         end
     end
 
     def set_organizations
-      @organization_ids = params[:organization_ids].select(&:present?).map(&:to_i) rescue organization_source.pluck(:id)
+      @organization_ids = begin
+                            params[:organization_ids].select(&:present?).map(&:to_i)
+                          rescue StandardError
+                            organization_source.pluck(:id)
+                          end
     end
 
     def set_project_types
@@ -71,11 +79,11 @@ module Api
         HUD.project_types.keys
       end
       begin
-        params[:project_types]&.select(&:present?)&.each do |type|
-          @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type.to_sym]
+        params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
+          @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
         end
-        @project_types = params[:project_type_ids]&.select(&:present?)&.map(&:to_i)
-      rescue
+        @project_types += params[:project_type_ids]&.select(&:present?)&.map(&:to_i) if params[:project_type_ids].present?
+      rescue StandardError
         @project_types = HUD.project_types.keys
       end
       @project_types
@@ -83,7 +91,7 @@ module Api
 
     def project_scope
       @project_scope = if params[:limited]
-        project_source.visible_by(current_user)
+        project_source.viewable_by(current_user)
       else
         project_source
       end
@@ -91,7 +99,6 @@ module Api
         where(computed_project_type: @project_types).
         merge(data_source_source.where(id: @data_source_ids)).
         merge(organization_source.where(id: @organization_ids))
-
     end
 
     def project_source
@@ -105,6 +112,5 @@ module Api
     def organization_source
       GrdaWarehouse::Hud::Organization
     end
-
   end
 end

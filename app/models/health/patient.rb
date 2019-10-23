@@ -688,6 +688,31 @@ module Health
       # end
     end
 
+    def last_outreach_enrollment_date(user)
+      client.
+        service_history_enrollments.
+        visible_in_window_to(user).
+        entry.
+        ongoing.
+        so.
+        maximum(:first_date_in_program)
+    end
+
+    def last_sleeping_location(user)
+      service = client.service_history_services.
+        service_within_date_range(start_date: 90.days.ago.to_date, end_date: Date.current).
+        joins(:service_history_enrollment).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.visible_in_window_to(user).entry.ongoing.residential).
+        order(date: :desc).first
+
+      if service.present?
+        {
+          date: service.date,
+          location: service.service_history_enrollment&.organization&.name || 'Unable to determine location'
+        }
+      end
+    end
+
     def consented_date
       @consented_date ||= participation_forms.signed&.last&.signature_on
     end

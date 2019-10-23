@@ -71,6 +71,7 @@ module GrdaWarehouse::Hud
           :ResidentialAffiliation,
           :TrackingMethod,
           :HMISParticipatingProject,
+          :TargetPopulation,
           :PITCount,
           :DateCreated,
           :DateUpdated,

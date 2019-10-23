@@ -52,14 +52,14 @@ module Admin::Health
 
     def render_agency_user_modal
       @form_url = admin_health_user_agency_users_path(@user)
-      @agency_user_saver = Health::AgencyUserSaver.new({user_id: @user.id, agency_ids: @agency_users.map(&:agency_id)})
+      @agency_user_saver = Health::AgencyUserSaver.new(user_id: @user.id, agency_ids: @agency_users.map(&:agency_id))
       render layout: false
     end
 
     def agency_users_params
       params.require(:agency_users).permit(
         :user_id,
-        agency_ids: []
+        agency_ids: [],
       )
     end
 
@@ -71,6 +71,5 @@ module Admin::Health
       @user = User.find(params[:user_id])
       @agency_users = @user.agency_users
     end
-
   end
 end

@@ -16,7 +16,7 @@ module WarehouseReports
         map do |row|
           Hash[columns.zip(row)]
         end.
-        group_by{|row| row[:client_id]}
+        group_by { |row| row[:client_id] }
 
       @homeless_clients = homeless_source.
         with_service_between(start_date: @filter.start, end_date: @filter.end).
@@ -26,20 +26,20 @@ module WarehouseReports
         map do |row|
           Hash[columns.zip(row)]
         end.
-        group_by{|row| row[:client_id]}
+        group_by { |row| row[:client_id] }
 
       # Throw away the homeless client if all homeless enrollments start before all PH enrollments
       # or start after all PH enrollments close
       @homeless_clients.delete_if do |client_id, enrollments|
         ph = @ph_clients[client_id]
-        es_start_dates = enrollments.map{|en| en[:first_date_in_program]}
+        es_start_dates = enrollments.map { |en| en[:first_date_in_program] }
         remove = []
         ph.each do |enrollment|
           if enrollment[:move_in_date].blank?
             remove << true
-          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].present? && st_date.in?(enrollment[:move_in_date]..enrollment[:last_date_in_program])}
+          elsif es_start_dates.any? { |st_date| enrollment[:last_date_in_program].present? && st_date.in?(enrollment[:move_in_date]..enrollment[:last_date_in_program]) }
             remove << false
-          elsif es_start_dates.any?{|st_date| enrollment[:last_date_in_program].blank? && st_date > enrollment[:move_in_date]}
+          elsif es_start_dates.any? { |st_date| enrollment[:last_date_in_program].blank? && st_date > enrollment[:move_in_date] }
             remove << false
           else # es enrollment opened after exit from PH
             remove << true
@@ -55,13 +55,13 @@ module WarehouseReports
         format.html do
           @clients = @clients.page(params[:page]).per(25)
           client_ids = @clients.map(&:id)
-          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
         end
         format.xlsx do
           client_ids = @clients.map(&:id)
-          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map{|m| m[:id]}
+          enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
           filename = "Recidivism-#{@filter.start.strftime('%Y-%m-%d')}-to-#{@filter.end.strftime('%Y-%m-%d')}.xlsx"
@@ -94,7 +94,7 @@ module WarehouseReports
     def date_range_options
       start_date = params[:filter].try(:[], :start) || 1.months.ago.to_date
       end_date = params[:filter].try(:[], :end) || 1.days.ago.to_date
-      {start: start_date, end: end_date}
+      { start: start_date, end: end_date }
     end
   end
 end

@@ -21,7 +21,8 @@ module Health
       # redirect to edit if there are any on-file
       if @patient.release_forms.exists?
         @release_form = @patient.release_forms.recent.last
-        render :edit and return
+        render(:edit)
+        return
       else
         @release_form = @patient.release_forms.build
       end
@@ -31,20 +32,16 @@ module Health
     def create
       @release_form = @patient.release_forms.build(form_params)
       set_upload_object
-      if @release_form.health_file.present?
-        @release_form.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file.present?
       validate_form
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.user = current_user
 
       if ! request.xhr?
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        if @release_form.valid?
-          saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).create
-        end
+      elsif @release_form.valid?
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).create
       end
     end
 
@@ -61,27 +58,21 @@ module Health
       @release_form.reviewed_by = current_user if reviewed?
       @release_form.assign_attributes(form_params)
 
-      if @release_form.health_file&.new_record?
-        @release_form.health_file.set_calculated!(current_user.id, @client.id)
-      end
+      @release_form.health_file.set_calculated!(current_user.id, @client.id) if @release_form.health_file&.new_record?
       if ! request.xhr?
-        saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
         respond_with @release_form, location: polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      else
-        if @release_form.valid?
-          saved = Health::ReleaseSaver.new(form: @release_form, user: current_user).update
-        end
+      elsif @release_form.valid?
+        Health::ReleaseSaver.new(form: @release_form, user: current_user).update
       end
     end
 
     private def set_upload_object
       @upload_object = @release_form
-      if action_name == 'remove_file'
-        @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id)
-      end
-      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id ) : 'javascript:void(0)'
-      @download_data = @upload_object.downloadable? ? {} : {confirm: 'Form errors must be fixed before you can download this file.'}
-      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id ) : '#'
+      @location = polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) if action_name == 'remove_file'
+      @download_path = @upload_object.downloadable? ? polymorphic_path([:download] + release_form_path_generator, client_id: @client.id, id: @release_form.id) : 'javascript:void(0)'
+      @download_data = @upload_object.downloadable? ? {} : { confirm: 'Form errors must be fixed before you can download this file.' }
+      @remove_path = @upload_object.downloadable? ? polymorphic_path([:remove_file] + release_form_path_generator, client_id: @client.id, id: @release_form.id) : '#'
     end
 
     private def flash_interpolation_options
@@ -96,8 +87,8 @@ module Health
         health_file_attributes: [
           :id,
           :file,
-          :file_cache
-        ]
+          :file_cache,
+        ],
       )
       if ! current_user.can_approve_release?
         local_params.except(:reviewed_by_supervisor)
@@ -114,7 +105,7 @@ module Health
       @blank_release_form_url = GrdaWarehouse::PublicFile.url_for_location 'patient/release'
     end
 
-    private def form_url(opts={})
+    private def form_url(_opts = {})
       if @release_form.new_record?
         polymorphic_path(release_forms_path_generator, client_id: @client.id)
       else
@@ -129,18 +120,15 @@ module Health
     end
 
     private def validate_form
-      if health_file_params_blank? && form_params[:file_location].blank?
-        @release_form.errors.add :file_location, "Please include either a file location or upload."
-      end
+      @release_form.errors.add :file_location, 'Please include either a file location or upload.' if health_file_params_blank? && form_params[:file_location].blank?
     end
 
     private def reviewed?
-      form_params[:reviewed_by_supervisor]=='yes' && current_user.can_approve_release?
+      form_params[:reviewed_by_supervisor] == 'yes' && current_user.can_approve_release?
     end
 
     private def title_for_show
       "#{@client.name} - Health - Release Form"
     end
-
   end
 end

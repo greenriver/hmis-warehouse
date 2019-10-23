@@ -16,32 +16,26 @@ class Users::InvitationsController < Devise::InvitationsController
 
   def confirm
     @user = User.new
-    if ! creating_admin?
-      create
-    end
+    create unless creating_admin?
   end
 
   # POST /resource/invitation
   def create
     if creating_admin?
-      if ! current_user.valid_password?(confirmation_params[:confirmation_password])
-        flash[:error] = "User not updated. Incorrect password"
+      unless current_user.valid_password?(confirmation_params[:confirmation_password])
+        flash[:error] = 'User not updated. Incorrect password'
         @user = User.new
         render :confirm
         return
       end
     end
 
-    if User.with_deleted.find_by_email(invite_params[:email]).present?
-      @user = User.with_deleted.find_by_email(invite_params[:email]).restore
-    end
+    @user = User.with_deleted.find_by_email(invite_params[:email]).restore if User.with_deleted.find_by_email(invite_params[:email]).present?
     @user = User.invite!(invite_params, current_user)
-    @user.set_viewables viewable_params if @user
+    @user&.set_viewables viewable_params
 
     if resource.errors.empty?
-      if is_flashing_format? && self.resource.invitation_sent_at
-        set_flash_message :notice, :send_instructions, :email => self.resource.email
-      end
+      set_flash_message :notice, :send_instructions, email: resource.email if is_flashing_format? && resource.invitation_sent_at
       redirect_to admin_users_path
     else
       @agencies = Agency.order(:name)
@@ -66,50 +60,48 @@ class Users::InvitationsController < Devise::InvitationsController
 
   private
 
-    def invite_params
-      params.require(:user).permit(
-        :last_name,
-        :first_name,
-        :email,
-        :phone,
-        :agency_id,
-        :receive_file_upload_notifications,
-        :notify_on_vispdat_completed,
-        :notify_on_client_added,
-        :notify_on_anomaly_identified,
-        role_ids: [],
-        coc_codes: [],
-        contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role]
-        )
-    end
+  def invite_params
+    params.require(:user).permit(
+      :last_name,
+      :first_name,
+      :email,
+      :phone,
+      :agency_id,
+      :receive_file_upload_notifications,
+      :notify_on_vispdat_completed,
+      :notify_on_client_added,
+      :notify_on_anomaly_identified,
+      role_ids: [],
+      coc_codes: [],
+      contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
+    )
+  end
 
-    def viewable_params
-      params.require(:user).permit(
-        data_sources: [],
-        organizations: [],
-        projects: [],
-        reports: [],
-        cohorts: []
-      )
-    end
+  def viewable_params
+    params.require(:user).permit(
+      data_sources: [],
+      organizations: [],
+      projects: [],
+      reports: [],
+      cohorts: [],
+    )
+  end
 
-    def confirmation_params
-      params.require(:user).permit(
-        :confirmation_password
-      )
-    end
+  def confirmation_params
+    params.require(:user).permit(
+      :confirmation_password,
+    )
+  end
 
-    def creating_admin?
-      role_ids = invite_params[:role_ids]&.select{|v| v.present?}&.map(&:to_i) || []
-      role_ids.each do |id|
-        role = Role.find(id)
-        if role.administrative?
-          @admin_role_name = role.name.humanize
-          return true
-        end
+  def creating_admin?
+    role_ids = invite_params[:role_ids]&.select { |v| v.present? }&.map(&:to_i) || []
+    role_ids.each do |id|
+      role = Role.find(id)
+      if role.administrative?
+        @admin_role_name = role.name.humanize
+        return true
       end
-      return false
     end
-
+    false
+  end
 end
-

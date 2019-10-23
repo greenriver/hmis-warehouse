@@ -14,9 +14,9 @@ module Stupidedi
           @node = node
         end
 
-        def reduce(memo, &block)
+        def reduce(memo)
           memo[key] = children.map do |c|
-            block.call(c)
+            yield(c)
           end
         end
 

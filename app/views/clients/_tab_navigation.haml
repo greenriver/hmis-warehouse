@@ -35,6 +35,10 @@
         title: 'VI-SPDAT',
         permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
       },
+      client_coordinated_entry_assessment_index_path(client_id: @client.id) => {
+        title: _('Coordinated Entry Assessment'),
+        permission: GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(current_user)
+      },
       polymorphic_path(youth_intakes_path_generator, client_id: @client.id) => {
         title: 'Youth Intakes',
         permission: GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)

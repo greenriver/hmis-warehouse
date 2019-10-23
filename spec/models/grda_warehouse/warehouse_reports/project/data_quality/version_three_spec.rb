@@ -460,7 +460,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
             exit_within_date_range(start_date: report.start, end_date: report.end).
-            includes(enrollment: %i[income_benefits_at_exit exit]).
+            includes(enrollment: [:income_benefits_at_exit, :exit]).
             where(
               ib_t[:IncomeFromAnySource].in([1, 0]).
               and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
@@ -484,7 +484,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
             exit_within_date_range(start_date: report.start, end_date: report.end).
-            joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit]).
+            joins(enrollment: [:income_benefits_at_exit_all_sources_refused, :exit]).
             where(client_id: client_ids).
             pluck(:client_id)
 
@@ -972,7 +972,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
 
           valid_client_ids = GrdaWarehouse::ServiceHistoryEnrollment.exit.
             exit_within_date_range(start_date: report.start, end_date: report.end).
-            includes(enrollment: %i[income_benefits_at_exit exit]).
+            includes(enrollment: [:income_benefits_at_exit, :exit]).
             where(
               ib_t[:IncomeFromAnySource].in([1, 0]).
               and(ib_t[:TotalMonthlyIncome].not_eq(nil)).
@@ -996,7 +996,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           refused = GrdaWarehouse::ServiceHistoryEnrollment.exit.
             exit_within_date_range(start_date: report.start, end_date: report.end).
-            joins(enrollment: %i[income_benefits_at_exit_all_sources_refused exit]).
+            joins(enrollment: [:income_benefits_at_exit_all_sources_refused, :exit]).
             where(client_id: client_ids).
             pluck(:client_id)
 

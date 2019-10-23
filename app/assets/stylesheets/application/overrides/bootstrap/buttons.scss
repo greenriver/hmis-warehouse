@@ -53,12 +53,15 @@ button.close {
   color: #FFF;
 }
 
+input[type=submit].btn-secondary,
 .btn-secondary {
   background-color: $gray-030;
   color: $text-color;
   border-color: $gray-030;
 }
 
+input[type=submit].btn-secondary:hover,
+input[type=submit].btn-secondary:focus,
 .btn-secondary:hover,
 .btn-secondary:focus {
   background-color: darken($gray-030, 10%);
@@ -228,6 +231,7 @@ button.close {
   }
 }
 
+input[type=submit].btn-secondary,
 .btn-secondary {
   background: $white;
   border-color: $brand-primary;

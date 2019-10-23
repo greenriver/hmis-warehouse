@@ -10,8 +10,8 @@ class AwsS3
   def initialize(
     region:,
     bucket_name:,
-    access_key_id:,
-    secret_access_key:
+    access_key_id: nil,
+    secret_access_key: nil
   )
     @region = region
     @bucket_name = bucket_name
@@ -27,10 +27,16 @@ class AwsS3
       @access_key_id,
       @secret_access_key
     )
-    Aws.config.update({
-      region: @region,
-      credentials: cred
-    })
+    if @secret_access_key.present? && @secret_access_key != 'unknown'
+      Aws.config.update({
+        region: @region,
+        credentials: cred
+      })
+    else
+       Aws.config.update({
+        region: @region,
+      })
+    end
   end
 
   def exists?

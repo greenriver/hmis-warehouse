@@ -15,6 +15,5 @@ module Admin
       @archives = Glacier::Archive.all.order(upload_started_at: :desc, upload_finished_at: :desc).
         page(params[:page]).per(50)
     end
-
   end
 end

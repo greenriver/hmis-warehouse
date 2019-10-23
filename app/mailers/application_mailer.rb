@@ -8,13 +8,9 @@ class ApplicationMailer < ActionMailer::Base
   default from: ENV['DEFAULT_FROM']
   layout 'mailer'
 
-  if Rails.configuration.sandbox_email_mode
-    ActionMailer::Base.register_interceptor SandboxEmailInterceptor
-  end
+  ActionMailer::Base.register_interceptor SandboxEmailInterceptor if Rails.configuration.sandbox_email_mode
 
-  if ENV['SES_MONITOR_OUTGOING_EMAIL'] == 'true'
-    ActionMailer::Base.register_interceptor CloudwatchEmailInterceptor
-  end
+  ActionMailer::Base.register_interceptor CloudwatchEmailInterceptor if ENV['SES_MONITOR_OUTGOING_EMAIL'] == 'true'
 
   def self.prefix
     '[Warehouse]'
