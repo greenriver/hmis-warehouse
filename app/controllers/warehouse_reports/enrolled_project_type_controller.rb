@@ -36,8 +36,8 @@ module WarehouseReports
     end
 
     def set_date_range
-      @start = ( params.try(:[], :range).try(:[], :start) || 1.month.ago.beginning_of_month  ).to_date
-      @end   = ( params.try(:[], :range).try(:[], :end) || 1.month.ago.end_of_month ).to_date
+      @start = (params.try(:[], :range).try(:[], :start) || 1.month.ago.beginning_of_month).to_date
+      @end   = (params.try(:[], :range).try(:[], :end) || 1.month.ago.end_of_month).to_date
     end
 
     def set_project_type
@@ -49,11 +49,19 @@ module WarehouseReports
     end
 
     def set_organizations
-      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
 
     def set_sub_population
@@ -73,20 +81,15 @@ module WarehouseReports
     end
 
     private def service_history_scope
-
       sh_scope = service_history_source.joins(:project).merge(project_source).where(computed_project_type: @project_types)
 
-      if @project_ids.any?
-        sh_scope = sh_scope.merge(project_source.where(id: @project_ids))
-      end
-      if @organization_ids.any?
-        sh_scope = sh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-      end
+      sh_scope = sh_scope.merge(project_source.where(id: @project_ids)) if @project_ids.any?
+      sh_scope = sh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
 
-      return history_scope(sh_scope, @sub_population)
+      history_scope(sh_scope, @sub_population)
     end
 
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -100,6 +103,5 @@ module WarehouseReports
       }
       scope_hash[sub_population.to_sym]
     end
-
   end
 end

@@ -9,10 +9,9 @@ module Admin
     before_action :require_can_edit_dq_grades!
     before_action :load_grade, only: [:destroy]
 
-    
     def create
       @grade = grade_source.new(grade_params)
-      if @grade.save 
+      if @grade.save
         redirect_to(admin_data_quality_grades_path, notice: 'Grade created')
       else
         flash[:error] = 'Please review the form problems below'
@@ -49,6 +48,5 @@ module Admin
           :weight,
         )
     end
-
   end
 end

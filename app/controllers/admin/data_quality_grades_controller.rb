@@ -25,7 +25,7 @@ module Admin
     def missing_grade_source
       GrdaWarehouse::Grades::Missing
     end
-        
+
     def utilization_grade_scope
       utilization_grade_source.all
     end
@@ -33,6 +33,5 @@ module Admin
     def utilization_grade_source
       GrdaWarehouse::Grades::Utilization
     end
-
   end
 end

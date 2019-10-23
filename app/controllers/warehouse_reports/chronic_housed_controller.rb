@@ -16,7 +16,7 @@ module WarehouseReports
       @clients = client_source.joins(:service_history_enrollments).
         where(
           she_t[:last_date_in_program].gt(@range.start).
-          and(she_t[:destination].in(::HUD.permanent_destinations))
+          and(she_t[:destination].in(::HUD.permanent_destinations)),
         ).
         where(id: @chronics.keys).
         order(she_t[:last_date_in_program].asc).

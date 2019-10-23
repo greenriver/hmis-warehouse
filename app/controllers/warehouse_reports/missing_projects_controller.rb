@@ -14,7 +14,7 @@ module WarehouseReports
       data_sources = data_source_source.pluck(:id, :name).to_h
       @enrollments = enrollment_source.where(ProjectID: missing_projects.map(&:first)).where(data_source_id: missing_projects.map(&:second))
       @newest = @enrollments.maximum(:EntryDate)
-      @projects = missing_projects.map{|m| {project_id: m.first, data_source_id: m.last, data_source_name: data_sources[m.last]}}
+      @projects = missing_projects.map { |m| { project_id: m.first, data_source_id: m.last, data_source_name: data_sources[m.last] } }
     end
 
     private def project_source
@@ -28,6 +28,5 @@ module WarehouseReports
     private def data_source_source
       GrdaWarehouse::DataSource
     end
-
   end
 end

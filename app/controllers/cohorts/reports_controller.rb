@@ -26,7 +26,7 @@ module Cohorts
     def set_cohort
       @cohort = cohort_source.find(params[:cohort_id].to_i)
     end
-  
+
     def cohort_source
       GrdaWarehouse::Cohort
     end
@@ -37,7 +37,7 @@ module Cohorts
 
     def report_params
       params.permit(
-        range: [:start, :end]
+        range: [:start, :end],
       )
     end
   end

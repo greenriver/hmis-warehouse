@@ -25,8 +25,8 @@ module WarehouseReports::Cas
       date_range_options = params.permit(range: [:start, :end])[:range]
       unless date_range_options.present?
         date_range_options = {
-            start: Date.current - 1.month,
-            end: Date.current,
+          start: Date.current - 1.month,
+          end: Date.current,
         }
       end
       @range = ::Filters::DateRange.new(date_range_options)

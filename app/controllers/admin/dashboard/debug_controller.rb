@@ -18,10 +18,10 @@ module Admin::Dashboard
       @missing_sources = (source_ids - source_client_ids).size
 
       @missing_client_destinations = (destination_client_ids - destination_ids).size
-      @duplicate_source_items = [] #check_for_hud_primary_key_duplicates
+      @duplicate_source_items = [] # check_for_hud_primary_key_duplicates
     end
 
-    # Find any instances where we have duplicate entries within a given 
+    # Find any instances where we have duplicate entries within a given
     # data source based on the HUD primary key
     def check_for_hud_primary_key_duplicates
       {}.tap do |m|
@@ -30,21 +30,21 @@ module Admin::Dashboard
           GrdaWarehouse::Hud.models_by_hud_filename.values.each do |klass|
             errors = klass.where(data_source_id: ds.id).
               group(klass.hud_primary_key).
-              having( nf( 'COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]] ).gt 1 ). # .having("count(#{klass.hud_primary_key}) > 1")
+              having(nf('COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]]).gt(1)). # .having("count(#{klass.hud_primary_key}) > 1")
               count.size
-            if errors > 0
-              m[ds.name][klass.table_name] ||= {}
-              m[ds.name][klass.table_name][:errors] = errors 
-              m[ds.name][klass.table_name][:data_source_id] = ds.id
-              m[ds.name][klass.table_name][:primary_hud_key] = klass.hud_primary_key
-            end
+            next unless errors.positive?
+
+            m[ds.name][klass.table_name] ||= {}
+            m[ds.name][klass.table_name][:errors] = errors
+            m[ds.name][klass.table_name][:data_source_id] = ds.id
+            m[ds.name][klass.table_name][:primary_hud_key] = klass.hud_primary_key
           end
-          m.delete(ds.name) if m[ds.name].empty? 
+          m.delete(ds.name) if m[ds.name].empty?
         end
       end
     end
 
-    def client_source 
+    def client_source
       GrdaWarehouse::Hud::Client
     end
 

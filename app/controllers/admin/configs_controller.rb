@@ -10,21 +10,20 @@ module Admin
     before_action :set_config
 
     def index
-
     end
 
     def update
       @config.assign_attributes(config_params)
       config_source.invalidate_cache
       if @config.save
-        redirect_to({action: :index}, notice: 'Configuration updated')
+        redirect_to({ action: :index }, notice: 'Configuration updated')
       else
         render action: :index, error: 'The configuration failed to save.'
       end
     end
 
     private def config_params
-      p = params.require(:grda_warehouse_config).permit(
+      params.require(:grda_warehouse_config).permit(
         :last_name,
         :eto_api_available,
         :healthcare_available,

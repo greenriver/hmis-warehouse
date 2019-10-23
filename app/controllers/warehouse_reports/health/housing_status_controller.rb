@@ -13,7 +13,7 @@ module WarehouseReports::Health
     def index
       @end_date = params.dig(:filter, :end_date) || Date.current
       @start_date = params.dig(:filter, :start_date) || @end_date - 1.month
-      @aco = params.dig(:filter, :aco)&.select{|id| id.present? }
+      @aco = params.dig(:filter, :aco)&.select { |id| id.present? }
 
       if @start_date.to_date > @end_date.to_date
         new_start = @end_date
@@ -30,8 +30,8 @@ module WarehouseReports::Health
 
     def to_query(actives)
       {
-        client_ids: actives.map{ |item| item.first },
-        sources: actives.map{ |item| item.last },
+        client_ids: actives.map(&:first),
+        sources: actives.map(&:last),
       }
     end
     helper_method :to_query

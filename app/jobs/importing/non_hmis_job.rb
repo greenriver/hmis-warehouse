@@ -26,7 +26,8 @@ module Importing
       task.run!
     end
 
-    def enqueue(job); end
+    def enqueue(job)
+    end
 
     def success(_job)
       @upload.update(percent_complete: 100, completed_at: Time.current)

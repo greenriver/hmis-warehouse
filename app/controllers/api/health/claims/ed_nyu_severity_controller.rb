@@ -6,8 +6,7 @@
 
 module Api::Health::Claims
   class EdNyuSeverityController < BaseController
-    
-    def load_data      
+    def load_data
       @data = 'FIXME'
     end
 

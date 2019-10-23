@@ -24,6 +24,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Metrics"
     end
-
   end
 end

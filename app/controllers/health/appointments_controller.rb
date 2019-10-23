@@ -15,9 +15,7 @@ module Health
 
     def index
       set_hpc_patient
-      if @patient.blank?
-        set_patient
-      end
+      set_patient if @patient.blank?
       a_t = Health::Appointment.arel_table
       @appointments = @patient.appointments.order(appointment_time: :desc)
       @upcoming = @appointments.limited.where(a_t[:appointment_time].gt(Time.now)).order(appointment_time: :asc)
@@ -27,12 +25,14 @@ module Health
 
     def upcoming
       set_hpc_patient
-      if @patient.blank?
-        set_patient
-      end
+      set_patient if @patient.blank?
       start_date = Date.current.to_time
       if params[:end_date].present?
-        end_date = params[:end_date]&.to_date rescue start_date + 2.weeks
+        end_date = begin
+                     params[:end_date]&.to_date
+                   rescue StandardError
+                     start_date + 2.weeks
+                   end
       else
         end_date = start_date + 2.weeks
       end
@@ -46,7 +46,5 @@ module Health
     private def title_for_show
       "#{@client.name} - Health - Appointments"
     end
-
-
   end
 end

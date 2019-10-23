@@ -16,9 +16,10 @@ class HelloSignController < ActionController::Base
     end
 
     # HelloSign expects this. Do not change or remove:
-    render text: "Hello API Event Received"
+    render text: 'Hello API Event Received'
   end
 
+  # rubocop:disable Lint/DuplicateMethods, Style/DoubleNegation, Naming/PredicateName
   class CallbackResponse
     attr_accessor :signable_document, :json
 
@@ -27,17 +28,15 @@ class HelloSignController < ActionController::Base
     end
 
     def valid?
-      begin
-        !!_data && !!_signature_request
-      rescue TypeError, JSON::ParserError
-        return false
-      end
+      !!_data && !!_signature_request
+    rescue TypeError, JSON::ParserError
+      false
     end
 
     def signable_document
       return @signable_document unless @signable_document.nil?
 
-      signable_document_id = _signature_request.dig('metadata', 'signable_document_id') 
+      signable_document_id = _signature_request.dig('metadata', 'signable_document_id')
 
       @signable_document = Health::SignableDocument.find(signable_document_id)
     end
@@ -67,7 +66,7 @@ class HelloSignController < ActionController::Base
 
     private
 
-    def _signature_request 
+    def _signature_request
       @signature_request ||= _data.dig('signature_request')
     end
 
@@ -75,4 +74,5 @@ class HelloSignController < ActionController::Base
       @_data ||= JSON.parse(json)
     end
   end
+  # rubocop:enable Lint/DuplicateMethods, Style/DoubleNegation, Naming/PredicateName
 end

@@ -48,6 +48,5 @@ module WarehouseReports::Cas
     def report_source
       GrdaWarehouse::CasReport
     end
-
   end
 end

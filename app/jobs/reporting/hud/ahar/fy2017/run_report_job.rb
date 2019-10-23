@@ -26,7 +26,8 @@ module Reporting::Hud::Ahar::Fy2017
       report_generator.new(@options).run!
     end
 
-    def enqueue(job); end
+    def enqueue(job)
+    end
 
     def error(job, exception)
       result = ReportResult.find(@result_id)

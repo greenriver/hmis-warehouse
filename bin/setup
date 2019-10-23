@@ -55,13 +55,13 @@ Dir.chdir APP_ROOT do
   FileUtils.rm_rf Dir.glob(File.join('tmp', 'cache'))
 
   puts "\n== Creating styles/_variables.scss =="
-  styles = File.join %w[app assets stylesheets theme styles]
+  styles = File.join ['app', 'assets', 'stylesheets', 'theme', 'styles']
   FileUtils.mkdir(styles) unless File.directory?(styles)
   variables = File.join styles, '_variables.scss'
   FileUtils.touch variables unless File.exist?(variables)
 
   puts "\n== Restarting application server =="
   FileUtils.mkdir 'tmp' unless File.exist? 'tmp'
-  restart = File.join %w[tmp restart.txt]
+  restart = File.join ['tmp', 'restart.txt']
   FileUtils.touch restart
 end

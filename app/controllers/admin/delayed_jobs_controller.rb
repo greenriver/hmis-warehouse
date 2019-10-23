@@ -16,13 +16,13 @@ module Admin
 
     def update
       @job.update(locked_by: nil, locked_at: nil, failed_at: nil, last_error: nil)
-      flash[:notice] = "Delayed Job re-queued"
+      flash[:notice] = 'Delayed Job re-queued'
       redirect_to admin_delayed_jobs_path
     end
 
     def destroy
       @job.destroy
-      flash[:notice] = "Delayed Job deleted"
+      flash[:notice] = 'Delayed Job deleted'
       redirect_to admin_delayed_jobs_path
     end
 
@@ -33,6 +33,5 @@ module Admin
     private def set_job
       @job = job_scope.find(params[:id].to_i)
     end
-
   end
 end

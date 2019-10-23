@@ -20,6 +20,5 @@ module Health::Pilot
 
       render layout: !request.xhr?
     end
-
   end
 end
