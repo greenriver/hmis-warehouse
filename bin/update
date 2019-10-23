@@ -24,6 +24,7 @@ chdir APP_ROOT do
   system! 'bundle exec rake health:db:migrate'
   system! 'bundle exec rake reporting:db:migrate'
 
+
   puts "\n== Updating NPM =="
   system! 'npm install'
 
@@ -34,6 +35,26 @@ chdir APP_ROOT do
   system 'puma-dev -stop'
   restart = File.join ['tmp', 'restart.txt']
   FileUtils.touch restart
+
+  puts "\n== Resetting test db =="
+  require 'dotenv/load'
+  [
+    'DATABASE_DB_TEST',
+    'DATABASE_APP_DB_TEST',
+    'WAREHOUSE_DATABASE_DB_TEST',
+    'HEALTH_DATABASE_DB_TEST',
+    'REPORTING_DATABASE_DB_TEST',
+  ].each do |var|
+    db_name = ENV[var]
+    if db_name.to_s != ''
+      system "dropdb #{db_name}; createdb #{db_name}";
+    end
+  end
+  system! 'RAILS_ENV=test; bundle exec rake db:schema:load'
+  system! 'RAILS_ENV=test; bundle exec rake warehouse:db:schema:load'
+  system! 'RAILS_ENV=test; bundle exec rake health:db:schema:load'
+  system! 'RAILS_ENV=test; bundle exec rake reporting:db:schema:load'
+
 
   puts "\n== TODO: You may need to restart background workers etc and clear caches"
 end
