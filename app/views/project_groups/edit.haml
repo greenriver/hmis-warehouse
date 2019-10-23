@@ -13,7 +13,7 @@
       .well
         %dl
           %dt Project Types
-          %dd= @project_group.projects.map(&:human_readable_project_type).join(', ')
+          %dd= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
           %dt PIT Count
           %dd= @project_group.projects.map(&:PITCount).sum
           %dt Project Count
