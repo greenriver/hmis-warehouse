@@ -1,0 +1,41 @@
+- title = "Manage Groups"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to admin_users_path do
+    &laquo; Manage User Accounts
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+    
+  .row
+    .col-12.text-right
+      = link_to new_admin_group_path, class: 'btn btn-primary mb-2' do
+        %span.icon-plus
+        Add a Group
+  %p.mt-2= page_entries_info @groups, entry_name: _('groups')
+
+  .row.table-utilities
+    .col-sm-12
+      .table-responsive
+        %table.table.table-condensed
+          %thead
+            %tr
+              %th Name
+              %th Assigned Users
+              %th
+          %tbody
+            - @groups.each do |group|
+              %tr
+                %td
+                  = link_to group.name, edit_admin_group_path(group)
+                %td
+                  = group.users.count
+                %td
+                  - unless group.users.count > 0
+                    = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                      %span.icon-cross
+                      Delete
+      %p= paginate @groups
