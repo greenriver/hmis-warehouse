@@ -257,7 +257,7 @@ ActiveRecord::Schema.define(version: 20190802160019) do
     t.integer  "prior_exit_project_type"
     t.integer  "prior_exit_destination_id"
     t.datetime "calculated_at",                             null: false
-    t.integer  "enrollment_id"
+    t.integer  "enrollment_id",                             null: false
   end
 
   add_index "warehouse_monthly_reports", ["active"], name: "index_warehouse_monthly_reports_on_active", using: :btree
