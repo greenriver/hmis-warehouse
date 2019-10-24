@@ -67,10 +67,14 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
   Rails.logger.warn JSON::generate(data)
 
   # ... and now try to send ot somewhere useful
-  if defined?(Slack::Notifier)  && (webhook_url=ENV['EXCEPTION_WEBHOOK_URL']).present?
-    notifier = Slack::Notifier.new(
-      webhook_url
+  if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
+    notifier_config = Rails.application.config_for(:exception_notifier).fetch('slack', nil)
+    notifier  = Slack::Notifier.new(
+      notifier_config['webhook_url'],
+      channel: notifier_config['channel'],
+      username: 'Rack-Attack',
     )
+
     fields =  data.map do |k,v|
       {title: k.to_s, value: v.to_s}
     end
@@ -79,7 +83,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
       color: :warning,
       fields: fields
     }
-    notifier.post(
+    notifier.ping(
       text: '*Rack attack event*',
       attachments: [attachment],
       http_options: { open_timeout: 1 }
