@@ -28,36 +28,31 @@ module Health
 
     def new
       @signature_request = signature_source.new
-      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], {client_id: @client.id, careplan_id: @careplan.id})
+      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
     end
 
     def edit
       @state = :valid
       @state = :expired if @doc.expired?
-      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_request], {client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash]})
+      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_request], client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
       @careplan_link = download_careplan_window_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
     end
 
     def download_careplan
-
       pdf = careplan_combine_pdf_object
       file_name = 'care_plan'
-      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: "application/pdf"
+      send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
     # Build and send a PCP signing request and team member based on the values submitted
     #
     def update
-
-      if signature_params[:to_name].blank?
-        @signature_request.errors.add(:to_name, 'PCP Name is required')
-      end
-      if signature_params[:to_email].blank? || ! Health::Agency.email_valid?(signature_params[:to_email])
-        @signature_request.errors.add(:to_email, 'PCP email must belong to a known agency. See list at the bottom of the page')
-      end
+      @signature_request.errors.add(:to_name, 'PCP Name is required') if signature_params[:to_name].blank?
+      @signature_request.errors.add(:to_email, 'PCP email must belong to a known agency. See list at the bottom of the page') if signature_params[:to_email].blank? || ! Health::Agency.email_valid?(signature_params[:to_email])
       if @signature_request.errors.any?
         @state = :valid # force the form to show again
-        render :edit and return
+        render(:edit)
+        return
       end
       (first_name, last_name) = signature_params[:to_name].split(' ')
       email = signature_params[:to_email]
@@ -67,7 +62,7 @@ module Health
         email: email,
         organization: 'Unknown',
         patient_id: @patient.id,
-        user_id: User.setup_system_user.id
+        user_id: User.setup_system_user.id,
       )
       team_member.save(validate: false)
 
@@ -81,16 +76,17 @@ module Health
         to_name: signature_params[:to_name],
         requestor_email: @signature_request.to_email,
         requestor_name: @signature_request.to_name,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
 
       if @pcp_signature_request.valid?
         @pcp_signature_request.save!
-        create_pcp_signable_document()
-        queue_pcp_email()
+        create_pcp_signable_document
+        queue_pcp_email
         flash[:notice] = 'Thank you. The Care Plan Signature request will be sent to the PCP.'
       else
-        render :edit and return
+        render(:edit)
+        return
       end
     end
 
@@ -102,9 +98,9 @@ module Health
         signers: @signers,
         primary: true,
         user_id: User.setup_system_user.id,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
       if @doc.valid?
         @careplan.class.transaction do
           @doc.save!
@@ -125,19 +121,20 @@ module Health
         email: @pcp_signature_request.to_email,
         name: @pcp_signature_request.to_name,
         careplan_id: @careplan.id,
-        client_id: @client.id
+        client_id: @client.id,
       ).deliver_later
       @pcp_signature_request.update(sent_at: Time.now)
     end
 
     def create
       @signature_request = signature_source.new
-      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], {client_id: @client.id, careplan_id: @careplan.id})
+      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
       begin
         @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
-      rescue ActiveRecord::RecordNotFound => e
+      rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign ACO')
-        render :new and return
+        render(:new)
+        return
       end
       @expires_at = Time.now + signature_source.expires_in
 
@@ -148,16 +145,17 @@ module Health
         to_name: @team_member.full_name,
         requestor_email: current_user.email,
         requestor_name: current_user.name,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
 
       if @signature_request.valid?
         @signature_request.save!
-        create_signable_document()
-        queue_aco_email()
+        create_signable_document
+        queue_aco_email
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
-        render :new and return
+        render(:new)
+        return
       end
     end
 
@@ -169,9 +167,9 @@ module Health
         signers: @signers,
         primary: true,
         user_id: current_user.id,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
       if @doc.valid?
         @careplan.class.transaction do
           @doc.save!
@@ -192,14 +190,14 @@ module Health
         email: @signature_request.to_email,
         name: @signature_request.to_name,
         careplan_id: @careplan.id,
-        client_id: @client.id
+        client_id: @client.id,
       ).deliver_later
       @signature_request.update(sent_at: Time.now)
     end
 
     def destroy
       @signature_request.destroy
-      if signable_document = @signature_request.signable_document
+      if (signable_document = @signature_request.signable_document)
         signable_document.destroy
       end
       respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
@@ -209,7 +207,7 @@ module Health
       params.require(:signature_request).permit(
         :team_member_id,
         :to_email,
-        :to_name
+        :to_name,
       )
     end
 
@@ -218,13 +216,13 @@ module Health
         map do |t|
           [
             "#{t.full_name} -- #{t.class.member_type_name} (#{t.email}) ",
-            t.id
+            t.id,
           ]
         end
     end
 
     def team_member_scope
-      @patient.team_members.with_email#.health_sendable # This has been moved to the add team member screen
+      @patient.team_members.with_email # .health_sendable # This has been moved to the add team member screen
     end
 
     def signable_document_source
@@ -261,32 +259,31 @@ module Health
 
     private
 
-    def get_pdf
+    def generate_pdf
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
       @pdf = pdf.to_pdf
-
     end
 
     def set_form_url
-      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_request], {client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash]})
+      @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_request], client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
     end
+
     def set_careplan_download_url
       @careplan_link = download_careplan_window_client_health_careplan_aco_signature_request_path(client_id: @client.id, careplan_id: @careplan.id, id: @signature_request.id, email: params[:email], hash: params[:hash])
     end
 
     def require_matching_hash!
-      if @doc.signer_hash(params[:email]) != params[:hash]
-        not_authorized!
-        return
-      end
+      return if @doc.signer_hash(params[:email]) == params[:hash]
+
+      not_authorized!
+      nil
     end
 
     def require_doc_not_expired!
-      if @doc.expired?
-        not_authorized!
-        return
-      end
+      return unless @doc.expired?
+
+      not_authorized!
+      nil
     end
   end
 end

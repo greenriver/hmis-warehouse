@@ -27,10 +27,10 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
-      merge( p_t.engine.viewable_by current_user ).
+      merge(p_t.engine.viewable_by(current_user)).
       includes(projects: [:project_cocs, :geographies, :inventories]).
       references(projects: [:project_cocs, :geographies, :inventories]).
-      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc )
+      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 
   def new
@@ -39,9 +39,7 @@ class DataSourcesController < ApplicationController
 
   def create
     @data_source = data_source_source.new(new_data_source_params)
-    if new_data_source_params[:authoritative]
-      @data_source.source_type = :authoritative
-    end
+    @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
       current_user.add_viewable @data_source
       flash[:notice] = "#{@data_source.name} created."
@@ -68,7 +66,7 @@ class DataSourcesController < ApplicationController
       flash[:error] = "Unable to update data source. #{e}"
       render :show
     else
-      redirect_to data_source_path(@data_source), notice: "Data Source updated"
+      redirect_to data_source_path(@data_source), notice: 'Data Source updated'
     end
   end
 
@@ -101,7 +99,7 @@ class DataSourcesController < ApplicationController
           :geography_type_override,
           :confidential,
           :after_create_path,
-        ]
+        ],
       )
   end
 

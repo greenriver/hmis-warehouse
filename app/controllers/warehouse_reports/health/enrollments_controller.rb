@@ -36,6 +36,5 @@ module WarehouseReports::Health
     def enrollment_params
       params.require(:health_enrollment).permit(:content)
     end
-
   end
 end

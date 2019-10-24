@@ -13,23 +13,15 @@ module HudChronic
     def load_hud_chronic_filter
       @filter = ::Filters::HudChronic.new(params[:filter])
       filter_query = hc_t[:age].gt(@filter.min_age)
-      if @filter.individual
-        filter_query = filter_query.and(hc_t[:individual].eq(@filter.individual))
-      end
-      if @filter.dmh
-        filter_query = filter_query.and(hc_t[:dmh].eq(@filter.dmh))
-      end
-      if @filter.veteran
-        filter_query = filter_query.and(c_t[:VeteranStatus].eq(@filter.veteran))
-      end
+      filter_query = filter_query.and(hc_t[:individual].eq(@filter.individual)) if @filter.individual
+      filter_query = filter_query.and(hc_t[:dmh].eq(@filter.dmh)) if @filter.dmh
+      filter_query = filter_query.and(c_t[:VeteranStatus].eq(@filter.veteran)) if @filter.veteran
       @clients = client_source.joins(:hud_chronics).
         preload(:hud_chronics).
         preload(:source_disabilities).
         where(filter_query).
         has_homeless_service_between_dates(start_date: (@filter.date - @filter.last_service_after.days), end_date: @filter.date)
-      if @filter.name&.present?
-        @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source)
-      end
+      @clients = @clients.text_search(@filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @filter.name&.present?
     end
     alias_method :load_filter, :load_hud_chronic_filter
 
@@ -42,7 +34,7 @@ module HudChronic
         'desc'
       end
       # whitelist for column
-      table = if ['FirstName', 'LastName'].include?(@column) 
+      table = if ['FirstName', 'LastName'].include?(@column)
         client_at
       elsif chronic_source.column_names.include?(@column)
         hc_t

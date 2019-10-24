@@ -35,6 +35,7 @@ module Reporting
       NotifyUser.dashboard_export_report_finished(@current_user_id, @report_id).deliver_later
     end
 
-    def enqueue(job); end
+    def enqueue(job)
+    end
   end
 end

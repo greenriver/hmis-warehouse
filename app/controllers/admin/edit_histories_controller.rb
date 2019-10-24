@@ -18,9 +18,7 @@ module Admin
 
     def name_of_whodunnit(version)
       who = version.whodunnit
-      if who.present?
-        User.find(who).name
-      end
+      User.find(who).name if who.present?
     end
     helper_method :name_of_whodunnit
 
@@ -32,50 +30,49 @@ module Admin
 
     private
 
-      def get_changes_to(version)
-        if version.object_changes.blank?
-          compute_changes_to(version)
+    def get_changes_to(version)
+      if version.object_changes.blank?
+        compute_changes_to(version)
+      else
+        version.changeset
+      end
+    end
+
+    def compute_changes_to(version)
+      changed = {}
+      current = version.reify
+      if current.present? && version.event != 'destroy'
+        if version.previous.present? && version.previous.object.present?
+          previous = version.previous.reify
+          changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
+          changed_attr.each do |name|
+            changed[name] = [previous[name], current[name]]
+          end
         else
-          version.changeset
-        end
-      end
-
-      def compute_changes_to(version)
-        changed = {}
-        current = version.reify
-        if current.present? && version.event != 'destroy'
-          if version.previous.present? && version.previous.object.present?
-            previous = version.previous.reify
-            changed_attr = (current.attributes.to_a - previous.attributes.to_a).map(&:first)
-            changed_attr.each do |name|
-              changed[name] = [previous[name], current[name]]
-            end
-          else
-            # A create - so, all attributes are new
-            current.attributes.to_a.each do |name|
-              changed[name] = [nil, current[name]]
-            end
-          end
-          #TODO cache computed change
-          #copy_of_changed = changed.clone # Serialize can be in place, so we clone to avoid stepping on the changed map
-          #serializer = PaperTrail::AttributeSerializers::ObjectChangesAttribute.new(current.class)
-          #serializer.serialize(copy_of_changed)
-
-          #version.object_changes = copy_of_changed
-          #version.save`
-        elsif current.present?
-          # Describe a destroy as setting all attributes to nil
-          current.attributes.map(&:first).each do |name|
-            changed[name] = [current[name], nil]
+          # A create - so, all attributes are new
+          current.attributes.to_a.each do |name|
+            changed[name] = [nil, current[name]]
           end
         end
-        changed
-      end
+        # TODO: cache computed change
+        # copy_of_changed = changed.clone # Serialize can be in place, so we clone to avoid stepping on the changed map
+        # serializer = PaperTrail::AttributeSerializers::ObjectChangesAttribute.new(current.class)
+        # serializer.serialize(copy_of_changed)
 
-      def set_user
-        @user_id = params[:user_id].to_i
-        @user = User.find(@user_id)
+        # version.object_changes = copy_of_changed
+        # version.save`
+      elsif current.present?
+        # Describe a destroy as setting all attributes to nil
+        current.attributes.map(&:first).each do |name|
+          changed[name] = [current[name], nil]
+        end
       end
+      changed
+    end
 
+    def set_user
+      @user_id = params[:user_id].to_i
+      @user = User.find(@user_id)
+    end
   end
 end

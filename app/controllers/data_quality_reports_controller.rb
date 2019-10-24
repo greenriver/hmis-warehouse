@@ -61,7 +61,7 @@ class DataQualityReportsController < ApplicationController
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
-            "pjax_modal_content"
+            'pjax_modal_content'
           else
             'application'
           end
@@ -84,9 +84,7 @@ class DataQualityReportsController < ApplicationController
 
   def set_client_path
     @client_path = [:destination, :window, :source_client]
-    if can_view_clients?
-      @client_path = [:destination, :source_client]
-    end
+    @client_path = [:destination, :source_client] if can_view_clients?
   end
 
   def support_render_path
@@ -97,18 +95,14 @@ class DataQualityReportsController < ApplicationController
     @report_keys = {
       project_id: @project.id,
       id: @report.id,
-      individual: true
+      individual: true,
     }
-    if notification_id
-      @report_keys[:notification_id] = notification_id
-    end
+    @report_keys[:notification_id] = notification_id if notification_id
   end
 
   def set_support_path
     @support_path = [:project, :data_quality_report]
-    if notification_id
-      @support_path = [:notification] + @support_path
-    end
+    @support_path = [:notification] + @support_path if notification_id
     @support_path = [:support] + @support_path
   end
 
@@ -124,9 +118,7 @@ class DataQualityReportsController < ApplicationController
           render xlsx: :index, filename: "support-#{@key}.xlsx"
         end
         format.html do
-          if params[:layout].present? && params[:layout] == 'false'
-            render layout: "pjax_modal_content"
-          end
+          render layout: 'pjax_modal_content' if params[:layout].present? && params[:layout] == 'false'
         end
         format.js {}
       end
@@ -150,7 +142,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def project_scope
-   project_source.viewable_by current_user
+    project_source.viewable_by current_user
   end
 
   def project_source
@@ -173,31 +165,33 @@ class DataQualityReportsController < ApplicationController
   def require_valid_token_or_report_access!
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
-      raise ActionController::RoutingError.new('Not Found') if token.blank?
+      raise ActionController::RoutingError, 'Not Found' if token.blank?
       return true if token.valid?
     else
       set_report
       report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
       return true if report_viewable
+
       not_authorized!
       return
     end
-    raise ActionController::RoutingError.new('Not Found')
+    raise ActionController::RoutingError, 'Not Found'
   end
 
   def require_valid_token_or_project_access!
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
-      raise ActionController::RoutingError.new('Not Found') if token.blank?
+      raise ActionController::RoutingError, 'Not Found' if token.blank?
       return true if token.valid?
     else
       set_project
       project_viewable = project_scope.where(id: @project.id).exists?
       return true if project_viewable
+
       not_authorized!
       return
     end
-    raise ActionController::RoutingError.new('Not Found')
+    raise ActionController::RoutingError, 'Not Found'
   end
 
   def missing_grade_scope
@@ -218,6 +212,7 @@ class DataQualityReportsController < ApplicationController
 
   def require_can_view_client_level_details!
     return true if current_user&.can_view_projects? || current_user&.can_view_project_data_quality_client_details?
+
     not_authorized!
   end
 end

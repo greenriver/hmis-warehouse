@@ -20,7 +20,7 @@ module WarehouseReports::Health
     end
 
     def show
-      @report =inquiry_scope.find(params[:id].to_i)
+      @report = inquiry_scope.find(params[:id].to_i)
       date = @report.service_date
       response.headers['Content-Disposition'] = "attachment; filename=\"INQUIRY_#{date.strftime('%Y%m%d')}.txt\""
       render layout: false
@@ -38,9 +38,9 @@ module WarehouseReports::Health
       begin
         @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id].to_i)
         Health::EligibilityResponse.create(eligibility_inquiry: @report,
-          response: update_params[:content].read,
-          user: current_user,
-          original_filename: update_params[:content].original_filename)
+                                           response: update_params[:content].read,
+                                           user: current_user,
+                                           original_filename: update_params[:content].original_filename)
         Health::FlagIneligiblePatientsJob.perform_later(@report.id)
       rescue Exception => e
         flash[:error] = "Error processing uploaded file #{e}"
@@ -56,13 +56,13 @@ module WarehouseReports::Health
 
     def create_params
       params.require(:report).permit(
-        :eligibility_date
+        :eligibility_date,
       )
     end
 
     def update_params
       params.require(:result).permit(
-          :content
+        :content,
       )
     end
 

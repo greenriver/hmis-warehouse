@@ -683,6 +683,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def human_readable_project_type
+      HUD.project_type(self[self.class.project_type_column])
+    end
+
     def main_population
       if serves_families?
         'Family'

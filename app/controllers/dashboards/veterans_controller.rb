@@ -18,6 +18,5 @@ module Dashboards
     def active_report_class
       Reporting::MonthlyReports::Veteran
     end
-
   end
 end

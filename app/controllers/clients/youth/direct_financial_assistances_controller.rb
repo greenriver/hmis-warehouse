@@ -19,9 +19,7 @@ module Clients::Youth
     def create
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
       @entity.assign_attributes(entity_params)
-      if entity_params[:other].present? && entity_params[:type_provided] == 'Other'
-        @entity.type_provided = entity_params[:other]
-      end
+      @entity.type_provided = entity_params[:other] if entity_params[:other].present? && entity_params[:type_provided] == 'Other'
 
       @entity.save
       if @entity.valid?

@@ -16,7 +16,6 @@ module Clients
     end
 
     def edit
-
     end
 
     def update
@@ -25,26 +24,25 @@ module Clients
         client_id: @client.id,
         user_id: current_user.id,
         involved_user_ids: @anomaly.involved_user_ids,
-        anomaly_id: @anomaly.id
+        anomaly_id: @anomaly.id,
       ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: @anomaly.status))
     end
 
     def create
       @anomaly = @client.anomalies.build(anomaly_params.merge(
-        status: :new,
-        submitted_by: current_user.id
-      ))
+                                           status: :new,
+                                           submitted_by: current_user.id,
+                                         ))
       @anomaly.save
       NotifyUser.anomaly_identified(
         client_id: @client.id,
-        user_id: current_user.id
+        user_id: current_user.id,
       ).deliver_later
       respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
     end
 
     def destroy
-
     end
 
     def set_anomaly

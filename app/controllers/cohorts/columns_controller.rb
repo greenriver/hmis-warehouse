@@ -18,20 +18,20 @@ module Cohorts
       columns = cohort_source.available_columns.deep_dup
       if params.include? :order
         order = params[:order].split(',')
-        columns = columns.sort_by{ |col| order.index(col.column.to_s)}
+        columns = columns.sort_by { |col| order.index(col.column.to_s) }
       end
       columns.each do |column|
         visibility_state = cohort_params[:visible][column.column]
-        column.visible = false 
-        if visibility_state.present? || visibility_state.to_s == '1'
-          column.visible = true
-        end
+        column.visible = false
+        column.visible = true if visibility_state.present? || visibility_state.to_s == '1'
 
-        editability_state = cohort_params[:editable][column.column] rescue nil
-        column.editable = false 
-        if editability_state.present? || editability_state.to_s == '1'
-          column.editable = true
-        end
+        editability_state = begin
+                              cohort_params[:editable][column.column]
+                            rescue StandardError
+                              nil
+                            end
+        column.editable = false
+        column.editable = true if editability_state.present? || editability_state.to_s == '1'
       end
       @cohort.update(column_state: columns)
 
@@ -41,14 +41,14 @@ module Cohorts
     def cohort_params
       params.require(:column_state).permit(
         visible: cohort_source.available_columns.map(&:column),
-        editable: cohort_source.available_columns.map(&:column)
+        editable: cohort_source.available_columns.map(&:column),
       )
     end
 
     def set_cohort
       @cohort = cohort_source.find(params[:cohort_id].to_i)
     end
-  
+
     def cohort_source
       GrdaWarehouse::Cohort
     end

@@ -13,7 +13,6 @@ module Health
     before_action :set_hpc_patient, only: [:careplan]
 
     def careplan
-
     end
   end
 end

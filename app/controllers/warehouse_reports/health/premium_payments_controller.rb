@@ -9,7 +9,6 @@ module WarehouseReports::Health
     include WarehouseReportAuthorization
     before_action :require_can_administer_health!
 
-
     def index
       @file = premium_source.new
       @files = premium_source.order(id: :desc).
@@ -30,9 +29,10 @@ module WarehouseReports::Health
 
     def create
       @file = premium_source.create(
-        user_id: current_user.id, 
+        user_id: current_user.id,
         content: premium_params[:content].read,
-        original_filename: premium_params[:content].original_filename)
+        original_filename: premium_params[:content].original_filename,
+      )
       Health::ConvertPaymentPremiumFileJob.perform_later
       respond_with(@file, location: warehouse_reports_health_premium_payments_path)
     end

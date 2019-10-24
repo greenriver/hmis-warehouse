@@ -20,9 +20,9 @@ module WarehouseReports::ClientDetails
         @sub_population = (params.try(:[], :sub_population).presence || :all_clients).to_sym
         month = params.permit(:month)
         @range = ::Filters::DateRangeWithSubPopulation.new(
-          start: Date.strptime(month[:month], "%B %Y").beginning_of_month,
-          end: Date.strptime(month[:month], "%B %Y").end_of_month,
-          sub_population: @sub_population
+          start: Date.strptime(month[:month], '%B %Y').beginning_of_month,
+          end: Date.strptime(month[:month], '%B %Y').end_of_month,
+          sub_population: @sub_population,
         )
       else
         @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
@@ -38,9 +38,7 @@ module WarehouseReports::ClientDetails
       @buckets = Hash.new(0)
 
       @clients = exits_from_homelessness
-      if params[:ph]
-        @clients = @clients.where(destination: ::HUD.permanent_destinations)
-      end
+      @clients = @clients.where(destination: ::HUD.permanent_destinations) if params[:ph]
       @clients = @clients.ended_between(start_date: @range.start, end_date: @range.end + 1.day).
         order(date: :asc).
         pluck(*columns.values).
@@ -48,7 +46,7 @@ module WarehouseReports::ClientDetails
           Hash[columns.keys.zip(row)]
         end.each do |row|
           destination = row[:destination]
-          destination = 99 unless HUD.valid_destinations.keys.include?(row[:destination])
+          destination = 99 unless HUD.valid_destinations.key?(row[:destination])
           @buckets[destination] += 1
         end
 
@@ -66,16 +64,12 @@ module WarehouseReports::ClientDetails
         homeless.
         order(:last_date_in_program)
       hsh_scope = history_scope(scope, @sub_population)
-      if @organization_ids.any?
-        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-      end
-      if @project_ids.any?
-        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
-      end
-      return hsh_scope
+      hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
+      hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
+      hsh_scope
     end
 
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -95,11 +89,19 @@ module WarehouseReports::ClientDetails
     end
 
     def set_organizations
-      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
   end
 end

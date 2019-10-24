@@ -13,13 +13,17 @@ module WarehouseReports::ClientDetails
     before_action :set_projects
     before_action :set_organizations
 
-    CACHE_EXPIRY = if Rails.env.production? then 8.hours else 20.seconds end
+    CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
     def index
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      @project_type_codes = params[:project_type].map(&:presence).map(&:to_sym) rescue [:es]
+      @project_type_codes = begin
+                              params[:project_type].map(&:presence).map(&:to_sym)
+                            rescue StandardError
+                              [:es]
+                            end
       @project_type = []
       @project_type_codes.each do |code|
         @project_type += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
@@ -41,13 +45,13 @@ module WarehouseReports::ClientDetails
       end
     end
 
-    def service_scope project_type
+    def service_scope(project_type)
       homeless_service_history_source.
         with_service_between(start_date: @range.start, end_date: @range.end).
         in_project_type(project_type)
     end
 
-    def enrollments_by_client project_type
+    def enrollments_by_client(project_type)
       # limit to clients with an entry within the range and service within the range in the type
       involved_client_ids = homeless_service_history_source.
         entry.
@@ -64,15 +68,14 @@ module WarehouseReports::ClientDetails
         where(she_t[:first_date_in_program].lteq(@range.end)).
         in_project_type(project_type).
         order(first_date_in_program: :desc).
-      pluck(*entered_columns.values).
-      map do |row|
+        pluck(*entered_columns.values).
+        map do |row|
         Hash[entered_columns.keys.zip(row)]
       end.
-      group_by{ |row| row[:client_id] }
+        group_by { |row| row[:client_id] }
     end
 
-
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,
@@ -95,13 +98,9 @@ module WarehouseReports::ClientDetails
       scope = service_history_source.
         in_project_type(@project_type)
       hsh_scope = history_scope(scope, @sub_population)
-      if @organization_ids.any?
-        hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids))
-      end
-      if @project_ids.any?
-        hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids))
-      end
-      return hsh_scope
+      hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
+      hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
+      hsh_scope
     end
 
     def entered_columns
@@ -117,7 +116,7 @@ module WarehouseReports::ClientDetails
       }
     end
 
-    def setup_data_structure start_date:
+    def setup_data_structure(start_date:)
       month_name = start_date.to_time.strftime('%B')
       {
         first_time: {
@@ -143,7 +142,7 @@ module WarehouseReports::ClientDetails
       }
     end
 
-    def bucket_clients enrollments
+    def bucket_clients(enrollments)
       buckets = {
         sixty_plus: Set.new,
         thirty_to_sixty: Set.new,
@@ -158,7 +157,7 @@ module WarehouseReports::ClientDetails
           days = days_since_last_entry(entries)
           if days < 30
             buckets[:less_than_thirty] << client_id
-          elsif (30..60).include?(days)
+          elsif (30..60).cover?(days)
             buckets[:thirty_to_sixty] << client_id
           else # days > 60
             buckets[:sixty_plus] << client_id
@@ -168,17 +167,24 @@ module WarehouseReports::ClientDetails
       buckets
     end
 
-    def days_since_last_entry enrollments
-      enrollments.first(2).map{|m| m[:first_date_in_program]}.reduce(:-).abs
+    def days_since_last_entry(enrollments)
+      enrollments.first(2).map { |m| m[:first_date_in_program] }.reduce(:-).abs
     end
 
     def set_organizations
-      @organization_ids = params[:range][:organization_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @organization_ids = begin
+                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                          rescue StandardError
+                            []
+                          end
     end
 
     def set_projects
-      @project_ids = params[:range][:project_ids].map(&:presence).compact.map(&:to_i) rescue []
+      @project_ids = begin
+                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                     rescue StandardError
+                       []
+                     end
     end
-
   end
 end

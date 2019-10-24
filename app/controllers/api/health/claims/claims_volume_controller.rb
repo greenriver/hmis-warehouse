@@ -8,7 +8,7 @@ module Api::Health::Claims
   class ClaimsVolumeController < BaseController
     include ArelHelper
 
-    def load_data      
+    def load_data
       a_t = source.arel_table
       @data = source.order(year: :asc, month: :asc).
         group(:year, :month).pluck(
@@ -21,7 +21,7 @@ module Api::Health::Claims
           nf('SUM', [a_t[:rx]]).to_sql,
           nf('SUM', [a_t[:other]]).to_sql,
           nf('SUM', [a_t[:total]]).to_sql,
-        ).map do |year, month, ip, emerg, respite, op, rx, other, total|
+        ).map do |year, month, ip, emerg, respite, op, rx, other, total| # rubocop:disable Metrics/ParameterLists
           {
             date: "#{year}-#{month}-01",
             ip: ip,

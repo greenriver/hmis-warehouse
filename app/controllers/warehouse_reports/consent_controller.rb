@@ -10,19 +10,18 @@ module WarehouseReports
     include ArelHelper
     before_action :require_can_confirm_housing_release!, only: [:update_clients]
     def index
-
       @unconfirmed = client_source.distinct.with_unconfirmed_consent_or_disability_verification
 
       @cohorts_for_unconfirmed = begin
         cohorts = {}
         cohort_source.distinct.
           joins(:cohort_clients).
-          where(cohort_clients: {client_id: @unconfirmed.select(:id)}).
+          where(cohort_clients: { client_id: @unconfirmed.select(:id) }).
           pluck(:id, :client_id, :name, :short_name).
           each do |id, client_id, name, short_name|
-            cohort_name = short_name.presence || name
-            cohorts[id] ||= {name: cohort_name, clients: {}}
-            cohorts[id][:clients][client_id] = client_id
+          cohort_name = short_name.presence || name
+          cohorts[id] ||= { name: cohort_name, clients: {} }
+          cohorts[id][:clients][client_id] = client_id
         end
         cohorts
       end
@@ -30,10 +29,22 @@ module WarehouseReports
     end
 
     def update_clients
-      to_confirm = params[:clients].try(:[], :confirm_consent).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
-      to_activate_in_cas = params[:clients].try(:[], :active_in_cas).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
+      to_confirm = begin
+                     params[:clients].try(:[], :confirm_consent).select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
+                   rescue StandardError
+                     []
+                   end
+      to_activate_in_cas = begin
+                             params[:clients].try(:[], :active_in_cas).select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
+                           rescue StandardError
+                             []
+                           end
 
-      to_confirm_disability = params[:clients].try(:[], :disability_verified_on).select{|_,value| value.to_i == 1}.map{|id,_| id.to_i} rescue []
+      to_confirm_disability = begin
+                                params[:clients].try(:[], :disability_verified_on).select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
+                              rescue StandardError
+                                []
+                              end
 
       if to_confirm.any?
         to_confirm.each do |file_id|
@@ -48,11 +59,9 @@ module WarehouseReports
         client_source.where(id: to_activate_in_cas).update_all(sync_with_cas: true)
       end
 
-      if to_confirm_disability.any?
-        client_source.where(id: to_confirm_disability).update_all(disability_verified_on: Time.now)
-      end
+      client_source.where(id: to_confirm_disability).update_all(disability_verified_on: Time.now) if to_confirm_disability.any?
 
-      flash[:notice] = "Clients updated"
+      flash[:notice] = 'Clients updated'
       redirect_to warehouse_reports_consent_index_path
     end
 

@@ -6,21 +6,21 @@
 
 module HudReports::Ahar::Fy2017
   class BaseController < ApplicationController
-   before_action :require_can_view_all_reports!
-   
+    before_action :require_can_view_all_reports!
+
     def create
       @report = report_source.first
       options = report_params
       @result = report_result_source.create(
-        report_id: @report.id, 
-        percent_complete: 0.0, 
+        report_id: @report.id,
+        percent_complete: 0.0,
         user_id: current_user.id,
-        options: options
+        options: options,
       )
       job = Delayed::Job.enqueue Reporting::Hud::Ahar::Fy2017::RunReportJob.new(
-        report_id: @report.id, 
-        result_id: @result.id, 
-        options: options
+        report_id: @report.id,
+        result_id: @result.id,
+        options: options,
       ), queue: :default_priority
       @result.update(delayed_job_id: job.id)
       if @result.errors.full_messages.present?
@@ -33,7 +33,7 @@ module HudReports::Ahar::Fy2017
 
     def report_params
       params.require(:options).permit(
-        *report_source.available_options
+        *report_source.available_options,
       )
     end
 

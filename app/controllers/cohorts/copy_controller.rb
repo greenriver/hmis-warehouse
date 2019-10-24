@@ -6,7 +6,6 @@
 
 module Cohorts
   class CopyController < ApplicationController
-
     include CohortAuthorization
     include CohortClients
 
@@ -27,7 +26,7 @@ module Cohorts
         end
       else
         load_new
-        flash[:error] = "All fields are required."
+        flash[:error] = 'All fields are required.'
         load_new
         render :new
       end
@@ -40,13 +39,12 @@ module Cohorts
         where.not(id: @cohort.id).
         pluck(:name, :id)
       @ordered_columns = @cohort.column_state.
-        select{|c| c.editable?}.
-        map{|c| [c.title, c.column]}
+        select(&:editable?).
+        map { |c| [c.title, c.column] }
     end
 
     def load_cohort
       @cohort = cohort_scope.find(params[:cohort_id].to_i)
     end
-
   end
 end

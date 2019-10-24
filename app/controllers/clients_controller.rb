@@ -36,7 +36,7 @@ class ClientsController < ApplicationController
       client_scope.none
     end
     @clients = @clients.preload(:processed_service_history)
-    sort_filter_index()
+    sort_filter_index
   end
 
   def show
@@ -45,9 +45,7 @@ class ClientsController < ApplicationController
   end
 
   def edit
-    if params[:q].present?
-      @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50)
-    end
+    @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
   end
 
   # display an assessment form in a modal
@@ -98,21 +96,19 @@ class ClientsController < ApplicationController
   # invalidate service history for this
   # Queue update to service history
   def merge
-    begin
-      to_merge = client_params['merge'].reject(&:empty?)
-      merged = []
-      to_merge.each do |id|
-        c = client_source.find(id)
-        @client.merge_from c, reviewed_by: current_user, reviewed_at: DateTime.current
-        merged << c
-      end
-      Importing::RunAddServiceHistoryJob.perform_later
-      redirect_to({action: :edit}, notice: "Client records merged with #{merged.join(', ')}. Service history rebuild queued.")
-    rescue ActiveRecord::ActiveRecordError => e
-      Rails.logger.error e.inspect
-
-      redirect_to({action: :edit}, alert: "Failed to merge client")
+    to_merge = client_params['merge'].reject(&:empty?)
+    merged = []
+    to_merge.each do |id|
+      c = client_source.find(id)
+      @client.merge_from c, reviewed_by: current_user, reviewed_at: DateTime.current
+      merged << c
     end
+    Importing::RunAddServiceHistoryJob.perform_later
+    redirect_to({ action: :edit }, notice: "Client records merged with #{merged.join(', ')}. Service history rebuild queued.")
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error e.inspect
+
+    redirect_to({ action: :edit }, alert: 'Failed to merge client')
   end
 
   # Un-merge clients
@@ -121,63 +117,55 @@ class ClientsController < ApplicationController
   # Create new warehouse_clients to link source and destination
   # Queue update to service history
   def unmerge
-    begin
-      to_unmerge = client_params['unmerge'].reject(&:empty?)
-      hmis_receiver = client_params['hmis_receiver']
-      health_receiver = client_params['health_receiver']
-      unmerged = []
-      @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
-      # FIXME: Transaction kills this for some reason
-      # GrdaWarehouse::Hud::Base.transaction do
-      Rails.logger.info "Unmerging #{to_unmerge.inspect}"
-      to_unmerge.each do |id|
-        c = client_source.find(id)
-        if c.warehouse_client_source.present?
-          c.warehouse_client_source.destroy
-        end
-        destination_client = c.dup
-        destination_client.data_source = @dnd_warehouse_data_source
-        destination_client.save
+    to_unmerge = client_params['unmerge'].reject(&:empty?)
+    hmis_receiver = client_params['hmis_receiver']
+    health_receiver = client_params['health_receiver']
+    unmerged = []
+    @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+    # FIXME: Transaction kills this for some reason
+    # GrdaWarehouse::Hud::Base.transaction do
+    Rails.logger.info "Unmerging #{to_unmerge.inspect}"
+    to_unmerge.each do |id|
+      c = client_source.find(id)
+      c.warehouse_client_source.destroy if c.warehouse_client_source.present?
+      destination_client = c.dup
+      destination_client.data_source = @dnd_warehouse_data_source
+      destination_client.save
 
-        receive_hmis = hmis_receiver == id
-        receive_health = health_receiver == id
-        GrdaWarehouse::ClientSplitHistory.create(
-          split_from: @client.id,
-          split_into: destination_client.id,
-          receive_hmis: receive_hmis,
-          receive_health: receive_health,
-        )
+      receive_hmis = hmis_receiver == id
+      receive_health = health_receiver == id
+      GrdaWarehouse::ClientSplitHistory.create(
+        split_from: @client.id,
+        split_into: destination_client.id,
+        receive_hmis: receive_hmis,
+        receive_health: receive_health,
+      )
 
-        GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
+      GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
 
-        if receive_hmis
-          destination_client.move_dependent_hmis_items(@client.id, destination_client.id)
-        end
-        if receive_health
-          destination_client.move_dependent_health_items(@client.id, destination_client.id)
-        end
+      destination_client.move_dependent_hmis_items(@client.id, destination_client.id) if receive_hmis
+      destination_client.move_dependent_health_items(@client.id, destination_client.id) if receive_health
 
-        unmerged << c.full_name
-      end
-      Rails.logger.info '@client.invalidate_service_history'
-      @client.invalidate_service_history
-      # end
-
-      Importing::RunAddServiceHistoryJob.perform_later
-      redirect_to({action: :edit}, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
-    rescue ActiveRecord::ActiveRecordError => e
-      Rails.logger.error e.inspect
-
-      redirect_to({action: :edit}, alert: "Failed to split clients")
+      unmerged << c.full_name
     end
+    Rails.logger.info '@client.invalidate_service_history'
+    @client.invalidate_service_history
+    # end
+
+    Importing::RunAddServiceHistoryJob.perform_later
+    redirect_to({ action: :edit }, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error e.inspect
+
+    redirect_to({ action: :edit }, alert: 'Failed to split clients')
   end
 
   def service_range
     @range = @client.service_date_range
     respond_to do |format|
-      format.json {
+      format.json do
         render json: @range.map(&:to_s)
-      }
+      end
     end
   end
 
@@ -185,15 +173,15 @@ class ClientsController < ApplicationController
   def chronic_days
     days = @client.
       chronics.
-      #where(date: 1.year.ago.to_date..Date.current).
+      # where(date: 1.year.ago.to_date..Date.current).
       order(date: :asc).
       map do |c|
         [c[:date], c[:days_in_last_three_years]]
       end.to_h
     respond_to do |format|
-      format.json {
+      format.json do
         render json: days
-      }
+      end
     end
   end
 
@@ -209,7 +197,8 @@ class ClientsController < ApplicationController
     if image && ! Rails.env.test?
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
-      head :forbidden and return
+      head(:forbidden)
+      return
     end
   end
 
@@ -246,7 +235,7 @@ class ClientsController < ApplicationController
         :hmis_receiver,
         :health_receiver,
         merge: [],
-        unmerge: []
+        unmerge: [],
       )
   end
 
@@ -278,5 +267,4 @@ class ClientsController < ApplicationController
   def user_can_view_confidential_names?
     can_view_projects? && can_view_clients?
   end
-
 end

@@ -9,7 +9,6 @@ class WarehouseReportsController < ApplicationController
   # This page just lists the available reports, each report is responsible for access
   skip_before_action :report_visible?
   def index
-
     all_report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.
       ordered.
       group_by(&:report_group)
@@ -21,6 +20,4 @@ class WarehouseReportsController < ApplicationController
       @report_definitions = current_user.reports.group_by(&:report_group)
     end
   end
-
-
 end

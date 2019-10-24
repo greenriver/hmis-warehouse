@@ -14,38 +14,29 @@ class ImportsController < ApplicationController
     @imports = import_scope
     # sort / paginate
     sort = "#{sort_column} #{sort_direction}"
-    @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at)
-      .order(sort)
-      .page(params[:page].to_i).per(20)
+    @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at).
+      order(sort).
+      page(params[:page].to_i).per(20)
   end
 
-    # GET /imports/new
+  # GET /imports/new
   def new
     @import = import_source.new
   end
 
   def show
-    
   end
 
   def download
-    if @upload = @import.upload
-      if @upload.content.present?
-        send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
-      end
-    end
-    # reconstitute_path = @upload.file.current_path
-    # puts "Re-constituting upload file to: #{reconstitute_path}"
-    # FileUtils.mkdir_p(File.dirname(reconstitute_path)) unless File.directory?(File.dirname(reconstitute_path))
-    # File.open(reconstitute_path, 'w+b') do |file|
-    #   file.write(@upload.content)
-    # end
+    return unless (@upload = @import.upload)
+
+    send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s)) if @upload.content.present?
   end
 
   # POST /imports
   def create
     run_import = false
-    @import = import_source.new(import_params.merge({percent_complete: 0.0}))
+    @import = import_source.new(import_params.merge(percent_complete: 0.0))
     if @import.save
       run_import = true
       flash[:notice] = _('Import queued to start.')
@@ -75,33 +66,34 @@ class ImportsController < ApplicationController
   end
 
   private
-    def import_source
-      Import
-    end
 
-    def import_scope
-      GrdaWarehouse::ImportLog.viewable_by(current_user)
-    end
+  def import_source
+    Import
+  end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_import
-      @import = import_scope.find(params[:id].to_i)
-    end
+  def import_scope
+    GrdaWarehouse::ImportLog.viewable_by(current_user)
+  end
 
-    # Only allow a trusted parameter "white list" through.
-    def import_params
-      params.require(:import).permit(
-        :file,
-        :source,
-        :import_type
-      )
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_import
+    @import = import_scope.find(params[:id].to_i)
+  end
 
-    def sort_column
-      import_source.column_names.include?(params[:sort]) ? params[:sort] : 'created_at'
-    end
+  # Only allow a trusted parameter "white list" through.
+  def import_params
+    params.require(:import).permit(
+      :file,
+      :source,
+      :import_type,
+    )
+  end
 
-    def sort_direction
-      %w[asc desc].include?(params[:direction]) ? params[:direction] : "desc"
-    end
+  def sort_column
+    import_source.column_names.include?(params[:sort]) ? params[:sort] : 'created_at'
+  end
+
+  def sort_direction
+    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
+  end
 end

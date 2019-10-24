@@ -22,6 +22,5 @@ module AuditReports
         where.not(current_sign_in_at: nil).
         order(current_sign_in_at: :desc)
     end
-
   end
 end

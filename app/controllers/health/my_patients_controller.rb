@@ -13,9 +13,7 @@ module Health
 
     def index
       @q = @patients.ransack(params[:q])
-      if params[:q].present?
-        @patients = @q.result(distinct: true)
-      end
+      @patients = @q.result(distinct: true) if params[:q].present?
       if params[:filter].present?
         @active_filter = true if params[:filter][:population] != 'all'
         case params[:filter][:population]
@@ -45,9 +43,7 @@ module Health
           render xlsx: :index, filename: "Tracking Sheet #{date}.xlsx"
         end
       end
-
     end
-
 
     def patient_scope
       if current_user.can_manage_care_coordinators?
@@ -72,6 +68,7 @@ module Health
 
     def require_user_has_health_agency!
       return true if current_user.health_agencies.any?
+
       not_authorized!
     end
   end
