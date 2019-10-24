@@ -65,10 +65,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to project' do
         before do
-          user.entities.create entity: p1
-        end
-        after do
-          user.entities.destroy_all
+          user.add_viewable(p1)
         end
         it 'sees p1' do
           expect(u[user]).to eq p[p1]
@@ -77,10 +74,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to organization' do
         before do
-          user.entities.create entity: o1
-        end
-        after do
-          user.entities.destroy_all
+          user.add_viewable(o1)
         end
         it 'sees p1 and p2' do
           expect(u[user]).to eq p[p1, p2]
@@ -89,10 +83,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to data source' do
         before do
-          user.entities.create entity: ds1
-        end
-        after do
-          user.entities.destroy_all
+          user.add_viewable(ds1)
         end
         it 'sees p1 - p4' do
           expect(u[user]).to eq p[p1, p2, p3, p4]
