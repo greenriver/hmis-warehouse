@@ -96,7 +96,6 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
           it "#{klass.name} contains #{counts[klass.name]} records" do
             expect(count).to eq(counts[klass.name])
           end
-          puts "removing #{file_path}"
           FileUtils.rm_r(file_path)
         end
       end
