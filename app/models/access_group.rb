@@ -5,7 +5,7 @@
 ###
 
 class AccessGroup < ActiveRecord::Base
-  # acts_as_paranoid
+  acts_as_paranoid
 
   has_many :access_group_members
   has_many :users, through: :access_group_members
@@ -30,6 +30,10 @@ class AccessGroup < ActiveRecord::Base
     where(user_id: user.id)
   end
 
+  def remove(user)
+    access_group_members.where(user_id: user.id).destroy_all
+  end
+
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::GroupViewableEntity.transaction do
@@ -37,16 +41,16 @@ class AccessGroup < ActiveRecord::Base
         ids = ( viewables[type] || [] ).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(access_group_id: id, entity_type: viewable_types[type])
         scope.where.not( entity_id: ids ).destroy_all
-        ( ids - scope.pluck(:id) ).each{ |id| scope.where( entity_id: id ).first_or_create }
+        ( ids - scope.pluck(:id) ).each{ |id| scope.with_deleted.where( entity_id: id ).first_or_create.restore }
       end
     end
   end
 
   def add_viewable(viewable)
-    group_viewable_entities.where(
+    group_viewable_entities.with_deleted.where(
       entity_type: viewable.class.sti_name,
       entity_id: viewable.id,
-    ).first_or_create
+    ).first_or_create.restore
   end
 
   def associated_by(associations:)
