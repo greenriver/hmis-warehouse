@@ -20,7 +20,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :organizations, class_name: GrdaWarehouse::Hud::Organization.name, inverse_of: :data_source
   has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
   has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
-  has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+
+  has_many :group_viewable_entities, :class_name => 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
   has_many :uploads
   has_many :non_hmis_uploads
@@ -125,8 +126,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
     <<-SQL.squish
 
@@ -137,8 +140,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
-            AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
       )
@@ -148,9 +150,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
     data_source_table  = quoted_table_name
-    viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
     <<-SQL.squish
 
@@ -163,8 +167,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
-            AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
@@ -178,9 +181,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
     <<-SQL.squish
 
@@ -193,8 +198,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
-            AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
@@ -256,7 +260,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def users
-    User.where(id: user_viewable_entities.uniq.map(&:user_id))
+    # all the users in access_groups that reference this data source
+    User.where(id: group_viewable_entities.uniq.map(&:user_id))
   end
 
   def data_span

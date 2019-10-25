@@ -41,6 +41,7 @@ module CohortAuthorization
 
     def set_cohort
       @cohort = cohort_scope.find(cohort_id)
+      @user_ids = @cohort.user_ids
     end
 
     def cohort_source

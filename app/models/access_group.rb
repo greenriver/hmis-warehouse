@@ -5,7 +5,7 @@
 ###
 
 class AccessGroup < ActiveRecord::Base
-  acts_as_paranoid
+  # acts_as_paranoid
 
   has_many :access_group_members
   has_many :users, through: :access_group_members
@@ -22,7 +22,11 @@ class AccessGroup < ActiveRecord::Base
     where(user_id: nil)
   end
 
-  scope :user_specific, -> (user) do
+  scope :user, -> do
+    where.not(user_id: nil)
+  end
+
+  scope :for_user, -> (user) do
     where(user_id: user.id)
   end
 
@@ -36,6 +40,13 @@ class AccessGroup < ActiveRecord::Base
         ( ids - scope.pluck(:id) ).each{ |id| scope.where( entity_id: id ).first_or_create }
       end
     end
+  end
+
+  def add_viewable(viewable)
+    group_viewable_entities.where(
+      entity_type: viewable.class.sti_name,
+      entity_id: viewable.id,
+    ).first_or_create
   end
 
   def associated_by(associations:)

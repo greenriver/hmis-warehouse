@@ -18,7 +18,6 @@ module GrdaWarehouse::Hud
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     accepts_nested_attributes_for :projects
 
@@ -88,9 +87,11 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
-      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
       <<-SQL.squish
 
@@ -101,8 +102,7 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
-              AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
               AND
@@ -114,9 +114,11 @@ module GrdaWarehouse::Hud
 
     private_class_method def self.has_access_to_organization_through_data_source(user, q, qc)
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
-      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
       <<-SQL.squish
 
@@ -129,8 +131,7 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
-              AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
@@ -141,10 +142,12 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_organization_through_projects(user, q, qc)
-      viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
 
       <<-SQL.squish
 
@@ -157,8 +160,7 @@ module GrdaWarehouse::Hud
               #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
-              AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
