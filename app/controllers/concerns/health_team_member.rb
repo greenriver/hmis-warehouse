@@ -14,11 +14,12 @@ module HealthTeamMember
   def create
     type = team_member_params[:type]
     klass = type.constantize if Health::Team::Member.available_types.map(&:to_s).include?(type)
-    opts = team_member_params.merge({
+    opts = team_member_params.merge(
       user_id: current_user.id,
-      patient_id: @client.patient.id
-    })
+      patient_id: @client.patient.id,
+    )
     raise 'Member type not found' unless klass.present?
+
     if ! request.xhr?
       @member = klass.create(opts)
       respond_with(@member, location: after_path)
@@ -35,9 +36,7 @@ module HealthTeamMember
   def update
     @member = Health::Team::Member.find(params[:id])
     @member.update_attributes(team_member_params)
-    if !request.xhr?
-      respond_with(@member, location: after_path)
-    end
+    respond_with(@member, location: after_path) unless request.xhr?
   end
 
   def destroy
@@ -49,9 +48,7 @@ module HealthTeamMember
     @member.update(user_id: current_user.id)
     @member.destroy!
 
-    if !request.xhr?
-      respond_with(@member, location: after_path)
-    end
+    respond_with(@member, location: after_path) unless request.xhr?
   end
 
   def team_member_params
@@ -62,8 +59,7 @@ module HealthTeamMember
       :organization,
       :title,
       :type,
-      :phone
+      :phone,
     )
   end
-
 end

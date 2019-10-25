@@ -18,7 +18,7 @@ module HealthPatient
       @km_rows = [
         [@km_table.patient, 'ho-compare__current-patient'],
         [@km_table.sdh, 'ho-compare__pilot-average'],
-        [@km_table.variance, 'ho-compare__variance']
+        [@km_table.variance, 'ho-compare__variance'],
       ]
     end
 

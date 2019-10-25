@@ -22,20 +22,16 @@ module Cohorts
     end
 
     def create
-      begin
-        @note = note_source.create(
-          note_params.merge(
-            {
-              client_id: @cohort_client.client_id,
-              user_id: current_user.id,
-            }
-          )
-        )
-        @cohort_client.touch
-        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
-      rescue
-        @note = {error: 'Failed to create a note.'}
-      end
+      @note = note_source.create(
+        note_params.merge(
+          client_id: @cohort_client.client_id,
+          user_id: current_user.id,
+        ),
+      )
+      @cohort_client.touch
+      respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+    rescue StandardError
+      @note = { error: 'Failed to create a note.' }
     end
 
     def destroy
@@ -44,7 +40,7 @@ module Cohorts
         respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
       else
         flash[:error] = 'Unable to destroy note'
-        @note = {error: 'Unable to destroy note.'}
+        @note = { error: 'Unable to destroy note.' }
         respond_with(@cohort, location: cohort_path(@cohort))
       end
     end
@@ -56,7 +52,7 @@ module Cohorts
 
     def note_params
       params.require(:grda_warehouse_client_notes_cohort_note).permit(
-          :note
+        :note,
       )
     end
 

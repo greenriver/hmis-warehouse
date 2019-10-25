@@ -43,7 +43,7 @@ module Admin
 
     def update
       if @alert.update(warehouse_alert_params)
-        redirect_to({action: :index}, notice: 'Alert updated')
+        redirect_to({ action: :index }, notice: 'Alert updated')
       else
         flash[:error] = 'Please review the form problems below'
         render :edit
@@ -78,6 +78,5 @@ module Admin
     def warehouse_alert_params
       params.require(:warehouse_alert).permit(:html).merge(user_id: current_user.id)
     end
-
   end
 end

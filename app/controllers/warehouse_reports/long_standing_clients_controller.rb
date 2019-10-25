@@ -14,13 +14,12 @@ module WarehouseReports
       @years = (params[:years] || 5).to_i
       @entries = service_history_source.
         select(:first_date_in_program, :last_date_in_program, :client_id, :project_name).
-        where( she_t[:date].lteq @years.years.ago ).
+        where(she_t[:date].lteq(@years.years.ago)).
         where(last_date_in_program: nil).
         es.
         order(date: :asc).
         page(params[:page]).per(25)
       @clients = client_source.where(id: @entries.map(&:client_id)).preload(source_clients: :data_source).index_by(&:id)
-
     end
 
     private def client_source

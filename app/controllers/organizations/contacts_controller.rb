@@ -9,7 +9,6 @@ module Organizations
     include Contacts
     include PjaxModalController
 
-
     def contact_source
       GrdaWarehouse::Contact::Organization
     end
@@ -21,6 +20,5 @@ module Organizations
     def organization_scope
       GrdaWarehouse::Hud::Organization
     end
-
   end
 end

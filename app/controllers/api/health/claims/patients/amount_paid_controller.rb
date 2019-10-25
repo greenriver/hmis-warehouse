@@ -6,8 +6,7 @@
 
 module Api::Health::Claims::Patients
   class AmountPaidController < BaseController
-    
-    def load_data      
+    def load_data
       @data = group_by_date(scope.order(year: :asc, month: :asc))
     end
 

@@ -48,6 +48,5 @@ module WarehouseReports
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end
-
   end
 end

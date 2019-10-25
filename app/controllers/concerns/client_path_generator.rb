@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 module ClientPathGenerator
   extend ActiveSupport::Concern
   included do
@@ -18,6 +17,6 @@ module ClientPathGenerator
     end
     helper_method :client_path_generator
   end
-  
+
   include CombinedClientPathsGenerator
 end

@@ -1,7 +1,7 @@
 FactoryBot.define do
   # puts Message.new.attributes
   factory :message do
-    from    { %w[macbeth@scotland.gov.uk] }
+    from    { ['macbeth@scotland.gov.uk'] }
     subject { 'futility' }
     body { <<-MESSAGE.strip_heredoc }
         Tomorrow and tomorrow and tomorrow

@@ -16,7 +16,7 @@ module WindowClientPathGenerator
       [:window, :client]
     end
     helper_method :client_path_generator
-    
+
     include CombinedClientPathsGenerator
   end
 end

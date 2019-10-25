@@ -19,6 +19,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Epic Case Note"
     end
-
   end
 end

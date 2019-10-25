@@ -11,7 +11,7 @@ module Admin
 
     def create
       @grade = grade_source.new(grade_params)
-      if @grade.save 
+      if @grade.save
         redirect_to(admin_data_quality_grades_path, notice: 'Grade created')
       else
         flash[:error] = 'Please review the form problems below'
@@ -43,9 +43,8 @@ module Admin
           :percentage_low,
           :percentage_high,
           :color,
-          :weight
+          :weight,
         )
     end
-
   end
 end

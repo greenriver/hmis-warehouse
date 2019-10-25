@@ -15,14 +15,14 @@ module Clients
     before_action :set_window
     before_action :set_file, only: [:show, :update, :preview, :thumb, :has_thumb]
 
-    #before_action :require_can_manage_client_files!, only: [:update]
+    # before_action :require_can_manage_client_files!, only: [:update]
     after_action :log_client
 
     def index
       @consent_editable = consent_editable?
       @consent_form_url = GrdaWarehouse::PublicFile.url_for_location 'client/hmis_consent'
       @blank_files = GrdaWarehouse::PublicFile.known_hmis_locations.to_a.map do |location, title|
-        {title: title, url: GrdaWarehouse::PublicFile.url_for_location(location)}
+        { title: title, url: GrdaWarehouse::PublicFile.url_for_location(location) }
       end
 
       @consent_files = consent_scope
@@ -30,9 +30,7 @@ module Clients
       @deleted_files = all_file_scope.only_deleted
 
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
-      if params[:file_ids].present?
-        @pre_checked = params[:file_ids].split(',').map(&:to_i)
-      end
+      @pre_checked = params[:file_ids].split(',').map(&:to_i) if params[:file_ids].present?
     end
 
     def show
@@ -45,12 +43,8 @@ module Clients
 
     def create
       @file = file_source.new
-      if file_params[:tag_list].blank?
-        @file.errors.add :tag_list, 'You must specify file contents'
-      end
-      if !file_params[:file]
-        @file.errors.add :file, "No uploaded file found"
-      end
+      @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?
+      @file.errors.add :file, 'No uploaded file found' unless file_params[:file]
       if @file.errors.any?
         render :new
         return
@@ -78,8 +72,8 @@ module Clients
         @file.assign_attributes(attrs)
         @file.tag_list.add(tag_list)
 
-        requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_effective_date}
-        requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?{|x| x.requires_expiration_date}
+        requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
+        requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_expiration_date)
 
         if requires_effective_date && requires_expiration_date
           @file.save!(context: :requires_expiration_and_effective_dates)
@@ -93,7 +87,7 @@ module Clients
 
         # Keep various client fields in sync with files if appropriate
         @client.sync_cas_attributes_with_files
-      rescue => e
+      rescue StandardError
         # flash[:error] = e.message
         render action: :new
         return
@@ -112,9 +106,7 @@ module Clients
         not_authorized!
       end
 
-      if attrs.key?(:consent_form_signed_on)
-        attrs[:effective_date] = attrs[:consent_form_signed_on]
-      end
+      attrs[:effective_date] = attrs[:consent_form_signed_on] if attrs.key?(:consent_form_signed_on)
       @file.update(attrs)
     end
 
@@ -141,25 +133,22 @@ module Clients
         # firing which would cause acts_as_taggable to remove the associated tags
         @file.update(deleted_at: Time.now)
 
-        flash[:notice] = "File was successfully deleted."
+        flash[:notice] = 'File was successfully deleted.'
         # Keep various client fields in sync with files if appropriate
-        if @client.consent_form_id == @file.id
-          @client.invalidate_consent!
-        end
+        @client.invalidate_consent! if @client.consent_form_id == @file.id
         @client.sync_cas_attributes_with_files
-
-      rescue Exception => e
-        flash[:error] = "File could not be deleted."
+      rescue Exception
+        flash[:error] = 'File could not be deleted.'
       end
       redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
     end
 
     def delete_reasons
       {
-          0 => 'Incomplete Form',
-          1 => 'Incorrect Client',
-          2 => 'Incorrectly Categorized',
-          99 => 'Other',
+        0 => 'Incomplete Form',
+        1 => 'Incorrect Client',
+        2 => 'Incorrectly Categorized',
+        99 => 'Other',
       }
     end
     helper_method :delete_reasons
@@ -167,7 +156,10 @@ module Clients
     def preview
       if stale?(etag: @file, last_modified: @file.updated_at)
         @preview = @file.as_preview
-        head :ok and return unless @preview.present?
+        if @preview.blank?
+          head(:ok)
+          return
+        end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
         send_data @preview, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
@@ -178,7 +170,10 @@ module Clients
     def thumb
       if stale?(etag: @file, last_modified: @file.updated_at)
         @thumb = @file.as_thumb
-        head :ok and return unless @thumb.present?
+        if @thumb.blank?
+          head(:ok)
+          return
+        end
         headers['Content-Security-Policy'] = "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; plugin-types application/pdf;"
         send_data @thumb, filename: @file.name, disposition: :inline, content_type: @file.content_type
       else
@@ -186,12 +181,12 @@ module Clients
       end
     end
 
-    def has_thumb
+    def has_thumb # rubocop:disable Naming/PredicateName
       @thumb = @file.content_type == 'image/jpeg'
       if @thumb
-        head :ok and return
+        head(:ok)
       else
-        head :no_content and return
+        head(:no_content)
       end
     end
 
@@ -212,13 +207,13 @@ module Clients
         end
       end
       zip_stream.rewind
-      send_data zip_stream.read, type: "application/zip", filename: "#{@client.id}_files.zip"
+      send_data zip_stream.read, type: 'application/zip', filename: "#{@client.id}_files.zip"
 
       # temp_file.close
       # redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
     end
 
-    def extension_for mime_type
+    def extension_for(mime_type)
       require 'rack/mime'
       @lookup ||= Rack::Mime::MIME_TYPES.invert
       @lookup[mime_type]
@@ -250,7 +245,7 @@ module Clients
       params.require(:batch_download).permit(:file_ids)
     end
 
-     def set_client
+    def set_client
       @client = client_scope.find(params[:client_id].to_i)
     end
 
@@ -278,8 +273,9 @@ module Clients
       "#{@client.name} - Files"
     end
 
-    def window_visible? visibility
+    def window_visible?(visibility)
       return true if visibility.nil?
+
       visibility
     end
 
@@ -290,20 +286,16 @@ module Clients
     def all_file_scope
       scope = file_source.visible_by?(current_user).
         where(client_id: @client.id)
-      if ! can_manage_client_files?
-        scope = scope.window
-      end
-      return scope
+      scope = scope.window unless can_manage_client_files?
+      scope
     end
 
     def file_scope
       scope = file_source.visible_by?(current_user).
         non_consent.
         where(client_id: @client.id)
-      if ! can_manage_client_files?
-        scope = scope.window
-      end
-      return scope
+      scope = scope.window unless can_manage_client_files?
+      scope
     end
 
     def consent_scope
@@ -312,12 +304,10 @@ module Clients
         where(client_id: @client.id).
         order(
           consent_form_confirmed: :desc,
-          consent_form_signed_on: :desc
+          consent_form_signed_on: :desc,
         )
-      if ! can_manage_client_files?
-        scope = scope.window
-      end
-      return scope
+      scope = scope.window unless can_manage_client_files?
+      scope
     end
 
     def set_window
@@ -327,10 +317,8 @@ module Clients
     def editable_scope
       scope = file_source.editable_by?(current_user).
         where(client_id: @client.id)
-      if ! can_manage_client_files?
-        scope = scope.window
-      end
-      return scope
+      scope = scope.window unless can_manage_client_files?
+      scope
     end
   end
 end

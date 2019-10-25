@@ -14,7 +14,6 @@ class SourceClientsController < ApplicationController
   after_action :log_client, except: [:image]
 
   def edit
-
   end
 
   def update
@@ -30,7 +29,7 @@ class SourceClientsController < ApplicationController
       # also update the destination client, we're assuming this is authoritative
       # for this bit of data
       @destination_client.update(clean_params)
-      flash[:notice] = "Client saved successfully"
+      flash[:notice] = 'Client saved successfully'
       client_source.clear_view_cache(@destination_client.id)
       redirect_to redirect_to_path
     else
@@ -52,7 +51,8 @@ class SourceClientsController < ApplicationController
     if image && ! Rails.env.test?
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
-      head :forbidden and return
+      head(:forbidden)
+      return
     end
   end
 
@@ -81,7 +81,7 @@ class SourceClientsController < ApplicationController
         :MiddleName,
         :LastName,
         :Gender,
-        :VeteranStatus
+        :VeteranStatus,
       )
   end
 
@@ -91,7 +91,7 @@ class SourceClientsController < ApplicationController
 
   private def validate_new_client_params(clean_params)
     valid = true
-    unless [0,9].include?(clean_params[:SSN].length)
+    unless [0, 9].include?(clean_params[:SSN].length)
       @client.errors[:SSN] = 'SSN must contain 9 digits'
       valid = false
     end

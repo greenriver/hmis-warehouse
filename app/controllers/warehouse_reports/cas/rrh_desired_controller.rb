@@ -16,10 +16,8 @@ module WarehouseReports::Cas
         order(hmis_form_t[:collected_at].desc)
     end
 
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.no_release_on_file
     end
-
   end
 end

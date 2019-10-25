@@ -15,7 +15,7 @@ module Clients
     after_action :log_client
 
     def index
-      @user = user_source.new()
+      @user = user_source.new
       @user_clients = @client.user_clients.preload(:user).to_a || []
     end
 
@@ -29,7 +29,7 @@ module Clients
         render action: :index
         return
       end
-      flash[:notice] = "Relationship added."
+      flash[:notice] = 'Relationship added.'
       redirect_to action: :index
     end
 
@@ -39,7 +39,7 @@ module Clients
 
     def destroy
       if @user.destroy
-        flash[:notice] = "Relationship removed."
+        flash[:notice] = 'Relationship removed.'
       else
         flash[:error] = "Unable to remove the #{@user.relationship} relationship."
       end
@@ -54,7 +54,7 @@ module Clients
         :client_notifications,
         :confidential,
         :start_date,
-        :end_date
+        :end_date,
       )
     end
 

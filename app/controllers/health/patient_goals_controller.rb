@@ -48,6 +48,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Goals"
     end
-
   end
 end

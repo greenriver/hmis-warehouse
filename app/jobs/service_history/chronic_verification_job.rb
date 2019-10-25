@@ -27,7 +27,8 @@ module ServiceHistory
       app.get(pdf_window_client_history_url(options))
     end
 
-    def enqueue(job, queue: :high_priority); end
+    def enqueue(job, queue: :high_priority)
+    end
 
     def max_attempts
       2

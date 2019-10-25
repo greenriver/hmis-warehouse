@@ -44,24 +44,25 @@ module Admin::Health
     end
 
     private
-      def flash_interpolation_options
-        { resource_name: 'Agency' }
-      end
 
-      def agency_source
-        Health::Agency
-      end
+    def flash_interpolation_options
+      { resource_name: 'Agency' }
+    end
 
-      def agency_scope
-        agency_source.all
-      end
+    def agency_source
+      Health::Agency
+    end
 
-      def set_health_agency
-        @health_agency = agency_scope.find(params[:id].to_i)
-      end
+    def agency_scope
+      agency_source.all
+    end
 
-      def health_agency_params
-        params.require(:health_agency).permit(:name, :short_name)
-      end
+    def set_health_agency
+      @health_agency = agency_scope.find(params[:id].to_i)
+    end
+
+    def health_agency_params
+      params.require(:health_agency).permit(:name, :short_name)
+    end
   end
 end

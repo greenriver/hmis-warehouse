@@ -20,9 +20,7 @@ module Clients::Youth
       @entity = entity_source.new(user_id: current_user.id, client_id: @client.id)
       @entity.assign_attributes(entity_params)
 
-      if entity_params[:other].present? && entity_params[:referred_to] == 'Other'
-        @entity.referred_to = entity_params[:other]
-      end
+      @entity.referred_to = entity_params[:other] if entity_params[:other].present? && entity_params[:referred_to] == 'Other'
 
       @entity.save
       if @entity.valid?

@@ -147,7 +147,12 @@ module Health::Tasks
         .try(:[], :encoding)
       file_lines = IO.readlines(path).size - 1
       @logger.info "Processing #{file_lines} lines in: #{path}"
-      File.open(path, "r:bom|#{@file_encoding}")
+      options = if @file_encoding.starts_with? 'UTF'
+        "rb:bom|#{@file_encoding}"
+      else
+        "r:#{@file_encoding}"
+      end
+      File.open(path, options)
     end
 
     def header_row_matches file:, klass:

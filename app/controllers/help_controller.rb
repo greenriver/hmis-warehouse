@@ -7,9 +7,9 @@
 class HelpController < ApplicationController
   include PjaxModalController
 
-  before_action :require_can_edit_help!, except: [ :show ]
-  before_action :load_help, except: [ :index, :new , :create ]
-  before_action :set_paths, only: [ :new, :create ]
+  before_action :require_can_edit_help!, except: [:show]
+  before_action :load_help, except: [:index, :new, :create]
+  before_action :set_paths, only: [:new, :create]
 
   def show
     @modal_size = :xl
@@ -24,7 +24,7 @@ class HelpController < ApplicationController
         action_name: @help_action_name,
       ).first_or_initialize
     else
-      help_source.new()
+      help_source.new
     end
   end
 
@@ -32,14 +32,11 @@ class HelpController < ApplicationController
     @form_url = help_index_path
     @submit_text = 'Create Help Document'
     @help = help_source.create(help_params.merge(
-        controller_path: @help_controller_path,
-        action_name: @help_action_name,
-      )
-    )
+                                 controller_path: @help_controller_path,
+                                 action_name: @help_action_name,
+                               ))
     @help.valid?
-    if ! request.xhr?
-      respond_with(@help, location: help_index_path)
-    end
+    respond_with(@help, location: help_index_path) unless request.xhr?
   end
 
   def edit
@@ -56,9 +53,7 @@ class HelpController < ApplicationController
     @submit_text = 'Save Help Document'
     @help.update(help_params)
     @help.valid?
-    if ! request.xhr?
-      respond_with(@help, location: help_index_path)
-    end
+    respond_with(@help, location: help_index_path) unless request.xhr?
   end
 
   def destroy
@@ -75,7 +70,7 @@ class HelpController < ApplicationController
   end
 
   private def help_params
-    params.require( param_key ).permit(
+    params.require(param_key).permit(
       :controller_path,
       :action_name,
       :external_url,
@@ -95,7 +90,9 @@ class HelpController < ApplicationController
   end
 
   def flash_interpolation_options
-      { resource_name: 'Help Document' }
-    end
+    { resource_name: 'Help Document' }
+  end
 
+  def foo
+  end
 end
