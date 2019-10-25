@@ -86,7 +86,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
 
     describe 'should be able to access the index path if the report has been assigned' do
       it 'returns http success' do
-        GrdaWarehouse::UserViewableEntity.create(user_id: user.id, entity_id: report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+        user.add_viewable(report)
         get :index
         expect(response).to have_http_status(:success)
       end
@@ -98,6 +98,6 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :controller 
     # to this report or the test passes, but doesn't actually
     # check access correctly
     other_user.roles << other_report_viewer
-    GrdaWarehouse::UserViewableEntity.create(user_id: other_user.id, entity_id: report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+    other_user.add_viewable(report)
   end
 end
