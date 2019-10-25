@@ -315,8 +315,8 @@ class User < ActiveRecord::Base
   end
 
   def coc_codes_for_consent
-    return coc_codes if coc_codes.present?
-    GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode)
+    # return coc_codes if coc_codes.present?
+    GrdaWarehouse::Hud::ProjectCoc.available_coc_codes
   end
 
   # def health_agency

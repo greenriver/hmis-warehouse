@@ -66,7 +66,7 @@ module Clients
           effective_date: allowed_params[:effective_date],
           expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
-          coc_code: allowed_params[:coc_code],
+          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
         }
 
         @file.assign_attributes(attrs)
@@ -105,6 +105,7 @@ module Clients
       else
         not_authorized!
       end
+      @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
 
       attrs[:effective_date] = attrs[:consent_form_signed_on] if attrs.key?(:consent_form_signed_on)
       @file.update(attrs)
@@ -229,7 +230,8 @@ module Clients
           :consent_form_confirmed,
           :effective_date,
           :expiration_date,
-          :coc_code,
+          :consent_revoked_at,
+          coc_codes: [],
           tag_list: [],
         )
     end

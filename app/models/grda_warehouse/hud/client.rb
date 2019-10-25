@@ -956,7 +956,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      if housing_release_status.blank?
+      consent_text = if housing_release_status.blank?
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
@@ -973,6 +973,10 @@ module GrdaWarehouse::Hud
       else
         _(housing_release_status)
       end
+      if consented_coc_codes.any?
+        consent_text += " in #{consented_coc_codes.to_sentence}"
+      end
+      consent_text
     end
 
     def release_duration
