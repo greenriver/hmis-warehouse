@@ -537,11 +537,20 @@ module GrdaWarehouse::Hud
         # with a valid consent form in the coc or with no-coc specified
         # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
         # are included.
-        joins(:client_files).
-        where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
+
+        # joins(:client_files).
+        # where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
+        active_confirmed_consent_in_cocs(user.coc_codes)
       else
         distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
       end
+    end
+
+    scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
+      full_housing_release_on_file.where(
+        arel_table[:consented_coc_codes].eq('[]').
+        or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+      )
     end
 
     # Race & Ethnicity scopes

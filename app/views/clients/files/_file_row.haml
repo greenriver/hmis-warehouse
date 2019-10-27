@@ -66,9 +66,11 @@
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
             = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
         - else
-          %dl
-            %dt Consent Confirmed
-            %dd= checkmark file.consent_form_confirmed
+          - if file.consent_form_confirmed
+            %dl
+              %dt
+                = checkmark file.consent_form_confirmed
+                Consent Confirmed
       - else
         - if file.effective_date
           %dl

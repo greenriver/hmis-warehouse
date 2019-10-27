@@ -208,6 +208,7 @@ class ClientsController < ApplicationController
 
   private def client_scope
     client_source.destination.
+      viewable_by(current_user).
       joins(source_clients: :data_source).
       merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
   end
@@ -240,7 +241,14 @@ class ClientsController < ApplicationController
   end
 
   def client_search_scope
-    client_source.searchable.joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    client_source.searchable.
+      joins(:warehouse_client_source).
+      merge(
+        GrdaWarehouse::WarehouseClient.
+          where(destination_id: client_scope.select(:id)),
+      ).
+      joins(:data_source).
+      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
   end
 
   private def assessment_scope
