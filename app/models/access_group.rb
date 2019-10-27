@@ -37,11 +37,27 @@ class AccessGroup < ActiveRecord::Base
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::GroupViewableEntity.transaction do
-      %i( data_sources organizations projects reports cohorts project_groups ).each do |type|
+      [
+        :data_sources,
+        :organizations,
+        :projects,
+        :reports,
+        :cohorts,
+        :project_groups,
+      ].each do |type|
         ids = ( viewables[type] || [] ).map(&:to_i)
-        scope = GrdaWarehouse::GroupViewableEntity.where(access_group_id: id, entity_type: viewable_types[type])
+        scope = GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: id,
+          entity_type: viewable_types[type],
+        )
         scope.where.not( entity_id: ids ).destroy_all
-        ( ids - scope.pluck(:id) ).each{ |id| scope.with_deleted.where( entity_id: id ).first_or_create.restore }
+        # Allow re-use of previous assignments
+        ( ids - scope.pluck(:id) ).each do |id|
+          scope.with_deleted.
+            where( entity_id: id ).
+            first_or_create.
+            restore
+        end
       end
     end
   end
@@ -53,6 +69,7 @@ class AccessGroup < ActiveRecord::Base
     ).first_or_create.restore
   end
 
+  # Provides a means of showing projects associated through other entities
   def associated_by(associations:)
     return [] unless associations.present?
     associations.flat_map do |association|
