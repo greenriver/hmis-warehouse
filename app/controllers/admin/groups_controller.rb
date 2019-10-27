@@ -26,7 +26,7 @@ module Admin
       group.set_viewables(viewable_params)
       group.save
 
-      redirect_to({action: :index}, notice: "Group #{group.name} created.")
+      redirect_to({ action: :index }, notice: "Group #{group.name} created.")
     end
 
     def edit
@@ -37,12 +37,12 @@ module Admin
       @group.set_viewables(viewable_params)
       @group.save
 
-      redirect_to({action: :index}, notice: "Group #{@group.name} updated.")
+      redirect_to({ action: :index }, notice: "Group #{@group.name} updated.")
     end
 
     def destroy
       @group.destroy
-      redirect_to({action: :index}, notice: "Group #{@group.name} removed.")
+      redirect_to({ action: :index }, notice: "Group #{@group.name} removed.")
     end
 
     private def access_group_scope
@@ -82,22 +82,23 @@ module Admin
         multiple: true,
         input_html: {
           class: 'jUserViewable jDataSources',
-          name: 'access_group[data_sources][]' },
+          name: 'access_group[data_sources][]',
+        },
       }
 
       @organizations = {
         as: :grouped_select,
         group_method: :last,
         selected: @group&.organizations&.map(&:id) || [],
-        collection:  GrdaWarehouse::Hud::Organization.
+        collection: GrdaWarehouse::Hud::Organization.
           order(:name).
           preload(:data_source).
-          group_by{ |o| o.data_source.name },
+          group_by { |o| o.data_source.name },
         placeholder: 'Organization',
         multiple: true,
         input_html: {
           class: 'jUserViewable jOrganizations',
-          name: 'access_group[organizations][]'
+          name: 'access_group[organizations][]',
         },
       }
 
@@ -107,20 +108,20 @@ module Admin
         selected: @group&.projects&.map(&:id) || [],
         collection: GrdaWarehouse::Hud::Project.
           order(:name).
-          preload( :organization, :data_source ).
-          group_by{ |p| "#{p.data_source&.name} / #{p.organization&.name}" },
+          preload(:organization, :data_source).
+          group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" },
         placeholder: 'Project',
         multiple: true,
         input_html: {
           class: 'jUserViewable jProjects',
-          name: 'access_group[projects][]'
+          name: 'access_group[projects][]',
         },
       }
 
       @cocs = {
         label: 'CoC Codes',
         selected: @group&.coc_codes || [],
-        collection: %w[ ProjectCoc EnrollmentCoc ].
+        collection: ['ProjectCoc', 'EnrollmentCoc'].
           flat_map do |c|
             "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck(:CoCCode)
           end.uniq&.compact&.sort,
@@ -128,7 +129,7 @@ module Admin
         multiple: true,
         input_html: {
           class: 'jUserViewable jCocCodes',
-          name: 'access_group[coc_codes][]'
+          name: 'access_group[coc_codes][]',
         },
       }
 
@@ -136,8 +137,8 @@ module Admin
       @reports = {
         selected: @group&.reports&.map(&:id) | [],
         collection: reports_scope.
-          order( :report_group, :name ).map do |rd|
-            [ "#{rd.report_group}: #{rd.name}", rd.id ]
+          order(:report_group, :name).map do |rd|
+            ["#{rd.report_group}: #{rd.name}", rd.id]
           end,
         placeholder: 'Report',
         multiple: true,
@@ -148,7 +149,7 @@ module Admin
             unlimitable: reports_scope.
               where(limitable: false).
               pluck(:id).
-              to_json
+              to_json,
           },
         },
       }
@@ -163,7 +164,7 @@ module Admin
         input_html: {
           class: 'jUserViewable jProjectGroups',
           name: 'access_group[project_groups][]',
-        }
+        },
       }
 
       @cohorts = {
@@ -175,7 +176,7 @@ module Admin
         multiple: true,
         input_html: {
           class: 'jUserViewable jCohorts',
-          name: 'access_group[cohorts][]'
+          name: 'access_group[cohorts][]',
         },
       }
     end

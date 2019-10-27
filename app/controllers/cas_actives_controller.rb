@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 class CasActivesController < ApplicationController
   before_action :require_can_edit_clients!
   before_action :set_client

@@ -490,14 +490,7 @@ module LsaSqlServer
     end
 
     def demographic_parameters
-      @demographic_parameters ||= %w[
-        Age
-        Gender
-        Race
-        Ethnicity
-        VetStatus
-        DVStatus
-      ]
+      @demographic_parameters ||= ['Age', 'Gender', 'Race', 'Ethnicity', 'VetStatus', 'DVStatus']
     end
 
     def population_name(pop_id)

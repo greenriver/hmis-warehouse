@@ -1,43 +1,57 @@
 - title = "Edit Project Group: #{@project_group.name}"
 = content_for(:title, title)
 %h1= title
-
-= simple_form_for @project_group, url: project_group_path(@project_group) do |f|
-  = render 'form', f: f
-  .form-actions
-  = f.button :submit, class: 'btn btn-primary', value: 'Save Project Group'
+.row
+  .col-6
+    = simple_form_for @project_group, url: project_group_path(@project_group) do |f|
+      = render 'form', f: f
+      .form-actions
+      = f.button :submit, class: 'btn btn-primary', value: 'Save Project Group'
+  .col-6
+    - if @project_group.projects.exists?
+      %h3 Summary
+      .well
+        %dl
+          %dt Project Types
+          %dd= @project_group.projects.map(&:human_readable_project_type).uniq.join(', ')
+          %dt PIT Count
+          %dd= @project_group.projects.map(&:PITCount).sum
+          %dt Project Count
+          %dd= @project_group.projects.count
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
-  %h3 Contacts
-  %table.table.table-sm
-    %thead
-      %tr
-        %th Name
-        %th email
-    %tbody
-      - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
+  .mt-6
+    %h3 Contacts
+    %table.table.table-sm
+      %thead
         %tr
-          %td
-            = name
-          %td
-            = email
-- if @reports.any?
-  %h3 Project Data Quality Reports
-  %table.table.table-sm
-    %thead
-      %tr
-        %th Date Range
-        %th Run On
-        %th Completed On
-    %tbody
-      - @reports.each do |report|
+          %th Name
+          %th Email
+      %tbody
+        - (@project_group.contacts + @project_group.organization_contacts).map{|m| [m.full_name, m.email]}.uniq.each do |name, email|
+          %tr
+            %td
+              = name
+            %td
+              = email
+.mt-6
+  - if @reports.any?
+    %h3 Project Data Quality Reports
+    %table.table.table-sm
+      %thead
         %tr
-          %td
-            = link_to report.status, project_group_data_quality_report_path(project_group_id: @project_group.id, id: report.id)
-          %td
-            = report.started_at
-          %td
-            = report.completed_at
-- else
-  %p
-    No reports on file
+          %th Date Range
+          %th Run On
+          %th Completed On
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td
+              = link_to report.status, project_group_data_quality_report_path(project_group_id: @project_group.id, id: report.id)
+            %td
+              = report.started_at
+            %td
+              = report.completed_at
+  - else
+    %p
+      No reports on file

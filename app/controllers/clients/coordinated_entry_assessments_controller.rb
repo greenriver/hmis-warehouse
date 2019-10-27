@@ -30,9 +30,7 @@ module Clients
     end
 
     def edit
-      if @assessment.show_as_readonly?
-        render :show
-      end
+      render :show if @assessment.show_as_readonly?
     end
 
     def new
@@ -50,9 +48,7 @@ module Clients
       else
         @assessment = @client.ce_assessments.in_progress.first
       end
-      if params[:commit] == 'Complete'
-        @assessment.submitted_at = Time.now
-      end
+      @assessment.submitted_at = Time.now if params[:commit] == 'Complete'
       @assessment.update(assessment_params)
       respond_with(@assessment, location: client_coordinated_entry_assessment_index_path(client_id: @client.id))
     end
@@ -64,8 +60,8 @@ module Clients
           assessment_params.merge(
             submitted_at: Time.now,
             active: true,
-            user_id: current_user.id
-          )
+            user_id: current_user.id,
+          ),
         )
         # mark any other actives as inactive
         @client.ce_assessments.where(active: true).where.not(id: @assessment.id).update_all(active: false)
@@ -89,18 +85,18 @@ module Clients
     end
 
     private def build_assessment
-      assessment_type = GrdaWarehouse::CoordinatedEntryAssessment::Base.available_types.detect{|m| m == params[:type]} || "GrdaWarehouse::CoordinatedEntryAssessment::Individual"
+      assessment_type = GrdaWarehouse::CoordinatedEntryAssessment::Base.available_types.detect { |m| m == params[:type] } || 'GrdaWarehouse::CoordinatedEntryAssessment::Individual'
       @client.ce_assessments.build(user_id: current_user.id, type: assessment_type, assessor_id: current_user.id)
     end
 
     private def assessment_params
       # this will be based off of the model name
       param_key = @assessment.class.model_name.param_key
-      params.require( param_key ).permit(*@assessment.class.allowed_parameters)
+      params.require(param_key).permit(*@assessment.class.allowed_parameters)
     end
 
     private def title_for_show
-      "#{@client.name} - #{_'Coordinated Entry Assessment'}"
+      "#{@client.name} - #{_ 'Coordinated Entry Assessment'}"
     end
 
     def flash_interpolation_options

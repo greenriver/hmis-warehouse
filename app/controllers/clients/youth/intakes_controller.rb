@@ -17,7 +17,6 @@ module Clients::Youth
 
     after_action :log_client
 
-
     def index
       @intakes = @client.youth_intakes.merge(intake_scope)
       @case_managements = @client.case_managements.
@@ -64,9 +63,7 @@ module Clients::Youth
 
       set_other_options
       @intake.save
-      if @intake.errors.any?
-        flash[:error] = 'Please correct errors in the intake form.'
-      end
+      flash[:error] = 'Please correct errors in the intake form.' if @intake.errors.any?
       respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
     end
 
@@ -97,11 +94,7 @@ module Clients::Youth
       ].compact.max
 
       cut_off_date = Date.current - 3.months - 1.week
-      if last_contact.present? && last_contact <= cut_off_date
-        last_contact + 3.months
-      else
-        nil
-      end
+      last_contact + 3.months if last_contact.present? && last_contact <= cut_off_date
     end
 
     def set_client
@@ -125,10 +118,10 @@ module Clients::Youth
         @intake.other_language = @intake.client_primary_language
         @intake.client_primary_language = 'Other...'
       end
-      unless @intake.how_hear_options.include?(@intake.how_hear)
-        @intake.other_how_hear = @intake.how_hear
-        @intake.how_hear = 'Other...'
-      end
+      return if @intake.how_hear_options.include?(@intake.how_hear)
+
+      @intake.other_how_hear = @intake.how_hear
+      @intake.how_hear = 'Other...'
     end
 
     private def set_other_options

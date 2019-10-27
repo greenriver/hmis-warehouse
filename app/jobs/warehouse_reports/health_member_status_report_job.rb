@@ -23,7 +23,8 @@ module WarehouseReports
       NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :low_priority); end
+    def enqueue(job, queue: :low_priority)
+    end
 
     def max_attempts
       1

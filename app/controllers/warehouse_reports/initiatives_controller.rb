@@ -8,7 +8,7 @@ module WarehouseReports
   class InitiativesController < ApplicationController
     include PjaxModalController
     include WarehouseReportAuthorization
-    
+
     # Authorize by either access to report OR access by token
     skip_before_action :authenticate_user!
     skip_before_action :require_can_view_any_reports!
@@ -16,17 +16,16 @@ module WarehouseReports
     before_action :set_jobs, only: [:index, :running, :create]
     before_action :set_reports, only: [:index, :running, :create]
     def index
-      @filter = ::Filters::Initiative.new({user: current_user})
+      @filter = ::Filters::Initiative.new(user: current_user)
       @users = User.where(id: @reports.pluck(:user_id)).index_by(&:id)
     end
 
     def running
-
     end
 
     def set_jobs
       @job_reports = Delayed::Job.where(queue: :initiative_reports).order(run_at: :desc).map do |job|
-        parameters = YAML.load(job.handler).job_data['arguments'].first
+        parameters = YAML.safe_load(job.handler).job_data['arguments'].first
         parameters.delete('_aj_symbol_keys')
         parameters['project_ids'] = parameters.delete('projects')
         report = WarehouseReports::InitiativeReportJob.new(parameters)
@@ -44,7 +43,7 @@ module WarehouseReports
     def create
       @filter = ::Filters::Initiative.new(report_params.merge(user: current_user))
       if @filter.valid?
-        WarehouseReports::InitiativeReportJob.perform_later(@filter.options_for_initiative().as_json)
+        WarehouseReports::InitiativeReportJob.perform_later(@filter.options_for_initiative.as_json)
         redirect_to warehouse_reports_initiatives_path
       else
         render :index
@@ -68,9 +67,7 @@ module WarehouseReports
       if report_visible?
         # if the report is visible but not because of the token
         # make sure we scope it to a report the user can see
-        if ! access_by_token?
-           @report = report_scope.find(params[:id].to_i)
-        end
+        @report = report_scope.find(params[:id].to_i) unless access_by_token?
       else
         # if it's not visible, remove it
         @report = nil
@@ -105,25 +102,28 @@ module WarehouseReports
     # Override default to allow token access
     def report_visible?
       return true if access_by_token? || related_report.viewable_by(current_user).exists?
+
       not_authorized!
     end
 
+    # rubocop:disable Style/GuardClause
     def access_by_token?
       return false if current_user.present?
+
       # need to fetch the token and updated_at to check access
       @report = report_source.select(:updated_at, :token, :id).find(params[:id].to_i)
-      if params[:token].blank?
-        raise ActionController::RoutingError.new('Not Found') and return
-      end
+      raise(ActionController::RoutingError, 'Not Found') if params[:token].blank?
+
       if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
         @report = report_source.find(params[:id].to_i)
         return true
       else
-        raise ActionController::RoutingError.new('Not Found')
+        raise ActionController::RoutingError, 'Not Found'
       end
     end
+    # rubocop:enable Style/GuardClause
 
-    def median array
+    def median(array)
       mid = array.size / 2
       sorted = array.sort
       array.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
@@ -132,19 +132,19 @@ module WarehouseReports
 
     def show_view_partials
       [
-        {partial: 'client_counts', data: :client_counts},
-        {partial: 'nightly_census', title: 'Nightly Census'},
-        {partial: 'breakdown', data: :gender_breakdowns},
-        {partial: 'breakdown', data: :veteran_breakdowns, title: "Veteran Status Breakdowns"},
-        {partial: 'breakdown', data: :ethnicity_breakdowns},
-        {partial: 'breakdown', data: :race_breakdowns},
-        {partial: 'breakdown', data: :age_breakdowns},
-        {partial: 'breakdown', data: :length_of_stay_breakdowns},
-        {partial: 'breakdown', data: :living_situation_breakdowns, title: "Living Situation Breakdowns"},
-        {partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: "Income at Entry Breakdowns"},
-        {partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: "Income Most Recent Breakdowns"},
-        {partial: 'breakdown', data: :destination_breakdowns, title: "Destination Breakdowns"},
-        {partial: 'zip_map', title: "Permanent Zipcode Breakdowns"}
+        { partial: 'client_counts', data: :client_counts },
+        { partial: 'nightly_census', title: 'Nightly Census' },
+        { partial: 'breakdown', data: :gender_breakdowns },
+        { partial: 'breakdown', data: :veteran_breakdowns, title: 'Veteran Status Breakdowns' },
+        { partial: 'breakdown', data: :ethnicity_breakdowns },
+        { partial: 'breakdown', data: :race_breakdowns },
+        { partial: 'breakdown', data: :age_breakdowns },
+        { partial: 'breakdown', data: :length_of_stay_breakdowns },
+        { partial: 'breakdown', data: :living_situation_breakdowns, title: 'Living Situation Breakdowns' },
+        { partial: 'income_pie_charts', data: :income_at_entry_breakdowns, title: 'Income at Entry Breakdowns' },
+        { partial: 'income_pie_charts', data: :income_most_recent_breakdowns, title: 'Income Most Recent Breakdowns' },
+        { partial: 'breakdown', data: :destination_breakdowns, title: 'Destination Breakdowns' },
+        { partial: 'zip_map', title: 'Permanent Zipcode Breakdowns' },
       ]
     end
     helper_method :show_view_partials

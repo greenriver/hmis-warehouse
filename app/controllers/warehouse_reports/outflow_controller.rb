@@ -14,24 +14,24 @@ module WarehouseReports
     before_action :set_modal_size
 
     def index
-
     end
 
     def details
       raise 'Key required' if params[:key].blank?
+
       @key = @report.metrics.keys.detect { |key| key.to_s == params[:key] }
-      @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by{ |e| e.client_id }
+      @enrollments = enrollment_scope.where(client_id: @report.send(@key)).group_by(&:client_id)
 
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=outflow-#{@key.to_s}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=outflow-#{@key}.xlsx"
         end
         format.html {}
       end
     end
 
     def describe_computations
-      path = "app/views/warehouse_reports/outflow/README.md"
+      path = 'app/views/warehouse_reports/outflow/README.md'
       description = File.read(path)
       markdown = Redcarpet::Markdown.new(::TranslatedHtml)
       markdown.render(description)
@@ -74,7 +74,7 @@ module WarehouseReports
     end
 
     private def cleanup_ids(array)
-      array.select{ |id| id.present? }.map{ |id| id.to_i }
+      array.select(&:present?).map(&:to_i)
     end
 
     private def default_start

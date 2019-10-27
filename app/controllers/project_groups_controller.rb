@@ -42,7 +42,7 @@ class ProjectGroupsController < ApplicationController
       @project_group.project_ids = group_params[:projects]
       @project_group.save
       update_permissions(@project_group)
-      rescue Exception => e
+    rescue Exception => e
       flash[:error] = e.message
       render action: :edit
       return
@@ -51,10 +51,9 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
-
   end
 
-  def update_permissions(project_group)
+  def update_permissions(_project_group)
     user_ids = user_params[:users].reject(&:empty?).map(&:to_i) + [current_user.id]
     # add new user permissions
     added_users = user_ids - @project_group.user_viewable_entities.pluck(:user_id)
@@ -69,7 +68,7 @@ class ProjectGroupsController < ApplicationController
     params.require(:grda_warehouse_project_group).
       permit(
         :name,
-        projects: []
+        projects: [],
       )
   end
 

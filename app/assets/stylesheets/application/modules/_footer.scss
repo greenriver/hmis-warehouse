@@ -21,8 +21,9 @@ footer p {
 
 .seal-image {
   width: auto;
+  max-width: 250px;
   height: $footer-logo-height;
-  display: block;
+  display: flex;
   margin-right: space(4);
 }
 

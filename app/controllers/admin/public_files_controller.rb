@@ -17,9 +17,9 @@ module Admin
 
     def create
       file = file_params[:file]
-      @file = file_source.create(file_params.merge({user_id: current_user.id, content: file&.read}))
+      @file = file_source.create(file_params.merge(user_id: current_user.id, content: file&.read))
       if @file.invalid?
-        flash[:error] = @file.errors.full_messages.join('; ') + "#{params.inspect}"
+        flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
         redirect_to admin_public_files_path
         return
       end
@@ -30,12 +30,12 @@ module Admin
       @file = file_source.find(params[:id].to_i)
       @file.destroy
       respond_with @file, location: admin_public_files_path
-    end 
+    end
 
     private def file_params
-      p = params.require(:grda_warehouse_public_file).permit(
+      params.require(:grda_warehouse_public_file).permit(
         :file,
-        :name
+        :name,
       )
     end
 

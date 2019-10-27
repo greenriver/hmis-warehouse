@@ -4,30 +4,32 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
   sheet.add_row(
     [
       'Warehouse Client ID',
-      'First Name', 
-      'Last Name', 
-      'Age',
+      'First Name',
+      'Last Name',
+      'Age at Entry',
+      "Age on #{Date.current}",
       'Veteran Status',
-      'Date of First Service', 
-      'Project Type', 
-      'Project', 
-      'Organization', 
+      'Date of First Service',
+      'Project Type',
+      'Project',
+      'Organization',
       'Data Sources',
-    ], 
+    ],
     :style => title
   )
   @clients.each do |client|
     sheet.add_row [
-      client.id, 
-      client.FirstName, 
-      client.LastName, 
-      client.age(), 
+      client.id,
+      client.FirstName,
+      client.LastName,
+      client.first_service_history.age,
+      client.age(),
       HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
-      client.first_service_history.date, 
-      ::HUD.project_type(client.first_service_history.project_type), 
-      client.first_service_history.project_name, 
-      client.first_service_history.organization.try(:OrganizationName), 
-      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ') 
-    ] 
+      client.first_service_history.date,
+      ::HUD.project_type(client.first_service_history.project_type),
+      client.first_service_history.project_name,
+      client.first_service_history.organization.try(:OrganizationName),
+      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+    ]
   end
 end

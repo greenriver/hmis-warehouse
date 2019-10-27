@@ -18,9 +18,9 @@ module WarehouseReports::ClientDetails
         @sub_population = (params.try(:[], :sub_population).presence || :all_clients).to_sym
         month = params.permit(:month)
         @range = ::Filters::DateRangeWithSubPopulation.new(
-          start: Date.strptime(month[:month], "%B %Y").beginning_of_month,
-          end: Date.strptime(month[:month], "%B %Y").end_of_month,
-          sub_population: @sub_population
+          start: Date.strptime(month[:month], '%B %Y').beginning_of_month,
+          end: Date.strptime(month[:month], '%B %Y').end_of_month,
+          sub_population: @sub_population,
         )
       else
         @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
@@ -35,7 +35,7 @@ module WarehouseReports::ClientDetails
         map do |row|
           Hash[columns.keys.zip(row)]
         end.
-        group_by{ |row| row[:client_id] }
+        group_by { |row| row[:client_id] }
 
       respond_to do |format|
         format.html {}
@@ -62,11 +62,11 @@ module WarehouseReports::ClientDetails
         parenting_juvenile: she_t[:parenting_juvenile].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         project_name: p_t[:ProjectName].to_sql,
-        head_of_household: she_t[:head_of_household].to_sql
+        head_of_household: she_t[:head_of_household].to_sql,
       }
     end
 
-    def history_scope scope, sub_population
+    def history_scope(scope, sub_population)
       scope_hash = {
         all_clients: scope,
         veteran: scope.veteran,

@@ -20,25 +20,24 @@ module Health
 
     def new
       @signature_request = signature_source.new
-      @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], {client_id: @client.id, careplan_id: @careplan.id})
+      @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
     end
 
     def edit
-
     end
 
     def update
-
     end
 
     def create
       @signature_request = signature_source.new
-      @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], {client_id: @client.id, careplan_id: @careplan.id})
+      @form_url = polymorphic_path(careplan_path_generator + [:pcp_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
       begin
         @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
-      rescue ActiveRecord::RecordNotFound => e
+      rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign PCP')
-        render :new and return
+        render(:new)
+        return
       end
       @expires_at = Time.now + signature_source.expires_in
 
@@ -49,17 +48,18 @@ module Health
         to_name: @team_member.full_name,
         requestor_email: current_user.email,
         requestor_name: current_user.name,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
 
       if @signature_request.valid?
         @signature_request.save!
-        create_signable_document()
-        queue_pcp_email()
-        # TODO view button to delete request
+        create_signable_document
+        queue_pcp_email
+        # TODO: view button to delete request
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
-        render :new and return
+        render(:new)
+        return
       end
     end
 
@@ -71,9 +71,9 @@ module Health
         signers: @signers,
         primary: true,
         user_id: current_user.id,
-        expires_at: @expires_at
+        expires_at: @expires_at,
       )
-      @doc.pdf_content_to_upload = get_pdf
+      @doc.pdf_content_to_upload = generate_pdf
       if @doc.valid?
         @careplan.class.transaction do
           @doc.save!
@@ -94,14 +94,14 @@ module Health
         email: @signature_request.to_email,
         name: @signature_request.to_name,
         careplan_id: @careplan.id,
-        client_id: @client.id
+        client_id: @client.id,
       ).deliver_later
       @signature_request.update(sent_at: Time.now)
     end
 
     def destroy
       @signature_request.destroy
-      if signable_document = @signature_request.signable_document
+      if (signable_document = @signature_request.signable_document)
         signable_document.destroy
       end
       respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
@@ -111,7 +111,7 @@ module Health
       params.require(:signature_request).permit(
         :team_member_id,
         :to_email,
-        :to_name
+        :to_name,
       )
     end
 
@@ -120,13 +120,13 @@ module Health
         map do |t|
           [
             "#{t.full_name} -- #{t.class.member_type_name} (#{t.email}) ",
-            t.id
+            t.id,
           ]
         end
     end
 
     def team_member_scope
-      @patient.team_members.with_email#.health_sendable # This has been moved to the add team member screen
+      @patient.team_members.with_email # .health_sendable # This has been moved to the add team member screen
     end
 
     def signature_source
@@ -151,12 +151,9 @@ module Health
 
     private
 
-    def get_pdf
+    def generate_pdf
       pdf = careplan_combine_pdf_object
-      file_name = 'care_plan'
       @pdf = pdf.to_pdf
-
     end
-
   end
 end

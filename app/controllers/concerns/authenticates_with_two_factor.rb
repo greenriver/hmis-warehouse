@@ -34,19 +34,19 @@ module AuthenticatesWithTwoFactor
     render 'devise/sessions/two_factor'
   end
 
-  def locked_user_redirect(user)
+  def locked_user_redirect(*)
     flash.now[:alert] = _('Invalid Email or password')
     render 'devise/sessions/new'
   end
 
   def authenticate_with_two_factor
     self.resource = find_user
-    user = self.resource
+    user = resource
     return locked_user_redirect(user) unless user.active?
 
     if user_params[:otp_attempt].present? && session[:otp_user_id]
       authenticate_with_two_factor_via_otp(user)
-    elsif user && user.valid_password?(user_params[:password])
+    elsif user&.valid_password?(user_params[:password])
       prompt_for_two_factor(user)
     end
   end
