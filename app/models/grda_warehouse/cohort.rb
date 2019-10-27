@@ -19,7 +19,7 @@ module GrdaWarehouse
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :tags, class_name: Cas::Tag.name
 
-    has_many :group_viewable_entities, :class_name => 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+    has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
     attr_accessor :client_ids, :user_ids
 
@@ -156,20 +156,17 @@ module GrdaWarehouse
     memoize :user_can_edit_cohort_clients
 
     def user_ids
-      AccessGroup.where(
-        id: group_viewable_entities.where(
-          access_group_id: AccessGroup.user.pluck(:id)).
-          pluck(:access_group_id)
-      ).pluck(:user_id)
+      all_user_access_ids = AccessGroup.user.select(:id)
+      assigned_group_ids = group_viewable_entities.where(
+        access_group_id: all_user_access_ids
+      ).select(:access_group_id)
+      AccessGroup.where(id: assigned_group_ids).pluck(:user_id)
     end
 
     def update_access user_ids
       GrdaWarehouse::GroupViewableEntity.transaction do
-        group_viewable_entities.where(access_group_id:
-          AccessGroup.
-            user.
-            where.not(user_id: user_ids).
-            pluck(:id)).destroy_all
+        unused_access_group_ids = AccessGroup.user.where.not(user_id: user_ids).pluck(:id)
+        group_viewable_entities.where(access_group_id: unused_access_group_ids).destroy_all
         user_ids.each do |user_id|
           User.find(user_id).add_viewable(self)
         end
