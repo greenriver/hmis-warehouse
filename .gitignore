@@ -25,6 +25,7 @@
 !/.overcommit.yml
 !/.rubocop.yml
 !/.github
+!/.env.test
 
 # Ignore operational files
 package.box

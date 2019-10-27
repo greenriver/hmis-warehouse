@@ -50,6 +50,9 @@ Dir.chdir APP_ROOT do
   system 'bundle exec rake db:seed'
   system 'bundle exec rake grda_warehouse:seed_grades'
 
+  puts "\n== Setting up test databases"
+  system 'RAILS_ENV=test; bundle exec rake db:setup_test'
+
   puts "\n== Removing old logs and tempfiles =="
   FileUtils.rm_f Dir.glob(File.join('log', '*'))
   FileUtils.rm_rf Dir.glob(File.join('tmp', 'cache'))
