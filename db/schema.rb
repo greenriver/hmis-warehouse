@@ -470,7 +470,7 @@ ActiveRecord::Schema.define(version: 20191022181527) do
     t.boolean  "notify_on_vispdat_completed",       default: false
     t.boolean  "notify_on_client_added",            default: false
     t.boolean  "notify_on_anomaly_identified",      default: false,       null: false
-    t.string   "coc_codes"  default: [], array: true
+    t.string   "coc_codes",  default: [], array: true
     t.string   "email_schedule",                    default: "immediate", null: false
     t.boolean  "active",                            default: true,        null: false
     t.integer  "agency_id"
