@@ -155,23 +155,21 @@ module GrdaWarehouse
     end
     memoize :user_can_edit_cohort_clients
 
-    def user_ids
-      all_user_access_ids = AccessGroup.user.select(:id)
-      assigned_group_ids = group_viewable_entities.where(
-        access_group_id: all_user_access_ids
-      ).select(:access_group_id)
-      AccessGroup.where(id: assigned_group_ids).pluck(:user_id)
+    def groups
+      {
+        'Users' => AccessGroup.user.to_a,
+        'Groups' => AccessGroup.general.to_a,
+      }
     end
 
-    def update_access user_ids
-      GrdaWarehouse::GroupViewableEntity.transaction do
-        unused_access_group_ids = AccessGroup.user.where.not(user_id: user_ids).pluck(:id)
-        group_viewable_entities.where(access_group_id: unused_access_group_ids).destroy_all
-        user_ids.each do |user_id|
-          User.find(user_id).add_viewable(self)
-        end
-      end
+    def group_ids
+      AccessGroup.contains(self).pluck(:id)
+    end
 
+    def update_access(group_ids)
+      AccessGroup.where(id: group_ids).each do |group|
+        group.add_viewable(self)
+      end
     end
 
     def inactive?

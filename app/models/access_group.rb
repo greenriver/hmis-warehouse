@@ -18,6 +18,8 @@ class AccessGroup < ActiveRecord::Base
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
 
+  belongs_to :user
+
   scope :general, -> do
     where(user_id: nil)
   end
@@ -28,6 +30,23 @@ class AccessGroup < ActiveRecord::Base
 
   scope :for_user, -> (user) do
     where(user_id: user.id)
+  end
+
+  scope :contains, -> (entity) do
+    where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        entity_type: entity.class.sti_name,
+        entity_id: entity.id,
+      ).pluck(:access_group_id),
+    )
+  end
+
+  def name
+    if user_id.blank?
+      super
+    else
+      user.name
+    end
   end
 
   def remove(user)
