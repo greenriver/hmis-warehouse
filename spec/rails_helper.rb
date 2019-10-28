@@ -7,10 +7,12 @@ require 'spec_helper'
 require 'rspec/rails'
 require 'simplecov'
 require 'simplecov-console'
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-                                                                 SimpleCov::Formatter::HTMLFormatter,
-                                                                 SimpleCov::Formatter::Console,
-                                                               ])
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+  [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::Console,
+  ],
+)
 # SimpleCov.start 'rails'
 SimpleCov.start
 SimpleCov.add_filter '/test/'
@@ -41,6 +43,7 @@ system 'bin/rake health:db:migrate'
 system 'bin/rake reporting:db:migrate'
 
 RSpec.configure do |config|
+  ENV['NO_LSA_RDS'] = 'true'
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
