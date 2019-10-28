@@ -5,6 +5,8 @@
 ###
 
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
+  include NotifierConfig
+
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :destination_client, through: :client
   serialize :case_manager_attributes, Hash
