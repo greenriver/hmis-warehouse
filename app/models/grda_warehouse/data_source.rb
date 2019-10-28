@@ -129,7 +129,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
     group_ids = user.access_groups.pluck(:id)
-    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
+    group_id_query = if group_ids.empty?
+      "0=1"
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
 
     <<-SQL.squish
 
@@ -140,6 +144,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{data_source_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
+            AND
             #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
@@ -154,7 +159,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
     group_ids = user.access_groups.pluck(:id)
-    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
+    group_id_query = if group_ids.empty?
+      '0=1'
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
 
     <<-SQL.squish
 
@@ -167,6 +176,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{organization_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
+            AND
             #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
@@ -185,7 +195,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
     group_ids = user.access_groups.pluck(:id)
-    group_id_query = "AND #{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})" unless group_ids.empty?
+    group_id_query = if group_ids.empty?
+      "0=1"
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
 
     <<-SQL.squish
 
@@ -198,6 +212,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             #{viewability_table}.#{qc.('entity_id')}   = #{project_table}.#{qc.('id')}
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
+            AND
             #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
