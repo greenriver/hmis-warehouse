@@ -542,7 +542,20 @@ module GrdaWarehouse::Hud
         # where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
         active_confirmed_consent_in_cocs(user.coc_codes)
       else
-        distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
+        where(
+          arel_table[:id].in(
+            Arel.sql(distinct.joins(enrollments: :project).merge(
+              GrdaWarehouse::Hud::Project.viewable_by user
+            ).select(:id).to_sql)
+          ).
+          or(
+            arel_table[:id].in(
+              Arel.sql(distinct.joins(:data_source).merge(
+                GrdaWarehouse::DataSource.visible_in_window_to user
+              ).select(:id).to_sql)
+            )
+          )
+        )
       end
     end
 

@@ -27,7 +27,12 @@ module ControllerAuthorization
     if params[:client_id].present?
       set_client_from_client_id
     elsif params[:id].present?
-      set_client
+      begin
+        set_client
+      rescue ActiveRecord::RecordNotFound
+        not_authorized!
+        return false
+      end
     end
     return true if @client.show_window_demographic_to?(current_user)
 
