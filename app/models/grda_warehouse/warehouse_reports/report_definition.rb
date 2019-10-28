@@ -18,7 +18,8 @@ module GrdaWarehouse::WarehouseReports
       if user.can_view_all_reports?
         current_scope
       elsif user.can_view_assigned_reports?
-        joins(:group_viewable_entities).where(group_viewable_entities: {access_group_id: user.access_groups.pluck(:id)})
+        joins(:group_viewable_entities).
+          merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
       else
         none
       end
