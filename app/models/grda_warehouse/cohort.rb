@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
+    include AccessGroups
     extend Memoist
 
     acts_as_paranoid
@@ -154,23 +155,6 @@ module GrdaWarehouse
       user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
     end
     memoize :user_can_edit_cohort_clients
-
-    def groups
-      {
-        'Users' => AccessGroup.user.to_a,
-        'Groups' => AccessGroup.general.to_a,
-      }
-    end
-
-    def group_ids
-      AccessGroup.contains(self).pluck(:id)
-    end
-
-    def update_access(group_ids)
-      AccessGroup.where(id: group_ids).each do |group|
-        group.add_viewable(self)
-      end
-    end
 
     def inactive?
       !active?

@@ -88,6 +88,13 @@ class AccessGroup < ActiveRecord::Base
     ).first_or_create.restore
   end
 
+  def remove_viewable(viewable)
+    group_viewable_entities.where(
+      entity_type: viewable.class.sti_name,
+      entity_id: viewable.id,
+    ).destroy_all
+  end
+
   # Provides a means of showing projects associated through other entities
   def associated_by(associations:)
     return [] unless associations.present?

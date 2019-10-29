@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
     include ArelHelper
+    include AccessGroups
     acts_as_paranoid
     has_paper_trail
 
