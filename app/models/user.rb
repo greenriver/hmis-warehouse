@@ -32,6 +32,9 @@ class User < ActiveRecord::Base
   # Connect users to login attempts
   has_many :login_activities, as: :user
 
+  # Ensure that users have a user-specific access group
+  after_commit :access_group
+
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
