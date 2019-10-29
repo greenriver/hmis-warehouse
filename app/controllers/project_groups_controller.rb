@@ -15,6 +15,7 @@ class ProjectGroupsController < ApplicationController
 
   def new
     @project_group = project_group_source.new
+    set_access
   end
 
   def create
