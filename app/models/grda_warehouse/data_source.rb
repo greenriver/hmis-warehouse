@@ -86,7 +86,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   scope :visible_in_window_to, -> (user) do
     if user&.can_edit_anything_super_user?
       current_scope
-    elsif user.can_view_clients_with_roi_in_own_coc?
+    elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources?
         ds_ids = user.data_sources.pluck(:id)
         where(

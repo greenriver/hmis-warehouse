@@ -158,8 +158,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             end
             describe 'when one has ROI' do
               let!(:coc_roi_tag) { create :coc_roi_tag }
-              let!(:coc_roi) { create :client_file_coc_roi, client_id: c1.id, coc_code: 'GR-100' }
-              let!(:coc_roi2) { create :client_file_coc_roi, client_id: c2.id, coc_code: 'GR-200' }
+              let!(:coc_roi2) { create :client_file_coc_roi, client_id: c2.id, coc_codes: ['GR-200'] }
               before do
                 user.update(coc_codes: ['GR-100'])
                 coc_roi.tag_list.add('HAN Release')
@@ -199,7 +198,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
                   before do
                     # Acts as taggable gets very confused, so we have to reload and re-tag
                     coc_roi2.reload
-                    coc_roi2.update(consent_form_confirmed: true, coc_code: nil)
+                    coc_roi2.update(consent_form_confirmed: true, coc_codes: nil)
                     coc_roi2.tag_list.add('HAN Release')
                     coc_roi2.save!
                   end

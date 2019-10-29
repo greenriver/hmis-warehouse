@@ -5,7 +5,7 @@
 ###
 
 require 'restclient'
-module GrdaWarehouse::Hud
+module GrdaWarehouse::Hudcan_see_clients_in_window_for_assigned_data_sources?
   class Client < Base
     include Rails.application.routes.url_helpers
     include RandomScope
@@ -566,10 +566,14 @@ module GrdaWarehouse::Hud
 
 
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
-      full_housing_release_on_file.where(
-        arel_table[:consented_coc_codes].eq('[]').
-        or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
-      )
+      if coc_codes.present?
+        full_housing_release_on_file.where(
+          arel_table[:consented_coc_codes].eq('[]').
+          or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+        )
+      else
+        none
+      end
     end
 
     # Race & Ethnicity scopes
