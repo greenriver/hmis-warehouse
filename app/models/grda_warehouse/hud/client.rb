@@ -473,6 +473,10 @@ module GrdaWarehouse::Hud
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
     end
 
+    scope :visible_by_project_to, -> (user) do
+      joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    end
+
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
@@ -540,24 +544,26 @@ module GrdaWarehouse::Hud
 
         # joins(:client_files).
         # where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
-        active_confirmed_consent_in_cocs(user.coc_codes)
+
+        if user&.can_see_clients_in_window_for_assigned_data_sources?
+          ds_ids = user.data_sources.pluck(:id)
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(arel_table[:id].in(active_confirmed_consent_in_cocs(user.coc_codes).select(:id))).
+            or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))).
+            or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+          )
+        else
+          active_confirmed_consent_in_cocs(user.coc_codes)
+        end
       else
         where(
-          arel_table[:id].in(
-            Arel.sql(distinct.joins(enrollments: :project).merge(
-              GrdaWarehouse::Hud::Project.viewable_by user
-            ).select(:id).to_sql)
-          ).
-          or(
-            arel_table[:id].in(
-              Arel.sql(distinct.joins(:data_source).merge(
-                GrdaWarehouse::DataSource.visible_in_window_to user
-              ).select(:id).to_sql)
-            )
-          )
+          arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
+          or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
         )
       end
     end
+
 
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       full_housing_release_on_file.where(

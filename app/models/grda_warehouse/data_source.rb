@@ -87,7 +87,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     if user&.can_edit_anything_super_user?
       current_scope
     elsif user.can_view_clients_with_roi_in_own_coc?
-      current_scope # this will get limited by client visibility
+      if user&.can_see_clients_in_window_for_assigned_data_sources?
+        ds_ids = user.data_sources.pluck(:id)
+        where(
+          arel_table[:id].in(ds_ids).
+          or(arel_table[:visible_in_window].eq(true)).
+          or(arel_table[:id].in(current_scope.select(:id)))
+        )
+      else
+        current_scope # this will get limited by client visibility
+      end
     elsif user&.can_see_clients_in_window_for_assigned_data_sources?
       # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
       ds_ids = user.data_sources.pluck(:id)
