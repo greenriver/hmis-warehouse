@@ -47,8 +47,8 @@ module CohortAuthorization
     end
 
     def set_groups
-      @groups = @cohort.groups
-      @group_ids = @cohort.group_ids
+      @groups = @cohort.access_groups
+      @group_ids = @cohort.access_group_ids
     end
 
     def cohort_source
