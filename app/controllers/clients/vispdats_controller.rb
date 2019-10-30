@@ -30,7 +30,7 @@ module Clients
     end
 
     def edit
-      unless @vispdat.show_as_readonly?
+      if @vispdat.show_as_readonly?
         render(:show)
         return
       end
