@@ -63,5 +63,7 @@ module BostonHmis
     config.exceptions_app = self.routes
 
     config.assets.paths << Rails.root.join('node_modules')
+
+    config.middleware.use Rack::Attack # needed pre rails 5.1
   end
 end

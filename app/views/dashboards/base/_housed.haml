@@ -15,9 +15,9 @@
             .body
               = @ph_clients.size
           
-    %canvas#housed-chart{style: 'width: 100%; height: 300px;', data: {labels: @all_exits_labels.to_json, data: @ph_exits.to_json}}
+    %canvas#housed-chart{style: 'width: 100%; height: 300px;', data: {labels: @all_exits_labels.to_json, data: @ph_exits.to_json.html_safe}}
 
     %h3 All Exits from Homeless Programs by Destination
-    %canvas#destination-chart{style: 'width: 100%; height: 500px;', data: {labels: @all_exits_labels.to_json, data: @buckets.to_json}}
+    %canvas#destination-chart{style: 'width: 100%; height: 500px;', data: {labels: @all_exits_labels.to_json, data: @buckets.to_json.html_safe}}
     .updated_on.small.text-muted
       Last Updated on: #{@report.finished_at.to_date}

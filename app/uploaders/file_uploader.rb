@@ -86,17 +86,7 @@ class FileUploader < CarrierWave::Uploader::Base
   end
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(%w[
-                                    image/jpeg
-                                    image/png
-                                    image/gif
-                                    application/pdf
-                                    application/msword
-                                    application/vnd.openxmlformats-officedocument.wordprocessingml.document
-                                    text/csv
-                                    application/vnd.ms-excel
-                                    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-                                  ])
+  WHITELIST = IceNine.deep_freeze(['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
 
   MANIPULATEABLE = IceNine.deep_freeze(
     [
@@ -110,7 +100,7 @@ class FileUploader < CarrierWave::Uploader::Base
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
   def content_type_whitelist
-    WHITELIST + %w[application/octet-stream]
+    WHITELIST + ['application/octet-stream']
   end
 
   # MagicMimeWhitelist content_type handling uses

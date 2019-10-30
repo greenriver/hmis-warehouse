@@ -26,7 +26,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      var data = #{@client.health_housing_stati.to_json}
+      var data = #{@client.health_housing_stati.to_json.html_safe}
       hsChart = {
         margin: {top: 25, right: 45, bottom: 70, left: 150},
         selector: '.d3-housing-status__chart',
@@ -36,7 +36,7 @@
       }
       var pc = new App.D3Chart.PatientCharts([hsChart])
       
-      var ssData = #{@client.health_self_sufficiency_scores.to_json}
+      var ssData = #{@client.health_self_sufficiency_scores.to_json.html_safe}
       var chart = new App.D3Chart.SelfSufficiencyScores('.d3-ss-matrix__chart', '.d3-ss__legend', {top: 20, right: 10, bottom: 20, left: 150}, ssData);
       chart.draw();
     })

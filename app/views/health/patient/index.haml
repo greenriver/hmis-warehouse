@@ -9,5 +9,5 @@
 
 %h1= "#{title} for #{@client.full_name}"
 = render 'clients/breadcrumbs'
-= render 'clients/tab_navigation', current: window_client_health_patient_index_path(@client)
+= render 'clients/tab_navigation', current: client_health_patient_index_path(@client)
 = render 'health/patient/index'

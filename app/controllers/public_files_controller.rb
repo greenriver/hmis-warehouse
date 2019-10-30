@@ -5,7 +5,6 @@
 ###
 
 class PublicFilesController < ApplicationController
-
   before_action :load_file
 
   def show

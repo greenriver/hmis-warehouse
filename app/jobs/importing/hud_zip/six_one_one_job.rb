@@ -39,7 +39,8 @@ module Importing::HudZip
       end
     end
 
-    def enqueue(job); end
+    def enqueue(job)
+    end
 
     def max_attempts
       1

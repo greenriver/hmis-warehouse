@@ -35,8 +35,8 @@
 = content_for :page_js do
   :javascript
     (function(){
-      var headers = #{@headers.to_json};
-      var chartKeys = #{( @headers - %w(average) ).to_json};
+      var headers = #{@headers.to_json.html_safe};
+      var chartKeys = #{( @headers - %w(average) ).to_json.html_safe};
       function makeChart(data) {
         console.log(data);
         var anyNonZero = !!data.find(function(d){

@@ -10,11 +10,13 @@ module CohortAuthorization
   included do
     def some_cohort_access!
       return true if cohort_source.has_some_cohort_access current_user
+
       not_authorized!
     end
 
     def require_can_access_cohort!
       return true if cohort_scope.where(id: cohort_id).any?
+
       not_authorized!
     end
 
@@ -24,6 +26,7 @@ module CohortAuthorization
 
     def require_more_than_read_only_access_to_cohort!
       return true if cohort_source.has_some_cohort_access(current_user) && (require_can_edit_cohort! || current_user.can_edit_assigned_cohorts?)
+
       not_authorized!
     end
 
@@ -46,7 +49,5 @@ module CohortAuthorization
     def cohort_source
       GrdaWarehouse::Cohort
     end
-    
-
   end
 end

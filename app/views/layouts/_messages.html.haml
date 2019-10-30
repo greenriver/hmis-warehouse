@@ -13,4 +13,4 @@
 
   - content_for :page_js do
     :javascript
-      App.Users.Messages = new App.Users.Messages(#{poll_messages_path.to_json}, #{seen_messages_path.to_json});
+      App.Users.Messages = new App.Users.Messages(#{poll_messages_path.to_json.html_safe}, #{seen_messages_path.to_json.html_safe});

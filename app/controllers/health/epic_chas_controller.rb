@@ -17,10 +17,7 @@ module Health
 
     def show
       set_hpc_patient
-      if @patient.blank?
-        set_patient
-      end
-
+      set_patient if @patient.blank?
     end
 
     def set_form
@@ -34,7 +31,5 @@ module Health
     protected def title_for_show
       "#{@client.name} - Health - Epic CHA"
     end
-
-
   end
 end

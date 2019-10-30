@@ -26,7 +26,7 @@ module Health::Pilot
     def update
       begin
         @careplan.update!(careplan_params)
-        flash[:notice] = "Care plan updated"
+        flash[:notice] = 'Care plan updated'
       rescue Exception => e
         flash[:error] = "Failed to update care plan. #{e}"
       end
@@ -56,7 +56,7 @@ module Health::Pilot
           :self_sufficiency_baseline_due_date,
           :self_sufficiency_final_due_date,
           :self_sufficiency_baseline_completed_date,
-          :self_sufficiency_final_completed_date
+          :self_sufficiency_final_completed_date,
         )
     end
   end

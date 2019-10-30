@@ -11,7 +11,7 @@ module SimilarityMetric::Tasks
     end
 
     def run!
-      Rails.logger.info "Generating some match candidates: #{@opts.to_json}..."
+      Rails.logger.info "Generating some match candidates: #{@opts.to_json.html_safe}..."
       start_time = Time.now
       metrics = SimilarityMetric::Base.usable.all.reject(&:bogus?)
       clients = GrdaWarehouse::Hud::Client

@@ -12,6 +12,7 @@ module WarehouseReportAuthorization
 
     def report_visible?
       return true if related_report.viewable_by(current_user).exists?
+
       not_authorized!
     end
 
@@ -19,7 +20,7 @@ module WarehouseReportAuthorization
     # Eventually, this should reference a method on the report model
     # Must respond to `viewable_by`
     def related_report
-      url = url_for(action: :index, only_path: true).sub(/^\//, '')
+      url = url_for(action: :index, only_path: true).sub(%r{^/}, '')
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url)
     end
     helper_method :related_report

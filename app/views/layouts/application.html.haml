@@ -64,12 +64,11 @@
             - if content_for? :modal_footer
               .row
                 = yield :modal_footer
-
     %footer{ class: ('with-menu' if user_signed_in?) }
       .container-fluid.w-100{class: container_classes}
-        .d-flex.flex-column.align-items-center.pt-4.pb-6
+        .d-flex.align-items-center.pt-4.pb-6
           = render 'layouts/footer_seal'
-          %p.mt-4
+          %p
             = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
 
     #d3-tooltip

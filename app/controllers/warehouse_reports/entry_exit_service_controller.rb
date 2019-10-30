@@ -14,11 +14,11 @@ module WarehouseReports
       # this is a translation of an original raw SQL query into Arel
       clients = GrdaWarehouse::Hud::Client
       sql = clients.
-        joins( :warehouse_client_source, enrollments: [ :project, :exit, :services ] ).
-        where( p_t[project_source.project_type_column].in project_source::RESIDENTIAL_PROJECT_TYPE_IDS ).
+        joins(:warehouse_client_source, enrollments: [:project, :exit, :services]).
+        where(p_t[project_source.project_type_column].in(project_source::RESIDENTIAL_PROJECT_TYPE_IDS)).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-        where( ex_t[:ExitDate].eq s_t[:DateProvided] ).
-        where( e_t[:EntryDate].eq s_t[:DateProvided] ).
+        where(ex_t[:ExitDate].eq s_t[:DateProvided]).
+        where(e_t[:EntryDate].eq s_t[:DateProvided]).
         select(
           s_t[:EnrollmentID],
           e_t[:EntryDate],
@@ -32,19 +32,19 @@ module WarehouseReports
           e_t[:ProjectID],
           p_t[:ProjectName],
           p_t[project_source.project_type_column].as('project_type'),
-          s_t[:RecordType]
+          s_t[:RecordType],
         ).distinct.to_sql
       @enrollments = if GrdaWarehouse::Hud::Service.all.engine.postgres?
         result = GrdaWarehouseBase.connection.select_all(sql)
         result.map do |row|
-          Hash.new.tap do |hash|
-            result.columns.each_with_index.map do |name, idx|
+          {}.tap do |hash|
+            result.columns.each_with_index.map do |name, _idx|
               hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
             end
           end
         end
       else
-        GrdaWarehouseBase.connection.raw_connection.execute(sql).each( as: :hash )
+        GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash)
       end
       respond_to :html, :xlsx
     end
@@ -52,6 +52,5 @@ module WarehouseReports
     def project_source
       GrdaWarehouse::Hud::Project
     end
-
   end
 end

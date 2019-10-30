@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 class HmisController < ApplicationController
   # Permission notes: This is limited to people who can upload HMIS data
   # and further limited to the data sources someone can edit.  This means
@@ -22,7 +21,6 @@ class HmisController < ApplicationController
     end
 
     @results = load_results
-
   end
 
   def show
@@ -36,10 +34,12 @@ class HmisController < ApplicationController
 
   private def load_results
     return [] unless @searched
+
     # whitelist the passed in class
     @klass = valid_class(params[:search].try(:[], :type))
     return [] unless @klass.present?
     return [] unless params[:search][:id].present?
+
     # can't force to_i since this might be a string
     @query = params[:search][:id]
     # long string searches against integers make postgres unhappy
@@ -47,21 +47,23 @@ class HmisController < ApplicationController
     if @query.to_i == @query
       item_scope.where(
         @klass.arel_table[:id].eq(@query).
-        or(@klass.arel_table[@klass.hud_key].eq(@query))
+        or(@klass.arel_table[@klass.hud_key].eq(@query)),
       )
     else
       item_scope.where(@klass.arel_table[@klass.hud_key].eq(@query))
     end
   end
 
-  private def valid_class type
+  private def valid_class(type)
     return nil unless type.present?
+
     GrdaWarehouse::Hud.class_from_csv_name(type)
   end
 
   private def set_item
     @klass = valid_class(params[:type])
     return nil unless @klass.present?
+
     @item = item_scope.find(params[:id].to_i)
   end
 
@@ -69,5 +71,4 @@ class HmisController < ApplicationController
     @klass.joins(:data_source).
       merge(GrdaWarehouse::DataSource.editable_by(current_user).source)
   end
-
 end

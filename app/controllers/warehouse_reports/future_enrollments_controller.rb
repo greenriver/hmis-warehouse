@@ -14,7 +14,7 @@ module WarehouseReports
         joins(source_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         preload(:source_enrollments).
-        where( et[:EntryDate].gt(Date.current) ).
+        where(et[:EntryDate].gt(Date.current)).
         order(:LastName, :FirstName).
         page(params[:page]).per(25)
     end

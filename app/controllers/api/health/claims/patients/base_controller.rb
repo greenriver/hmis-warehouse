@@ -19,36 +19,35 @@ module Api::Health::Claims::Patients
     end
 
     # group the data by date, then sum each column
-    def group_by_date_and_sum_by_category(data)
+    def group_by_date_and_sum_by_category(input_data)
       sums = Hash.new(0)
-      data.group_by do |row|
-        Date.new(row.year, row.month, 01)
+      input_data.group_by do |row|
+        Date.new(row.year, row.month, 0o1)
       end.map do |date, data|
         data = data.map do |row|
           row.attributes.with_indifferent_access.
-          except(:id, :medicaid_id, :year, :month)
-        end.each_with_object(sums) do |row, sums|
-            row.each do |k, v|
-              sums[k] += v
-            end
+            except(:id, :medicaid_id, :year, :month)
+        end.each_with_object(sums) do |row, i_sums|
+          row.each do |k, v|
+            i_sums[k] += v
           end
-        {date: date}.merge(data)
+        end
+        { date: date }.merge(data)
       end
     end
 
     # group the data by date
-    def group_by_date(data)
-      data.group_by do |row|
-        Date.new(row.year, row.month, 01)
+    def group_by_date(input_data)
+      input_data.group_by do |row|
+        Date.new(row.year, row.month, 0o1)
       end.map do |date, data|
-        data = data.map do |row|
-          {date: date}.merge(row.attributes.with_indifferent_access.
-          except(:id, :medicaid_id, :year, :month)).map do |k,v|
+        data.map do |row|
+          { date: date }.merge(row.attributes.with_indifferent_access.
+          except(:id, :medicaid_id, :year, :month)).map do |k, v|
             v ||= 0
             [k, v]
           end.to_h
         end.first
-
       end
     end
 
@@ -59,6 +58,5 @@ module Api::Health::Claims::Patients
     protected def set_patient
       @patient = ::Health::Patient.find(params[:patient_id].to_i)
     end
-
   end
 end

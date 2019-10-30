@@ -18,7 +18,6 @@ module WarehouseReports::Cas
         where(match_id: @matches.select(:match_id)).
         order(decision_order: :asc).
         group_by(&:match_id)
-
     end
 
     def set_range
@@ -35,6 +34,5 @@ module WarehouseReports::Cas
     def report_source
       GrdaWarehouse::CasReport
     end
-
   end
 end

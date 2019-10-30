@@ -14,9 +14,10 @@ class SecureFilesController < ApplicationController
   end
 
   def show
-    send_data(@secure_file.content,
+    send_data(
+      @secure_file.content,
       type: @secure_file.content_type,
-      filename: File.basename(@secure_file.file.to_s)
+      filename: File.basename(@secure_file.file.to_s),
     )
   end
 
@@ -27,23 +28,25 @@ class SecureFilesController < ApplicationController
 
   def create
     # Prevent create if user forgot to include file
-    if !file_params[:file]
+    unless file_params[:file]
       @secure_file = file_source.new
-      flash[:alert] = _("You must attach a file in the form.")
-      render :index and return
+      flash[:alert] = _('You must attach a file in the form.')
+      render(:index)
+      return
     end
     file = file_params[:file]
-    @secure_file = file_source.new(file_params.merge({
-      sender_id: current_user.id,
-      content_type: file.content_type,
-      content: file.read,
-      }))
+    @secure_file = file_source.new(
+      file_params.merge(
+        sender_id: current_user.id,
+        content_type: file.content_type,
+        content: file.read,
+      ),
+    )
     if @secure_file.save
-      run_import = true
-      flash[:notice] = _("Upload successful, please let the recipient know the file has been sent.")
+      flash[:notice] = _('Upload successful, please let the recipient know the file has been sent.')
       redirect_to action: :index
     else
-      flash[:alert] = _("Upload failed, did you attach a file?")
+      flash[:alert] = _('Upload failed, did you attach a file?')
       render :index
     end
   end
@@ -68,5 +71,4 @@ class SecureFilesController < ApplicationController
   def flash_interpolation_options
     { resource_name: 'File' }
   end
-
 end

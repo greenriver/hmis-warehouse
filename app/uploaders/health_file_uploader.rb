@@ -25,9 +25,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   process :extract_file_metadata!
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(%w[
-                                    application/pdf
-                                  ])
+  WHITELIST = IceNine.deep_freeze(['application/pdf'])
 
   MANIPULATEABLE = IceNine.deep_freeze(
     [
@@ -41,7 +39,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # this is mostly to provide user feedback if they send
   # a content_type value with the upload
   def content_type_whitelist
-    WHITELIST + %w[application/octet-stream]
+    WHITELIST + ['application/octet-stream']
   end
 
   # MagicMimeWhitelist content_type handling uses
@@ -78,7 +76,7 @@ class HealthFileUploader < CarrierWave::Uploader::Base
   # Add a white list of extensions which are allowed to be uploaded.
   # For images you might use something like this:
   def extension_white_list
-    %w[pdf]
+    ['pdf']
   end
 
   # Provide a range of file sizes which are allowed to be uploaded

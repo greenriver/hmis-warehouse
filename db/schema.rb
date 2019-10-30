@@ -10,12 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191015142006) do
+ActiveRecord::Schema.define(version: 20191022181527) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+
+  create_table "access_group_members", force: :cascade do |t|
+    t.integer  "access_group_id"
+    t.integer  "user_id"
+    t.datetime "deleted_at"
+  end
+
+  create_table "access_groups", force: :cascade do |t|
+    t.string   "name"
+    t.integer  "user_id"
+    t.string   "coc_codes",  default: [], array: true
+    t.datetime "deleted_at"
+  end
 
   create_table "activity_logs", force: :cascade do |t|
     t.string   "item_model"
@@ -327,6 +340,8 @@ ActiveRecord::Schema.define(version: 20191015142006) do
     t.boolean  "can_view_ce_assessment",                              default: false
     t.boolean  "can_edit_ce_assessment",                              default: false
     t.boolean  "can_submit_ce_assessment",                            default: false
+    t.boolean  "can_edit_access_groups",                              default: false
+    t.boolean  "enforced_2fa",                                        default: false
     t.index ["name"], name: "index_roles_on_name", using: :btree
   end
 

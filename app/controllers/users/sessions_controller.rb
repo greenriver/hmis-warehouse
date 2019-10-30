@@ -7,26 +7,22 @@
 class Users::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
 
-  prepend_before_action :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? }
-
+  prepend_before_action :authenticate_with_two_factor, if: -> { action_name == 'create' && two_factor_enabled? }
 
   def create
     super do |resource|
       # User has successfully signed in, so clear any unused reset token
-      if resource.reset_password_token.present?
-        resource.update(reset_password_token: nil, reset_password_sent_at: nil)
-      end
+      resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
     end
   end
 
-  #configure auto_session_timeout
+  # configure auto_session_timeout
   def active
     render_session_status
   end
 
   def timeout
-    flash[:notice] = "Your session expired; you have been logged out."
+    flash[:notice] = 'Your session expired; you have been logged out.'
     redirect_to root_path
   end
 
@@ -53,5 +49,4 @@ class Users::SessionsController < Devise::SessionsController
   def valid_backup_code_attempt?(user)
     user.invalidate_otp_backup_code!(user_params[:otp_attempt])
   end
-
 end

@@ -17,12 +17,14 @@ module WarehouseReports
       @reports = report_source.all.order(created_at: :desc).page(params[:page]).per(25)
     end
 
-    #download
+    # download
     def show
       @file = @report.file
-      send_data @file.content,
+      send_data(
+        @file.content,
         type: @file.content_type,
-        filename: "#{@report.display_coc_code}.zip"
+        filename: "#{@report.display_coc_code}.zip",
+      )
     end
 
     def create

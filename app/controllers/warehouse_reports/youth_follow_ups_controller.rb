@@ -17,7 +17,7 @@ module WarehouseReports
         filter:
           [
             :end,
-          ]
+          ],
       )
     end
   end

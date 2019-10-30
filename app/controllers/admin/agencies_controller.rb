@@ -24,7 +24,7 @@ module Admin
     end
 
     def create
-      if @agency = Agency.create(agency_params)
+      if (@agency = Agency.create(agency_params))
         flash[:notice] = "#{@agency.name} was successfully added."
         redirect_to admin_agencies_path
       else
@@ -33,7 +33,6 @@ module Admin
     end
 
     def edit
-
     end
 
     def update

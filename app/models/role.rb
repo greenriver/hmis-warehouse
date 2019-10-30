@@ -96,6 +96,10 @@ class Role < ApplicationRecord
         description: 'Ability to enable Two-factor authentication for own account',
         administrative: false,
       },
+      enforced_2fa: {
+        description: 'Users with this permission will be unable to login until Two-factor authentication has been enabled',
+        administrative: false,
+      },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
         administrative: true,
