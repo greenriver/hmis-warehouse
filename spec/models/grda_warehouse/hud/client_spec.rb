@@ -158,11 +158,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             end
             describe 'when one has ROI' do
               let!(:coc_roi_tag) { create :coc_roi_tag }
-              let!(:coc_roi2) { create :client_file_coc_roi, client_id: c2.id, coc_codes: ['GR-200'] }
+              let!(:coc_roi) { create :client_file_coc_roi, client_id: c1.id, coc_codes: ['GR-100'], effective_date: 1.weeks.ago }
+              let!(:coc_roi2) { create :client_file_coc_roi, client_id: c2.id, coc_codes: ['GR-200'], effective_date: 1.weeks.ago }
               before do
                 user.update(coc_codes: ['GR-100'])
                 coc_roi.tag_list.add('HAN Release')
                 coc_roi.save!
+                coc_roi.set_client_consent # this is called in an after commit hook, which doesn't execute well in rspec
               end
               after do
                 user.update(coc_codes: [])
@@ -176,6 +178,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
                   coc_roi.reload
                   coc_roi.update(consent_form_confirmed: true)
                   coc_roi.tag_list.add('HAN Release')
+                  coc_roi.set_client_consent # this is called in an after commit hook, which doesn't execute well in rspec
                 end
                 it 'user sees c1' do
                   expect(user_ids[user]).to eq ids[c1]
@@ -203,7 +206,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
                     coc_roi2.save!
                   end
                   it 'user only sees c1' do
-                    expect(user_ids[user].sort).to eq ids[c1, c2].sort
+                    expect(user_ids[user].sort).to eq ids[c1].sort
                   end
                 end
               end
