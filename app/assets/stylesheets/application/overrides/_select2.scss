@@ -107,4 +107,12 @@
   justify-content: center;
   padding-right: space(6);
   padding-left: space(4);
+  // Fix for IE11 bug with align-center in container with
+  // min-height
+  &::after {
+    display: block;
+    content: '';
+    min-height: inherit;
+    font-size: 0;
+  }
 }
