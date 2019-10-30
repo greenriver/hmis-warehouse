@@ -8,7 +8,7 @@
   .o-page__title
     %h1= title
 
-  = render 'clients/tab_navigation', current: client_coordinated_entry_assessment_index_path(client_id: @client.id)
+  = render 'clients/tab_navigation', current: client_coordinated_entry_assessments_path(client_id: @client.id)
 
 = simple_form_for @assessment, url: client_coordinated_entry_assessment_path(@client, @assessment) do |f|
   = render 'form', f: f, readonly: false
