@@ -3,8 +3,13 @@
     - if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_users_path))}
         = link_to 'Users', admin_users_path, class: 'nav-link'
+    - if can_edit_roles?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_roles_path))}
         = link_to 'Roles', admin_roles_path, class: 'nav-link'
+    - if can_edit_access_groups?
+      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_groups_path))}
+      = link_to 'Groups', admin_groups_path, class: 'nav-link'
+    - if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_agencies_path))}
         = link_to 'Agencies', admin_agencies_path, class: 'nav-link'
     - if can_manage_config?

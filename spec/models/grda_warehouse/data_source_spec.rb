@@ -55,46 +55,37 @@ RSpec.describe model, type: :model do
       end
 
       describe 'user assigned to project' do
-        after :each do
-          user.entities.destroy_all
-        end
         it 'sees ds1' do
-          user.entities.create entity: p1
+          user.add_viewable(p1)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
-          user.entities.create entity: p1
-          user.entities.create entity: p5
+          user.add_viewable(p1)
+          user.add_viewable(p5)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
 
       describe 'user assigned to organization' do
-        after :each do
-          user.entities.destroy_all
-        end
         it 'sees ds1' do
-          user.entities.create entity: o1
+          user.add_viewable(o1)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
-          user.entities.create entity: o1
-          user.entities.create entity: o3
+          user.add_viewable(o1)
+          user.add_viewable(o3)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end
 
       describe 'user assigned to data source' do
-        after :each do
-          user.entities.destroy_all
-        end
         it 'sees ds1' do
-          user.entities.create entity: ds1
+          user.add_viewable(ds1)
           expect(user_ids[user]).to eq ids[ds1]
         end
         it 'sees ds1 and ds2' do
-          user.entities.create entity: ds1
-          user.entities.create entity: ds2
+          user.add_viewable(ds1)
+          user.add_viewable(ds2)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
       end

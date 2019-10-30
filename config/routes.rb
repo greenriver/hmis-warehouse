@@ -626,6 +626,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :groups
     resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do

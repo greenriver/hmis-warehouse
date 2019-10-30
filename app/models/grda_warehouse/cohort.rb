@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase
     include ArelHelper
+    include AccessGroups
     extend Memoist
 
     acts_as_paranoid
@@ -17,8 +18,9 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
     belongs_to :tags, class_name: Cas::Tag.name
+
+    has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
     attr_accessor :client_ids, :user_ids
 
@@ -42,8 +44,7 @@ module GrdaWarehouse
       elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
-        joins(:user_viewable_entities).
-          where(GrdaWarehouse::UserViewableEntity.table_name => {user_id: user.id})
+        current_scope.merge(user.cohorts)
       else
         none
       end
@@ -55,8 +56,7 @@ module GrdaWarehouse
       elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
-        joins(:user_viewable_entities).
-          where(GrdaWarehouse::UserViewableEntity.table_name => {user_id: user.id})
+        current_scope.merge(user.cohorts)
       else
         none
       end
@@ -155,17 +155,6 @@ module GrdaWarehouse
       user.can_manage_cohorts? || user.can_edit_cohort_clients? || (user.can_edit_assigned_cohorts? && user.cohorts.where(id: id).exists?)
     end
     memoize :user_can_edit_cohort_clients
-
-    def update_access user_ids
-      GrdaWarehouse::UserViewableEntity.transaction do
-        entity_type = self.class.name
-        GrdaWarehouse::UserViewableEntity.where(entity_type: entity_type, entity_id: id).where.not(user_id: user_ids).destroy_all
-        user_ids.each do |user_id|
-          GrdaWarehouse::UserViewableEntity.where(entity_type: entity_type, entity_id: id, user_id: user_id).first_or_create
-        end
-      end
-
-    end
 
     def inactive?
       !active?

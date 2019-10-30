@@ -93,6 +93,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     ids.each_slice(100) do |batch|
       # fetch the batch, in order
       vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
         hmis_form.vispdat_total_score = hmis_form.vispdat_score_total
         hmis_form.vispdat_family_score = hmis_form.vispdat_score_family
         hmis_form.vispdat_youth_score = hmis_form.vispdat_score_youth

@@ -1,0 +1,5 @@
+.c-columns__column
+  .c-columns__column-header
+    %h3.c-columns__column-title Groups
+  .c-columns__column-content
+    = f.association :access_groups, as: :check_boxes, label_method: :name, collection: AccessGroup.general, label: false
