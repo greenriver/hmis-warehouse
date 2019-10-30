@@ -5,7 +5,7 @@
 ###
 
 require 'restclient'
-module GrdaWarehouse::Hudcan_see_clients_in_window_for_assigned_data_sources?
+module GrdaWarehouse::Hud
   class Client < Base
     include Rails.application.routes.url_helpers
     include RandomScope
