@@ -8,7 +8,7 @@ module Admin
   class GroupsController < ApplicationController
     before_action :require_can_edit_access_groups!
     before_action :set_group, only: [:edit, :update, :destroy]
-    before_action :set_entities, only: [:new, :edit]
+    before_action :set_entities, only: [:new, :edit, :create, :update]
 
     def index
       @groups = access_group_scope.
@@ -21,12 +21,11 @@ module Admin
     end
 
     def create
-      group = access_group_scope.new
-      group.update(group_params)
-      group.set_viewables(viewable_params)
-      group.save
-
-      redirect_to({ action: :index }, notice: "Group #{group.name} created.")
+      @group = access_group_scope.new
+      @group.update(group_params)
+      @group.set_viewables(viewable_params)
+      @group.save
+      respond_with(@group, location: admin_groups_path)
     end
 
     def edit
@@ -121,11 +120,8 @@ module Admin
       @cocs = {
         label: 'CoC Codes',
         selected: @group&.coc_codes || [],
-        collection: ['ProjectCoc', 'EnrollmentCoc'].
-          flat_map do |c|
-            "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck(:CoCCode)
-          end.uniq&.compact&.sort,
-        placeholder: 'Project',
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        placeholder: 'CoC',
         multiple: true,
         input_html: {
           class: 'jUserViewable jCocCodes',
