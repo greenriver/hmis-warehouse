@@ -1,26 +1,6 @@
 {
   "ignored_warnings": [
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "048e08cf02760bc606a9e358819a9ac3f5e6db44a3cdbcffdfd80a625973e95c",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 44,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Organization",
-        "method": null
-      },
-      "user_input": "has_access_to_organization_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "159f0b866222f2bbf475ee5b12270bae5ee89fb54578664af39830a5b4fdacc5",
@@ -69,26 +49,6 @@
       },
       "user_input": "params[:choose_report][:end_month]",
       "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "17e06227ed7303ce65f1f3121ce4bf56c267d4677907480468c42a006c12e2ab",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 59,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Organization",
-        "method": null
-      },
-      "user_input": "has_access_to_organization_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
       "note": ""
     },
     {
@@ -267,26 +227,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "4e3aa33314733d07ee2912a72be53da7541ff9ee1b9b6775c93e58fc0710f38a",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 364,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_project_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Project",
-        "method": null
-      },
-      "user_input": "has_access_to_project_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "560654d4119023b98ace9aa621f8578d4bbf9842e89acc251bda37a3ca2476ab",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -362,7 +302,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 46,
+      "line": 52,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -464,7 +404,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 52,
+      "line": 46,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -605,7 +545,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 552,
+      "line": 572,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\")",
       "render_path": null,
@@ -615,6 +555,46 @@
         "method": null
       },
       "user_input": "coc_codes.map do\n connection.quote(s)\n end.join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "85283b166eb4bcf02cc87be10e06c2d8433300155419b05dc24758732632d3ce",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/organization.rb",
+      "line": 58,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Organization",
+        "method": null
+      },
+      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "88ba6947358eb613f838a50fc8a1b137f655dda08126594643d90dca1df7daa9",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/organization.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Organization",
+        "method": null
+      },
+      "user_input": "has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
       "confidence": "Medium",
       "note": ""
     },
@@ -646,6 +626,26 @@
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
       "line": 53,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -699,23 +699,43 @@
       "note": ""
     },
     {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 58,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "94f0e64c5acc071a901163d39ebce6861e109a286a0157b979408b31ce9c6a17",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/data_source.rb",
+      "line": 65,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
+        "class": "GrdaWarehouse::DataSource",
+        "method": null
       },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
+      "user_input": "has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a005f0450a283e9aa0cfbb7447941c9b23a6b49277b9e02d914765b5ccf577cc",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/project.rb",
+      "line": 363,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Project",
+        "method": null
+      },
+      "user_input": "has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -806,26 +826,6 @@
       },
       "user_input": "params[:id].to_i",
       "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "d9981abde599c0a4910736c39d64ee92b566f3a0ccf8f256e572c95f184a33a0",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 64,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::DataSource",
-        "method": null
-      },
-      "user_input": "has_access_to_data_source_through_viewable_entities(user, -> do\n connection.quote(s)\n end, -> do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
       "note": ""
     },
     {
@@ -959,6 +959,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-10-27 18:19:48 -0400",
-  "brakeman_version": "4.7.0"
+  "updated": "2019-10-29 21:24:56 -0400",
+  "brakeman_version": "4.7.1"
 }
