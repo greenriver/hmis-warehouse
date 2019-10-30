@@ -110,8 +110,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         sql = sql.or(arel_table[:id].eq(health_id))
       end
       where(sql)
-    else
+    elsif user.can_view_clients_or_window?
       where(visible_in_window: true)
+    else
+      where(Arel.sql('0=1'))
     end
   end
 
