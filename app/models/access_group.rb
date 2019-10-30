@@ -51,6 +51,10 @@ class AccessGroup < ActiveRecord::Base
     end
   end
 
+  def add(user)
+    access_group_members.where(user_id: user.id).first_or_create
+  end
+
   def remove(user)
     access_group_members.where(user_id: user.id).destroy_all
   end
