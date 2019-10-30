@@ -86,5 +86,9 @@ module GrdaWarehouse::Hud
       [:ProjectID]
     end
 
+    def self.available_coc_codes
+      distinct.order(:CoCCode).pluck(:CoCCode)
+    end
+
   end
 end

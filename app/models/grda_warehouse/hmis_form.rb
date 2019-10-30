@@ -100,7 +100,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_months_homeless = hmis_form.vispdat_homless_months
         hmis_form.vispdat_times_homeless = hmis_form.vispdat_homless_times
         hmis_form.vispdat_score_updated_at = Time.now
-        if hmis_form.changed?
+        if hmis_form.changed? && hmis_form&.destination_client
           hmis_form.save
           hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
         end

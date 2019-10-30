@@ -473,6 +473,10 @@ module GrdaWarehouse::Hud
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
     end
 
+    scope :visible_by_project_to, -> (user) do
+      joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    end
+
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
@@ -537,10 +541,38 @@ module GrdaWarehouse::Hud
         # with a valid consent form in the coc or with no-coc specified
         # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
         # are included.
-        joins(:client_files).
-        where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
+
+        # joins(:client_files).
+        # where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
+
+        if user&.can_see_clients_in_window_for_assigned_data_sources?
+          ds_ids = user.data_sources.pluck(:id)
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(arel_table[:id].in(active_confirmed_consent_in_cocs(user.coc_codes).select(:id))).
+            or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))).
+            or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+          )
+        else
+          active_confirmed_consent_in_cocs(user.coc_codes)
+        end
       else
-        distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
+        where(
+          arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
+          or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+        )
+      end
+    end
+
+
+    scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
+      if coc_codes.present?
+        full_housing_release_on_file.where(
+          arel_table[:consented_coc_codes].eq('[]').
+          or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+        )
+      else
+        none
       end
     end
 
@@ -956,7 +988,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      if housing_release_status.blank?
+      consent_text = if housing_release_status.blank?
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
@@ -973,6 +1005,10 @@ module GrdaWarehouse::Hud
       else
         _(housing_release_status)
       end
+      if consented_coc_codes.any?
+        consent_text += " in #{consented_coc_codes.to_sentence}"
+      end
+      consent_text
     end
 
     def release_duration
