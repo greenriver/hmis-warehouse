@@ -115,11 +115,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative_type: 'vispdat')
   end
 
+  scope :coordinated_assessment, -> do
+    where(authoritative_type: 'coordinated_assessment')
+  end
+
   def self.authoritative_types
     {
-      "Youth" => :youth,
-      "VI-SPDAT" => :vispdat,
-      "Health" => :health,
+      'Youth' => :youth,
+      'VI-SPDAT' => :vispdat,
+      'Health' => :health,
+      'Coordinated Assessment' => :coordinated_assessment,
     }
   end
 
