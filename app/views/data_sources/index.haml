@@ -3,7 +3,7 @@
   .col-sm-8
     %h1= content_for :title
   - if can_edit_data_sources?
-    .col-sm-4.text-right
+    .col-sm-4.text-right.mb-4
       = link_to new_data_source_path, class: 'btn btn-primary' do
         %span.icon-plus
         Add Data Source
