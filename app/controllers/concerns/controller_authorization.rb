@@ -45,7 +45,7 @@ module ControllerAuthorization
 
   def check_release
     return true unless GrdaWarehouse::Config.get(:window_access_requires_release)
-    return true if can_view_clients?
+    return true if can_view_clients? || can_see_clients_in_window_for_assigned_data_sources?
     return true if @client&.consent_form_valid?
 
     flash[:alert] = "Client #{@client&.full_name} is not viewable due to an expired/missing signed release"

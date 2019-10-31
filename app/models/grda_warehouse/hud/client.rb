@@ -887,7 +887,17 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-      (user.can_view_clients? || (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))) && user.can_view_client_window?
+      (
+        user.can_view_clients? ||
+        (
+          (
+            release_valid? ||
+            ! GrdaWarehouse::Config.get(:window_access_requires_release)
+          ) && user.can_view_client_window?
+        ) ||
+        user.can_see_clients_in_window_for_assigned_data_sources? &&
+        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+      )
     end
 
     def visible_because_of_relationship?(user)
