@@ -12,41 +12,41 @@ module WarehouseReports
     def index
       # Clients who received services for one-day enrollments in housing related projects.
       # this is a translation of an original raw SQL query into Arel
-      clients = GrdaWarehouse::Hud::Client
-      sql = clients.
-        joins(:warehouse_client_source, enrollments: [:project, :exit, :services]).
-        where(p_t[project_source.project_type_column].in(project_source::RESIDENTIAL_PROJECT_TYPE_IDS)).
+      @enrollments = GrdaWarehouse::Hud::Client.joins(
+        :warehouse_client_source,
+        enrollments: [:project, :exit, :services],
+      ).
+        where(
+          p_t[project_source.project_type_column].in(
+            project_source::RESIDENTIAL_PROJECT_TYPE_IDS,
+          ),
+        ).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         where(ex_t[:ExitDate].eq s_t[:DateProvided]).
         where(e_t[:EntryDate].eq s_t[:DateProvided]).
-        select(
-          s_t[:EnrollmentID],
-          e_t[:EntryDate],
-          s_t[:DateProvided],
-          ex_t[:ExitDate],
-          ex_t[:PersonalID],
-          ex_t[:data_source_id],
-          c_t[:FirstName],
-          c_t[:LastName],
-          wc_t[:destination_id],
-          e_t[:ProjectID],
-          p_t[:ProjectName],
-          p_t[project_source.project_type_column].as('project_type'),
-          s_t[:RecordType],
-        ).distinct.to_sql
-      @enrollments = if GrdaWarehouse::Hud::Service.all.engine.postgres?
-        result = GrdaWarehouseBase.connection.select_all(sql)
-        result.map do |row|
-          {}.tap do |hash|
-            result.columns.each_with_index.map do |name, _idx|
-              hash[name.to_s] = result.send(:column_type, name).type_cast_from_database(row[name])
-            end
-          end
+        distinct.pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
         end
-      else
-        GrdaWarehouseBase.connection.raw_connection.execute(sql).each(as: :hash)
-      end
+
       respond_to :html, :xlsx
+    end
+
+    def columns
+      {
+        EnrollmentID: s_t[:EnrollmentID],
+        EntryDate: e_t[:EntryDate],
+        DateProvided: s_t[:DateProvided],
+        ExitDate: ex_t[:ExitDate],
+        PersonalID: ex_t[:PersonalID],
+        data_source_id: ex_t[:data_source_id],
+        FirstName: c_t[:FirstName],
+        LastName: c_t[:LastName],
+        destination_id: wc_t[:destination_id],
+        ProjectID: e_t[:ProjectID],
+        ProjectName: p_t[:ProjectName],
+        project_type: p_t[project_source.project_type_column].as('project_type'),
+        RecordType: s_t[:RecordType],
+      }
     end
 
     def project_source
