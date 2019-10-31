@@ -85,6 +85,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
+    return none unless user
+
     ds_ids = user.data_sources.pluck(:id)
 
     if user&.can_edit_anything_super_user?
