@@ -85,24 +85,29 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
+    ds_ids = user.data_sources.pluck(:id)
+
     if user&.can_edit_anything_super_user?
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
-      if user&.can_see_clients_in_window_for_assigned_data_sources?
-        ds_ids = user.data_sources.pluck(:id)
-        where(
-          arel_table[:id].in(ds_ids).
-          or(arel_table[:visible_in_window].eq(true)).
-          or(arel_table[:id].in(current_scope.select(:id)))
-        )
+      if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(current_scope.select(:id)))
+        if user.can_view_or_search_clients_or_window?
+          sql = sql.or(arel_table[:visible_in_window].eq(true))
+        end
+        where(sql)
       else
         current_scope # this will get limited by client visibility
       end
-    elsif user&.can_see_clients_in_window_for_assigned_data_sources?
-      # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
-      ds_ids = user.data_sources.pluck(:id)
-      where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
-    elsif health_id = self.health_authoritative_id
+    elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+      # some users can see all clients for a specific data source,
+      # even if the data source as a whole is not available to anyone else in the window
+      sql = arel_table[:id].in(ds_ids)
+      if user.can_view_or_search_clients_or_window?
+        sql = sql.or(arel_table[:visible_in_window].eq(true))
+      end
+      where(sql)
+    elsif (health_id = self.health_authoritative_id)
       # only show record in window if the data source is visible in the window or
       # the record is a health record and the user has access to health..
       sql = arel_table[:visible_in_window].eq(true)
@@ -110,9 +115,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         sql = sql.or(arel_table[:id].eq(health_id))
       end
       where(sql)
-    elsif user.can_view_clients_or_window?
+    elsif user.can_view_or_search_clients_or_window?
       where(visible_in_window: true)
     else
+      # Note this should be `none` but active record is being incorrigible
       where(Arel.sql('0=1'))
     end
   end

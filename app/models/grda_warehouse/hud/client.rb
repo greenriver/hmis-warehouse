@@ -556,11 +556,22 @@ module GrdaWarehouse::Hud
         else
           active_confirmed_consent_in_cocs(user.coc_codes)
         end
+      elsif user.can_view_clients?
+        current_scope
       else
-        where(
-          arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
-          or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
-        )
+        ds_ids = user.data_sources.pluck(:id)
+        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))).
+            or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+          )
+        else
+          where(
+            arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
+            or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+          )
+        end
       end
     end
 

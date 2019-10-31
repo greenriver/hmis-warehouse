@@ -19,6 +19,7 @@ module UserPermissions
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
         :can_view_clients_or_window,
+        :can_view_or_search_clients_or_window,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -68,6 +69,10 @@ module UserPermissions
 
     def can_view_clients_or_window
       can_view_client_window? || can_view_clients?
+    end
+
+    def can_view_or_search_clients_or_window
+      can_view_client_window? || can_view_clients? || can_search_window?
     end
 
     def window_file_access
