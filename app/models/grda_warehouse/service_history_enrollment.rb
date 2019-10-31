@@ -237,12 +237,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    where(GrdaWarehouse::ServiceHistoryService.where(
-        shs_t[:service_history_enrollment_id].eq(arel_table[:id])
-      ).
-      where(date: (start_date..end_date)).
-      send(service_scope).
-      exists)
+    joins(:service_history_services).
+      merge(GrdaWarehouse::ServiceHistoryService.service_between(start_date: start_date, end_date: end_date, service_scope: service_scope))
+    # where(GrdaWarehouse::ServiceHistoryService.where(
+    #     shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+    #   ).
+    #   where(date: start_date..end_date)).
+    #   send(service_scope).
+    #   exists)
   end
 
   scope :heads_of_households, -> do

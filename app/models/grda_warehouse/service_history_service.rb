@@ -12,6 +12,11 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :enrollment, through: :service_history_enrollment
 
+  scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
+    send(service_scope).
+      where(date: start_date..end_date)
+  end
+
   scope :hud_project_type, -> (project_types) do
     in_project_type(project_types)
   end
