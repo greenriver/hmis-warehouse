@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-require "application_responder"
+require 'application_responder'
 
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
@@ -23,8 +23,8 @@ class ApplicationController < ActionController::Base
   before_action :set_hostname
 
   around_action :cache_grda_warehouse_base_queries
-  before_action :compose_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
-  after_action :log_activity, except: [:poll, :active, :rollup, :image]#, only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
+  before_action :compose_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
+  after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
   before_action :set_gettext_locale
@@ -41,12 +41,10 @@ class ApplicationController < ActionController::Base
 
   # Send any exceptions on production to slack
   def set_notification
-    request.env['exception_notifier.exception_data'] = {"server" => request.env['SERVER_NAME']}
+    request.env['exception_notifier.exception_data'] = { 'server' => request.env['SERVER_NAME'] }
   end
 
-  if Rails.configuration.force_ssl
-    force_ssl
-  end
+  force_ssl if Rails.configuration.force_ssl
 
   protected
 
@@ -96,21 +94,21 @@ class ApplicationController < ActionController::Base
     payload[:user_id] = current_user&.id
     payload[:pid] = Process.pid
     payload[:request_id] = request.uuid
-    payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/,'')
+    payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
   end
 
   def info_for_paper_trail
     {
       user_id: warden&.user&.id,
       session_id: request.env['rack.session.record']&.session_id,
-      request_id: request.uuid
+      request_id: request.uuid,
     }
   end
 
   def colorize(object)
     # make a hash of the object, truncate it to an appropriate size and then turn it into
     # a css friendly hash code
-    "#%06x" % (Zlib::crc32(Marshal.dump(object)) & 0xffffff)
+    format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
   end
   helper_method :colorize
 
@@ -126,7 +124,7 @@ class ApplicationController < ActionController::Base
     # alert users if their password has been compromised
     set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
 
-    last_url = session["user_return_to"]
+    last_url = session['user_return_to']
     if last_url.present?
       last_url
     elsif can_view_clients?
@@ -140,20 +138,22 @@ class ApplicationController < ActionController::Base
 
   def check_all_db_migrations
     return true unless Rails.env.development?
+
     query = 'select version from schema_migrations'
     # Warehouse
     all = ActiveRecord::Migrator.migrations(['db/warehouse/migrate']).collect(&:version)
     migrated = GrdaWarehouseBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError.new "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
+
     # Health
     all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
     migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError.new "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
 
     # Reporting
     all = ActiveRecord::Migrator.migrations(['db/reporting/migrate']).collect(&:version)
     migrated = ReportingBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError.new "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if (all - migrated).size > 0
+    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
   end
 
   def pjax_request?
@@ -162,6 +162,10 @@ class ApplicationController < ActionController::Base
   helper_method :pjax_request?
 
   def set_hostname
-    @op_hostname ||= `hostname` rescue 'test-server'
+    @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+      `hostname`
+    rescue StandardError
+      'test-server'
+    end
   end
 end

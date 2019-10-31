@@ -9,6 +9,9 @@ module GrdaWarehouse
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
 
+    # FIXME: temporary alias pending merge multi-coc code
+    alias_attribute :coc_code, :coc_codes
+
     acts_as_taggable
 
     include ArelHelper
