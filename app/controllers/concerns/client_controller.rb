@@ -163,9 +163,12 @@ module ClientController
           if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
             flash[:notice] = "Client #{@client.full_name} created."
             after_create_path = client_path_generator
-            after_create_path += [@client.data_source.after_create_path] if @client.data_source.after_create_path.present?
-            # this is a bit ugly, but some pages are looking for id, others client_id
-            redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
+            if @client.data_source.after_create_path.present?
+              after_create_path += [@client.data_source.after_create_path]
+              redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
+            else
+              redirect_to polymorphic_path(after_create_path, id: destination_client.id)
+            end
           else
             flash[:error] = 'Unable to create client'
             render action: :new
