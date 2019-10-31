@@ -13,13 +13,13 @@ module WarehouseReports
     before_action :set_organizations
 
     def index
-      date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
+      date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params.permit![:first_time_homeless].present?
       @range = ::Filters::DateRange.new(date_range_options)
       @sub_population = (params.try(:[], :first_time_homeless).try(:[], :sub_population) || :all_clients).to_sym
 
       if @range.valid?
         @first_time_client_ids = Set.new
-        @project_type_codes = params[:first_time_homeless].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
+        @project_type_codes = params.permit![:first_time_homeless].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
         @project_types = []
         @project_type_codes.each do |code|
           @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
@@ -42,7 +42,7 @@ module WarehouseReports
       end
       respond_to do |format|
         format.html do
-          @clients = @clients.page(params[:page]).per(25)
+          @clients = @clients.page(params.permit![:page]).per(25)
         end
         format.xlsx {}
       end
@@ -71,10 +71,10 @@ module WarehouseReports
     # Present a chart of the counts from the previous year
     def summary
       @first_time_client_ids = Set.new
-      start_date = params[:start] || 1.year.ago
-      end_date = params[:end] || 1.day.ago
+      start_date = params.permit![:start] || 1.year.ago
+      end_date = params.permit![:end] || 1.day.ago
       @project_types = params.try(:[], :project_types) || '[]'
-      @project_types = JSON.parse(params[:project_types])
+      @project_types = JSON.parse(params.permit![:project_types])
       @project_types.map!(&:to_i)
       @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS if @project_types.empty?
       @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
@@ -119,7 +119,7 @@ module WarehouseReports
 
     def set_organizations
       @organization_ids = begin
-                            params[:first_time_homeless][:organization_ids].map(&:presence).compact.map(&:to_i)
+                            params.permit![:first_time_homeless][:organization_ids].map(&:presence).compact.map(&:to_i)
                           rescue StandardError
                             []
                           end
@@ -127,7 +127,7 @@ module WarehouseReports
 
     def set_projects
       @project_ids = begin
-                       params[:first_time_homeless][:project_ids].map(&:presence).compact.map(&:to_i)
+                       params.permit![:first_time_homeless][:project_ids].map(&:presence).compact.map(&:to_i)
                      rescue StandardError
                        []
                      end

@@ -79,7 +79,7 @@ module WarehouseReports
 
     def set_organizations
       @organization_ids = begin
-                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
+                            params.permit![:range][:organization_ids].map(&:presence).compact.map(&:to_i)
                           rescue StandardError
                             []
                           end
@@ -87,7 +87,7 @@ module WarehouseReports
 
     def set_projects
       @project_ids = begin
-                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
+                       params.permit![:range][:project_ids].map(&:presence).compact.map(&:to_i)
                      rescue StandardError
                        []
                      end
@@ -98,7 +98,7 @@ module WarehouseReports
     end
 
     def set_project_types
-      @project_type_codes = params[:range].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
+      @project_type_codes = params.permit![:range].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
       @project_types = []
       @project_type_codes.each do |code|
         @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]

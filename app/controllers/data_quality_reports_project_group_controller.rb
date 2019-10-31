@@ -16,7 +16,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
   before_action :set_report_keys, only: [:show]
 
   def index
-    @project_group = project_group_source.find(params[:project_group_id].to_i)
+    @project_group = project_group_source.find(params.permit![:project_group_id].to_i)
     @reports = @project_group.data_quality_reports.order(started_at: :desc)
   end
 
@@ -44,11 +44,11 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
   end
 
   def set_report
-    @report = report_scope.where(project_group_id: params[:project_group_id].to_i).find(params[:id].to_i)
+    @report = report_scope.where(project_group_id: params.permit![:project_group_id].to_i).find(params[:id].to_i)
   end
 
   def set_project_group
-    @project_group = project_group_source.find(params[:project_group_id].to_i)
+    @project_group = project_group_source.find(params.permit![:project_group_id].to_i)
   end
 
   def project_group_scope

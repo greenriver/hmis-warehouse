@@ -16,7 +16,7 @@ class ImportsController < ApplicationController
     sort = "#{sort_column} #{sort_direction}"
     @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at).
       order(sort).
-      page(params[:page].to_i).per(20)
+      page(params.permit![:page].to_i).per(20)
   end
 
   # GET /imports/new
@@ -90,10 +90,10 @@ class ImportsController < ApplicationController
   end
 
   def sort_column
-    import_source.column_names.include?(params[:sort]) ? params[:sort] : 'created_at'
+    import_source.column_names.include?(params.permit![:sort]) ? params.permit![:sort] : 'created_at'
   end
 
   def sort_direction
-    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'desc'
+    ['asc', 'desc'].include?(params.permit![:direction]) ? params.permit![:direction] : 'desc'
   end
 end

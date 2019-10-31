@@ -32,7 +32,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def answers
-    @key = params[:key].to_s
+    @key = params.permit![:key].to_s
     @data = @report.report&.[](@key)
     if @key.blank? || @data.blank?
       render json: @report.report
@@ -49,10 +49,10 @@ class DataQualityReportsController < ApplicationController
   end
 
   def support
-    if params[:individual].present?
+    if params.permit![:individual].present?
       @data = @report.support_for(support_params)
       @details_title = @data[:title] || 'Supporting Data'
-      @method = params[:method]
+      @method = params.permit![:method]
       respond_to do |format|
         format.xlsx do
           render support_render_path, filename: "support-#{@method}.xlsx"
@@ -107,7 +107,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def legacy_support
-    @key = params[:key].to_s
+    @key = params.permit![:key].to_s
     if @key.blank?
       render json: @report.support
     else
@@ -118,7 +118,7 @@ class DataQualityReportsController < ApplicationController
           render xlsx: :index, filename: "support-#{@key}.xlsx"
         end
         format.html do
-          render layout: 'pjax_modal_content' if params[:layout].present? && params[:layout] == 'false'
+          render layout: 'pjax_modal_content' if params.permit![:layout].present? && params.permit![:layout] == 'false'
         end
         format.js {}
       end
@@ -150,15 +150,15 @@ class DataQualityReportsController < ApplicationController
   end
 
   def set_report
-    @report = report_scope.where(project_id: params[:project_id].to_i).find(params[:id].to_i)
+    @report = report_scope.where(project_id: params.permit![:project_id].to_i).find(params[:id].to_i)
   end
 
   def set_project
-    @project = project_source.find(params[:project_id].to_i)
+    @project = project_source.find(params.permit![:project_id].to_i)
   end
 
   def notification_id
-    params[:notification_id]
+    params.permit![:notification_id]
   end
   helper_method :notification_id
 

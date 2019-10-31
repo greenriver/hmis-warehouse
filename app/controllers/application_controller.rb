@@ -62,7 +62,7 @@ class ApplicationController < ActionController::Base
 
   def locale
     default_locale = 'en'
-    params[:locale] || session[:locale] || default_locale
+    params.permit![:locale] || session[:locale] || default_locale
   end
 
   private

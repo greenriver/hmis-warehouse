@@ -75,11 +75,11 @@ class ReportsController < ApplicationController
   end
 
   def sort_column
-    report_source.column_names.include?(params[:sort]) ? params[:sort] : 'name'
+    report_source.column_names.include?(params.permit![:sort]) ? params.permit![:sort] : 'name'
   end
 
   def sort_direction
-    ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
+    ['asc', 'desc'].include?(params.permit![:direction]) ? params.permit![:direction] : 'asc'
   end
 
   def group_reports(reports)

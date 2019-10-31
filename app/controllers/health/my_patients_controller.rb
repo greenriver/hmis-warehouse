@@ -12,11 +12,11 @@ module Health
     include ClientPathGenerator
 
     def index
-      @q = @patients.ransack(params[:q])
-      @patients = @q.result(distinct: true) if params[:q].present?
-      if params[:filter].present?
-        @active_filter = true if params[:filter][:population] != 'all'
-        case params[:filter][:population]
+      @q = @patients.ransack(params.permit![:q])
+      @patients = @q.result(distinct: true) if params.permit![:q].present?
+      if params.permit![:filter].present?
+        @active_filter = true if params.permit![:filter][:population] != 'all'
+        case params.permit![:filter][:population]
         when 'not_engaged'
           @patients = @patients.not_engaged
         when 'no_activities'
@@ -26,15 +26,15 @@ module Health
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end
-        if params[:filter][:user].present?
+        if params.permit![:filter][:user].present?
           @active_filter = true
-          @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
+          @patients = @patients.where(care_coordinator_id: params.permit![:filter][:user].to_i)
         end
       end
       respond_to do |format|
         format.html do
           @patients = @patients.order(last_name: :asc, first_name: :asc).
-            page(params[:page].to_i).per(25)
+            page(params.permit![:page].to_i).per(25)
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')
