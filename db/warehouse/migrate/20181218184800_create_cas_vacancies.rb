@@ -1,4 +1,4 @@
-class CreateCasVacancies < ActiveRecord::Migration
+class CreateCasVacancies < ActiveRecord::Migration[4.2]
   def change
     create_table :cas_vacancies do |t|
       t.integer :program_id, null: false, index: true

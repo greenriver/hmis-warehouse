@@ -1,4 +1,4 @@
-class CreateHmisAnswerTable < ActiveRecord::Migration
+class CreateHmisAnswerTable < ActiveRecord::Migration[4.2]
   def up 
     create_table :hmis_answers do |t|
       t.integer :assessment_id, null: false

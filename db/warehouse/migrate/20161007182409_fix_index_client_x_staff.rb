@@ -1,4 +1,4 @@
-class FixIndexClientXStaff < ActiveRecord::Migration
+class FixIndexClientXStaff < ActiveRecord::Migration[4.2]
   def change
     table_name = GrdaWarehouse::HMIS::StaffXClient.table_name
     remove_index table_name, column: [:staff_id, :client_id]

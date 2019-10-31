@@ -1,4 +1,4 @@
-class CreateMonthlyReports < ActiveRecord::Migration
+class CreateMonthlyReports < ActiveRecord::Migration[4.2]
   def change
     create_table :warehouse_monthly_reports do |t|
       t.integer :month, null: false, index: true

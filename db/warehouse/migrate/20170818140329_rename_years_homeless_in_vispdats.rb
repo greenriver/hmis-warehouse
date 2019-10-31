@@ -1,4 +1,4 @@
-class RenameYearsHomelessInVispdats < ActiveRecord::Migration
+class RenameYearsHomelessInVispdats < ActiveRecord::Migration[4.2]
   def change
     rename_column :vispdats, :years_homeless, :homeless
     rename_column :vispdats, :years_homeless_refused, :homeless_refused

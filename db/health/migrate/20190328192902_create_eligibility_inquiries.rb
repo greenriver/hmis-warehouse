@@ -1,4 +1,4 @@
-class CreateEligibilityInquiries < ActiveRecord::Migration
+class CreateEligibilityInquiries < ActiveRecord::Migration[4.2]
   def change
     create_table :eligibility_inquiries do |t|
       t.date :service_date, null: false

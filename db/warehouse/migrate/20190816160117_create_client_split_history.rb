@@ -1,4 +1,4 @@
-class CreateClientSplitHistory < ActiveRecord::Migration
+class CreateClientSplitHistory < ActiveRecord::Migration[4.2]
   def change
     create_table :client_split_histories do |t|
       t.integer :split_into, null: false

@@ -1,4 +1,4 @@
-class CreateUserCareCoordinators < ActiveRecord::Migration
+class CreateUserCareCoordinators < ActiveRecord::Migration[4.2]
   def change
     create_table :user_care_coordinators do |t|
       t.references :user

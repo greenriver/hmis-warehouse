@@ -1,4 +1,4 @@
-class AddEpicChaSsmCareplanTables < ActiveRecord::Migration
+class AddEpicChaSsmCareplanTables < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_careplans do |t|
       t.string :patient_id

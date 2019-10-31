@@ -1,4 +1,4 @@
-class AddCasAdditionalFlags < ActiveRecord::Migration
+class AddCasAdditionalFlags < ActiveRecord::Migration[4.2]
   def change
     [
       :chronically_homeless_for_cas,

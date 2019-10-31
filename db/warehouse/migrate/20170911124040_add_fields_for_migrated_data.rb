@@ -1,4 +1,4 @@
-class AddFieldsForMigratedData < ActiveRecord::Migration
+class AddFieldsForMigratedData < ActiveRecord::Migration[4.2]
   def change
     add_column :client_notes, :migrated_username, :string
     add_column :files, :migrated_username, :string

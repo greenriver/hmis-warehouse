@@ -1,4 +1,4 @@
-class CreateAdministrativeEvents < ActiveRecord::Migration
+class CreateAdministrativeEvents < ActiveRecord::Migration[4.2]
   def change
     create_table :administrative_events do |t|
       t.references :user, null: false

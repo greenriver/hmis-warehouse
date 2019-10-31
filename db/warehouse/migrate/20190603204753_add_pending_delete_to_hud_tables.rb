@@ -1,4 +1,4 @@
-class AddPendingDeleteToHudTables < ActiveRecord::Migration
+class AddPendingDeleteToHudTables < ActiveRecord::Migration[4.2]
   def change
     add_column :Affiliation, :pending_date_deleted, :datetime, default: nil
     add_column :Client, :pending_date_deleted, :datetime, default: nil

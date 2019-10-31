@@ -1,4 +1,4 @@
-class AddAnomalyReport < ActiveRecord::Migration
+class AddAnomalyReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Data Quality' => [
       {

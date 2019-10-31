@@ -1,4 +1,4 @@
-class AddAgesToHoused < ActiveRecord::Migration
+class AddAgesToHoused < ActiveRecord::Migration[4.2]
   def change
     add_column :warehouse_houseds, :age_at_search_start, :integer
     add_column :warehouse_houseds, :age_at_search_end, :integer

@@ -1,4 +1,4 @@
-class AddPremiumPaymentsReport < ActiveRecord::Migration
+class AddPremiumPaymentsReport < ActiveRecord::Migration[4.2]
   UP_REPORTS = {
     'Health' => [
       {

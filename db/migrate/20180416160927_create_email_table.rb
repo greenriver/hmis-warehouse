@@ -1,4 +1,4 @@
-class CreateEmailTable < ActiveRecord::Migration
+class CreateEmailTable < ActiveRecord::Migration[4.2]
   def change
     create_table :messages do |t|
       t.references :user

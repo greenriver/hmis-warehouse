@@ -1,4 +1,4 @@
-class CreateSignableDocuments < ActiveRecord::Migration
+class CreateSignableDocuments < ActiveRecord::Migration[4.2]
   def change
     create_table :signable_documents do |t|
       t.integer  "signable_id",   null: false

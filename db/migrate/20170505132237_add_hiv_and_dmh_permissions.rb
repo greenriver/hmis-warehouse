@@ -1,4 +1,4 @@
-class AddHivAndDmhPermissions < ActiveRecord::Migration
+class AddHivAndDmhPermissions < ActiveRecord::Migration[4.2]
   def change
     Role.ensure_permissions_exist
     admin = Role.where(name: 'admin').first

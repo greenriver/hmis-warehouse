@@ -1,4 +1,4 @@
-class CreateRecurringHmisExports < ActiveRecord::Migration
+class CreateRecurringHmisExports < ActiveRecord::Migration[4.2]
   def change
     create_table :recurring_hmis_exports do |t|
       t.integer :every_n_days

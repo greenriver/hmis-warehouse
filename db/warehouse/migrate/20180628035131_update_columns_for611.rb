@@ -1,4 +1,4 @@
-class UpdateColumnsFor611 < ActiveRecord::Migration
+class UpdateColumnsFor611 < ActiveRecord::Migration[4.2]
   def change
     rename_column :Disabilities, :ProjectEntryID, :EnrollmentID
     rename_column :EmploymentEducation, :ProjectEntryID, :EnrollmentID

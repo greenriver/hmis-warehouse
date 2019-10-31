@@ -1,4 +1,4 @@
-class CreateCeAssessments < ActiveRecord::Migration
+class CreateCeAssessments < ActiveRecord::Migration[4.2]
   def change
     create_table :ce_assessments do |t|
       t.integer :user_id, index: true, null: false

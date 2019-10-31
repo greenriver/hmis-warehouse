@@ -1,4 +1,4 @@
-class CreatePatientReferrals < ActiveRecord::Migration
+class CreatePatientReferrals < ActiveRecord::Migration[4.2]
   def change
     create_table :patient_referrals do |t|
       t.string :first_name

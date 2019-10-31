@@ -1,4 +1,4 @@
-class RemoveStaleTables < ActiveRecord::Migration
+class RemoveStaleTables < ActiveRecord::Migration[4.2]
   def up
     drop_table :clients_processed if GrdaWarehouseBase.connection.table_exists? :clients_processed
     drop_table :clients_unduplicated if GrdaWarehouseBase.connection.table_exists? :clients_unduplicated

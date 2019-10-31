@@ -1,4 +1,4 @@
-class AddIdentifyDuplicatesLogAndGenerateServiceHistoryLog < ActiveRecord::Migration
+class AddIdentifyDuplicatesLogAndGenerateServiceHistoryLog < ActiveRecord::Migration[4.2]
   def change
     create_table :identify_duplicates_log do |t|
       t.datetime :started_at

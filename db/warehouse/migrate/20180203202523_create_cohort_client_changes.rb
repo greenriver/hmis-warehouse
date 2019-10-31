@@ -1,4 +1,4 @@
-class CreateCohortClientChanges < ActiveRecord::Migration
+class CreateCohortClientChanges < ActiveRecord::Migration[4.2]
   def change
     create_table :cohort_client_changes do |t|
       t.references :cohort_client, null: false

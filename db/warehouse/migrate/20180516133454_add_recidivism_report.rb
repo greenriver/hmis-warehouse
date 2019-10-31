@@ -1,4 +1,4 @@
-class AddRecidivismReport < ActiveRecord::Migration
+class AddRecidivismReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Operational Reports' => [
       {

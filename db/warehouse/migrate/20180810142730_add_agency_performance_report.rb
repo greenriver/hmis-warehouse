@@ -1,4 +1,4 @@
-class AddAgencyPerformanceReport < ActiveRecord::Migration
+class AddAgencyPerformanceReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Health' => [
       {

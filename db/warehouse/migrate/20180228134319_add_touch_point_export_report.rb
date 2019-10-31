@@ -1,4 +1,4 @@
-class AddTouchPointExportReport < ActiveRecord::Migration
+class AddTouchPointExportReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Operational Reports' => [
       {

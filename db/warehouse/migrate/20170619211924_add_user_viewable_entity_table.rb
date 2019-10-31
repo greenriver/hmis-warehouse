@@ -1,4 +1,4 @@
-class AddUserViewableEntityTable < ActiveRecord::Migration
+class AddUserViewableEntityTable < ActiveRecord::Migration[4.2]
   def change
     create_table :user_viewable_entities do |t|
       t.references :user, null: false

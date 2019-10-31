@@ -1,4 +1,4 @@
-class RemoveUniqueIndexFromClient < ActiveRecord::Migration
+class RemoveUniqueIndexFromClient < ActiveRecord::Migration[4.2]
   TABLES = [   # all the tables I found which had PersonalID
     GrdaWarehouse::Hud::Client,
   ]

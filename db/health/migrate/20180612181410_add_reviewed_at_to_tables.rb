@@ -1,4 +1,4 @@
-class AddReviewedAtToTables < ActiveRecord::Migration
+class AddReviewedAtToTables < ActiveRecord::Migration[4.2]
   def change
     add_column :release_forms, :reviewed_at, :datetime
     add_column :release_forms, :reviewer, :string

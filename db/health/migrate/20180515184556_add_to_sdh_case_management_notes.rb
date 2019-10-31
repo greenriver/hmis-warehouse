@@ -1,4 +1,4 @@
-class AddToSdhCaseManagementNotes < ActiveRecord::Migration
+class AddToSdhCaseManagementNotes < ActiveRecord::Migration[4.2]
   def change
     add_column :sdh_case_management_notes, :topics, :text
     add_column :sdh_case_management_notes, :title, :string

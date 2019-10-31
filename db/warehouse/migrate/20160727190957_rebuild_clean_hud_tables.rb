@@ -1,4 +1,4 @@
-class RebuildCleanHudTables < ActiveRecord::Migration
+class RebuildCleanHudTables < ActiveRecord::Migration[4.2]
   def change
     create_table :data_sources do |t|
       t.string :name

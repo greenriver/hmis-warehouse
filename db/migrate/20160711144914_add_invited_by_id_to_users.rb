@@ -1,4 +1,4 @@
-class AddInvitedByIdToUsers < ActiveRecord::Migration
+class AddInvitedByIdToUsers < ActiveRecord::Migration[4.2]
   def up
     change_table :users do |t|
       t.datetime   :invitation_sent_at

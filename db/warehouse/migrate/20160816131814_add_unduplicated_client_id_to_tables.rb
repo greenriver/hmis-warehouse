@@ -1,4 +1,4 @@
-class AddUnduplicatedClientIdToTables < ActiveRecord::Migration
+class AddUnduplicatedClientIdToTables < ActiveRecord::Migration[4.2]
   def change
     remove_column :warehouse_clients, :unduplicated_client_id, :integer
 

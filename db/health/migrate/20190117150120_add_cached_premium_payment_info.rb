@@ -1,4 +1,4 @@
-class AddCachedPremiumPaymentInfo < ActiveRecord::Migration
+class AddCachedPremiumPaymentInfo < ActiveRecord::Migration[4.2]
   def change
     add_column :premium_payments, :converted_content, :jsonb
     add_column :premium_payments, :started_at, :datetime

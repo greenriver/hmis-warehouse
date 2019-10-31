@@ -1,4 +1,4 @@
-class CreateTableToCacheCensusData < ActiveRecord::Migration
+class CreateTableToCacheCensusData < ActiveRecord::Migration[4.2]
   def change
     create_table :censuses do |t|
       t.integer :data_source_id, null: false

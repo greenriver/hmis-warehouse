@@ -1,4 +1,4 @@
-class CreateCasReportsTable < ActiveRecord::Migration
+class CreateCasReportsTable < ActiveRecord::Migration[4.2]
   def change
     create_table :cas_reports do |t|
       t.integer  :client_id, null: false

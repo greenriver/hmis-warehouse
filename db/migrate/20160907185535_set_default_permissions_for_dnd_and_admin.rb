@@ -1,4 +1,4 @@
-class SetDefaultPermissionsForDNDAndAdmin < ActiveRecord::Migration
+class SetDefaultPermissionsForDNDAndAdmin < ActiveRecord::Migration[4.2]
   def up
     Role.ensure_permissions_exist
     admin = Role.where(name: 'admin').first_or_create

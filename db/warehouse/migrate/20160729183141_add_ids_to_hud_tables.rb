@@ -1,4 +1,4 @@
-class AddIdsToHudTables < ActiveRecord::Migration
+class AddIdsToHudTables < ActiveRecord::Migration[4.2]
   def change
     add_column 'Client', :id, :primary_key
     add_column 'Affiliation', :id, :primary_key

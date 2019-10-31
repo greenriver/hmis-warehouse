@@ -1,4 +1,4 @@
-class MoveUploadsToGrdaWarehouse < ActiveRecord::Migration
+class MoveUploadsToGrdaWarehouse < ActiveRecord::Migration[4.2]
   def change
     create_table :uploads do |t|
       t.references :data_source

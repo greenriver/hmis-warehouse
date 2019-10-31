@@ -1,4 +1,4 @@
-class SeedReportDefinitions < ActiveRecord::Migration
+class SeedReportDefinitions < ActiveRecord::Migration[4.2]
 
   REPORTS = {
     'Operational Reports' => [

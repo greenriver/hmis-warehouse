@@ -1,4 +1,4 @@
-class CreateHelp < ActiveRecord::Migration
+class CreateHelp < ActiveRecord::Migration[4.2]
   def change
     create_table :helps do |t|
       t.string :controller_path, null: false

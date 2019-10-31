@@ -1,4 +1,4 @@
-class UpdateHpcRolePermissions < ActiveRecord::Migration
+class UpdateHpcRolePermissions < ActiveRecord::Migration[4.2]
   def up
     return
 

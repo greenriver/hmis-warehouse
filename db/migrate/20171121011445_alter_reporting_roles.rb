@@ -1,4 +1,4 @@
-class AlterReportingRoles < ActiveRecord::Migration
+class AlterReportingRoles < ActiveRecord::Migration[4.2]
   def up
     if column_exists? :roles, :can_view_reports
       remove_column :roles, :can_view_reports, :boolean, default: false

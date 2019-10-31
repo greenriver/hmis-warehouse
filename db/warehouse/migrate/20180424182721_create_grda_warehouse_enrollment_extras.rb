@@ -1,4 +1,4 @@
-class CreateGrdaWarehouseEnrollmentExtras < ActiveRecord::Migration
+class CreateGrdaWarehouseEnrollmentExtras < ActiveRecord::Migration[4.2]
   def change
     create_table :enrollment_extras do |t|
       t.references :enrollment, null: false, delete: :cascade

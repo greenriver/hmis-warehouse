@@ -1,4 +1,4 @@
-class CreateNightlyCensusByProjectClients < ActiveRecord::Migration
+class CreateNightlyCensusByProjectClients < ActiveRecord::Migration[4.2]
   def change
     create_table :nightly_census_by_project_clients do |t|
       t.date :date, null: false

@@ -1,4 +1,4 @@
-class CreateSoapConfigs < ActiveRecord::Migration
+class CreateSoapConfigs < ActiveRecord::Migration[4.2]
   def change
     create_table :soap_configs do |t|
       t.string :name

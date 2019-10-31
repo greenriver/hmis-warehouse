@@ -1,4 +1,4 @@
-class CreateEpicCaseNoteQualifyingActivities < ActiveRecord::Migration
+class CreateEpicCaseNoteQualifyingActivities < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_case_note_qualifying_activities do |t|
       t.string :patient_id

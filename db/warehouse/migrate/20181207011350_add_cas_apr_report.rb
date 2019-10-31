@@ -1,4 +1,4 @@
-class AddCasAprReport < ActiveRecord::Migration
+class AddCasAprReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'CAS' => [
       {

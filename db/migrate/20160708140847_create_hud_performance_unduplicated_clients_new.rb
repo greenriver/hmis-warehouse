@@ -1,4 +1,4 @@
-class CreateHudPerformanceUnduplicatedClientsNew < ActiveRecord::Migration
+class CreateHudPerformanceUnduplicatedClientsNew < ActiveRecord::Migration[4.2]
   def change
     create_table :clients_unduplicated do |t|
       t.string :client_unique_id, null: false

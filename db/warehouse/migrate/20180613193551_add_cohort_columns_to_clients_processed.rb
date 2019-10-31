@@ -1,4 +1,4 @@
-class AddCohortColumnsToClientsProcessed < ActiveRecord::Migration
+class AddCohortColumnsToClientsProcessed < ActiveRecord::Migration[4.2]
   def change
     add_column :warehouse_clients_processed, :disability_verification_date, :date
     add_column :warehouse_clients_processed, :enrolled_homeless_shelter, :boolean

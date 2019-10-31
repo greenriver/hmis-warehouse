@@ -1,4 +1,4 @@
-class CreateClaims < ActiveRecord::Migration
+class CreateClaims < ActiveRecord::Migration[4.2]
   def change
     create_table :claims do |t|
       t.references :user

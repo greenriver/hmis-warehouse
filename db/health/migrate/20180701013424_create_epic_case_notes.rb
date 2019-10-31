@@ -1,4 +1,4 @@
-class CreateEpicCaseNotes < ActiveRecord::Migration
+class CreateEpicCaseNotes < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_case_notes do |t|
       t.string :patient_id, null: false, index: true

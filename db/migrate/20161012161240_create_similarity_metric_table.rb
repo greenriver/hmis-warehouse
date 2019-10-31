@@ -1,4 +1,4 @@
-class CreateSimilarityMetricTable < ActiveRecord::Migration
+class CreateSimilarityMetricTable < ActiveRecord::Migration[4.2]
   def up
     enable_extension 'hstore'
     unless ActiveRecord::Base.connection.tables.include?('similarity_metrics')

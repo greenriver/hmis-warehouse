@@ -1,4 +1,4 @@
-class AddDateDeletedDataSourceIndexes < ActiveRecord::Migration
+class AddDateDeletedDataSourceIndexes < ActiveRecord::Migration[4.2]
   def change
     add_index :Affiliation, [:DateDeleted, :data_source_id]
     add_index :Client, [:DateDeleted, :data_source_id]

@@ -1,4 +1,4 @@
-class CreateSelfSufficiencyMatrixForms < ActiveRecord::Migration
+class CreateSelfSufficiencyMatrixForms < ActiveRecord::Migration[4.2]
   def change
     create_table :self_sufficiency_matrix_forms do |t|
       t.belongs_to :patient

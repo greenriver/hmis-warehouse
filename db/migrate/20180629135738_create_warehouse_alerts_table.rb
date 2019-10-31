@@ -1,4 +1,4 @@
-class CreateWarehouseAlertsTable < ActiveRecord::Migration
+class CreateWarehouseAlertsTable < ActiveRecord::Migration[4.2]
   def change
     create_table :warehouse_alerts do |t|
       t.references :user

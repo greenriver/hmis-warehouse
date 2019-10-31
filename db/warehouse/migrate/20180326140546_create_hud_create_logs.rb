@@ -1,4 +1,4 @@
-class CreateHudCreateLogs < ActiveRecord::Migration
+class CreateHudCreateLogs < ActiveRecord::Migration[4.2]
   def change
     create_table :hud_create_logs do |t|
       t.string :hud_key, null: false

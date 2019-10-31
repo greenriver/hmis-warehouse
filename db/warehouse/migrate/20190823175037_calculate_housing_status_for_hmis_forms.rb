@@ -1,4 +1,4 @@
-class CalculateHousingStatusForHmisForms < ActiveRecord::Migration
+class CalculateHousingStatusForHmisForms < ActiveRecord::Migration[4.2]
   def up
     GrdaWarehouse::HmisForm.
       case_management_notes.

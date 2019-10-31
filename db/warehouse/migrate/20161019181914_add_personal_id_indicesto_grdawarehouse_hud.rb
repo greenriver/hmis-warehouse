@@ -1,4 +1,4 @@
-class AddPersonalIdIndicestoGrdawarehouseHud < ActiveRecord::Migration
+class AddPersonalIdIndicestoGrdawarehouseHud < ActiveRecord::Migration[4.2]
   TABLES = [   # all the tables I found which had PersonalID
     GrdaWarehouse::Hud::Client,
     GrdaWarehouse::Hud::Disability,

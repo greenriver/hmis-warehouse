@@ -1,4 +1,4 @@
-class AddIndexesForAhar < ActiveRecord::Migration
+class AddIndexesForAhar < ActiveRecord::Migration[4.2]
   def change
     add_index 'Enrollment', 'ProjectID'
     add_index 'Enrollment', 'ProjectEntryID'

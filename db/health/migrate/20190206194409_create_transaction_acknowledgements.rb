@@ -1,4 +1,4 @@
-class CreateTransactionAcknowledgements < ActiveRecord::Migration
+class CreateTransactionAcknowledgements < ActiveRecord::Migration[4.2]
   def change
     create_table :transaction_acknowledgements do |t|
       t.references :user

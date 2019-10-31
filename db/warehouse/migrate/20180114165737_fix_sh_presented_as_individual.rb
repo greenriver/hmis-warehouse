@@ -1,4 +1,4 @@
-class FixShPresentedAsIndividual < ActiveRecord::Migration
+class FixShPresentedAsIndividual < ActiveRecord::Migration[4.2]
   def up
     # # Set all to true
     # GrdaWarehouse::ServiceHistory.update_all(presented_as_individual: true)

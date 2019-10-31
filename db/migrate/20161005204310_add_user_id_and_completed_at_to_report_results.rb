@@ -1,4 +1,4 @@
-class AddUserIdAndCompletedAtToReportResults < ActiveRecord::Migration
+class AddUserIdAndCompletedAtToReportResults < ActiveRecord::Migration[4.2]
   def up
     add_column :report_results, :completed_at, :datetime
     add_reference :report_results, :user

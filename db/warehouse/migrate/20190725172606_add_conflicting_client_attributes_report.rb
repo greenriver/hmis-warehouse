@@ -1,4 +1,4 @@
-class AddConflictingClientAttributesReport < ActiveRecord::Migration
+class AddConflictingClientAttributesReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Data Quality' => [
       {

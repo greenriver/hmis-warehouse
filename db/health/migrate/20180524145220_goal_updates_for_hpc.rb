@@ -1,4 +1,4 @@
-class GoalUpdatesForHpc < ActiveRecord::Migration
+class GoalUpdatesForHpc < ActiveRecord::Migration[4.2]
   def change
     add_column :health_goals, :problem, :text
     add_column :health_goals, :start_date, :date

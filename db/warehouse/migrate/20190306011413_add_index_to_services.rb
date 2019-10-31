@@ -1,4 +1,4 @@
-class AddIndexToServices < ActiveRecord::Migration
+class AddIndexToServices < ActiveRecord::Migration[4.2]
   def tables
     [
       'Affiliation',

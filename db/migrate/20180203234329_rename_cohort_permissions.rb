@@ -1,4 +1,4 @@
-class RenameCohortPermissions < ActiveRecord::Migration
+class RenameCohortPermissions < ActiveRecord::Migration[4.2]
   def up
     if column_exists? :roles, :can_create_cohorts
       remove_column :roles, :can_create_cohorts, :boolean, default: false

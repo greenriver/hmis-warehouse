@@ -1,4 +1,4 @@
-class AddHmisClientIds < ActiveRecord::Migration
+class AddHmisClientIds < ActiveRecord::Migration[4.2]
   def change
     create_table :hmis_client_ids do |t|
       t.string :hmis_id

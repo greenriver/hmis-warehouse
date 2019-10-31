@@ -1,4 +1,4 @@
-class AddFieldsforHmisSixOneOne < ActiveRecord::Migration
+class AddFieldsforHmisSixOneOne < ActiveRecord::Migration[4.2]
   def change
     add_column :Project, :OperatingStartDate, :date
     add_column :Project, :OperatingEndDate, :date

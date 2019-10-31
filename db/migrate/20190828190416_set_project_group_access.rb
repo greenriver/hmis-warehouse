@@ -1,4 +1,4 @@
-class SetProjectGroupAccess < ActiveRecord::Migration
+class SetProjectGroupAccess < ActiveRecord::Migration[4.2]
   def up
     # user_ids = User.joins(:roles).merge(Role.where(can_edit_project_groups: true)).distinct.pluck(:id)
     # return unless user_ids

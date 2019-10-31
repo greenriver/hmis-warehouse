@@ -1,4 +1,4 @@
-class SnapshotIsolationToGrdaWarehouse < ActiveRecord::Migration
+class SnapshotIsolationToGrdaWarehouse < ActiveRecord::Migration[4.2]
   def change
     if GrdaWarehouseBase.connection.adapter_name == 'SQLServer'
       db = Rails.configuration.database_configuration["#{Rails.env}_grda_warehouse"]['database']

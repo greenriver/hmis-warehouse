@@ -1,4 +1,4 @@
-class ConvertHanReleaseToHousingRelease < ActiveRecord::Migration
+class ConvertHanReleaseToHousingRelease < ActiveRecord::Migration[4.2]
   def up
     full_releases = GrdaWarehouse::Hud::Client.destination.where.not(housing_assistance_network_released_on: nil).pluck(:id)
     puts "Converting #{full_releases.size} HAN release dates to full releases"

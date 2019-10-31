@@ -1,4 +1,4 @@
-class CreateNotesTable < ActiveRecord::Migration
+class CreateNotesTable < ActiveRecord::Migration[4.2]
   def change
     create_table :client_notes do |t|
       t.references :client, index: true, null: false

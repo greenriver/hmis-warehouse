@@ -1,4 +1,4 @@
-class CreateEtoClientLookup < ActiveRecord::Migration
+class CreateEtoClientLookup < ActiveRecord::Migration[4.2]
   def change
     create_table :eto_client_lookups do |t|
       t.references :data_source, index: true, null: false

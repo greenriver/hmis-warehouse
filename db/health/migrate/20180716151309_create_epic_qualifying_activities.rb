@@ -1,4 +1,4 @@
-class CreateEpicQualifyingActivities < ActiveRecord::Migration
+class CreateEpicQualifyingActivities < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_qualifying_activities do |t|
       t.string :patient_id, null: false

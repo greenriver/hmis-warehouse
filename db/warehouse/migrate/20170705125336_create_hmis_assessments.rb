@@ -1,4 +1,4 @@
-class CreateHmisAssessments < ActiveRecord::Migration
+class CreateHmisAssessments < ActiveRecord::Migration[4.2]
   def change
     if ActiveRecord::Base.connection.table_exists? :hmis_assessments
       drop_table :hmis_assessments

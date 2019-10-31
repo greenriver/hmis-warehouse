@@ -1,4 +1,4 @@
-class CreateUsersClients < ActiveRecord::Migration
+class CreateUsersClients < ActiveRecord::Migration[4.2]
   def change
     create_table :user_clients do |t|
       t.references :user, index: true, null: false

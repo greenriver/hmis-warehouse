@@ -1,4 +1,4 @@
-class TableauDashboardExportWarehouseReportPermissions < ActiveRecord::Migration
+class TableauDashboardExportWarehouseReportPermissions < ActiveRecord::Migration[4.2]
     REPORTS = {
       'Operational Reports' => [
         {

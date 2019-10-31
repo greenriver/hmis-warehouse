@@ -1,4 +1,4 @@
-class AddUniqueNamesTable < ActiveRecord::Migration
+class AddUniqueNamesTable < ActiveRecord::Migration[4.2]
   def change
     create_table :unique_names do |t|
       t.string :name

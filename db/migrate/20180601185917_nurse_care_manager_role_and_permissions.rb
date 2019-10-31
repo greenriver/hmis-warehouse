@@ -1,4 +1,4 @@
-class NurseCareManagerRoleAndPermissions < ActiveRecord::Migration
+class NurseCareManagerRoleAndPermissions < ActiveRecord::Migration[4.2]
   def change
     return
 

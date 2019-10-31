@@ -1,4 +1,4 @@
-class CreateSignatureRequests < ActiveRecord::Migration
+class CreateSignatureRequests < ActiveRecord::Migration[4.2]
   def change
     create_table :signature_requests do |t|
       t.string :type, null: false, index: true

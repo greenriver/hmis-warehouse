@@ -1,4 +1,4 @@
-class ResizeProjectId < ActiveRecord::Migration
+class ResizeProjectId < ActiveRecord::Migration[4.2]
   def up 
     change_column :Project, :ProjectID, :string, limit: 50
     change_column :Project, :OrganizationID, :string, limit: 50

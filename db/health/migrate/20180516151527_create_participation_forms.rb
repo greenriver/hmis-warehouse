@@ -1,4 +1,4 @@
-class CreateParticipationForms < ActiveRecord::Migration
+class CreateParticipationForms < ActiveRecord::Migration[4.2]
   def change
     create_table :participation_forms do |t|
       t.belongs_to :patient, index: true

@@ -1,4 +1,4 @@
-class AddDataSourceIdToHmisTables < ActiveRecord::Migration
+class AddDataSourceIdToHmisTables < ActiveRecord::Migration[4.2]
   def change
     %w( Assessment Staff ).each do |cz|
       cz = "GrdaWarehouse::HMIS::#{cz}".constantize

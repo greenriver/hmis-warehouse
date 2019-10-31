@@ -1,4 +1,4 @@
-class AddCongregateHousingToClientDetails < ActiveRecord::Migration
+class AddCongregateHousingToClientDetails < ActiveRecord::Migration[4.2]
 
   def up
     config = GrdaWarehouse::Config.first

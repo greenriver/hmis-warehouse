@@ -1,4 +1,4 @@
-class AddDeviseSecurityItems < ActiveRecord::Migration
+class AddDeviseSecurityItems < ActiveRecord::Migration[4.2]
   def change
     add_column :users, :unique_session_id, :string
     add_column :users, :last_activity_at, :datetime, index: true

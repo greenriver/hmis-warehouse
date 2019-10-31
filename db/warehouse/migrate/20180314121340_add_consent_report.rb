@@ -1,4 +1,4 @@
-class AddConsentReport < ActiveRecord::Migration
+class AddConsentReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'CAS' => [
       {

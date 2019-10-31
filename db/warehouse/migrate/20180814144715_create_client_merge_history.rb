@@ -1,4 +1,4 @@
-class CreateClientMergeHistory < ActiveRecord::Migration
+class CreateClientMergeHistory < ActiveRecord::Migration[4.2]
   def change
     create_table :client_merge_histories do |t|
       t.integer :merged_into, null: false

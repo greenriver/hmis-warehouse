@@ -1,4 +1,4 @@
-class CreateBoConfigs < ActiveRecord::Migration
+class CreateBoConfigs < ActiveRecord::Migration[4.2]
   def change
     create_table :bo_configs do |t|
       t.references :data_source

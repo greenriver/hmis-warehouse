@@ -1,4 +1,4 @@
-class AddUserDefinedCohortFields < ActiveRecord::Migration
+class AddUserDefinedCohortFields < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :user_string_1, :string
     add_column :cohort_clients, :user_string_2, :string

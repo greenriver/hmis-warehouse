@@ -1,4 +1,4 @@
-class ReplaceCoverageInquiryFields < ActiveRecord::Migration
+class ReplaceCoverageInquiryFields < ActiveRecord::Migration[4.2][4.2]
   def change
     add_column :patients, :coverage_level, :string
     add_column :patients, :coverage_inquiry_date, :date

@@ -1,4 +1,4 @@
-class AddDeletedAtToPatients < ActiveRecord::Migration
+class AddDeletedAtToPatients < ActiveRecord::Migration[4.2][4.2]
   def up
     unless column_exists? :patients, :deleted_at
       add_column :patients, :deleted_at, :datetime

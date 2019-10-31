@@ -1,4 +1,4 @@
-class MoveEligibilityResponses < ActiveRecord::Migration
+class MoveEligibilityResponses < ActiveRecord::Migration[4.2][4.2]
   def up
     Health::EligibilityInquiry.find_each do |inquiry|
       Health::EligibilityResponse.create(eligibility_inquiry: inquiry, response: inquiry.result)

@@ -1,4 +1,4 @@
-class AddCohortChangesReport < ActiveRecord::Migration
+class AddCohortChangesReport < ActiveRecord::Migration[4.2]
   UP_REPORTS = {
     'Operational Reports' => [
       {

@@ -1,4 +1,4 @@
-class IndexActAsProjectTypeAndProjectType < ActiveRecord::Migration
+class IndexActAsProjectTypeAndProjectType < ActiveRecord::Migration[4.2]
   def up
     execute 'CREATE index "project_project_override_index" ON "Project" (COALESCE("act_as_project_type", "ProjectType"));'
     # add_index :Project, 'COALESCE("act_as_project_type", "ProjectType")'

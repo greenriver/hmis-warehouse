@@ -1,4 +1,4 @@
-class ExpandPatientReferrals < ActiveRecord::Migration
+class ExpandPatientReferrals < ActiveRecord::Migration[4.2]
   def change
     add_column :patient_referrals, :middle_initial, :string
     add_column :patient_referrals, :suffix, :string

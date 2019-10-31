@@ -1,4 +1,4 @@
-class AddUrgentReferralToEnrollment < ActiveRecord::Migration
+class AddUrgentReferralToEnrollment < ActiveRecord::Migration[4.2]
   def change
     table = GrdaWarehouse::Hud::Enrollment.table_name
     add_column table, 'UrgentReferral', :integer

@@ -1,4 +1,4 @@
-class RealTablesForRecentServiceHistory < ActiveRecord::Migration
+class RealTablesForRecentServiceHistory < ActiveRecord::Migration[4.2]
   include ArelHelper
   def up
     # sql = GrdaWarehouse::ServiceHistory.service.joins(project: :organization).

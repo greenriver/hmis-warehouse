@@ -1,4 +1,4 @@
-class AddIndexesToQualifyingActivities < ActiveRecord::Migration
+class AddIndexesToQualifyingActivities < ActiveRecord::Migration[4.2][4.2]
   def change
     add_index :qualifying_activities, :patient_id
     add_index :qualifying_activities, :date_of_activity

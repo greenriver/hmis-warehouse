@@ -1,4 +1,4 @@
-class AddConsentFormReport < ActiveRecord::Migration
+class AddConsentFormReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Operational Reports' => [
       {

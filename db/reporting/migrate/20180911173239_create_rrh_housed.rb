@@ -1,4 +1,4 @@
-class CreateRrhHoused < ActiveRecord::Migration
+class CreateRrhHoused < ActiveRecord::Migration[4.2]
   def change
     create_table :houseds do |t|
       t.date :search_start, index: true

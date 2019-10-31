@@ -1,4 +1,4 @@
-class CreateHudChronics < ActiveRecord::Migration
+class CreateHudChronics < ActiveRecord::Migration[4.2]
   def change
     create_table :hud_chronics do |t|
       t.date :date

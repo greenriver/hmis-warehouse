@@ -1,4 +1,4 @@
-class CreateAdminConfig < ActiveRecord::Migration
+class CreateAdminConfig < ActiveRecord::Migration[4.2]
   def change
     create_table :configs do |t|
       t.boolean :project_type_override, default: true, null: false

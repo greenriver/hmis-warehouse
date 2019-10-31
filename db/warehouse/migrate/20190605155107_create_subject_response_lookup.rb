@@ -1,4 +1,4 @@
-class CreateSubjectResponseLookup < ActiveRecord::Migration
+class CreateSubjectResponseLookup < ActiveRecord::Migration[4.2]
   def change
     create_table :eto_subject_response_lookups do |t|
       t.references :data_source, null: false

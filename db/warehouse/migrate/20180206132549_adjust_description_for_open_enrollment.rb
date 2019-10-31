@@ -1,4 +1,4 @@
-class AdjustDescriptionForOpenEnrollment < ActiveRecord::Migration
+class AdjustDescriptionForOpenEnrollment < ActiveRecord::Migration[4.2]
   def up
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(
       url: 'warehouse_reports/open_enrollments_no_service',

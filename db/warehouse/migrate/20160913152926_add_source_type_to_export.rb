@@ -1,4 +1,4 @@
-class AddSourceTypeToExport < ActiveRecord::Migration
+class AddSourceTypeToExport < ActiveRecord::Migration[4.2]
   def up
     add_column table, column, :integer
   end

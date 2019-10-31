@@ -1,4 +1,4 @@
-class CreateNonHmisUploads < ActiveRecord::Migration
+class CreateNonHmisUploads < ActiveRecord::Migration[4.2]
   def up
     create_table :non_hmis_uploads do |t|
       t.references :data_source

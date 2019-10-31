@@ -1,4 +1,4 @@
-class AddColumnToProjects < ActiveRecord::Migration
+class AddColumnToProjects < ActiveRecord::Migration[4.2]
   def change
     change_table :Project do |t|
       t.string :local_planning_group

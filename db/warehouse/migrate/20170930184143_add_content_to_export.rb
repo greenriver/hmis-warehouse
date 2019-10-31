@@ -1,4 +1,4 @@
-class AddContentToExport < ActiveRecord::Migration
+class AddContentToExport < ActiveRecord::Migration[4.2]
   def change
     add_column :exports, :faked_pii, :boolean, default: false
     add_column :exports, :project_ids, :json

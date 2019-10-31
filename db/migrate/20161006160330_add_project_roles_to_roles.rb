@@ -1,4 +1,4 @@
-class AddProjectRolesToRoles < ActiveRecord::Migration
+class AddProjectRolesToRoles < ActiveRecord::Migration[4.2]
   def up
     
     admin = Role.where(name: 'admin').first_or_create

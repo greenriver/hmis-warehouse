@@ -1,4 +1,4 @@
-class AdjustColumnLengthOnServiceHistory < ActiveRecord::Migration
+class AdjustColumnLengthOnServiceHistory < ActiveRecord::Migration[4.2]
   def change
     change_column :warehouse_client_service_history, :enrollment_group_id, :string, limit: 50
     change_column :warehouse_client_service_history, :head_of_household_id, :string, limit: 50

@@ -1,4 +1,4 @@
-class CreateServicesAndEquipments < ActiveRecord::Migration
+class CreateServicesAndEquipments < ActiveRecord::Migration[4.2]
   def change
     create_table :services do |t|
       t.string :service_type

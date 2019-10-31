@@ -1,4 +1,4 @@
-class CreateYouthIntake < ActiveRecord::Migration
+class CreateYouthIntake < ActiveRecord::Migration[4.2]
   def change
     create_table :youth_intakes do |t|
 

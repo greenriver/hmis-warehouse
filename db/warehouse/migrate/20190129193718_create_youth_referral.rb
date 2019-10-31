@@ -1,4 +1,4 @@
-class CreateYouthReferral < ActiveRecord::Migration
+class CreateYouthReferral < ActiveRecord::Migration[4.2]
   def change
     create_table :youth_referrals do |t|
       t.references :client

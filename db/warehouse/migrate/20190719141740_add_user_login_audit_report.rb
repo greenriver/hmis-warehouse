@@ -1,4 +1,4 @@
-class AddUserLoginAuditReport < ActiveRecord::Migration
+class AddUserLoginAuditReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Audit Reports' => [
       {

@@ -1,4 +1,4 @@
-class AdjustCohortClientColumns < ActiveRecord::Migration
+class AdjustCohortClientColumns < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :first_date_homeless, :datetime
     add_column :cohort_clients, :last_date_approached, :datetime
