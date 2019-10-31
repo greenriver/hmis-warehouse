@@ -109,7 +109,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         sql = sql.or(arel_table[:visible_in_window].eq(true))
       end
       where(sql)
-    elsif (health_id = self.health_authoritative_id)
+    elsif user.can_view_or_search_clients_or_window?
+      health_id = self.health_authoritative_id
       # only show record in window if the data source is visible in the window or
       # the record is a health record and the user has access to health..
       sql = arel_table[:visible_in_window].eq(true)
@@ -117,8 +118,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         sql = sql.or(arel_table[:id].eq(health_id))
       end
       where(sql)
-    elsif user.can_view_or_search_clients_or_window?
-      where(visible_in_window: true)
     else
       # Note this should be `none` but active record is being incorrigible
       where(Arel.sql('0=1'))

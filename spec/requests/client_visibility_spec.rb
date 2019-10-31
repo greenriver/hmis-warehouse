@@ -1,5 +1,6 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
+require 'nokogiri'
 
 RSpec.describe ClientsController, type: :request do
   include_context 'visibility test context'
@@ -19,27 +20,49 @@ RSpec.describe ClientsController, type: :request do
     describe 'and the user has a role granting can view clients' do
       before do
         user.roles << can_view_clients
+        sign_in user
       end
       it 'user can see all clients' do
-        expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(4)
+        get clients_path(q: 'bob')
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.text).to include('Displaying all 2 clients')
+        expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view window clients' do
       before do
         user.roles << can_view_client_window
+        sign_in user
       end
       it 'user can see only window clients' do
-        expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.viewable_by(user).pluck(:id)).to eq([window_source_client.id])
+        get clients_path(q: 'bob')
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.text).to include('Displaying 1 client')
+        expect(response).to have_http_status(200)
+      end
+      it 'user can see client dashboard for window client' do
+        get client_path(window_destination_client)
+        expect(response).to have_http_status(200)
+      end
+      it 'user cannot see client dashboard for non-window client' do
+        get client_path(non_window_destination_client)
+        expect(response).to have_http_status(404)
       end
     end
     describe 'and the user has a role granting can search window' do
       before do
         user.roles << can_search_window
+        sign_in user
       end
       it 'user can see only window clients' do
-        expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
-        expect(GrdaWarehouse::Hud::Client.viewable_by(user).pluck(:id)).to eq([window_source_client.id])
+        get clients_path(q: 'bob')
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.text).to include('Displaying 1 client')
+        expect(response).to have_http_status(200)
+      end
+      it 'user cannot see client dashboard' do
+        get client_path(window_destination_client)
+        expect(response).to redirect_to(root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do

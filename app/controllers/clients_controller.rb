@@ -13,7 +13,7 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_search_window!, only: [:index]
+  before_action :require_can_view_or_search_clients_or_window!, only: [:index]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
 
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
@@ -207,10 +207,15 @@ class ClientsController < ApplicationController
   end
 
   private def client_scope
-    client_source.destination.
-      viewable_by(current_user).
-      joins(source_clients: :data_source).
-      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    client_source.destination.where(
+      id: GrdaWarehouse::WarehouseClient.joins(:source).
+        merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+        select(:destination_id),
+    )
+  end
+
+  def client_search_scope
+    client_source.searchable.viewable_by(current_user)
   end
 
   private def project_scope
@@ -238,17 +243,6 @@ class ClientsController < ApplicationController
         merge: [],
         unmerge: [],
       )
-  end
-
-  def client_search_scope
-    client_source.searchable.
-      joins(:warehouse_client_source).
-      merge(
-        GrdaWarehouse::WarehouseClient.
-          where(destination_id: client_scope.select(:id)),
-      ).
-      joins(:data_source).
-      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
   end
 
   private def assessment_scope
