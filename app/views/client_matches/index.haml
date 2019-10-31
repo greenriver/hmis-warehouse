@@ -30,7 +30,7 @@
 %ul.nav.nav-tabs
   - @possible_statuses.each do |label, status|
     %li.nav-item{class:('active' if status == @status)}
-      = link_to url_for(params.merge(status: status, page: nil)), class: 'nav-link' do
+      = link_to url_for(params.permit!.merge(status: status, page: nil)), class: 'nav-link' do
         = label
         - if (count = @counts[status].to_i) > 0
           %span.badge.badge-primary{data: {status: status}}= count

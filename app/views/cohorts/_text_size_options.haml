@@ -11,17 +11,17 @@
   .col-sm-4.text-right
     Text size:
     - button_class = 'btn-secondary'
-    - if params[:size].blank? || params[:size].to_sym == :md
+    - if params.permit![:size].blank? || params.permit![:size].to_sym == :md
       - button_class = 'btn-primary'
-    = link_to(params.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
       Default
     - button_class = 'btn-secondary'
-    - if params[:size].present? && params[:size].to_sym == :lg
+    - if params.permit![:size].present? && params.permit![:size].to_sym == :lg
       - button_class = 'btn-primary'
-    = link_to(params.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
       Large
     - button_class = 'btn-secondary'
-    - if params[:size].present? && params[:size].to_sym == :xl
+    - if params.permit![:size].present? && params.permit![:size].to_sym == :xl
       - button_class = 'btn-primary'
-    = link_to(params.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
       XL

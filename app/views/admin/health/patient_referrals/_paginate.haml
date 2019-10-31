@@ -10,4 +10,4 @@
     %h4.mt-3= @active_patient_referral_group == 'our patient' ? "Known by one of your agencies" : 'Not Your Patient'
 .mt-3{class: @active_patient_referral_group.present? ? 'pull-right text-right' : 'pull-left'}
   .mb-2= page_entries_info @patient_referrals, entry_name: _('patient')
-  %div= paginate @patient_referrals, params: {q: params[:q], filters: params[:filters]}
+  %div= paginate @patient_referrals, params: {q: params.permit![:q], filters: params.permit![:filters]}

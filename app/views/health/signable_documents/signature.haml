@@ -20,7 +20,7 @@
             console.debug(eventData);
 
             if (eventData.event === "signature_request_signed") {
-              window.location = "#{params[:post_sign_path]||new_user_session_path}";
+              window.location = "#{params.permit![:post_sign_path]||new_user_session_path}";
             }
           }
         });

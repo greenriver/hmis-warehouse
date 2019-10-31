@@ -27,7 +27,7 @@
       Reset
 
     .ml-auto
-      = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+      = link_to( params.permit!.merge( format: :xlsx ), { class: 'btn btn-secondary mr-0', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
         Download Excel
 
   = render 'warehouse_reports/filters', f:f

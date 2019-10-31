@@ -9,7 +9,7 @@
       .col-sm-4
         %label.control-label Touch Point
         %div
-          = select_tag('touchpoints[assessment_id]', options_from_collection_for_select(available_touchpoints, :last, :first, params[:assessment_id]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
+          = select_tag('touchpoints[assessment_id]', options_from_collection_for_select(available_touchpoints, :last, :first, params.permit![:assessment_id]), class: 'select2', style: 'width: 100%;', include_blank: 'Select')
 
     .panel-footer
       = f.button :submit, value: 'Show'

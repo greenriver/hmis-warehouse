@@ -16,7 +16,7 @@
 
   .row(style="padding-top:1em")
     .col-sm-12.text-right
-      = link_to params.merge(format: :xlsx), class: 'btn btn-secondary' do
+      = link_to params.permit!.merge(format: :xlsx), class: 'btn btn-secondary' do
         Download Excel
 
   .row(style="padding-top:1em")

@@ -14,12 +14,12 @@
 
       = form_tag(nil, method: "get") do
         -# preserve sort and search for filtering
-        - if params[:sort]
-          = hidden_field_tag :sort, params[:sort]
-        - if params[:direction]
-          = hidden_field_tag :direction, params[:direction]
-        - if params[:q]
-          = hidden_field_tag :q, params[:q]
+        - if params.permit![:sort]
+          = hidden_field_tag :sort, params.permit![:sort]
+        - if params.permit![:direction]
+          = hidden_field_tag :direction, params.permit![:direction]
+        - if params.permit![:q]
+          = hidden_field_tag :q, params.permit![:q]
 
         .o-filtration__option
           .checkbox

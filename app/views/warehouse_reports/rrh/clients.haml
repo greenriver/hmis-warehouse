@@ -1,6 +1,6 @@
 = content_for :modal_title do
   - title = "Supporting Data"
-  - projects = @report.valid_project_name(params[:selected_project])
+  - projects = @report.valid_project_name(params.permit![:selected_project])
   - if projects.present?
     - title += " for #{projects}"
   - title

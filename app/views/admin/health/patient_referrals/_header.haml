@@ -18,6 +18,6 @@
         = link_to new_admin_health_patient_referral_path(), class: ['btn', 'btn-secondary'] do
           Add Patient
       - if @active_patient_referral_tab == 'review' &&  current_user.has_patient_referral_review_access?
-        = link_to 'Download Excel', params.merge(format: :xlsx), class: 'btn btn-secondary ml-2'
+        = link_to 'Download Excel', params.permit!.merge(format: :xlsx), class: 'btn btn-secondary ml-2'
     .mb-6
       = render 'admin/health/patient_referrals/filter'

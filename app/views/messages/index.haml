@@ -2,9 +2,9 @@
 
 %ul.nav.nav-tabs
   %li.nav-item{ class: ( 'active' if @search == 'all' ) }
-    = link_to 'All', messages_path( message_params.merge search: 'all' ), class: 'nav-link'
+    = link_to 'All', messages_path( message_params.permit!.merge search: 'all' ), class: 'nav-link'
   %li.nav-item{ class: ( 'active' if @search == 'unseen' ) }
-    = link_to 'Unread', messages_path( message_params.merge search: 'unseen' ), class: 'nav-link'
+    = link_to 'Unread', messages_path( message_params.permit!.merge search: 'unseen' ), class: 'nav-link'
 
 .row
   .col-sm-4
@@ -16,13 +16,13 @@
       - @messages.each do |m|
         %tr
           %td
-            - link = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.merge id: m.id )
+            - link = link_to ApplicationMailer.remove_prefix(m.subject), messages_path( message_params.permit!.merge id: m.id )
             - if m.opened?
               = link
             - else
               %b= link
           %td
-            - link = link_to m.created_at, messages_path( message_params.merge id: m.id )
+            - link = link_to m.created_at, messages_path( message_params.permit!.merge id: m.id )
             - if m.opened?
               = link.html_safe
             - else
