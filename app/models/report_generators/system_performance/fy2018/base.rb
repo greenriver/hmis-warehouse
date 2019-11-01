@@ -8,8 +8,14 @@ module ReportGenerators::SystemPerformance::Fy2018
   class Base
   include ArelHelper
 
+    def initialize options
+      @options = options
+    end
+
     # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
     def add_filters scope:
+      # Limit to only those projects the user who queued the report can see
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
       if project_group_ids.any?
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
@@ -34,7 +40,6 @@ module ReportGenerators::SystemPerformance::Fy2018
       if @report.options['ethnicity_code'].present?
         scope = ethnicity_scope scope, @report.options['ethnicity_code']
       end
-
       return scope
     end
 

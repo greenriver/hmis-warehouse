@@ -8,12 +8,15 @@ module Reports
   class Hic::InventoriesController < Hic::BaseController
     def show
       @inventories = GrdaWarehouse::Hud::Inventory.joins(:project).
-        where(i_t[:InventoryStartDate].gt((Time.now.beginning_of_year - 1.year).to_date).or(i_t[:InventoryStartDate].eq(nil))).
-        where(Project: { computed_project_type: PROJECT_TYPES }).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
+        where(
+          i_t[:InventoryStartDate].gt((Time.current.beginning_of_year - 1.year).to_date).or(i_t[:InventoryStartDate].eq(nil)),
+        ).
         distinct
       respond_to do |format|
         format.html
-        format.csv { send_data GrdaWarehouse::Hud::Inventory.to_csv(scope: @inventories), filename: "inventory-#{Time.now}.csv" }
+        format.csv { send_data GrdaWarehouse::Hud::Inventory.to_csv(scope: @inventories), filename: "inventory-#{Time.current}.csv" }
       end
     end
   end

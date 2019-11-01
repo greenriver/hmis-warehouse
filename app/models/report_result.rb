@@ -16,6 +16,16 @@ class ReportResult < ActiveRecord::Base
     where(percent_complete: 100).group(:type).maximum(:updated_at)
   end
 
+  scope :viewable_by, -> (user) do
+    if user.can_view_all_hud_reports?
+      all
+    elsif user.can_view_own_hud_reports?
+      where(user_id: user.id)
+    else
+      none
+    end
+  end
+
   delegate :download_type, to: :report
   delegate :value_for_options, to: :report
 

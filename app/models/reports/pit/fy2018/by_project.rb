@@ -5,7 +5,7 @@
 ###
 
 module Reports::Pit::Fy2018
-  class ByProject < Base    
+  class ByProject < Base
     def self.report_name
       'PIT By Project - FY 2018'
     end
@@ -28,8 +28,13 @@ module Reports::Pit::Fy2018
       "#{project.ProjectName} - #{project.data_source.short_name}<br/> PIT: #{options['pit_date']}, Chronic: #{options['chronic_date']}".html_safe
     end
 
-    def self.available_projects_for_filtering
-      GrdaWarehouse::Hud::Project.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name,id,ds_id,short_name|
+    def self.available_projects_for_filtering(user)
+      GrdaWarehouse::Hud::Project.joins(:data_source).
+        viewable_by(user).
+        merge(GrdaWarehouse::DataSource.order(:short_name)).
+        order(:ProjectName).
+        pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).
+        map do |name,id,ds_id,short_name|
         ["#{name} - #{short_name}", [id,ds_id]]
       end
     end
