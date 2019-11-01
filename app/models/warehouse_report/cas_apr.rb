@@ -43,7 +43,7 @@ class WarehouseReport::CasApr < OpenStruct
   # unique clients on ProviderOnly route
   def referred_to_rrh
     matches_scope.
-      where(match_route: 'Provider Only Route').
+      where(housing_type: 'RRH').
       distinct.
       select(:client_id)
   end
@@ -51,7 +51,7 @@ class WarehouseReport::CasApr < OpenStruct
   # matches that have progressed past the initial DND review phase
   def referred_to_psh
     matches_scope.
-      where(match_route: 'Default Match Route').
+      where(housing_type: 'PSH').
       distinct.
       select(:client_id)
   end
