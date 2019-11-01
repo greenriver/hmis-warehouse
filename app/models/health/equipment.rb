@@ -18,7 +18,7 @@ module Health
     phi_attr :comments, Phi::FreeText
 
     has_many :careplans
-    belongs_to :patient, required: true
+    belongs_to :patient
 
     validates_presence_of :item
     validates :quantity, numericality: { only_integer: true, allow_blank: true }

@@ -8,7 +8,7 @@ module GrdaWarehouse::WarehouseReports
   class Base < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
     self.table_name = :warehouse_reports
-    belongs_to :user, required: false
+    belongs_to :user, optional: true
     scope :ordered, -> { order(created_at: :desc) }
 
     scope :for_list, -> do

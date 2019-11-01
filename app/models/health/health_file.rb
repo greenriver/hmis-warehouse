@@ -15,7 +15,7 @@ module Health
     phi_attr :content, Phi::FreeText
     phi_attr :note, Phi::FreeText
 
-    belongs_to :user, required: true
+    belongs_to :user
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     mount_uploader :file, HealthFileUploader

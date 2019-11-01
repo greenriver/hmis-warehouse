@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class Chronic < GrdaWarehouseBase
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :chronics, required: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :chronics
 
     validates_presence_of :date
 

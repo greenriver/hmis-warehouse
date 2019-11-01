@@ -11,9 +11,9 @@ module GrdaWarehouse
     acts_as_paranoid
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
-    belongs_to :user, required: true
+    belongs_to :user
 
-    belongs_to :delayed_job, required: false, class_name: Delayed::Job.name
+    belongs_to :delayed_job, optional: true, class_name: Delayed::Job.name
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true
