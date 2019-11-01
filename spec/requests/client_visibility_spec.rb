@@ -108,8 +108,6 @@ RSpec.describe ClientsController, type: :request do
       it 'user cannot see any clients' do
         get clients_path(q: 'bob')
         expect(response).to redirect_to(new_user_session_path)
-        # expect(response.body).to include('Sorry you are not authorized to do that.')
-        # expect(response).to have_http_status(200)
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -129,7 +127,7 @@ RSpec.describe ClientsController, type: :request do
         user.roles << can_view_client_window
         sign_in user
       end
-      it 'user can see only window clients' do
+      it 'user can search only window clients' do
         get clients_path(q: 'bob')
         doc = Nokogiri::HTML(response.body)
         expect(doc.text).to include('Displaying 1 client')
@@ -147,7 +145,7 @@ RSpec.describe ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        get client_path(window_destination_client, test: true)
+        get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
@@ -441,7 +439,7 @@ RSpec.describe ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        get client_path(window_destination_client, test: true)
+        get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for non-window client' do
