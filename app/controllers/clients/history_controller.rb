@@ -7,6 +7,7 @@
 module Clients
   class HistoryController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_can_see_this_client_demographics!, except: [:pdf]
@@ -177,15 +178,14 @@ module Clients
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if client_scope.where(id: params[:client_id].to_i).exists?
-        @client = client_scope.find(params[:client_id].to_i)
+      if searchable_client_scope.where(id: params[:client_id].to_i).exists?
+        @client = searchable_client_scope.find(params[:client_id].to_i)
       else
         client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:client_id].to_i
         if client_id
           redirect_to controller: controller_name, action: action_name, client_id: client_id
-          # client_scope.find(client_id)
         else
-          @client = client_scope.find(params[:client_id].to_i)
+          @client = searchable_client_scope.find(params[:client_id].to_i)
         end
       end
     end
@@ -211,10 +211,6 @@ module Clients
 
     private def enrollment_scope
       @client.service_history_enrollments.visible_in_window_to(current_user)
-    end
-
-    private def client_scope
-      client_source.viewable_by(current_user)
     end
 
     private def title_for_show

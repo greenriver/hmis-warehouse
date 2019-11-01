@@ -8,6 +8,7 @@ module Clients
   class FilesController < ApplicationController
     include ClientPathGenerator
     include PjaxModalController
+    include ClientDependentControllers
 
     before_action :require_window_file_access!
     before_action :set_client
@@ -248,7 +249,7 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def set_file
@@ -259,16 +260,8 @@ module Clients
       @files = file_scope
     end
 
-    def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
     def file_source
       GrdaWarehouse::ClientFile
-    end
-
-    def client_scope
-      client_source.destination
     end
 
     protected def title_for_show

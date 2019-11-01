@@ -7,6 +7,7 @@
 module Clients
   class EtoApiController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_view_client_window!
     before_action :set_client
@@ -23,26 +24,7 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
-    end
-
-    def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
-    def client_scope
-      client_source.destination.where(
-        client_source.arel_table[:id].in(
-          Arel.sql(
-            GrdaWarehouse::WarehouseClient.joins(:source).
-              merge(GrdaWarehouse::Hud::Client.searchable_by(current_user)).
-              select(:destination_id).to_sql,
-          ),
-        ).
-        or(
-          client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.searchable_by(current_user).select(:id).to_sql)),
-        ),
-      )
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
   end
 end
