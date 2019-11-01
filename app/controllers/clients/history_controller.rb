@@ -39,7 +39,7 @@ module Clients
     def pdf
       @user = User.setup_system_user
       current_user ||= @user # rubocop:disable Lint/UselessAssignment
-      set_client
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
       set_pdf_dates
 
       require_client_needing_processing!
@@ -214,9 +214,7 @@ module Clients
     end
 
     private def client_scope
-      client_source.destination.
-        joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+      client_source.viewable_by(current_user)
     end
 
     private def title_for_show

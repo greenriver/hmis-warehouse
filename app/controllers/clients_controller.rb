@@ -22,6 +22,8 @@ class ClientsController < ApplicationController
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
+  # This should no longer be needed
+  # We can rely on searchable_by and viewable_by scopes on Client
   before_action :check_release, only: [:show]
   after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
@@ -206,16 +208,37 @@ class ClientsController < ApplicationController
     GrdaWarehouse::Hud::Client
   end
 
+  # should always return a destination client, but some visibility
+  # is governed by the source client, some by the destination
   private def client_scope
     client_source.destination.where(
-      id: GrdaWarehouse::WarehouseClient.joins(:source).
-        merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
-        select(:destination_id),
+      client_source.arel_table[:id].in(
+        Arel.sql(
+          GrdaWarehouse::WarehouseClient.joins(:source).
+            merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+            select(:destination_id).to_sql,
+        ),
+      ).
+      or(
+        client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.viewable_by(current_user).select(:id).to_sql)),
+      ),
     )
   end
 
+  # Should always return source clients for searching
   def client_search_scope
-    client_source.searchable.viewable_by(current_user)
+    client_source.source.where(
+      client_source.arel_table[:id].in(
+        Arel.sql(
+          GrdaWarehouse::WarehouseClient.joins(:destination).
+            merge(GrdaWarehouse::Hud::Client.searchable_by(current_user)).
+            select(:source_id).to_sql,
+        ),
+      ).
+      or(
+        client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.searchable_by(current_user).select(:id).to_sql)),
+      ),
+    )
   end
 
   private def project_scope

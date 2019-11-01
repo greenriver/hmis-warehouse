@@ -134,8 +134,9 @@ RSpec.describe ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
-        get client_path(window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do
+          get client_path(window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago
@@ -428,8 +429,9 @@ RSpec.describe ClientsController, type: :request do
         expect(response).to have_http_status(200)
       end
       it 'user cannot see client dashboard for window client' do
-        get client_path(window_destination_client)
-        expect(response).to have_http_status(302)
+        expect do |_variable|
+          get client_path(window_destination_client)
+        end.to raise_error(ActiveRecord::RecordNotFound)
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago

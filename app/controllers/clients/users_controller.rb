@@ -83,9 +83,18 @@ module Clients
     end
 
     private def client_scope
-      client_source.destination.
-        joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+      client_source.destination.where(
+        client_source.arel_table[:id].in(
+          Arel.sql(
+            GrdaWarehouse::WarehouseClient.joins(:source).
+              merge(GrdaWarehouse::Hud::Client.searchable_by(current_user)).
+              select(:destination_id).to_sql,
+          ),
+        ).
+        or(
+          client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.searchable_by(current_user).select(:id).to_sql)),
+        ),
+      )
     end
   end
 end
