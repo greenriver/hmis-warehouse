@@ -237,10 +237,10 @@ RSpec.describe ClientsController, type: :request do
     let(:role) { create :can_view_client_window }
     let(:user) { create :user, roles: [role] }
 
-    it 'doesn\'t allow index' do
+    it 'allows index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'allows show' do
@@ -318,10 +318,10 @@ RSpec.describe ClientsController, type: :request do
     let(:role2) { create :can_view_client_window }
     let(:user) { create :user, roles: [role, role2] }
 
-    it 'doesn\'t allow index' do
+    it 'allows index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'allows show' do
