@@ -9,9 +9,10 @@ module ReportGenerators::Lsa::Fy2018
   include ArelHelper
     attr_accessor :report
 
-    def initialize destroy_rds: true, hmis_export_id: nil
+    def initialize destroy_rds: true, hmis_export_id: nil, options: {}
       @destroy_rds = destroy_rds
       @hmis_export_id = hmis_export_id
+      @user = User.find(options[:user_id].to_i) if options[:user_id].present?
     end
 
     def setup_filters
@@ -28,6 +29,8 @@ module ReportGenerators::Lsa::Fy2018
       @coc_code = @report.options['coc_code']
       if @report.options['project_id'].delete_if(&:blank?).any?
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
+        # Limit to only those projects the user who queued the report can see
+        @project_ids = @project_ids & GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
         @lsa_scope = 2
       else
         # The export of HMIS CSV 6.11 files involves all Project Descriptor Data Elements (PDDEs) for the following project types: 1, 2, 3, 8, 9, 10, 13
@@ -40,7 +43,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def system_wide_project_ids
-      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.in_coc(coc_code: @coc_code).
+      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).in_coc(coc_code: @coc_code).
         with_hud_project_type([1, 2, 3, 4, 8, 9, 10, 13]).
         pluck(:id).sort
     end

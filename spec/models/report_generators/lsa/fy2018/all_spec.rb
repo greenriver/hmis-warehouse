@@ -4,7 +4,8 @@ RSpec.describe ReportGenerators::Lsa::Fy2018::All, type: :model do
   describe 'When running an LSA' do
     # NOTE: spec_helper.rb defines ENV['NO_LSA_RDS']='true', which prevents
     # auto connection to RDS
-    let(:report) { ReportGenerators::Lsa::Fy2018::All.new }
+    let!(:user) { create :user }
+    let(:report) { ReportGenerators::Lsa::Fy2018::All.new(user_id: user.id) }
     let!(:lsa) { create :lsa_fy2018 }
     let!(:report_result) { create :report_result, report_id: lsa.id }
     it "doesn't throw an error when checking the sample code" do

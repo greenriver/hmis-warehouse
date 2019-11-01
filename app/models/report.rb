@@ -25,8 +25,8 @@ class Report < ActiveRecord::Base
     ActiveModel::Name.new self, nil, 'report'
   end
 
-  def last_result
-    @last_result || ReportResult.where(report: self).order(created_at: :desc).limit(1).first
+  def last_result(user)
+    @last_result ||= ReportResult.viewable_by(user).where(report: self).order(created_at: :desc).limit(1).first
   end
 
   # Build a two dimentional array of values from the results, return as a csv string
