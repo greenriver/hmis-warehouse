@@ -89,24 +89,29 @@
   margin: 2px 2px 2px 0;
 }
 
+.select2__label-wrapper {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: .5rem;
+}
+
+.select2__label-wrapper label {
+  margin-bottom: 0;
+}
+
 .select2-select-all {
-  position: absolute;
-  right: 1px;
-  top: 2px;
-  z-index: 10;
-  background: rgba($gray-100, .8);
+  margin-left: auto;
   cursor: pointer;
   color: $link-color;
-  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: space(4);
+  white-space: nowrap;
   &:hover {
     color: $link-hover-color;
     cursor: pointer;
   }
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-right: space(6);
-  padding-left: space(4);
   // Fix for IE11 bug with align-center in container with
   // min-height
   &::after {
