@@ -12,7 +12,7 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def initialize options
-      super
+      super options
       @project_id = options[:project]
       @data_source_id = options[:data_source_id]
       Rails.logger.info "Project #{@project_id} DS: #{@data_source_id}"
@@ -20,7 +20,7 @@ module ReportGenerators::Pit::Fy2018
 
     private def service_history_scope
       super.where(
-        project_id: @project_id, 
+        project_id: @project_id,
         data_source_id: @data_source_id
       )
     end

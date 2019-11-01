@@ -5,7 +5,7 @@
 ###
 
 class ReportsController < ApplicationController
-  before_action :require_can_view_all_reports!
+  before_action :require_can_view_hud_reports!
   before_action :set_report, only: [:show, :edit, :update, :destroy]
   helper_method :sort_column, :sort_direction
 
@@ -54,12 +54,12 @@ class ReportsController < ApplicationController
 
   private
 
-  def report_source
-    Report
+  def report_scope
+    report_source.active
   end
 
-  def report_scope
-    Report.active
+  def report_source
+    Report
   end
 
   # Use callbacks to share common setup or constraints between actions.
