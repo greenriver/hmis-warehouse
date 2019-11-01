@@ -1,10 +1,10 @@
-- if can_view_all_reports? || can_view_assigned_reports? || can_view_all_reports?
+- if can_view_any_reports? || can_view_hud_reports?
   %ul.o-menu__group.list-unstyled
-    - if can_view_all_reports?
+    - if can_view_hud_reports?
       %li.o-menu__item
         = link_to reports_path, class: 'o-menu__link' do
           = _("HUD Reports")
-    - if can_view_assigned_reports? || can_view_all_reports?
+    - if can_view_any_reports?
       %li.o-menu__item
         = link_to warehouse_reports_path, class: 'o-menu__link' do
           = _("Reports")

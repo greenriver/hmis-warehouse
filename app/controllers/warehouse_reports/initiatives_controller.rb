@@ -25,7 +25,7 @@ module WarehouseReports
 
     def set_jobs
       @job_reports = Delayed::Job.where(queue: :initiative_reports).order(run_at: :desc).map do |job|
-        parameters = YAML.safe_load(job.handler).job_data['arguments'].first
+        parameters = YAML.load(job.handler).job_data['arguments'].first # rubocop:disable Security/YAMLLoad
         parameters.delete('_aj_symbol_keys')
         parameters['project_ids'] = parameters.delete('projects')
         report = WarehouseReports::InitiativeReportJob.new(parameters)

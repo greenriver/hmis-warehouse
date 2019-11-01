@@ -43,6 +43,7 @@ module UserPermissions
         :has_some_edit_access_to_youth_intakes,
         :can_manage_an_agency,
         :can_view_confidential_names,
+        :can_view_hud_reports,
       ].freeze
     end
 
@@ -141,6 +142,10 @@ module UserPermissions
 
     def can_view_some_secure_files
       can_view_all_secure_uploads? || can_view_assigned_secure_uploads?
+    end
+
+    def can_view_hud_reports
+      can_view_own_hud_reports? || can_view_all_hud_reports?
     end
 
     def has_administrative_access_to_health

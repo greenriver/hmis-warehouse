@@ -65,8 +65,9 @@ module ReportGenerators::Pit::Fy2018
       @pit_date = options[:pit_date]
       @chronic_date = options[:chronic_date]
       @coc_codes = options.try(:[], :coc_codes)
+      @user = User.find(options[:user_id].to_i)
       if @coc_codes.blank?
-        @coc_codes = GrdaWarehouse::Hud::ProjectCoc.all.
+        @coc_codes = GrdaWarehouse::Hud::ProjectCoc.viewable_by(@user).
           distinct.pluck(:CoCCode)
       end
     end

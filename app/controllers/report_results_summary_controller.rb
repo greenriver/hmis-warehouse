@@ -5,7 +5,7 @@
 ###
 
 class ReportResultsSummaryController < ApplicationController
-  before_action :require_can_view_all_reports!
+  before_action :require_can_view_hud_reports!
   before_action :set_report_results_summary, :set_report_results, only: [:show]
 
   def show
@@ -31,12 +31,14 @@ class ReportResultsSummaryController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_report_results
-    most_recent_results = @report_results_summary.report_results.most_recent
+    most_recent_results = @report_results_summary.report_results.viewable_by(current_user).most_recent
     @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.where(type: t).first, updated_at: d).first }
-    @options = @report_results_summary.report_results.first&.options
+    @options = @report_results_summary.report_results.viewable_by(current_user).first&.options
   end
 
   def set_report_results_summary
-    @report_results_summary = report_results_summary_source.find(params[:id].to_i)
+    @report_results_summary = report_results_summary_source.
+      viewable_by(current_user).
+      find(params[:id].to_i)
   end
 end
