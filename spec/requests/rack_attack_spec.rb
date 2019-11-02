@@ -3,7 +3,7 @@ require 'rails_helper'
 # curl -I -s "http://hmis-url/?[1-350]" | grep HTTP/
 
 describe Rack::Attack, type: :request do
-  THROTTLED_AT = 11
+  THROTTLED_AT = 101
   REQUEST_LIMIT = (THROTTLED_AT * 1.5).to_i
 
   # request a path repeatedly and return
