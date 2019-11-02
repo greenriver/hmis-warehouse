@@ -131,6 +131,7 @@ Rails.application.routes.draw do
       :parenting_youths,
       :veterans,
       :youths,
+      :juveniles,
     ].freeze
   end
 
