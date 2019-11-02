@@ -38,9 +38,6 @@ FactoryBot.define do
     # UserID
     # DateDeleted
     # ExportID
-    trait :window_visible do
-      visible_in_window { true }
-    end
   end
 
   factory :authoritative_hud_client, class: 'GrdaWarehouse::Hud::Client' do
