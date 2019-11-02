@@ -225,20 +225,9 @@ class ClientsController < ApplicationController
     )
   end
 
-  # Should always return source clients for searching
+  # Should always return any clients, source or destination that match
   def client_search_scope
-    client_source.source.where(
-      client_source.arel_table[:id].in(
-        Arel.sql(
-          GrdaWarehouse::WarehouseClient.joins(:destination).
-            merge(GrdaWarehouse::Hud::Client.searchable_by(current_user)).
-            select(:source_id).to_sql,
-        ),
-      ).
-      or(
-        client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.searchable_by(current_user).select(:id).to_sql)),
-      ),
-    )
+    client_source.searchable_by(current_user)
   end
 
   private def project_scope

@@ -34,7 +34,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :source, -> do
-    where(arel_table[:source_type].eq(nil).or(arel_table[:authoritative].eq(true)))
+    where(arel_table[:source_type].not_eq(nil).or(arel_table[:authoritative].eq(true)))
   end
 
   scope :destination, -> do

@@ -13,6 +13,7 @@ module ClientDependentControllers
     end
 
     def searchable_client_scope
+      # client_source.destination.searchable_by(current_user)
       client_source.destination.where(
         client_source.arel_table[:id].in(
           Arel.sql(
