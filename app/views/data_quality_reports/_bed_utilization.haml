@@ -4,7 +4,7 @@
     .col-sm-4
       %h3 Bed Utilization
     .col-sm-8
-      = render 'bed_utilization_description'  
+      = render 'bed_utilization_description'
   .well.overflow-scroll
     %table.table.data-quality__table
       %thead
@@ -35,7 +35,7 @@
                 .enrollment__project_type{class: p_class}
                   %em.service-type__program-type= p_type
             %td.text-center{style: "background-color: #{grade.color}; color: white; font-weight: bold;"}= grade.grade
-            
+
             %td.text-center= project[:capacity]
             - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
               - odd_class = if index % 2 == 1 then '' else 'data-quality__odd-columns' end
@@ -56,11 +56,10 @@
             - @report.class.bed_utilization_attributes.each_with_index do |measure, index|
               - key = "bed_utilization_totals_#{measure}"
               - grade = GrdaWarehouse::Grades::Utilization.grade_from_score(totals[:counts]["#{measure}_percentage"])
-              - odd_class = if index % 2 == 1 then '' else 'data-quality__odd-columns' end 
+              - odd_class = if index % 2 == 1 then '' else 'data-quality__odd-columns' end
               %td.text-center{class: odd_class, style: "color: #{grade.color};"}
                 = totals[:counts]["#{measure}_percentage"] || 0
                 %span.text-muted
                   = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
                     (#{totals[:counts][measure]})
 
-                
