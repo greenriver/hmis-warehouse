@@ -34,11 +34,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :source, -> do
-    where.not(source_type: nil)
+    where(arel_table[:source_type].eq(nil).or(arel_table[:authoritative].eq(true)))
   end
 
   scope :destination, -> do
-    where(source_type: nil)
+    where(source_type: nil, authoritative: false)
   end
 
   scope :importable_via_samba, -> do

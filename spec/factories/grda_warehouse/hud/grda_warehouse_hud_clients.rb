@@ -38,10 +38,14 @@ FactoryBot.define do
     # UserID
     # DateDeleted
     # ExportID
+    trait :window_visible do
+      visible_in_window { true }
+    end
   end
 
   factory :authoritative_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :authoritative_data_source
+
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
@@ -49,6 +53,7 @@ FactoryBot.define do
 
   factory :window_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :visible_data_source
+
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }

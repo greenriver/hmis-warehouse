@@ -28,6 +28,7 @@ FactoryBot.define do
     source_type { nil }
     authoritative { true }
     authoritative_type { :youth }
+    visible_in_window { true }
   end
 
   factory :non_window_data_source, class: 'GrdaWarehouse::DataSource' do

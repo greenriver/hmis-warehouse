@@ -537,7 +537,7 @@ module GrdaWarehouse::Hud
     scope :searchable_by, -> (user) do
       if user.can_view_clients_with_roi_in_own_coc?
         current_scope
-      elsif user.can_view_clients?
+      elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
       else
         ds_ids = user.data_sources.pluck(:id)
@@ -580,7 +580,7 @@ module GrdaWarehouse::Hud
         else
           active_confirmed_consent_in_cocs(user.coc_codes)
         end
-      elsif user.can_view_clients?
+      elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
       else
         ds_ids = user.data_sources.pluck(:id)

@@ -69,7 +69,7 @@ module UserPermissions
     end
 
     def can_view_clients_or_window
-      can_view_client_window? || can_view_clients? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc?
+      can_edit_clients? || can_view_client_window? || can_view_clients? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc?
     end
 
     def can_view_or_search_clients_or_window

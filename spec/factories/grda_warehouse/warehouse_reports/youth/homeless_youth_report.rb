@@ -12,7 +12,7 @@ FactoryBot.define do
   end
 
   factory :intake, class: 'GrdaWarehouse::YouthIntake::Entry' do
-    association :client, factory: :authoritative_hud_client
+    # association :client, factory: :grda_warehouse_hud_client, window_visible: true
     staff_name { 'RSpec' }
     staff_email { 'nobody@example.com' }
     unaccompanied { 'No' }
