@@ -60,14 +60,14 @@ FactoryBot.define do
   factory :vispdat_viewer, class: 'Role' do
     name { 'vispdat viewer' }
     can_view_vspdat { true }
-    can_edit_clients { true }
+    can_search_window { true }
   end
 
   factory :vispdat_editor, class: 'Role' do
     name { 'vispdat editor' }
     can_view_vspdat { true }
     can_edit_vspdat { true }
-    can_edit_clients { true }
+    can_search_window { true }
   end
 
   factory :cohort_manager, class: 'Role' do
@@ -118,19 +118,19 @@ FactoryBot.define do
   factory :can_view_youth_intake, class: 'Role' do
     name { 'can view youth intake' }
     can_view_youth_intake { true }
-    can_edit_clients { true }
+    can_search_window { true }
   end
 
   factory :can_view_own_agency_youth_intake, class: 'Role' do
     name { 'can view own agency youth intake' }
     can_view_own_agency_youth_intake { true }
-    can_edit_clients { true }
+    can_search_window { true }
   end
 
   factory :can_edit_own_agency_youth_intake, class: 'Role' do
     name { 'can edit own agency youth intake' }
     can_edit_own_agency_youth_intake { true }
-    can_edit_clients { true }
+    can_search_window { true }
   end
 
   factory :can_create_clients, class: 'Role' do

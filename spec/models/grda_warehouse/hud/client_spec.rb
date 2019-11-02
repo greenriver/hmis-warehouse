@@ -157,9 +157,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
   describe 'New episode checks' do
     describe 'simple' do
-      let!(:warehouse) { create :grda_warehouse_data_source }
-      let!(:source_ds) { create :data_source_fixed_id }
-      let!(:client_with_enrollments) { create :grda_warehouse_hud_client, data_source_id: source_ds.id }
+      let!(:warehouse) { create :destination_data_source }
+      let!(:source_ds) { create :source_data_source }
+      let!(:warehouse_client) { create :fixed_warehouse_client }
+      let!(:client_with_enrollments) { warehouse_client.source }
 
       let(:dates) do
         [
@@ -228,9 +229,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     describe 'triggered by ph' do
-      let!(:warehouse) { create :grda_warehouse_data_source }
-      let!(:source_ds) { create :data_source_fixed_id }
-      let!(:client_with_enrollments) { create :grda_warehouse_hud_client, data_source_id: source_ds.id }
+      let!(:warehouse) { create :destination_data_source }
+      let!(:source_ds) { create :source_data_source }
+      let!(:warehouse_client) { create :fixed_warehouse_client }
+      let!(:client_with_enrollments) { warehouse_client.source }
 
       let(:dates) do
         [
