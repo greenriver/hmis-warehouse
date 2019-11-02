@@ -27,6 +27,7 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_individual_client_counts, :individuals)
       add_clients_to_census_buckets(get_parenting_youth_client_counts, :parenting_youth)
       add_clients_to_census_buckets(get_parenting_juvenile_client_counts, :parenting_juveniles)
+      add_clients_to_census_buckets(get_juvenile_client_counts, :juvenile)
       add_clients_to_census_buckets(get_all_client_counts, :all_clients)
 
       @by_count.each do | project_id, census_collection |
@@ -86,6 +87,10 @@ module GrdaWarehouse::Census
 
     def get_parenting_youth_client_counts
       get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
+    end
+
+    def get_juvenile_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.juvenile)
     end
 
     def get_parenting_juvenile_client_counts

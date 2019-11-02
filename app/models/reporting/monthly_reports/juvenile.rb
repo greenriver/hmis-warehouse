@@ -5,7 +5,7 @@
 ###
 
 module Reporting::MonthlyReports
-  class Juveniles < Base
+  class Juvenile < Base
 
     def enrollment_scope start_date:, end_date:
       enrollment_source.children_only.entry.
@@ -17,7 +17,7 @@ module Reporting::MonthlyReports
     end
 
     def sub_population
-      :juveniles
+      :juvenile
     end
   end
 end

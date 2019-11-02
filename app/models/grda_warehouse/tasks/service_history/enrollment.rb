@@ -243,6 +243,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @client_age_at_entry = nil
       @unaccompanied_youth = nil
       @parenting_youth = nil
+      @juvenile = nil
       @parenting_juvenile = nil
       @children_only = nil
       @individual_adult = nil
@@ -310,6 +311,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         other_clients_between_18_and_25: other_clients_between_18_and_25,
         unaccompanied_youth: unaccompanied_youth?,
         parenting_youth: parenting_youth?,
+        juvenile: juvenile?,
         parenting_juvenile: parenting_juvenile?,
         head_of_household: head_of_household?,
         children_only: children_only?,
@@ -416,6 +418,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       age.present? && age < 25 && age > 17
     end
 
+    def juvenile?(age)
+      age.present? && age < 19 && age > 12
+    end
+
     def adult?(age)
       age.present? && age > 17
     end
@@ -435,6 +441,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def parenting_youth?
       @parenting_youth ||= begin
         youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 > 0
+      end
+    end
+
+    # client is 13 - 18 and head of household
+    def juvenile?
+      @juvenile ||= begin
+        juvenile?(client_age_at_entry) && head_of_household?
       end
     end
 

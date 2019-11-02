@@ -836,6 +836,8 @@ module GrdaWarehouse::WarehouseReports
         @sub_population
       when :parenting_youth
         :youth
+      when :juvenile
+        :juvenile
       when :parenting_children
         :children
       when :individual_adults

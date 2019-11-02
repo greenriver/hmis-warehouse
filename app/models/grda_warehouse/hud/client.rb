@@ -333,6 +333,11 @@ module GrdaWarehouse::Hud
       where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
     end
 
+    scope :unaccompanied_juvenile, -> (start_date: Date.current, end_date: Date.current) do
+      youth(on: start_date).
+      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.juvenile.select(:client_id))
+    end
+
     scope :parenting_juvenile, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
       where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
@@ -360,7 +365,7 @@ module GrdaWarehouse::Hud
       alias_method :all_clients, :all
       alias_method :children, :children_only
       alias_method :parenting_children, :parenting_juvenile
-      alias_method :juvenile, :juveniles
+      alias_method :juveniles, :juvenile
     end
 
     # End Standard Cohorts

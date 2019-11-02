@@ -1,0 +1,7 @@
+- content_for :title, 'Unaccompanied Juveniles Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'parenting_youth'
+%p.text-muted
+  Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is between 13 and 18 years of age is the head of household.

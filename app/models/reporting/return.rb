@@ -89,6 +89,7 @@ module Reporting
         organization_id: o_t[:id].to_sql,
         unaccompanied_youth: she_t[:unaccompanied_youth].to_sql,
         parenting_youth: she_t[:parenting_youth].to_sql,
+        juvenile: she_t[:juvenile].to_sql,
       }
     end
 
