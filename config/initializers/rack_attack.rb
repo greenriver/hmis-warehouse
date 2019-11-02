@@ -8,7 +8,7 @@ class Rack::Attack
   tracker = Rails.env.test? ? :throttle : :track
 
 
-  send(tracker, 'req/ip', limit: 10, period: 1.second) do |req|
+  send(tracker, 'req/ip', limit: 100, period: 10.seconds) do |req|
     if tracking_enabled?(req)
       req.ip
     end
