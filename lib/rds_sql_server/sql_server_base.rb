@@ -15,7 +15,7 @@ class SqlServerBase < ActiveRecord::Base
     'sslcert' => 'config/cacert.pem',
   }
 
-  establish_connection(conf)
+  establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
 
   self.abstract_class = true
 end

@@ -16,6 +16,18 @@ module GrdaWarehouse
       where(match_started_at: (start_date..end_date))
     end
 
+    scope :open_between, -> (start_date:, end_date:) do
+      at = arel_table
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = at[:match_started_at]
+      d_2_end = at[:updated_at]
+      # Currently does not count as an overlap if one starts on the end of the other
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    end
+
     scope :canceled, -> do
       where.not(administrative_cancel_reason: nil)
     end

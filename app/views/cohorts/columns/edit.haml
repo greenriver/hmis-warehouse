@@ -1,7 +1,7 @@
 - title = "Edit #{@cohort.name}"
 - content_for :modal_title, title
 
-%p 
+%p
   Please choose the columns to display when viewing this cohort.
   %br
   %i
@@ -20,9 +20,12 @@
     %tbody.draggable-list
       - ordered_columns = @cohort.column_state + GrdaWarehouse::Cohort.available_columns.delete_if{|x| @cohort.column_state.any?{|cs| cs.class == x.class}} rescue GrdaWarehouse::Cohort.available_columns
       - ordered_columns.each_with_index do |column, i|
+        - visibility_class = ''
+        - if column.title =~ /^User (Select|Boolean|String|Date|Numeric) \d+/
+          - visibility_class = 'hidden'
         - visible = @column_state.find{|m| m.class == column.class}&.visible
         - editable = @column_state.find{|m| m.class == column.class}&.editable
-        %tr.draggable-list__item{id: "sorted-col-#{column.column}"}
+        %tr.draggable-list__item{id: "sorted-col-#{column.column}", class: visibility_class}
           %td
             %span.icon-move
           %td
