@@ -15,8 +15,7 @@ App.select2.initToggleSelectAll = ($select) =>
     $selectAllLink = $formGroup.find('.select2-select-all')
     allSelected = $selectAllLink.data('selected')
     $selectAllLink.data('selected', !allSelected)
-
-    if $select.select2('data').length == 0
+    if $formGroup.find('select').val() == 0 || $select.select2('data').length == 0
       classAction = 'removeClass'
       html = """
         <span class='mr-2'>Select all</span>
@@ -58,13 +57,18 @@ App.select2.initToggleSelectAll = ($select) =>
   # Init here
   $formGroup = $select.closest('.form-group')
   $formGroup.addClass('select2-wrapper')
-  $select2Container = $select.next('.select2-container')
-  $select2Container.append $("""
+  $label = $formGroup.find('> label')
+  $labelWrapper = $("<div class='select2__label-wrapper'></div>")
+  allOrNone = 'all'
+  $labelWrapper.append $("""
     <div class="select2-select-all j-select2-select-all" data-selected="false" >
       <span class='mr-2'>Select all</span>
       <i class='icon-checkbox-checked' />
     </div>
   """)
+  $label.prependTo $labelWrapper
+  $formGroup.prepend $labelWrapper
+  $select2Container = $select.next('.select2-container')
   $select.closest('.form-group').on 'click', '.j-select2-select-all', (event)=>
     toggleSelectAll()
   $select.on 'select2:select', (event)=>

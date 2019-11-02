@@ -8,7 +8,7 @@ module GrdaWarehouse
   class ClientFile < GrdaWarehouse::File
     # attr_accessor :requires_expiration_date
     # attr_accessor :requires_effective_date
-    # FIXME: this is temporary for backwards compatibility until https://github.com/greenriver/hmis-warehouse/pull/611 is merged
+    # TODO: This can be removed after merging https://github.com/greenriver/hmis-warehouse/pull/611
     attr_accessor :coc_code
 
     acts_as_taggable

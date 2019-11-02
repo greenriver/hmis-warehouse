@@ -13,19 +13,21 @@
   align-items: flex-end;
   flex-wrap: wrap;
   margin-bottom: space(4);
-  width: 100%;
-  flex: 1 1 50%;
-  &:last-of-type {
-    margin-bottom: 0;
-  }
 }
 
 .c-filters__group {
-  margin-right: space(6);
+  flex: 1 1 50%;
+  max-width: 50%;
+}
+
+// Fix for IE11
+.c-filters__group > .row {
+  flex: 1 1 atuo;
+  min-width: 100%;
 }
 
 .c-filters__group--w-100 {
-  width: 100%;
+  max-width: 100%;
   flex: 1 1 100%;
   margin-right: 0;
   margin-bottom: 0;
