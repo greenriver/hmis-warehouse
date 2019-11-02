@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191101143044) do
+ActiveRecord::Schema.define(version: 20191102185935) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1148,6 +1148,7 @@ ActiveRecord::Schema.define(version: 20191101143044) do
     t.string   "event_contact"
     t.string   "event_contact_agency"
     t.integer  "vacancy_id"
+    t.string   "housing_type"
   end
 
   add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
@@ -2078,6 +2079,7 @@ ActiveRecord::Schema.define(version: 20191101143044) do
     t.jsonb    "all_clients",         default: []
     t.datetime "created_at",                       null: false
     t.datetime "updated_at",                       null: false
+    t.jsonb    "juveniles",           default: []
   end
 
   create_table "nightly_census_by_project_type_clients", force: :cascade do |t|
@@ -2164,6 +2166,14 @@ ActiveRecord::Schema.define(version: 20191101143044) do
     t.jsonb    "sh_all_clients",                         default: []
     t.datetime "created_at",                                          null: false
     t.datetime "updated_at",                                          null: false
+    t.jsonb    "literally_homeless_juveniles",           default: []
+    t.jsonb    "system_juveniles",                       default: []
+    t.jsonb    "homeless_juveniles",                     default: []
+    t.jsonb    "ph_juveniles",                           default: []
+    t.jsonb    "es_juveniles",                           default: []
+    t.jsonb    "th__juveniles",                          default: []
+    t.jsonb    "so_juveniles",                           default: []
+    t.jsonb    "sh_juveniles",                           default: []
   end
 
   create_table "nightly_census_by_project_types", force: :cascade do |t|
@@ -2255,6 +2265,14 @@ ActiveRecord::Schema.define(version: 20191101143044) do
     t.integer  "th_beds",                                default: 0
     t.integer  "so_beds",                                default: 0
     t.integer  "sh_beds",                                default: 0
+    t.integer  "literally_homeless_juveniles",           default: 0
+    t.integer  "system_juveniles",                       default: 0
+    t.integer  "homeless_juveniles",                     default: 0
+    t.integer  "ph_juveniles",                           default: 0
+    t.integer  "es_juveniles",                           default: 0
+    t.integer  "th_juveniles",                           default: 0
+    t.integer  "so_juveniles",                           default: 0
+    t.integer  "sh_juveniles",                           default: 0
   end
 
   create_table "nightly_census_by_projects", force: :cascade do |t|
@@ -2273,6 +2291,7 @@ ActiveRecord::Schema.define(version: 20191101143044) do
     t.integer  "beds",                default: 0
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
+    t.integer  "juveniles",           default: 0
   end
 
   create_table "non_hmis_uploads", force: :cascade do |t|

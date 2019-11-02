@@ -42,24 +42,23 @@ class WarehouseReport::CasApr < OpenStruct
 
   # unique clients on ProviderOnly route
   def referred_to_rrh
-    GrdaWarehouse::CasReport.where(match_route: 'Provider Only Route').
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    matches_scope.
+      where(housing_type: 'RRH').
       distinct.
       select(:client_id)
   end
 
   # matches that have progressed past the initial DND review phase
   def referred_to_psh
-    GrdaWarehouse::CasReport.where(match_route: 'Default Match Route').
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    matches_scope.
+      where(housing_type: 'PSH').
       distinct.
       select(:client_id)
   end
 
   def declined
     cr_t = GrdaWarehouse::CasReport.arel_table
-    GrdaWarehouse::CasReport.
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    matches_scope.
       where(terminal_status: 'Rejected').
       where.not(cr_t[:decline_reason].matches('%eligible%')).
       distinct.
@@ -68,8 +67,7 @@ class WarehouseReport::CasApr < OpenStruct
 
   def ineligible
     cr_t = GrdaWarehouse::CasReport.arel_table
-    GrdaWarehouse::CasReport.
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    matches_scope.
       where(terminal_status: 'Rejected').
       where(cr_t[:decline_reason].matches('%eligible%')).
       distinct.
@@ -78,15 +76,13 @@ class WarehouseReport::CasApr < OpenStruct
 
   # difference between those who initiated a match and those who were available
   def unable_to_refer
-    total_households - GrdaWarehouse::CasReport.
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    total_households - matches_scope.
       distinct.
       select(:client_id).count
   end
 
   def decline_reasons
-    @reasons = GrdaWarehouse::CasReport.
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    @reasons = matches_scope.
       where.not( decline_reason: nil ).
       map do|row|
         row[:decline_reason].squish.gsub(/Other.*/,'Other').strip
@@ -95,8 +91,7 @@ class WarehouseReport::CasApr < OpenStruct
 
   def match_dates
     report_columns = [:match_id, :match_route, :match_started_at, :updated_at, :terminal_status]
-    matches = GrdaWarehouse::CasReport.
-      started_between(start_date: self[:start_date], end_date: self[:end_date]).
+    matches = matches_scope.
       where.not(terminal_status: 'In Progress').
       where(current_step: true).
       order(:match_started_at).
@@ -113,5 +108,9 @@ class WarehouseReport::CasApr < OpenStruct
       row[:decline_reason] = decline_reasons.try(:[], row[:match_id])
     end
     return matches
+  end
+
+  def matches_scope
+    GrdaWarehouse::CasReport.open_between(start_date: self[:start_date], end_date: self[:end_date])
   end
 end
