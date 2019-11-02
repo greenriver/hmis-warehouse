@@ -200,6 +200,18 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       return data.values.unshift(month_x_axis_labels)
     end
 
+    def census_by_month
+      data = {}
+      totals = active_clients.group(:year, :month).
+        order(year: :asc, month: :asc).
+        select(:client_id).distinct.count
+      months.reverse.each do |year, month|
+        data['totals'] ||= ['Total']
+        data['totals'] << totals[[year, month]]
+      end
+      return data.values.unshift(month_x_axis_labels)
+    end
+
     def months_strings
       months_in_dates.map{|m| m.strftime('%b %Y')}.reverse
     end
@@ -217,8 +229,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
       months.reverse.each do |year, month|
-        data[:new] << (new_entries[[year, month]] || 0)
-        data[:returning] << (returning_entries[[year, month]] || 0)
+        new_count = (new_entries[[year, month]] || 0)
+        returning_count = (returning_entries[[year, month]] || 0)
+        data[:new] << new_count
+        data[:returning] << returning_count
       end
       return data.values.unshift(month_x_axis_labels)
     end
