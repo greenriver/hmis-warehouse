@@ -8,7 +8,8 @@ module Reports
   class Hic::ProjectsController < Hic::BaseController
     def show
       @projects = GrdaWarehouse::Hud::Project.joins(:organization).
-        where(computed_project_type: PROJECT_TYPES).
+        viewable_by(current_user).
+        with_hud_project_type(PROJECT_TYPES).
         distinct
       respond_to do |format|
         format.html

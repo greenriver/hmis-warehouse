@@ -5,7 +5,7 @@
 ###
 
 class ReportResultsController < ApplicationController
-  before_action :require_can_view_all_reports!
+  before_action :require_can_view_hud_reports!
   before_action :set_report
   before_action :set_report_result, only: [:show, :edit, :update, :destroy]
   helper_method :sort_column, :sort_direction
@@ -14,7 +14,7 @@ class ReportResultsController < ApplicationController
 
   # GET /report_results
   def index
-    @results = report_result_scope
+    @results = report_result_scope.select(*report_result_summary_columns)
 
     set_missing_data if @report.class.name.include?('::Lsa::')
 
@@ -76,7 +76,7 @@ class ReportResultsController < ApplicationController
       redirect_to action: :index
       return
     end
-    options = {}
+    options = { user_id: current_user.id }
     if @report.has_project_option?
       p_id, ds_id = JSON.parse(@result.options['project'])
       options[:project] = p_id
@@ -257,22 +257,23 @@ class ReportResultsController < ApplicationController
     @show_missing_data = @missing_projects.any?
   end
 
-  def report_result_source
-    ReportResult
-  end
-
   def report_result_scope
-    ReportResult.where(report_id: params[:report_id].to_i).
-      select(*report_result_summary_columns)
+    report_result_source.viewable_by(current_user).
+      joins(:user).
+      where(report_id: params[:report_id].to_i)
   end
 
   def report_result_summary_columns
-    ReportResult.column_names - ['original_results', 'results', 'support', 'validations']
+    report_result_source.column_names - ['original_results', 'results', 'support', 'validations']
   end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_report_result
-    @result = ReportResult.find(params[:id].to_i)
+    @result = report_result_scope.find(params[:id].to_i)
+  end
+
+  def report_result_source
+    ReportResult
   end
 
   def set_report
