@@ -55,6 +55,7 @@ module WarehouseReports
         non_veteran: scope.non_veteran,
         family: scope.family,
         children: scope.children_only,
+        juveniles: scope.juvenile,
       }
       scope_hash[sub_population.to_sym]
     end

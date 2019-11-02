@@ -302,6 +302,10 @@ module GrdaWarehouse::Hud
       where(DOB: (on - 24.years .. on - 18.years))
     end
 
+    scope :juvenile, -> (on: Date.current) do
+      where(DOB: (on - 18.years .. on - 13.years))
+    end
+
     scope :adult, -> (on: Date.current) do
       where(c_t[:DOB].lteq(on - 18.years))
     end
@@ -356,6 +360,7 @@ module GrdaWarehouse::Hud
       alias_method :all_clients, :all
       alias_method :children, :children_only
       alias_method :parenting_children, :parenting_juvenile
+      alias_method :juvenile, :juveniles
     end
 
     # End Standard Cohorts

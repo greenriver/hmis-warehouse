@@ -165,6 +165,8 @@ module Cohorts
               population
             elsif population.to_s == 'parenting_children'
               :children
+            elsif population.to_s == 'juveniles'
+              :juveniles
             elsif population.to_s == 'parenting_youth'
               :youth
             elsif population.to_s == 'individual_adult'

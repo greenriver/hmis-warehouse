@@ -63,6 +63,7 @@ module WarehouseReports::ClientDetails
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         project_name: p_t[:ProjectName].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
+        juvenile: she_t[:juvenile].to_sql,
       }
     end
 
@@ -77,6 +78,7 @@ module WarehouseReports::ClientDetails
         non_veteran: scope.non_veteran,
         family: scope.family,
         children: scope.children_only,
+        juvenile: scope.juvenile,
       }
       scope_hash[sub_population.to_sym]
     end

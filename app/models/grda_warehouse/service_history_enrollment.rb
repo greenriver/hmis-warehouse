@@ -330,6 +330,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       parenting_juvenile
     end
 
+    scope :juvenile, -> do
+      where(juvenile: true)
+    end
+
     scope :individual_adult, -> do
       individual.adult
     end
@@ -347,6 +351,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         :individual,
         :youth,
         :children,
+        :juvenile,
         :adult,
         :unaccompanied_youth,
         :parenting_youth,

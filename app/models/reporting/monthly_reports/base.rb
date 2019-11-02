@@ -30,6 +30,7 @@ module Reporting::MonthlyReports
         non_veteran: Reporting::MonthlyReports::NonVeteran,
         family: Reporting::MonthlyReports::Family,
         children: Reporting::MonthlyReports::Children,
+        juveniles: Reporting::MonthlyReports::Juveniles,
       }
     end
 
