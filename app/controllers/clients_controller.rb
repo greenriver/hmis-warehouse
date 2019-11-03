@@ -211,17 +211,16 @@ class ClientsController < ApplicationController
   # should always return a destination client, but some visibility
   # is governed by the source client, some by the destination
   private def client_scope
+    visble_by_source = Arel.sql(
+      GrdaWarehouse::WarehouseClient.joins(:source).
+        merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+        select(:destination_id).to_sql,
+    )
+    visible_by_destination = Arel.sql(GrdaWarehouse::Hud::Client.viewable_by(current_user).select(:id).to_sql)
+
     client_source.destination.where(
-      client_source.arel_table[:id].in(
-        Arel.sql(
-          GrdaWarehouse::WarehouseClient.joins(:source).
-            merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
-            select(:destination_id).to_sql,
-        ),
-      ).
-      or(
-        client_source.arel_table[:id].in(Arel.sql(GrdaWarehouse::Hud::Client.viewable_by(current_user).select(:id).to_sql)),
-      ),
+      client_source.arel_table[:id].in(visble_by_source).
+      or(client_source.arel_table[:id].in(visible_by_destination)),
     )
   end
 
