@@ -218,10 +218,7 @@ class ClientsController < ApplicationController
     )
     visible_by_destination = Arel.sql(GrdaWarehouse::Hud::Client.viewable_by(current_user).select(:id).to_sql)
 
-    client_source.destination.where(
-      client_source.arel_table[:id].in(visble_by_source).
-      or(client_source.arel_table[:id].in(visible_by_destination)),
-    )
+    client_source.destination.where(Arel.sql(client_source.arel_table[:id].in(visble_by_source).or(client_source.arel_table[:id].in(visible_by_destination)).to_sql))
   end
 
   # Should always return any clients, source or destination that match
