@@ -781,12 +781,10 @@ module GrdaWarehouse::Hud
     end
 
     def client_names user: nil, health: false
-      client_scope = if user.can_view_clients?
-        source_clients
-      elsif user.can_search_window?
-        source_clients.visible_in_window_to(user)
+      client_scope = if user.can_view_clients_with_roi_in_own_coc?
+        source_clients.searchable_by(user)
       else
-        source_clients.none
+        source_clients.viewable_by(user)
       end
       names = client_scope.includes(:data_source).map do |m|
         {
@@ -916,6 +914,7 @@ module GrdaWarehouse::Hud
 
     def window_link_for? user
       return false if user.blank?
+
       if show_window_demographic_to?(user)
         client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
@@ -924,6 +923,8 @@ module GrdaWarehouse::Hud
         client_files_path(self)
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
         client_youth_intakes_path(self)
+      elsif GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(user)
+        client_coordinated_entry_assessments_path(self)
       end
     end
 
