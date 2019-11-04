@@ -3,28 +3,34 @@
 = render '/warehouse_reports/breadcrumbs'
 
 %h1= title
-
+= debug @filter.effective_project_ids.sort == @filter.all_project_ids.sort
+= debug @filter.clients_from_cohorts.exists?
+= debug @clients.to_sql
 = render 'filter'
 %p
   The following clients fell between the ages of #{@filter.start_age} and #{@filter.end_age} during the time frame #{@filter.start} to #{@filter.end}.  In addition, they either appeared on the cohorts specified or had an open enrollment at one of the projects, organizations, or data sources specified.  Where more than one answer is available, the most-recent within the date range is used.  For example, if a client has multiple responses for Destination at exit (3.12) that occurred within the specified time range, only the most-recent will be included.
 
 .warehouse-reports__youth-export
-.row
-  .col-8
-    %p= page_entries_info @clients, entry_name: _('client')
-  .col-4.text-right.mb-4r
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes additional fields.'}}) do
-      Download Excel
+  - if @clients.exists?
+    .row
+      .col-8
+        %p= page_entries_info @clients, entry_name: _('client')
+      .col-4.text-right.mb-4
+        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes additional fields.'}}) do
+          Download Excel
 
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Age on #{@filter.start}
-    %tbody
-      - @clients.each do |client|
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td= link_to client.LastName, client_path(client)
-          %td= link_to client.FirstName, client_path(client)
-          %td= client.age_on(@filter.start)
+          %th Last Name
+          %th First Name
+          %th Age on #{@filter.start}
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to client.LastName, client_path(client)
+            %td= link_to client.FirstName, client_path(client)
+            %td= client.age_on(@filter.start)
+  - else
+    %p.text-center.well
+      No client's found.

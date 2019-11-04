@@ -16,16 +16,12 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     # Clients of age during the range, who also meet
     def clients
-      @clients ||= begin
+      @clients ||=  begin
         clients = GrdaWarehouse::Hud::Client.where(id: clients_within_age_range.select(:id))
-        if @filter.effective_project_ids.any? && @filter.cohort_ids.any?
-          clients = clients.where(
-            c_t[:id].in(@filter.clients_from_cohorts.select(:id)).
-            or(c_t[:id].in(clients_within_projects.select(:id)))
-          )
-        elsif @filter.effective_project_ids.any?
+        if @filter.effective_project_ids.sort != @filter.all_project_ids.sort
           clients = clients.where(id: clients_within_projects.select(:id))
-        elsif @filter.cohort_ids.any?
+        end
+        if @filter.clients_from_cohorts.exists?
           clients = clients.where(id: @filter.clients_from_cohorts.select(:id))
         end
         clients
@@ -41,6 +37,8 @@ module GrdaWarehouse::WarehouseReports::Youth
           client.race_description,
           HUD.ethnicity(client.Ethnicity),
           client.gender,
+          HUD.veteran_status(client.VeteranStatus),
+          ApplicationController.helpers.yes_no(client_disabled?(client), include_icon: false),
         ]
       end
     end
@@ -53,6 +51,8 @@ module GrdaWarehouse::WarehouseReports::Youth
         'Race',
         'Ethnicity',
         'Gender',
+        'Veteran Status',
+        'Disabling Condition',
       ]
    end
 
@@ -66,6 +66,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :project).
           merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user).where(id: @filter.effective_project_ids))
       end
+    end
+
+    def client_disabled?(client)
+      @disabled_clients ||= GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: clients.select(:id)).pluck(:id)
+      @disabled_clients.include?(client.id)
     end
 
   end
