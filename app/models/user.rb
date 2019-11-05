@@ -33,7 +33,7 @@ class User < ActiveRecord::Base
   has_many :login_activities, as: :user
 
   # Ensure that users have a user-specific access group
-  after_commit :access_group
+  after_save :create_access_group
 
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
@@ -276,10 +276,13 @@ class User < ActiveRecord::Base
     User.where(id: ids)
   end
 
+  private def create_access_group
+    AccessGroup.for_user(self).first_or_create
+    group.access_group_members.where(user_id: id).first_or_create
+  end
+
   def access_group
-    group = AccessGroup.for_user(self).first_or_create
-    membership = group.access_group_members.where(user_id: id).first_or_create
-    group
+    AccessGroup.for_user(self).first_or_initialize
   end
 
   def set_viewables(viewables)

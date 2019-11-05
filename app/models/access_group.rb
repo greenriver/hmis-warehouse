@@ -31,6 +31,7 @@ class AccessGroup < ActiveRecord::Base
   end
 
   scope :for_user, -> (user) do
+    return none unless user.id
     where(user_id: user.id)
   end
 
