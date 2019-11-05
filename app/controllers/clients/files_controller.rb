@@ -97,12 +97,10 @@ module Clients
     end
 
     def update
-      if can_manage_client_files? && can_confirm_housing_release?
-        attrs = file_params
+      attrs = if can_confirm_housing_release?
+        file_params
       elsif can_manage_client_files?
         file_params.except(:consent_form_confirmed)
-      elsif can_confirm_housing_release?
-        attrs = consent_params
       else
         not_authorized!
       end

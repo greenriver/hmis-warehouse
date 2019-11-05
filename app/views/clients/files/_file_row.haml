@@ -56,7 +56,7 @@
           .active-release.mb-2{data: {toggle: :tooltip, title: 'You will need to refresh the page to see changes to active release forms'}}
             %i.icon-flag
             Active
-        - if can_manage_client_files? && @consent_editable
+        - if (can_manage_client_files? || can_confirm_housing_release?) && @consent_editable
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
             = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
           - if can_confirm_housing_release?
