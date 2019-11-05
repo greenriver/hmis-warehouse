@@ -3,6 +3,8 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
   describe 'When processing service history using update' do
     before(:all) do
+      GrdaWarehouse::ServiceHistoryService.delete_all
+      GrdaWarehouse::ServiceHistoryEnrollment.delete_all
       @delete_later = []
       setup_initial_imports
       load_third_import

@@ -21,27 +21,22 @@ module GrdaWarehouse::Tasks
       @projects = load_projects()
 
       @projects.each do |project|
-
         if should_update_type?(project)
           debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}")
           project_type = project.compute_project_type()
+          # Force a rebuild of all related enrollments
           project_source.transaction do
-            # Update any service records with this project
-            service_history_enrollment_source.
-              where(project_id: project.ProjectID, data_source_id: project.data_source_id).
-              update_all(
-                computed_project_type: project_type,
-                project_type: project.ProjectType
-              )
-            # Update all services related to these enrollments
-            service_history_service_source.where(
-              service_history_enrollment_id: service_history_enrollment_source.
-                where(project_id: project.ProjectID, data_source_id: project.data_source_id).distinct.select(:id)
-            ).update_all(project_type: project_type)
-
-            # Update the project after so that if it fails we trigger a re-update of both
+            project.enrollments.invalidate_processing!
             project.update(computed_project_type: project_type)
           end
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
+          debug_log("done")
+        elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
+          debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
+          project_source.transaction do
+            project.enrollments.invalidate_processing!
+          end
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
           debug_log("done")
         end
 
@@ -87,6 +82,38 @@ module GrdaWarehouse::Tasks
       service_history_enrollment_source.
         where(data_source_id: project.data_source_id, project_id: project.ProjectID).
         where.not(project_name: project.ProjectName).exists?
+    end
+
+    # if the incoming project type is homeless, return true if there are no homeless service history
+    # if the incoming project type is non-homeless, return true if there are any that are homeless
+    # same for literally_homeless
+    def homeless_mismatch? project
+      homeless = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+      literally_homeless = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+      homeless_mismatch = false
+      literally_homeless_mismatch = false
+      if homeless
+        no_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where.not(homeless: true).exists?
+        homeless_mismatch = !no_homeless_history
+      else
+        homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where(homeless: true).exists?
+      end
+
+      if literally_homeless
+        no_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where.not(literally_homeless: true).exists?
+        literally_homeless_mismatch = !no_literally_homeless_history
+      else
+        literally_homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where(literally_homeless: true).exists?
+      end
+      homeless_mismatch || literally_homeless_mismatch
     end
 
     def project_source

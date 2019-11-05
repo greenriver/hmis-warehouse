@@ -309,8 +309,8 @@ namespace :grda_warehouse do
 
   desc "Force rebuild for homeless enrollments"
   task :force_rebuild_for_homeless_enrollments, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).update_all(processed_as: nil)
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.update_all(processed_as: nil)
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
       Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
     end
