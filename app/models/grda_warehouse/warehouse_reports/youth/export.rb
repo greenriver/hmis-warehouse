@@ -17,7 +17,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     # Clients of age during the range, who also meet
     def clients
       @clients ||=  begin
-        clients = GrdaWarehouse::Hud::Client.where(id: clients_within_age_range.select(:id))
+        clients = clients_within_age_range
         if @filter.effective_project_ids.sort != @filter.all_project_ids.sort
           clients = clients.where(id: clients_within_projects.select(:id))
         end
