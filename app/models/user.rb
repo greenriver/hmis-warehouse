@@ -277,7 +277,7 @@ class User < ActiveRecord::Base
   end
 
   private def create_access_group
-    AccessGroup.for_user(self).first_or_create
+    group = AccessGroup.for_user(self).first_or_create
     group.access_group_members.where(user_id: id).first_or_create
   end
 
