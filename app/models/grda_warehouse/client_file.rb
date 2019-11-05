@@ -179,8 +179,8 @@ module GrdaWarehouse
     end
 
     def note_changes_in_consent
-      @consent_form_signed_on_changed_recently = consent_form_signed_on_changed? || false
-      @consent_form_confirmed_changed_recently = consent_form_confirmed_changed? || false
+      @consent_form_signed_on_changed_recently = saved_change_to_consent_form_signed_on? || false
+      @consent_form_confirmed_changed_recently = saved_change_to_consent_form_confirmed? || false
     end
 
     def set_client_consent

@@ -16,7 +16,7 @@ module Health
 
     mount_uploader :file, EligibilityResponseFileUploader
 
-    belongs_to :eligibility_inquiry, class_name: Health::EligibilityInquiry
+    belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user
 
     def subscriber_ids
