@@ -544,6 +544,10 @@ module GrdaWarehouse::Hud
       }
     end
 
+    def self.invalidate_processing!
+      update_all(processed_as: nil, processed_hash: nil)
+    end
+
     # attempt to collect something like an address out of the LastX fields
     def address
       @address ||= begin

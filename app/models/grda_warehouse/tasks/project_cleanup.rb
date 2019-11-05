@@ -26,29 +26,17 @@ module GrdaWarehouse::Tasks
           project_type = project.compute_project_type()
           # Force a rebuild of all related enrollments
           project_source.transaction do
-            project.enrollments.update_all(processed_as: nil)
+            project.enrollments.invalidate_processing!
             project.update(computed_project_type: project_type)
           end
-          # wait for re-processing
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.
-            joins(:project, :destination_client).
-            pluck_in_batches(:id, batch_size: 250) do |batch|
-              Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
-            end
-          GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
           debug_log("done")
         elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
           debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
           project_source.transaction do
-            project.enrollments.update_all(processed_as: nil)
+            project.enrollments.invalidate_processing!
           end
-          # wait for re-processing
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.
-            joins(:project, :destination_client).
-            pluck_in_batches(:id, batch_size: 250) do |batch|
-              Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
-            end
-          GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
           debug_log("done")
         end
 

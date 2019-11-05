@@ -30,13 +30,8 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
       return if existing_is_newer()
       log("Updating Service Histories for #{project_name}, project type has changed")
 
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: id)).update_all(processed_as: nil)
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.
-        joins(:project, :destination_client).
-        pluck_in_batches(:id, batch_size: 250) do |batch|
-          Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
-        end
-      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: id)).invalidate_processing!
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     end
 
     def existing_is_newer
