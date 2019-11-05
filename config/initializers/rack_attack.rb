@@ -8,31 +8,31 @@ class Rack::Attack
   tracker = if Rails.env.test? then :throttle else :track end
 
 
-  send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |req|
-    if tracking_enabled?(req)
+  send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |request|
+    if tracking_enabled?(request)
       if request.env['warden'].user.blank?
-        req.ip
+        request.ip
       end
     end
   end
-  send(tracker, 'requests per logged-in user per ip', limit: 50, period: 5.seconds) do |req|
-    if tracking_enabled?(req)
-      if request.env['warden'].user.present? && ! (req.path.include?('rollup') || req.path.include?('cohort'))
-        req.ip
+  send(tracker, 'requests per logged-in user per ip', limit: 50, period: 5.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.env['warden'].user.present? && ! (request.path.include?('rollup') || request.path.include?('cohort'))
+        request.ip
       end
     end
   end
-  send(tracker, 'requests per logged-in user per ip special', limit: 100, period: 5.seconds) do |req|
-    if tracking_enabled?(req)
-      if request.env['warden'].user.present? && (req.path.include?('rollup') || req.path.include?('cohort'))
-        req.ip
+  send(tracker, 'requests per logged-in user per ip special', limit: 100, period: 5.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.env['warden'].user.present? && (request.path.include?('rollup') || request.path.include?('cohort'))
+        request.ip
       end
     end
   end
-  send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |req|
-    if tracking_enabled?(req)
-      if req.path == '/users/sign_in' && req.post? && params[:user].present? && params[:user][:email].present?
-        req.params[:user][:email]
+  send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.path == '/users/sign_in' && request.post? && params[:user].present? && params[:user][:email].present?
+        request.params[:user][:email]
       end
     end
   end

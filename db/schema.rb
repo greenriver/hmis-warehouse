@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191029172244) do
+ActiveRecord::Schema.define(version: 20191105181656) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -229,6 +229,16 @@ ActiveRecord::Schema.define(version: 20191029172244) do
     t.string  "name"
     t.integer "nickname_id"
   end
+
+  create_table "old_passwords", force: :cascade do |t|
+    t.string   "encrypted_password",       null: false
+    t.string   "password_archivable_type", null: false
+    t.integer  "password_archivable_id",   null: false
+    t.string   "password_salt"
+    t.datetime "created_at"
+  end
+
+  add_index "old_passwords", ["password_archivable_type", "password_archivable_id"], name: "index_password_archivable", using: :btree
 
   create_table "report_results", force: :cascade do |t|
     t.integer  "report_id"
@@ -514,6 +524,7 @@ ActiveRecord::Schema.define(version: 20191029172244) do
     t.datetime "expired_at"
     t.integer  "confirmed_2fa",                     default: 0,           null: false
     t.string   "otp_backup_codes",                                                     array: true
+    t.datetime "password_changed_at"
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
