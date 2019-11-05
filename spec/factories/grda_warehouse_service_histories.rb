@@ -2,6 +2,7 @@ FactoryBot.define do
   factory :grda_warehouse_service_history, class: 'GrdaWarehouse::ServiceHistoryEnrollment' do
     # client_id
     # data_source_id
+    association :data_source, factory: :grda_warehouse_data_source
     # date
     # first_date_in_program
     # last_date_in_program

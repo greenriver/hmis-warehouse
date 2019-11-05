@@ -348,7 +348,7 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :enrollments, autosave: false
     belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments, optional: true
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :enrollments
     has_one :organization, through: :project, autosave: false
 

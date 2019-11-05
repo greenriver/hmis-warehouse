@@ -46,7 +46,7 @@ class User < ApplicationRecord
 
   has_many :messages
 
-  belongs_to :agency
+  belongs_to :agency, optional: true
 
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)

@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
     self.hud_key = :OrganizationID
     acts_as_paranoid column: :DateDeleted
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
     belongs_to :data_source, inverse_of: :organizations
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization

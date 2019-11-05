@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :vispdat, class: 'GrdaWarehouse::Vispdat::Individual' do
     association :client, factory: :grda_warehouse_hud_client
+    association :user, factory: :user
     nickname { 'Test' }
     language_answer { 1 }
     hiv_release { 1 }
@@ -63,8 +64,10 @@ FactoryBot.define do
 
   factory :family_vispdat, class: 'GrdaWarehouse::Vispdat::Family' do
     association :client, factory: :grda_warehouse_hud_client
+    association :user, factory: :user
   end
   factory :youth_vispdat, class: 'GrdaWarehouse::Vispdat::Youth' do
     association :client, factory: :grda_warehouse_hud_client
+    association :user, factory: :user
   end
 end

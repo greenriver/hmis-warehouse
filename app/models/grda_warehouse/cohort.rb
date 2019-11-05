@@ -18,7 +18,7 @@ module GrdaWarehouse
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
-    belongs_to :tags, class_name: Cas::Tag.name
+    belongs_to :tags, class_name: Cas::Tag.name, optional: true
 
     attr_accessor :client_ids, :user_ids
 

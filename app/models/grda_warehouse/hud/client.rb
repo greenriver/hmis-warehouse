@@ -14,7 +14,6 @@ module GrdaWarehouse::Hud
     include ApplicationHelper
     include HudSharedScopes
     include HudChronicDefinition
-    include Eto::TouchPoints
     include SiteChronic
 
     self.table_name = :Client
@@ -85,13 +84,16 @@ module GrdaWarehouse::Hud
     include ArelHelper
 
     belongs_to :data_source, inverse_of: :clients
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :source_id, inverse_of: :source
     has_many :warehouse_client_destination, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :destination_id, inverse_of: :destination
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+
+    # Must be included after source_clients is defined...
+    include Eto::TouchPoints
 
     has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name

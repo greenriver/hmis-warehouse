@@ -14,5 +14,5 @@ class GrdaWarehouse::WarehouseClient < GrdaWarehouseBase
     inverse_of: :warehouse_client_source
 
   belongs_to :data_source
-  belongs_to :client_match
+  belongs_to :client_match, optional: true
 end

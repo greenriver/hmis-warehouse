@@ -60,7 +60,7 @@ module GrdaWarehouse::Hud
     end
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
     belongs_to :data_source
 
     scope :open_between, -> (start_date:, end_date: ) do

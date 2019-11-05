@@ -27,7 +27,7 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment')
     belongs_to :direct_enrollment, **hud_enrollment_belongs
     has_one :enrollment, through: :assessment

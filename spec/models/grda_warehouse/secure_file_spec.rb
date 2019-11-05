@@ -5,10 +5,12 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
   let(:secure_file_recipient) { create :secure_file_recipient }
   let(:secure_file_admin) { create :secure_file_admin }
   let(:sender) { create :user, roles: [empty_role] }
+  let(:sender2) { create :user, roles: [empty_role] }
   let(:recipient) { create :user, roles: [secure_file_recipient] }
+  let(:recipient2) { create :user, roles: [secure_file_recipient] }
   let(:admin) { create :user, roles: [secure_file_admin] }
   let!(:file) { create :secure_file, recipient_id: recipient.id, sender_id: sender.id }
-  let!(:file2) { create :secure_file }
+  let!(:file2) { create :secure_file, recipient_id: recipient2.id, sender_id: sender2.id }
 
   describe 'secure files have appropriate permissions' do
     it 'senders with no roles can\'t see the file after upload' do
