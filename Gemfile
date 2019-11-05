@@ -30,7 +30,7 @@ gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
 gem 'ruby-filemagic'
 gem 'mini_magick'
-gem 'acts-as-taggable-on', '~> 4.0'
+gem 'acts-as-taggable-on', '~> 6.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'

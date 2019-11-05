@@ -52,8 +52,8 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    acts-as-taggable-on (4.0.0)
-      activerecord (>= 4.0)
+    acts-as-taggable-on (6.0.0)
+      activerecord (~> 5.0)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     after_commit_exception_notification (0.2.0)
@@ -1446,7 +1446,7 @@ DEPENDENCIES
   activerecord-import
   activerecord-session_store
   activerecord-sqlserver-adapter (~> 5.0)
-  acts-as-taggable-on (~> 4.0)
+  acts-as-taggable-on (~> 6.0)
   after_commit_exception_notification
   attr_encrypted (~> 3.1.0)
   attribute_normalizer
