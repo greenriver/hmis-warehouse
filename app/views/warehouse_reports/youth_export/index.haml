@@ -3,12 +3,9 @@
 = render '/warehouse_reports/breadcrumbs'
 
 %h1= title
-= debug @filter.effective_project_ids.sort == @filter.all_project_ids.sort
-= debug @filter.clients_from_cohorts.exists?
-= debug @clients.to_sql
 = render 'filter'
-%p
-  The following clients fell between the ages of #{@filter.start_age} and #{@filter.end_age} during the time frame #{@filter.start} to #{@filter.end}.  In addition, they either appeared on the cohorts specified or had an open enrollment at one of the projects, organizations, or data sources specified.  Where more than one answer is available, the most-recent within the date range is used.  For example, if a client has multiple responses for Destination at exit (3.12) that occurred within the specified time range, only the most-recent will be included.
+%p.mb-6
+  The following clients were between the ages of #{@filter.start_age} and #{@filter.end_age} during the time frame #{@filter.start} to #{@filter.end}.  In addition, the client list is filtered down based on chosen Projects, Organizations, Data Sources, and Cohorts.  Where more than one answer is available, the most-recent answer attached to an enrollment that was open within the date range is used.  For example, if a client exited multiple enrollments that were open within the date range, Destination at exit (3.12) will be shown for the most-recent exit, even if the exit occurred after the date range.
 
 .warehouse-reports__youth-export
   - if @clients.exists?

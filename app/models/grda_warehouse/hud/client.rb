@@ -143,6 +143,7 @@ module GrdaWarehouse::Hud
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
+    has_many :source_employment_educations, through: :source_enrollments, source: :employment_educations
     has_many :source_exits, through: :source_enrollments, source: :exit
     has_many :source_projects, through: :source_enrollments, source: :project
     has_many :permanent_source_exits, -> do
