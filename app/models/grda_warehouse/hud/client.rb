@@ -143,6 +143,7 @@ module GrdaWarehouse::Hud
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
+    has_many :source_employment_educations, through: :source_enrollments, source: :employment_educations
     has_many :source_exits, through: :source_enrollments, source: :exit
     has_many :source_projects, through: :source_enrollments, source: :project
     has_many :permanent_source_exits, -> do
@@ -500,6 +501,16 @@ module GrdaWarehouse::Hud
         where(DOB: end_age.years.ago..start_age.years.ago)
       else
         where(arel_table[:DOB].lteq(start_age.years.ago))
+      end
+    end
+
+    scope :age_group_within_range, -> (start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
+      start_age = 0 unless start_age.is_a?(Integer)
+      end_age   = nil unless end_age.is_a?(Integer)
+      if end_age.present?
+        where(DOB: (end_date - end_age.years)..(start_date - start_age.years))
+      else
+        where(arel_table[:DOB].lteq(start_date - start_age.years))
       end
     end
 
