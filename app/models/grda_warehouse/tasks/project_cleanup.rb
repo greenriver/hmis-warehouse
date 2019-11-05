@@ -105,23 +105,23 @@ module GrdaWarehouse::Tasks
       homeless_mismatch = false
       literally_homeless_mismatch = false
       if homeless
-        no_homeless_history = GrdaWarehouse::ServiceHistoryServiceMaterialized.joins(service_history_enrollment: :project).
+        no_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where.not(homeless: true).exists?
         homeless_mismatch = !no_homeless_history
       else
-        homeless_mismatch = GrdaWarehouse::ServiceHistoryServiceMaterialized.joins(service_history_enrollment: :project).
+        homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where(homeless: true).exists?
       end
 
       if literally_homeless
-        no_literally_homeless_history = GrdaWarehouse::ServiceHistoryServiceMaterialized.joins(service_history_enrollment: :project).
+        no_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where.not(literally_homeless: true).exists?
         literally_homeless_mismatch = !no_literally_homeless_history
       else
-        literally_homeless_mismatch = GrdaWarehouse::ServiceHistoryServiceMaterialized.joins(service_history_enrollment: :project).
+        literally_homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where(literally_homeless: true).exists?
       end
