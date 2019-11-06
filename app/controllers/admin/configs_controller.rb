@@ -49,6 +49,7 @@ module Admin
         :rrh_cas_readiness,
         :show_vispdats_on_dashboards,
         :cas_days_homeless_source,
+        :consent_visible_to_all,
         client_details: [],
       )
     end

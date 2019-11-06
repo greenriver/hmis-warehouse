@@ -15,14 +15,14 @@
           - anchor = 'consent'
         - else
           - anchor = 'other'
-      - if file.uploaded_by?(current_user)
-        = link_to(polymorphic_path(file_path_generator, id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-danger btn-sm') do
-          %span.icon-cross
-          Delete
-      - else
-        = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-danger btn-sm') do
-          %span.icon-cross
-          Delete
+        - if file.uploaded_by?(current_user)
+          = link_to(polymorphic_path(file_path_generator, id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-danger btn-sm') do
+            %span.icon-cross
+            Delete
+        - else
+          = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-danger btn-sm') do
+            %span.icon-cross
+            Delete
 
   .row
     .col-3

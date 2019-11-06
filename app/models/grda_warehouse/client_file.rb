@@ -38,17 +38,26 @@ module GrdaWarehouse
     scope :visible_by?, -> (user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
-        all
+        current_scope
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files?
-        window.where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].eq(user.id))
-        )
+        sql = arel_table[:client_id].in(
+          Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)
+        ).
+        or(arel_table[:user_id].eq(user.id))
+
+        if GrdaWarehouse::Config.get(:consent_visible_to_all)
+          sql = sql.or(arel_table[:id].in(consent_forms.select(:id)))
+        end
+        window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads?
-        where(user_id: user.id)
+        sql = arel_table[:user_id].eq(user.id)
+        if GrdaWarehouse::Config.get(:consent_visible_to_all)
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+        end
+        where(sql)
       else
         none
       end
@@ -57,7 +66,7 @@ module GrdaWarehouse
     scope :editable_by?, -> (user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
-        all
+        current_scope
       # If all you can see are window files or your own files
       #   show only those you uploaded
       elsif user.can_manage_window_client_files? || user.can_see_own_file_uploads?
