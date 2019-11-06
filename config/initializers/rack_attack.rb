@@ -8,7 +8,7 @@ class Rack::Attack
   # tracker = if Rails.env.test? then :throttle else :track end
   tracker = :throttle
 
-  send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |request|
+  send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
     if tracking_enabled?(request)
       if request.env['warden'].user.blank? && !(request.path == '/users/sign_in' && request.post?)
         request.ip
