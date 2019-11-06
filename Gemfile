@@ -7,12 +7,12 @@ gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 10.0'
+gem 'composite_primary_keys', '~> 11'
 gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 5.1'
+gem "rails", '~> 5.2'
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
