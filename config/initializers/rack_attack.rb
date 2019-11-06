@@ -1,15 +1,16 @@
 class Rack::Attack
-  def self.tracking_enabled?(req)
-    !Rails.env.test? || /t|1/.match?(req.params['rack_attack_enabled'].to_s)
+  def self.tracking_enabled?(request)
+    !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
   end
 
   # track any remote ip that exceeds our basic request rate limits
 
-  tracker = if Rails.env.test? then :throttle else :track end
+  # tracker = if Rails.env.test? then :throttle else :track end
+  tracker = :throttle
 
   send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |request|
     if tracking_enabled?(request)
-      if request.env['warden'].user.blank?
+      if request.env['warden'].user.blank? && !(request.path == '/users/sign_in' && request.post?)
         request.ip
       end
     end
@@ -30,8 +31,16 @@ class Rack::Attack
   end
   send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
     if tracking_enabled?(request)
-      if request.path == '/users/sign_in' && request.post? && params[:user].present? && params[:user][:email].present?
-        request.params[:user][:email]
+      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+        request.params['user']['email']
+      end
+    end
+  end
+  # limit to 25 logins per user per hour
+  send(tracker, 'block script logins per account', limit: 25, period: 3600.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+        request.params['user']['email']
       end
     end
   end
