@@ -13,7 +13,8 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   has_one :enrollment, through: :service_history_enrollment
 
   scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    send(service_scope).
+    # FIXME is all the right choice if service_scope returns nil?
+    (send(service_scope) || all).
       where(date: start_date..end_date)
   end
 

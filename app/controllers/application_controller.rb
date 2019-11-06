@@ -139,21 +139,9 @@ class ApplicationController < ActionController::Base
   def check_all_db_migrations
     return true unless Rails.env.development?
 
-    query = 'select version from schema_migrations'
-    # Warehouse
-    all = ActiveRecord::Migrator.migrations(['db/warehouse/migrate']).collect(&:version)
-    migrated = GrdaWarehouseBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
-
-    # Health
-    all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
-    migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
-
-    # Reporting
-    all = ActiveRecord::Migrator.migrations(['db/reporting/migrate']).collect(&:version)
-    migrated = ReportingBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
+    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(GrdaWarehouseBase.connection)
+    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(HealthBase.connection)
+    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(ReportingBase.connection)
   end
 
   def pjax_request?

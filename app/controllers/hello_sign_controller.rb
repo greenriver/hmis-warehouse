@@ -16,7 +16,7 @@ class HelloSignController < ActionController::Base
     end
 
     # HelloSign expects this. Do not change or remove:
-    render text: 'Hello API Event Received'
+    render plain: 'Hello API Event Received'
   end
 
   # rubocop:disable Lint/DuplicateMethods, Style/DoubleNegation, Naming/PredicateName
