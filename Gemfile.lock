@@ -887,6 +887,8 @@ GEM
     bcrypt (3.1.13)
     benchmark-ips (2.7.2)
     bindex (0.8.1)
+    bootsnap (1.4.5)
+      msgpack (~> 1.0)
     bootstrap (4.3.1)
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 1.14.3, < 2)
@@ -1155,6 +1157,7 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    msgpack (1.3.1)
     multi_json (1.14.1)
     multipart-post (2.1.1)
     nenv (0.3.0)
@@ -1470,6 +1473,7 @@ DEPENDENCIES
   axlsx (= 3.0.0.pre)
   axlsx_rails
   bcrypt
+  bootsnap
   bootstrap (~> 4.3.1)
   brakeman
   bumbler
