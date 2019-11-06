@@ -17,6 +17,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(processed_as: nil)
     end
 
+    def self.batch_process_unprocessed!
+      unprocessed.joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
+          Delayed::Job.enqueue(
+            ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(
+              enrollment_ids: batch
+            ),
+            queue: :low_priority
+          )
+        end
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+    end
+
+    def self.batch_process_date_range!(date_range)
+      open_during_range(date_range).
+        joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      end
+      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+    end
+
     def service_history_valid?
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
