@@ -30,7 +30,7 @@ describe Rack::Attack, type: :request do
 
   describe 'when not-logged in' do
     describe 'when hitting the homepage' do
-      let(:throttled_at) { 6 }
+      let(:throttled_at) { 11 }
       let(:request_limit) { (throttled_at * 4).to_i }
       let(:path) { '/' }
       it 'does not throttle excessive test requests' do

@@ -324,7 +324,7 @@ Rails.application.routes.draw do
       resources :overview, only: [:index]
       resources :agency_performance, only: [:index] do
         collection do
-          get :detail
+          post :detail
         end
       end
       resources :member_status_reports, only: [:index, :show, :create, :destroy] do
