@@ -180,6 +180,7 @@ Rails.application.routes.draw do
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
     resources :youth_follow_ups, only: [:index]
+    resources :youth_export, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -399,7 +400,7 @@ Rails.application.routes.draw do
           delete :destroy_file
       end
     end
-    resources :coordinated_entry_assessment, controller: 'clients/coordinated_entry_assessments'
+    resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
@@ -448,7 +449,7 @@ Rails.application.routes.draw do
           delete :destroy_file
         end
       end
-      resources :coordinated_entry_assessment, controller: '/clients/coordinated_entry_assessments'
+      resources :coordinated_entry_assessments, controller: '/clients/coordinated_entry_assessments'
       resources :youth_intakes, controller: '/clients/youth/intakes'
       resources :youth_case_managements, except: [:index], controller: '/clients/youth/case_managements'
       resources :direct_financial_assistances, except: [:index], controller: '/clients/youth/direct_financial_assistances'

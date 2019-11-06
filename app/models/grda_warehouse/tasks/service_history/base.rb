@@ -64,7 +64,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def self.wait_for_processing interval: 30
       # you must manually process these in the test environment since there are no workers
-      unless Rails.env.test?
+      if Rails.env.test?
+        Delayed::Worker.new.work_off(2)
+      else
         started = Time.now
         # Limit the scope of the check to only rebuilding service history jobs
         dj_t = Delayed::Job.arel_table

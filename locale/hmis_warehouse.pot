@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-04 15:13-0400\n"
-"PO-Revision-Date: 2019-10-04 15:13-0400\n"
+"POT-Creation-Date: 2019-11-06 15:53-0500\n"
+"PO-Revision-Date: 2019-11-06 15:53-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3465,6 +3465,9 @@ msgstr ""
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
+msgid "Coordinated Entry Assessments"
+msgstr ""
+
 msgid "DMH Eligible"
 msgstr ""
 
@@ -3567,6 +3570,15 @@ msgstr ""
 msgid "Ineligible Immigrant (Including Undocumented)"
 msgstr ""
 
+msgid "Invalid Email or password"
+msgstr ""
+
+msgid "Invalid two-factor code."
+msgstr ""
+
+msgid "Is there anyplace you do NOT want to live?"
+msgstr ""
+
 msgid "Life-Time Sex Offender"
 msgstr ""
 
@@ -3574,6 +3586,18 @@ msgid "Limited CAS Release"
 msgstr ""
 
 msgid "Limited CAS Release on File"
+msgstr ""
+
+msgid "Location Option 1"
+msgstr ""
+
+msgid "Location Option 2"
+msgstr ""
+
+msgid "Location Option 3"
+msgstr ""
+
+msgid "Location Option 4"
 msgstr ""
 
 msgid "Manually entered date at which the client became document ready"
@@ -3607,6 +3631,9 @@ msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
 msgid "Organizations"
+msgstr ""
+
+msgid "Other city or town:"
 msgstr ""
 
 msgid "Override CAS Match Date"

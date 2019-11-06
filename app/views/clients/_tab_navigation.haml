@@ -35,7 +35,7 @@
         title: 'VI-SPDAT',
         permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
       },
-      client_coordinated_entry_assessment_index_path(client_id: @client.id) => {
+      client_coordinated_entry_assessments_path(client_id: @client.id) => {
         title: _('Coordinated Entry Assessment'),
         permission: GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(current_user)
       },

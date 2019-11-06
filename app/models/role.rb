@@ -364,6 +364,14 @@ class Role < ApplicationRecord
         description: 'Ability to maintain help documents',
         administrative: true,
       },
+      can_view_all_hud_reports: {
+        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  In addition, this grants access to all HUD reports that have ever been run regardless of access assignments.',
+        administrative: true,
+      },
+      can_view_own_hud_reports: {
+        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  Users can only see results for HUD reports they initiated.',
+        administrative: false,
+      },
     }
   end
 

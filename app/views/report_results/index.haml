@@ -3,10 +3,9 @@
 = render 'queue_form'
 
 :ruby
-  columns = ['percent_complete', 'created_at']
-  directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
-  titles = {}
-  directions.each {| k,v | titles[k] = @results.human_attribute_name(k)}
+  columns = {'percent_complete' => 'Status', 'created_at' => 'Started'}
+  directions = current_sort_order(Hash[columns.map {|x,_| [x, nil]}])
+  titles = columns
 .row
   .col-sm-8
     %p= page_entries_info(@results, entry_name: _('report'))
@@ -22,6 +21,7 @@
                 %i{class: ["fa", "fa-sort-#{directions[k]}"] }
             - if @report.has_options?
               %th= @report.title_for_options
+            %th Run by
             %th Completed in
             %th Delete
 
@@ -37,10 +37,10 @@
               - if @report.has_options?
                 %td
                   = result.value_for_options result.options
+              %td= result.user.name
               %td= result.completed_in
               %td
-                = link_to report_report_result_path(@report, result),  method: :delete, data: {confirm: _("Would you really like to delete this report result?")} do
+                = link_to report_report_result_path(@report, result),  method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: _("Would you really like to delete this report result?")} do
                   %span.icon-cross
-                  Delete
 
 %p= paginate @results, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}

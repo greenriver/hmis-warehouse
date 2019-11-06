@@ -133,6 +133,30 @@ module GrdaWarehouse::Hud
       order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
     end
 
+    scope :physical, -> do
+      where(DisabilityType: 5)
+    end
+
+    scope :developmental, -> do
+      where(DisabilityType: 6)
+    end
+
+    scope :chronic, -> do
+      where(DisabilityType: 7)
+    end
+
+    scope :hiv, -> do
+      where(DisabilityType: 8)
+    end
+
+    scope :mental, -> do
+      where(DisabilityType: 9)
+    end
+
+    scope :substance, -> do
+      where(DisabilityType: 10)
+    end
+
     def self.disability_types
       {
         5 => :physical,

@@ -10,12 +10,14 @@
     - content_for :filters_col_l do
       .row
         .col-sm-6
-          = f.input :month, collection: @mo.months, label: false, class: 'form-control', input_html: {class: 'select2'}
+          = f.input :month, collection: @mo.months, label: 'Month', class: 'form-control', input_html: {class: 'select2'}
         .col-sm-6
-          = f.input :year, collection: @mo.years, label: false, class: 'form-control', input_html: {class: 'select2'}
+          = f.input :year, collection: @mo.years, label: 'Year', class: 'form-control', input_html: {class: 'select2'}
 
     - content_for :filters_col_r do
-      = f.input :org, collection: @mo.organizations, label: 'Organization', class: 'form-control', input_html: {class: 'select2'}
+      .row
+        .col-sm-6
+          = f.input :org, collection: @mo.organizations, label: 'Organization', class: 'form-control', input_html: {class: 'select2'}
 
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'

@@ -23,6 +23,8 @@ class User < ApplicationRecord
          :session_limitable,
          :pwned_password,
          :expirable,
+         :password_expirable,
+         # :password_archivable,
          :two_factor_authenticatable,
          :two_factor_backupable,
          password_length: 10..128,

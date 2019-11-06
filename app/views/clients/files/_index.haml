@@ -67,6 +67,7 @@
     });
     $("ul.files-nav.nav-tabs a").on("shown.bs.tab", function(e) {
       var id = $(e.target).attr("href").substr(1);
+      history.pushState({}, id, $(e.target).attr("href"));
     });
     var hash = window.location.hash;
     $('.files-nav.nav-tabs a[href="' + hash + '"]').tab('show');

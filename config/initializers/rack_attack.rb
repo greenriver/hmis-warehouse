@@ -1,16 +1,47 @@
 class Rack::Attack
-  def self.tracking_enabled?(req)
-    !Rails.env.test? || /t|1/.match?(req.params['rack_attack_enabled'].to_s)
+  def self.tracking_enabled?(request)
+    !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
   end
 
   # track any remote ip that exceeds our basic request rate limits
 
-  tracker = Rails.env.test? ? :throttle : :track
+  # tracker = if Rails.env.test? then :throttle else :track end
+  tracker = :throttle
 
-
-  send(tracker, 'req/ip', limit: 10, period: 1.second) do |req|
-    if tracking_enabled?(req)
-      req.ip
+  send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.env['warden'].user.blank? && !(request.path == '/users/sign_in' && request.post?)
+        request.ip
+      end
+    end
+  end
+  send(tracker, 'requests per logged-in user per ip', limit: 50, period: 5.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.env['warden'].user.present? && ! (request.path.include?('rollup') || request.path.include?('cohort'))
+        request.ip
+      end
+    end
+  end
+  send(tracker, 'requests per logged-in user per ip special', limit: 100, period: 5.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.env['warden'].user.present? && (request.path.include?('rollup') || request.path.include?('cohort'))
+        request.ip
+      end
+    end
+  end
+  send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+        request.params['user']['email']
+      end
+    end
+  end
+  # limit to 25 logins per user per hour
+  send(tracker, 'block script logins per account', limit: 25, period: 3600.seconds) do |request|
+    if tracking_enabled?(request)
+      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+        request.params['user']['email']
+      end
     end
   end
 end

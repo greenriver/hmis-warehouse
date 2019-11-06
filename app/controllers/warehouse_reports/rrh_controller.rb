@@ -70,52 +70,52 @@ module WarehouseReports
     private def set_filter
       @filter = OpenStruct.new
       @filter.start_date = begin
-                             report_params[:start_date]&.to_date
-                           rescue StandardError
-                             @start_months.values[5]
-                           end
+        report_params[:start_date]&.to_date
+      rescue StandardError
+        @start_months.values[5]
+      end
       @filter.end_date = begin
-                           report_params[:end_date]&.to_date
-                         rescue StandardError
-                           @end_months.values[0]
-                         end
+        report_params[:end_date]&.to_date
+      rescue StandardError
+        @end_months.values[0]
+      end
       # force at least a 2 month coverage
       @filter.start_date = (@filter.end_date - 1.months).beginning_of_month if @filter.start_date > @filter.end_date - 1.months
       @filter.subpopulation = begin
-                                report_params[:subpopulation]&.to_sym&.presence || :all
-                              rescue StandardError
-                                :all
-                              end
+        report_params[:subpopulation]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       @filter.household_type = begin
-                                 report_params[:household_type]&.to_sym&.presence || :all
-                               rescue StandardError
-                                 :all
-                               end
+        report_params[:household_type]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       @filter.race = begin
-                       report_params[:race]&.to_sym&.presence || :all
-                     rescue StandardError
-                       :all
-                     end
+        report_params[:race]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       @filter.ethnicity = begin
-                            report_params[:ethnicity]&.to_sym&.presence || :all
-                          rescue StandardError
-                            :all
-                          end
+        report_params[:ethnicity]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       @filter.gender = begin
-                         report_params[:gender]&.to_sym&.presence || :all
-                       rescue StandardError
-                         :all
-                       end
+        report_params[:gender]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       @filter.veteran_status = begin
-                                 report_params[:veteran_status]&.to_sym&.presence || :all
-                               rescue StandardError
-                                 :all
-                               end
+        report_params[:veteran_status]&.to_sym&.presence || :all
+      rescue StandardError
+        :all
+      end
       p_ids = begin
-                report_params[:project_ids].select(&:present?).map(&:to_i)
-              rescue StandardError
-                nil
-              end
+        report_params[:project_ids].select(&:present?).map(&:to_i)
+      rescue StandardError
+        nil
+      end
       @filter.project_ids = project_ids(p_ids)
     end
 

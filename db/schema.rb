@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191104165458) do
+ActiveRecord::Schema.define(version: 2019_11_05_181656) do
 
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
+  enable_extension "plpgsql"
 
   create_table "access_group_members", id: :serial, force: :cascade do |t|
     t.integer "access_group_id"
@@ -195,6 +195,15 @@ ActiveRecord::Schema.define(version: 20191104165458) do
   create_table "nicknames", id: :serial, force: :cascade do |t|
     t.string "name"
     t.integer "nickname_id"
+  end
+
+  create_table "old_passwords", id: :serial, force: :cascade do |t|
+    t.string "encrypted_password", null: false
+    t.string "password_archivable_type", null: false
+    t.integer "password_archivable_id", null: false
+    t.string "password_salt"
+    t.datetime "created_at"
+    t.index ["password_archivable_type", "password_archivable_id"], name: "index_password_archivable"
   end
 
   create_table "report_results", id: :serial, force: :cascade do |t|
@@ -495,6 +504,7 @@ ActiveRecord::Schema.define(version: 20191104165458) do
     t.datetime "expired_at"
     t.integer "confirmed_2fa", default: 0, null: false
     t.string "otp_backup_codes", array: true
+    t.datetime "password_changed_at"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true

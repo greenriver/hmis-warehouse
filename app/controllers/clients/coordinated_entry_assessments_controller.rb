@@ -39,7 +39,7 @@ module Clients
 
     def destroy
       @assessment.destroy
-      respond_with(@assessment, location: client_coordinated_entry_assessment_index_path(@client))
+      respond_with(@assessment, location: client_coordinated_entry_assessments_path(@client))
     end
 
     def create
@@ -50,7 +50,7 @@ module Clients
       end
       @assessment.submitted_at = Time.now if params[:commit] == 'Complete'
       @assessment.update(assessment_params)
-      respond_with(@assessment, location: client_coordinated_entry_assessment_index_path(client_id: @client.id))
+      respond_with(@assessment, location: client_coordinated_entry_assessments_path(client_id: @client.id))
     end
 
     def update
@@ -69,7 +69,7 @@ module Clients
         @assessment.assign_attributes(assessment_params.merge(user_id: current_user.id))
         @assessment.save(validate: false)
       end
-      respond_with(@assessment, location: client_coordinated_entry_assessment_index_path(client_id: @client.id))
+      respond_with(@assessment, location: client_coordinated_entry_assessments_path(client_id: @client.id))
     end
 
     private def set_client

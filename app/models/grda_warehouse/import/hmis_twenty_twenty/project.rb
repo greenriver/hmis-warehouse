@@ -29,17 +29,9 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
       return if project_type_unchanged()
       return if existing_is_newer()
       log("Updating Service Histories for #{project_name}, project type has changed")
-      GrdaWarehouse::ServiceHistoryEnrollment.where(
-        data_source_id: data_source_id,
-        project_id: project_id,
-        organization_id: organization_id
-      ).
-      update_all(
-        project_name: project_name,
-        organization_id: organization_id,
-        project_type: project_type,
-        project_tracking_method: tracking_method
-      )
+
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: id)).invalidate_processing!
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     end
 
     def existing_is_newer
