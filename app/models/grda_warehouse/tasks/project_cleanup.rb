@@ -84,36 +84,45 @@ module GrdaWarehouse::Tasks
         where.not(project_name: project.ProjectName).exists?
     end
 
+    private def homeless_status_correct?(project)
+      homeless_status_correct = true
+      if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
+        # ES, SO, SH, TH
+        any_non_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where.not(homeless: true).exists?
+        homeless_status_correct = !any_non_homeless_history
+      else
+        # PH, and all others
+        any_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where(homeless: true).exists?
+        homeless_status_correct = !any_homeless_history
+      end
+    end
+
+    private def literally_homeless_status_correct?(project)
+      literally_homeless_status_correct = true
+      if  GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+        # ES, SO, SH
+        any_non_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where.not(literally_homeless: true).exists?
+        literally_homeless_status_correct = !any_non_literally_homeless_history
+      else
+        # PH, TH, and all others
+        any_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+          merge(project_source.where(id: project.id)).
+          where(literally_homeless: true).exists?
+        literally_homeless_status_correct = !any_literally_homeless_history
+      end
+    end
+
     # if the incoming project type is homeless, return true if there are no homeless service history
     # if the incoming project type is non-homeless, return true if there are any that are homeless
     # same for literally_homeless
-    def homeless_mismatch? project
-      homeless = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
-      literally_homeless = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
-      homeless_mismatch = false
-      literally_homeless_mismatch = false
-      if homeless
-        no_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
-          merge(project_source.where(id: project.id)).
-          where.not(homeless: true).exists?
-        homeless_mismatch = !no_homeless_history
-      else
-        homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
-          merge(project_source.where(id: project.id)).
-          where(homeless: true).exists?
-      end
-
-      if literally_homeless
-        no_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
-          merge(project_source.where(id: project.id)).
-          where.not(literally_homeless: true).exists?
-        literally_homeless_mismatch = !no_literally_homeless_history
-      else
-        literally_homeless_mismatch = service_history_service_source.joins(service_history_enrollment: :project).
-          merge(project_source.where(id: project.id)).
-          where(literally_homeless: true).exists?
-      end
-      homeless_mismatch || literally_homeless_mismatch
+    def homeless_mismatch?(project)
+      !(homeless_status_correct?(project) && literally_homeless_status_correct?(project))
     end
 
     def project_source
