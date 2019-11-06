@@ -1,0 +1,33 @@
+- title = "Youth Exports"
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+%h1= title
+= render 'filter'
+%p.mb-6
+  The following clients were between the ages of #{@filter.start_age} and #{@filter.end_age} during the time frame #{@filter.start} to #{@filter.end}.  In addition, the client list is filtered down based on chosen Projects, Organizations, Data Sources, and Cohorts.  Where more than one answer is available, the most-recent answer attached to an enrollment that was open within the date range is used.  For example, if a client exited multiple enrollments that were open within the date range, Destination at exit (3.12) will be shown for the most-recent exit, even if the exit occurred after the date range.
+
+.warehouse-reports__youth-export
+  - if @clients.exists?
+    .row
+      .col-8
+        %p= page_entries_info @clients, entry_name: _('client')
+      .col-4.text-right.mb-4
+        = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary', data: {toggle: :tooltip, title: 'Download includes additional fields.'}}) do
+          Download Excel
+
+    %table.table.table-sm.table-hover
+      %thead
+        %tr
+          %th Last Name
+          %th First Name
+          %th Age on #{@filter.start}
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td= link_to client.LastName, client_path(client)
+            %td= link_to client.FirstName, client_path(client)
+            %td= client.age_on(@filter.start)
+  - else
+    %p.text-center.well
+      No client's found.
