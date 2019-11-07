@@ -31,6 +31,13 @@ module Health
     has_many :patient, through: :epic_patient
     has_many :epic_case_note_qualifying_activities, primary_key: :id_in_source, foreign_key: :epic_case_note_source_id, inverse_of: :epic_case_note
 
+    scope :with_housing_status, -> do
+      where.not(homeless_status: [nil, ''], contact_date: nil)
+    end
+    scope :within_range, -> (range) do
+      where(contact_date: range)
+    end
+
     self.source_key = :PAT_ENC_CSN_ID
 
     def self.csv_map(version: nil)

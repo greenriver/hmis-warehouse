@@ -92,6 +92,12 @@ module Health
     scope :recent, -> { order(updated_at: :desc).limit(1) }
     scope :last_form_created, -> {order(created_at: :desc).limit(1)}
     scope :with_phone, -> { where.not(client_phone_number: nil) }
+    scope :with_housing_status, -> do
+      where.not(housing_status: [nil, ''], date_of_contact: nil)
+    end
+    scope :within_range, -> (range) do
+      where(date_of_contact: range)
+    end
 
     accepts_nested_attributes_for :activities, allow_destroy: true
     validates_associated :activities
