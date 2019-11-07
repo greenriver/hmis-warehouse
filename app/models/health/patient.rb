@@ -248,6 +248,10 @@ module Health
       )
     end
 
+    scope :with_housing_status, -> do
+      where.not(housing_status: [nil, ''], housing_status_timestamp: nil)
+    end
+
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral

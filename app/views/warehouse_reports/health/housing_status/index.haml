@@ -4,5 +4,10 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
 
 = render 'form'
+.row.mb-4
+  .col-sm-12.text-right
+    - if  can_view_clients?
+      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+        Download Excel
 
 = render 'table'

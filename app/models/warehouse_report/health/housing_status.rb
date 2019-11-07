@@ -5,81 +5,171 @@
 ###
 
 class WarehouseReport::Health::HousingStatus
-  def initialize(start_date, end_date, aco)
-    @start_date = start_date
+  include ArelHelper
+  include HealthCharts
+
+  def initialize(end_date=Date.current, acos=nil, user)
     @end_date = end_date
-    @aco = aco
+    @start_date = @end_date - 5.years
+    @range = @start_date..@end_date
+    @selected_acos = acos
+    @user = user
+    @report_data = {}
   end
 
   def report_data
-    patients_scope = Health::Patient.
-      participating.
-      joins(:patient_referral)
-
-    patients_scope = patients_scope.where(patient_referrals: {accountable_care_organization_id: @aco}) if @aco.present?
-
-    from_patients = patients_scope.
-      where.not(housing_status_timestamp: nil).
-      where(housing_status_timestamp: @start_date..@end_date).
-      pluck(:housing_status_timestamp, :client_id, :housing_status).
-      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
-      to_h
-
-    from_sdh_notes = patients_scope.
-      joins(:sdh_case_management_notes).
-      where.not(sdh_case_management_notes: {housing_status: nil, date_of_contact: nil}).
-      where(sdh_case_management_notes: {date_of_contact: @start_date..@end_date}).
-      pluck('sdh_case_management_notes.date_of_contact', :client_id, 'sdh_case_management_notes.housing_status').
-      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
-      to_h
-
-    from_epic = patients_scope.
-      joins(:epic_case_notes).
-      where.not(epic_case_notes: {homeless_status: nil, contact_date: nil}).
-      where(epic_case_notes: {contact_date: @start_date..@end_date}).
-      pluck('epic_case_notes.contact_date', :client_id, 'epic_case_notes.homeless_status').
-      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
-      to_h
-
-    from_touchpoints = GrdaWarehouse::Hud::Client.
-      where(id: patients_scope.pluck(:id)).
-      joins(:case_management_notes).
-      where.not(hmis_forms: {housing_status: nil}).
-      where(hmis_forms: {collected_at: @start_date..@end_date}).
-      pluck('hmis_forms.collected_at', :id, :housing_status).
-      map { |patient| [patient[0].to_date, [patient[1], patient[2]]] }.
-      to_h
-
-    # combine data sources
-    results = Hash.new
-    merge_data(from_patients, 'HMIS', results)
-    merge_data(from_sdh_notes, 'SDH', results)
-    merge_data(from_epic, 'Epic', results)
-    merge_data(from_touchpoints, 'TouchPoint', results)
-
-    results.map do |date, status_counts|
-      status_counts.each do |status, counts|
-        counts[:percent] = (counts[:active_ids].count / patient_count).round rescue 0
-      end
-    end
-    return results
+    populate_report_data unless @report_data.present?
+    @report_data
   end
 
-  def merge_data(source, label, target)
-    source.each do |date, info|
-      patient_count = Health::Patient.active_on_date(date).count
-      target[date] ||= {
-        street: { patient_count: patient_count, active_ids: Set.new, percent: 0 },
-        shelter: { patient_count: patient_count, active_ids: Set.new, percent: 0 },
-        doubling_up: { patient_count: patient_count, active_ids: Set.new, percent: 0 },
-        temporary: { patient_count: patient_count, active_ids: Set.new, percent: 0 },
-        permanent: { patient_count: patient_count, active_ids: Set.new, percent: 0 },
-      }
-      client_id = info[0]
-      answer = GrdaWarehouse::Hud::Client.clean_health_housing_outcome_answer(info[1])
-      status = GrdaWarehouse::Hud::Client.health_housing_outcomes[answer].try(:[], :status)
-      next unless status.present?
-      target[date][status][:active_ids] << [ client_id, label ]
+  def populate_report_data
+    populate_from_patients
+    from_sdh_notes
+    from_epic
+    from_touchpoints
+  end
+
+  def patient_scope
+    @patient_scope ||= begin
+      scope = Health::Patient.
+        participating.
+        joins(patient_referral: :aco).
+        where(client_id: GrdaWarehouse::Hud::Client.destination.visible_in_window_to(@user).pluck(:id))
+
+      scope = scope.merge(Health::PatientReferral.at_acos(@selected_acos)) if @selected_acos.present?
+      scope
+    end
+  end
+
+  def populate_from_patients
+    patient_scope.
+      with_housing_status.
+      where(housing_status_timestamp: @range).
+      pluck(
+        :housing_status_timestamp,
+        :client_id,
+        :housing_status,
+        hpr_t[:accountable_care_organization_id].to_sql,
+      ).
+      each do |timestamp, client_id, housing_status, aco_id|
+        add_housing_status(
+          timestamp: timestamp,
+          client_id: client_id,
+          housing_status: housing_status,
+          aco_id:aco_id,
+          source: 'EPIC Patient',
+        )
+      end
+  end
+
+  def from_sdh_notes
+    patient_scope.
+      joins(:sdh_case_management_notes).
+      merge(Health::SdhCaseManagementNote.with_housing_status.within_range(@range)).
+      pluck(
+        h_sdhcmn_t[:date_of_contact].to_sql,
+        :client_id,
+        h_sdhcmn_t[:housing_status].to_sql,
+        hpr_t[:accountable_care_organization_id].to_sql,
+      ).
+      each do |timestamp, client_id, housing_status, aco_id|
+        add_housing_status(
+          timestamp: timestamp,
+          client_id: client_id,
+          housing_status: housing_status,
+          aco_id: aco_id,
+          source: 'Care Hub',
+        )
+      end
+  end
+
+  def from_epic
+    patient_scope.
+      joins(:epic_case_notes).
+      merge(Health::EpicCaseNote.with_housing_status.within_range(@range)).
+      pluck(
+        h_ecn_t[:contact_date].to_sql,
+        :client_id,
+        h_ecn_t[:homeless_status].to_sql,
+        hpr_t[:accountable_care_organization_id].to_sql,
+      ).
+      each do |timestamp, client_id, housing_status, aco_id|
+        add_housing_status(
+          timestamp: timestamp,
+          client_id: client_id,
+          housing_status: housing_status,
+          aco_id: aco_id,
+          source: 'EPIC',
+        )
+      end
+  end
+
+  def from_touchpoints
+    GrdaWarehouse::Hud::Client.
+      where(id: patient_scope.pluck(:client_id)).
+      joins(:source_hmis_forms).
+      merge(GrdaWarehouse::HmisForm.with_housing_status.within_range(@range)).
+      pluck(
+        hmis_form_t[:collected_at].to_sql,
+        :id,
+        hmis_form_t[:housing_status].to_sql
+      ).
+      each do |timestamp, client_id, housing_status|
+        aco_id = aco_id_for_client_id(client_id)
+        add_housing_status(
+          timestamp: timestamp,
+          client_id: client_id,
+          housing_status: housing_status,
+          aco_id: aco_id,
+          source: 'ETO',
+        )
+      end
+  end
+
+  def housing_status_buckets
+    @housing_status_buckets ||= [
+      :street,
+      :shelter,
+      :doubling_up,
+      :temporary,
+      :permanent,
+      :unknown,
+    ]
+  end
+
+  def aco_id_for_client_id(client_id)
+    @aco_id_for_client_id ||= Health::Patient.joins(:patient_referral).pluck(:client_id, hpr_t[:accountable_care_organization_id].to_sql).to_h
+    @aco_id_for_client_id[client_id]
+  end
+
+  def aco_for_id(id)
+    @acos ||= Health::AccountableCareOrganization.where(id: report_data.keys).index_by(&:id)
+    @acos[id]
+  end
+
+  def client_for_id(id)
+    @client_for_id ||= GrdaWarehouse::Hud::Client.visible_in_window_to(@user).where(id: patient_scope.pluck(:client_id)).distinct.index_by(&:id)
+    @client_for_id[id]
+  end
+
+  def count_for_aco(housing_status:, aco_id:)
+    report_data[aco_id].values.count{ |m| m[:clean_housing_status] == housing_status }
+  end
+
+  def count_for_status(housing_status:)
+    report_data.values.flat_map(&:values).count{ |m| m[:clean_housing_status] == housing_status }
+  end
+
+  def add_housing_status(timestamp:, client_id:, housing_status:, aco_id:, source:)
+    @report_data[aco_id] ||= {}
+    @report_data[aco_id][client_id] ||= OpenStruct.new(timestamp: nil, housing_status: nil)
+    if @report_data[aco_id][client_id][:timestamp].blank? || @report_data[aco_id][client_id][:timestamp] < timestamp
+      @report_data[aco_id][client_id] = OpenStruct.new(
+        timestamp: timestamp,
+        housing_status: housing_status,
+        clean_housing_status: self.class.health_housing_outcome_status(housing_status),
+        source: source
+      )
     end
   end
 

@@ -11,21 +11,30 @@ module WarehouseReports::Health
     before_action :require_can_administer_health!
 
     def index
-      @end_date = params.dig(:filter, :end_date) || Date.current
-      @start_date = params.dig(:filter, :start_date) || @end_date - 1.month
-      @aco = params.dig(:filter, :aco)&.select { |id| id.present? }
-
-      if @start_date.to_date > @end_date.to_date
-        new_start = @end_date
-        @end_date = @start_date
-        @start_date = new_start
-      end
-
-      @report = WarehouseReport::Health::HousingStatus.new(@start_date, @end_date, @aco)
+      @end_date = (report_params[:end_date] || Date.current).to_date
+      @acos = report_params[:aco]&.select { |id| id.present? }
+      @report = WarehouseReport::Health::HousingStatus.new(@end_date, @acos, current_user)
     end
 
     def details
-      @details = params[:client_ids].zip(params[:sources])
+      @aco_id = detail_params[:aco_id]&.to_i
+      @end_date = (detail_params[:end_date] || Date.current).to_date
+      @housing_status = detail_params[:housing_status].to_sym
+      @report = WarehouseReport::Health::HousingStatus.new(@end_date, [@aco_id], current_user)
+    end
+
+    def detail_params
+      params.permit(:aco_id, :housing_status, :end_date)
+    end
+
+    def report_params
+      return {} unless params[:filter].present?
+
+      params.require(:filter).permit(
+        :start_date,
+        :end_date,
+        :aco,
+      )
     end
 
     def to_query(actives)
