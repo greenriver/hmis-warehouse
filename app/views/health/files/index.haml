@@ -6,6 +6,7 @@
   = render 'clients/breadcrumbs'
   = render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:files])
   = render 'health/patient_release_status'
+= render 'health/patient_form_status'
   .row
     .col-sm-8
       = render 'health/files/file_list'

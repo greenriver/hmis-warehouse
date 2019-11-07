@@ -45,6 +45,15 @@ module Health
     scope :signed, -> do
       where.not(signature_on: nil)
     end
+    scope :active, -> do
+      valid.where(arel_table[:signature_on].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:signature_on].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(signature_on: 1.years.ago..11.months.ago)
+    end
 
     attr_accessor :reviewed_by_supervisor, :file
 
@@ -54,6 +63,10 @@ module Health
         self.reviewer = reviewed_by.name
         self.reviewed_at = DateTime.current
       end
+    end
+
+    def expires_on
+      signature_on.to_date + 1.years
     end
 
     def file_or_location

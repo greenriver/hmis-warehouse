@@ -891,6 +891,16 @@ module Health
     scope :complete, -> { where.not(completed_at: nil) }
     scope :completed, -> { complete }
 
+    scope :active, -> do
+      reviewed.where(arel_table[:completed_at].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:completed_at].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(completed_at: 1.years.ago..11.months.ago)
+    end
+
     attr_accessor :reviewed_by_supervisor, :completed, :file
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys

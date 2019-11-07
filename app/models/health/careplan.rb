@@ -124,6 +124,16 @@ module Health
       pcp_signed.patient_signed
     end
 
+    scope :active, -> do
+      fully_signed.where(arel_table[:provider_signed_on].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:provider_signed_on].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(provider_signed_on: 1.years.ago..11.months.ago)
+    end
+
     # End Scopes
 
     # if the care plan has been signed, return the health file id associated with the most

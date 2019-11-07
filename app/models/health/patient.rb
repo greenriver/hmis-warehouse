@@ -366,6 +366,30 @@ module Health
       return false
     end
 
+    def participation_form_status
+      @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
+        # Valid
+      elsif expiring_participation_form?
+        "Participation form expires #{participation_forms.valid.last.expires_on}"
+      elsif expired_participation_form?
+        "Participation expired on #{participation_forms.valid.last.expires_on}"
+      end
+    end
+
+
+
+    private def active_participation_form?
+      @active_participation_form ||= participation_forms.active.exists?
+    end
+
+    private def expiring_participation_form?
+      @expiring_participation_form ||= participation_forms.expiring_soon.exists?
+    end
+
+    private def expired_participation_form?
+      @expired_participation_form ||= participation_forms.expired.exists?
+    end
+
     def pilot_patient?
       pilot == true
     end
