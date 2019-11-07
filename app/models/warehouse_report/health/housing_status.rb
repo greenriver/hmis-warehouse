@@ -8,7 +8,7 @@ class WarehouseReport::Health::HousingStatus
   include ArelHelper
   include HealthCharts
 
-  def initialize(end_date=Date.current, acos=nil, user)
+  def initialize(end_date=Date.current, acos=nil, user:)
     @end_date = end_date
     @start_date = @end_date - 5.years
     @range = @start_date..@end_date

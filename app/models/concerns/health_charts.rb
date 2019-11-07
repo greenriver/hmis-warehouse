@@ -159,7 +159,7 @@ module HealthCharts
     end
 
     def self.health_housing_outcome_status(answer)
-       health_housing_outcomes[answer].try(:[], :status) || 'Unknown'
+       health_housing_outcomes[answer].try(:[], :status) || :unknown
     end
 
     def self.health_housing_temporary_outcomes

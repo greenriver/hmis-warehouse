@@ -4,8 +4,8 @@
   %thead
     %th Patient
     %th Homeless Data Source
-    %th Housing Status Reported
     %th Housing Status
+    %th Housing Status Reported
   %tbody
     - @report.report_data[@aco_id].each do |client_id, row|
       - next unless row[:clean_housing_status] == @housing_status
