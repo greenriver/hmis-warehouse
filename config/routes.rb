@@ -584,7 +584,7 @@ Rails.application.routes.draw do
   namespace :health do
     resources :patients, only: [:index] do
       collection do
-        get :detail
+        post :detail
       end
     end
     resources :my_patients, only: [:index]
