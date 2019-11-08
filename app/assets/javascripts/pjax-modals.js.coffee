@@ -16,6 +16,7 @@ $ ->
       @linkTriggers = $(@linkTriggerAttr)
       @formTriggerAttr = '[data-submits-to-pjax-modal]'
       @formTriggers = $(@formTriggerAttr)
+      @initialPath = window.location.pathname
 
     listen: ->
       @_registerLoadingIndicator()
@@ -44,6 +45,7 @@ $ ->
 
     _registerClose: ->
       $('body').on 'click', '[pjax-modal-close]', (e) =>
+        history.pushState({}, 'Modal', @initialPath);
         @closeModal()
 
     closeModal: ->
