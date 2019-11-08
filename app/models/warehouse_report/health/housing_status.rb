@@ -147,7 +147,14 @@ class WarehouseReport::Health::HousingStatus
   end
 
   def client_for_id(id)
-    @client_for_id ||= GrdaWarehouse::Hud::Client.visible_in_window_to(@user).where(id: patient_scope.pluck(:client_id)).distinct.index_by(&:id)
+    @client_for_id ||= GrdaWarehouse::Hud::Client.
+      joins(:warehouse_client_destination).
+      merge(
+        GrdaWarehouse::WarehouseClient.where(
+          source_id: GrdaWarehouse::Hud::Client.
+            visible_in_window_to(@user).select(:id)
+        )
+      ).where(id: patient_scope.pluck(:client_id)).distinct.index_by(&:id)
     @client_for_id[id]
   end
 

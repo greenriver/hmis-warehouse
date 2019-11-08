@@ -12,7 +12,7 @@
       - client = @report.client_for_id(client_id)
       - next unless client
       %tr
-        %td= link_to client.name, destination_source_client_path(client)
+        %td= link_to client.name, client_health_patient_index_path(client)
         %td= row.source
         %td= row.clean_housing_status&.to_s&.humanize
         %td= row.housing_status
