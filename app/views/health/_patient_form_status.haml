@@ -1,5 +1,10 @@
 - if @patient.present?
-  - if @patient.participation_form_status.present?
+  - if @patient.participation_form_status.present? || @patient.release_status.present?
     %div.alert.alert-warning
       %i.alert__icon.icon-warning
-      = @patient.participation_form_status
+      - if @patient.participation_form_status.present?
+        %br
+        = @patient.participation_form_status
+      - if @patient.release_status.present?
+        %br
+        = @patient.release_status

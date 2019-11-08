@@ -380,8 +380,6 @@ module Health
       end
     end
 
-
-
     private def active_participation_form?
       @active_participation_form ||= participation_forms.active.exists?
     end
@@ -393,6 +391,30 @@ module Health
     private def expired_participation_form?
       @expired_participation_form ||= participation_forms.expired.exists?
     end
+
+
+    def release_status
+      @release_status ||= if active_release? && ! expiring_release?
+        # Valid
+      elsif expiring_release?
+        "Release of information expires #{release_forms.valid.last.expires_on}"
+      elsif expired_release?
+        "Release of information expired on #{release_forms.valid.last.expires_on}"
+      end
+    end
+
+    private def active_release?
+      @active_release ||= release_forms.active.exists?
+    end
+
+    private def expiring_release?
+      @expiring_release ||= release_forms.expiring_soon.exists?
+    end
+
+    private def expired_release?
+      @expired_release ||= release_forms.expired.exists?
+    end
+
 
     def pilot_patient?
       pilot == true
