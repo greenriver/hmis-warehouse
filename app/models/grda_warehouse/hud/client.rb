@@ -1103,7 +1103,7 @@ module GrdaWarehouse::Hud
       else
         _(housing_release_status)
       end
-      if consented_coc_codes.any?
+      if consented_coc_codes&.any?
         consent_text += " in #{consented_coc_codes.to_sentence}"
       end
       consent_text
@@ -1162,7 +1162,7 @@ module GrdaWarehouse::Hud
         housing_release_status: nil,
         consent_form_signed_on: nil,
         consent_expires_on: nil,
-        consented_coc_codes: nil,
+        consented_coc_codes: [],
       )
     end
 
