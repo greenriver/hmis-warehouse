@@ -33,11 +33,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :source, -> do
-    where.not(source_type: nil)
+    where(arel_table[:source_type].not_eq(nil).or(arel_table[:authoritative].eq(true)))
   end
 
   scope :destination, -> do
-    where(source_type: nil)
+    where(source_type: nil, authoritative: false)
   end
 
   scope :importable_via_samba, -> do
@@ -84,13 +84,32 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :visible_in_window_to, -> (user) do
+    return none unless user
+
+    ds_ids = user.data_sources.pluck(:id)
+
     if user&.can_edit_anything_super_user?
       current_scope
-    elsif user&.can_see_clients_in_window_for_assigned_data_sources?
-      # some users can see all clients for a specific data source, even if the data source as a whole is not available to anyone else in the window
-      ds_ids = user.data_sources.pluck(:id)
-      where(arel_table[:id].in(ds_ids).or(arel_table[:visible_in_window].eq(true)))
-    elsif health_id = self.health_authoritative_id
+    elsif user&.can_view_clients_with_roi_in_own_coc?
+      if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(current_scope.select(:id)))
+        if user.can_view_or_search_clients_or_window?
+          sql = sql.or(arel_table[:visible_in_window].eq(true))
+        end
+        where(sql)
+      else
+        current_scope # this will get limited by client visibility
+      end
+    elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+      # some users can see all clients for a specific data source,
+      # even if the data source as a whole is not available to anyone else in the window
+      sql = arel_table[:id].in(ds_ids)
+      if user.can_view_or_search_clients_or_window?
+        sql = sql.or(arel_table[:visible_in_window].eq(true))
+      end
+      where(sql)
+    elsif user.can_view_or_search_clients_or_window?
+      health_id = self.health_authoritative_id
       # only show record in window if the data source is visible in the window or
       # the record is a health record and the user has access to health..
       sql = arel_table[:visible_in_window].eq(true)
@@ -99,7 +118,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
       where(sql)
     else
-      where(visible_in_window: true)
+      # Note this should be `none` but active record is being incorrigible
+      where(Arel.sql('0=1'))
     end
   end
 
@@ -130,8 +150,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = if group_ids.empty?
+      "0=1"
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
 
     <<-SQL.squish
 
@@ -143,7 +169,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
             AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
       )
@@ -153,9 +179,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
     data_source_table  = quoted_table_name
-    viewability_table  = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = if group_ids.empty?
+      '0=1'
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
 
     <<-SQL.squish
 
@@ -169,7 +201,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
             AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
@@ -183,9 +215,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
     data_source_table = quoted_table_name
-    viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+    viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
-    viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+    viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+    group_ids = user.access_groups.pluck(:id)
+    group_id_query = if group_ids.empty?
+      "0=1"
+    else
+      "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+    end
+
 
     <<-SQL.squish
 
@@ -199,7 +238,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
             AND
             #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Project.sti_name)}
             AND
-            #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+            #{group_id_query}
             AND
             #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
           WHERE
