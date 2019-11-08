@@ -585,7 +585,7 @@ module GrdaWarehouse::Hud
         if user&.can_see_clients_in_window_for_assigned_data_sources?
           ds_ids = user.data_sources.pluck(:id)
           sql = arel_table[:data_source_id].in(ds_ids).
-            or(arel_table[:id].in(active_confirmed_consent_in_cocs(user.coc_codes).select(:id))).
+            or(arel_table[:id].in(Arel.sql(active_confirmed_consent_in_cocs(user.coc_codes).select(:id).to_sql))).
             or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)))
           unless GrdaWarehouse::Config.get(:window_access_requires_release)
             sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
