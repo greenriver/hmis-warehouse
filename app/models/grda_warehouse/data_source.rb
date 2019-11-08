@@ -20,7 +20,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :organizations, class_name: GrdaWarehouse::Hud::Organization.name, inverse_of: :data_source
   has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
   has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
-  has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+  has_many :group_viewable_entities, :class_name => 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
   has_many :uploads
   has_many :non_hmis_uploads
