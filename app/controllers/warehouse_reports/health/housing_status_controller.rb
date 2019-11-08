@@ -8,7 +8,7 @@ module WarehouseReports::Health
   class HousingStatusController < ApplicationController
     include PjaxModalController
 
-    before_action :require_can_administer_health!
+    before_action :require_can_view_aggregate_health!
 
     def index
       @end_date = (report_params[:end_date] || Date.current).to_date

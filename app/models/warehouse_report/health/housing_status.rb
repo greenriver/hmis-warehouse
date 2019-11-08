@@ -33,8 +33,7 @@ class WarehouseReport::Health::HousingStatus
     @patient_scope ||= begin
       scope = Health::Patient.
         participating.
-        joins(patient_referral: :aco).
-        where(client_id: GrdaWarehouse::Hud::Client.destination.visible_in_window_to(@user).pluck(:id))
+        joins(patient_referral: :aco)
 
       scope = scope.merge(Health::PatientReferral.at_acos(@selected_acos)) if @selected_acos.present?
       scope

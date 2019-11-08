@@ -9,8 +9,9 @@
   %tbody
     - @report.report_data[@aco_id].each do |client_id, row|
       - next unless row[:clean_housing_status] == @housing_status
+      - client = @report.client_for_id(client_id)
+      - next unless client
       %tr
-        - client = @report.client_for_id(client_id)
         %td= link_to client.name, destination_source_client_path(client)
         %td= row.source
         %td= row.clean_housing_status&.to_s&.humanize
