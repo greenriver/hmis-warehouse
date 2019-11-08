@@ -628,7 +628,7 @@ module GrdaWarehouse::Hud
           or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
         )
       else
-        none
+        consent_form_valid.where(consented_coc_codes: '[]')
       end
     end
 
