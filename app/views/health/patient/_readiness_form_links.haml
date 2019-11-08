@@ -2,7 +2,7 @@
 
 %ul.list-unstyled
   %li
-    - participation = @patient.participation_forms.valid.recent.first
+    - participation = @patient.participation_forms.active.recent.first
     - if participation
       = link_to polymorphic_path([:edit] + participation_form_path_generator, client_id: @client.id, id: participation&.id), data: { loads_in_pjax_modal: true } do
         - if participation.present?
