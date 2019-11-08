@@ -36,7 +36,6 @@ $ ->
         @modal.find("[data-pjax-modal-body]").hide()
         @modal.find("[data-pjax-modal-footer]").hide()
         @open()
-        console.log(window.location.pathname)
         history.pushState({}, 'Modal', $(e.target).attr("href"));
 
     _registerForms: ->
