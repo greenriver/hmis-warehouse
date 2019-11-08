@@ -9,7 +9,7 @@
 # Control: PHI attributes documented
 module Health
   class CpMembers::EnrollmentRoster < HealthBase
-    belongs_to :enrollment_roster_file, class_name: 'Health::CpMembers::EnrollmentRosterFile'
+    belongs_to :roster_file, class_name: 'Health::CpMembers::EnrollmentRosterFile'
 
     phi_attr :member_id, Phi::HealthPlan
     phi_attr :performance_year, Phi::SmallPopulation

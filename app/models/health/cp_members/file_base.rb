@@ -34,6 +34,18 @@ module Health::CpMembers
       end
     end
 
+    def label
+      type
+    end
+
+    def columns
+      {}
+    end
+
+    def entries
+      []
+    end
+
     private def check_header
       incoming = CSV.parse(content.lines.first).flatten.map{|m| m&.strip}
       expected = parsed_expected_header.map{|m| m&.strip}

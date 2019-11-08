@@ -9,7 +9,60 @@
 # Control: PHI attributes documented in base class
 module Health::CpMembers
   class RosterFile < FileBase
-    has_many :rosters, class_name: 'Health::CpMembers::Roster', inverse_of: :roster_file
+    has_many :rosters, class_name: 'Health::CpMembers::Roster', foreign_key: :roster_file_id, inverse_of: :roster_file
+
+    def label
+      'CP Member Roster'
+    end
+
+    def columns
+      {
+        member_id: 'Member ID',
+        nam_first: 'First Name',
+        nam_last: 'Last Name',
+        cp_pidsl: 'CP PID/SL',
+        cp_name: 'CP Name',
+        aco_pidsl: 'ACO PID/SL',
+        aco_name: 'ACO Name',
+        mco_pidsl: 'MCO PID/SL',
+        mco_name: 'MCO Name',
+        sex: 'Gender',
+        date_of_birth: 'DOB',
+        mailing_address_1: 'Mailing Address',
+        mailing_address_2: 'Line 2',
+        mailing_city: 'City',
+        mailing_state: 'State',
+        mailing_zip: 'Zip',
+        residential_address_1: 'Residential Address',
+        residential_address_2: 'Line 2',
+        residential_city: 'City',
+        residential_state: 'State',
+        residential_zip: 'Zip',
+        race: 'Race',
+        phone_number: 'Phone Number',
+        primary_language_s: 'Primary Spoken Language',
+        primary_language_w: 'Primary Written Language',
+        sdh_nss7_score: 'SDH NSS7 Score',
+        sdh_homelessness: 'SDH Homelessness?',
+        sdh_addresses_flag: 'SDH 3+ Addresses/1 year',
+        sdh_other_disabled: 'SDH Other Disability?',
+        sdh_spmi: 'SDH SPMI',
+        raw_risk_score: 'Latest Raw SDH Risk Score',
+        normalized_risk_score: 'Lastest Normalized SDH Risk Score',
+        raw_dxcg_risk_score: 'Latest Raw DxCG Rusj Score',
+        last_office_visit: 'Last Office Visit',
+        last_ed_visit: 'Last ED Visit',
+        last_ip_visit: 'Last In-Patient Visit',
+        enrolled_flag: 'Enrolled?',
+        enrollment_status: 'Enrollment Status',
+        cp_claim_dt: 'Last CP Claim',
+        qualifying_hcpcs: 'QA HCPCS for Enrollment',
+        qualifying_hcpcs_nm: 'QA HCPCS Name',
+        qualifying_dsc: 'QA Description',
+        email: 'Email',
+        head_of_household: 'Head of Household',
+      }
+    end
 
     private def model
       Health::CpMembers::Roster
