@@ -176,6 +176,12 @@ module ArelHelper
   def h_ssm_t
     Health::SelfSufficiencyMatrixForm.arel_table
   end
+  def h_sdhcmn_t
+    Health::SdhCaseManagementNote.arel_table
+  end
+  def h_ecn_t
+    Health::EpicCaseNote.arel_table
+  end
 
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
@@ -405,6 +411,12 @@ module ArelHelper
     end
     def h_ssm_t
       Health::SelfSufficiencyMatrixForm.arel_table
+    end
+    def h_sdhcmn_t
+      Health::SdhCaseManagementNote.arel_table
+    end
+    def h_ecn_t
+      Health::EpicCaseNote.arel_table
     end
   end
 end

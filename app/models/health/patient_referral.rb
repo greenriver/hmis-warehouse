@@ -102,6 +102,9 @@ module Health
       where(enrollment_start_date: date)
     end
     scope :pending_disenrollment, -> { where.not(pending_disenrollment_date: nil) }
+    scope :at_acos, -> (aco_ids) do
+      where(accountable_care_organization_id: aco_ids)
+    end
 
     validates_presence_of :first_name, :last_name, :birthdate, :medicaid_id
     validates_size_of :ssn, is: 9, allow_blank: true

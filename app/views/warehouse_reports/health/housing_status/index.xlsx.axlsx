@@ -1,0 +1,31 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Housing Status") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = [
+    'Warehouse ID',
+    'Patient',
+    'ACO',
+    'Date Collected',
+    'Homeless Data Source',
+    'Housing Status Reported',
+    'Housing Status',
+  ]
+  sheet.add_row(row, :style => title)
+  @report.report_data.each do |aco_id, clients|
+    clients.each do |client_id, record|
+      client = @report.client_for_id(client_id)
+      aco = @report.aco_for_id(aco_id)
+      row = [
+        client_id,
+        client.name,
+        aco.name,
+        record.timestamp.to_date,
+        record.source,
+        record.clean_housing_status&.to_s&.humanize,
+        record.housing_status,
+      ]
+
+      sheet.add_row(row)
+    end
+  end
+end

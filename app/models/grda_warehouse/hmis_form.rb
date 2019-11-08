@@ -81,6 +81,14 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where.not(staff_email: nil)
   end
 
+  scope :with_housing_status, -> do
+    where.not(housing_status: [nil, ''], collected_at: nil)
+  end
+
+  scope :within_range, -> (range) do
+    where(collected_at: range)
+  end
+
   def self.set_missing_vispdat_scores
     # Process in batches, but ensure the batches occur such that the most recently completed are last
     # Fetch the ids, in order of unprocessed vispdat records

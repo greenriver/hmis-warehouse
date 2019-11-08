@@ -3,35 +3,62 @@ class Rack::Attack
     !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
   end
 
-  # track any remote ip that exceeds our basic request rate limits
+  def self.sign_in_path(request)
+    request.path == '/users/sign_in' && request.post?
+  end
 
+  def self.rapid_paths(request)
+    request.path.include?('rollup') || request.path.include?('cohort')
+  end
+
+  def self.history_pdf_path(request)
+    request.path.include?('history/pdf')
+  end
+
+  def self.user_email_present?(request)
+    request.params['user'].present? && request.params['user']['email'].present?
+  end
+
+  def self.warden_user_present?(request)
+    request.env['warden'].user.present?
+  end
+
+
+  # track any remote ip that exceeds our basic request rate limits
   # tracker = if Rails.env.test? then :throttle else :track end
   tracker = :throttle
 
-  send(tracker, 'requests per unauthenticated user per ip', limit: 5, period: 1.seconds) do |request|
+  send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
     if tracking_enabled?(request)
-      if request.env['warden'].user.blank? && !(request.path == '/users/sign_in' && request.post?)
+      if !warden_user_present?(request) && !(sign_in_path(request) || history_pdf_path(request))
+        request.ip
+      end
+    end
+  end
+  send(tracker, 'requests per unauthenticated user to history pdf', limit: 25, period: 10.seconds) do |request|
+    if tracking_enabled?(request)
+      if !warden_user_present?(request) && history_pdf_path(request)
         request.ip
       end
     end
   end
   send(tracker, 'requests per logged-in user per ip', limit: 50, period: 5.seconds) do |request|
     if tracking_enabled?(request)
-      if request.env['warden'].user.present? && ! (request.path.include?('rollup') || request.path.include?('cohort'))
+      if warden_user_present?(request) && !(rapid_paths(request))
         request.ip
       end
     end
   end
   send(tracker, 'requests per logged-in user per ip special', limit: 100, period: 5.seconds) do |request|
     if tracking_enabled?(request)
-      if request.env['warden'].user.present? && (request.path.include?('rollup') || request.path.include?('cohort'))
+      if warden_user_present?(request) && (rapid_paths(request))
         request.ip
       end
     end
   end
   send(tracker, 'logins per account', limit: 10, period: 180.seconds) do |request|
     if tracking_enabled?(request)
-      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+      if sign_in_path(request) && user_email_present?(request)
         request.params['user']['email']
       end
     end
@@ -39,7 +66,7 @@ class Rack::Attack
   # limit to 25 logins per user per hour
   send(tracker, 'block script logins per account', limit: 25, period: 3600.seconds) do |request|
     if tracking_enabled?(request)
-      if request.path == '/users/sign_in' && request.post? && request.params['user'].present? && request.params['user']['email'].present?
+      if sign_in_path(request) && user_email_present?(request)
         request.params['user']['email']
       end
     end
