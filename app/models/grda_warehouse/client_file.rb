@@ -48,7 +48,7 @@ module GrdaWarehouse
         or(arel_table[:user_id].eq(user.id))
 
         if GrdaWarehouse::Config.get(:consent_visible_to_all)
-          sql = sql.or(arel_table[:id].in(consent_forms.select(:id)))
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
         end
         window.where(sql)
       # You can only see files you uploaded
