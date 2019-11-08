@@ -60,7 +60,7 @@ module UserPermissions
 
     # You must have permission to upload, and access to at least one Data Source
     def can_see_raw_hmis_data
-      can_upload_hud_zips? && GrdaWarehouse::DataSource.editable_by(user).exists?
+      can_upload_hud_zips? && GrdaWarehouse::DataSource.editable_by(self).exists?
     end
 
     def can_receive_secure_files
