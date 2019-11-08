@@ -1,16 +1,18 @@
 - title = 'Housing Status Detail'
 - content_for :modal_title, title
-
-- client_scope = GrdaWarehouse::Hud::Client.visible_in_window_to(current_user)
 %table.table
   %thead
-    %th
-      Client
-    %th
-      Homeless Data Source
+    %th Patient
+    %th Homeless Data Source
+    %th Housing Status
+    %th Housing Status Reported
   %tbody
-    - @details.each do |detail|
+    - @report.report_data[@aco_id].each do |client_id, row|
+      - next unless row[:clean_housing_status] == @housing_status
+      - client = @report.client_for_id(client_id)
+      - next unless client
       %tr
-        - client = client_scope.find(detail.first)
-        %td= link_to client.name, destination_window_source_client_path(client)
-        %td= detail.last
+        %td= link_to client.name, client_health_patient_index_path(client)
+        %td= row.source
+        %td= row.clean_housing_status&.to_s&.humanize
+        %td= row.housing_status

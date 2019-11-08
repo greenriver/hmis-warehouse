@@ -158,6 +158,10 @@ module HealthCharts
        health_housing_outcomes[answer].try(:[], :score) || 0
     end
 
+    def self.health_housing_outcome_status(answer)
+       health_housing_outcomes[answer].try(:[], :status) || :unknown
+    end
+
     def self.health_housing_temporary_outcomes
       health_housing_outcomes.select{|_,v| v[:status] == :temporary}.keys
     end

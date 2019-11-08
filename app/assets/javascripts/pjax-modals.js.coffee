@@ -35,6 +35,7 @@ $ ->
         @modal.find("[data-pjax-modal-body]").hide()
         @modal.find("[data-pjax-modal-footer]").hide()
         @open()
+        history.pushState({}, 'Modal', $(e.target).attr("href"));
 
     _registerForms: ->
       $(document).on 'submit', @formTriggerAttr, (evt) =>
