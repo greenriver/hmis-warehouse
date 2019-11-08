@@ -1162,6 +1162,7 @@ module GrdaWarehouse::Hud
         housing_release_status: nil,
         consent_form_signed_on: nil,
         consent_expires_on: nil,
+        consented_coc_codes: nil,
       )
     end
 
