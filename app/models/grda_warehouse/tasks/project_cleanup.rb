@@ -10,9 +10,14 @@ module GrdaWarehouse::Tasks
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
 
-    def initialize(bogus_notifier=false, debug: false)
+    def initialize(
+      bogus_notifier=false,
+      project_ids: GrdaWarehouse::Hud::Project.select(:id),
+      debug: false,
+    )
       setup_notifier('Project Cleaner')
       self.logger = Rails.logger
+      @project_ids = project_ids
       @debug = debug
     end
 
@@ -56,7 +61,7 @@ module GrdaWarehouse::Tasks
     end
 
     def load_projects
-      project_source.all
+      project_source.where(id: @project_ids)
     end
 
     def should_update_type? project
@@ -85,34 +90,44 @@ module GrdaWarehouse::Tasks
         where.not(project_name: project.ProjectName).exists?
     end
 
+    # Just check the last two years for discrepancies to speed checking
     private def homeless_status_correct?(project)
       homeless_status_correct = true
       if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
         # ES, SO, SH, TH
-        any_non_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+        any_non_homeless_history = service_history_service_source.
+          where(date: 2.years.ago..Date.current).
+          joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where.not(homeless: true).exists?
         homeless_status_correct = !any_non_homeless_history
       else
         # PH, and all others
-        any_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+        any_homeless_history = service_history_service_source.
+          where(date: 2.years.ago..Date.current).
+          joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where(homeless: true).exists?
         homeless_status_correct = !any_homeless_history
       end
     end
 
+    # Just check the last two years for discrepancies to speed checking
     private def literally_homeless_status_correct?(project)
       literally_homeless_status_correct = true
       if  GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
         # ES, SO, SH
-        any_non_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+        any_non_literally_homeless_history = service_history_service_source.
+          where(date: 2.years.ago..Date.current).
+          joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where.not(literally_homeless: true).exists?
         literally_homeless_status_correct = !any_non_literally_homeless_history
       else
         # PH, TH, and all others
-        any_literally_homeless_history = service_history_service_source.joins(service_history_enrollment: :project).
+        any_literally_homeless_history = service_history_service_source.
+          where(date: 2.years.ago..Date.current).
+          joins(service_history_enrollment: :project).
           merge(project_source.where(id: project.id)).
           where(literally_homeless: true).exists?
         literally_homeless_status_correct = !any_literally_homeless_history
