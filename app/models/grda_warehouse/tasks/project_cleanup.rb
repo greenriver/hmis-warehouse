@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks
     def initialize(
       bogus_notifier=false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
-      debug: false,
+      debug: false
     )
       setup_notifier('Project Cleaner')
       self.logger = Rails.logger
