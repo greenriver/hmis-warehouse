@@ -913,6 +913,14 @@ module Health
      completed_at.present?
     end
 
+    def active?
+      completed_at && completed_at > 1.years.ago
+    end
+
+    def expires_on
+      completed_at.to_date + 1.years
+    end
+
     private def set_reviewed_at
       if reviewed_by
         self.reviewed_at = DateTime.current

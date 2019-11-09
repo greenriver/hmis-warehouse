@@ -172,13 +172,13 @@ module Health
     scope :engaged, -> do
       # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.active.distinct.select(:patient_id)
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
-      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.active.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.active.distinct.select(:patient_id)
 
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.active.distinct.select(:patient_id)
       epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
@@ -339,8 +339,6 @@ module Health
     end
 
     def chas
-      comprehensive_health_assessments
-
       @chas ||= (
           comprehensive_health_assessments.order(completed_at: :desc).to_a +
           epic_chas.order(cha_updated_at: :desc)
@@ -374,9 +372,9 @@ module Health
       @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
         # Valid
       elsif expiring_participation_form?
-        "Participation form expires #{participation_forms.valid.last.expires_on}"
+        "Participation form expires #{participation_forms.recent.expiring_soon.last.expires_on}"
       elsif expired_participation_form?
-        "Participation expired on #{participation_forms.valid.last.expires_on}"
+        "Participation expired on #{participation_forms.recent.expired.last.expires_on}"
       end
     end
 
@@ -397,9 +395,9 @@ module Health
       @release_status ||= if active_release? && ! expiring_release?
         # Valid
       elsif expiring_release?
-        "Release of information expires #{release_forms.valid.last.expires_on}"
+        "Release of information expires #{release_forms.recent.expiring_soon.last.expires_on}"
       elsif expired_release?
-        "Release of information expired on #{release_forms.valid.last.expires_on}"
+        "Release of information expired on #{release_forms.recent.expired.last.expires_on}"
       end
     end
 
@@ -413,6 +411,50 @@ module Health
 
     private def expired_release?
       @expired_release ||= release_forms.expired.exists?
+    end
+
+    def cha_status
+      @cha_status ||= if active_cha? && ! expiring_cha?
+        # Valid
+      elsif expiring_cha?
+        "Comprehensive Health Assessment expires #{comprehensive_health_assessments.recent.expiring_soon.last.expires_on}"
+      elsif expired_cha?
+        "Comprehensive Health Assessment expired on #{comprehensive_health_assessments.recent.expired.last.expires_on}"
+      end
+    end
+
+    private def active_cha?
+      @active_cha ||= comprehensive_health_assessments.active.exists?
+    end
+
+    private def expiring_cha?
+      @expiring_cha ||= comprehensive_health_assessments.recent.expiring_soon.exists?
+    end
+
+    private def expired_cha?
+      @expired_cha ||= comprehensive_health_assessments.recent.expired.exists?
+    end
+
+    def ssm_status
+      @ssm_status ||= if active_ssm? && ! expiring_ssm?
+        # Valid
+      elsif expiring_ssm?
+        "Participation form expires #{self_sufficiency_matrix_forms.valid.last.expires_on}"
+      elsif expired_ssm?
+        "Participation expired on #{self_sufficiency_matrix_forms.valid.last.expires_on}"
+      end
+    end
+
+    private def active_ssm?
+      @active_ssm ||= self_sufficiency_matrix_forms.active.exists?
+    end
+
+    private def expiring_ssm?
+      @expiring_ssm ||= self_sufficiency_matrix_forms.expiring_soon.exists?
+    end
+
+    private def expired_ssm?
+      @expired_ssm ||= self_sufficiency_matrix_forms.expired.exists?
     end
 
 

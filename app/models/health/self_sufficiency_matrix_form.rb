@@ -69,6 +69,17 @@ module Health
     scope :incomplete, -> { where(completed_at: nil)}
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
+
+    scope :active, -> do
+      completed.where(arel_table[:completed_at].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:completed_at].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(completed_at: 1.years.ago..11.months.ago)
+    end
+
     attr_accessor :file
 
     SECTIONS = {
