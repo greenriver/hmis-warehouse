@@ -29,15 +29,15 @@ module GrdaWarehouse::Tasks
             project.enrollments.invalidate_processing!
             project.update(computed_project_type: project_type)
           end
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
-          debug_log("done")
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+          debug_log("done queuing rebuild for #{project.ProjectName}")
         elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
           debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
           project_source.transaction do
             project.enrollments.invalidate_processing!
           end
-          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
-          debug_log("done")
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+          debug_log("done queuing rebuild for #{project.ProjectName}")
         end
 
         if should_update_name?(project)
@@ -49,9 +49,10 @@ module GrdaWarehouse::Tasks
               where.not(project_name: project.ProjectName).
               update_all(project_name: project.ProjectName)
           end
-          debug_log("done")
+          debug_log("done updating name for #{project.ProjectName}")
         end
       end
+      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
     end
 
     def load_projects
