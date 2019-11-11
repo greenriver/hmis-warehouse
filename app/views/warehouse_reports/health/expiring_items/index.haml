@@ -1,0 +1,34 @@
+- title = "Expiring Items Report"
+- content_for :title, title
+%h1= content_for :title
+
+%ul.nav.nav-tabs{role: :tablist}
+  - @report.tabs.each do |slug, name|
+    %li.nav-item{role: :presentation}
+      %a{href: "##{slug}", role: :tab, data: {toggle: :tab}, aria: {controls: "#{name}"}, class: 'nav-link'}
+        #{name}
+
+.tab-content#reports-tab-content
+  - @report.tabs.each do |slug, name|
+    %div{role: :tabpanel, class: 'tab-pane', id: slug}
+      %div.o-card-grid{class: "warehouse-reports__#{slug}"}
+        = render slug.to_s
+
+
+= content_for :page_js do
+  :javascript
+    var selectedTab = window.location.hash
+    if (!selectedTab) {
+      $("ul.nav-tabs li:first-child a").tab('show')
+    }
+    $('.nav-tabs a').click(function(e) {
+      e.preventDefault();
+      $(this).tab('show');
+      $(this).parent().siblings().removeClass('active')
+    });
+    $("ul.nav-tabs a").on("shown.bs.tab", function(e) {
+      var id = $(e.target).attr("href").substr(1);
+      history.pushState({}, id, $(e.target).attr("href"));
+    });
+    var hash = window.location.hash;
+    $('.nav-tabs a[href="' + hash + '"]').tab('show');

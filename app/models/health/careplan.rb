@@ -136,6 +136,9 @@ module Health
     scope :expiring_soon, -> do
       where(provider_signed_on: 6.months.ago..5.months.ago)
     end
+    scope :recently_signed, -> do
+      active.where(arel_table[:provider_signed_on].gteq(1.months.ago))
+    end
 
     # End Scopes
 

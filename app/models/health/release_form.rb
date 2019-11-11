@@ -56,10 +56,15 @@ module Health
     scope :expiring_soon, -> do
       where(signature_on: 1.years.ago..11.months.ago)
     end
+    scope :recently_signed, -> do
+      active.where(arel_table[:signature_on].gteq(1.months.ago))
+    end
 
     attr_accessor :reviewed_by_supervisor, :file
 
     def expires_on
+      return unless signature_on
+
       signature_on.to_date + 1.years
     end
 

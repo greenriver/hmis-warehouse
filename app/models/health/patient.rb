@@ -52,37 +52,52 @@ module Health
     has_many :epic_chas, through: :epic_patients
     has_many :epic_ssms, through: :epic_patients
 
-    has_many :ed_nyu_severities, class_name: Health::Claims::EdNyuSeverity.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
+    has_many :ed_nyu_severities, class_name: 'Health::Claims::EdNyuSeverity', primary_key: :medicaid_id, foreign_key: :medicaid_id
 
     # has_many :teams, through: :careplans
     # has_many :team_members, class_name: Health::Team::Member.name, through: :team
-    has_many :team_members, class_name: Health::Team::Member.name
+    has_many :team_members, class_name: 'Health::Team::Member'
 
     # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
-    has_many :goals, class_name: Health::Goal::Base.name
+    has_many :goals, class_name: 'Health::Goal::Base'
     # NOTE: not sure if this is the right order but it seems they should have some kind of order
-    has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: Health::Goal::Hpc.name
+    has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: 'Health::Goal::Hpc'
 
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
-    has_one :claims_roster, class_name: Health::Claims::Roster.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
-    has_many :amount_paids, class_name: Health::Claims::AmountPaid.name, primary_key: :medicaid_id, foreign_key: :medicaid_id
+    has_one :claims_roster, class_name: 'Health::Claims::Roster', primary_key: :medicaid_id, foreign_key: :medicaid_id
+    has_many :amount_paids, class_name: 'Health::Claims::AmountPaid', primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :self_sufficiency_matrix_forms
+    has_one :recent_ssm_form, -> do
+      merge(Health::SelfSufficiencyMatrixForm.recent)
+    end, class_name: 'Health::SelfSufficiencyMatrixForm'
     has_many :hmis_ssms, -> do
       merge(GrdaWarehouse::HmisForm.self_sufficiency)
-    end, class_name: GrdaWarehouse::HmisForm.name, through: :client, source: :source_hmis_forms
+    end, class_name: 'GrdaWarehouse::HmisForm', through: :client, source: :source_hmis_forms
     has_many :sdh_case_management_notes
     has_many :participation_forms
+    has_one :recent_participation_form, -> do
+      merge(Health::ParticipationForm.recent)
+    end, class_name: 'Health::ParticipationForm'
     has_many :release_forms
+    has_one :recent_release_form, -> do
+      merge(Health::ReleaseForm.recent)
+    end, class_name: 'Health::ReleaseForm'
     has_many :comprehensive_health_assessments
+    has_one :recent_cha_form, -> do
+      merge(Health::ComprehensiveHealthAssessment.recent)
+    end, class_name: 'Health::ComprehensiveHealthAssessment'
     has_many :careplans
+    has_one :recent_pctp_form, -> do
+      merge(Health::Careplan.recent)
+    end, class_name: 'Health::Careplan'
 
     has_many :services
     has_many :equipments
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
-    belongs_to :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: 'User'
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }

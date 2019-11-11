@@ -78,6 +78,9 @@ module Health
     scope :expiring_soon, -> do
       where(completed_at: 1.years.ago..11.months.ago)
     end
+    scope :recently_signed, -> do
+      active.where(arel_table[:completed_at].gteq(1.months.ago))
+    end
 
     attr_accessor :file
 
@@ -379,6 +382,8 @@ module Health
     end
 
     def expires_on
+      return unless completed_at
+
       completed_at.to_date + 1.years
     end
 
