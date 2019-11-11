@@ -1,7 +1,7 @@
 - title = "Expiring Items Report"
 - content_for :title, title
 %h1= content_for :title
-
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
 %ul.nav.nav-tabs{role: :tablist}
   - @report.tabs.each do |slug, name|
     %li.nav-item{role: :presentation}

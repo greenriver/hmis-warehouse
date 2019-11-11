@@ -357,7 +357,11 @@ Rails.application.routes.draw do
       resources :eligibility_results, only: [:show]
       resources :enrollments
       resources :expiring_items, only: [:index]
-      resources :ssm_exports, only: [:index]
+      resources :ssm_exports, only: [:index]  do
+        collection do
+          get :download
+        end
+      end
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end

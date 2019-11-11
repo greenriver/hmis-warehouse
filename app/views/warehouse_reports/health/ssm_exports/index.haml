@@ -1,10 +1,8 @@
-- title = "Health Overview"
+- title = "Self-Sufficiency Matrix Form Export"
 - content_for :title, title
 %h1= content_for :title
--# = render '/warehouse_reports/breadcrumbs', tab: 'health-reports'
-.sdh__container
-  %h2.ho-head__h2 SDH Coordinated Care Hub Pilot Program
-  %h2.ho-sub__h2 Cost and Utilization for Participating Patients
-  = render 'trends_over_time', data_type: 'all'
-  = render 'top_providers_and_conditions', data_type: 'all'
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+= render 'filter'
+
 

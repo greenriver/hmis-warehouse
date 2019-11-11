@@ -82,6 +82,10 @@ module Health
       active.where(arel_table[:completed_at].gteq(1.months.ago))
     end
 
+    scope :completed_within_range, -> (range) do
+      where(completed_at: range)
+    end
+
     attr_accessor :file
 
     SECTIONS = {
