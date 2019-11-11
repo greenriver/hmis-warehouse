@@ -124,14 +124,17 @@ module Health
       pcp_signed.patient_signed
     end
 
+    scope :recent, -> do
+      order(provider_signed_on: :desc).limit(1)
+    end
     scope :active, -> do
-      fully_signed.where(arel_table[:provider_signed_on].gteq(1.years.ago))
+      fully_signed.where(arel_table[:provider_signed_on].gteq(6.months.ago))
     end
     scope :expired, -> do
-      where(arel_table[:provider_signed_on].lt(1.years.ago))
+      where(arel_table[:provider_signed_on].lt(6.months.ago))
     end
     scope :expiring_soon, -> do
-      where(provider_signed_on: 1.years.ago..11.months.ago)
+      where(provider_signed_on: 6.months.ago..5.months.ago)
     end
 
     # End Scopes
@@ -211,11 +214,19 @@ module Health
     end
 
     def expires_on
-      return unless provider_signed_on && patient_signed_on
+      return unless completed?
       ([
         provider_signed_on,
         patient_signed_on
       ].compact.max + 6.months).to_date
+    end
+
+    def active?
+      completed? && expires_on > 6.months.ago
+    end
+
+    def completed?
+      provider_signed_on && patient_signed_on
     end
   end
 end

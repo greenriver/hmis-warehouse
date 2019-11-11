@@ -1,5 +1,5 @@
 - if @patient.present?
-  - if @patient.participation_form_status.present? || @patient.release_status.present? || @patient.cha_status.present?
+  - if @patient.anything_expiring?
     %div.alert.alert-warning
       %i.alert__icon.icon-warning
       %ul
@@ -9,3 +9,7 @@
           %li= @patient.release_status
         - if @patient.cha_status.present?
           %li= @patient.cha_status
+        - if @patient.ssm_status.present?
+          %li= @patient.ssm_status
+        - if @patient.careplan_status.present?
+          %li= @patient.careplan_status

@@ -69,7 +69,6 @@ module Health
     scope :incomplete, -> { where(completed_at: nil)}
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
-
     scope :active, -> do
       completed.where(arel_table[:completed_at].gteq(1.years.ago))
     end
@@ -377,6 +376,18 @@ module Health
 
     def qualifying_activities
       Health::QualifyingActivity.where(source: self, patient: patient)
+    end
+
+    def expires_on
+      completed_at.to_date + 1.years
+    end
+
+    def complete?
+      completed_at.present?
+    end
+
+    def active?
+      completed_at && completed_at > 1.years.ago
     end
 
   end

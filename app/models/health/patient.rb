@@ -368,6 +368,10 @@ module Health
       return false
     end
 
+    def anything_expiring?
+      participation_form_status.present? || release_status.present? || cha_status.present? || ssm_status.present? || careplan_status.present?
+    end
+
     def participation_form_status
       @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
         # Valid
@@ -439,22 +443,44 @@ module Health
       @ssm_status ||= if active_ssm? && ! expiring_ssm?
         # Valid
       elsif expiring_ssm?
-        "Participation form expires #{self_sufficiency_matrix_forms.valid.last.expires_on}"
+        "Self-Sufficiency Matrix Form expires #{self_sufficiency_matrix_forms.completed.last.expires_on}"
       elsif expired_ssm?
-        "Participation expired on #{self_sufficiency_matrix_forms.valid.last.expires_on}"
+        "Self-Sufficiency Matrix Form expired on #{self_sufficiency_matrix_forms.completed.last.expires_on}"
       end
     end
 
     private def active_ssm?
-      @active_ssm ||= self_sufficiency_matrix_forms.active.exists?
+      @active_ssm ||= self_sufficiency_matrix_forms.completed.active.exists?
     end
 
     private def expiring_ssm?
-      @expiring_ssm ||= self_sufficiency_matrix_forms.expiring_soon.exists?
+      @expiring_ssm ||= self_sufficiency_matrix_forms.completed.expiring_soon.exists?
     end
 
     private def expired_ssm?
-      @expired_ssm ||= self_sufficiency_matrix_forms.expired.exists?
+      @expired_ssm ||= self_sufficiency_matrix_forms.completed.expired.exists?
+    end
+
+    def careplan_status
+      @careplan_status ||= if active_careplan? && ! expiring_careplan?
+        # Valid
+      elsif expiring_careplan?
+        "Careplan expires #{careplans.fully_signed.recent.last.expires_on}"
+      elsif expired_careplan?
+        "Careplan expired on #{careplans.fully_signed.recent.last.expires_on}"
+      end
+    end
+
+    private def active_careplan?
+      @active_careplan ||= careplans.active.exists?
+    end
+
+    private def expiring_careplan?
+      @expiring_careplan ||= careplans.fully_signed.recent.expiring_soon.exists?
+    end
+
+    private def expired_careplan?
+      @expired_careplan ||= careplans.fully_signed.recent.expired.exists?
     end
 
 
