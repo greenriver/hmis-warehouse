@@ -1,33 +1,21 @@
-- rows = @report.report_data
-- dates = rows.keys
-- if rows.present?
+- if @report.report_data.present?
   %table.table
     %thead
       %tr
-        %th Date
-        %th.text-center Street
-        %th.text-center Shelter
-        %th.text-center Doubled Up
-        %th.text-center Temporary
-        %th.text-center Permanent
+        %th ACO
+        - @report.housing_status_buckets.each do |status|
+          %th.text-center= status.to_s.humanize
     %tbody
-      - dates.sort.each do |date|
-        - body = rows[date]
+      - @report.report_data.each do |aco_id, clients|
         %tr
-          %td= date
-          %td.text-center
-            - group = body[:street]
-            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
-          %td.text-center
-            - group = body[:shelter]
-            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
-          %td.text-center
-            - group = body[:doubling_up]
-            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
-          %td.text-center
-            - group = body[:temporary]
-            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
-          %td.text-center
-            - group = body[:permanent]
-            = link_to_if group[:active_ids].present?, "#{group[:active_ids].count} of #{group[:patient_count]} (#{group[:percent]}%)", details_warehouse_reports_health_housing_status_index_path(to_query(group[:active_ids])), data: {loads_in_pjax_modal: true}
+          %td= @report.aco_for_id(aco_id).name
+          - @report.housing_status_buckets.each do |status|
+            %td.text-center
+              - count = @report.count_for_aco(housing_status: status, aco_id: aco_id)
+              = link_to_if(count > 0, count, details_warehouse_reports_health_housing_status_index_path({aco_id: aco_id, housing_status: status, end_date: @end_date}), data: {loads_in_pjax_modal: true})
+    %tfoot
+      %tr
+        %th Total
+        - @report.housing_status_buckets.each do |status|
+          %th.text-center= @report.count_for_status(housing_status: status)
 
