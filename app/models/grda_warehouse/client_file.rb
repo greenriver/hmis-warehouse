@@ -176,7 +176,7 @@ module GrdaWarehouse
     end
 
     def consent_type_with_extras
-      full_string = consent_type
+      full_string = _(consent_type)
       full_string += " in #{coc_codes.to_sentence}" if coc_codes.any?
       full_string
     end
