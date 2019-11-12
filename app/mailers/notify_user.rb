@@ -88,6 +88,12 @@ class NotifyUser < DatabaseMailer
     mail(to: users_to_notify, subject: 'Client anomaly updated')
   end
 
+  def report_completed(user_id, report)
+    @user = User.find(user_id)
+    @report = report
+    mail(to: @user.email, subject: "Your #{@report.title} has finished")
+  end
+
   def chronic_report_finished(user_id, report_id)
     @user = User.find(user_id)
     @report = GrdaWarehouse::WarehouseReports::ChronicReport.find(report_id)

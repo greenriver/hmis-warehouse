@@ -18,6 +18,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.batch_process_unprocessed!
+      queue_batch_process_unprocessed!
+      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
+    end
+
+    def self.queue_batch_process_unprocessed!
       unprocessed.joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
           Delayed::Job.enqueue(
@@ -26,8 +31,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             ),
             queue: :low_priority
           )
-        end
-      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
+      end
     end
 
     def self.batch_process_date_range!(date_range)
@@ -36,7 +40,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         pluck_in_batches(:id, batch_size: 250) do |batch|
         Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
       end
-      GrdaWarehouse::Tasks::ServiceHistory::Update.wait_for_processing
     end
 
     def service_history_valid?
