@@ -19,7 +19,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def url
-      warehouse_reports_youth_export_index_url
+      warehouse_reports_youth_export_index_url(host: ENV.fetch('HOSTNAME'))
     end
 
     def status
