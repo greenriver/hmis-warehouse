@@ -1,0 +1,30 @@
+- if @report.expiring_participation_forms.exists?
+  .expiring-participation-forms.mr-6
+    %h2 Expiring Participation Forms
+    %p The following patients have participation forms that will expire in the next month.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expiring_participation_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient)
+            %td= patient.recent_participation_form.expires_on || 'Incomplete'
+
+- if @report.expired_participation_forms.exists?
+  .expired-participation-forms
+    %h2 Expired Participation Forms
+    %p The following patients have participation forms that have expired.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expired_participation_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient)
+            %td= patient.recent_participation_form.expires_on || 'Incomplete'
+

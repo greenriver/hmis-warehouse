@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191107212914) do
+ActiveRecord::Schema.define(version: 20191112142922) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -194,6 +194,7 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.datetime "pending_date_deleted"
     t.date     "cas_match_override"
     t.boolean  "vash_eligible",                                      default: false
+    t.jsonb    "consented_coc_codes",                                default: []
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -264,7 +265,10 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   end
 
   add_index "Disabilities", ["DateCreated"], name: "disabilities_date_created", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
+  add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "Disabilities", ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "Disabilities", ["DateUpdated"], name: "disabilities_date_updated", using: :btree
   add_index "Disabilities", ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx", using: :btree
   add_index "Disabilities", ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID", using: :btree
@@ -781,11 +785,14 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   end
 
   add_index "IncomeBenefits", ["DateCreated"], name: "income_benefits_date_created", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id", using: :btree
+  add_index "IncomeBenefits", ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["DateUpdated"], name: "income_benefits_date_updated", using: :btree
   add_index "IncomeBenefits", ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID", using: :btree
   add_index "IncomeBenefits", ["ExportID"], name: "income_benefits_export_id", using: :btree
   add_index "IncomeBenefits", ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID", using: :btree
+  add_index "IncomeBenefits", ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)", using: :btree
   add_index "IncomeBenefits", ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true, using: :btree
   add_index "IncomeBenefits", ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID", using: :btree
   add_index "IncomeBenefits", ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id", using: :btree
@@ -1024,12 +1031,6 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   add_index "api_client_data_source_ids", ["client_id"], name: "index_api_client_data_source_ids_on_client_id", using: :btree
   add_index "api_client_data_source_ids", ["data_source_id"], name: "index_api_client_data_source_ids_on_data_source_id", using: :btree
   add_index "api_client_data_source_ids", ["warehouse_id"], name: "index_api_client_data_source_ids_on_warehouse_id", using: :btree
-
-  create_table "ar_internal_metadata", primary_key: "key", force: :cascade do |t|
-    t.string   "value"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
 
   create_table "available_file_tags", force: :cascade do |t|
     t.string   "name"
@@ -1583,6 +1584,7 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
     t.string  "cas_days_homeless_source",                  default: "days_homeless"
+    t.boolean "consent_visible_to_all",                    default: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1697,10 +1699,10 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.integer  "data_source_id",              null: false
     t.integer  "client_id",                   null: false
     t.string   "enterprise_guid",             null: false
-    t.integer  "participant_site_identifier", null: false
     t.integer  "site_id",                     null: false
     t.integer  "subject_id",                  null: false
     t.datetime "last_updated"
+    t.integer  "participant_site_identifier"
   end
 
   add_index "eto_client_lookups", ["client_id"], name: "index_eto_client_lookups_on_client_id", using: :btree
@@ -1766,7 +1768,7 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   end
 
   create_table "files", force: :cascade do |t|
-    t.string   "type",                   null: false
+    t.string   "type",                                null: false
     t.string   "file"
     t.string   "content_type"
     t.binary   "content"
@@ -1787,7 +1789,8 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.date     "expiration_date"
     t.integer  "delete_reason"
     t.string   "delete_detail"
-    t.string   "coc_code"
+    t.datetime "consent_revoked_at"
+    t.jsonb    "coc_codes",              default: []
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
@@ -2077,6 +2080,7 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.jsonb    "all_clients",         default: []
     t.datetime "created_at",                       null: false
     t.datetime "updated_at",                       null: false
+    t.jsonb    "juveniles",           default: []
   end
 
   create_table "nightly_census_by_project_type_clients", force: :cascade do |t|
@@ -2163,6 +2167,14 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.jsonb    "sh_all_clients",                         default: []
     t.datetime "created_at",                                          null: false
     t.datetime "updated_at",                                          null: false
+    t.jsonb    "literally_homeless_juveniles",           default: []
+    t.jsonb    "system_juveniles",                       default: []
+    t.jsonb    "homeless_juveniles",                     default: []
+    t.jsonb    "ph_juveniles",                           default: []
+    t.jsonb    "es_juveniles",                           default: []
+    t.jsonb    "th__juveniles",                          default: []
+    t.jsonb    "so_juveniles",                           default: []
+    t.jsonb    "sh_juveniles",                           default: []
   end
 
   create_table "nightly_census_by_project_types", force: :cascade do |t|
@@ -2254,6 +2266,14 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.integer  "th_beds",                                default: 0
     t.integer  "so_beds",                                default: 0
     t.integer  "sh_beds",                                default: 0
+    t.integer  "literally_homeless_juveniles",           default: 0
+    t.integer  "system_juveniles",                       default: 0
+    t.integer  "homeless_juveniles",                     default: 0
+    t.integer  "ph_juveniles",                           default: 0
+    t.integer  "es_juveniles",                           default: 0
+    t.integer  "th_juveniles",                           default: 0
+    t.integer  "so_juveniles",                           default: 0
+    t.integer  "sh_juveniles",                           default: 0
   end
 
   create_table "nightly_census_by_projects", force: :cascade do |t|
@@ -2272,6 +2292,7 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.integer  "beds",                default: 0
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
+    t.integer  "juveniles",           default: 0
   end
 
   create_table "non_hmis_uploads", force: :cascade do |t|
@@ -2614,9 +2635,6 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
   end
-
-  add_index "service_history_services", ["date"], name: "index_service_history_services_on_date", using: :btree
-  add_index "service_history_services", ["project_type"], name: "index_service_history_services_on_project_type", using: :btree
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
     t.integer "id",                                       default: "nextval('service_history_services_id_seq'::regclass)", null: false
@@ -3901,8 +3919,8 @@ ActiveRecord::Schema.define(version: 20191107212914) do
     t.boolean  "active_in_cas_match",                    default: false
     t.string   "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.integer  "days_homeless_plus_overrides"
     t.string   "lgbtq_from_hmis"
+    t.integer  "days_homeless_plus_overrides"
   end
 
   add_index "warehouse_clients_processed", ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days", using: :btree
@@ -3953,6 +3971,23 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   end
 
   add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
+  create_table "youth_exports", force: :cascade do |t|
+    t.integer  "user_id",      null: false
+    t.jsonb    "options"
+    t.jsonb    "headers"
+    t.jsonb    "rows"
+    t.integer  "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_exports", ["created_at"], name: "index_youth_exports_on_created_at", using: :btree
+  add_index "youth_exports", ["updated_at"], name: "index_youth_exports_on_updated_at", using: :btree
+  add_index "youth_exports", ["user_id"], name: "index_youth_exports_on_user_id", using: :btree
 
   create_table "youth_follow_ups", force: :cascade do |t|
     t.integer  "client_id"
@@ -4817,5 +4852,6 @@ ActiveRecord::Schema.define(version: 20191107212914) do
   add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id", using: :btree
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true, using: :btree
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id", using: :btree
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id", using: :btree
 
 end
