@@ -10,6 +10,8 @@ module GrdaWarehouse::WarehouseReports::Youth
     include ArelHelper
     include Rails.application.routes.url_helpers
 
+    acts_as_paranoid
+
     def filter
       @filter ||= ::Filters::DateRangeAndSources.new(options)
     end
