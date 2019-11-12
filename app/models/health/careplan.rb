@@ -225,7 +225,7 @@ module Health
     end
 
     def active?
-      completed? && expires_on > 6.months.ago
+      completed? && expires_on >= 6.months.ago
     end
 
     def completed?

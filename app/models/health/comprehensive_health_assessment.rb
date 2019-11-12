@@ -917,7 +917,7 @@ module Health
     end
 
     def active?
-      completed_at && completed_at > 1.years.ago
+      completed_at && completed_at >= 1.years.ago
     end
 
     def expires_on
