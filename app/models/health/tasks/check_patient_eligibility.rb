@@ -7,23 +7,35 @@
 module Health::Tasks
   class CheckPatientEligibility
 
-    def check(eligibility_date, test: false)
-      inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date)
-      edi_doc = inquiry.build_inquiry_file
-      inquiry.save!
+    def check(eligibility_date, batch_size:, test: false)
+      patients = Health::EligibilityInquiry.patients.order(:id)
+      offset = 0
+      loop do
+        batch = patients.limit(batch_size).offset(offset)
+        break if batch.count == 0 # No more patients
+        offset += batch_size
 
-      soap = Health::Soap::MassHealth.new(test: test)
-      result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
+        inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date, internal: true, batch: batch)
+        edi_doc = inquiry.build_inquiry_file
+        inquiry.save!
 
-      if result.success?
-        Health::EligibilityResponse.create(eligibility_inquiry: inquiry,
-          response: result.response,
-          user: 0 #TODO
-        )
-        Health::FlagIneligiblePatientsJob.perform_later(inquiry.id)
-      else
-        # TODO report error
-        result.error_message
+        soap = Health::Soap::MassHealth.new(test: test)
+        result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
+
+        if result.success?
+          Health::EligibilityResponse.create(
+            eligibility_inquiry: inquiry,
+            response: result.response,
+            user: nil,
+          )
+          Health::FlagIneligiblePatientsJob.perform_later(inquiry.id)
+        else
+          Health::EligibilityResponse.create(
+            eligibility_inquiry: inquiry,
+            response: result.error_message,
+            user: nil,
+          )
+        end
       end
     end
   end
