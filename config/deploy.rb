@@ -1,15 +1,29 @@
 # config valid only for current version of Capistrano
 lock '~> 3.11.0'
 
-set :application, 'warhouse'
+set :application, 'warehouse'
 set :repo_url, 'https://github.com/greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
 set :whenever_identifier, ->{ "#{fetch(:client)}-#{fetch(:application)}_#{fetch(:stage)}" }
 set :cron_user, ENV.fetch('CRON_USER') { 'ubuntu'}
 set :whenever_roles, [:cron, :production_cron, :staging_cron]
-set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && /usr/share/rvm/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
-set :passenger_restart_command, 'sudo passenger-config restart-app --ignore-passenger-not-running --ignore-app-not-running'
+set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && #{fetch(:rvm_custom_path)}/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
+
+if ENV['SYSTEMD_APP_SERVER_NAME']
+  # Assuming stand-alone app server
+  after 'deploy:symlink:release', :restart_puma do
+    on roles(:web)  do
+      # reload or restart might not switch directories correctly
+      execute "sudo", "systemctl", "stop", ENV['SYSTEMD_APP_SERVER_NAME']
+      execute "sudo", "systemctl", "start", ENV['SYSTEMD_APP_SERVER_NAME']
+    end
+  end
+  before 'restart_puma',  :group_writable_and_owned_by_shared_user
+else
+  set :passenger_restart_command, 'sudo passenger-config restart-app --ignore-passenger-not-running --ignore-app-not-running'
+  before 'passenger:restart',  :group_writable_and_owned_by_shared_user
+end
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -32,14 +46,14 @@ set :deploy_user , ENV.fetch('DEPLOY_USER')
 set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
 set :rvm_ruby_version, "#{File.read('.ruby-version').strip.split('-')[1]}@global"
 
-task :group_writable_and_owned_by_ubuntu do
+task :group_writable_and_owned_by_shared_user do
   on roles(:app) do
     execute "sudo chmod --quiet g+w -R  #{fetch(:deploy_to)}"
-    execute "sudo chown --quiet ubuntu:ubuntu -R #{fetch(:deploy_to)}"
+    execute "sudo chown --quiet #{fetch(:cron_user)}:#{fetch(:cron_user)} -R #{fetch(:deploy_to)}"
+    execute "sudo chown --quiet #{fetch(:cron_user)}:#{fetch(:cron_user)} #{fetch(:deploy_to)}/shared/log/*"
   end
 end
-before 'passenger:restart',  :group_writable_and_owned_by_ubuntu
-after 'deploy:log_revision', :group_writable_and_owned_by_ubuntu
+after 'deploy:log_revision', :group_writable_and_owned_by_shared_user
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
