@@ -106,7 +106,7 @@ class ClientsController < ApplicationController
       merged << c
     end
     Importing::RunAddServiceHistoryJob.perform_later
-    redirect_to({ action: :edit }, notice: "Client records merged with #{merged.join(', ')}. Service history rebuild queued.")
+    redirect_to({ action: :edit }, notice: "Client records merged with #{merged.map(&:name).join(', ')}. Service history rebuild queued.")
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error e.inspect
 
