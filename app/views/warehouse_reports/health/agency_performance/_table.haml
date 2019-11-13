@@ -78,7 +78,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit agency.with_ssms.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
           - else
             scope.size
 
@@ -90,7 +90,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit agency.with_ssms.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
           - else
             scope.size
         %td.agency-performance__without.text-right
@@ -101,7 +101,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit agency.with_ssms.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
           - else
             scope.size
         %td.agency-performance__without.agency-performance__date-effected.text-right
@@ -112,7 +112,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit agency.with_ssms.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
           - else
             scope.size
   - if @agencies.size > 1
