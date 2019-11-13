@@ -3,10 +3,11 @@
     %div.alert.alert-warning
       %i.alert__icon.icon-warning
       %ul
-        - if @patient.participation_form_status.present?
-          %li= @patient.participation_form_status
-        - if @patient.release_status.present?
-          %li= @patient.release_status
+        - if false
+          - if @patient.participation_form_status.present?
+            %li= @patient.participation_form_status
+          - if @patient.release_status.present?
+            %li= @patient.release_status
         - if @patient.cha_status.present?
           %li= @patient.cha_status
         - if @patient.ssm_status.present?
