@@ -1401,6 +1401,7 @@ DEPENDENCIES
   devise_invitable
   dotenv-rails
   email_check
+  encryptor
   exception_notification
   execjs
   factory_bot_rails
