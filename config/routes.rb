@@ -365,6 +365,12 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
+      resources :cp_roster, only: [:index, :show, :destroy] do
+        collection do
+          post :roster
+          post :enrollment
+        end
+      end
     end
   end
 
