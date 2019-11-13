@@ -1,0 +1,32 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "CP Rosters"
+- content_for :title, title
+%h1= content_for :title
+
+.well.mt-4
+  %p Upload a CP Roster File.
+  = simple_form_for :roster, url: roster_warehouse_reports_health_cp_roster_index_path, method: :post do |f|
+    = f.input :content, as: :file, label: false
+    .mt-2
+      = f.button :submit, "Upload CSV", disabled: true, id: 'roster_upload_button', class: 'btn btn-secondary btn-sm ml-2'
+
+.well.mt-4
+  %p Upload a CP Enrollment Roster File.
+  = simple_form_for :enrollment, url: enrollment_warehouse_reports_health_cp_roster_index_path, method: :post do |f|
+    = f.input :content, as: :file, label: false
+    .mt-2
+      = f.button :submit, "Upload CSV", disabled: true, id: 'enrollment_upload_button', class: 'btn btn-secondary btn-sm ml-2'
+
+- if @files.present?
+  = render 'table'
+- else
+  %p No uploaded roster files.
+
+- content_for :page_js do
+  :javascript
+    $('#roster_content').on('change', function() {
+      $('#roster_upload_button').prop('disabled', !$(this).val());
+    });
+    $('#enrollment_content').on('change', function() {
+      $('#enrollment_upload_button').prop('disabled', !$(this).val());
+    });
