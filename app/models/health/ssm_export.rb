@@ -91,9 +91,10 @@ module Health
 
     private def carehub_headers
       ssm = Health::SelfSufficiencyMatrixForm.new
-      Health::SelfSufficiencyMatrixForm::SECTIONS.keys.map do |key|
+      questions = Health::SelfSufficiencyMatrixForm::SECTIONS.keys.map do |key|
         ssm.ssm_question_title("#{key}_score")
       end
+      ["Client ID", 'Medicaid ID', "Patient Name", "Completed On", "Location", 'SDH Enroll Date', "Staff"] + questions
     end
 
     private def epic_headers
@@ -101,7 +102,7 @@ module Health
     end
 
     private def hmis_headers
-      hmis_data[:questions].to_a
+      ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + hmis_data[:questions].to_a
     end
 
     private def carehub_rows
