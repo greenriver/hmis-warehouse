@@ -128,13 +128,13 @@ module Health
       order(provider_signed_on: :desc).limit(1)
     end
     scope :active, -> do
-      fully_signed.where(arel_table[:provider_signed_on].gteq(6.months.ago))
+      fully_signed.where(arel_table[:provider_signed_on].gteq(12.months.ago))
     end
     scope :expired, -> do
-      where(arel_table[:provider_signed_on].lt(6.months.ago))
+      where(arel_table[:provider_signed_on].lt(12.months.ago))
     end
     scope :expiring_soon, -> do
-      where(provider_signed_on: 6.months.ago..5.months.ago)
+      where(provider_signed_on: 12.months.ago..11.months.ago)
     end
     scope :recently_signed, -> do
       active.where(arel_table[:provider_signed_on].gteq(1.months.ago))
@@ -212,7 +212,7 @@ module Health
     def revsion_attributes
       attributes = self.attributes.except('id', 'patient_signed_on', 'responsible_team_member_signed_on', 'representative_signed_on', 'provider_signed_on')
       attributes['initial_date'] = Date.current
-      attributes['review_date'] = Date.current + 6.months
+      attributes['review_date'] = Date.current + 12.months
       return attributes
     end
 
@@ -221,11 +221,11 @@ module Health
       ([
         provider_signed_on,
         patient_signed_on
-      ].compact.max + 6.months).to_date
+      ].compact.max + 12.months).to_date
     end
 
     def active?
-      completed? && expires_on >= 6.months.ago
+      completed? && expires_on >= 12.months.ago
     end
 
     def completed?
