@@ -16,17 +16,22 @@ module WarehouseReports
     # `url` must provide a link to the individual report
     def perform(user_id:, report_class:, report_id:)
       klass = whitelisted_reports[report_class]
-      return unless klass
+      if klass
+        report = klass.find(report_id)
+        report.run_and_save!
 
-      report = klass.find(report_id)
-      report.run_and_save!
-
-      NotifyUser.report_completed(user_id, report).deliver_later
+        NotifyUser.report_completed(user_id, report).deliver_later
+      else
+        setup_notifier('Generic Report Runner')
+        msg = "Unable to run report, #{report_class} is not included in the white list."
+        @notifier.ping(msg) if @send_notifications
+      end
     end
 
     def whitelisted_reports
       {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => GrdaWarehouse::WarehouseReports::Youth::Export,
+        'Health::SsmExport' => Health::SsmExport,
       }
     end
   end
