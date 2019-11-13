@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191112154844) do
+ActiveRecord::Schema.define(version: 20191113130108) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1095,6 +1095,22 @@ ActiveRecord::Schema.define(version: 20191112154844) do
     t.string "test_url"
     t.string "production_url"
   end
+
+  create_table "ssm_exports", force: :cascade do |t|
+    t.integer  "user_id",      null: false
+    t.jsonb    "options"
+    t.jsonb    "headers"
+    t.jsonb    "rows"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ssm_exports", ["created_at"], name: "index_ssm_exports_on_created_at", using: :btree
+  add_index "ssm_exports", ["updated_at"], name: "index_ssm_exports_on_updated_at", using: :btree
+  add_index "ssm_exports", ["user_id"], name: "index_ssm_exports_on_user_id", using: :btree
 
   create_table "team_members", force: :cascade do |t|
     t.string   "type",         null: false

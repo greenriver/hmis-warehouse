@@ -10,20 +10,34 @@ module WarehouseReports::Health
     include ArelHelper
     before_action :require_can_view_aggregate_health!
     before_action :require_can_administer_health!
-    before_action :set_filter
+    before_action :set_filter, only: [:index, :create]
+    before_action :set_report, only: [:show, :destroy]
 
     def index
+      @reports = report_scope.order(created_at: :desc).
+        select(:id, :user_id, :options, :started_at, :completed_at).
+        page(params[:page]).per(25)
     end
 
-    def download
-      @ssms = Health::SelfSufficiencyMatrixForm.joins(:patient).completed_within_range(@filter.range).preload(patient: :client)
-      @epic_ssms = Health::EpicSsm.joins(:patient).updated_within_range(@filter.range).preload(patient: :client)
-      @hmis_ssms = hmis_responses
-      set_hmis_data(@hmis_ssms)
-      @patients = patients_by_client_id
+    def create
+      @report = Health::SsmExport.create(options: filter_params, user_id: current_user.id)
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: @report.class.name,
+        report_id: @report.id,
+      )
+      respond_with(@report, location: warehouse_reports_health_ssm_exports_path)
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: warehouse_reports_health_ssm_exports_path)
+    end
+
+    def show
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=\"SSM-#{@filter.start&.to_date&.strftime('%F')} to #{@filter.end&.to_date&.strftime('%F')}.xlsx\""
+          headers['Content-Disposition'] = "attachment; filename=\"SSM-#{@report.filter.start&.to_date&.strftime('%F')} to #{@report.filter.end&.to_date&.strftime('%F')}.xlsx\""
         end
       end
     end
@@ -32,69 +46,28 @@ module WarehouseReports::Health
       options = {}
       options.merge!(filter_params) if filter_params.present?
       @filter = ::Filters::DateRange.new(options)
-      @name = 'Self-Sufficiency Matrix'
     end
 
-    def hmis_touch_point_scope
-      GrdaWarehouse::HmisForm.health.self_sufficiency.within_range(@filter.range)
+    private def filter_params
+      @filter_params = {}
+      @filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
+      @filter_params
     end
 
-    def touch_point_scope
-      GrdaWarehouse::HMIS::Assessment.confidential
+    private def report_params
+      params.permit(filter: [:start, :end])
     end
 
-    def filter_params
-      params.permit(filter: [:start, :end])[:filter]
+    private def set_report
+      @report = report_scope.find(params[:id].to_i)
     end
 
-    def hmis_responses
-      hmis_touch_point_scope.select(
-        hmis_form_t[:id].to_sql,
-        hmis_form_t[:client_id].to_sql,
-        hmis_form_t[:answers].to_sql,
-        hmis_form_t[:collected_at].to_sql,
-        hmis_form_t[:data_source_id].to_sql,
-        hmis_form_t[:assessment_id].to_sql,
-        hmis_form_t[:site_id].to_sql,
-        hmis_form_t[:staff].to_sql,
-      ).
-        joins(:hmis_assessment, client: :destination_client).
-        order(:client_id, :collected_at)
+    private def report_scope
+      Health::SsmExport.where(user_id: current_user.id)
     end
 
-    private def patients_by_client_id
-      client_ids = @client_ids.to_a # from HMIS
-      client_ids += ::Health::Patient.where(id: @ssms.select(:patient_id)).pluck(:client_id) # from care-hub
-      client_ids += ::Health::Patient.joins(:epic_ssms).merge(Health::EpicSsm.where(id: @epic_ssms.select(:id))).pluck(:client_id) # from epic
-      ::Health::Patient.where(client_id: client_ids.to_a).
-        joins(:careplans).
-        index_by(&:client_id)
-    end
-
-    private def set_hmis_data(hmis_ssms) # rubocop:disable Naming/AccessorMethodName
-      @data = { sections: {} }
-      @sections = {}
-      @client_ids = Set.new
-      hmis_ssms.preload(client: :destination_client).each do |response|
-        answers = response.answers
-        # client_name = response.client.name
-        client_id = response.client.destination_client.id
-        @client_ids << client_id
-        # date = response.collected_at
-        response_id = response.id
-        answers[:sections].each do |section|
-          title = section[:section_title]
-          @sections[title] ||= []
-          @data[:sections][title] ||= {}
-          section[:questions].each do |question|
-            question_text = question[:question]
-            @sections[title] |= [question_text] # Union version of += (add if not there) for array
-            @data[:sections][title][question_text] ||= {}
-            @data[:sections][title][question_text][client_id] ||= {}
-            @data[:sections][title][question_text][client_id][response_id] = question[:answer]
-          end
-        end
-      end
+    def flash_interpolation_options
+      { resource_name: 'SSM Export' }
     end
   end
 end
