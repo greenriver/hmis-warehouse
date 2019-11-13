@@ -8,8 +8,8 @@ class Health::ExpiringItemReport
 
   def tabs
     {
-      participation_forms: 'Participation Forms',
-      release_forms: 'Release Forms',
+      # participation_forms: 'Participation Forms',
+      # release_forms: 'Release Forms',
       ssms: 'SSMs',
       chas: 'CHAs',
       pctps: 'Careplans',

@@ -187,13 +187,13 @@ module Health
     scope :engaged, -> do
       # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.active.distinct.select(:patient_id)
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
-      participation_form_patient_id_scope = Health::ParticipationForm.active.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.active.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
+      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
 
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.active.distinct.select(:patient_id)
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
       epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
@@ -480,9 +480,9 @@ module Health
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif expiring_careplan?
-        "Careplan expires #{careplans.fully_signed.recent.last.expires_on}"
+        "Care plan expires #{careplans.fully_signed.recent.last.expires_on}"
       elsif expired_careplan?
-        "Careplan expired on #{careplans.fully_signed.recent.last.expires_on}"
+        "Care plan expired on #{careplans.fully_signed.recent.last.expires_on}"
       end
     end
 
