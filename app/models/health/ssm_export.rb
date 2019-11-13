@@ -8,6 +8,7 @@
 # Risk: None - contains no PHI
 module Health
   class SsmExport < HealthBase
+    include Rails.application.routes.url_helpers
     acts_as_paranoid
 
     belongs_to :user
