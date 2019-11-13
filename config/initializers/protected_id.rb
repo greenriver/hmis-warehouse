@@ -9,6 +9,8 @@ module ProtectedId
 
   module Encoder
     def encode(id)
+      return id.to_s unless PROTECT_IDS
+
       day_stamp = Date.today.to_time.to_i / (60 * 60 * 24) # Seconds in a day
       obfuscate(id, day_stamp)
     end
@@ -18,6 +20,8 @@ module ProtectedId
     end
 
     def decode(encoded)
+      return encoded unless encoded?(encoded)
+
       id, _day_stamp = deobfuscate(encoded)
       # TODO expire protected ids
       id
@@ -58,8 +62,6 @@ module ProtectedId
     include Encoder
 
     def to_param
-      return super unless PROTECT_IDS
-
       encode(id)
     end
   end
@@ -68,8 +70,7 @@ module ProtectedId
     include Encoder
 
     def find(*args)
-      id = args.first
-      id = decode(id) if encoded?(id)
+      id = decode(args.first)
       super(id, args[1..-1])
     end
   end
