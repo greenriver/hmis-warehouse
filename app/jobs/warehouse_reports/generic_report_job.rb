@@ -30,8 +30,8 @@ module WarehouseReports
 
     def whitelisted_reports
       {
-        'GrdaWarehouse::WarehouseReports::Youth::Export' => GrdaWarehouse::WarehouseReports::Youth::Export,
-        'Health::SsmExport' => Health::SsmExport,
+        'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
+        'Health::SsmExport' => ::Health::SsmExport,
       }
     end
   end
