@@ -480,9 +480,9 @@ module Health
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif expiring_careplan?
-        "Careplan expires #{careplans.fully_signed.recent.last.expires_on}"
+        "Care plan expires #{careplans.fully_signed.recent.last.expires_on}"
       elsif expired_careplan?
-        "Careplan expired on #{careplans.fully_signed.recent.last.expires_on}"
+        "Care plan expired on #{careplans.fully_signed.recent.last.expires_on}"
       end
     end
 
