@@ -915,6 +915,7 @@ module Health
     def complete?
      completed_at.present?
     end
+    alias_method :completed?, :complete?
 
     def active?
       completed_at && completed_at >= 1.years.ago
