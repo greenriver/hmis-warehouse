@@ -10,7 +10,7 @@
       %tbody
         - @report.expiring_release_forms.each do |patient|
           %tr
-            %td= link_to patient.name, client_health_patient_index_path(patient)
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
             %td= patient.recent_release_form.expires_on || 'Incomplete'
 
 - if @report.expired_release_forms.exists?
@@ -25,6 +25,6 @@
       %tbody
         - @report.expired_release_forms.each do |patient|
           %tr
-            %td= link_to patient.name, client_health_patient_index_path(patient)
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
             %td= patient.recent_release_form.expires_on || 'Incomplete'
 
