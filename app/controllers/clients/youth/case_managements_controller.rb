@@ -54,11 +54,11 @@ module Clients::Youth
     end
 
     private def set_entity
-      @entity = entity_scope.find(params[:id].to_i)
+      @entity = entity_scope.find(params[:id])
     end
 
     def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
     end
 
     private def entity_source

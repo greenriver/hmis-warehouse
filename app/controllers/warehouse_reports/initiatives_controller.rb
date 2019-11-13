@@ -63,11 +63,11 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_source.find(params[:id].to_i)
+      @report = report_source.find(params[:id])
       if report_visible?
         # if the report is visible but not because of the token
         # make sure we scope it to a report the user can see
-        @report = report_scope.find(params[:id].to_i) unless access_by_token?
+        @report = report_scope.find(params[:id]) unless access_by_token?
       else
         # if it's not visible, remove it
         @report = nil
@@ -111,11 +111,11 @@ module WarehouseReports
       return false if current_user.present?
 
       # need to fetch the token and updated_at to check access
-      @report = report_source.select(:updated_at, :token, :id).find(params[:id].to_i)
+      @report = report_source.select(:updated_at, :token, :id).find(params[:id])
       raise(ActionController::RoutingError, 'Not Found') if params[:token].blank?
 
       if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
-        @report = report_source.find(params[:id].to_i)
+        @report = report_source.find(params[:id])
         return true
       else
         raise ActionController::RoutingError, 'Not Found'

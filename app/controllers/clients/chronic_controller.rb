@@ -38,7 +38,7 @@ module Clients
     protected
 
     def set_client
-      @client = client_source.destination.find(params[:client_id].to_i)
+      @client = client_source.destination.find(params[:client_id])
     end
 
     def cas_readiness_params

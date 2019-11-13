@@ -44,7 +44,7 @@ module Cohorts
     end
 
     def load_cohort
-      @cohort = cohort_scope.find(params[:cohort_id].to_i)
+      @cohort = cohort_scope.find(params[:cohort_id])
     end
   end
 end

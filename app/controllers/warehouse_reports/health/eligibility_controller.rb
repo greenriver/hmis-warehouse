@@ -20,7 +20,7 @@ module WarehouseReports::Health
     end
 
     def show
-      @report = inquiry_scope.find(params[:id].to_i)
+      @report = inquiry_scope.find(params[:id])
       date = @report.service_date
       response.headers['Content-Disposition'] = "attachment; filename=\"INQUIRY_#{date.strftime('%Y%m%d')}.txt\""
       render layout: false
@@ -36,7 +36,7 @@ module WarehouseReports::Health
 
     def update
       begin
-        @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id].to_i)
+        @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id])
         Health::EligibilityResponse.create(eligibility_inquiry: @report,
                                            response: update_params[:content].read,
                                            user: current_user,
@@ -49,7 +49,7 @@ module WarehouseReports::Health
     end
 
     def destroy
-      @report = inquiry_scope.find(params[:id].to_i)
+      @report = inquiry_scope.find(params[:id])
       @report.destroy
       redirect_to action: :index
     end

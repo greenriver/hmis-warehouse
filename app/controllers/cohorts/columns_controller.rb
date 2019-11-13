@@ -46,7 +46,7 @@ module Cohorts
     end
 
     def set_cohort
-      @cohort = cohort_source.find(params[:cohort_id].to_i)
+      @cohort = cohort_source.find(params[:cohort_id])
     end
 
     def cohort_source

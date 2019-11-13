@@ -85,7 +85,7 @@ module Contacts
     end
 
     def set_contact
-      @contact = contact_source.where(entity_id: @entity.id).find(params[:id].to_i)
+      @contact = contact_source.where(entity_id: @entity.id).find(params[:id])
     end
   end
 end

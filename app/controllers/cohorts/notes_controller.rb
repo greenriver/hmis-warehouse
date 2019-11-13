@@ -13,13 +13,13 @@ module Cohorts
 
     def index
       @modal_size = :lg
-      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id].to_i)
-      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
+      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id])
+      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id])
     end
 
     def new
       @modal_size = :lg
-      @note = note_source.new(cohort_client_id: params[:cohort_client_id].to_i)
+      @note = note_source.new(cohort_client_id: params[:cohort_client_id])
     end
 
     def create
@@ -28,7 +28,7 @@ module Cohorts
                                    user_id: current_user.id,
                                  ))
       @note.cohort_client.touch
-      respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+      respond_with(@note, location: cohort_path(id: params[:cohort_id]))
     rescue StandardError
       @note = { error: 'Failed to create a note.' }
     end
@@ -36,7 +36,7 @@ module Cohorts
     def destroy
       if @note.destroyable_by current_user
         @note.destroy
-        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
+        respond_with(@note, location: cohort_path(id: params[:cohort_id]))
       else
         flash[:error] = 'Unable to destroy note'
         @note = { error: 'Unable to destroy note.' }
@@ -55,7 +55,7 @@ module Cohorts
     end
 
     def set_note
-      @note = note_source.find(params[:id].to_i)
+      @note = note_source.find(params[:id])
     end
 
     def cohort_id

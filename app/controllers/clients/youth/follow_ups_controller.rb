@@ -46,11 +46,11 @@ module Clients::Youth
     end
 
     def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
     end
 
     def set_follow_up
-      @follow_up = follow_up_scope.find(params[:id].to_i)
+      @follow_up = follow_up_scope.find(params[:id])
     end
 
     def follow_up_source

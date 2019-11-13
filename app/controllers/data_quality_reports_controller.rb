@@ -150,11 +150,11 @@ class DataQualityReportsController < ApplicationController
   end
 
   def set_report
-    @report = report_scope.where(project_id: params[:project_id].to_i).find(params[:id].to_i)
+    @report = report_scope.where(project_id: params[:project_id]).find(params[:id])
   end
 
   def set_project
-    @project = project_source.find(params[:project_id].to_i)
+    @project = project_source.find(params[:project_id])
   end
 
   def notification_id

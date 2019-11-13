@@ -98,7 +98,7 @@ module Clients::Youth
     end
 
     def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
     end
 
     private def intake_source
@@ -110,7 +110,7 @@ module Clients::Youth
     end
 
     private def set_intake
-      @intake = intake_scope.find(params[:id].to_i)
+      @intake = intake_scope.find(params[:id])
     end
 
     private def use_other_options

@@ -31,7 +31,7 @@ module Admin
     end
 
     def find_translation_text
-      @text = translation_text_source.find(params[:id].to_i)
+      @text = translation_text_source.find(params[:id])
     end
 
     def text_params

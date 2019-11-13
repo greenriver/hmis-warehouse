@@ -156,7 +156,7 @@ module AuditReports
         @agency = 'All Agencies'
         if params[:report].present?
           if params[:report][:agency].present?
-            agency = Agency.find(params[:report][:agency].to_i)
+            agency = Agency.find(params[:report][:agency])
             scope = scope.where(agency_id: agency.id)
             @agency_id = agency.id
             @agency = agency.name

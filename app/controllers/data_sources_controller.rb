@@ -128,6 +128,6 @@ class DataSourcesController < ApplicationController
   end
 
   private def set_data_source
-    @data_source = data_source_source.find(params[:id].to_i)
+    @data_source = data_source_source.find(params[:id])
   end
 end

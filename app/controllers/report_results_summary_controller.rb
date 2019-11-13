@@ -39,6 +39,6 @@ class ReportResultsSummaryController < ApplicationController
   def set_report_results_summary
     @report_results_summary = report_results_summary_source.
       viewable_by(current_user).
-      find(params[:id].to_i)
+      find(params[:id])
   end
 end

@@ -30,12 +30,12 @@ module HealthGoal
   end
 
   def edit
-    @goal = ::Health::Goal::Hpc.find(params[:id].to_i)
+    @goal = ::Health::Goal::Hpc.find(params[:id])
     render 'health/goals/edit'
   end
 
   def update
-    @goal = ::Health::Goal::Hpc.find(params[:id].to_i)
+    @goal = ::Health::Goal::Hpc.find(params[:id])
     @goal.update(goal_params)
     if ! request.xhr?
       respond_with(@goal, location: after_path)
@@ -46,7 +46,7 @@ module HealthGoal
   end
 
   def destroy
-    @goal = ::Health::Goal::Hpc.find(params[:id].to_i)
+    @goal = ::Health::Goal::Hpc.find(params[:id])
     @goal.update(user_id: current_user.id)
     @goal.destroy!
     if !request.xhr?

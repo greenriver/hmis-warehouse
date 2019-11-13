@@ -55,7 +55,7 @@ class SecureFilesController < ApplicationController
   end
 
   private def set_file
-    @secure_file = file_scope.find(params[:id].to_i)
+    @secure_file = file_scope.find(params[:id])
   end
 
   def file_scope

@@ -20,7 +20,7 @@ class NonHmisUploadsController < ApplicationController
   end
 
   def show
-    @upload = upload_source.find(params[:id].to_i)
+    @upload = upload_source.find(params[:id])
     send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
   end
 
@@ -73,6 +73,6 @@ class NonHmisUploadsController < ApplicationController
   end
 
   def set_data_source
-    @data_source = data_source_source.find(params[:data_source_id].to_i)
+    @data_source = data_source_source.find(params[:data_source_id])
   end
 end

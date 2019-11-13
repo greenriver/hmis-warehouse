@@ -27,11 +27,11 @@ module ReportResults
     end
 
     def set_report_result
-      @result = ReportResult.find(params[:report_result_id].to_i)
+      @result = ReportResult.find(params[:report_result_id])
     end
 
     def set_report
-      @report = Report.find(params[:report_id].to_i)
+      @report = Report.find(params[:report_id])
     end
   end
 end

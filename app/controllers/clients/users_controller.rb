@@ -71,11 +71,11 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = client_scope.find(params[:client_id])
     end
 
     def set_user
-      @user = user_scope.find(params[:id].to_i)
+      @user = user_scope.find(params[:id])
     end
 
     protected def title_for_show

@@ -276,7 +276,7 @@ module WarehouseReports::Health
     end
 
     def set_report
-      @report = report_scope.find(params[:id].to_i)
+      @report = report_scope.find(params[:id])
     end
 
     def set_sender

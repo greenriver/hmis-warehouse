@@ -73,11 +73,11 @@ module Clients
     end
 
     private def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
     end
 
     private def set_assessment
-      @assessment = assessment_source.find(params[:id].to_i)
+      @assessment = assessment_source.find(params[:id])
     end
 
     private def assessment_source

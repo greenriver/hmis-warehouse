@@ -128,11 +128,11 @@ module Clients
     end
 
     private def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
     end
 
     private def set_vispdat
-      @vispdat = vispdat_source.find(params[:id].to_i)
+      @vispdat = vispdat_source.find(params[:id])
     end
 
     private def vispdat_source

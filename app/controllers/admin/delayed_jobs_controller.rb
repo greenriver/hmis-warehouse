@@ -31,7 +31,7 @@ module Admin
     end
 
     private def set_job
-      @job = job_scope.find(params[:id].to_i)
+      @job = job_scope.find(params[:id])
     end
   end
 end

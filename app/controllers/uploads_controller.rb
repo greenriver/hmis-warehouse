@@ -77,11 +77,11 @@ class UploadsController < ApplicationController
   end
 
   private def set_data_source
-    @data_source = data_source_source.find(params[:data_source_id].to_i)
+    @data_source = data_source_source.find(params[:data_source_id])
   end
 
   private def set_upload
-    @upload = upload_source.find(params[:id].to_i)
+    @upload = upload_source.find(params[:id])
   end
 
   def upload_source

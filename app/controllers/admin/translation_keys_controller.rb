@@ -84,7 +84,7 @@ module Admin
     end
 
     def find_translation_key
-      @translation_key = TranslationKey.find(params[:id].to_i)
+      @translation_key = TranslationKey.find(params[:id])
     end
 
     def add_default_locales_to_translation

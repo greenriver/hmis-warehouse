@@ -20,7 +20,7 @@ module Health
     end
 
     def show
-      @file = @patient.health_files.find(params[:id].to_i)
+      @file = @patient.health_files.find(params[:id])
       send_data @file.content,
         type: @file.content_type,
         filename: File.basename(@file.file.to_s)

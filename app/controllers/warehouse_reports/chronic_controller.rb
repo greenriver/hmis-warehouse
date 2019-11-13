@@ -21,13 +21,13 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find(params[:id].to_i)
+      @report = report_source.find(params[:id])
       @report.destroy
       respond_with(@report, location: warehouse_reports_chronic_index_path)
     end
 
     def show
-      @report = report_source.find(params[:id].to_i)
+      @report = report_source.find(params[:id])
       @clients = @report.data
       @sort_options = sort_options
 

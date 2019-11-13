@@ -18,7 +18,7 @@ module Admin::Health
     end
 
     def edit
-      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral = Health::PatientReferral.find(params[:id])
     end
 
     def review
@@ -107,7 +107,7 @@ module Admin::Health
     end
 
     def update
-      @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral = Health::PatientReferral.find(params[:id])
       @patient_referral.update(patient_referral_params)
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end

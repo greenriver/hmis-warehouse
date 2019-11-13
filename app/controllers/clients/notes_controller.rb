@@ -90,12 +90,12 @@ module Clients
     end
 
     private def set_note
-      @note = note_scope.find(params[:id].to_i)
+      @note = note_scope.find(params[:id])
     end
 
     private def set_client
       # binding.pry
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = client_scope.find(params[:client_id])
     end
 
     # Only allow a trusted parameter "white list" through.

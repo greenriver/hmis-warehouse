@@ -27,7 +27,7 @@ module Admin
     end
 
     def destroy
-      @file = file_source.find(params[:id].to_i)
+      @file = file_source.find(params[:id])
       @file.destroy
       respond_with @file, location: admin_public_files_path
     end

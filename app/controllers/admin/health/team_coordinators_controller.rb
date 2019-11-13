@@ -27,7 +27,7 @@ module Admin::Health
     end
 
     def destroy
-      @coordinator = user_coordinator_source.find(params[:id].to_i)
+      @coordinator = user_coordinator_source.find(params[:id])
       @coordinator.destroy
       respond_with(@coordinator, location: admin_health_team_coordinators_path)
     end

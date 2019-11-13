@@ -55,7 +55,7 @@ module Admin::Health
     end
 
     def set_accountable_care_organization
-      @accountable_care_organization = accountable_care_organization_scope.find(params[:id].to_i)
+      @accountable_care_organization = accountable_care_organization_scope.find(params[:id])
     end
 
     def accountable_care_organization_params

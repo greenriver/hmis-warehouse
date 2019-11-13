@@ -88,11 +88,11 @@ module Health
     end
 
     def set_service
-      @service = service_source.find(params[:id].to_i)
+      @service = service_source.find(params[:id])
     end
 
     def set_careplan
-      @careplan = careplan_source.find(params[:careplan_id].to_i)
+      @careplan = careplan_source.find(params[:careplan_id])
     end
 
     def careplan_source

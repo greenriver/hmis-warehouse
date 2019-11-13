@@ -16,7 +16,7 @@ module WarehouseReports::Health
     end
 
     def show
-      @file = premium_source.find(params[:id].to_i)
+      @file = premium_source.find(params[:id])
       respond_to do |format|
         format.text do
           send_data @file.content, filename: "#{@file.original_filename}.txt", type: 'text/plain', disposition: :attachment

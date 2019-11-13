@@ -23,7 +23,7 @@ class Clients::AuditsController < ApplicationController
   protected
 
   def set_client
-    @client = client_scope.find(params[:client_id].to_i)
+    @client = client_scope.find(params[:client_id])
   end
 
   def client_scope

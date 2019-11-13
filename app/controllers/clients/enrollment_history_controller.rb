@@ -25,7 +25,7 @@ module Clients
     private
 
     def set_client
-      @client = client_source.destination.find(params[:id].to_i)
+      @client = client_source.destination.find(params[:id])
     end
 
     def client_source

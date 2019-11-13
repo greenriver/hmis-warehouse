@@ -77,11 +77,11 @@ module Health
     end
 
     def set_equipment
-      @equipment = equipment_source.find(params[:id].to_i)
+      @equipment = equipment_source.find(params[:id])
     end
 
     def set_careplan
-      @careplan = careplan_source.find(params[:careplan_id].to_i)
+      @careplan = careplan_source.find(params[:careplan_id])
     end
 
     def careplan_source

@@ -56,7 +56,7 @@ module Admin
     private
 
     def set_role
-      @role = role_scope.find(params[:id].to_i)
+      @role = role_scope.find(params[:id])
     end
 
     def role_scope

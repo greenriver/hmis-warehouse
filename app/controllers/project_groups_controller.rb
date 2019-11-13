@@ -80,7 +80,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_project_group
-    @project_group = project_group_source.find(params[:id].to_i)
+    @project_group = project_group_source.find(params[:id])
   end
 
   def set_users_with_access

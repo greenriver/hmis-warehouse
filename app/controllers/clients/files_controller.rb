@@ -111,12 +111,12 @@ module Clients
     end
 
     def show_delete_modal
-      @file = editable_scope.find(params[:id].to_i)
+      @file = editable_scope.find(params[:id])
       @client = @file.client
     end
 
     def destroy
-      @file = editable_scope.find(params[:id].to_i)
+      @file = editable_scope.find(params[:id])
       @client = @file.client
 
       delete_params = params[:grda_warehouse_client_file]
@@ -246,11 +246,11 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = client_scope.find(params[:client_id])
     end
 
     def set_file
-      @file = all_file_scope.find(params[:id].to_i)
+      @file = all_file_scope.find(params[:id])
     end
 
     def set_files

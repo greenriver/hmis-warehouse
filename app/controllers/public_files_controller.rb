@@ -12,7 +12,7 @@ class PublicFilesController < ApplicationController
   end
 
   def load_file
-    @file = file_source.find(params[:id].to_i)
+    @file = file_source.find(params[:id])
   end
 
   def file_source
