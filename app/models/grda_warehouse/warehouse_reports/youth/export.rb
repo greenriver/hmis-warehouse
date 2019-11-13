@@ -10,6 +10,8 @@ module GrdaWarehouse::WarehouseReports::Youth
     include ArelHelper
     include Rails.application.routes.url_helpers
 
+    acts_as_paranoid
+
     def filter
       @filter ||= ::Filters::DateRangeAndSources.new(options)
     end
@@ -19,7 +21,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def url
-      warehouse_reports_youth_export_index_url
+      warehouse_reports_youth_export_index_url(host: ENV.fetch('HOSTNAME'))
     end
 
     def status
@@ -332,7 +334,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         clients.joins(:vispdats).
           merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.range)).
           each do |client_record|
-            vispdats[client_record.id] = client_record.vispdats.max_by(&:submitted_at)
+            vispdats[client_record.id] = client_record.vispdats.completed.max_by(&:submitted_at)
           end
         vispdats
       end

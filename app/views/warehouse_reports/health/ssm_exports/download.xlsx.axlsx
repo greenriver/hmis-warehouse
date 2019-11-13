@@ -1,0 +1,90 @@
+
+wb = xlsx_package.workbook
+
+# @epic_ssms
+
+wb.add_worksheet(name: "SSM from Care Hub") do |sheet|
+
+  ssm = Health::SelfSufficiencyMatrixForm.new
+  questtions = Health::SelfSufficiencyMatrixForm::SECTIONS.keys.map do |key|
+    ssm.ssm_question_title("#{key}_score")
+  end
+  sheet.add_row ['Selected Range:', @filter.start, @filter.end]
+  sheet.add_row ["Client ID", 'Medicaid ID', "Patient Name", "Completed On", "Location", 'SDH Enroll Date', "Staff"] + questtions
+
+  @ssms.each do |ssm|
+    row = []
+    client_id = ssm.patient.client.id
+    client_name = ssm.patient.client.name
+    enroll_date = @patients[client_id]&.careplans&.sorted&.first&.sdh_enroll_date
+    medicaid_id = @patients[client_id]&.medicaid_id
+
+    row << client_id
+    row << medicaid_id
+    row << client_name
+    row << ssm.completed_at.to_date
+    row << 'Care Hub'
+    row << enroll_date
+    row << ssm.user&.name
+    Health::SelfSufficiencyMatrixForm::SECTIONS.keys.each do |key|
+      row << ssm["#{key}_score"]
+    end
+    sheet.add_row row
+  end
+end
+wb.add_worksheet(name: "SSM from EPIC") do |sheet|
+
+
+  sheet.add_row ['Selected Range:', @filter.start, @filter.end]
+  sheet.add_row ["Client ID", 'Medicaid ID', "Patient Name", "Updated On", "Location", 'SDH Enroll Date', "Staff", 'Part 1', 'Part 2', 'Part 3']
+
+  @epic_ssms.each do |ssm|
+    row = []
+    client_id = ssm.patient.client.id
+    client_name = ssm.patient.client.name
+    enroll_date = @patients[client_id]&.careplans&.sorted&.first&.sdh_enroll_date
+    medicaid_id = @patients[client_id]&.medicaid_id
+
+    row << client_id
+    row << medicaid_id
+    row << client_name
+    row << ssm.ssm_updated_at.to_date
+    row << 'EPIC'
+    row << enroll_date
+    row << ssm.staff
+    row << ssm.part_1
+    row << ssm.part_2
+    row << ssm.part_3
+
+    sheet.add_row row
+  end
+end
+wb.add_worksheet(name: "SSM from HMIS") do |sheet|
+  section_columns = @sections.map do |section, questions|
+    [section] + [nil]*(questions.size-1)
+  end
+  sheet.add_row ['Selected Range:', @filter.start, @filter.end]
+  sheet.add_row ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + @sections.values.flatten
+
+  @hmis_ssms.each do |response|
+    row = []
+    client_id = response.client.destination_client.id
+    client_name = response.client.destination_client.name
+    enroll_date = @patients[client_id]&.careplans&.sorted&.first&.sdh_enroll_date
+    medicaid_id = @patients[client_id]&.medicaid_id
+
+    row << client_id
+    row << medicaid_id
+    row << client_name
+    row << response.collected_at
+    row << response.hmis_assessment.site_name
+    row << enroll_date
+    row << response.staff
+    @sections.each do |title, questions|
+      questions.each do |question|
+        row << @data.dig(:sections, title, question, client_id, response.id)
+      end
+    end
+    sheet.add_row row
+  end
+end

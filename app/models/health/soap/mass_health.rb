@@ -59,7 +59,8 @@ module Health::Soap
 
     def error_message(result)
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorMessage') ||
-        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorMessage')
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorMessage') ||
+        result.first.dig('Envelope', 'Body', 'Fault', 'detail', 'Message')
     end
 
     # Submit a simple request
