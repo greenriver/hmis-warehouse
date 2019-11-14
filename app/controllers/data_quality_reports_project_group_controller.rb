@@ -44,7 +44,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
   end
 
   def set_report
-    @report = report_scope.where(project_group_id: params[:project_group_id]).find(params[:id])
+    @report = report_scope.where(project_group_id: ProtectedId::Encoder.decode(params[:project_group_id])).find(params[:id])
   end
 
   def set_project_group

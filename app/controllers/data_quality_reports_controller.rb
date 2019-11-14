@@ -150,7 +150,7 @@ class DataQualityReportsController < ApplicationController
   end
 
   def set_report
-    @report = report_scope.where(project_id: params[:project_id]).find(params[:id])
+    @report = report_scope.where(project_id: ProtectedId::Encoder.decode(params[:project_id])).find(params[:id])
   end
 
   def set_project

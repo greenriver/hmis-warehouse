@@ -34,7 +34,7 @@ module Cohorts
           if params[:content].present?
             set_cohort_clients
             # Allow for individual refresh
-            @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i) if params[:cohort_client_id].present?
+            @cohort_clients = @cohort_clients.where(id: ProtectedId::Encoder.decode(params[:cohort_client_id])) if params[:cohort_client_id].present?
             render text: JSON.fast_generate(data_for_table), type: :json
             # The above is > 50% faster then
             # render json: data_for_table

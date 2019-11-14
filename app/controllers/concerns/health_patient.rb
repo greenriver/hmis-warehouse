@@ -26,10 +26,10 @@ module HealthPatient
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if client_scope.where(id: params[:client_id]).exists?
+      if client_scope.where(id: ProtectedId::Encoder.decode(params[:client_id])).exists?
         @client = client_scope.find(params[:client_id])
       else
-        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:client_id]
+        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(ProtectedId::Encoder.decode(params[:client_id]))
         if client_id
           redirect_to controller: controller_name, action: action_name, client_id: client_id
           # client_scope.find(client_id)

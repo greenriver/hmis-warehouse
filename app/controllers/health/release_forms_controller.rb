@@ -98,7 +98,7 @@ module Health
     end
 
     private def set_form
-      @release_form = @patient.release_forms.where(id: params[:id]).first
+      @release_form = @patient.release_forms.where(id: ProtectedId::Encoder.decode(params[:id])).first
     end
 
     private def set_blank_form

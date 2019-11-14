@@ -134,7 +134,7 @@ module Health
     end
 
     def set_form
-      @cha = @patient.comprehensive_health_assessments.where(id: params[:id]).first
+      @cha = @patient.comprehensive_health_assessments.where(id: ProtectedId::Encoder.decode(params[:id])).first
     end
 
     def reviewed?
