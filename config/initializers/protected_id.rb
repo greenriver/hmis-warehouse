@@ -17,6 +17,8 @@ module ProtectedId
     module_function :encode
 
     def encoded?(id)
+      false if id.blank?
+
       id.to_s.match(/.*==$/)
     end
     module_function :encoded?
