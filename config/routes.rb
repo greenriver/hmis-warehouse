@@ -3,7 +3,6 @@ Rails.application.routes.draw do
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
-  mount LetsencryptPlugin::Engine, at: '/'
   class OnlyXhrRequest
     def matches?(request)
       request.xhr?
