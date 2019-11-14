@@ -28,7 +28,7 @@ RSpec.describe NotifyUser, type: :mailer do
         expect(vispdat_mail_body).to match('The following VI-SPDAT was recently completed')
       end
       it 'contains the vispdat url' do
-        expect(vispdat_mail_body).to match client_vispdat_url(vispdat.client, vispdat)
+        expect(vispdat_mail_body).to include client_vispdat_url(vispdat.client, vispdat)
       end
       it 'contains the completed_by user name' do
         expect(vispdat_mail_body).to match completed_by.name
