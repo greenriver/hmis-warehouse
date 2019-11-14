@@ -71,7 +71,7 @@ module Admin
     end
 
     def set_user
-      @user_id = params[:user_id].to_i
+      @user_id = params[:user_id]
       @user = User.find(@user_id)
     end
   end

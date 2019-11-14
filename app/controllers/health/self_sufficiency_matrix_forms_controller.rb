@@ -124,7 +124,7 @@ module Health
     end
 
     private def set_form
-      @form = @patient.self_sufficiency_matrix_forms.find_by(id: params[:id].to_i)
+      @form = @patient.self_sufficiency_matrix_forms.find_by(id: ProtectedId::Encoder.decode(params[:id]))
     end
 
     private def set_claim_submitted

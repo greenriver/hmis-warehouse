@@ -20,7 +20,7 @@ module Clients
     end
 
     def create
-      @user = user_source.new(user_client_params.merge(client_id: params[:client_id].to_i))
+      @user = user_source.new(user_client_params.merge(client_id: ProtectedId::Encoder.decode(params[:client_id])))
       begin
         @user.save!
       rescue Exception => e

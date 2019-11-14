@@ -53,11 +53,11 @@ module HealthPatient
       # Allow admins to see confirmed rejected patients
       if can_administer_health?
         @patient = Health::Patient.joins(:patient_referral).
-          find_by(client_id: params[:client_id].to_i)
+          find_by(client_id: ProtectedId::Encoder.decode(params[:client_id]))
       else
         @patient = Health::Patient.joins(:patient_referral).
           merge(Health::PatientReferral.not_confirmed_rejected).
-          find_by(client_id: params[:client_id].to_i)
+          find_by(client_id: ProtectedId::ENcoder.decode(params[:client_id]))
       end
     end
   end

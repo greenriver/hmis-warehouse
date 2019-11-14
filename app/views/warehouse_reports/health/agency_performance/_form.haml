@@ -2,7 +2,7 @@
   - content_for :filters_col_full do
     .row
       - if params[:agency_id]
-        = hidden_field_tag(:agency_id, params[:agency_id].to_i)
+        = hidden_field_tag(:agency_id, params[:agency_id])
       .col-sm-4
         = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
       .col-sm-4

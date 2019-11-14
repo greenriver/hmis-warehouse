@@ -10,7 +10,7 @@ module Assigned
     before_action :require_can_manage_all_agencies!
 
     def index
-      @selection = params.dig(:filter, :agency_id)&.to_i || Agency.first.id
+      @selection = params.dig(:filter, :agency_id) || Agency.first.id
       users = User.
         active.
         where(id: GrdaWarehouse::UserClient.active.distinct.pluck(:user_id)).

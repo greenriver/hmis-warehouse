@@ -71,7 +71,7 @@ module WarehouseReports
     private
 
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_source.find params[:id]
     end
 
     def sort_clients
