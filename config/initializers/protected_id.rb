@@ -14,10 +14,12 @@ module ProtectedId
       day_stamp = Date.today.to_time.to_i / (60 * 60 * 24) # Seconds in a day
       obfuscate(id, day_stamp)
     end
+    module_function :encode
 
     def encoded?(id)
       id.to_s.match(/.*==$/)
     end
+    module_function :encoded?
 
     def decode(encoded)
       return encoded unless encoded?(encoded)
@@ -26,6 +28,7 @@ module ProtectedId
       # TODO expire protected ids
       id
     end
+    module_function :decode
 
     KEY = ENV.fetch('PROTECTED_ID_KEY', ENV.fetch('FQDN', 'rX9BDyW0')[0..7]) # Fall back to the FQDN or a fixed string
 
@@ -41,6 +44,7 @@ module ProtectedId
 
       Base64.encode64(encrypted).delete_suffix("\n") # Remove the trailing newline from the encoding
     end
+    module_function :obfuscate
 
     def deobfuscate(slug)
       encrypted = Base64.decode64(slug)
@@ -56,6 +60,7 @@ module ProtectedId
 
       [id_part, day_stamp]
     end
+    module_function :deobfuscate
   end
 
   module Labeler
