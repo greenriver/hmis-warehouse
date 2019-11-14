@@ -796,7 +796,7 @@ GEM
       execjs (~> 2.0)
     bcrypt (3.1.13)
     benchmark-ips (2.7.2)
-    bindata (2.4.3)
+    bindata (2.4.4)
     bootstrap (4.3.1)
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 1.14.3, < 2)
@@ -1007,8 +1007,8 @@ GEM
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (1.8.6)
-    json-jwt (1.9.4)
-      activesupport
+    json-jwt (1.11.0)
+      activesupport (>= 4.2)
       aes_key_wrap
       bindata
     kaminari (0.17.0)
@@ -1049,7 +1049,7 @@ GEM
     mini_magick (4.9.4)
     mini_mime (1.0.1)
     mini_portile2 (2.4.0)
-    minitest (5.12.2)
+    minitest (5.13.0)
     minitest-reporters (1.1.13)
       ansi
       builder
