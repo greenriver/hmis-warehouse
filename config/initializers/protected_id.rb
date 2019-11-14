@@ -16,7 +16,7 @@ module ProtectedId
     end
 
     def encoded?(id)
-      id.match(/.*==$/)
+      id.to_s.match(/.*==$/)
     end
 
     def decode(encoded)
@@ -69,9 +69,9 @@ module ProtectedId
   module Finder
     include Encoder
 
-    def find(*args)
+    def find(*args, &block)
       id = decode(args.first)
-      super(id, args[1..-1])
+      super(id, *args[1..-1], &block)
     end
   end
 end
