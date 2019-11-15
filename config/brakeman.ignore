@@ -302,7 +302,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 52,
+      "line": 46,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -404,7 +404,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 46,
+      "line": 52,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -541,11 +541,31 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "83cae61e622cb3c440b43ceb3eab4403893818782e91b039e5784cc2b7f00585",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/client.rb",
+      "line": 613,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "coc_codes.map do\n connection.quote(s)\n end.join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "85283b166eb4bcf02cc87be10e06c2d8433300155419b05dc24758732632d3ce",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 59,
+      "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -565,7 +585,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 44,
+      "line": 43,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -685,7 +705,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 64,
+      "line": 65,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -705,7 +725,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 364,
+      "line": 363,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -937,8 +957,28 @@
       "user_input": "params[:partial]",
       "confidence": "Weak",
       "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "fe05ee0a6f1d111361975dbd3e6e21a0f4e6b22841baf874cda4bf1cd5f21c0e",
+      "check_name": "FileAccess",
+      "message": "Model attribute used in file name",
+      "file": "app/controllers/clients/history_controller.rb",
+      "line": 72,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::HistoryController",
+        "method": "pdf"
+      },
+      "user_input": "GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)",
+      "confidence": "Weak",
+      "note": ""
     }
   ],
-  "updated": "2019-10-30 12:53:59 -0400",
+  "updated": "2019-11-01 19:03:40 -0400",
   "brakeman_version": "4.7.1"
 }

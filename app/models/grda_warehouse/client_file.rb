@@ -38,17 +38,26 @@ module GrdaWarehouse
     scope :visible_by?, -> (user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
-        all
+        current_scope
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
       elsif user.can_manage_window_client_files?
-        window.where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].eq(user.id))
-        )
+        sql = arel_table[:client_id].in(
+          Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)
+        ).
+        or(arel_table[:user_id].eq(user.id))
+
+        if GrdaWarehouse::Config.get(:consent_visible_to_all)
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+        end
+        window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads?
-        where(user_id: user.id)
+        sql = arel_table[:user_id].eq(user.id)
+        if GrdaWarehouse::Config.get(:consent_visible_to_all)
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+        end
+        where(sql)
       else
         none
       end
@@ -57,7 +66,7 @@ module GrdaWarehouse
     scope :editable_by?, -> (user) do
       # If you can see all client files, show everything
       if user.can_manage_client_files?
-        all
+        current_scope
       # If all you can see are window files or your own files
       #   show only those you uploaded
       elsif user.can_manage_window_client_files? || user.can_see_own_file_uploads?
@@ -92,7 +101,7 @@ module GrdaWarehouse
     end
 
     scope :confirmed, -> do
-      where(consent_form_confirmed: true)
+      where(consent_form_confirmed: true, consent_revoked_at: nil)
     end
 
     scope :unconfirmed, -> do
@@ -118,7 +127,7 @@ module GrdaWarehouse
 
     scope :for_coc, -> (coc_codes) do
       coc_codes = Array.wrap(coc_codes) + [nil, '']
-      where(coc_code: coc_codes)
+      where(coc_codes: coc_codes)
     end
 
     ####################
@@ -150,19 +159,30 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def revoked?
+      consent_revoked_at.present?
+    end
+
     def consent_type
       if GrdaWarehouse::AvailableFileTag.coc_level_release?(tag_list)
-        release_type = GrdaWarehouse::Hud::Client.full_release_string
-        if self.coc_code.present?
-          "#{release_type} for CoC #{coc_code}"
-        else
-          "#{release_type} for all CoCs"
-        end
+        # release_type = GrdaWarehouse::Hud::Client.full_release_string
+        # if self.coc_codes.present?
+        #   "#{release_type} for CoC #{coc_codes.to_sentence}"
+        # else
+        #   "#{release_type} for all CoCs"
+        # end
+        GrdaWarehouse::Hud::Client.full_release_string
       elsif GrdaWarehouse::AvailableFileTag.full_release?(tag_list)
         GrdaWarehouse::Hud::Client.full_release_string
       elsif GrdaWarehouse::AvailableFileTag.partial_consent?(tag_list)
         GrdaWarehouse::Hud::Client.partial_release_string
       end
+    end
+
+    def consent_type_with_extras
+      full_string = _(consent_type)
+      full_string += " in #{coc_codes.to_sentence}" if coc_codes.any?
+      full_string
     end
 
     def confirm_consent!
@@ -190,25 +210,27 @@ module GrdaWarehouse
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
 
       if ! client.consent_form_valid?
-        if consent_form_signed_on.present?
+        if consent_form_signed_on.present? && consent_revoked_at.blank?
           client.update_column(:consent_form_signed_on, consent_form_signed_on)
         end
-        if consent_form_confirmed
+        if consent_form_confirmed && consent_revoked_at.blank?
           client.update_columns(
             housing_release_status: consent_type,
             consent_form_signed_on: consent_form_signed_on,
-            consent_form_id: id
+            consent_form_id: id,
+            consented_coc_codes: coc_codes,
           )
         end
       else
-        consent_form_ids = self.class.consent_forms.confirmed.pluck(:id)
+        consent_form_ids = self.class.consent_forms.confirmed.where(client_id: client_id).pluck(:id)
         no_other_confirmed_consent_files = consent_form_ids.count == 0 && ! consent_form_confirmed || consent_form_ids.count == 1 && consent_form_ids.first == id
 
-        if consent_form_confirmed
+        if consent_form_confirmed && consent_revoked_at.blank?
           client.update_columns(
             housing_release_status: consent_type,
             consent_form_signed_on: consent_form_signed_on,
-            consent_form_id: id
+            consent_form_id: id,
+            consented_coc_codes: coc_codes,
           )
         elsif no_other_confirmed_consent_files
           client.invalidate_consent!

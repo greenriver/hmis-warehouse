@@ -46,6 +46,11 @@ module CohortAuthorization
       @cohort = cohort_scope.find(cohort_id)
     end
 
+    def set_groups
+      @groups = @cohort.access_groups
+      @group_ids = @cohort.access_group_ids
+    end
+
     def cohort_source
       GrdaWarehouse::Cohort
     end

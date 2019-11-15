@@ -237,10 +237,10 @@ RSpec.describe ClientsController, type: :request do
     let(:role) { create :can_view_client_window }
     let(:user) { create :user, roles: [role] }
 
-    it 'doesn\'t allow index' do
+    it 'allows index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'allows show' do
@@ -318,10 +318,10 @@ RSpec.describe ClientsController, type: :request do
     let(:role2) { create :can_view_client_window }
     let(:user) { create :user, roles: [role, role2] }
 
-    it 'doesn\'t allow index' do
+    it 'allows index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'allows show' do
@@ -396,10 +396,10 @@ RSpec.describe ClientsController, type: :request do
     let(:role) { create :can_create_clients }
     let(:user) { create :user, roles: [role] }
 
-    it 'doesn\'t allow index' do
+    it 'allows index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'doesn\'t allow show' do
@@ -417,9 +417,7 @@ RSpec.describe ClientsController, type: :request do
     it 'allows create' do
       sign_in user
       post clients_path(client: { data_source_id: window_data_source.id, SSN: '123456789', FirstName: 'First', LastName: 'Last', DOB: '2019-09-16' })
-      follow_redirect!
-      # After create, the view goes to show, but we don't have that permission
-      expect(response).to redirect_to(root_path)
+      expect(response).to have_http_status(200)
     end
 
     it 'doesn\'t allow edit' do

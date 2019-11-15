@@ -4,7 +4,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:warehouse_client) { create :authoritative_warehouse_client }
   let(:initial_dob) { warehouse_client.destination.DOB }
 
-  let!(:existing_intake) { create :intake, :existing_intake, client_id: warehouse_client.destination_id }
+  let!(:existing_intake) { create :intake, :existing_intake, client: warehouse_client.destination }
   let!(:new_intake) { create :intake, :new_intake }
   let!(:closed_intake) { create :intake, engagement_date: Date.parse('2018-12-01'), exit_date: Date.parse('2018-12-31') }
 
@@ -17,21 +17,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_homeless_contact) { create :intake, :new_intake, :homeless, how_hear: 'Another' }
   let!(:new_at_risk_contact) { create :intake, :new_intake, :at_risk }
 
-  let!(:existing_case_management_existing_client) { create :case_management, :existing_case_management, client_id: existing_intake.client_id }
-  let!(:new_case_management_existing_client) { create :case_management, :new_case_management, client_id: existing_intake.client_id }
-  let!(:new_case_management_new_client) { create :case_management, :new_case_management, client_id: new_intake.client_id }
+  let!(:existing_case_management_existing_client) { create :case_management, :existing_case_management, client: existing_intake.client }
+  let!(:new_case_management_existing_client) { create :case_management, :new_case_management, client: existing_intake.client }
+  let!(:new_case_management_new_client) { create :case_management, :new_case_management, client: new_intake.client }
 
   let!(:turned_away_at_risk) { create :intake, :new_intake, :at_risk, turned_away: true }
 
-  let!(:existing_financial_assistance) { create :financial_assistance, :existing_financial_assistance, client_id: existing_intake.client_id }
-  let!(:new_financial_assistance) { create :financial_assistance, :new_financial_assistance, client_id: existing_intake.client_id }
+  let!(:existing_financial_assistance) { create :financial_assistance, :existing_financial_assistance, client: existing_intake.client }
+  let!(:new_financial_assistance) { create :financial_assistance, :new_financial_assistance, client: existing_intake.client }
 
-  let!(:existing_referral_out) { create :referral_out, :existing_referral_out, client_id: existing_intake.client_id }
-  let!(:new_referral_out) { create :referral_out, :new_referral_out, client_id: existing_intake.client_id }
+  let!(:existing_referral_out) { create :referral_out, :existing_referral_out, client: existing_intake.client }
+  let!(:new_referral_out) { create :referral_out, :new_referral_out, client: existing_intake.client }
 
-  let!(:past_follow_up) { create :follow_up, :past_follow_up, client_id: existing_intake.client_id }
-  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client_id: new_at_risk_contact.client_id }
-  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client_id: new_homeless_contact.client_id }
+  let!(:past_follow_up) { create :follow_up, :past_follow_up, client: existing_intake.client }
+  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client: new_at_risk_contact.client }
+  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client: new_homeless_contact.client }
 
   let(:report) { build :homeless_youth_report }
 

@@ -7,6 +7,7 @@
 module Clients
   class ChronicController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_edit_clients!
     before_action :set_client
@@ -38,15 +39,11 @@ module Clients
     protected
 
     def set_client
-      @client = client_source.destination.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def cas_readiness_params
       params.require(:readiness).permit(*client_source.cas_readiness_parameters)
-    end
-
-    def client_source
-      GrdaWarehouse::Hud::Client
     end
 
     def title_for_show
