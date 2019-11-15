@@ -1,0 +1,14 @@
+
+wb = xlsx_package.workbook
+
+@report.headers.each do |sheet_name, header_rows|
+  wb.add_worksheet(name: sheet_name) do |sheet|
+    header_rows.each do |row|
+      sheet.add_row(row)
+    end
+    data_rows = @report.rows[sheet_name]
+    data_rows.each do |row|
+      sheet.add_row(row)
+    end
+  end
+end

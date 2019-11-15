@@ -137,7 +137,7 @@ namespace :grda_warehouse do
 
   desc "S3 Import HUD Zips from all Data Sources"
   task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
-    hmis_version = args.hmis_version || 'hmis_611'
+    hmis_version = args.hmis_version || 'hmis_2020'
 
     case hmis_version
     when 'hmis_611'
@@ -153,6 +153,20 @@ namespace :grda_warehouse do
           file_password: conf['file_password']
         }
         Importers::HMISSixOneOne::S3.new(options).import!
+      end
+    when 'hmis_2020'
+      Importers::HmisTwentyTwenty::S3.available_connections.each do |key, conf|
+
+        options = {
+          data_source_id: conf['data_source_id'],
+          region: conf['region'],
+          access_key_id: conf['access_key_id'],
+          secret_access_key: conf['secret_access_key'],
+          bucket_name: conf['bucket_name'],
+          path: conf['path'],
+          file_password: conf['file_password']
+        }
+        Importers::HmisTwentyTwenty::S3.new(options).import!
       end
     end
   end

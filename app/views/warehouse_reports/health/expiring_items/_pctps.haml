@@ -1,0 +1,30 @@
+- if @report.expiring_pctp_forms.exists?
+  .expiring-pctp-forms.mr-6
+    %h2 Expiring Careplans
+    %p The following patients have careplans that will expire in the next month.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expiring_pctp_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_pctp_form.expires_on || 'Incomplete'
+
+- if @report.expired_pctp_forms.exists?
+  .expired-pctp-forms
+    %h2 Expired Careplans
+    %p The following patients have careplans that have expired.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expired_pctp_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_pctp_form.expires_on || 'Incomplete'
+

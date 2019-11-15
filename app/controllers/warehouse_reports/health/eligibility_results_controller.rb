@@ -26,7 +26,7 @@ module WarehouseReports::Health
     end
 
     def inquiry_scope
-      Health::EligibilityInquiry.all
+      Health::EligibilityInquiry.where(internal: false)
     end
 
     def patient_scope

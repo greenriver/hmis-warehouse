@@ -23,6 +23,10 @@ module Health
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_ssms
     has_one :patient, through: :epic_patient
 
+    scope :updated_within_range, -> (range) do
+      where(ssm_updated_at: range)
+    end
+
     self.source_key = :NOTE_ID
 
     def self.csv_map(version: nil)

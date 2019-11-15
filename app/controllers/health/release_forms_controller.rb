@@ -19,7 +19,7 @@ module Health
 
     def new
       # redirect to edit if there are any on-file
-      if @patient.release_forms.exists?
+      if @patient.release_forms.active.exists?
         @release_form = @patient.release_forms.recent.last
         render(:edit)
         return

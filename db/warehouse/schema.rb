@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191104145557) do
+ActiveRecord::Schema.define(version: 20191112142922) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1584,6 +1584,7 @@ ActiveRecord::Schema.define(version: 20191104145557) do
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
     t.string  "cas_days_homeless_source",                  default: "days_homeless"
+    t.boolean "consent_visible_to_all",                    default: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -3970,6 +3971,23 @@ ActiveRecord::Schema.define(version: 20191104145557) do
   end
 
   add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
+  create_table "youth_exports", force: :cascade do |t|
+    t.integer  "user_id",      null: false
+    t.jsonb    "options"
+    t.jsonb    "headers"
+    t.jsonb    "rows"
+    t.integer  "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_exports", ["created_at"], name: "index_youth_exports_on_created_at", using: :btree
+  add_index "youth_exports", ["updated_at"], name: "index_youth_exports_on_updated_at", using: :btree
+  add_index "youth_exports", ["user_id"], name: "index_youth_exports_on_user_id", using: :btree
 
   create_table "youth_follow_ups", force: :cascade do |t|
     t.integer  "client_id"

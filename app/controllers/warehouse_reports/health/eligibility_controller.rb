@@ -37,10 +37,12 @@ module WarehouseReports::Health
     def update
       begin
         @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id])
-        Health::EligibilityResponse.create(eligibility_inquiry: @report,
-                                           response: update_params[:content].read,
-                                           user: current_user,
-                                           original_filename: update_params[:content].original_filename)
+        Health::EligibilityResponse.create(
+          eligibility_inquiry: @report,
+          response: update_params[:content].read,
+          user: current_user,
+          original_filename: update_params[:content].original_filename,
+        )
         Health::FlagIneligiblePatientsJob.perform_later(@report.id)
       rescue Exception => e
         flash[:error] = "Error processing uploaded file #{e}"
@@ -75,7 +77,7 @@ module WarehouseReports::Health
     end
 
     def inquiry_scope
-      Health::EligibilityInquiry.order(created_at: :desc)
+      Health::EligibilityInquiry.where(internal: false).order(created_at: :desc)
     end
   end
 end
