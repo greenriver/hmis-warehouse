@@ -384,7 +384,7 @@ module Health
     end
 
     def anything_expiring?
-      participation_form_status.present? || release_status.present? || cha_status.present? || ssm_status.present? || careplan_status.present?
+      release_status.present? || cha_status.present? || ssm_status.present? || careplan_status.present?
     end
 
     def participation_form_status

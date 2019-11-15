@@ -6,7 +6,7 @@
       %span.icon-checkmark.mr-1.o-color--gray-l
     Participation Form
   .patient__remaining_requirement
-    - if patient.release_forms.signed.exists?
+    - if patient.release_forms.active.exists?
       %span.icon-checkmark.o-color--positive.mr-1
     - else
       %span.icon-checkmark.mr-1.o-color--gray-l

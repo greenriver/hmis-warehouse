@@ -190,7 +190,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         exits = {}
         clients.joins(:source_exits).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
+          find_each do |client_record|
             exits[client_record.id] = client_record.source_exits.max_by(&:ExitDate)
           end
         exits
@@ -203,7 +203,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         enrollments = {}
         clients.joins(:source_enrollments).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
+          find_each do |client_record|
             enrollments[client_record.id] = client_record.source_enrollments.max_by(&:EntryDate)
           end
         enrollments
@@ -216,7 +216,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         incomes = {}
         clients.joins(:source_income_benefits).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
+          find_each do |client_record|
             incomes[client_record.id] = client_record.source_income_benefits.max_by(&:InformationDate)
           end
         incomes
@@ -229,8 +229,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         physical_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            physical_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            physical_disabilities[client_record.id] = client_record.source_disabilities.
+              merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+              physical.
+              max_by(&:InformationDate)
           end
         physical_disabilities
       end
@@ -242,8 +245,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         developmental_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            developmental_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            developmental_disabilities[client_record.id] = client_record.source_disabilities.
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+            developmental.
+            max_by(&:InformationDate)
           end
         developmental_disabilities
       end
@@ -255,8 +261,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         chronic_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            chronic_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            chronic_disabilities[client_record.id] = client_record.source_disabilities.
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+            chronic.
+            max_by(&:InformationDate)
           end
         chronic_disabilities
       end
@@ -268,8 +277,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         hiv_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            hiv_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            hiv_disabilities[client_record.id] = client_record.source_disabilities.
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+            hiv.
+            max_by(&:InformationDate)
           end
         hiv_disabilities
       end
@@ -281,8 +293,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         mental_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            mental_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            mental_disabilities[client_record.id] = client_record.source_disabilities.
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+            mental.
+            max_by(&:InformationDate)
           end
         mental_disabilities
       end
@@ -294,8 +309,11 @@ module GrdaWarehouse::WarehouseReports::Youth
         substance_disabilities = {}
         clients.joins(:source_disabilities).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
-            substance_disabilities[client_record.id] = client_record.source_disabilities.max_by(&:InformationDate)
+          find_each do |client_record|
+            substance_disabilities[client_record.id] = client_record.source_disabilities.
+            merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
+            substance.
+            max_by(&:InformationDate)
           end
         substance_disabilities
       end
@@ -307,7 +325,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         healths = {}
         clients.joins(:source_health_and_dvs).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
+          find_each do |client_record|
             healths[client_record.id] = client_record.source_health_and_dvs.max_by(&:InformationDate)
           end
         healths
@@ -320,7 +338,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         educations = {}
         clients.joins(:source_employment_educations).
           merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
-          each do |client_record|
+          find_each do |client_record|
             educations[client_record.id] = client_record.source_employment_educations.max_by(&:InformationDate)
           end
         educations
@@ -333,7 +351,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         vispdats = {}
         clients.joins(:vispdats).
           merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.range)).
-          each do |client_record|
+          find_each do |client_record|
             vispdats[client_record.id] = client_record.vispdats.completed.max_by(&:submitted_at)
           end
         vispdats
