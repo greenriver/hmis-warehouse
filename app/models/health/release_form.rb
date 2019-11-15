@@ -48,13 +48,13 @@ module Health
       where.not(signature_on: nil)
     end
     scope :active, -> do
-      valid.where(arel_table[:signature_on].gteq(1.years.ago))
+      valid.where(arel_table[:signature_on].gteq(2.years.ago))
     end
     scope :expired, -> do
-      where(arel_table[:signature_on].lt(1.years.ago))
+      where(arel_table[:signature_on].lt(2.years.ago))
     end
     scope :expiring_soon, -> do
-      where(signature_on: 1.years.ago..11.months.ago)
+      where(signature_on: 2.years.ago..23.months.ago)
     end
     scope :recently_signed, -> do
       active.where(arel_table[:signature_on].gteq(1.months.ago))
@@ -65,7 +65,7 @@ module Health
     def expires_on
       return unless signature_on
 
-      signature_on.to_date + 1.years
+      signature_on.to_date + 2.years
     end
 
     before_save :set_reviewer

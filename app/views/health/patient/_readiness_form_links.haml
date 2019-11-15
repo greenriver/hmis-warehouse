@@ -16,7 +16,7 @@
         Participation Form
 
   %li
-    - release = @patient.release_forms.signed.recent.first
+    - release = @patient.release_forms.active.recent.first
     - if release
       = link_to polymorphic_path([:edit] + release_form_path_generator, client_id: @client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
         - if release.present?
