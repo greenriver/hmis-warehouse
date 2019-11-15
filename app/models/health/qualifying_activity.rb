@@ -82,7 +82,7 @@ module Health
         and(
           hqa_t[:mode_of_contact].in([:phone_call, :video_call])
         ).or(
-          hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:effective_date].to_sql} + INTERVAL '3 months'")).
+          hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:enrollment_start_date].to_sql} + INTERVAL '3 months'")).
           and(
             hqa_t[:activity].in(in_first_three_months_activities)
           )
@@ -510,7 +510,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment
-      date_of_activity.present? && patient&.patient_referral.present? && patient&.effective_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
+      date_of_activity.present? && patient&.patient_referral.present? && patient&.enrollment_start_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
     end
 
     def once_per_day_procedure_codes
