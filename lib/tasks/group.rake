@@ -11,7 +11,8 @@ namespace :group do
   desc "Create user-specific groups for all users"
   task create_groups: [:environment, "log:info_to_stdout"] do
     User.find_each do |user|
-      group = user.access_group
+      # This method is private for a reason, but we'll call it here anyway
+      group = user.send(:create_access_group)
     end
   end
 end
