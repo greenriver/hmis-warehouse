@@ -903,6 +903,10 @@ module Health
     scope :recently_signed, -> do
       active.where(arel_table[:completed_at].gteq(1.months.ago))
     end
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date]))
+    end
 
     attr_accessor :reviewed_by_supervisor, :completed, :file
 

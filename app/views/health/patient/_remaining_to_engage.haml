@@ -1,31 +1,93 @@
-.patient__remaining_requirements.ml-4
-  .patient__remaining_requirement
-    - if patient.participation_forms.signed.exists?
-      %span.icon-checkmark.o-color--positive.mr-1
+- link = link.presence || false
+- client = patient.client
+
+%ul.list-unstyled
+  %li
+    - # Participation forms are valid as long as they occur after the enrollment date
+    - participation = patient.participation_forms.recent.after_enrollment_date.first
+    - if participation
+      = if_link_to(link, edit_client_health_participation_form_path(client_id: client.id, id: participation.id), data: { loads_in_pjax_modal: true }) do
+        - if patient.participation_forms.signed.exists?
+          %span.icon-checkmark.o-color--positive.mr-1
+        - else
+          %span.icon-checkmark.mr-1.o-color--gray-l
+        Participation Form
     - else
-      %span.icon-checkmark.mr-1.o-color--gray-l
-    Participation Form
-  .patient__remaining_requirement
-    - if patient.release_forms.active.exists?
-      %span.icon-checkmark.o-color--positive.mr-1
+      - participation = patient.participation_forms.unsigned.last
+      - if participation
+        = if_link_to(link, edit_client_health_participation_form_path(client_id: client.id, id: participation.id), data: { loads_in_pjax_modal: true }) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Participation Form
+      - else
+        = if_link_to link, new_client_health_participation_form_path(client_id: client.id), data: { loads_in_pjax_modal: true } do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Participation Form
+
+  %li
+    - # Release forms are valid for two years (if they occur after the enrollment date)
+    - release = patient.release_forms.active.recent.after_enrollment_date.first
+    - if release
+      = if_link_to link, polymorphic_path([:edit] + release_form_path_generator, client_id: client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
+        %span.icon-checkmark.o-color--positive.mr-1
+        Release of Information form
     - else
-      %span.icon-checkmark.mr-1.o-color--gray-l
-    Release Form
-  .patient__remaining_requirement
-    - if patient.ssms?
-      %span.icon-checkmark.o-color--positive.mr-1
+      - release = patient.release_forms.unsigned.last
+      - if release
+        = if_link_to link, polymorphic_path([:edit] + release_form_path_generator, client_id: client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Release of Information form
+      - else
+        = if_link_to link, polymorphic_path([:new] + release_form_path_generator, client_id: client.id), data: { loads_in_pjax_modal: true } do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Release of Information form
+  %li
+    - # SSMs are valid for one year (if they occur after the enrollment date)
+    - ssm = patient.self_sufficiency_matrix_forms.active.recent.after_enrollment_date.first
+    - if ssm
+      = if_link_to link, polymorphic_path(self_sufficiency_matrix_form_path_generator, id: ssm.id, client_id: client.id), data: { loads_in_pjax_modal: true } do
+        %span.icon-checkmark.o-color--positive.mr-1
+        Self-Sufficiency Matrix
     - else
-      %span.icon-checkmark.mr-1.o-color--gray-l
-    Self-Sufficiency Matrix
-  .patient__remaining_requirement
-    - if patient.comprehensive_health_assessments.active.exists?
-      %span.icon-checkmark.o-color--positive.mr-1
+      - ssm = patient.self_sufficiency_matrix_forms.in_progress.last
+      - if ssm
+        = if_link_to link, polymorphic_path(self_sufficiency_matrix_form_path_generator, id: ssm.id, client_id: client.id), data: { loads_in_pjax_modal: true } do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Self-Sufficiency Matrix
+      - else
+        = if_link_to link, polymorphic_path([:new] + self_sufficiency_matrix_form_path_generator, client_id: client.id) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Self-Sufficiency Matrix
+  %li
+    - # CHAs are valid for one year (if they occur after the enrollment date)
+    - cha = patient.comprehensive_health_assessments.active.recent.after_enrollment_date.first
+    - if cha
+      = if_link_to link, polymorphic_path(cha_path_generator, client_id: client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
+        %span.icon-checkmark.o-color--positive.mr-1
+        Comprehensive Health Assessment
     - else
-      %span.icon-checkmark.mr-1.o-color--gray-l
-    Comprehensive Health Assessment
-  .patient__remaining_careplan
-    - if patient.careplans.fully_signed.active.exists?
-      %span.icon-checkmark.o-color--positive.mr-1
+      - cha = patient.comprehensive_health_assessments.incomplete.last
+      - if cha
+        = if_link_to link, polymorphic_path(cha_path_generator, client_id: client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
+          %span.icon-checkmark.o-color--positive.mr-1
+          Comprehensive Health Assessment
+      - else
+        = if_link_to link, polymorphic_path([:new] + cha_path_generator, client_id: client.id) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          Comprehensive Health Assessment
+  %li
+    - # Care plans are valid for one year (if they occur after the enrollment date)
+    - careplan = patient.careplans.active.recent.after_enrollment_date.first
+    - if careplan
+      = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
+        %span.icon-checkmark.o-color--positive.mr-1
+        PCTP Signed
     - else
-      %span.icon-checkmark.mr-1.o-color--gray-l
-    PCTP Signed
+      - careplan = patient.careplans.active.editable.last
+      - if careplan
+        = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          PCTP Signed
+      - else
+        = if_link_to link, new_window_client_health_careplan_path(client) do
+          %span.icon-checkmark.mr-1.o-color--gray-l
+          PCTP Signed
