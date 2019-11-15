@@ -206,6 +206,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         :location_option_6,
         :location_option_other,
         :location_option_no,
+        :location_no_preference,
         :homelessness,
         :substance_use,
         :mental_health,
