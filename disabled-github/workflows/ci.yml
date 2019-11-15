@@ -1,0 +1,103 @@
+name: Audit and Test
+
+on: pull_request
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby 2.5
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.5.x
+    - name: Set up dependancies
+      env:
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
+        DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
+      run: |
+        sudo apt-get update
+        sudo apt-get install \
+          postgresql postgresql-contrib \
+          redis-server \
+          libmagic-dev \
+          libpq-dev \
+          curl \
+          libcurl4-openssl-dev \
+          freetds-dev \
+          freetds-bin \
+          build-essential \
+          libc6-dev
+        sudo -upostgres createuser --echo --superuser $USER #give the runner
+        createdb --echo
+        createdb $DATABASE_APP_DB_TEST
+        createdb $WAREHOUSE_DATABASE_DB_TEST
+        createdb $HEALTH_DATABASE_DB_TEST
+        createdb $DATABASE_DB_TEST
+        createdb $REPORTING_DATABASE_DB_TEST
+        gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+        gem install bundler -v '< 2'
+    - name: 'Install gems'
+      run: |
+        bundle install --jobs 4 --retry 3 --without production staging development
+    - name: Run bundle-audit
+      run: |
+        bundle exec bundle-audit check --update --ignore CVE-2019-16676 CVE-2017-1002201
+    - name: Run brakeman
+      run: |
+        bundle exec brakeman -q --ensure-latest --no-pager --except PermitAttributes,Render
+    - name: 'App setup'
+      run: |
+        cp config/letsencrypt_plugin.yml.sample config/letsencrypt_plugin.yml
+        cp config/secrets.yml.sample config/secrets.yml
+        mkdir app/assets/stylesheets/theme/styles
+        touch app/assets/stylesheets/theme/styles/_variables.scss
+        cp .rspec.travis .rspec
+    - name: Prepare test db
+      env:
+        RAILS_ENV: test
+        DATABASE_ADAPTER: postgresql
+        WAREHOUSE_DATABASE_ADAPTER: postgresql
+        HEALTH_DATABASE_ADAPTER: postgresql
+        REPORTING_DATABASE_ADAPTER: postgresql
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
+        DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
+        DEFAULT_FROM: greenriver.testing@mailinator.com
+        HEALTH_FROM: greenriver.testing@mailinator.com
+        DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+        HOSTNAME: openpath.host
+        PORT: 80
+        CLIENT: test
+        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+      run: |
+        bundle exec rake db:schema:load
+        bundle exec rake reporting:db:schema:load
+        bundle exec rake health:db:schema:load
+        bundle exec rake warehouse:db:schema:load
+        npm install
+    - name: Run tests
+      env:
+        RAILS_ENV: test
+        DATABASE_ADAPTER: postgresql
+        WAREHOUSE_DATABASE_ADAPTER: postgresql
+        HEALTH_DATABASE_ADAPTER: postgresql
+        REPORTING_DATABASE_ADAPTER: postgresql
+        DATABASE_APP_DB_TEST: boston_hmis_test
+        WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+        HEALTH_DATABASE_DB_TEST: health_test
+        DATABASE_DB_TEST: boston_cas_test
+        REPORTING_DATABASE_DB_TEST: test_boston_reporting
+        DEFAULT_FROM: greenriver.testing@mailinator.com
+        HEALTH_FROM: greenriver.testing@mailinator.com
+        DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+        HOSTNAME: openpath.host
+        PORT: 80
+        CLIENT: test
+        ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+      run: |
+        bundle exec rspec --color --format documentation
