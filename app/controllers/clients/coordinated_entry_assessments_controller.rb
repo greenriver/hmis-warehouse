@@ -48,28 +48,19 @@ module Clients
       else
         @assessment = @client.ce_assessments.in_progress.first
       end
-      @assessment.submitted_at = Time.now if params[:commit] == 'Complete'
-      @assessment.update(assessment_params)
-      @assessment.submitted_at = nil if @assessment.invalid?
+      if params[:commit] == 'Complete'
+        @assessment.assign_attributes(assessment_params)
+        @assessment.make_active!(current_user)
+      else
+        @assessment.update(assessment_params)
+      end
       respond_with(@assessment, location: client_coordinated_entry_assessments_path(client_id: @client.id))
     end
 
     def update
       if params[:commit] == 'Complete'
-        # set this one as active
-        @assessment.update(
-          assessment_params.merge(
-            submitted_at: Time.now,
-            active: true,
-            user_id: current_user.id,
-          ),
-        )
-        if @assessment.valid?
-          # mark any other actives as inactive
-          @client.ce_assessments.where(active: true).where.not(id: @assessment.id).update_all(active: false)
-        else
-          @assessment.submitted_at = nil
-        end
+        @assessment.assign_attributes(assessment_params)
+        @assessment.make_active!(current_user)
       else
         @assessment.assign_attributes(assessment_params.merge(user_id: current_user.id))
         @assessment.save(validate: false)
