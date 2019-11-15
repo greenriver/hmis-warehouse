@@ -7,8 +7,8 @@ RSpec.describe 'Youth Intake Permissions', type: :request do
   let(:owner_user) { create :user, roles: [owner_role], agency: agency_1 }
   let(:agency_user) { create :user, roles: [owner_role], agency: agency_1 }
   let(:non_agency_user) { create :user, roles: [owner_role], agency: agency_2 }
-
-  let!(:intake) { create :intake, :existing_intake, user: owner_user }
+  let(:warehouse_client) { create :authoritative_warehouse_client }
+  let!(:intake) { create :intake, :existing_intake, user: owner_user, client: warehouse_client.destination }
 
   it 'has add intake if my agency doesn\'t have an open intake' do
     sign_in non_agency_user

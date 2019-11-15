@@ -8,6 +8,7 @@ module Clients::Youth
   class ReferralsController < ApplicationController
     include ClientPathGenerator
     include PjaxModalController
+    include ClientDependentControllers
 
     before_action :require_can_access_youth_intake_list!
     before_action :require_can_edit_some_youth_intakes!, only: [:create, :destroy]
@@ -49,7 +50,7 @@ module Clients::Youth
     end
 
     def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     private def entity_source

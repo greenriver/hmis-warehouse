@@ -34,12 +34,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned to coc foo' do
         before do
-          user.coc_codes << 'foo'
-          user.save
-        end
-        after do
-          user.coc_codes = []
-          user.save
+          user.coc_codes = ['foo']
         end
         it 'sees ec1' do
           expect(user_ids[user]).to eq ids[ec1]

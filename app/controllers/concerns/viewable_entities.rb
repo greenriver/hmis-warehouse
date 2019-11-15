@@ -64,14 +64,11 @@ module ViewableEntities
     helper_method :project_viewability
 
     private def coc_viewability(base)
-      collection = ['ProjectCoc', 'EnrollmentCoc'].flat_map do |c|
-        "GrdaWarehouse::Hud::#{c}".constantize.distinct.pluck :CoCCode
-      end.uniq&.compact&.sort
       {
         label: 'CoC Codes',
         selected: @user.coc_codes,
-        collection: collection,
-        placeholder: 'Project',
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        placeholder: 'CoC',
         multiple: true,
         input_html: {
           class: 'jUserViewable jCocCodes',

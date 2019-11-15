@@ -7,6 +7,7 @@
 module Clients
   class UsersController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_assign_or_view_users_to_clients!
     before_action :require_can_assign_users_to_clients!, only: [:update, :destroy, :create, :edit]
@@ -58,10 +59,6 @@ module Clients
       )
     end
 
-    def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
     def user_source
       GrdaWarehouse::UserClient
     end
@@ -71,7 +68,7 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def set_user
@@ -80,12 +77,6 @@ module Clients
 
     protected def title_for_show
       "#{@client.name} - Relationships"
-    end
-
-    private def client_scope
-      client_source.destination.
-        joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
     end
   end
 end
