@@ -187,16 +187,39 @@ module Health
     scope :engaged, -> do
       # This lives in the warehouse DB and must be materialized
       hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
-      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.completed.distinct.select(:patient_id)
-      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
-      participation_form_patient_id_scope = Health::ParticipationForm.valid.distinct.select(:patient_id)
-      release_form_patient_id_scope = Health::ReleaseForm.valid.distinct.select(:patient_id)
+      ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
+        completed.
+        after_enrollment_date.
+        select(:patient_id)
 
-      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.reviewed.distinct.select(:patient_id)
-      epic_cha_patient_id_scope = Health::EpicCha.distinct.joins(:patient).select(hp_t[:id].to_sql)
+      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
+        after_enrollment_date.
+        select(hp_t[:id].to_sql)
 
-      pctp_signed_patient_id_scope = Health::Careplan.locked.distinct.select(:patient_id)
+      participation_form_patient_id_scope = Health::ParticipationForm.distinct.
+        valid.
+        after_enrollment_date.
+        select(:patient_id)
+
+      release_form_patient_id_scope = Health::ReleaseForm.distinct.
+        valid.
+        after_enrollment_date.
+        select(:patient_id)
+
+      cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
+        reviewed.
+        after_enrollment_date.
+        select(:patient_id)
+
+      epic_cha_patient_id_scope = Health::EpicCha.distinct.
+        after_enrollment_date.
+        select(hp_t[:id].to_sql)
+
+      pctp_signed_patient_id_scope = Health::Careplan.distinct.
+        locked.
+        after_enrollment_date.
+        select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
       where(
