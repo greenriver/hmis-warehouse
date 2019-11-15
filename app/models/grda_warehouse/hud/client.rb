@@ -792,11 +792,7 @@ module GrdaWarehouse::Hud
     end
 
     def client_names user: nil, health: false
-      client_scope = if user.can_view_clients_with_roi_in_own_coc?
-        source_clients.searchable_by(user)
-      else
-        source_clients.viewable_by(user)
-      end
+      client_scope = source_clients.searchable_by(user)
       names = client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
