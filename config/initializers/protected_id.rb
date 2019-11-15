@@ -19,11 +19,12 @@ module ProtectedId
     def encoded?(id)
       false if id.blank?
 
-      id.to_s.match(/.*==$/)
+      id.to_s.ends_with?('==')
     end
     module_function :encoded?
 
     def decode(encoded)
+      encoded.map { |part| decode(part) }.compact if encoded.is_a?(Enumerable)
       return encoded unless encoded?(encoded)
 
       id, _day_stamp = deobfuscate(encoded)
