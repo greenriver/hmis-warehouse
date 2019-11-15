@@ -68,7 +68,7 @@
         - else
           - if file.consent_form_confirmed
             %dl
-              - file.revoked?
+              - if file.revoked?
                 %dt Consent revoked on #{file.consent_revoked_at.to_date}
               - else
                 %dt
