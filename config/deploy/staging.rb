@@ -23,7 +23,3 @@ hosts.each do |host|
 
   server host, user: ENV['DEPLOY_USER'], roles: roles, port: fetch(:ssh_port)
 end
-
-set :linked_dirs, fetch(:linked_dirs, []).push('certificates', 'key', '.well_known', 'challenge')
-
-set :linked_files, fetch(:linked_files, []).push('config/letsencrypt_plugin.yml')
