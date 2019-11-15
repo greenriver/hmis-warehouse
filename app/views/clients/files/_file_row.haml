@@ -68,9 +68,13 @@
         - else
           - if file.consent_form_confirmed
             %dl
-              %dt
-                = checkmark file.consent_form_confirmed
-                Consent Confirmed
+              - file.revoked?
+                %dt Consent revoked on #{file.consent_revoked_at.to_date}
+              - else
+                %dt
+                  = checkmark file.consent_form_confirmed
+                  Consent Confirmed
+
       - else
         - if file.effective_date
           %dl
@@ -79,3 +83,5 @@
             - if file.expiration_date
               %dt Expiration Date
               %dd= file.expiration_date
+                }
+                }

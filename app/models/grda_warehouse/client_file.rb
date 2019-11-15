@@ -159,6 +159,10 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def revoked?
+      consent_revoked_at.present?
+    end
+
     def consent_type
       if GrdaWarehouse::AvailableFileTag.coc_level_release?(tag_list)
         # release_type = GrdaWarehouse::Hud::Client.full_release_string
