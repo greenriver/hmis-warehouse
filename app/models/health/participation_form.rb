@@ -22,6 +22,7 @@ module Health
 
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'
+    belongs_to :patient
 
     has_one :health_file, class_name: 'Health::ParticipationFormFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
@@ -42,6 +43,9 @@ module Health
       )
     end
 
+    scope :unsigned, -> do
+      where(signature_on: nil)
+    end
     scope :signed, -> do
       where.not(signature_on: nil)
     end
@@ -56,6 +60,10 @@ module Health
     end
     scope :recently_signed, -> do
       active.where(arel_table[:signature_on].gteq(1.months.ago))
+    end
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date]))
     end
 
     attr_accessor :reviewed_by_supervisor, :file
