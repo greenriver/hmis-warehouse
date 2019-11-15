@@ -24,7 +24,7 @@ script:
   - bundle exec rake health:db:schema:load
   - bundle exec rake reporting:db:schema:load
   - bundle exec brakeman -q --ensure-latest
-  - bundle exec bundle-audit check --update
+  - bundle exec bundle-audit check --update --ignore CVE-2019-16676 CVE-2017-1002201
   - npm install
   - bundle exec rspec
 
