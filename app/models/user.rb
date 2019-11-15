@@ -34,6 +34,9 @@ class User < ActiveRecord::Base
   # Connect users to login attempts
   has_many :login_activities, as: :user
 
+  # Ensure that users have a user-specific access group
+  after_save :create_access_group
+
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
@@ -42,9 +45,11 @@ class User < ActiveRecord::Base
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
 
+  has_many :access_group_members, dependent: :destroy, inverse_of: :user
+  has_many :access_groups, through: :access_group_members
+
   has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
-  has_many :entities, class_name: GrdaWarehouse::UserViewableEntity.name
 
   has_many :messages
 
@@ -56,12 +61,6 @@ class User < ActiveRecord::Base
   scope :active, -> {where active: true}
   scope :inactive, -> {where active: false}
   scope :not_system, -> { where.not(first_name: 'System') }
-
-  # NOTE: users and rows in this join table are in different databases, so transactions
-  # aren't going to play well across this boundary
-  after_destroy do |user|
-    GrdaWarehouse::UserViewableEntity.where( user_id: user.id ).destroy_all
-  end
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
@@ -279,22 +278,32 @@ class User < ActiveRecord::Base
     User.where(id: ids)
   end
 
+  private def create_access_group
+    group = AccessGroup.for_user(self).first_or_create
+    group.access_group_members.where(user_id: id).first_or_create
+  end
+
+  def access_group
+    AccessGroup.for_user(self).first_or_initialize
+  end
+
   def set_viewables(viewables)
     return unless persisted?
-    GrdaWarehouse::UserViewableEntity.transaction do
-      %i( data_sources organizations projects reports cohorts project_groups ).each do |type|
-        ids = ( viewables[type] || [] ).map(&:to_i)
-        scope = viewable_join self.send(type)
-        scope.where.not( entity_id: ids ).destroy_all
-        ( ids - scope.pluck(:id) ).each{ |id| scope.where( entity_id: id ).first_or_create }
-      end
-    end
+    access_group.set_viewables(viewables)
   end
 
   def add_viewable(*viewables)
     viewables.each do |viewable|
-      viewable_join(viewable.class).where( entity_id: viewable.id ).first_or_create
+      access_group.add_viewable(viewable)
     end
+  end
+
+  def coc_codes
+    access_group.coc_codes
+  end
+
+  def coc_codes= (codes)
+    access_group.update(coc_codes: codes)
   end
 
   def admin_dashboard_landing_path
@@ -317,8 +326,8 @@ class User < ActiveRecord::Base
   end
 
   def coc_codes_for_consent
-    return coc_codes if coc_codes.present?
-    GrdaWarehouse::Hud::ProjectCoc.distinct.order(:CoCCode).pluck(:CoCCode)
+    # return coc_codes if coc_codes.present?
+    GrdaWarehouse::Hud::ProjectCoc.available_coc_codes
   end
 
   # def health_agency
@@ -380,15 +389,12 @@ class User < ActiveRecord::Base
       if can_edit_anything_super_user?
         model.all
       else
-        model.joins(:user_viewable_entities).merge(viewable_join(model))
+        model.where(
+          id: GrdaWarehouse::GroupViewableEntity.where(
+            access_group_id: access_groups.pluck(:id),
+            entity_type: model.sti_name,
+          ).select(:entity_id),
+        )
       end
     end
-
-    def viewable_join(model)
-      GrdaWarehouse::UserViewableEntity.where(
-        entity_type: model.sti_name,
-        user_id: id
-      )
-    end
-
 end

@@ -9,8 +9,8 @@ RSpec.describe GrdaWarehouse::YouthIntake::Base, type: :model do
   let(:owner_user) { create :user, roles: [owner_role], agency: agency_1 }
   let(:agency_user) { create :user, roles: [owner_role], agency: agency_1 }
   let(:non_agency_user) { create :user, roles: [owner_role], agency: agency_2 }
-
-  let!(:intake) { create :intake, :existing_intake, user: owner_user }
+  let(:warehouse_client) { create :authoritative_warehouse_client }
+  let!(:intake) { create :intake, :existing_intake, user: owner_user, client: warehouse_client.destination }
 
   it 'grants access to super user' do
     scope = GrdaWarehouse::YouthIntake::Base.visible_by?(super_user)

@@ -12,6 +12,7 @@ class CohortsController < ApplicationController
   before_action :require_can_manage_cohorts!, only: [:create, :destroy, :edit, :update]
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
+  before_action :set_groups, only: [:edit, :update, :destroy, :show]
 
   def index
     scope = cohort_scope

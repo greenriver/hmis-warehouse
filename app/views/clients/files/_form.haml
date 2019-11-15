@@ -1,6 +1,5 @@
 = render 'clients/files/instructions'
 = simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
-
   - if @file.errors.any?
     .alert.alert-danger
       %p Failed to upload file. Please review the errors below
@@ -55,7 +54,7 @@
         = f.input :consent_form_confirmed, as: :boolean
     .row.jConsentFormCoC
       .col-sm-4
-        = f.input :coc_code, input_html: { max_length: 6 }, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { class: :select2 }
+        = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { class: :select2, multiple: true }
     .row.jExpirationDate
       .col-sm-4
         = f.input :expiration_date, as: :date_picker, label: 'Expiration date'

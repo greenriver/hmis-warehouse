@@ -42,6 +42,7 @@ FactoryBot.define do
 
   factory :authoritative_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :authoritative_data_source
+
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
@@ -49,6 +50,23 @@ FactoryBot.define do
 
   factory :window_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :visible_data_source
+
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    DOB { '1999-12-01' }
+  end
+
+  factory :fixed_source_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :source_data_source
+    id { 100 }
+    sequence(:PersonalID, 100)
+    FirstName { 'Bob' }
+    DOB { '1999-12-01' }
+  end
+
+  factory :fixed_destination_client, class: 'GrdaWarehouse::Hud::Client' do
+    association :data_source, factory: :destination_data_source
+    id { 101 }
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
