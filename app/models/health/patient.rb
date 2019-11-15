@@ -186,7 +186,7 @@ module Health
     # Has CHA
     scope :engaged, -> do
       # This lives in the warehouse DB and must be materialized
-      hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
+      # hmis_ssm_client_ids = GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(GrdaWarehouse::HmisForm.self_sufficiency).distinct.pluck(:id)
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
@@ -234,12 +234,9 @@ module Health
           )
         ).
         and(
-          arel_table[:client_id].in(hmis_ssm_client_ids).
+          arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql).
           or(
-            arel_table[:id].in(Arel.sql ssm_patient_id_scope.to_sql).
-            or(
-              arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
-            )
+            arel_table[:id].in(Arel.sql epic_ssm_patient_id_scope.to_sql)
           )
         ).
         and(
