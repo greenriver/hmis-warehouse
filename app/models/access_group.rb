@@ -138,7 +138,7 @@ class AccessGroup < ActiveRecord::Base
     @viewable_types ||= {
       data_sources: 'GrdaWarehouse::DataSource',
       organizations: 'GrdaWarehouse::Hud::Organization',
-      projects: 'GrdaWarehouse::Hud::Projects',
+      projects: 'GrdaWarehouse::Hud::Project',
       reports: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
