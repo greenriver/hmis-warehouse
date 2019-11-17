@@ -613,8 +613,11 @@ module GrdaWarehouse::Hud
       else
         ds_ids = user.data_sources.pluck(:id)
         if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          sql = arel_table[:data_source_id].in(ds_ids).
-            or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)))
+          sql = arel_table[:data_source_id].in(ds_ids)
+          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
+          if visible_by_project_to(user).exists?
+            sql = sql.or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)))
+          end
           if GrdaWarehouse::Config.get(:window_access_requires_release)
             sql = sql.or(arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql)))
           else
@@ -622,11 +625,20 @@ module GrdaWarehouse::Hud
           end
           where(sql)
         else
-          sql = arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))
-          if GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql)))
+          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
+          if visible_by_project_to(user).exists?
+            sql = arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))
+            if GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = sql.or(arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql)))
+            else
+              sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+            end
           else
-            sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+            if GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql))
+            else
+              sql = arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql))
+            end
           end
           where(sql)
         end
