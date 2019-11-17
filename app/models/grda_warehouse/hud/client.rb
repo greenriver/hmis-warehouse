@@ -557,10 +557,11 @@ module GrdaWarehouse::Hud
         if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
           # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
           if visible_by_project_to(user).exists?
+            ids = visible_by_project_to(user).pluck(:id)
+            ids += visible_in_window_to(user).pluck(:id)
             where(
               arel_table[:data_source_id].in(ds_ids).
-              or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))).
-              or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+              or(arel_table[:id].in(ids))
             )
           else
             where(
@@ -571,10 +572,9 @@ module GrdaWarehouse::Hud
         else
           # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
           if visible_by_project_to(user).exists?
-            where(
-              arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
-              or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
-            )
+            ids = visible_by_project_to(user).pluck(:id)
+            ids += visible_in_window_to(user).pluck(:id)
+            where(id: ids)
           else
             visible_in_window_to(user)
           end
