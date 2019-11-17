@@ -573,7 +573,7 @@ module GrdaWarehouse::Hud
           if visible_by_project_to(user).exists?
             where(
               arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)).
-              or(Arel.sql(visible_in_window_to(user).select(:id).to_sql))
+              or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
             )
           else
             visible_in_window_to(user)
