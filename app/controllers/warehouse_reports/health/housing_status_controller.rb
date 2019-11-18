@@ -17,7 +17,7 @@ module WarehouseReports::Health
     end
 
     def details
-      @aco_id = detail_params[:aco_id]
+      @aco_id = detail_params[:aco_id]&.to_i
       @end_date = (detail_params[:end_date] || Date.current).to_date
       @housing_status = detail_params[:housing_status].to_sym
       @report = WarehouseReport::Health::HousingStatus.new(@end_date, [@aco_id], user: current_user)

@@ -23,7 +23,7 @@ module WarehouseReports::Health
     end
 
     def detail
-      @agency_id = params.require(:agency)[:agency_id]
+      @agency_id = params.require(:agency)[:agency_id]&.to_i
       @section = params.require(:agency)[:section]
       @patient_ids = params.require(:agency)[:patient_ids].split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).

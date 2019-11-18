@@ -15,7 +15,7 @@ module CohortAuthorization
     end
 
     def require_can_access_cohort!
-      return true if cohort_scope.where(id: ProtectedId::Encoder.decode(cohort_id)).any?
+      return true if cohort_scope.where(id: cohort_id).any?
 
       not_authorized!
     end

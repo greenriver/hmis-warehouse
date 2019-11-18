@@ -156,6 +156,26 @@
     {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
+      "fingerprint": "14467ee99cbe4e2cdfc8ed29af2f354eab09fe7c7055c9ce653355f090a83157",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/controllers/data_quality_reports_controller.rb",
+      "line": 27,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => report_scope.where(:project_id => params[:project_id]).find(params[:id]).model_name.element.to_sym, {})",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataQualityReportsController",
+        "method": "show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
       "fingerprint": "14ece81657afe303009fad565ff62934c98c50b7d2f04b06ddb04a2ca599b94e",
       "check_name": "Render",
       "message": "Render path contains parameter value",
@@ -258,57 +278,6 @@
     {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
-      "fingerprint": "20e17b21683f5ca9aa3ddbaf1d6c3a641ebc1b0c5716dfa02a052905afd9d5a9",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/warehouse_reports/hud_chronics/show.haml",
-      "line": 75,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "report_source.find(params[:id]).parameters[\"date\"]",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "WarehouseReports::HudChronicsController",
-          "method": "show",
-          "line": 30,
-          "file": "app/controllers/warehouse_reports/hud_chronics_controller.rb",
-          "rendered": {
-            "name": "warehouse_reports/hud_chronics/show",
-            "file": "app/views/warehouse_reports/hud_chronics/show.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/hud_chronics/show"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "290e2d0a315d6d5ddbaf18f36e118106bc463cb24dbddac669fa1c2ac1e2e92e",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/controllers/data_quality_reports_controller.rb",
-      "line": 27,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => report_scope.where(:project_id => ProtectedId::Encoder.decode(params[:project_id])).find(params[:id]).model_name.element.to_sym, {})",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "DataQualityReportsController",
-        "method": "show"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
       "fingerprint": "2dda17a91795b14d3487c3f39dc645d0e0c09654edae1ebbc835c715c7628b65",
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
@@ -334,6 +303,26 @@
         "template": "censuses/index"
       },
       "user_input": "Censuses::Base.available_census_types.detect",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "34b23b9a6604dffa0a18033d03c90fcfeedd6175b0197b19f6653ebe6d9b2c68",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/data_quality_reports_controller.rb",
+      "line": 79,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.read(\"app/views/data_quality_reports/#{report_scope.where(:project_id => params[:project_id]).find(params[:id]).model_name.element}/project/README.md\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DataQualityReportsController",
+        "method": "describe_computations"
+      },
+      "user_input": "params[:id]",
       "confidence": "Weak",
       "note": ""
     },
@@ -831,7 +820,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 58,
+      "line": 83,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -871,27 +860,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 83,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 79,
+      "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -912,6 +881,26 @@
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
       "line": 73,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -1168,26 +1157,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "e1b5a466fbaaf53dd8db973e78d8d7703f1968c74e49a23a1512e6886bbe484d",
-      "check_name": "FileAccess",
-      "message": "Parameter value used in file name",
-      "file": "app/controllers/data_quality_reports_controller.rb",
-      "line": 79,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.read(\"app/views/data_quality_reports/#{report_scope.where(:project_id => ProtectedId::Encoder.decode(params[:project_id])).find(params[:id]).model_name.element}/project/README.md\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "DataQualityReportsController",
-        "method": "describe_computations"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "e57abad6acbd9c3dc90d058943faf42fbfdc295cdc5b6fb1cd0153c3168ba1f3",
@@ -1379,6 +1348,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-11-14 14:16:48 -0500",
+  "updated": "2019-11-18 13:42:46 -0500",
   "brakeman_version": "4.7.1"
 }

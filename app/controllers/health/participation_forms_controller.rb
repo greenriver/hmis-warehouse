@@ -98,7 +98,7 @@ module Health
     end
 
     def set_form
-      @participation_form = @patient.participation_forms.where(id: ProtectedId::Encoder.decode(params[:id])).first
+      @participation_form = @patient.participation_forms.where(id: params[:id]).first
     end
 
     def set_blank_form

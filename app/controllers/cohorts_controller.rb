@@ -138,7 +138,7 @@ class CohortsController < ApplicationController
   end
 
   def cohort_id
-    params[:id]
+    params[:id].to_i
   end
 
   def load_cohort_names

@@ -59,7 +59,7 @@ module Cohorts
     end
 
     def cohort_id
-      params[:cohort_id]
+      params[:cohort_id].to_i
     end
 
     def flash_interpolation_options

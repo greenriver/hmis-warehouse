@@ -47,9 +47,9 @@ class ClientMatchesController < ApplicationController
 
   def defer
     @matches = if params[:destination_client_id]
-      client_match_scope.where(destination_client_id: ProtectedId::Encoder.decode(params[:destination_client_id]))
+      client_match_scope.where(destination_client_id: params[:destination_client_id].to_s)
     else
-      client_match_scope.where(id: ProtectedId::Encoder.decode(params.require(:id)))
+      client_match_scope.where(id: params.require(:id))
     end
     @matches.transaction do
       @matches.each do |m|

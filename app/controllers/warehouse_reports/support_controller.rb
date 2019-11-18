@@ -34,8 +34,8 @@ module WarehouseReports
     end
 
     def set_report
-      report_id = params[:warehouse_report_id]
-      @report = report_source.where(id: ProtectedId::Encoder.decode(report_id)).limit(1).pluck(:support)&.first
+      report_id = params[:warehouse_report_id].to_i
+      @report = report_source.where(id: report_id).limit(1).pluck(:support)&.first
     end
 
     def report_source

@@ -42,7 +42,7 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_source.find params[:id]
+      @report = report_source.find params[:id].to_i
     end
 
     def report_params

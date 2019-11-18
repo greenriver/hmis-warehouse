@@ -260,7 +260,7 @@ class ReportResultsController < ApplicationController
   def report_result_scope
     report_result_source.viewable_by(current_user).
       joins(:user).
-      where(report_id: ProtectedId::Encoder.decode(params[:report_id]))
+      where(report_id: params[:report_id].to_i)
   end
 
   def report_result_summary_columns

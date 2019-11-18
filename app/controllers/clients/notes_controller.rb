@@ -57,7 +57,7 @@ module Clients
     end
 
     def destroy
-      @note = note_scope.find_by(id: ProtectedId::Encoder.decode(params[:id]), user_id: current_user.id) unless can_edit_client_notes?
+      @note = note_scope.find_by(id: params[:id].to_i, user_id: current_user.id) unless can_edit_client_notes?
       begin
         @note.destroy!
         flash[:notice] = 'Note was successfully deleted.'

@@ -280,10 +280,10 @@ module ClientController
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if client_scope.where(id: ProtectedId::Encoder.decode(params[:id])).exists?
+      if client_scope.where(id: params[:id]).exists?
         @client = client_scope.find(params[:id])
       else
-        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(ProtectedId::Encoder.decode(params[:id]))
+        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id]
         if client_id
           redirect_to controller: controller_name, action: action_name, id: client_id
           # client_scope.find(client_id)
