@@ -85,5 +85,5 @@ module ProtectedId
 end
 
 ActiveRecord::Base.send(:include, ProtectedId::Labeler)
-ActiveRecord::Base.extend(ProtectedId::Finder)
-ActiveRecord::Relation.send(:include, ProtectedId::Finder)
+#ActiveRecord::Base.extend(ProtectedId::Finder)
+#ActiveRecord::Relation.send(:include, ProtectedId::Finder)
