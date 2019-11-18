@@ -13,10 +13,12 @@ module HealthCharts
         answer = form.housing_status
         next unless answer.present?
         answer = self.class.clean_health_housing_outcome_answer(answer)
+        score = self.class.health_housing_score(answer)
+        next unless score
         if self.class.health_housing_outcome(answer)
           {
             date: form.collected_at.to_date,
-            score: self.class.health_housing_score(answer),
+            score: score,
             status: answer,
             source: 'ETO',
             patient_id: patient.id,
@@ -24,41 +26,48 @@ module HealthCharts
         end
       end.compact
       if patient.housing_status_timestamp.present?
-        stati << {
-          date: patient.housing_status_timestamp.to_date,
-          score: self.class.health_housing_score(patient.housing_status),
-          status: patient.housing_status,
-          source: 'EPIC',
-          patient_id: patient.id,
-        }
+        score = self.class.health_housing_score(patient.housing_status)
+        if score
+          stati << {
+            date: patient.housing_status_timestamp.to_date,
+            score: score,
+            status: patient.housing_status,
+            source: 'EPIC',
+            patient_id: patient.id,
+          }
+        end
       end
       if patient.sdh_case_management_notes.any?
         stati = stati + patient.sdh_case_management_notes.
           select do |note|
             note.housing_status.present? && note.date_of_contact.present?
           end.map do |note|
+            score = self.class.health_housing_score(note.housing_status)
+            next unless score
             {
               date: note.date_of_contact.to_date,
-              score: self.class.health_housing_score(note.housing_status),
+              score: score,
               status: note.housing_status,
               source: 'Care Hub',
               patient_id: patient.id,
             }
-          end
+          end.compact
       end
       if patient.epic_case_notes.any?
         stati = stati + patient.epic_case_notes.
           select do |note|
             note.homeless_status.present? && note.contact_date.present?
           end.map do |note|
+            score = self.class.health_housing_score(note.homeless_status)
+            next unless score
             {
               date: note.contact_date.to_date,
-              score: self.class.health_housing_score(note.homeless_status),
+              score: score,
               status: note.homeless_status,
               source: 'EPIC',
               patient_id: patient.id,
             }
-          end
+          end.compact
       end
       stati.sort_by{|m| m[:date]}
     end
@@ -155,7 +164,7 @@ module HealthCharts
     end
 
     def self.health_housing_score(answer)
-       health_housing_outcomes[answer].try(:[], :score) || 0
+       health_housing_outcomes[answer].try(:[], :score) # || 0
     end
 
     def self.health_housing_outcome_status(answer)
