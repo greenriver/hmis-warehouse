@@ -576,7 +576,7 @@ module GrdaWarehouse::Hud
           )
         else
           where(
-            arel_table[:id].eq('1=0').
+            arel_table[:id].eq(0). # no client should have a 0 id
             or(project_query).
             or(window_query)
           )
@@ -629,7 +629,7 @@ module GrdaWarehouse::Hud
             end
             where(sql)
           else
-            sql = arel_table[:id].eq('1=0')
+            sql = arel_table[:id].eq(0) # no client should have a 0 id
             sql = sql.or(project_query)
             if GrdaWarehouse::Config.get(:window_access_requires_release)
               sql = sql.or(active_consent_query)
