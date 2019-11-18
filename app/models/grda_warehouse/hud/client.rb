@@ -545,6 +545,11 @@ module GrdaWarehouse::Hud
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
 
+    def self.exists_with_inner_clients(inner_scope)
+      inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
+      Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
+    end
+
     scope :searchable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
@@ -554,30 +559,27 @@ module GrdaWarehouse::Hud
         current_scope
       else
         ds_ids = user.data_sources.pluck(:id)
+        project_query = exists_with_inner_clients(visible_by_project_to(user))
+        window_query = exists_with_inner_clients(visible_in_window_to(user))
+
         if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
-          if visible_by_project_to(user).exists?
-            ids = visible_by_project_to(user).pluck(:id)
-            ids += visible_in_window_to(user).pluck(:id)
-            where(
-              arel_table[:data_source_id].in(ds_ids).
-              or(arel_table[:id].in(ids))
-            )
-          else
-            where(
-              arel_table[:data_source_id].in(ds_ids).
-              or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
-            )
-          end
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(project_query).
+            or(window_query)
+          )
+
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(project_query).
+            or(window_query)
+          )
         else
-          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
-          if visible_by_project_to(user).exists?
-            ids = visible_by_project_to(user).pluck(:id)
-            ids += visible_in_window_to(user).pluck(:id)
-            where(id: ids)
-          else
-            visible_in_window_to(user)
-          end
+          where(
+            arel_table[:id].eq('1=0').
+            or(project_query).
+            or(window_query)
+          )
         end
       end
     end
@@ -585,62 +587,58 @@ module GrdaWarehouse::Hud
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?
         current_scope
-      elsif user.can_view_clients_with_roi_in_own_coc?
-        # At a high level if you can see clients with ROI in your COC, you need to be able
-          # to see everyone for searching purposes.
-          # limits will be imposed on accessing the actual client dashboard pages
-          # current_scope
-
-        # If the user has coc-codes specified, this will limit to users
-        # with a valid consent form in the coc or with no-coc specified
-        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-        # are included.
-        if user&.can_see_clients_in_window_for_assigned_data_sources?
-          ds_ids = user.data_sources.pluck(:id)
-          sql = arel_table[:data_source_id].in(ds_ids).
-            or(arel_table[:id].in(Arel.sql(active_confirmed_consent_in_cocs(user.coc_codes).select(:id).to_sql))).
-            or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)))
-          unless GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
-          end
-
-          where(sql)
-        else
-          active_confirmed_consent_in_cocs(user.coc_codes)
-        end
-      elsif user.can_view_clients? || user.can_edit_clients?
-        current_scope
       else
-        ds_ids = user.data_sources.pluck(:id)
-        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          sql = arel_table[:data_source_id].in(ds_ids)
-          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
-          if visible_by_project_to(user).exists?
-            sql = sql.or(arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql)))
-          end
-          if GrdaWarehouse::Config.get(:window_access_requires_release)
-            sql = sql.or(arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql)))
+        project_query = exists_with_inner_clients(visible_by_project_to(user))
+        window_query = exists_with_inner_clients(visible_in_window_to(user))
+        active_consent_query = exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
+
+        if user.can_view_clients_with_roi_in_own_coc?
+          # At a high level if you can see clients with ROI in your COC, you need to be able
+            # to see everyone for searching purposes.
+            # limits will be imposed on accessing the actual client dashboard pages
+            # current_scope
+
+          # If the user has coc-codes specified, this will limit to users
+          # with a valid consent form in the coc or with no-coc specified
+          # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+          # are included.
+          if user&.can_see_clients_in_window_for_assigned_data_sources?
+            ds_ids = user.data_sources.pluck(:id)
+            sql = arel_table[:data_source_id].in(ds_ids).
+              or(active_consent_query).
+              or(project_query)
+            unless GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = sql.or(window_query)
+            end
+
+            where(sql)
           else
-            sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+            active_confirmed_consent_in_cocs(user.coc_codes)
           end
-          where(sql)
+        elsif user.can_view_clients? || user.can_edit_clients?
+          current_scope
         else
-          # FIXME, the visible_by_project_to sub query is too slow, this only runs it when necessary
-          if visible_by_project_to(user).exists?
-            sql = arel_table[:id].in(Arel.sql(visible_by_project_to(user).select(:id).to_sql))
+          ds_ids = user.data_sources.pluck(:id)
+          if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+            sql = arel_table[:data_source_id].in(ds_ids)
+            sql = sql.or(project_query)
             if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql)))
+              sql = sql.or(active_consent_query)
             else
-              sql = sql.or(arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql)))
+              sql = sql.or(window_query)
             end
+            where(sql)
           else
+            sql = arel_table[:id].eq('1=0')
+            sql = sql.or(project_query)
             if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = arel_table[:id].in(Arel.sql(consent_form_valid.select(:id).to_sql))
+              sql = sql.or(active_consent_query)
             else
-              sql = arel_table[:id].in(Arel.sql(visible_in_window_to(user).select(:id).to_sql))
+              sql = sql.or(window_query)
             end
+
+            where(sql)
           end
-          where(sql)
         end
       end
     end
