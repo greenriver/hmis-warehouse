@@ -207,6 +207,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "3e94c32e2e326e0b24e275e1018e19c8d8e04b138e81da4366a9ab06617bdb85",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/client.rb",
+      "line": 550,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Hud::Client",
+        "method": "GrdaWarehouse::Hud::Client.exists_with_inner_clients"
+      },
+      "user_input": "inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "46e89facb6f575693e76b059e8ff397a2737fcdae21ac4cba044afea33238cc5",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -302,7 +322,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 46,
+      "line": 50,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -353,7 +373,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped parameter value",
       "file": "app/views/dashboards/base/_entry.haml",
-      "line": 50,
+      "line": 46,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "active_report_class.new(:months => (begin\n  active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys[((active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s\n  rescue StandardError\n    [1.months.ago.year, 1.months.ago.month].to_s\n  end)) or 0)..active_report_class.distinct.order(:year => :desc, :month => :desc).pluck(:year, :month).map do\n   date = Date.new(year, month, 1)\n  [[year, month], Date.new(year, month, 1).strftime(\"%B %Y\")]\n   end.to_h.keys.index(JSON.parse(begin\n    JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s\n  rescue StandardError\n    [6.months.ago.year, 6.months.ago.month].to_s\n  end)))]\nrescue StandardError\n  []\nend), :organization_ids => (begin\n  params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_ids => (begin\n  params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)\nrescue StandardError\n  []\nend), :project_types => (params[:choose_report][:project_types].select(&:present?).map(&:to_sym).select do\n m.in?(GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys)\n end), :filter => ({ :vispdat => (begin\n  vispdat_limits.values.detect do\n   (v == params[:choose_report][:limit_to_vispdat].to_sym)\n   end\nrescue StandardError\n  :all_clients\nend) })).sub_population_title",
       "render_path": [
@@ -545,7 +565,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 613,
+      "line": 651,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\")",
       "render_path": null,
@@ -705,7 +725,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 65,
+      "line": 64,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -979,6 +999,6 @@
       "note": ""
     }
   ],
-  "updated": "2019-11-01 19:03:40 -0400",
+  "updated": "2019-11-18 10:02:38 -0500",
   "brakeman_version": "4.7.1"
 }
