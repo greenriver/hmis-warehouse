@@ -226,6 +226,16 @@ module GrdaWarehouse::Tasks
       dest_attr
     end
 
+    def choose_best_race dest_attr, source_clients
+      # FIXME: Most recent 0 or 1 if no 0 or 1 use the most recent value
+
+    end
+
+    def choose_best_ethnicity dest_attr, source_clients
+      # FIXME: Most recent 0 or 1 if no 0 or 1 use the most recent value
+
+    end
+
     # Populate source client changes onto the destination client
     # Loop over all destination clients
     #   1. Sort source clients by UpdatedDate desc
