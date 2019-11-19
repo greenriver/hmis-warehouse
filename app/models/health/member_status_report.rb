@@ -37,7 +37,7 @@ module Health
         qa_activity_dates = patient&.qualifying_activities&.after_enrollment_date&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
 
         # only include patients referred before the report end date
-        next unless patient_enrolled_during_report?(pr.enrollment_start_date.blank?)
+        next unless patient_enrolled_during_report?(pr.enrollment_start_date)
 
         # Get the most recent modification date based on QA dates and referral date
         patient_updated_at = (qa_activity_dates + [pr.enrollment_start_date]).compact.max
