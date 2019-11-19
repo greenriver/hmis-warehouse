@@ -1,69 +1,85 @@
-%tr{ class: "client-file-#{file.id}"}
-  %td.text-center
-    .c-checkbox.c-checkbox--round.mr-4
-      %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
-      %label{for:file.id, tabindex:'1' }
-  %td.text-center.jThumb{data: {file: file.id}}
-  %td.table__actions
-    - if file.content.present?
-      = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-link' do
-        %i.icon-download2
-  %td
-    - file.tag_list.each do |tag|
-      - included_info = @available_tags[tag]&.included_info
-      .client__file-tags.mb-2
-        = tag
-        - if included_info
-          .files-included-info
-            %em Contains:
-            = included_info
-    - if file.note.present?
-      .client__file-note.mb-2
-        %strong Note:
-        = file.note
-    %small.client__file-attribution
-      = "#{file.created_at} by "
-      = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
-  - if can_manage_client_files?
-    %td.text-center= checkmark file.visible_in_window
+.well{ class: "client-file-#{file.id}"}
+  .row
+    .col-8
+      %h3.d-flex
+        .c-checkbox.c-checkbox--round.mr-4
+          %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
+          %label{for:file.id, tabindex:'1' }
+        - file.tag_list.each do |tag|
+          - included_info = @available_tags[tag]&.included_info
+          .client__file-tags.mb-2
+            = tag
+    .col-4.text-right
+      - if file.editable_by?(current_user)
+        - if consent
+          - anchor = 'consent'
+        - else
+          - anchor = 'other'
+        - if file.uploaded_by?(current_user)
+          = link_to(polymorphic_path(file_path_generator, id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-danger btn-sm') do
+            %span.icon-cross
+            Delete
+        - else
+          = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-danger btn-sm') do
+            %span.icon-cross
+            Delete
 
-  - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list) && @consent_editable
-    %td
-      - if can_manage_client_files?
-        = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
-          = f.input :consent_form_signed_on, as: :date_picker, label: false, input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
-      - else
-        = file.consent_form_signed_on
-    - if consent
-      %td.text-center
-        = file.consent_type
-      %td.text-center
+  .row
+    .col-3
+      - if file.visible_in_window
+        %em This file is visible in the window
+      .jThumb.mt-2{data: {file: file.id}}
+      - if file.content.present?
+        = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-link icon-lg mt-2' do
+          %i.icon-download2
+    .col-4
+      - file.tag_list.each do |tag|
+        - included_info = @available_tags[tag]&.included_info
+        .client__file-tags.mb-2
+          - if included_info
+            .files-included-info
+              %em Contains:
+              = included_info
+      - if file.note.present?
+        .client__file-note.mb-2
+          %strong Note:
+          = file.note
+      %small.client__file-attribution
+        = "#{file.created_at} by "
+        = mail_to file.user&.name, file.user&.email, subject: file.tag_list.join(', ')
+    .col-4
+      - if GrdaWarehouse::AvailableFileTag.contains_consent_form?(file.tag_list)
+        %dl
+          %dt Consent Type
+          %dd= file.consent_type_with_extras
         - if file.active_consent_form?
-          .active-release{data: {toggle: :tooltip, title: 'You will need to refresh the page to see changes to active release forms'}}
+          .active-release.mb-2{data: {toggle: :tooltip, title: 'You will need to refresh the page to see changes to active release forms'}}
             %i.icon-flag
             Active
-        - if can_confirm_housing_release?
+        - if (can_manage_client_files? || can_confirm_housing_release?) && @consent_editable
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
-            = f.input :consent_form_confirmed, label: false, as: :boolean, input_html: { class: 'submit-on-change' }
+            = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
+          - if can_confirm_housing_release?
+            = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+              .mt-2
+                = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }
+          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+            = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
         - else
-          = checkmark file.consent_form_confirmed
+          - if file.consent_form_confirmed
+            %dl
+              - if file.revoked?
+                %dt Consent revoked on #{file.consent_revoked_at.to_date}
+              - else
+                %dt
+                  = checkmark file.consent_form_confirmed
+                  Consent Confirmed
 
-  - else
-    %td= file.effective_date
-    %td= file.expiration_date
-    - if consent
-      %td.text-center= file.consent_type
-      %td.text-center= checkmark file.consent_form_confirmed
-
-  %td.text-right
-    - if file.editable_by?(current_user)
-      - if consent
-        - anchor = 'consent'
       - else
-        - anchor = 'other'
-      - if file.uploaded_by?(current_user)
-        = link_to(polymorphic_path(file_path_generator, id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-link btn-link--danger') do
-          %span.icon-cross
-      - else
-        = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-link btn-link--danger') do
-          %span.icon-cross
+        - if file.effective_date
+          %dl
+            %dt Effective Date/Signed On
+            %dd= file.effective_date
+            - if file.expiration_date
+              %dt Expiration Date
+              %dd= file.expiration_date

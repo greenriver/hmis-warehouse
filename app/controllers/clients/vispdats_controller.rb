@@ -7,6 +7,7 @@
 module Clients
   class VispdatsController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_access_vspdat_list!, only: [:index, :show]
     before_action :require_can_create_or_modify_vspdat!, except: [:index, :show]
@@ -128,7 +129,7 @@ module Clients
     end
 
     private def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     private def set_vispdat

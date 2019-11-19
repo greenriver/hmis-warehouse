@@ -66,85 +66,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
       end
     end
-
-    describe 'window visibility' do
-      model = GrdaWarehouse::Hud::Client
-      let!(:c1) { create :grda_warehouse_hud_client }
-      let!(:user) { create :user }
-      let!(:role) { create :assigned_ds_viewer }
-      let(:data_source) { c1.data_source }
-      it 'user cannot see client' do
-        expect(model.visible_in_window_to(user).pluck(:id)).not_to include(c1.id)
-      end
-      describe 'when data source is visible in the window' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: true
-          expect(model.visible_in_window_to(user).pluck(:id)).to include(c1.id)
-        end
-      end
-      describe 'when data source is not visible in the window, but user has data source assigned' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: false
-          user.entities.create entity: data_source
-          expect(model.visible_in_window_to(user).pluck(:id)).not_to include(c1.id)
-        end
-      end
-      describe 'when data source is not visible in the window, but user has data source assigned, and appropriate role' do
-        it 'user is able to see the client' do
-          data_source.update visible_in_window: false
-          user.entities.create entity: data_source
-          user.roles << role
-          expect(model.visible_in_window_to(user).pluck(:id)).to include(c1.id)
-        end
-      end
-    end
-
-    describe 'viewability' do
-      model = GrdaWarehouse::Hud::Client
-      let!(:c1) { create :grda_warehouse_hud_client }
-      let!(:c2) { create :grda_warehouse_hud_client, housing_release_status: client.class.full_release_string, consent_form_signed_on: Date.yesterday }
-      let!(:user) { create :user }
-      let!(:p1) { create :hud_project, data_source_id: c1.data_source_id }
-      let!(:pcoc1) { create :hud_project_coc, CoCCode: 'GR-100', project: p1 }
-      let!(:e1) { create :hud_enrollment, data_source_id: c1.data_source_id, PersonalID: c1.PersonalID, project: p1 }
-      let!(:p2) { create :hud_project, data_source_id: c2.data_source_id }
-      let!(:pcoc2) { create :hud_project_coc, CoCCode: 'GR-200', project: p2 }
-      let!(:e2) { create :hud_enrollment, data_source_id: c2.data_source_id, PersonalID: c2.PersonalID, project: p2 }
-
-      user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
-      ids = ->(*clients) { clients.map(&:id).sort }
-
-      describe 'ordinary user' do
-        it 'sees nothing' do
-          expect(model.viewable_by(user).exists?).to be false
-        end
-      end
-
-      describe 'user with both assigned cocs' do
-        before do
-          user.update(coc_codes: ['GR-100', 'GR-200'])
-        end
-        after do
-          user.update(coc_codes: [])
-        end
-
-        it 'sees both' do
-          expect(user_ids[user]).to eq ids[c1, c2]
-        end
-      end
-
-      describe 'user assigned to coc GR-100' do
-        before do
-          user.update(coc_codes: ['GR-100'])
-        end
-        after do
-          user.update(coc_codes: [])
-        end
-        it 'sees c1' do
-          expect(user_ids[user]).to eq ids[c1]
-        end
-      end
-    end
   end
 
   describe 'consent form release validity' do
@@ -236,9 +157,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
   describe 'New episode checks' do
     describe 'simple' do
-      let!(:warehouse) { create :grda_warehouse_data_source }
-      let!(:source_ds) { create :data_source_fixed_id }
-      let!(:client_with_enrollments) { create :grda_warehouse_hud_client, data_source_id: source_ds.id }
+      let!(:warehouse) { create :destination_data_source }
+      let!(:source_ds) { create :source_data_source }
+      let!(:warehouse_client) { create :fixed_warehouse_client }
+      let!(:client_with_enrollments) { warehouse_client.source }
 
       let(:dates) do
         [
@@ -307,9 +229,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     describe 'triggered by ph' do
-      let!(:warehouse) { create :grda_warehouse_data_source }
-      let!(:source_ds) { create :data_source_fixed_id }
-      let!(:client_with_enrollments) { create :grda_warehouse_hud_client, data_source_id: source_ds.id }
+      let!(:warehouse) { create :destination_data_source }
+      let!(:source_ds) { create :source_data_source }
+      let!(:warehouse_client) { create :fixed_warehouse_client }
+      let!(:client_with_enrollments) { warehouse_client.source }
 
       let(:dates) do
         [

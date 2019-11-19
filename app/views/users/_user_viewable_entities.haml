@@ -18,6 +18,9 @@
     %a.nav-link.active{href: '#user-roles', role: "presentation", data: {toggle: :tab}, aria: {controls:"user-roles", selected:"true"}}
       User Roles
   %li.nav-item
+    %a.nav-link{href: '#user-groups', role: "presentation", data: {toggle: :tab}, aria: {controls:"user-groups", selected:"false"}}
+      User Groups
+  %li.nav-item
     %a.nav-link{href: '#data-access-assignments', role: "presentation", data: {toggle: :tab}, aria: {controls:"data-access-assignments", selected:"false"}}
       Data Access Assignments
   %li.nav-item
@@ -28,6 +31,9 @@
   .tab-pane.show.active.fade#user-roles{role: 'tabpanel', aria: {labelledby: 'user-roles'}}
     .c-columns
       = render 'users/roles', roles: roles, f: f, user: @user
+  .tab-pane.fade#user-groups{role: 'tabpanel', aria: {labelledby: 'user-groups'}}
+    .c-columns
+      = render 'users/groups', f: f, user: @user
   .tab-pane.fade#data-access-assignments{role: 'tabpanel', aria: {labelledby: 'data-access-assignments'}}
     - if can_view_all_entities
       .c-columns__message

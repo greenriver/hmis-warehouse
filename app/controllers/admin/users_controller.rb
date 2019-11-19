@@ -53,22 +53,28 @@ module Admin
       end
       existing_health_roles = @user.roles.health.to_a
       begin
-       User.transaction do
-         @user.skip_reconfirmation!
-         # Associations don't play well with acts_as_paranoid, so manually clean up user roles
-         @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
-         @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
-         @user.update(user_params)
+        User.transaction do
+          @user.skip_reconfirmation!
+          # Associations don't play well with acts_as_paranoid, so manually clean up user roles
+          @user.user_roles.where.not(role_id: user_params[:role_ids]&.select(&:present?)).destroy_all
+          @user.access_groups.
+            where.not(
+              id: user_params[:access_group_ids]&.select(&:present?),
+            ).each do |g|
+              g.remove(@user)
+            end
+          @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
+          @user.update(user_params)
 
-         # Restore any health roles we previously had
-         @user.roles = (@user.roles + existing_health_roles).uniq
-         @user.set_viewables viewable_params
-       end
-     rescue Exception
-       flash[:error] = 'Please review the form problems below'
-       render :edit
-       return
-     end
+          # Restore any health roles we previously had
+          @user.roles = (@user.roles + existing_health_roles).uniq
+          @user.set_viewables viewable_params
+        end
+      rescue Exception
+        flash[:error] = 'Please review the form problems below'
+        render :edit
+        return
+      end
       redirect_to({ action: :index }, notice: 'User updated')
     end
 
@@ -133,6 +139,7 @@ module Admin
         :notify_on_anomaly_identified,
         :otp_required_for_login,
         role_ids: [],
+        access_group_ids: [],
         coc_codes: [],
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       ).tap do |result|

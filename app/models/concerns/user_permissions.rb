@@ -19,6 +19,7 @@ module UserPermissions
         :can_receive_secure_files,
         :can_assign_or_view_users_to_clients,
         :can_view_clients_or_window,
+        :can_view_or_search_clients_or_window,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -43,6 +44,9 @@ module UserPermissions
         :can_manage_an_agency,
         :can_view_confidential_names,
         :can_view_hud_reports,
+        :can_access_some_cohorts,
+        :can_access_client_search,
+        :can_access_window_search,
       ].freeze
     end
 
@@ -56,7 +60,7 @@ module UserPermissions
 
     # You must have permission to upload, and access to at least one Data Source
     def can_see_raw_hmis_data
-      can_upload_hud_zips? && GrdaWarehouse::UserViewableEntity.data_source.where(user_id: id).exists?
+      can_upload_hud_zips? && GrdaWarehouse::DataSource.editable_by(self).exists?
     end
 
     def can_receive_secure_files
@@ -68,7 +72,19 @@ module UserPermissions
     end
 
     def can_view_clients_or_window
-      can_view_client_window? || can_view_clients?
+      can_edit_clients? || can_view_client_window? || can_view_clients? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc?
+    end
+
+    def can_view_or_search_clients_or_window
+      can_view_clients_or_window? || can_search_window?
+    end
+
+    def can_access_client_search
+      can_edit_clients? || can_view_clients?
+    end
+
+    def can_access_window_search
+      can_view_client_window? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc? || can_create_clients?
     end
 
     def window_file_access
@@ -165,6 +181,10 @@ module UserPermissions
 
     def can_view_confidential_names
       can_view_projects? && can_view_clients?
+    end
+
+    def can_access_some_cohorts
+      can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
     end
 
 

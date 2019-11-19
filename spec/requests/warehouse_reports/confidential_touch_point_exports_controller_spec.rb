@@ -25,7 +25,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     end
     describe 'should be able to access the index path if they can also see the report' do
       it 'returns http success' do
-        GrdaWarehouse::UserViewableEntity.create(user_id: user.id, entity_id: report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+        user.add_viewable(report)
         get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:success)
       end
@@ -99,7 +99,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
 
     describe 'should not be able to access the index path even if the report has been assigned' do
       it 'and should receive a redirect' do
-        GrdaWarehouse::UserViewableEntity.create(user_id: user.id, entity_id: report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+        user.add_viewable(report)
         get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
@@ -111,6 +111,6 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     # to this report or the test passes, but doesn't actually
     # check access correctly
     other_user.roles << other_report_viewer
-    GrdaWarehouse::UserViewableEntity.create(user_id: other_user.id, entity_id: report.id, entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition')
+    other_user.add_viewable(report)
   end
 end

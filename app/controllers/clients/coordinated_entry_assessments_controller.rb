@@ -7,6 +7,7 @@
 module Clients
   class CoordinatedEntryAssessmentsController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_access_ce_assessment_list!, only: [:index, :show]
     before_action :require_can_create_or_modify_ce_assessment!, except: [:index, :show]
@@ -48,23 +49,19 @@ module Clients
       else
         @assessment = @client.ce_assessments.in_progress.first
       end
-      @assessment.submitted_at = Time.now if params[:commit] == 'Complete'
-      @assessment.update(assessment_params)
+      if params[:commit] == 'Complete'
+        @assessment.assign_attributes(assessment_params)
+        @assessment.make_active!(current_user)
+      else
+        @assessment.update(assessment_params)
+      end
       respond_with(@assessment, location: client_coordinated_entry_assessments_path(client_id: @client.id))
     end
 
     def update
       if params[:commit] == 'Complete'
-        # set this one as active
-        @assessment.update(
-          assessment_params.merge(
-            submitted_at: Time.now,
-            active: true,
-            user_id: current_user.id,
-          ),
-        )
-        # mark any other actives as inactive
-        @client.ce_assessments.where(active: true).where.not(id: @assessment.id).update_all(active: false)
+        @assessment.assign_attributes(assessment_params)
+        @assessment.make_active!(current_user)
       else
         @assessment.assign_attributes(assessment_params.merge(user_id: current_user.id))
         @assessment.save(validate: false)
@@ -73,7 +70,7 @@ module Clients
     end
 
     private def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     private def set_assessment

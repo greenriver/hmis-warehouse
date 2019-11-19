@@ -8,6 +8,7 @@ module Clients::Youth
   class FollowUpsController < ApplicationController
     include ClientPathGenerator
     include PjaxModalController
+    include ClientDependentControllers
 
     before_action :require_can_access_youth_intake_list!
     before_action :require_can_edit_some_youth_intakes!
@@ -46,7 +47,7 @@ module Clients::Youth
     end
 
     def set_client
-      @client = GrdaWarehouse::Hud::Client.destination.find(params[:client_id])
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def set_follow_up

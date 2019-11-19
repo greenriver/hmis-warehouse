@@ -6,6 +6,7 @@
 
 class Clients::AuditsController < ApplicationController
   include ClientPathGenerator
+  include ClientDependentControllers
   before_action :require_can_audit_clients!
   before_action :set_client
   after_action :log_client
@@ -23,11 +24,7 @@ class Clients::AuditsController < ApplicationController
   protected
 
   def set_client
-    @client = client_scope.find(params[:client_id])
-  end
-
-  def client_scope
-    GrdaWarehouse::Hud::Client.destination
+    @client = searchable_client_scope.find(params[:client_id].to_i)
   end
 
   def title_for_show
