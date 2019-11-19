@@ -43,7 +43,7 @@ module Health
     helper_method :delete_goal_path
 
     def set_careplan
-      @careplan = careplan_source.find(params[:careplan_id])
+      @careplan = careplan_source.find(params[:careplan_id].to_i)
     end
 
     def careplan_source

@@ -17,7 +17,7 @@ class CasActivesController < ApplicationController
   end
 
   def set_client
-    @client = client_source.find(params[:id])
+    @client = client_source.find(params[:id].to_i)
   end
 
   def client_source

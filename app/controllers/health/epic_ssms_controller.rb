@@ -21,7 +21,7 @@ module Health
     end
 
     def set_form
-      @form = form_scope.find(params[:id])
+      @form = form_scope.find(params[:id].to_i)
     end
 
     def form_scope

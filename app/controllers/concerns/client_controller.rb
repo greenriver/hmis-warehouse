@@ -54,7 +54,7 @@ module ClientController
       end
 
       if params[:data_source_id].present?
-        @data_source_id = params[:data_source_id]
+        @data_source_id = params[:data_source_id].to_i
         @clients = @clients.joins(:warehouse_client_destination).where(warehouse_clients: { data_source_id: @data_source_id })
       end
 
@@ -280,15 +280,15 @@ module ClientController
       # Do we have this client?
       # If not, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if client_scope.where(id: params[:id]).exists?
-        @client = client_scope.find(params[:id])
+      if client_scope.where(id: params[:id].to_i).exists?
+        @client = client_scope.find(params[:id].to_i)
       else
-        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id]
+        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id].to_i
         if client_id
           redirect_to controller: controller_name, action: action_name, id: client_id
           # client_scope.find(client_id)
         else
-          @client = client_scope.find(params[:id])
+          @client = client_scope.find(params[:id].to_i)
         end
       end
     end

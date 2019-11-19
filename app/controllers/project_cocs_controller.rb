@@ -35,7 +35,7 @@ class ProjectCocsController < ApplicationController
   end
 
   private def set_project_coc
-    @project_coc = project_coc_source.find(params[:id])
+    @project_coc = project_coc_source.find(params[:id].to_i)
   end
 
   private def set_project

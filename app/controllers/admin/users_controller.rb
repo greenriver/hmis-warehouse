@@ -84,7 +84,7 @@ module Admin
     end
 
     def reactivate
-      @user = User.inactive.find(params[:id])
+      @user = User.inactive.find(params[:id].to_i)
       pass = Devise.friendly_token(50)
       @user.update(active: true, password: pass, password_confirmation: pass)
       @user.send_reset_password_instructions
@@ -110,7 +110,7 @@ module Admin
           assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
           added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
           added_role_ids.select(&:present?).each do |id|
-            role = Role.find(id)
+            role = Role.find(id.to_i)
             if role.administrative?
               @admin_role_name = role.role_name
               adming_admin = true
@@ -173,7 +173,7 @@ module Admin
     end
 
     private def set_user
-      @user = user_scope.find(params[:id])
+      @user = user_scope.find(params[:id].to_i)
     end
   end
 end

@@ -37,7 +37,7 @@ module Cohorts
     def destroy
       if @note.destroyable_by current_user
         @note.destroy
-        respond_with(@note, location: cohort_path(id: params[:cohort_id]))
+        respond_with(@note, location: cohort_path(id: params[:cohort_id].to_i))
       else
         flash[:error] = 'Unable to destroy note'
         @note = { error: 'Unable to destroy note.' }
@@ -46,8 +46,8 @@ module Cohorts
     end
 
     def set_cohort_and_client
-      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id])
-      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id])
+      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id].to_i)
+      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
     end
 
     def note_params
@@ -61,7 +61,7 @@ module Cohorts
     end
 
     def set_note
-      @note = note_source.find(params[:id])
+      @note = note_source.find(params[:id].to_i)
     end
 
     def cohort_id

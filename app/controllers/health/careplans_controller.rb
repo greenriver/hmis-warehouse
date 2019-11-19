@@ -138,7 +138,7 @@ module Health
     end
 
     def set_careplan
-      @careplan = careplan_source.find(params[:id])
+      @careplan = careplan_source.find(params[:id].to_i)
     end
 
     def set_medications

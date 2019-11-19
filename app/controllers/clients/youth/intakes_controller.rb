@@ -111,7 +111,7 @@ module Clients::Youth
     end
 
     private def set_intake
-      @intake = intake_scope.find(params[:id])
+      @intake = intake_scope.find(params[:id].to_i)
     end
 
     private def use_other_options

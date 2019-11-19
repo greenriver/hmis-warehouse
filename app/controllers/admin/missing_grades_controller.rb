@@ -25,7 +25,7 @@ module Admin
     end
 
     def load_grade
-      @grade = grade_scope.find(params[:id])
+      @grade = grade_scope.find(params[:id].to_i)
     end
 
     def grade_scope

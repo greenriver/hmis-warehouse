@@ -14,7 +14,7 @@ module Organizations
     end
 
     def set_entity
-      @entity = organization_scope.find(params[:organization_id])
+      @entity = organization_scope.find(params[:organization_id].to_i)
     end
 
     def organization_scope

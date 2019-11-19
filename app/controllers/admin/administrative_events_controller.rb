@@ -57,6 +57,6 @@ class Admin::AdministrativeEventsController < ApplicationController
   end
 
   def load_event
-    @event = administrative_event_source.find params[:id]
+    @event = administrative_event_source.find params[:id].to_i
   end
 end

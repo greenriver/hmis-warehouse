@@ -65,7 +65,7 @@ class SourceClientsController < ApplicationController
   end
 
   private def set_client
-    @client = client_source.find(params[:id])
+    @client = client_source.find(params[:id].to_i)
   end
 
   private def set_destination_client

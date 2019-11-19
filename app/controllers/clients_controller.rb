@@ -53,12 +53,12 @@ class ClientsController < ApplicationController
   # display an assessment form in a modal
   def assessment
     if can_view_clients?
-      @form = assessment_scope.find(params.require(:id))
+      @form = assessment_scope.find(params.require(:id).to_i)
       @client = @form.client
     else
-      @client = client_scope.find(params[:client_id])
+      @client = client_scope.find(params[:client_id].to_i)
       if @client&.consent_form_valid?
-        @form = assessment_scope.find(params.require(:id))
+        @form = assessment_scope.find(params.require(:id).to_i)
       else
         @form = assessment_scope.new
       end
@@ -68,7 +68,7 @@ class ClientsController < ApplicationController
 
   def health_assessment
     if can_view_patients_for_own_agency?
-      @form = health_assessment_scope.find(params.require(:id))
+      @form = health_assessment_scope.find(params.require(:id).to_i)
       @client = @form.client
     else
       @form = health_assessment_scope.new

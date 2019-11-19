@@ -74,7 +74,7 @@ module Clients
     end
 
     private def set_assessment
-      @assessment = assessment_source.find(params[:id])
+      @assessment = assessment_source.find(params[:id].to_i)
     end
 
     private def assessment_source

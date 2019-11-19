@@ -51,7 +51,7 @@ module Admin
     end
 
     def set_agency
-      @agency = agency_scope.find(params[:id])
+      @agency = agency_scope.find(params[:id].to_i)
     end
 
     def agency_params

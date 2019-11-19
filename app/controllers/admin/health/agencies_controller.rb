@@ -58,7 +58,7 @@ module Admin::Health
     end
 
     def set_health_agency
-      @health_agency = agency_scope.find(params[:id])
+      @health_agency = agency_scope.find(params[:id].to_i)
     end
 
     def health_agency_params

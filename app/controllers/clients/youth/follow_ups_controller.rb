@@ -51,7 +51,7 @@ module Clients::Youth
     end
 
     def set_follow_up
-      @follow_up = follow_up_scope.find(params[:id])
+      @follow_up = follow_up_scope.find(params[:id].to_i)
     end
 
     def follow_up_source

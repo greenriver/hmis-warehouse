@@ -62,7 +62,7 @@ class HelpController < ApplicationController
   end
 
   private def load_help
-    @help = help_source.find(params[:id])
+    @help = help_source.find(params[:id].to_i)
   end
 
   private def help_source

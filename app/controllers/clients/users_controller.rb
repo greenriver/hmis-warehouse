@@ -72,7 +72,7 @@ module Clients
     end
 
     def set_user
-      @user = user_scope.find(params[:id])
+      @user = user_scope.find(params[:id].to_i)
     end
 
     protected def title_for_show

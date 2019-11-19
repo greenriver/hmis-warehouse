@@ -72,7 +72,7 @@ class ProjectsController < ApplicationController
   private def set_project
     @project = project_source.
       includes(:organization, :geographies, :inventories, :funders).
-      find(params[:id])
+      find(params[:id].to_i)
   end
 
   # whitelist filter-able columns

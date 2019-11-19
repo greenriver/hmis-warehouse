@@ -133,7 +133,7 @@ module Clients
     end
 
     private def set_vispdat
-      @vispdat = vispdat_source.find(params[:id])
+      @vispdat = vispdat_source.find(params[:id].to_i)
     end
 
     private def vispdat_source

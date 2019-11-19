@@ -80,7 +80,7 @@ module WarehouseReports::Health
     end
 
     def set_report
-      @report = report_scope.find(params[:id])
+      @report = report_scope.find(params[:id].to_i)
     end
 
     def report_source

@@ -13,7 +13,7 @@ module Health
     before_action :set_hpc_patient
 
     def show
-      @note = @patient.epic_case_notes.find(params[:id])
+      @note = @patient.epic_case_notes.find(params[:id].to_i)
     end
 
     protected def title_for_show

@@ -83,7 +83,7 @@ module Admin::Health
 
     # update relationship between patient referral and agency
     def update
-      @relationship = agency_patient_referral_source.find(params[:id])
+      @relationship = agency_patient_referral_source.find(params[:id].to_i)
       build_relationship(@relationship)
     end
 
@@ -95,14 +95,14 @@ module Admin::Health
 
     def claim_buttons
       @display_claim_buttons_for = @user_agencies
-      @patient_referral = patient_referral_source.find(params[:agency_patient_referral_id])
+      @patient_referral = patient_referral_source.find(params[:agency_patient_referral_id].to_i)
       render layout: false if request.xhr?
     end
 
     private
 
     def build_relationship(relationship)
-      @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id]) if request.xhr?
+      @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i) if request.xhr?
       # aka agency_patient_referral
       path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
       success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)

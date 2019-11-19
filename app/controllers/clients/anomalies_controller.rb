@@ -48,7 +48,7 @@ module Clients
     end
 
     def set_anomaly
-      @anomaly = anomaly_scope.find(params[:id])
+      @anomaly = anomaly_scope.find(params[:id].to_i)
     end
 
     def set_client

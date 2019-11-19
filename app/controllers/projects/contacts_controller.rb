@@ -18,7 +18,7 @@ module Projects
     end
 
     def set_entity
-      @entity = project_source.find(params[:project_id])
+      @entity = project_source.find(params[:project_id].to_i)
     end
   end
 end

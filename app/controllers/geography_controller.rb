@@ -37,7 +37,7 @@ class GeographyController < ApplicationController
   end
 
   private def set_geography
-    @geography = geography_source.find(params[:id])
+    @geography = geography_source.find(params[:id].to_i)
   end
 
   private def set_project

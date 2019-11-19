@@ -40,7 +40,7 @@ class CohortColumnOptionsController < ApplicationController
   end
 
   def set_cohort_column_option
-    @cohort_column_option = cohort_column_option_source.find(params[:id])
+    @cohort_column_option = cohort_column_option_source.find(params[:id].to_i)
   end
 
   def set_cohort_column_options

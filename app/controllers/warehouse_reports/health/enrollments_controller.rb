@@ -29,7 +29,7 @@ module WarehouseReports::Health
     end
 
     def show
-      @file = Health::Enrollment.find(params[:id])
+      @file = Health::Enrollment.find(params[:id].to_i)
       @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
     end
 

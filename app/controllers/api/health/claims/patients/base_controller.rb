@@ -56,7 +56,7 @@ module Api::Health::Claims::Patients
     end
 
     protected def set_patient
-      @patient = ::Health::Patient.find(params[:patient_id])
+      @patient = ::Health::Patient.find(params[:patient_id].to_i)
     end
   end
 end

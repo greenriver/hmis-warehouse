@@ -85,7 +85,7 @@ module Clients
     end
 
     private def set_note
-      @note = note_scope.find(params[:id])
+      @note = note_scope.find(params[:id].to_i)
     end
 
     private def set_client

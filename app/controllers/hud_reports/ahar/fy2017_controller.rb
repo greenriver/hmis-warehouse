@@ -21,7 +21,7 @@ module HudReports::Ahar
     end
 
     def set_report_result
-      @report_result = ReportResult.find(params[:report_result_id])
+      @report_result = ReportResult.find(params[:report_result_id].to_i)
     end
 
     def set_support

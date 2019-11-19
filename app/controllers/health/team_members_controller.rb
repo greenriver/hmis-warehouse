@@ -29,7 +29,7 @@ module Health
     helper_method :team_member_form_path
 
     def set_careplan
-      @careplan = careplan_source.find(params[:careplan_id])
+      @careplan = careplan_source.find(params[:careplan_id].to_i)
     end
 
     def careplan_source

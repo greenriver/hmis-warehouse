@@ -46,7 +46,7 @@ module Clients::Youth
     end
 
     private def set_entity
-      @entity = entity_scope.find(params[:id])
+      @entity = entity_scope.find(params[:id].to_i)
     end
 
     def set_client

@@ -40,7 +40,7 @@ module Health
     end
 
     protected def set_qualifying_activity
-      @qa = @patient.qualifying_activities.find(params[:id])
+      @qa = @patient.qualifying_activities.find(params[:id].to_i)
     end
 
     def flash_interpolation_options

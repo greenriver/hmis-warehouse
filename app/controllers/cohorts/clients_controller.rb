@@ -84,7 +84,7 @@ module Cohorts
     end
 
     def edit
-      @cohort_client = @cohort.cohort_clients.find(params[:id])
+      @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     # Return the entire row of html layout false
@@ -372,7 +372,7 @@ module Cohorts
     def field
       column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select { |m| m == params.require(:field) }&.first
       if column.present?
-        @cohort_client = @cohort.cohort_clients.find(params[:id])
+        @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
         @column = column.constantize.new
         @column.cohort = @cohort
         @column.cohort_names = @cohort_names
@@ -512,7 +512,7 @@ module Cohorts
     end
 
     def set_client
-      @client = @cohort.cohort_clients.find(params[:id])
+      @client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     def cohort_client_source

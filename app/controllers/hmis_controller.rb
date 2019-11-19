@@ -64,7 +64,7 @@ class HmisController < ApplicationController
     @klass = valid_class(params[:type])
     return nil unless @klass.present?
 
-    @item = item_scope.find(params[:id])
+    @item = item_scope.find(params[:id].to_i)
   end
 
   private def item_scope

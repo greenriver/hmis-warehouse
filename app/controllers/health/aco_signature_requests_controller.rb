@@ -130,7 +130,7 @@ module Health
       @signature_request = signature_source.new
       @form_url = polymorphic_path(careplan_path_generator + [:aco_signature_requests], client_id: @client.id, careplan_id: @careplan.id)
       begin
-        @team_member = team_member_scope.find(signature_params[:team_member_id])
+        @team_member = team_member_scope.find(signature_params[:team_member_id].to_i)
       rescue ActiveRecord::RecordNotFound
         @signature_request.errors.add(:team_member_id, 'Unable to assign ACO')
         render(:new)
@@ -242,11 +242,11 @@ module Health
     end
 
     def set_signature_request
-      @signature_request = signature_source.find(params[:id])
+      @signature_request = signature_source.find(params[:id].to_i)
     end
 
     def set_careplan
-      @careplan = careplan_source.find(params[:careplan_id])
+      @careplan = careplan_source.find(params[:careplan_id].to_i)
     end
 
     def careplan_source
