@@ -87,6 +87,8 @@
     Please stop here if the length of time homeless is not 6 months or more.
 %h3 Mortality Factors
 .well.assessment.assessment-mortality-factors
+  %p
+    These fields affect the assessment score. Each factor is worth 1 point when selected.
   = f.input :mortality_hospitilization_3, label: 'More than three hospitalizations or emergency room visits in a year'
   = f.input :mortality_emergency_room_3, label: 'More than three emergency room visits in the previous three months'
   = f.input :mortality_over_60, label: 'Age 60 or Older'
@@ -97,6 +99,8 @@
   = f.input :mortality_tri_morbid, label: 'Tri-morbidity (co-occurring psychiatric, substance abuse, and chronic medical condition)'
 %h3 Additional Risk Factors Information
 .well.assessment.assessment-additional-risks
+  %p
+    These fields affect the assessment score. Each factor is worth 1 point when selected.
   = f.input :lacks_access_to_shelter, label: 'Lacks access to homeless shelters (e.g. Due to shelter capacity issues or being barred)'
   = f.input :high_potential_for_vicitimization, label: 'High Potential for victimization'
   = f.input :danger_of_harm, label: 'Danger of self harm or harm to others/community'
