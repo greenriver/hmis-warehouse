@@ -194,6 +194,7 @@ ActiveRecord::Schema.define(version: 20191115192256) do
     t.datetime "pending_date_deleted"
     t.date     "cas_match_override"
     t.boolean  "vash_eligible",                                      default: false
+    t.jsonb    "consented_coc_codes",                                default: []
   end
 
   add_index "Client", ["DateCreated"], name: "client_date_created", using: :btree
@@ -1584,6 +1585,7 @@ ActiveRecord::Schema.define(version: 20191115192256) do
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
     t.string  "cas_days_homeless_source",                  default: "days_homeless"
+    t.boolean "consent_visible_to_all",                    default: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -1767,7 +1769,7 @@ ActiveRecord::Schema.define(version: 20191115192256) do
   end
 
   create_table "files", force: :cascade do |t|
-    t.string   "type",                   null: false
+    t.string   "type",                                null: false
     t.string   "file"
     t.string   "content_type"
     t.binary   "content"
@@ -1788,7 +1790,8 @@ ActiveRecord::Schema.define(version: 20191115192256) do
     t.date     "expiration_date"
     t.integer  "delete_reason"
     t.string   "delete_detail"
-    t.string   "coc_code"
+    t.datetime "consent_revoked_at"
+    t.jsonb    "coc_codes",              default: []
   end
 
   add_index "files", ["type"], name: "index_files_on_type", using: :btree
