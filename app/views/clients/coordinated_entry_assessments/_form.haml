@@ -1,8 +1,9 @@
+= f.error_notification
 %h3 Basic Information
 .well.assessment.assessment-basic-information
   .row
     .col-sm-6
-      = f.input :assessor_id, collection: User.all
+      = f.input :assessor_id, collection: User.all, input_html: { class: :select2 }
       = f.input :location, label: 'Current Client Location'
 
 %h3 Special Considerations
@@ -19,6 +20,7 @@
       = f.input :living_outdoors, label: 'You are living outdoors or someplace not meant for human habitation'
       = f.input :urgent_health_issue, label: 'You have an urgent health/mental health issue', hint: 'If so – please complete the Vulnerability Index form'
 %h3 Community Preferences
+= f.error :community_preferences, class: 'errors mb-1'
 .well.assessment.assessment-community-preferences
   .row
     .col-6
@@ -29,6 +31,9 @@
     .col-6
       = f.input :location_option_other, label: _('Other city or town:')
       = f.input :location_option_no, label: _('Is there anyplace you do NOT want to live?')
+  .row
+    .col
+      = f.input :location_no_preference, label: _('Client does not have a community preference.')
 %h3 Assessment of Life Domains
 .well.assessment.assessment-life-domains
   - @assessment.scored_column_options.each do |column, options|
