@@ -5,7 +5,7 @@
 ###
 
 module ProtectedId
-  PROTECT_IDS = ENV['PROTECTED_IDS'].blank? ||  ENV['PROTECTED_IDS'] != 'false'
+  PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
 
   module Encoder
     def encode(id)
