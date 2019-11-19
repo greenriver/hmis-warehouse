@@ -40,12 +40,7 @@ RSpec.describe model, type: :model do
 
       describe 'user assigned a report' do
         before :each do
-          user.entities.create entity: r1
-        end
-        after :each do
-          user.entities.destroy_all
-          user.roles = []
-          user.save
+          user.add_viewable(r1)
         end
         it 'still sees nothing without role' do
           expect(model.viewable_by(user).exists?).to be false

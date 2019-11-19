@@ -4,16 +4,10 @@ RSpec.describe Clients::VispdatsController, type: :controller do
   # This should return the minimal set of attributes required to create a valid
   # Vispdat. As you add validations to Vispdat, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) do
-    build(:vispdat).attributes
-  end
-  let(:vispdat) do
-    create(:vispdat)
-  end
-  let(:client) do
-    create(:grda_warehouse_hud_client)
-  end
-
+  let(:valid_attributes) { build(:vispdat).attributes }
+  let(:warehouse_client) { create :authoritative_warehouse_client }
+  let(:client) { warehouse_client.destination }
+  let(:vispdat) { create(:vispdat, client: client) }
   let(:invalid_attributes) {}
 
   # This should return the minimal set of values that should be in the session
@@ -31,7 +25,6 @@ RSpec.describe Clients::VispdatsController, type: :controller do
 
   describe 'GET #index' do
     it 'assigns all vispdats as @vispdats' do
-      vispdat.client = client
       vispdat.save
       get :index, client_id: vispdat.client.to_param
       expect(assigns(:vispdats)).to eq([vispdat])
@@ -40,7 +33,6 @@ RSpec.describe Clients::VispdatsController, type: :controller do
 
   describe 'GET #show' do
     it 'assigns the requested vispdat as @vispdat' do
-      vispdat.client = client
       vispdat.save
       get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
       expect(assigns(:vispdat)).to eq(vispdat)
@@ -49,7 +41,6 @@ RSpec.describe Clients::VispdatsController, type: :controller do
 
   describe 'GET #show' do
     it 'renders show' do
-      vispdat.client = client
       vispdat.save
       get :show, id: vispdat.to_param, client_id: vispdat.client.to_param
       expect(response).to render_template(:show)
@@ -58,7 +49,6 @@ RSpec.describe Clients::VispdatsController, type: :controller do
 
   describe 'GET #edit' do
     it 'assigns the requested vispdat as @vispdat' do
-      vispdat.client = client
       vispdat.save
       get :edit, id: vispdat.to_param, client_id: vispdat.client.to_param
       expect(assigns(:vispdat)).to eq(vispdat)

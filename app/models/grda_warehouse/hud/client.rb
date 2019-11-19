@@ -474,6 +474,10 @@ module GrdaWarehouse::Hud
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
     end
 
+    scope :visible_by_project_to, -> (user) do
+      joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    end
+
     scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
@@ -541,17 +545,132 @@ module GrdaWarehouse::Hud
       where(id: (unconfirmed_consent + unconfirmed_disability).uniq)
     end
 
-    # Viewable by must be called on source clients
-    scope :viewable_by, -> (user) do
-      if user.can_view_clients_with_roi_in_own_coc?
-        # If the user has coc-codes specified, this will limit to users
-        # with a valid consent form in the coc or with no-coc specified
-        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-        # are included.
-        joins(:client_files).
-        where(id: GrdaWarehouse::ClientFile.consent_forms.confirmed.for_coc(user.coc_codes).pluck(:client_id))
+    def self.exists_with_inner_clients(inner_scope)
+      inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
+      Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
+    end
+
+    scope :searchable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      elsif user.can_view_clients_with_roi_in_own_coc?
+        current_scope
+      elsif user.can_view_clients? || user.can_edit_clients?
+        current_scope
       else
-        distinct.joins(enrollments: :project).merge( GrdaWarehouse::Hud::Project.viewable_by user )
+        ds_ids = user.data_sources.pluck(:id)
+        project_query = exists_with_inner_clients(visible_by_project_to(user))
+        window_query = exists_with_inner_clients(visible_in_window_to(user))
+
+        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(project_query).
+            or(window_query)
+          )
+
+          where(
+            arel_table[:data_source_id].in(ds_ids).
+            or(project_query).
+            or(window_query)
+          )
+        else
+          where(
+            arel_table[:id].eq(0). # no client should have a 0 id
+            or(project_query).
+            or(window_query)
+          )
+        end
+      end
+    end
+
+    scope :viewable_by, -> (user) do
+      if user.can_edit_anything_super_user?
+        current_scope
+      else
+        project_query = exists_with_inner_clients(visible_by_project_to(user))
+        window_query = exists_with_inner_clients(visible_in_window_to(user))
+        active_consent_query = exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
+
+        if user.can_view_clients_with_roi_in_own_coc?
+          # At a high level if you can see clients with ROI in your COC, you need to be able
+            # to see everyone for searching purposes.
+            # limits will be imposed on accessing the actual client dashboard pages
+            # current_scope
+
+          # If the user has coc-codes specified, this will limit to users
+          # with a valid consent form in the coc or with no-coc specified
+          # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+          # are included.
+          if user&.can_see_clients_in_window_for_assigned_data_sources?
+            ds_ids = user.data_sources.pluck(:id)
+            sql = arel_table[:data_source_id].in(ds_ids).
+              or(active_consent_query).
+              or(project_query)
+            unless GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = sql.or(window_query)
+            end
+
+            where(sql)
+          else
+            active_confirmed_consent_in_cocs(user.coc_codes)
+          end
+        elsif user.can_view_clients? || user.can_edit_clients?
+          current_scope
+        else
+          ds_ids = user.data_sources.pluck(:id)
+          if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+            sql = arel_table[:data_source_id].in(ds_ids)
+            sql = sql.or(project_query)
+            if GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = sql.or(active_consent_query)
+            else
+              sql = sql.or(window_query)
+            end
+            where(sql)
+          else
+            sql = arel_table[:id].eq(0) # no client should have a 0 id
+            sql = sql.or(project_query)
+            if GrdaWarehouse::Config.get(:window_access_requires_release)
+              sql = sql.or(active_consent_query)
+            else
+              sql = sql.or(window_query)
+            end
+
+            where(sql)
+          end
+        end
+      end
+    end
+
+
+    scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
+      if coc_codes.present?
+        consent_form_valid.where(
+          arel_table[:consented_coc_codes].eq('[]').
+          or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+        )
+      else
+        consent_form_valid.where(consented_coc_codes: '[]')
+      end
+    end
+
+    scope :consent_form_valid, -> do
+      case(release_duration)
+      when 'One Year'
+        where(
+          arel_table[:housing_release_status].matches("%#{full_release_string}").
+          and(
+            arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)
+          ))
+      when 'Use Expiration Date'
+        where(
+          arel_table[:housing_release_status].matches("%#{full_release_string}").
+          and(
+            arel_table[:consent_expires_on].gteq(Date.current)
+          ))
+      else
+        where(arel_table[:housing_release_status].matches("%#{full_release_string}"))
       end
     end
 
@@ -696,13 +815,7 @@ module GrdaWarehouse::Hud
     end
 
     def client_names user: nil, health: false
-      client_scope = if user.can_view_clients?
-        source_clients
-      elsif user.can_search_window?
-        source_clients.visible_in_window_to(user)
-      else
-        source_clients.none
-      end
+      client_scope = source_clients.searchable_by(user)
       names = client_scope.includes(:data_source).map do |m|
         {
           ds: m.data_source.short_name,
@@ -831,6 +944,7 @@ module GrdaWarehouse::Hud
 
     def window_link_for? user
       return false if user.blank?
+
       if show_window_demographic_to?(user)
         client_path(self)
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
@@ -839,6 +953,8 @@ module GrdaWarehouse::Hud
         client_files_path(self)
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
         client_youth_intakes_path(self)
+      elsif GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(user)
+        client_coordinated_entry_assessments_path(self)
       end
     end
 
@@ -855,7 +971,29 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-      (user.can_view_clients? || (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))) && user.can_view_client_window?
+        user.can_view_clients? ||
+        visible_because_of_release?(user) ||
+        visible_because_of_assigned_data_source?(user) ||
+        visible_because_of_coc_association?(user)
+    end
+
+    def visible_because_of_release?(user)
+      user.can_view_client_window? &&
+      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+    end
+
+    def visible_because_of_assigned_data_source?(user)
+      user.can_see_clients_in_window_for_assigned_data_sources? &&
+        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+    end
+
+    def visible_because_of_coc_association?(user)
+      user.can_view_clients_with_roi_in_own_coc? &&
+      release_valid? &&
+      (
+        consented_coc_codes == [] ||
+        (consented_coc_codes & user.coc_codes).present?
+      )
     end
 
     def visible_because_of_relationship?(user)
@@ -967,7 +1105,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      if housing_release_status.blank?
+      consent_text = if housing_release_status.blank?
         'None on file'
       elsif release_duration == 'One Year'
         if consent_form_valid?
@@ -984,6 +1122,10 @@ module GrdaWarehouse::Hud
       else
         _(housing_release_status)
       end
+      if consented_coc_codes&.any?
+        consent_text += " in #{consented_coc_codes.to_sentence}"
+      end
+      consent_text
     end
 
     def release_duration
@@ -1039,6 +1181,7 @@ module GrdaWarehouse::Hud
         housing_release_status: nil,
         consent_form_signed_on: nil,
         consent_expires_on: nil,
+        consented_coc_codes: [],
       )
     end
 

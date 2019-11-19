@@ -30,8 +30,7 @@
           %header.o-section-card__header
             %div.o-section-card__header-actions
               = render 'clients/files/batch_download'
-          .c-card.c-card--flush
-            = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
+        = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
       - else
         No consent files
     .tab-pane.fade#other
@@ -40,15 +39,13 @@
           %header.o-section-card__header
             %div.o-section-card__header-actions
               = render 'clients/files/batch_download'
-          .c-card.c-card--flush
-            = render 'clients/files/file_list', files: @files, paginate: true, consent: false
+
+        = render 'clients/files/file_list', files: @files, paginate: true, consent: false
       - else
         No other files
     .tab-pane.fade#deleted
       - if can_manage_client_files? && @deleted_files.any?
-        %section.o-section-card
-          .c-card.c-card--flush
-            = render 'clients/files/deleted_file_list', files: @deleted_files
+        = render 'clients/files/deleted_file_list', files: @deleted_files
       - else
         No deleted files
 - else

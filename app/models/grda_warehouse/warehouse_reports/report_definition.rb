@@ -7,7 +7,7 @@
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
 
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
+    has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do
       where(enabled: true)
@@ -18,7 +18,8 @@ module GrdaWarehouse::WarehouseReports
       if user.can_view_all_reports?
         current_scope
       elsif user.can_view_assigned_reports?
-        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+        joins(:group_viewable_entities).
+          merge(GrdaWarehouse::GroupViewableEntity.viewable_by(user))
       else
         none
       end
