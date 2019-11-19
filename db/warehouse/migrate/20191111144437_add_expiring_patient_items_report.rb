@@ -1,4 +1,4 @@
-class AddExpiringPatientItemsReport < ActiveRecord::Migration
+class AddExpiringPatientItemsReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Health' => [
       {

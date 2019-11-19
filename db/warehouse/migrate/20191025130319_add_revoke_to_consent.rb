@@ -1,4 +1,4 @@
-class AddRevokeToConsent < ActiveRecord::Migration
+class AddRevokeToConsent < ActiveRecord::Migration[4.2]
   def change
     add_column :files, :consent_revoked_at, :datetime, index: true
     remove_column :files, :coc_code, :string

@@ -1,4 +1,4 @@
-class CreateEnrollmentRosters < ActiveRecord::Migration
+class CreateEnrollmentRosters < ActiveRecord::Migration[4.2]
   def change
     create_table :enrollment_rosters do |t|
       t.belongs_to :roster_file
