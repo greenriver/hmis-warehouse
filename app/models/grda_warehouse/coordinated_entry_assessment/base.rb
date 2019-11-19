@@ -185,6 +185,24 @@ module GrdaWarehouse::CoordinatedEntryAssessment
       !completed
     end
 
+    def make_active!(user)
+      assign_attributes(
+        submitted_at: Time.now,
+        active: true,
+        user_id: user.id,
+      )
+      if valid?
+        save
+        # mark any other actives as inactive
+        client.ce_assessments.where(active: true).where.not(id: id).update_all(active: false)
+      else
+        assign_attributes(
+          submitted_at: nil,
+          active: false,
+        )
+      end
+    end
+
     def self.allowed_parameters
       [
         :assessor_id,
@@ -206,6 +224,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         :location_option_6,
         :location_option_other,
         :location_option_no,
+        :location_no_preference,
         :homelessness,
         :substance_use,
         :mental_health,
