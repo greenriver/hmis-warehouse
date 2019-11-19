@@ -36,6 +36,8 @@
       = f.input :location_no_preference, label: _('Client does not have a community preference.')
 %h3 Assessment of Life Domains
 .well.assessment.assessment-life-domains
+  %p
+    These fields are required because they form the basis of the assessment score.
   - @assessment.scored_column_options.each do |column, options|
     = f.input column, options.merge({input_html: {class: :select2}})
 %h3 Barriers to Housing Placement

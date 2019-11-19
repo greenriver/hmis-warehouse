@@ -296,7 +296,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '3 -- Chronically homeless (12 consecutive months of homelessness/or 4 episodes in 3 yrs totaling at least 1 year; disability.)' => 3,
             '2 -- Literally homeless ( Non-Chronic – sleeping in shelter, safe haven or place not meant for human habitation.)' => 2,
             '1 -- At immediate risk of homelessness (Housing loss will occur within 48 hours; no other support/housing options.)' => 1,
-            '0 -- Unstably housed and/or somewhat at risk of homelessness' => 0,
+            '0 -- Unstably housed and/or somewhat at risk of homelessness.' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         substance_use: {
@@ -306,6 +307,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Ability to identify risks and access tools/support systems to decrease harm. Sporadic relapses.)' => 2,
             '1 -- Building Capacity (Regular use of supports. Positive results due to increased safety. Abstinent < 12 months, no relapse.)' => 1,
             '0 -- Empowered (No history of substance abuse/use. Abstinent 12+ months, without relapse.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         mental_health: {
@@ -315,6 +317,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Some ability to identify and access support services. Recurrent MH symptoms, but not a danger to self/others.)' => 2,
             '1 -- Building Capacity (Mild/minimal symptoms are transient. Only slight impairment in functioning. Ongoing use of supports.)' => 1,
             '0 -- Empowered (No history of mental illness. Symptoms are absent or rare.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         health_care: {
@@ -323,7 +326,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '3 -- Vulnerable (No medical coverage. High utilizer of emergency services. Significant medical issues.)' => 3,
             '2 -- Safe (Has medical coverage. Some medical issues. Some ability to manage healthcare.)' => 2,
             '1 -- Building Capacity (Ability to participate in healthcare and manage health issues as they arise.)' => 1,
-            '0 -- Empowered (Manages and directs own healthcare network. => 0)' => 0,
+            '0 -- Empowered (Manages and directs own healthcare network.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         legal_issues: {
@@ -333,6 +337,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (No recent criminal activity. Probation/parole compliant. No open cases, warrants.)' => 2,
             '1 -- Building Capacity (No recent criminal activity. No probation/parole.)' => 1,
             '0 -- Empowered (No criminal history. No criminal activity in 5+ years.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         income: {
@@ -342,6 +347,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Can meet basic needs with subsidy. Has accessed all mainstream benefits/resources and spending is appropriate.)' => 2,
             '1 -- Building Capacity (Meeting basic needs and managing budget without assistance.)' => 1,
             '0 -- Empowered (Financially stable, has discretionary income, income is well managed and client is saving money.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         work: {
@@ -351,6 +357,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Employed full-time; inadequate pay; few or no benefits.)' => 2,
             '1 -- Building Capacity (Employed full-time with adequate pay and benefits.)' => 1,
             '0 -- Empowered (Maintains full-time employment with adequate pay and benefits.) '=> 0,
+            'Client refused to answer.' => 0,
           }
         },
         independent_living: {
@@ -360,6 +367,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Can meet some, but not all daily living needs without assistance.)' => 2,
             '1 -- Building Capacity (Can meet most, but not all daily living needs without assistance.)' => 1,
             '0 -- Empowered (Able to meet all basic needs of daily living without assistance.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         community_involvement: {
@@ -369,6 +377,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Ability to identify and utilize support systems. Becoming familiar with resources. "Good neighbor" behavior.)' => 2,
             '1 -- Building Capacity (Regular use of support systems. Some participation in recreation; work; education; vocation programs.)' => 1,
             '0 -- Empowered (Fully participating and engaged in community activities.)' => 0,
+            'Client refused to answer.' => 0,
           }
         },
         survival_skills: {
@@ -378,6 +387,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
             '2 -- Safe (Frequently in dangerous situations; dependent on detrimental social network; communicates some social fears.)' => 2,
             '1 -- Building Capacity (Has some survival skills; occasionally taken advantage of; may need help recognizing unsafe behaviors.)' => 1,
             '0 -- Empowered (Capable of networking and self-advocacy; knows where to go and get there; can maintain safety.)' => 0,
+            'Client refused to answer.' => 0,
           },
         },
       }
