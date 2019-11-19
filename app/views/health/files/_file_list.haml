@@ -15,7 +15,7 @@
                 .health-file__title
                   = link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
                   - unless file.valid_for_current_enrollment
-                    %em{ class: 'patient-file__expired' } (Dated before enrollment date)
+                    %em{ class: 'patient-file__expired' } (Dated before enrollment date -- #{@patient.enrollment_start_date})
                 - if file.note.present?
                   .health-file__description
                     = simple_format(file.note)
