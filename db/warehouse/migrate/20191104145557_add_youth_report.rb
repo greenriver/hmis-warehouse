@@ -4,7 +4,7 @@ class AddYouthReport < ActiveRecord::Migration[4.2]
       {
         url: 'warehouse_reports/youth_export',
         name: 'Youth Data Export',
-        description: 'Youth data for a given time fram.',
+        description: 'Youth data for a given time frame.',
         limitable: true,
       },
     ],

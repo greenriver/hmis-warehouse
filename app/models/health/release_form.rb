@@ -44,7 +44,36 @@ module Health
       )
     end
 
+    scope :unsigned, -> do
+      where(signature_on: nil)
+    end
+    scope :signed, -> do
+      where.not(signature_on: nil)
+    end
+    scope :active, -> do
+      valid.where(arel_table[:signature_on].gteq(2.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:signature_on].lt(2.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(signature_on: 2.years.ago..23.months.ago)
+    end
+    scope :recently_signed, -> do
+      active.where(arel_table[:signature_on].gteq(1.months.ago))
+    end
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date]))
+    end
+
     attr_accessor :reviewed_by_supervisor, :file
+
+    def expires_on
+      return unless signature_on
+
+      signature_on.to_date + 2.years
+    end
 
     before_save :set_reviewer
     private def set_reviewer

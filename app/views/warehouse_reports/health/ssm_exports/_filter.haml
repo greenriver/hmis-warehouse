@@ -1,0 +1,12 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_health_ssm_exports_path(), html: { class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-6
+        = f.input :start, input_html: {value: @filter.start, class: 'form-control jStart'}, as: :date_picker, label: 'Start date'
+      .col-sm-6
+        = f.input :end, input_html: {value: @filter.end, class: 'form-control jStart'}, as: :date_picker, label: 'End date'
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Queue Export'
+
+  = render 'warehouse_reports/filters', f:f

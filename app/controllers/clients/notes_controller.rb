@@ -7,6 +7,7 @@
 module Clients
   class NotesController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_edit_window_client_notes_or_own_window_client_notes!
     before_action :set_note, only: [:destroy]
@@ -83,19 +84,13 @@ module Clients
       end
     end
 
-    private def client_scope
-      GrdaWarehouse::Hud::Client.destination.
-        joins(source_clients: :data_source).
-        merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
-    end
-
     private def set_note
       @note = note_scope.find(params[:id].to_i)
     end
 
     private def set_client
       # binding.pry
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     # Only allow a trusted parameter "white list" through.

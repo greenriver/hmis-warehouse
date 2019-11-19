@@ -7,6 +7,7 @@
 module Clients
   class EnrollmentHistoryController < ApplicationController
     include ClientPathGenerator
+    include ClientDependentControllers
 
     before_action :require_can_edit_clients!
     before_action :set_client
@@ -25,7 +26,7 @@ module Clients
     private
 
     def set_client
-      @client = client_source.destination.find(params[:id].to_i)
+      @client = searchable_client_scope.find(params[:id].to_i)
     end
 
     def client_source

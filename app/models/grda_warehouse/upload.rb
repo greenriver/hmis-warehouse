@@ -60,7 +60,11 @@ module GrdaWarehouse
           'unknown'
         end
       else
-        'processing...'
+        if updated_at < 2.days.ago
+          'failed'
+        else
+          'processing...'
+        end
       end
     end
 

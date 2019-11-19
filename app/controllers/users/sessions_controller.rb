@@ -18,7 +18,14 @@ class Users::SessionsController < Devise::SessionsController
 
   # configure auto_session_timeout
   def active
-    render_session_status
+    respond_to do |format|
+      format.json do
+        render_session_status
+      end
+      format.html do
+        redirect_to(root_path)
+      end
+    end
   end
 
   def timeout

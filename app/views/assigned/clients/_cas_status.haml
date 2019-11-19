@@ -1,5 +1,5 @@
 - cas_id = client.cas_client&.id
-- if client.active_in_cas?
+- if client.active_in_cas? && GrdaWarehouse::Config.get(:cas_url).present?
   %h3.mt-0.d-flex
     .ml-0
       CAS

@@ -98,13 +98,13 @@ module Importers::HmisTwentyTwenty
           delete_remaining_pending_deletes()
           complete_import()
           match_clients()
-          project_cleanup()
           log("Import complete")
         ensure
           cleanup_any_pending_deletes()
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
+      project_cleanup() # FIXME, this should only attempt to cleanup projects within this data source
     end
 
     def export_file_valid?
@@ -159,7 +159,9 @@ module Importers::HmisTwentyTwenty
     end
 
     def project_cleanup
-      GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+      GrdaWarehouse::Tasks::ProjectCleanup.new(
+        project_ids: GrdaWarehouse::Hud::Project.where(data_source_id: @data_source.id).select(:id)
+      ).run!
     end
 
     def match_clients

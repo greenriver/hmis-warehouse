@@ -9,6 +9,7 @@ class HealthBase < ActiveRecord::Base
   self.abstract_class = true
   has_paper_trail versions: {class_name: Health::HealthVersion.name}
 
+  include ArelHelper
   class << self
     cattr_accessor :phi_dictionary
 

@@ -69,6 +69,27 @@ module Health
     scope :incomplete, -> { where(completed_at: nil)}
     scope :recent, -> { order(created_at: :desc).limit(1) }
 
+    scope :active, -> do
+      completed.where(arel_table[:completed_at].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:completed_at].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(completed_at: 1.years.ago..11.months.ago)
+    end
+    scope :recently_signed, -> do
+      active.where(arel_table[:completed_at].gteq(1.months.ago))
+    end
+
+    scope :completed_within_range, -> (range) do
+      where(completed_at: range)
+    end
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date]))
+    end
+
     attr_accessor :file
 
     SECTIONS = {
@@ -366,6 +387,20 @@ module Health
 
     def qualifying_activities
       Health::QualifyingActivity.where(source: self, patient: patient)
+    end
+
+    def expires_on
+      return unless completed_at
+
+      completed_at.to_date + 1.years
+    end
+
+    def complete?
+      completed_at.present?
+    end
+
+    def active?
+      completed_at && completed_at >= 1.years.ago
     end
 
   end

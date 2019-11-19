@@ -31,7 +31,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
       log("Updating Service Histories for #{project_name}, project type has changed")
 
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: id)).invalidate_processing!
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 
     def existing_is_newer

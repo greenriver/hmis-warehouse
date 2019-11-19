@@ -121,7 +121,6 @@ gem 'exception_notification'
 
 # Use Unicorn as the app server
 gem 'puma', '~> 3.7.1'
-gem 'letsencrypt_plugin'
 
 # gem 'newrelic_rpm', require: false
 # gem "temping", require: false

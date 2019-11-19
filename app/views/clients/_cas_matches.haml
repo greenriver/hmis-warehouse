@@ -1,20 +1,21 @@
-- if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
-  %div.mb-6
-    %h3.mt-0 Housing Matches
-    .c-card.c-card--padded.c-card--flush
-      %table.table.table-sm
-        %thead
-          %tr
-            %th.nobr Match Status
-            %th Step
-            %th Decision Status
-            %th Date
-        %tbody
-          - decisions.each do |decision|
+- if GrdaWarehouse::Config.get(:cas_url).present?
+  - if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
+    %div.mb-6
+      %h3.mt-0 Housing Matches
+      .c-card.c-card--padded.c-card--flush
+        %table.table.table-sm
+          %thead
             %tr
-              %td.nobr= decision.terminal_status
-              %td
-                = link_to GrdaWarehouse::Config.get(:cas_url) + "/matches/#{decision.match_id}", target: '_blank' do
-                  #{decision.match_step} 
-              %td= decision.decision_status.sub('Dnd', 'DND')
-              %td.nobr= decision.updated_at.to_date
+              %th.nobr Match Status
+              %th Step
+              %th Decision Status
+              %th Date
+          %tbody
+            - decisions.each do |decision|
+              %tr
+                %td.nobr= decision.terminal_status
+                %td
+                  = link_to GrdaWarehouse::Config.get(:cas_url) + "/matches/#{decision.match_id}", target: '_blank' do
+                    #{decision.match_step}
+                %td= decision.decision_status.sub('Dnd', 'DND')
+                %td.nobr= decision.updated_at.to_date

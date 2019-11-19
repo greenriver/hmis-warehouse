@@ -34,6 +34,7 @@ class Role < ApplicationRecord
       :can_edit_users,
       :can_edit_anything_super_user,
       :can_manage_config,
+      :can_edit_access_groups,
     ]
   end
 
@@ -102,6 +103,10 @@ class Role < ApplicationRecord
       },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
+        administrative: true,
+      },
+      can_edit_access_groups: {
+        description: 'Ability to add and remove groups and assign entities to all groups',
         administrative: true,
       },
       can_audit_users: {

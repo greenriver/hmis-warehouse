@@ -4,7 +4,6 @@ Rails.application.routes.draw do
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
-  mount LetsencryptPlugin::Engine, at: '/'
   class OnlyXhrRequest
     def matches?(request)
       request.xhr?
@@ -180,7 +179,7 @@ Rails.application.routes.draw do
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index]
     resources :youth_follow_ups, only: [:index]
-    resources :youth_export, only: [:index]
+    resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -357,8 +356,16 @@ Rails.application.routes.draw do
       resources :eligibility
       resources :eligibility_results, only: [:show]
       resources :enrollments
+      resources :expiring_items, only: [:index]
+      resources :ssm_exports, only: [:index, :show, :create, :destroy]
       resources :housing_status, only: [:index] do
         get :details, on: :collection
+      end
+      resources :cp_roster, only: [:index, :show, :destroy] do
+        collection do
+          post :roster
+          post :enrollment
+        end
       end
     end
   end
@@ -585,7 +592,7 @@ Rails.application.routes.draw do
   namespace :health do
     resources :patients, only: [:index] do
       collection do
-        get :detail
+        post :detail
       end
     end
     resources :my_patients, only: [:index]
@@ -628,6 +635,7 @@ Rails.application.routes.draw do
       end
     end
     resources :roles
+    resources :groups
     resources :agencies
     resources :glacier, only: [:index]
     namespace :dashboard do

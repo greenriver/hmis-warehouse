@@ -4,7 +4,7 @@
   %h3.mt-0.d-flex
     .ml-0
       CAS
-    - if cas_id
+    - if cas_id && GrdaWarehouse::Config.get(:cas_url).present?
       .ml-auto.mt-2.text-muted.text-small
         CAS Client ID:
         = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
@@ -25,7 +25,7 @@
       .c-tag__content
         %span
           Chronically Homeless &amp; in CAS
-          - if cas_id.present?
+          - if cas_id.present? && GrdaWarehouse::Config.get(:cas_url).present?
             = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
               View in CAS
 
@@ -45,6 +45,6 @@
       .c-tag__content
         %span
           Available in CAS
-          - if cas_id.present?
+          - if cas_id.present? && GrdaWarehouse::Config.get(:cas_url).present?
             = link_to GrdaWarehouse::Config.get(:cas_url) + "/clients/#{cas_id}", target: '_blank' do
               View in CAS

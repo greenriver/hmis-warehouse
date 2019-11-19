@@ -7,6 +7,7 @@
 module GrdaWarehouse
   class ProjectGroup < GrdaWarehouseBase
     include ArelHelper
+    include AccessGroups
     acts_as_paranoid
     has_paper_trail
 
@@ -20,8 +21,6 @@ module GrdaWarehouse
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
     end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
 
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
-
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects
 
@@ -29,15 +28,11 @@ module GrdaWarehouse
       if user.can_edit_project_groups?
         current_scope
       else
-        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
+        current_scope.merge(user.project_groups)
       end
     end
     scope :editable_by, -> (user) do
-      if user.can_edit_project_groups?
-        current_scope
-      else
-        joins(:user_viewable_entities).where(user_viewable_entities: {user_id: user.id})
-      end
+      viewable_by(user)
     end
 
     def self.available_projects user

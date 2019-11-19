@@ -3,6 +3,7 @@
 
 = render 'health/breadcrumbs'
 = render 'health/patient_release_status'
+= render 'health/patient_form_status'
 
 %div.text-right
   = link_to 'Upload a Paper CHA', '#cha-upload', class: 'btn btn-primary upload-cha-btn', :'data-upload-error' => @cha.errors[:file].any?

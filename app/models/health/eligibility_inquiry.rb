@@ -12,14 +12,22 @@ require "stupidedi"
 module Health
   class EligibilityInquiry < HealthBase
     before_create :assign_control_numbers
+    after_initialize :set_batch
 
     phi_attr :inquiry, Phi::Bulk # contains EDI serialized PHI
     phi_attr :result, Phi::Bulk # contains EDI serialized PHI
+    attr_accessor :batch
 
     has_one :eligibility_response, dependent: :destroy
 
     scope :pending, -> () do
       where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
+    end
+
+    scope :patients, -> do
+      Health::Patient.participating.
+        joins(:patient_referral).
+        where.not(medicaid_id: nil)
     end
 
     def build_inquiry_file
@@ -51,7 +59,7 @@ module Health
       b.HL hl, '1', '21', '1'
       b.NM1 '1P', '2', sender.mmis_enrollment_name, b.blank, b.blank, b.blank, b.blank, 'XX', sender.npi
 
-      patients.each do |patient|
+      batch.each do |patient|
         # Subscriber information
         hl += 1
         b.HL hl, '2', '22', '0'
@@ -99,12 +107,6 @@ module Health
       gender.last if @valid_gender.include?(gender)
     end
 
-    private def patients
-      Health::Patient.participating.
-        joins(:patient_referral).
-        where.not(medicaid_id: nil)
-    end
-
     private def interchange_usage_indicator
       Rails.env.production? ? 'P' : 'T'
     end
@@ -113,6 +115,10 @@ module Health
       self.isa_control_number = self.class.next_isa_control_number
       self.group_control_number = self.class.next_group_control_number
       self.transaction_control_number = self.class.next_transaction_control_number
+    end
+
+    private def set_batch
+      self.batch = self.class.patients unless batch.present?
     end
 
     def self.next_isa_control_number

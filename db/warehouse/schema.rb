@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_04_145557) do
+ActiveRecord::Schema.define(version: 2019_11_15_192256) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -189,6 +189,7 @@ ActiveRecord::Schema.define(version: 2019_11_04_145557) do
     t.datetime "pending_date_deleted"
     t.date "cas_match_override"
     t.boolean "vash_eligible", default: false
+    t.jsonb "consented_coc_codes", default: []
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1203,6 +1204,7 @@ ActiveRecord::Schema.define(version: 2019_11_04_145557) do
     t.boolean "acute_medical_condition", default: false
     t.boolean "acute_psychiatric_condition", default: false
     t.boolean "acute_substance_abuse", default: false
+    t.boolean "location_no_preference"
     t.index ["assessor_id"], name: "index_ce_assessments_on_assessor_id"
     t.index ["client_id"], name: "index_ce_assessments_on_client_id"
     t.index ["deleted_at"], name: "index_ce_assessments_on_deleted_at"
@@ -1532,6 +1534,7 @@ ActiveRecord::Schema.define(version: 2019_11_04_145557) do
     t.boolean "show_vispdats_on_dashboards", default: false
     t.boolean "rrh_cas_readiness", default: false
     t.string "cas_days_homeless_source", default: "days_homeless"
+    t.boolean "consent_visible_to_all", default: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1727,7 +1730,8 @@ ActiveRecord::Schema.define(version: 2019_11_04_145557) do
     t.date "expiration_date"
     t.integer "delete_reason"
     t.string "delete_detail"
-    t.string "coc_code"
+    t.datetime "consent_revoked_at"
+    t.jsonb "coc_codes", default: []
     t.index ["type"], name: "index_files_on_type"
     t.index ["vispdat_id"], name: "index_files_on_vispdat_id"
   end
@@ -3808,6 +3812,22 @@ ActiveRecord::Schema.define(version: 2019_11_04_145557) do
     t.string "housing_status"
     t.string "other_housing_status"
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
+  end
+
+  create_table "youth_exports", id: :serial, force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.jsonb "options"
+    t.jsonb "headers"
+    t.jsonb "rows"
+    t.integer "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_youth_exports_on_created_at"
+    t.index ["updated_at"], name: "index_youth_exports_on_updated_at"
+    t.index ["user_id"], name: "index_youth_exports_on_user_id"
   end
 
   create_table "youth_follow_ups", id: :serial, force: :cascade do |t|

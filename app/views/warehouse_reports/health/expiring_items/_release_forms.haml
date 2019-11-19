@@ -1,0 +1,30 @@
+- if @report.expiring_release_forms.exists?
+  .expiring-release-forms.mr-6
+    %h2 Expiring Release Forms
+    %p The following patients have release forms that will expire in the next month.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expiring_release_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_release_form.expires_on || 'Incomplete'
+
+- if @report.expired_release_forms.exists?
+  .expired-release-forms
+    %h2 Expired Release Forms
+    %p The following patients have release forms that have expired.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expired_release_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_release_form.expires_on || 'Incomplete'
+

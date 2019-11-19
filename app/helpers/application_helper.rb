@@ -257,4 +257,13 @@ module ApplicationHelper
       action_name: action_name,
     )
   end
+
+  # link_to_if doesn't print the block if the condition is true, this does
+  def if_link_to(condition, name = nil, options = nil, html_options = nil, &block)
+    if condition
+      link_to(name, options, html_options, &block)
+    else
+      link_to_if(false, name, options, html_options, &block)
+    end
+  end
 end

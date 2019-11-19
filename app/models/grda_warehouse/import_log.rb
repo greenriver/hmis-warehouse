@@ -23,7 +23,11 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     elsif upload.present?
       upload.import_time(details: details)
     else
-      'processing...'
+      if updated_at < 2.days.ago
+        'failed'
+      else
+        'processing...'
+      end
     end
   end
 end
