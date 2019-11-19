@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191113130108) do
+ActiveRecord::Schema.define(version: 20191119200007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -306,6 +306,30 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "ed_ip_visists", force: :cascade do |t|
+    t.string   "medicaid_id"
+    t.string   "last_name"
+    t.string   "first_name"
+    t.string   "gender"
+    t.date     "dob"
+    t.date     "admit_date"
+    t.date     "discharge_date"
+    t.string   "discharge_disposition"
+    t.string   "encounter_major_class"
+    t.string   "visit_type"
+    t.string   "encounter_facility"
+    t.string   "chief_complaint_diagnosis"
+    t.string   "attending_physician"
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ed_ip_visists", ["created_at"], name: "index_ed_ip_visists_on_created_at", using: :btree
+  add_index "ed_ip_visists", ["deleted_at"], name: "index_ed_ip_visists_on_deleted_at", using: :btree
+  add_index "ed_ip_visists", ["medicaid_id"], name: "index_ed_ip_visists_on_medicaid_id", using: :btree
+  add_index "ed_ip_visists", ["updated_at"], name: "index_ed_ip_visists_on_updated_at", using: :btree
 
   create_table "eligibility_inquiries", force: :cascade do |t|
     t.date     "service_date",                               null: false
