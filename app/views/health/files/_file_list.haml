@@ -2,7 +2,7 @@
   %header.o-section-card__header
     %h3 Health Files
   .c-card.c-card--flush.c-card--block
-    %table.table.table-sm
+    %table.table.table-sm.table-hover
       %thead
         %tr
           %th Document
@@ -14,9 +14,14 @@
               %td
                 .health-file__title
                   = link_to file.title, polymorphic_path(health_path_generator + [:file], client_id: @client.id, id: file.id)
+                  - unless file.valid_for_current_enrollment
+                    %em{ class: 'patient-file__expired' } (Dated before enrollment date)
                 - if file.note.present?
                   .health-file__description
                     = simple_format(file.note)
+                - if file.signature
+                  .health-file__description
+                    Signed on: #{file.signature}
                 .health-file__file-name.d
                   %em.text-small (#{file.name})
               %td= file.created_at.to_date
