@@ -1,17 +1,17 @@
 require 'rails_helper'
 
-RSpec.describe AccountEmailsController, type: :controller do
+RSpec.describe AccountEmailsController, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }
 
   before(:each) do
-    authenticate(user)
+    sign_in(user)
   end
 
   describe 'GET edit' do
     before(:each) do
-      get :edit
+      get edit_account_email_path
     end
 
     it 'assigns user' do
@@ -26,7 +26,7 @@ RSpec.describe AccountEmailsController, type: :controller do
   describe 'PUT update' do
     context 'with no current password' do
       before(:each) do
-        patch :update, user: { email: 'info@greenriver.com' }
+        patch account_email_path, user: { email: 'info@greenriver.com' }
       end
       it 'does not update' do
         expect(User.not_system.first.email).to_not eq 'info@greenriver.com'
@@ -48,7 +48,7 @@ RSpec.describe AccountEmailsController, type: :controller do
       end
 
       before(:each) do
-        patch :update, user: changes
+        patch account_email_path, user: changes
       end
       it 'updates email' do
         assigns(:user).confirm

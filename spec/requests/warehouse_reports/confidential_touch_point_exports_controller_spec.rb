@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: :controller do
+RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: :request do
   describe 'Health admin user' do
     let(:user) { create :user }
     let(:admin_role) { create :health_admin }
@@ -15,18 +15,18 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
       user.roles << admin_role
       add_random_user_with_report_access
 
-      authenticate(user)
+      sign_in(user)
     end
     describe 'should not be able to access the index path' do
       it 'and should receive a redirect' do
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
     describe 'should be able to access the index path if they can also see the report' do
       it 'returns http success' do
         user.add_viewable(report)
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:success)
       end
     end
@@ -42,12 +42,12 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     before(:each) do
       add_random_user_with_report_access
 
-      authenticate(user)
+      sign_in(user)
     end
 
     describe 'should not be able to access the index path' do
       it 'and should receive a redirect' do
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
@@ -65,12 +65,12 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
       add_random_user_with_report_access
 
       user.roles << role
-      authenticate(user)
+      sign_in(user)
     end
 
     describe 'should not be able to access the index path' do
       it 'and should receive a redirect' do
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
@@ -87,12 +87,12 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     before(:each) do
       add_random_user_with_report_access
       user.roles << role
-      authenticate(user)
+      sign_in(user)
     end
 
     describe 'should not be able to access the index path' do
       it 'and should receive a redirect' do
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
@@ -100,7 +100,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     describe 'should not be able to access the index path even if the report has been assigned' do
       it 'and should receive a redirect' do
         user.add_viewable(report)
-        get :index
+        get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
