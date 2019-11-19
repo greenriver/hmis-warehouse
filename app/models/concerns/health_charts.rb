@@ -164,7 +164,7 @@ module HealthCharts
     end
 
     def self.health_housing_score(answer)
-       health_housing_outcomes[answer].try(:[], :score) # || 0
+       health_housing_outcomes[answer].try(:[], :score)
     end
 
     def self.health_housing_outcome_status(answer)
