@@ -649,11 +649,11 @@ module GrdaWarehouse::Hud
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       if coc_codes.present?
         consent_form_valid.where(
-          arel_table[:consented_coc_codes].eq('[]').
-          or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+          Arel.sql("consented_coc_codes='[]'::jsonb OR " +
+          "#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]")
         )
       else
-        consent_form_valid.where(consented_coc_codes: '[]')
+        consent_form_valid.where("consented_coc_codes='[]'::jsonb")
       end
     end
 
