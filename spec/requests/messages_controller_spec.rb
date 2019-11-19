@@ -1,11 +1,11 @@
 require 'rails_helper'
 
-RSpec.describe MessagesController, type: :controller do
+RSpec.describe MessagesController, type: :request do
   let!(:user) { create :user }
   let!(:event) { create :message, user: user }
 
   before(:each) do
-    authenticate(user)
+    sign_in(user)
   end
 
   after(:each) do
@@ -14,7 +14,7 @@ RSpec.describe MessagesController, type: :controller do
 
   describe 'GET poll' do
     it "only gets yesterday's event" do
-      get :poll
+      get poll_messages_path
       expected_response = {
         messages: [[
           "/messages/#{event.id}",
@@ -30,7 +30,7 @@ RSpec.describe MessagesController, type: :controller do
   describe 'POST seen' do
     it 'sets seen_at to expected date' do
       Timecop.freeze
-      post :seen, id: event.id
+      post seen_messages_path, id: event.id
 
       # the accessor gives us a ActiveSupport::TimeWithZone, which throws things off a bit
       seen_at = event.reload&.seen_at&.to_datetime

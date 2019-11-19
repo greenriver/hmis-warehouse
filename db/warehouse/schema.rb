@@ -1242,6 +1242,7 @@ ActiveRecord::Schema.define(version: 20191115192256) do
     t.boolean  "acute_medical_condition",              default: false
     t.boolean  "acute_psychiatric_condition",          default: false
     t.boolean  "acute_substance_abuse",                default: false
+    t.boolean  "location_no_preference"
   end
 
   add_index "ce_assessments", ["assessor_id"], name: "index_ce_assessments_on_assessor_id", using: :btree

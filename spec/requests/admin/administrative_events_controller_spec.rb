@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Admin::AdministrativeEventsController, type: :controller do
+RSpec.describe Admin::AdministrativeEventsController, type: :request do
   let!(:user) { create :user }
   let!(:role) { build :admin_role }
   let!(:administrative_event) { create :grda_warehouse_administrative_event }
@@ -12,11 +12,11 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     context 'User with access to administrative events' do
       before(:each) do
         user.roles << role
-        authenticate(user)
+        sign_in user
       end
 
       it 'returns http success' do
-        get :index
+        get admin_administrative_events_path
         expect(response).to have_http_status(:success)
       end
     end
@@ -24,11 +24,11 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     context 'User with no access to administrative events' do
       before(:each) do
         # Neglect to assign admin role to user
-        authenticate(user)
+        sign_in user
       end
 
       it 'receives a redirect' do
-        get :index
+        get admin_administrative_events_path
         expect(response).to have_http_status(:redirect)
       end
     end
@@ -37,12 +37,14 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
   describe 'POST #create' do
     before(:each) do
       user.roles << role
-      authenticate(user)
-      allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user) # Stub the instance method :current_user
+      sign_in user
+      # allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user) # Stub the instance method :current_user
     end
 
     context 'with valid attributes' do
-      before { post :create, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
+      before do # { post :create, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
+        post admin_administrative_events_path, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event)
+      end
 
       it 'creates administrative event' do
         expect(GrdaWarehouse::AdministrativeEvent.count).to eq(initial_administrative_event_count + 1)
@@ -54,7 +56,9 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
     end
 
     context 'with invalid attributes' do
-      before { post :create, grda_warehouse_administrative_event: invalid_attr }
+      before do # { post :create, grda_warehouse_administrative_event: invalid_attr }
+        post admin_administrative_events_path, grda_warehouse_administrative_event: invalid_attr
+      end
 
       it 'does not save the new administrative_event' do
         expect(GrdaWarehouse::AdministrativeEvent.count).to eq(initial_administrative_event_count)
@@ -69,12 +73,12 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
   describe 'PATCH #update' do
     before(:each) do
       user.roles << role
-      authenticate(user)
+      sign_in user
     end
 
     context 'with valid attributes' do
       before do
-        patch :update, id: administrative_event.id, grda_warehouse_administrative_event: valid_attr
+        patch admin_administrative_event_path(administrative_event), grda_warehouse_administrative_event: valid_attr
         administrative_event.reload
       end
 
@@ -97,7 +101,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
 
     context 'with invalid attributes' do
       before do
-        patch :update, id: administrative_event.id, grda_warehouse_administrative_event: invalid_attr
+        patch admin_administrative_event_path(administrative_event), grda_warehouse_administrative_event: invalid_attr
         administrative_event.reload
       end
 
@@ -122,8 +126,8 @@ RSpec.describe Admin::AdministrativeEventsController, type: :controller do
   describe '#destroy' do
     before(:each) do
       user.roles << role
-      authenticate(user)
-      delete :destroy, id: administrative_event
+      sign_in user
+      delete admin_administrative_event_path(administrative_event)
     end
 
     it 'deletes the note' do
