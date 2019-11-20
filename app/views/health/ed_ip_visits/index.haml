@@ -1,0 +1,8 @@
+- title = 'ED & IP Visits'
+= content_for(:title, title)
+- if request.xhr?.nil?
+  %h1= content_for :title
+- else
+  %h2= content_for :title
+
+.jEdIpVisitChart

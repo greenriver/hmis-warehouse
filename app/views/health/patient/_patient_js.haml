@@ -34,6 +34,16 @@
           add_data_table($('.jMedications .datatable'));
         }
       });
+
+      var $ed_ip_visits = $('.jEdIpVists');
+      $ed_ip_visits.load($ed_ip_visits.data('path'), function(response, status, xhr) {
+        if (status == 'error') {
+          error_message(response, status, xhr, this)
+        } else {
+          var ed_ip_vists = new App.Health.EdIpVisits('.jEdIpVisitChart', response)
+          // add_data_table($('.jEdIpVists .datatable'));
+        }
+      });
     })(jQuery);
 
     var add_data_table = function(element) {
