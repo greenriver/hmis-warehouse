@@ -242,8 +242,8 @@ module Reporting::MonthlyReports
         pluck(
           :client_id,
           :project_type,
-          cast(datepart(shs_t.class.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
-          cast(datepart(shs_t.class.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
+          Arel.sql(cast(datepart(shs_t.class.engine, 'month', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(shs_t.class.engine, 'year', shs_t[:date]), 'INTEGER').to_sql),
         ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]
@@ -260,8 +260,8 @@ module Reporting::MonthlyReports
       @first_records ||= first_scope.distinct.
         pluck(
           :client_id,
-          p_t[:id].to_sql,
-          :first_date_in_program
+          Arel.sql(p_t[:id].to_sql),
+          :first_date_in_program,
         ).map do |client_id, p_id, date|
           [client_id, [p_id, date]]
         end.to_h

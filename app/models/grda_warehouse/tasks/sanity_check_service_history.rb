@@ -139,7 +139,7 @@ module GrdaWarehouse::Tasks
       service_history_source.entry.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, Arel.sql(nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql)).
       each do |id, enrollment_count|
         @destinations[id][:service_history][:enrollments] = enrollment_count
       end
@@ -149,7 +149,7 @@ module GrdaWarehouse::Tasks
       service_history_source.exit.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, Arel.sql(nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql)).
       each do |id, exit_count|
         @destinations[id][:service_history][:exits] = exit_count
       end
@@ -160,7 +160,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(source_enrollments: :project).
         where(id: batch).
         group(:id).
-        pluck(:id, nf( 'COUNT', [nf('DISTINCT', [e_t[:EnrollmentID], e_t[:data_source_id]])] ).to_sql).
+        pluck(:id, Arel.sql(nf( 'COUNT', [nf('DISTINCT', [e_t[:EnrollmentID], e_t[:data_source_id]])] ).to_sql)).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -175,7 +175,7 @@ module GrdaWarehouse::Tasks
         group(:id).
         pluck(
           :id,
-          nf('COUNT', [nf('DISTINCT', [ex_t[:EnrollmentID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql
+          Arel.sql(nf('COUNT', [nf('DISTINCT', [ex_t[:EnrollmentID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql),
         ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count

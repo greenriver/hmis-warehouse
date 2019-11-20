@@ -2653,7 +2653,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           joins(:client, :project).
           where(Project: {id: projects.map(&:id)}).
           distinct.
-          pluck(*client_columns.values).
+          pluck(*client_columns.values.map { |column| Arel.sql(column) }).
           map do |row|
             Hash[client_columns.keys.zip(row)]
         end

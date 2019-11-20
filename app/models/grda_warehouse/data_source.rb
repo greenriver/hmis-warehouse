@@ -148,7 +148,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     }
   end
 
-  private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
+  def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -177,7 +177,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
+  def self.has_access_to_data_source_through_organizations(user, q, qc)
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -213,7 +213,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
+  def self.has_access_to_data_source_through_projects(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name

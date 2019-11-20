@@ -259,7 +259,7 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           source_clients = dest.source_clients.
-            pluck(*client_columns.values).
+            pluck(*client_columns.values.map { |column| Arel.sql(column) }).
             map do |row|
               Hash[client_columns.keys.zip(row)]
             end

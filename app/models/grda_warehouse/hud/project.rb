@@ -370,7 +370,7 @@ module GrdaWarehouse::Hud
     end
     scope :editable_by, -> (user) { viewable_by user }
 
-    private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
+    def self.has_access_to_project_through_viewable_entities(user, q, qc)
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -401,7 +401,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_organization(user, q, qc)
+    def self.has_access_to_project_through_organization(user, q, qc)
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -439,7 +439,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
+    def self.has_access_to_project_through_data_source(user, q, qc)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -473,7 +473,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_coc_codes(user, q, qc)
+    def self.has_access_to_project_through_coc_codes(user, q, qc)
       return '(1=0)' unless user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name

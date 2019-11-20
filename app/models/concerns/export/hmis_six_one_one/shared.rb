@@ -136,9 +136,9 @@ module Export::HMISSixOneOne::Shared
     @columns_to_pluck = hud_csv_headers.map do |k|
       case k
       when self.class.hud_key.to_sym
-        self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql
+        Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql)
       else
-        self.class.arel_table[k].as("#{k}_".to_s).to_sql
+        Arel.sql(self.class.arel_table[k].as("#{k}_".to_s).to_sql)
       end
     end
     @columns_to_pluck << :data_source_id
@@ -263,7 +263,7 @@ module Export::HMISSixOneOne::Shared
       @client_lookup ||= begin
         GrdaWarehouse::Hud::Client.source.
           joins(:warehouse_client_source).
-          pluck(:PersonalID, wc_t[:destination_id].to_sql, wc_t[:data_source_id].to_sql).
+          pluck(:PersonalID, Arel.sql(wc_t[:destination_id].to_sql), Arel.sql(wc_t[:data_source_id].to_sql)).
           map do |source_id, destination_id, data_source_id|
             [[source_id.to_s, data_source_id], destination_id.to_s]
           end.to_h
@@ -276,7 +276,7 @@ module Export::HMISSixOneOne::Shared
     project_scope.where(
       p_t[:ProjectID].eq(self.class.arel_table[:ProjectID]).
       and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
-    ).exists
+    ).arel.exists
   end
 
   def enrollment_exists_for_model enrollment_scope
@@ -284,7 +284,7 @@ module Export::HMISSixOneOne::Shared
       e_t[:PersonalID].eq(self.class.arel_table[:PersonalID]).
       and(e_t[:EnrollmentID].eq(self.class.arel_table[:EnrollmentID])).
       and(e_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
-    ).exists
+    ).arel.exists
   end
 
 end

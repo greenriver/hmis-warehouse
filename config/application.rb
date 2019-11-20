@@ -8,8 +8,7 @@ Bundler.require(*Rails.groups)
 
 module BostonHmis
   class Application < Rails::Application
-    # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.1
+    config.load_defaults 5.2
 
     # FIXME Suppress the Rails 5 belongs_to requirement
     Rails.application.config.active_record.belongs_to_required_by_default = false

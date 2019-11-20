@@ -479,7 +479,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def service_dates_by_enrollment
       @service_dates_by_enrollment ||= begin
         dates_by_enrollment = {}
-        source_enrollments.joins(:services).pluck(:id, s_t[:DateProvided].to_sql).each do |id, date|
+        source_enrollments.joins(:services).pluck(:id, Arel.sql(s_t[:DateProvided].to_sql)).each do |id, date|
           dates_by_enrollment[id] ||= []
           dates_by_enrollment[id] << date
         end
@@ -503,7 +503,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           indefinite_and_impairs: d_t[:IndefiniteAndImpairs].to_sql,
         }
         source_enrollments.joins(:disabilities).
-          pluck(*columns.values).
+          pluck(*columns.values.map { |column| Arel.sql(column.to_s) }).
           each do |row|
             row = Hash[columns.keys.zip(row)]
             responses_by_enrollment[row[:enrollment_id]] ||= {}

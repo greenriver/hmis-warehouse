@@ -61,7 +61,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
           ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
         ) as row_number
       SQL
-      ids = export_scope.pluck(:id, window).select{|_, row_number| row_number == 1}.map(&:first)
+      ids = export_scope.pluck(:id, Arel.sql(window)).select{|_, row_number| row_number == 1}.map(&:first)
     end
   end
 end

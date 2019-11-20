@@ -37,7 +37,7 @@ module ServiceHistory
         # with no project
         enrollments = GrdaWarehouse::Hud::Client.where(id: client_id).
           joins(source_enrollments: :project).
-          pluck(e_t[:id].as('enrollment_id').to_sql)
+          pluck(Arel.sql(e_t[:id].as('enrollment_id').to_sql))
         Rails.logger.info "===RebuildEnrollmentsJob=== Processing #{enrollments.size} enrollments for #{client_id}"
         rebuild_types = []
         enrollments.each do |enrollment_id|

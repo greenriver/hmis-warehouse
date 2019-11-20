@@ -304,8 +304,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(id: id).
         includes(:exit, :services, :destination_client).
         references(:exit, :services, :destination_client).
-        order(*enrollment_column_order.map(&:to_sql).join(', ') + ' NULLS FIRST').
-        pluck(nf('CONCAT', hash_columns).to_sql)
+        order(*enrollment_column_order).
+        pluck(Arel.sql(nf('CONCAT', hash_columns).to_sql))
     end
 
     def default_day
@@ -393,7 +393,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             data_source_id: self.data_source_id
           ).where.not(
             PersonalID: self.PersonalID
-          ).pluck(c_t[:DOB].as('dob').to_sql)
+          ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
       end
     end
 
@@ -557,7 +557,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           ProjectID: self.ProjectID,
           RelationshipToHoH: [1, nil]
         ).
-        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
         pluck(:PersonalID)&.first || self.PersonalID
       end
     end
@@ -572,7 +572,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
         ).
-        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
         pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
@@ -676,16 +676,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def self.enrollment_column_order
       @enrollment_column_order ||= begin
         columns = enrollment_hash_columns.values.map do |col|
-          e_t[col].asc
+          Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += exit_hash_columns.values.map do |col|
-          ex_t[col].asc
+          Arel.sql(ex_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += service_hash_columns.values.map do |col|
-          s_t[col].asc
+          Arel.sql(s_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += client_hash_columns.values.map do |col|
-          c_t[col].asc
+          Arel.sql(c_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns
       end

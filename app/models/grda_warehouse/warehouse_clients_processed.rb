@@ -114,7 +114,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
-          exists.not.
+          arel.exists.not.
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
@@ -161,7 +161,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
-          exists.not.
+          arel.exists.not.
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
@@ -200,7 +200,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
-          exists.not.
+          arel.exists.not.
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
@@ -239,7 +239,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
-          exists.not.
+          arel.exists.not.
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
@@ -293,7 +293,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
           select(shsm_a[:client_id], shsm_a[:date]).
-          exists.not.
+          arel.exists.not.
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 

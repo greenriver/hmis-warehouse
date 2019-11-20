@@ -86,7 +86,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
+    def self.has_access_to_organization_through_viewable_entities(user, q, qc)
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -116,7 +116,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_organization_through_data_source(user, q, qc)
+    def self.has_access_to_organization_through_data_source(user, q, qc)
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
@@ -150,7 +150,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_organization_through_projects(user, q, qc)
+    def self.has_access_to_organization_through_projects(user, q, qc)
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name

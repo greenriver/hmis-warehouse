@@ -1739,7 +1739,7 @@ module GrdaWarehouse::Hud
 
     def last_projects_served_by(include_confidential_names: false)
       sh = service_history_services.joins(:service_history_enrollment).
-        pluck(:date, she_t[:project_name].to_sql, she_t[:data_source_id].to_sql, :project_id).
+        pluck(:date, Arel.sql(she_t[:project_name].to_sql), Arel.sql(she_t[:data_source_id].to_sql), :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
@@ -1778,7 +1778,7 @@ module GrdaWarehouse::Hud
       sh  = GrdaWarehouse::WarehouseClientsProcessed
       sht = sh.arel_table
       where(
-        sh.where( sht[:client_id].eq arel_table[:id] ).exists.not
+        sh.where( sht[:client_id].eq arel_table[:id] ).arel.exists.not
       )
     end
 
