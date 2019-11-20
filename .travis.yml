@@ -15,25 +15,17 @@ env:
 
 script:
   - date
-  - travis_fold:start:db_initialization.1
   - bundle exec rake db:create
   - bundle exec rake warehouse:db:create
   - bundle exec rake health:db:create
   - bundle exec rake reporting:db:create
-  - bundle exec rake db:schema:load
-  - bundle exec rake warehouse:db:schema:load
-  - bundle exec rake health:db:schema:load
-  - bundle exec rake reporting:db:schema:load
-  - travis_fold:end:db_initialization
-  - echo -en "travis_fold:start:brakeman.1\r"
+  - bundle exec rake db:schema:load VERBOSE=false
+  - bundle exec rake warehouse:db:schema:load VERBOSE=false
+  - bundle exec rake health:db:schema:load VERBOSE=false
+  - bundle exec rake reporting:db:schema:load VERBOSE=false
   - bundle exec brakeman -q --ensure-latest
-  - echo -en "travis_fold:end:brakeman.1\r"
-  - echo -en "travis_fold:start:bundle_audit.1\r"
   - bundle exec bundle-audit check --update --ignore CVE-2019-16676 CVE-2017-1002201
-  - echo -en "travis_fold:end:bundle_audit.1\r"
-  - echo -en "travis_fold:start:npm.1\r"
   - npm install
-  - echo -en "travis_fold:end:npm.1\r"
   - bundle exec rspec
 
 addons:
