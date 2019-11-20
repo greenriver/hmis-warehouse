@@ -549,13 +549,13 @@ module GrdaWarehouse::Hud
 
     def organization_and_name(include_confidential_names: false)
       if include_confidential_names
-        "#{organization&.name} / #{name}"
+        "#{organization&.OrganizationName} / #{self.ProjectName}"
       else
-        project_name = self.class.confidentialize(name: name)
+        project_name = self.class.confidentialize(name: self.ProjectName)
         if project_name == self.class.confidential_project_name
           "#{project_name}"
         else
-          "#{organization&.name} / #{name}"
+          "#{organization&.OrganizationName} / #{ProjectName}"
         end
       end
     end
