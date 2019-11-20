@@ -555,7 +555,7 @@ module GrdaWarehouse::Hud
         if project_name == self.class.confidential_project_name
           "#{project_name}"
         else
-          "#{organization&.OrganizationName} / #{ProjectName}"
+          "#{organization&.OrganizationName} / #{self.ProjectName}"
         end
       end
     end
