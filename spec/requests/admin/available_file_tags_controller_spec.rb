@@ -18,7 +18,7 @@ require 'rails_helper'
 # Message expectations are only used when there is no simpler way to specify
 # that an instance is receiving a specific message.
 
-RSpec.describe Admin::AvailableFileTagsController, type: :controller do
+RSpec.describe Admin::AvailableFileTagsController, type: :request do
   # This should return the minimal set of attributes required to create a valid
   # GrdaWarehouse::AvailableFileTag. As you add validations to GrdaWarehouse::AvailableFileTag, be sure to
   # adjust the attributes here as well.
@@ -37,21 +37,21 @@ RSpec.describe Admin::AvailableFileTagsController, type: :controller do
   let(:admin_role)  { create :admin_role }
 
   before(:each) do
-    authenticate admin
+    sign_in admin
     admin.roles << admin_role
   end
 
   describe 'GET #index' do
     it 'assigns all available_file_tags as @available_file_tags' do
       available_file_tag = GrdaWarehouse::AvailableFileTag.create! valid_attributes
-      get :index, params: {}
+      get admin_available_file_tags_path
       expect(assigns(:available_file_tags)).to eq([available_file_tag])
     end
   end
 
   describe 'GET #new' do
     it 'assigns a new available_file_tag as @available_file_tag' do
-      get :new, params: {}
+      get new_admin_available_file_tag_path
       expect(assigns(:available_file_tag)).to be_a_new(GrdaWarehouse::AvailableFileTag)
     end
   end

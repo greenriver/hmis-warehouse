@@ -1,17 +1,17 @@
 require 'rails_helper'
 
-RSpec.describe AccountsController, type: :controller do
+RSpec.describe AccountsController, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }
 
   before(:each) do
-    authenticate(user)
+    sign_in(user)
   end
 
   describe 'GET edit' do
     before(:each) do
-      get :edit
+      get edit_account_path
     end
 
     it 'assigns user' do
@@ -32,7 +32,7 @@ RSpec.describe AccountsController, type: :controller do
     end
 
     before(:each) do
-      patch :update, user: changes
+      patch account_path, user: changes
     end
     it 'updates first_name' do
       expect(User.not_system.first.first_name).to eq changes[:first_name]
