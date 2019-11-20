@@ -18,8 +18,8 @@ module ProtectedId
 
     def encoded?(id)
       false if id.blank?
-
-      id.to_s.ends_with?('==')
+      # confirm that the string is encoded
+      id.to_i == 0
     end
     module_function :encoded?
 
@@ -45,7 +45,7 @@ module ProtectedId
         key: KEY,
       )
 
-      Base64.encode64(encrypted).delete_suffix("\n") # Remove the trailing newline from the encoding
+      '==' + Base64.encode64(encrypted).delete_suffix("\n") # Remove the trailing newline from the encoding
     end
     module_function :obfuscate
 
