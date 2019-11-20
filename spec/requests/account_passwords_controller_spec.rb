@@ -1,17 +1,17 @@
 require 'rails_helper'
 
-RSpec.describe AccountPasswordsController, type: :controller do
+RSpec.describe AccountPasswordsController, type: :request do
   # TODO: - get auth working in tests
   let(:user) { create :user }
   let(:email)  { ActionMailer::Base.deliveries.last }
 
   before(:each) do
-    authenticate(user)
+    sign_in(user)
   end
 
   describe 'GET edit' do
     before(:each) do
-      get :edit
+      get edit_account_password_path
     end
 
     it 'assigns user' do
@@ -33,7 +33,7 @@ RSpec.describe AccountPasswordsController, type: :controller do
       end
 
       before(:each) do
-        patch :update, user: changes
+        patch account_password_path, user: changes
       end
 
       it 'has an error' do
@@ -54,7 +54,7 @@ RSpec.describe AccountPasswordsController, type: :controller do
       end
 
       before(:each) do
-        patch :update, user: changes
+        patch account_password_path, user: changes
       end
 
       it 'sends password confirmation email' do

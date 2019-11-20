@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191112142922) do
+ActiveRecord::Schema.define(version: 20191115192256) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1242,6 +1242,7 @@ ActiveRecord::Schema.define(version: 20191112142922) do
     t.boolean  "acute_medical_condition",              default: false
     t.boolean  "acute_psychiatric_condition",          default: false
     t.boolean  "acute_substance_abuse",                default: false
+    t.boolean  "location_no_preference"
   end
 
   add_index "ce_assessments", ["assessor_id"], name: "index_ce_assessments_on_assessor_id", using: :btree

@@ -382,13 +382,13 @@ RSpec.describe ClientsController, type: :request do
     it 'allow merge' do
       sign_in user
       patch merge_client_path(destination, grda_warehouse_hud_client: { merge: [''] })
-      expect(response).to redirect_to(edit_client_path(destination))
+      expect(response).to redirect_to(edit_client_path(destination.id))
     end
 
     it 'allow unmerge' do
       sign_in user
       patch unmerge_client_path(destination, grda_warehouse_hud_client: { unmerge: [''] })
-      expect(response).to redirect_to(edit_client_path(destination))
+      expect(response).to redirect_to(edit_client_path(destination.id))
     end
   end
 

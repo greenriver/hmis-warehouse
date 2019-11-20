@@ -1,18 +1,18 @@
 require 'rails_helper'
 
-RSpec.describe Admin::UsersController, type: :controller do
+RSpec.describe Admin::UsersController, type: :request do
   let!(:user) { create(:user) }
   let!(:admin)       { create(:user) }
   let!(:admin_role)  { create :admin_role }
 
   before(:each) do
-    authenticate admin
+    sign_in admin
     admin.roles << admin_role
   end
 
   describe 'GET edit' do
     before(:each) do
-      get :edit, id: user.id
+      get edit_admin_user_path(user)
     end
 
     it 'assigns user' do
@@ -28,7 +28,7 @@ RSpec.describe Admin::UsersController, type: :controller do
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
-        patch :update, id: updated_user.id, user: { notify_on_vispdat_completed: '1' }
+        patch admin_user_path(updated_user), user: { notify_on_vispdat_completed: '1' }
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_vispdat_completed).to be true
@@ -39,7 +39,7 @@ RSpec.describe Admin::UsersController, type: :controller do
       let(:updated_user) { User.not_system.first }
 
       before(:each) do
-        patch :update, id: updated_user.id, user: { notify_on_client_added: '1' }
+        patch admin_user_path(updated_user), user: { notify_on_client_added: '1' }
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_client_added).to be true

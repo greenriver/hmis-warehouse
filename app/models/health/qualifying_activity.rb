@@ -94,6 +94,11 @@ module Health
       where.not(id: valid_unpayable.select(:id))
     end
 
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:date_of_activity].gteq(hpr_t[:enrollment_start_date]))
+    end
+
     belongs_to :source, polymorphic: true
     belongs_to :epic_source, polymorphic: true
     belongs_to :user
