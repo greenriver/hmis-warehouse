@@ -19,10 +19,10 @@ script:
   - bundle exec rake warehouse:db:create
   - bundle exec rake health:db:create
   - bundle exec rake reporting:db:create
-  - bundle exec rake db:schema:load VERBOSE=false
-  - bundle exec rake warehouse:db:schema:load VERBOSE=false
-  - bundle exec rake health:db:schema:load VERBOSE=false
-  - bundle exec rake reporting:db:schema:load VERBOSE=false
+  - bundle exec rake db:schema:load
+  - bundle exec rake warehouse:db:schema:load
+  - bundle exec rake health:db:schema:load
+  - bundle exec rake reporting:db:schema:load
   - bundle exec brakeman -q --ensure-latest
   - bundle exec bundle-audit check --update --ignore CVE-2019-16676 CVE-2017-1002201
   - npm install
