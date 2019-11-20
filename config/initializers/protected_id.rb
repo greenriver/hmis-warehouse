@@ -6,6 +6,7 @@
 
 module ProtectedId
   PROTECT_IDS = ENV['PROTECTED_IDS'].present? && ENV['PROTECTED_IDS'] == 'true'
+  INITIAL_DELIMITER = '=='
 
   module Encoder
     def encode(id)
@@ -18,8 +19,8 @@ module ProtectedId
 
     def encoded?(id)
       false if id.blank?
-
-      id.to_s.ends_with?('==')
+      # confirm that the string is encoded
+      id.to_i == 0
     end
     module_function :encoded?
 
@@ -45,12 +46,12 @@ module ProtectedId
         key: KEY,
       )
 
-      Base64.encode64(encrypted).delete_suffix("\n") # Remove the trailing newline from the encoding
+      INITIAL_DELIMITER + Base64.encode64(encrypted).delete_suffix("\n") # Remove the trailing newline from the encoding
     end
     module_function :obfuscate
 
     def deobfuscate(slug)
-      encrypted = Base64.decode64(slug)
+      encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
       composed = Encryptor.decrypt(
         value: encrypted,
         algorithm: 'des-ecb',
