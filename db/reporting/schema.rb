@@ -251,7 +251,7 @@ ActiveRecord::Schema.define(version: 2019_08_02_160019) do
     t.integer "prior_exit_project_type"
     t.integer "prior_exit_destination_id"
     t.datetime "calculated_at", null: false
-    t.integer "enrollment_id"
+    t.integer "enrollment_id", null: false
     t.index ["active"], name: "index_warehouse_monthly_reports_on_active"
     t.index ["client_id"], name: "index_warehouse_monthly_reports_on_client_id"
     t.index ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled"

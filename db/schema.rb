@@ -166,8 +166,8 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.string "identity"
     t.boolean "success"
     t.string "failure_reason"
-    t.string "user_type"
     t.integer "user_id"
+    t.string "user_type"
     t.string "context"
     t.string "ip"
     t.text "user_agent"
@@ -254,14 +254,10 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "can_edit_anything_super_user", default: false
     t.boolean "can_view_clients", default: false
     t.boolean "can_edit_clients", default: false
-    t.boolean "can_audit_clients", default: false
     t.boolean "can_view_censuses", default: false
     t.boolean "can_view_census_details", default: false
     t.boolean "can_edit_users", default: false
-    t.boolean "can_enable_2fa", default: false
-    t.boolean "enforced_2fa", default: false
     t.boolean "can_edit_roles", default: false
-    t.boolean "can_edit_access_groups", default: false
     t.boolean "can_audit_users", default: false
     t.boolean "can_view_full_ssn", default: false
     t.boolean "can_view_full_dob", default: false
@@ -287,13 +283,6 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "can_view_vspdat", default: false
     t.boolean "can_edit_vspdat", default: false
     t.boolean "can_submit_vspdat", default: false
-    t.boolean "can_view_ce_assessment", default: false
-    t.boolean "can_edit_ce_assessment", default: false
-    t.boolean "can_submit_ce_assessment", default: false
-    t.boolean "can_view_youth_intake", default: false
-    t.boolean "can_edit_youth_intake", default: false
-    t.boolean "can_view_own_agency_youth_intake", default: false
-    t.boolean "can_edit_own_agency_youth_intake", default: false
     t.boolean "can_create_clients", default: false
     t.boolean "can_view_client_history_calendar", default: false
     t.boolean "can_edit_client_notes", default: false
@@ -306,13 +295,13 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "can_assign_users_to_clients", default: false
     t.boolean "can_view_client_user_assignments", default: false
     t.boolean "can_export_hmis_data", default: false
-    t.boolean "can_export_anonymous_hmis_data", default: false
     t.boolean "can_confirm_housing_release", default: false
     t.boolean "can_track_anomalies", default: false
     t.boolean "can_view_all_reports", default: false
     t.boolean "can_assign_reports", default: false
     t.boolean "can_view_assigned_reports", default: false
     t.boolean "can_view_project_data_quality_client_details", default: false
+    t.boolean "can_manage_organization_users", default: false
     t.boolean "can_view_all_user_client_assignments", default: false
     t.boolean "can_add_administrative_event", default: false
     t.boolean "can_see_clients_in_window_for_assigned_data_sources", default: false
@@ -320,14 +309,6 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "can_upload_whitelisted_hud_hmis_files", default: false
     t.boolean "can_edit_warehouse_alerts", default: false
     t.boolean "can_upload_dashboard_extras", default: false
-    t.boolean "can_view_all_secure_uploads", default: false
-    t.boolean "can_view_assigned_secure_uploads", default: false
-    t.boolean "can_manage_agency", default: false
-    t.boolean "can_manage_all_agencies", default: false
-    t.boolean "can_view_clients_with_roi_in_own_coc", default: false
-    t.boolean "can_edit_help", default: false
-    t.boolean "can_view_all_hud_reports", default: false
-    t.boolean "can_view_own_hud_reports", default: false
     t.boolean "can_administer_health", default: false
     t.boolean "can_edit_client_health", default: false
     t.boolean "can_view_client_health", default: false
@@ -350,8 +331,28 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "can_add_case_management_notes", default: false
     t.boolean "can_manage_accountable_care_organizations", default: false
     t.boolean "can_view_member_health_reports", default: false
-    t.boolean "can_unsubmit_submitted_claims", default: false
     t.boolean "health_role", default: false, null: false
+    t.boolean "can_audit_clients", default: false
+    t.boolean "can_export_anonymous_hmis_data", default: false
+    t.boolean "can_view_youth_intake", default: false
+    t.boolean "can_edit_youth_intake", default: false
+    t.boolean "can_view_all_secure_uploads", default: false
+    t.boolean "can_unsubmit_submitted_claims", default: false
+    t.boolean "can_view_assigned_secure_uploads", default: false
+    t.boolean "can_manage_agency", default: false
+    t.boolean "can_manage_all_agencies", default: false
+    t.boolean "can_view_own_agency_youth_intake", default: false
+    t.boolean "can_edit_own_agency_youth_intake", default: false
+    t.boolean "can_view_clients_with_roi_in_own_coc", default: false
+    t.boolean "can_enable_2fa", default: false
+    t.boolean "can_edit_help", default: false
+    t.boolean "can_view_ce_assessment", default: false
+    t.boolean "can_edit_ce_assessment", default: false
+    t.boolean "can_submit_ce_assessment", default: false
+    t.boolean "can_edit_access_groups", default: false
+    t.boolean "enforced_2fa", default: false
+    t.boolean "can_view_all_hud_reports", default: false
+    t.boolean "can_view_own_hud_reports", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -480,8 +481,8 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.datetime "invitation_sent_at"
     t.datetime "invitation_accepted_at"
     t.integer "invitation_limit"
-    t.string "invited_by_type"
     t.integer "invited_by_id"
+    t.string "invited_by_type"
     t.integer "invitations_count", default: 0
     t.boolean "receive_file_upload_notifications", default: false
     t.string "phone"
