@@ -51,7 +51,7 @@ module ProtectedId
     module_function :obfuscate
 
     def deobfuscate(slug)
-      encrypted = Base64.decode64(slug[INITIAL_DELIMITER.length,slug.length])
+      encrypted = Base64.decode64(slug.delete_prefix(INITIAL_DELIMITER))
       composed = Encryptor.decrypt(
         value: encrypted,
         algorithm: 'des-ecb',
