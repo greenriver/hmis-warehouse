@@ -1,0 +1,22 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "#{@file.label} uploaded on #{@file.created_at}"
+- content_for :title, title
+%h1= content_for :title
+%div.overflow-scroll
+  %p= paginate @rows
+  %table.table.table-sm.table-hover
+    %thead
+      %tr
+        - @file.columns.values.each do |label|
+          %th= label
+    %tbody
+      - @rows.each do |entry|
+        %tr
+          - patient = entry.patient
+          - @file.columns.keys.each do |key|
+            %td
+
+              - if key.in?([:first_name, :last_name]) && patient&.client&.present?
+                = link_to entry[key], client_health_patient_index_path(patient.client)
+              - else
+                = entry[key]

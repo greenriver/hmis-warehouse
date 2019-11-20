@@ -1,0 +1,22 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "ED & IP Visits"
+- content_for :title, title
+%h1= content_for :title
+
+.well.mt-4
+  %p Upload an ED & IP Visit File.
+  = simple_form_for :visits, url: warehouse_reports_health_ed_ip_visits_path, method: :post do |f|
+    = f.input :content, as: :file, label: false, input_html: { class: 'jFileContent' }
+    .mt-2
+      = f.button :submit, "Upload CSV", disabled: true, class: 'btn btn-secondary btn-sm ml-2 jFileButton'
+
+- if @files.present?
+  = render 'table'
+- else
+  %p No uploaded files.
+
+- content_for :page_js do
+  :javascript
+    $('.jFileContent').on('change', function() {
+      $('.jFileButton').prop('disabled', !$(this).val());
+    });

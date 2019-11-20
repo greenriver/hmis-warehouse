@@ -366,6 +366,7 @@ Rails.application.routes.draw do
           post :enrollment
         end
       end
+      resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
     end
   end
 
