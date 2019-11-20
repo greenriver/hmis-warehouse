@@ -202,7 +202,7 @@ module Clients
     end
 
     private def name_for_project(project_name)
-      if current_user.can_view_confidential_names?
+      if current_user&.can_view_confidential_names?
         project_name
       else
         GrdaWarehouse::Hud::Project.confidentialize(name: project_name)
