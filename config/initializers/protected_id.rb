@@ -20,7 +20,7 @@ module ProtectedId
     def encoded?(id)
       false if id.blank?
       # confirm that the string is encoded
-      id.to_i == 0
+      id.starts_with?(INITIAL_DELIMITER)
     end
     module_function :encoded?
 
