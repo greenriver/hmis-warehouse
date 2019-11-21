@@ -1,5 +1,5 @@
 .row.mb-4
-  .col-12
+  .col-sm-12.pull-right.mb-2
     = link_to new_cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client), class: 'btn btn-secondary btn-sm', data: {loads_in_pjax_modal: true} do
       %i.icon-plus
       Add a note
@@ -13,7 +13,7 @@
         on
         = note.updated_at.to_date
       - if note.destroyable_by current_user
-        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger btn-icon-only ml-auto mt-auto', method: :delete, remote: true do
+        = link_to cohort_cohort_client_cohort_client_note_path(@cohort, @cohort_client, note), class: 'btn btn-sm btn-danger ml-auto mt-auto', method: :delete, remote: true do
           %i.icon-cross.mr-2
           Destroy
   %hr
