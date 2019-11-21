@@ -1,41 +1,46 @@
 #= require ./namespace
 
 class App.Health.EdIpVisits
-  constructor: (@chart_selector, @data) ->
+  constructor: (@chart_selector, @url) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
     @_build_chart()
-    console.log(@data)
+
 
   _build_chart: () =>
     @chart = bb.generate({
       data:
-        x: 'x'
-        columns: @data.data
+        url: @url
+        groups: [
+          [
+            'ED Visits',
+            'IP Visits',
+          ]
+        ],
+        mimeType: 'json'
         color: @_colors
+        types:
+          'ED Visits': 'area'
+          'IP Visits': 'area'
+        x: 'x'
       axis:
         x:
-          type: 'category'
+          type: 'timeseries'
           tick:
-            culling:
-              max: 8
+            format: "%b %Y"
         y:
           tick:
-            count: 7
-            format: d3.format(",.0f")
-          padding: 0
-          min: 0
-      grid:
-        x:
-          show: true
-          ticks: 4
-        y:
-          show: true
-          ticks: 4
-      legend:
-        show: true
-        position: 'right'
+            format: (x) ->
+              if x % 1 == 0
+                x
+              else
+                ''
+          label:
+            text: 'Encounters'
+            position: 'outer-middle'
+          culling: true
+
       size:
         height: 200
       bindto: @chart_selector

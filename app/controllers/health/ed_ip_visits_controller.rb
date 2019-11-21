@@ -11,13 +11,16 @@ module Health
     include ClientPathGenerator
 
     before_action :require_pilot_or_some_client_access!
-    before_action :set_client, only: [:index]
 
     def index
       set_hpc_patient
       set_patient if @patient.blank?
 
-      render layout: !request.xhr?
+      respond_to do |format|
+        format.json do
+          render json: @patient.ed_ip_visits_for_chart
+        end
+      end
     end
 
     private def title_for_show
