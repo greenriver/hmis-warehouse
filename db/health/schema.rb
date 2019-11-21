@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_13_130108) do
+ActiveRecord::Schema.define(version: 2019_11_19_200007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -294,6 +294,46 @@ ActiveRecord::Schema.define(version: 2019_11_13_130108) do
     t.datetime "deleted_at"
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "ed_ip_visit_files", id: :serial, force: :cascade do |t|
+    t.string "type"
+    t.string "file"
+    t.string "content"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_ed_ip_visit_files_on_created_at"
+    t.index ["deleted_at"], name: "index_ed_ip_visit_files_on_deleted_at"
+    t.index ["updated_at"], name: "index_ed_ip_visit_files_on_updated_at"
+    t.index ["user_id"], name: "index_ed_ip_visit_files_on_user_id"
+  end
+
+  create_table "ed_ip_visits", id: :serial, force: :cascade do |t|
+    t.integer "ed_ip_visit_file_id", null: false
+    t.string "medicaid_id"
+    t.string "last_name"
+    t.string "first_name"
+    t.string "gender"
+    t.date "dob"
+    t.date "admit_date"
+    t.date "discharge_date"
+    t.string "discharge_disposition"
+    t.string "encounter_major_class"
+    t.string "visit_type"
+    t.string "encounter_facility"
+    t.string "chief_complaint"
+    t.string "diagnosis"
+    t.string "attending_physician"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_ed_ip_visits_on_created_at"
+    t.index ["deleted_at"], name: "index_ed_ip_visits_on_deleted_at"
+    t.index ["ed_ip_visit_file_id"], name: "index_ed_ip_visits_on_ed_ip_visit_file_id"
+    t.index ["medicaid_id"], name: "index_ed_ip_visits_on_medicaid_id"
+    t.index ["updated_at"], name: "index_ed_ip_visits_on_updated_at"
   end
 
   create_table "eligibility_inquiries", id: :serial, force: :cascade do |t|
