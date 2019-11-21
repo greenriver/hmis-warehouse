@@ -169,7 +169,6 @@ group :development do
   # gem 'spring'
   gem 'html2haml'
   gem 'capistrano-bundler'
-  gem 'sshkit-sudo'
   gem 'capistrano-rvm'
   gem 'capistrano-passenger'
   gem 'capistrano-rails'
