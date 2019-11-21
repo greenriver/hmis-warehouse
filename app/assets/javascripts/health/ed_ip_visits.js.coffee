@@ -14,16 +14,18 @@ class App.Health.EdIpVisits
         url: @url
         groups: [
           [
-            'ED Visits',
-            'IP Visits',
+            'Emergency',
+            'Inpatient',
           ]
         ],
         mimeType: 'json'
         color: @_colors
         types:
-          'ED Visits': 'area'
-          'IP Visits': 'area'
+          'Emergency': 'area'
+          'Inpatient': 'area'
         x: 'x'
+      point:
+        show: false
       axis:
         x:
           type: 'timeseries'
@@ -50,7 +52,7 @@ class App.Health.EdIpVisits
     key = d
     if key.id?
       key = key.id
-    colors = [ '#091f2f', '#fb4d42', '#288be4', '#d2d2d2' ]
+    colors = [ '#9AABD9', '#7990C9', '#7990C9', '#9AABD9' ]
     if key in ['All']
       color = '#288BEE'
     else

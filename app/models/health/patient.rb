@@ -931,16 +931,16 @@ module Health
         visits.each do |(date, type), count|
           date = date.to_date
           dates[date] ||= {
-            'ED Visits' => 0,
-            'IP Visits' => 0,
+            'Emergency' => 0,
+            'Inpatient' => 0,
           }
-          dates[date]['ED Visits'] += count if type == 'Emergency'
-          dates[date]['IP Visits'] += count if type == 'Inpatient'
+          dates[date]['Emergency'] += count if type == 'Emergency'
+          dates[date]['Inpatient'] += count if type == 'Inpatient'
         end
         {
           'x' => dates.keys,
-          'ED Visits' => dates.values.map{|m| m['ED Visits'] },
-          'IP Visits' => dates.values.map{|m| m['IP Visits'] },
+          'Emergency' => dates.values.map{|m| m['Emergency'] },
+          'Inpatient' => dates.values.map{|m| m['Inpatient'] },
         }
       end
     end
