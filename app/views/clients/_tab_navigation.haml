@@ -19,31 +19,31 @@
         title: 'History',
         permission: show_demographic,
       },
-      polymorphic_path(client_chronic_path_generator, client_id: @client.id) => {
+      polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',
         permission: can_edit_clients?
       },
-      polymorphic_path(client_notes_path_generator, client_id: @client.id) => {
+      polymorphic_path(client_notes_path_generator, client_id: @client) => {
         title: 'Notes',
         permission: show_notes
       },
-      polymorphic_path(edit_cas_readiness_path_generator, client_id: @client.id) => {
+      polymorphic_path(edit_cas_readiness_path_generator, client_id: @client) => {
         title: 'CAS Readiness',
         permission: can_edit_clients? && GrdaWarehouse::Config.get(:cas_url).present?
       },
-      polymorphic_path(vispdats_path_generator, client_id: @client.id) => {
+      polymorphic_path(vispdats_path_generator, client_id: @client) => {
         title: 'VI-SPDAT',
         permission: GrdaWarehouse::Vispdat::Base.any_visible_by?(current_user)
       },
-      client_coordinated_entry_assessments_path(client_id: @client.id) => {
+      client_coordinated_entry_assessments_path(client_id: @client) => {
         title: _('Coordinated Entry Assessment'),
         permission: GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(current_user)
       },
-      polymorphic_path(youth_intakes_path_generator, client_id: @client.id) => {
+      polymorphic_path(youth_intakes_path_generator, client_id: @client) => {
         title: 'Youth Intakes',
         permission: GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
       },
-      polymorphic_path(files_path_generator, client_id: @client.id) => {
+      polymorphic_path(files_path_generator, client_id: @client) => {
         title: 'Files', #'File Uploads'
         permission: GrdaWarehouse::ClientFile.any_visible_by?(current_user),
       },
@@ -62,44 +62,44 @@
     }
     health = {
       # BH CP Pages
-      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client.id) => {
+      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
        title: 'Health Dashboard',
        permission: show_health_hpc,
       },
-      polymorphic_path(careplans_path_generator, client_id: @client.id) => {
+      polymorphic_path(careplans_path_generator, client_id: @client) => {
        title: 'Care Plan',
        permission: show_health_hpc,
       },
-      polymorphic_path(team_members_path_generator, client_id: @client.id) => {
+      polymorphic_path(team_members_path_generator, client_id: @client) => {
         title: 'Team Members',
         permission: show_health_hpc,
       },
-      polymorphic_path(health_path_generator + [:services], client_id: @client.id) => {
+      polymorphic_path(health_path_generator + [:services], client_id: @client) => {
        title: 'Services',
        permission: show_health_hpc,
       },
-      polymorphic_path(goals_path_generator, client_id: @client.id) => {
+      polymorphic_path(goals_path_generator, client_id: @client) => {
         title: 'Goals',
         permission: show_health_hpc,
       },
-      polymorphic_path(health_path_generator + [:files], client_id: @client.id) => {
+      polymorphic_path(health_path_generator + [:files], client_id: @client) => {
        title: 'Files',
        permission: show_health_hpc,
       },
       # Pilot Pages
-      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client.id) => {
+      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client) => {
        title: 'Health Dashboard',
        permission: show_health_pilot,
       },
-      polymorphic_path(careplan_pilot_path_generator, client_id: @client.id) => {
+      polymorphic_path(careplan_pilot_path_generator, client_id: @client) => {
        title: 'Care Plan',
        permission: show_health_pilot,
       },
-      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client.id) => {
+      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client) => {
         title: 'Metrics',
         permission: show_health_pilot,
       },
-      polymorphic_path(health_path_generator + [:metrics], client_id: @client.id) => {
+      polymorphic_path(health_path_generator + [:metrics], client_id: @client) => {
         title: 'Metrics',
         permission: show_health_hpc,
       },
