@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191113130108) do
+ActiveRecord::Schema.define(version: 20191119200007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,7 +56,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "appointment_time"
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id",   default: 1, null: false
+    t.integer  "data_source_id",   default: 6, null: false
   end
 
   create_table "careplan_equipment", force: :cascade do |t|
@@ -307,6 +307,48 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "updated_at"
   end
 
+  create_table "ed_ip_visit_files", force: :cascade do |t|
+    t.string   "type"
+    t.string   "file"
+    t.string   "content"
+    t.integer  "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ed_ip_visit_files", ["created_at"], name: "index_ed_ip_visit_files_on_created_at", using: :btree
+  add_index "ed_ip_visit_files", ["deleted_at"], name: "index_ed_ip_visit_files_on_deleted_at", using: :btree
+  add_index "ed_ip_visit_files", ["updated_at"], name: "index_ed_ip_visit_files_on_updated_at", using: :btree
+  add_index "ed_ip_visit_files", ["user_id"], name: "index_ed_ip_visit_files_on_user_id", using: :btree
+
+  create_table "ed_ip_visits", force: :cascade do |t|
+    t.integer  "ed_ip_visit_file_id",   null: false
+    t.string   "medicaid_id"
+    t.string   "last_name"
+    t.string   "first_name"
+    t.string   "gender"
+    t.date     "dob"
+    t.date     "admit_date"
+    t.date     "discharge_date"
+    t.string   "discharge_disposition"
+    t.string   "encounter_major_class"
+    t.string   "visit_type"
+    t.string   "encounter_facility"
+    t.string   "chief_complaint"
+    t.string   "diagnosis"
+    t.string   "attending_physician"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ed_ip_visits", ["created_at"], name: "index_ed_ip_visits_on_created_at", using: :btree
+  add_index "ed_ip_visits", ["deleted_at"], name: "index_ed_ip_visits_on_deleted_at", using: :btree
+  add_index "ed_ip_visits", ["ed_ip_visit_file_id"], name: "index_ed_ip_visits_on_ed_ip_visit_file_id", using: :btree
+  add_index "ed_ip_visits", ["medicaid_id"], name: "index_ed_ip_visits_on_medicaid_id", using: :btree
+  add_index "ed_ip_visits", ["updated_at"], name: "index_ed_ip_visits_on_updated_at", using: :btree
+
   create_table "eligibility_inquiries", force: :cascade do |t|
     t.date     "service_date",                               null: false
     t.string   "inquiry"
@@ -477,7 +519,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "goal_created_at"
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
-    t.integer  "data_source_id",           default: 1, null: false
+    t.integer  "data_source_id",           default: 6, null: false
   end
 
   add_index "epic_goals", ["patient_id"], name: "index_epic_goals_on_patient_id", using: :btree
@@ -504,7 +546,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.integer  "data_source_id",           default: 1,     null: false
+    t.integer  "data_source_id",           default: 6,     null: false
     t.datetime "deleted_at"
     t.date     "death_date"
   end
@@ -641,7 +683,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "member_status_report_patients", force: :cascade do |t|
@@ -739,7 +781,6 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.integer  "rejected_reason",                  default: 0,     null: false
     t.integer  "patient_id"
     t.integer  "accountable_care_organization_id"
-    t.datetime "effective_date"
     t.string   "middle_initial"
     t.string   "suffix"
     t.string   "gender"
@@ -786,6 +827,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.date     "record_updated_on"
     t.date     "exported_on"
     t.boolean  "removal_acknowledged",             default: false
+    t.datetime "effective_date"
     t.date     "disenrollment_date"
     t.string   "stop_reason_description"
     t.date     "pending_disenrollment_date"
@@ -814,10 +856,10 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.string   "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean  "pilot",                    default: false, null: false
-    t.datetime "deleted_at"
-    t.integer  "data_source_id",           default: 1,     null: false
+    t.integer  "data_source_id",           default: 6,     null: false
     t.date     "engagement_date"
     t.integer  "care_coordinator_id"
+    t.datetime "deleted_at"
     t.date     "death_date"
     t.string   "coverage_level"
     t.date     "coverage_inquiry_date"
@@ -853,7 +895,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "updated_at",                 null: false
     t.string   "id_in_source"
     t.string   "patient_id"
-    t.integer  "data_source_id", default: 1, null: false
+    t.integer  "data_source_id", default: 6, null: false
   end
 
   create_table "qualifying_activities", force: :cascade do |t|
@@ -1184,7 +1226,7 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "updated_at",                  null: false
     t.string   "patient_id"
     t.datetime "date_of_service"
-    t.integer  "data_source_id",  default: 1, null: false
+    t.integer  "data_source_id",  default: 6, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"

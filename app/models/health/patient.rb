@@ -53,6 +53,7 @@ module Health
     has_many :epic_ssms, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: 'Health::Claims::EdNyuSeverity', primary_key: :medicaid_id, foreign_key: :medicaid_id
+    has_many :ed_ip_visits, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
     # has_many :teams, through: :careplans
     # has_many :team_members, class_name: Health::Team::Member.name, through: :team
@@ -918,6 +919,30 @@ module Health
         joins(:patient).
         merge(Health::Patient.where(id: id)).
         maximum(:date_of_activity)
+    end
+
+    def ed_ip_visits_for_chart
+      @ed_ip_visits_for_chart ||= begin
+        visits = ed_ip_visits.group(
+          Arel.sql("DATE_TRUNC('month', admit_date)"),
+          :encounter_major_class
+        ).count.sort_by{ |(date, type), _| [date, type] }
+        dates = {}
+        visits.each do |(date, type), count|
+          date = date.to_date
+          dates[date] ||= {
+            'Emergency' => 0,
+            'Inpatient' => 0,
+          }
+          dates[date]['Emergency'] += count if type == 'Emergency'
+          dates[date]['Inpatient'] += count if type == 'Inpatient'
+        end
+        {
+          'x' => dates.keys,
+          'Emergency' => dates.values.map{|m| m['Emergency'] },
+          'Inpatient' => dates.values.map{|m| m['Inpatient'] },
+        }
+      end
     end
 
     def self.sort_options
