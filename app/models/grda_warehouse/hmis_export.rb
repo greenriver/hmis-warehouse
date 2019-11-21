@@ -12,6 +12,7 @@ module GrdaWarehouse
     attr_accessor :user_ids
 
     mount_uploader :file, HmisExportUploader
+    validates :file, antivirus: true
 
     belongs_to :user, class_name: User.name
 

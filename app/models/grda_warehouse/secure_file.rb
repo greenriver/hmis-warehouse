@@ -14,6 +14,7 @@ module GrdaWarehouse
     validate :file_exists_and_not_too_large
 
     mount_uploader :file, SecureFileUploader # Tells rails to use this uploader for this model.
+    validates :file, antivirus: true
 
     scope :visible_by?, -> (user) do
       # If you can see all client files, show everything

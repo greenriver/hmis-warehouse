@@ -12,6 +12,7 @@ module Health
     acts_as_paranoid
 
     mount_uploader :file, TransactionAcknowledgementFileUploader
+    validates :file, antivirus: true
 
     belongs_to :user
 

@@ -25,6 +25,7 @@ module GrdaWarehouse
     validate :file_exists_and_not_too_large
     validate :note_if_other
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
+    validates :file, antivirus: true
 
     validates_presence_of :expiration_date, on: :requires_expiration_date
     validates_presence_of :effective_date, on: :requires_effective_date

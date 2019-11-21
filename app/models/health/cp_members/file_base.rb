@@ -19,6 +19,7 @@ module Health::CpMembers
     belongs_to :user
 
     mount_uploader :file, MemberRosterFileUploader
+    validates :file, antivirus: true
 
     def parse
       if check_header

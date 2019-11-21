@@ -17,6 +17,8 @@ module GrdaWarehouse
     has_one :import_log, class_name: GrdaWarehouse::ImportLog.name, required: false
 
     mount_uploader :file, ImportUploader
+    validates :file, antivirus: true
+
     validates :data_source, presence: true
     validates :file, presence: true, on: :create
 

@@ -15,6 +15,7 @@ module Health
     phi_attr :response, Phi::Bulk # contains EDI serialized PHI
 
     mount_uploader :file, EligibilityResponseFileUploader
+    validates :file, antivirus: true
 
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user

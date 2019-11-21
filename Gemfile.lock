@@ -965,6 +965,7 @@ GEM
     choice (0.2.0)
     chronic (0.10.2)
     chunky_png (1.3.11)
+    clamby (1.6.2)
     coderay (1.1.2)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -1272,6 +1273,11 @@ GEM
       activesupport (>= 5.0)
       i18n
       polyamorous (= 2.3.0)
+    ratonvirus (0.1.0)
+      activesupport (~> 5.0)
+    ratonvirus-clamby (0.1.0)
+      clamby (~> 1.6)
+      ratonvirus (~> 0.1.0)
     rb-fsevent (0.10.3)
     rb-inotify (0.10.0)
       ffi (~> 1.0)
@@ -1573,6 +1579,8 @@ DEPENDENCIES
   rails-controller-testing
   rails-erd
   ransack
+  ratonvirus
+  ratonvirus-clamby
   redcarpet
   redis-rails
   responders

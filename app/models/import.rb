@@ -10,6 +10,8 @@ class Import < ApplicationRecord
   acts_as_paranoid
 
   mount_uploader :file, ImportUploader
+  validates :file, antivirus: true
+
   validates :source, presence: true
   validates :file, presence: true
 

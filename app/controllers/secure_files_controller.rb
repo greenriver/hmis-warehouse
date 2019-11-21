@@ -47,6 +47,8 @@ class SecureFilesController < ApplicationController
       redirect_to action: :index
     else
       flash[:alert] = _('Upload failed, did you attach a file?')
+      @secure_file = file_source.new
+      @secure_files = file_scope
       render :index
     end
   end

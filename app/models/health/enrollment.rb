@@ -15,6 +15,7 @@ module Health
     phi_attr :content, Phi::Bulk # contains EDI serialized PHI
 
     mount_uploader :file, EnrollmentFileUploader
+    validates :file, antivirus: true
 
     belongs_to :user
 

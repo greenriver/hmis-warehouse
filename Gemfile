@@ -37,6 +37,8 @@ gem 'acts-as-taggable-on', '~> 6.0'
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
+gem 'ratonvirus'
+gem 'ratonvirus-clamby'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'

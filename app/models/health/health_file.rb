@@ -19,6 +19,7 @@ module Health
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     mount_uploader :file, HealthFileUploader
+    validates :file, antivirus: true
 
     validate :file_not_too_large
     validate :valid_file_type

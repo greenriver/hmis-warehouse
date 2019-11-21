@@ -16,6 +16,8 @@ module GrdaWarehouse
     belongs_to :delayed_job, optional: true, class_name: Delayed::Job.name
 
     mount_uploader :file, ImportUploader
+    validates :file, antivirus: true
+
     validates :data_source, presence: true
     validates :file, presence: true, on: :create
 
