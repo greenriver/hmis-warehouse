@@ -25,6 +25,7 @@ gem 'scenic'
 gem 'memoist', require: false
 gem 'rserve-client', require: false
 gem 'rserve-simpler', require: false
+gem 'encryptor'
 
 # File processing
 gem 'carrierwave', '~> 1'

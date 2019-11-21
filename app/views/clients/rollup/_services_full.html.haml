@@ -1,4 +1,4 @@
-- show_confidential_programs = current_user.can_view_clients?
+- show_confidential_programs = can_view_confidential_names?
 = cache(['clients', 'services_full', @client, can_view_projects?, controller_path, current_user], expires_in: 4.hours) do
   - services = @client.source_enrollment_services.bed_night.uniqueness_constraint.descending.preload( :client, :enrollment, project: :organization )
   - projects = services.map(&:project).compact.uniq.sort_by{ |m| m.organization_and_name(include_confidential_names: show_confidential_programs)}.each_with_index.map{ |p, i| [ p, i ] }.to_h

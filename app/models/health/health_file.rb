@@ -35,6 +35,14 @@ module Health
       self.class.model_name.human
     end
 
+    def signature
+      try(:participation_form).try(:signature_on) || try(:release_form).try(:signature_on)
+    end
+
+    def valid_for_current_enrollment
+      signature.present? && signature > client.patient.enrollment_start_date || signature.blank? && created_at > client.patient.enrollment_start_date
+    end
+
     def set_calculated!(user_id, client_id)
       self.user_id = user_id
       self.client_id = client_id

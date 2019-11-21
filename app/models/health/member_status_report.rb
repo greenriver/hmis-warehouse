@@ -32,18 +32,16 @@ module Health
       patient_referrals.each do |pr|
         patient = pr.patient
 
-        most_recent_qualifying_activity = patient&.qualifying_activities&.direct_contact&.order(date_of_activity: :desc)&.limit(1)&.first
+        most_recent_qualifying_activity = patient&.qualifying_activities&.after_enrollment_date&.direct_contact&.order(date_of_activity: :desc)&.limit(1)&.first
         # Any qa before the end of the report range?
-        qa_activity_dates = patient&.qualifying_activities&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
+        qa_activity_dates = patient&.qualifying_activities&.after_enrollment_date&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
 
         # only include patients referred before the report end date
-        next if pr.enrollment_start_date.blank? || pr.enrollment_start_date > report_range.end
+        next unless patient_enrolled_during_report?(pr.enrollment_start_date)
 
         # Get the most recent modification date based on QA dates and referral date
         patient_updated_at = (qa_activity_dates + [pr.enrollment_start_date]).compact.max
 
-        # We will only know the date requested for hello-sign signatures, default to the signed date
-        pcp_signature_requested = patient&.careplans&.maximum(:provider_signature_requested_at) || patient&.careplans&.maximum(:provider_signed_on)
         aco_mco_name = pr.aco&.name || pr.aco_name
         aco_mco_pid = pr.aco&.mco_pid || pr.aco_mco_pid
         aco_mco_sl = pr.aco&.mco_sl || pr.aco_mco_sl
@@ -65,9 +63,9 @@ module Health
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
           cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
-          cp_participation_form_date: patient&.participation_forms&.maximum(:signature_on),
-          cp_care_plan_sent_pcp_date: pcp_signature_requested,
-          cp_care_plan_returned_pcp_date: patient&.careplans&.maximum(:provider_signed_on),
+          cp_participation_form_date: patient&.participation_forms&.after_enrollment_date&.maximum(:signature_on),
+          cp_care_plan_sent_pcp_date: careplan_signature(patient),
+          cp_care_plan_returned_pcp_date: patient&.careplans&.after_enrollment_date&.maximum(:provider_signed_on),
           key_contact_name_first: sender_cp.key_contact_first_name,
           key_contact_name_last: sender_cp.key_contact_last_name,
           key_contact_phone: sender_cp.key_contact_phone&.gsub('-', '')&.truncate(10),
@@ -88,6 +86,15 @@ module Health
 
       end
       complete_report
+    end
+
+    private def patient_enrolled_during_report? enrollment_start_date
+      enrollment_start_date.present? && enrollment_start_date <= report_range.end
+    end
+
+    # We will only know the date requested for hello-sign signatures, default to the signed date
+    private def careplan_signature patient
+      patient&.careplans&.after_enrollment_date&.maximum(:provider_signature_requested_at) || patient&.careplans&.after_enrollment_date&.maximum(:provider_signed_on)
     end
 
     def self.spreadsheet_columns
