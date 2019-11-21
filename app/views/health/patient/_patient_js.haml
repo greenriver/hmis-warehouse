@@ -42,14 +42,19 @@
           add_data_table($('.jMedications .datatable'));
         }
       });
-
-      var $ed_ip_visits = $('.jEdIpVists');
-      $.get($ed_ip_visits.data('path'), function(response, status, xhr) {
-        if (status == 'error') {
-          error_message(response, status, xhr, this);
-        } else {
-          var ed_ip_vists = new App.Health.EdIpVisits('.jEdIpVisitChart', $ed_ip_visits.data('path'));
-
-        }
-      });
     })(jQuery);
+
+- if @patient.ed_ip_visits.exists?
+  = content_for :page_js do
+    :javascript
+      (function($) {
+        var $ed_ip_visits = $('.jEdIpVists');
+        $.get($ed_ip_visits.data('path'), function(response, status, xhr) {
+          if (status == 'error') {
+            error_message(response, status, xhr, this);
+          } else {
+            var ed_ip_vists = new App.Health.EdIpVisits('.jEdIpVisitChart', $ed_ip_visits.data('path'));
+
+          }
+        });
+      })(jQuery);
