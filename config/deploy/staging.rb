@@ -9,7 +9,7 @@ web_hosts = ENV['STAGING_HOSTS_WEB'].to_s.split(/,/)
 utility_hosts = ENV['STAGING_HOSTS_UTILITY'].to_s.split(/,/)
 cron_host = ENV['STAGING_HOST_WITH_CRON']
 
-hosts = (web_hosts + utility_hosts + [cron_host]).uniq.sort
+hosts = (web_hosts + utility_hosts + [cron_host]).compact.select { |x| x!='' }.uniq.sort
 
 puts "Hosts specified for deployment: #{hosts}"
 
