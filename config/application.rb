@@ -5,6 +5,8 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require_relative '../lib/util/id_protector'
+
 module BostonHmis
   class Application < Rails::Application
     # Use the responders controller from the responders gem
@@ -64,6 +66,6 @@ module BostonHmis
     config.assets.paths << Rails.root.join('node_modules')
 
     config.middleware.use Rack::Attack # needed pre rails 5.1
-    config.middleware.use 'IdProtector'
+    config.middleware.use IdProtector
   end
 end

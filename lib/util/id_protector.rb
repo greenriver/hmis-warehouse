@@ -11,7 +11,7 @@ class IdProtector
   def call(env)
     request = ActionDispatch::Request.new env
     original_path = env['PATH_INFO']
-    Rails.application.routes.router.recognize(request) do | route, params |
+    Rails.application.routes.router.recognize(request) do |route, params|
       if route.name.present?
         decoded_key = false
         params.each do |key, value|
