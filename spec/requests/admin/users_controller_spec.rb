@@ -41,6 +41,7 @@ RSpec.describe Admin::UsersController, type: :request do
       before(:each) do
         patch admin_user_path(updated_user), params: { user: { notify_on_client_added: '1' } }
       end
+
       it 'flips to true' do
         expect(updated_user.reload.notify_on_client_added).to be true
       end

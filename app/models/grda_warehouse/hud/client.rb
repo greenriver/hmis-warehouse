@@ -514,7 +514,7 @@ module GrdaWarehouse::Hud
       start_age = 0 unless start_age.is_a?(Integer)
       end_age   = nil unless end_age.is_a?(Integer)
       if end_age.present?
-        where(DOB: (end_date - end_age.years)..(start_date - start_age.years))
+        where(DOB: (start_date - end_age.years)..(end_date - start_age.years))
       else
         where(arel_table[:DOB].lteq(start_date - start_age.years))
       end

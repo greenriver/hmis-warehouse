@@ -1,12 +1,19 @@
-require File.expand_path('../boot', __FILE__)
+require_relative 'boot'
 require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require_relative '../lib/util/id_protector'
+
 module BostonHmis
   class Application < Rails::Application
+    config.load_defaults 5.2
+
+    # FIXME Suppress the Rails 5 belongs_to requirement
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
 
@@ -22,9 +29,6 @@ module BostonHmis
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
-
-    # Do not swallow errors in after_commit/after_rollback callbacks.
-    config.active_record.raise_in_transactional_callbacks = true
 
     config.action_controller.include_all_helpers = false
 
@@ -51,6 +55,9 @@ module BostonHmis
       }
     end
 
+    # default to not be sandbox email mode
+    config.sandbox_email_mode = false
+
     # additional library paths
     config.autoload_paths << Rails.root.join('lib', 'util')
 
@@ -64,6 +71,6 @@ module BostonHmis
     config.assets.paths << Rails.root.join('node_modules')
 
     config.middleware.use Rack::Attack # needed pre rails 5.1
-    config.middleware.use ::IdProtector
+   config.middleware.use IdProtector
   end
 end
