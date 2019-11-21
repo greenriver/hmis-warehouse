@@ -22,6 +22,7 @@ require 'capistrano/bundler'
 require 'capistrano/rails/assets'
 require 'capistrano/rails/migrations'
 require "whenever/capistrano"
+#require 'sshkit/sudo'
 unless ENV['NO_PASSENGER']
   require 'capistrano/passenger'
 end
