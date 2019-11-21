@@ -186,6 +186,7 @@ group :development do
   gem 'stackprof'     # For Ruby MRI 2.1+
   gem 'active_record_query_trace'
   # gem 'rb-readline'
+  gem 'overcommit'
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
 
