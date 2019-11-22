@@ -5,7 +5,7 @@ module Bo
 
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false
+    def initialize(api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false)
       @api_site_identifier = api_site_identifier
       @start_time = start_time
       @debug = debug
@@ -14,7 +14,7 @@ module Bo
       @data_source_id = @api_config['data_source_id']
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
       setup_notifier('ETO QaaWS Importer')
-      api_connect()
+      api_connect
     end
 
     def update_all!
@@ -24,21 +24,22 @@ module Bo
       set_disability_verifications
     end
 
-    def fetch_site_touch_point_map one_off: false
+    def fetch_site_touch_point_map(one_off: false)
       return unless @config.site_touch_point_map_cuid.present?
+
       settings = {
         url: "#{@config.url}?wsdl=1&cuid=#{@config.site_touch_point_map_cuid}",
         method: :site_touch_point_lookup,
       }
       message_options = {}
       if one_off
-        response = call_once(settings, message_options)
+        call_once(settings, message_options)
       else
-        response = call_with_retry(settings, message_options)
+        call_with_retry(settings, message_options)
       end
     end
 
-    def api_config_from_site_identifier site_identifier
+    def api_config_from_site_identifier(site_identifier)
       key = ENV.fetch("ETO_API_SITE#{site_identifier}")
       EtoApi::Base.api_configs[key]
     end
@@ -50,20 +51,20 @@ module Bo
       @api.connect
     end
 
-    def fetch_subject_response_lookup one_off: false
+    def fetch_subject_response_lookup(one_off: false)
       settings = {
         url: "#{@config.url}?wsdl=1&cuid=#{@config.subject_response_lookup_cuid}",
         method: :response_lookup,
       }
       message_options = {}
       if one_off
-        response = call_once(settings, message_options)
+        call_once(settings, message_options)
       else
-        response = call_with_retry(settings, message_options)
+        call_with_retry(settings, message_options)
       end
     end
 
-    def fetch_client_lookup one_off: false, start_time: 1.weeks.ago, end_time: Time.now
+    def fetch_client_lookup(one_off: false, start_time: 1.weeks.ago, end_time: Time.now)
       settings = {
         url: "#{@config.url}?wsdl=1&cuid=#{@config.client_lookup_cuid}",
         method: :client_lookup_standard,
@@ -74,13 +75,13 @@ module Bo
       }
 
       if one_off
-        response = call_once(settings, message_options)
+        call_once(settings, message_options)
       else
-        response = call_with_retry(settings, message_options)
+        call_with_retry(settings, message_options)
       end
     end
 
-    def fetch_touch_point_modification_dates one_off: false, start_time: 1.weeks.ago, end_time: Time.now, tp_id:
+    def fetch_touch_point_modification_dates(one_off: false, start_time: 1.weeks.ago, end_time: Time.now, tp_id:)
       settings = {
         url: "#{@config.url}?wsdl=1&cuid=#{@config.touch_point_lookup_cuid}",
         method: :distinct_touch_point_lookup,
@@ -93,9 +94,9 @@ module Bo
 
       if one_off
         soap = Bo::Soap.new(username: @config.user, password: @config.pass)
-        response = soap.distinct_touch_point_lookup settings[:url]
+        soap.distinct_touch_point_lookup settings[:url]
       else
-        response = call_with_retry(settings, message_options)
+        call_with_retry(settings, message_options)
       end
     end
 
@@ -107,7 +108,7 @@ module Bo
         weeks << [start_time, end_time]
         start_time = end_time
       end
-      return weeks
+      weeks
     end
 
     def fetch_batches_of_clients
@@ -119,17 +120,15 @@ module Bo
         Rails.logger.info "Fetching #{index + 1} -- #{start_time} to #{end_time}" if @debug
         response = fetch_client_lookup(
           start_time: start_time,
-          end_time: end_time
+          end_time: end_time,
         )
         response_rows = response if response.present?
-        if response_rows.present?
-          rows += response_rows
-        end
+        rows += response_rows if response_rows.present?
       end
-      msg = "Fetched batches of clients."
+      msg = 'Fetched batches of clients.'
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
-      return rows
+      rows
     end
 
     def fetch_batches_of_touch_point_dates
@@ -145,7 +144,7 @@ module Bo
           response = fetch_touch_point_modification_dates(
             start_time: start_time,
             end_time: end_time,
-            tp_id: tp_id
+            tp_id: tp_id,
           )
           rows += response if response.present?
         end
@@ -153,12 +152,13 @@ module Bo
       msg = "Fetched batches of touch points. Found #{rows.count} touch point responses"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
-      return rows
+      rows
     end
 
     def rebuild_subject_response_lookups
       @subject_rows = fetch_subject_response_lookup
       return unless @subject_rows.present?
+
       new_subjects = []
       @subject_rows.each do |row|
         new_subjects << GrdaWarehouse::EtoQaaws::SubjectResponseLookup.new(
@@ -170,7 +170,6 @@ module Bo
           GrdaWarehouse::EtoQaaws::SubjectResponseLookup.import(new_subjects)
         end
       end
-
     end
 
     # Maintain the last six months of change records for clients
@@ -180,7 +179,8 @@ module Bo
       @client_rows.each do |row|
         site_id = site_id_from_name(row[:site_name])
         next if site_id.blank?
-        guid = row[:participant_enterprise_identifier].gsub('-', '')
+
+        guid = row[:participant_enterprise_identifier].delete('-')
         client_id = client_ids_by_guid[guid]
         # debugging
         # if Rails.env.development?
@@ -212,15 +212,15 @@ module Bo
       # new_rows should be authoritative for anything in this data source
       @touch_point_lookups.uniq.each do |row|
         next if row[:participant_enterprise_identifier].blank?
-        guid = row[:participant_enterprise_identifier].gsub('-', '')
+
+        guid = row[:participant_enterprise_identifier].delete('-')
         client_id = client_ids_by_guid[guid]
         # Debugging
-        if Rails.env.development?
-          client_id = client_ids_by_guid.values.sample
-        end
+        client_id = client_ids_by_guid.values.sample if Rails.env.development?
         # END Debugging
         next if client_id.blank?
         next if row[:date_last_updated].blank?
+
         new_rows << GrdaWarehouse::EtoQaaws::TouchPointLookup.new(
           data_source_id: @data_source_id,
           client_id: client_id,
@@ -237,13 +237,13 @@ module Bo
       end
     end
 
-    def call_once settings, message_options
+    def call_once(settings, message_options)
       soap = Bo::Soap.new(username: @config.user, password: @config.pass)
       soap.send(settings[:method], settings[:url], message_options)
     end
 
     # Try a few times, re-try if we get some specific errors or the body is empty
-    def call_with_retry settings, message_options
+    def call_with_retry(settings, message_options)
       response = ''
       failures = 0
       while failures < 25
@@ -254,24 +254,23 @@ module Bo
           failures += 1
           Rails.logger.info "failed with NoMethodError, #{failures} failures; #{settings[:url]}"
           Rails.logger.debug e.inspect
-          sleep (1..5).to_a.sample
+          sleep((1..5).to_a.sample)
           next
         end
-        if response.present?
-          break
-        else
-          msg = "FAILURE: unable to successfully fetch #{settings[:url]}; response blank; options: #{message_options.inspect}"
-          Rails.logger.info msg
-          # @notifier.ping msg if send_notifications && msg.present?
-          break
-        end
+        break unless response.present?
+
+        msg = "FAILURE: unable to successfully fetch #{settings[:url]}; response blank; options: #{message_options.inspect}"
+        Rails.logger.info msg
+        # @notifier.ping msg if send_notifications && msg.present?
+        break
       end
-      return response
+      response
     end
 
-    def fetch_disability_verifications one_off: false
+    def fetch_disability_verifications(one_off: false)
       return unless @config.disability_verification_cuid.present?
-      msg = "Fetching disability verifications"
+
+      msg = 'Fetching disability verifications'
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       settings = {
@@ -283,47 +282,48 @@ module Bo
         touch_point_question_id: @config.disability_touch_point_question_id,
       }
       if one_off
-        response = call_once(settings, message_options)
+        call_once(settings, message_options)
       else
-        response = call_with_retry(settings, message_options)
+        call_with_retry(settings, message_options)
       end
     end
 
     def set_disability_verifications
       return unless @config.disability_verification_cuid.present?
+
       @disability_verifications = fetch_disability_verifications.
-        group_by{ |row| row[:participant_enterprise_identifier].gsub('-', '') }
+        group_by { |row| row[:participant_enterprise_identifier].delete('-') }
       personal_ids = @disability_verifications.keys
       source_clients = GrdaWarehouse::Hud::Client.source.where(
         data_source_id: @data_source_id,
-        PersonalID: personal_ids
-        ).select(:id, :PersonalID, :disability_verified_on)
+        PersonalID: personal_ids,
+      ).select(:id, :PersonalID, :disability_verified_on)
       updated_source_counts = 0
       updated_destination_counts = 0
       source_clients.each do |client|
         verifications = @disability_verifications[client.PersonalID]
-        max_date = verifications.map{ |row| row[:date_last_updated].to_time }.max
+        max_date = verifications.map { |row| row[:date_last_updated].to_time }.max
         # only set the verification date if it was blank before or is newer
         # then, check the destination client and update that as well
         # We could batch this to improve performance if necessary, but after the first load
         # this should only be a handful of clients each day
-        if client.disability_verified_on.blank? || max_date > client.disability_verified_on || (@force_disability_verification && max_date >= client.disability_verified_on)
-          client.update(disability_verified_on: max_date)
-          updated_source_counts += 1
-          dest_client = client.destination_client
-          # reflect changes on the destination client if the changes to the source client data are newer
-          if dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on || @force_disability_verification
-            dest_client.update(disability_verified_on: client.disability_verified_on)
+        next unless client.disability_verified_on.blank? || max_date > client.disability_verified_on || (@force_disability_verification && max_date >= client.disability_verified_on)
 
-            verification = verifications.detect { |v| v[:date_last_updated].to_time == max_date }
-            if verification
-              verification_source = GrdaWarehouse::VerificationSource::Disability.where(client_id: dest_client.id).first_or_create
-              verification_source.update(location: verification[:site_name], verified_at: max_date)
-            end
+        client.update(disability_verified_on: max_date)
+        updated_source_counts += 1
+        dest_client = client.destination_client
+        # reflect changes on the destination client if the changes to the source client data are newer
+        next unless dest_client.disability_verified_on.blank? || client.disability_verified_on > dest_client.disability_verified_on || @force_disability_verification
 
-            updated_destination_counts += 1
-          end
+        dest_client.update(disability_verified_on: client.disability_verified_on)
+
+        verification = verifications.detect { |v| v[:date_last_updated].to_time == max_date }
+        if verification
+          verification_source = GrdaWarehouse::VerificationSource::Disability.where(client_id: dest_client.id).first_or_create
+          verification_source.update(location: verification[:site_name], verified_at: max_date)
         end
+
+        updated_destination_counts += 1
       end
       msg = "Updated #{updated_source_counts} source disability verifications"
       Rails.logger.info msg
@@ -331,7 +331,6 @@ module Bo
       msg = "Updated #{updated_destination_counts} destination disability verifications"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
-
     end
 
     def existing_eto_touch_point_lookups
@@ -353,7 +352,7 @@ module Bo
       @sites ||= @api.sites
     end
 
-    def site_id_from_name site_name
+    def site_id_from_name(site_name)
       @site_ids ||= sites.invert
       @site_ids[site_name]
     end
