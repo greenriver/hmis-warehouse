@@ -4,7 +4,7 @@
 %h1= content_for :title
 
 %div.overflow-scroll
-  %table.table.table-sm.table-hover{id: "myTable"}
+  %table.table.table-sm.table-hover{id: "jRosterTable"}
     %thead
       %tr
         - @file.columns.values.each do |label|
@@ -18,5 +18,5 @@
 = content_for :page_js do
   :javascript
     $(document).ready( function () {
-      $('#myTable').DataTable();
+      $('#jRosterTable').DataTable();
     } );
