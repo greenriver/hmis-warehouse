@@ -40,6 +40,7 @@ module Health
     end
 
     def valid_for_current_enrollment
+      return nil unless client.patient&.enrollment_start_date.present?
       signature.present? && signature > client.patient.enrollment_start_date || signature.blank? && created_at > client.patient.enrollment_start_date
     end
 
