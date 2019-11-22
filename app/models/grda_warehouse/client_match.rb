@@ -12,6 +12,7 @@ module GrdaWarehouse
     serialize :score_details, Hash
     validates :status, inclusion: {in: ['candidate', 'accepted', 'rejected', 'processed_sources']}
 
+    # To keep track so we don't re-run create_candidates for a given destination client
     scope :processed, -> do
       where(status: 'processed_sources')
     end
@@ -26,6 +27,10 @@ module GrdaWarehouse
 
     scope :rejected, -> do
       where(status: 'rejected')
+    end
+
+    scope :processed_or_candidate, -> do
+      where(status: ['processed_sources', 'candidate'])
     end
 
     def self.create_candidates!(client, threshold:, metrics:)
