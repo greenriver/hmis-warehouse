@@ -15,14 +15,18 @@ class ClientMatchesController < ApplicationController
       'Accepted' => 'accepted',
       'Rejected' => 'rejected',
     }
-    @status = @possible_statuses.values.detect { |s| s == params['status'].to_s } || @possible_statuses.values.first
+    @status = @possible_statuses.values.
+      detect { |s| s == params['status'].to_s } || @possible_statuses.values.first
 
     # score are negative values (we present them as positive in the UI ) so to show better scores first use asc sort order
-    ordering = {
-      'candidate' => { defer_count: :asc, score: :asc, id: :asc },
-    }[@status] || { updated_at: :desc }
+    ordering = if @status == 'candidate'
+      { defer_count: :asc, score: :asc, id: :asc }
+    else
+      { updated_at: :desc }
+    end
 
-    @counts = client_match_scope.joins(:source_client, :destination_client).group(:status).count
+    @counts = client_match_scope.joins(:source_client, :destination_client).
+      group(:status).count
 
     @matches = client_match_scope.where(status: @status).
       joins(:source_client, :destination_client).
