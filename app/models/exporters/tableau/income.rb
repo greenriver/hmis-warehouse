@@ -11,7 +11,7 @@ module Exporters::Tableau::Income
   module_function
   def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
 
-      model = ib_t.engine
+      model = GrdaWarehouse::Hud::IncomeBenefit
 
       columns = {
         grouping_variable:       she_t[:id],
@@ -28,7 +28,7 @@ module Exporters::Tableau::Income
 
       scope = model.
         joins( enrollment: [ :enrollment_coc_at_entry, :service_history_enrollment ] ).
-        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
+        merge( GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         # for aesthetics
         order(she_t[:client_id].asc).
         order(she_t[:first_date_in_program].desc).

@@ -114,7 +114,7 @@ module GrdaWarehouse::Report
           destination_client_table[:id].eq(client_join_table[:destination_id]).
           and( destination_client_table[:DateDeleted].eq nil )
         ).project(
-          *e_t.engine.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
+          *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
           source_client_table[:id].as('demographic_id'),                                         # the source client id
           destination_client_table[:id].as('client_id')                                          # the destination client id
         ).where(

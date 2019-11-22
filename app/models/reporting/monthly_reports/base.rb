@@ -242,8 +242,8 @@ module Reporting::MonthlyReports
         pluck(
           :client_id,
           :project_type,
-          Arel.sql(cast(datepart(shs_t.class.engine, 'month', shs_t[:date]), 'INTEGER').to_sql),
-          Arel.sql(cast(datepart(shs_t.class.engine, 'year', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'month', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'year', shs_t[:date]), 'INTEGER').to_sql),
         ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]

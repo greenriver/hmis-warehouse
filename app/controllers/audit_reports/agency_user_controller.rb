@@ -135,7 +135,7 @@ module AuditReports
               user_id: batch,
               item_model: GrdaWarehouse::Hud::Client.name,
             ).
-            group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
+            group(:user_id, datepart(ActivityLog, 'month', al_t[:created_at]).to_sql).
             distinct.
             count(:item_id).each do |(user_id, month), count|
             history[user_id] ||= []

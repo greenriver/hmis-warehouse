@@ -110,10 +110,10 @@ module WarehouseReports::Cas
           and(at2[:match_step].eq(second_step)),
         ).where(at2[:match_started_at].between(@range.start..@range.end + 1.day)).
         project(
-          seconds_diff(at.engine, at2[:updated_at], at[:updated_at]),
+          seconds_diff(GrdaWarehouse::CasReport, at2[:updated_at], at[:updated_at]),
           at[:program_type],
         )
-      times = at.engine.connection.select_rows(query.to_sql).map do |time_diff, program_type|
+      times = GrdaWarehouse::CasReport.connection.select_rows(query.to_sql).map do |time_diff, program_type|
         [(time_diff.to_f / divisor).round.to_i, program_type]
       end
       return {} if times.empty?

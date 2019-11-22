@@ -28,7 +28,8 @@ module WarehouseReports
     def show
       respond_to do |format|
         format.xlsx do
-          render xlsx: :show, filename: "Youth Export #{Time.current.to_s.delete(',')}.xlsx"
+          filename = "Youth Export #{Time.current.to_s.delete(',')}.xlsx"
+          render(xlsx: 'show', filename: filename)
         end
       end
     end

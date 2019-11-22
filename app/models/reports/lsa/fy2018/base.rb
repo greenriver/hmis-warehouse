@@ -75,7 +75,7 @@ module Reports::Lsa::Fy2018
       if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}"
+            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find_by(id: m.to_i)&.name if m.present?}.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
