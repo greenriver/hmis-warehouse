@@ -1271,7 +1271,7 @@ module GrdaWarehouse::Hud
             .joins(:client)
             .where(hh_where)
             .where.not(client_id: id )
-            .pluck(*columns.values).map do |row|
+            .pluck(*columns.values.map{|v| Arel.sql(v)}).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
           entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}

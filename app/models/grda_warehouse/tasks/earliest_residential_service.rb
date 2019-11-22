@@ -62,7 +62,7 @@ module GrdaWarehouse::Tasks
     end
 
     def earliest_dates
-      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, 'min(first_date_in_program)')
+      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, Arel.sql('min(first_date_in_program)'))
     end
 
     # limit to enrollments with service

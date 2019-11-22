@@ -74,21 +74,21 @@ module Reporting
 
     def source_columns
       @source_columns ||= {
-        service_history_enrollment_id: shs_t[:service_history_enrollment_id].to_sql,
-        record_type: shs_t[:record_type].to_sql,
-        date: shs_t[:date].to_sql,
-        age: shs_t[:age].to_sql,
-        service_type: shs_t[:service_type].to_sql,
-        client_id: shs_t[:client_id].to_sql,
-        project_type: shs_t[:project_type].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_id: p_t[:id].to_sql,
-        destination: she_t[:destination].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        organization_id: o_t[:id].to_sql,
-        unaccompanied_youth: she_t[:unaccompanied_youth].to_sql,
-        parenting_youth: she_t[:parenting_youth].to_sql,
+        service_history_enrollment_id: shs_t[:service_history_enrollment_id],
+        record_type: shs_t[:record_type],
+        date: shs_t[:date],
+        age: shs_t[:age],
+        service_type: shs_t[:service_type],
+        client_id: shs_t[:client_id],
+        project_type: shs_t[:project_type],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_id: p_t[:id],
+        destination: she_t[:destination],
+        project_name: she_t[:project_name],
+        organization_id: o_t[:id],
+        unaccompanied_youth: she_t[:unaccompanied_youth],
+        parenting_youth: she_t[:parenting_youth],
       }
     end
 
