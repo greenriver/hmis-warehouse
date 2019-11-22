@@ -1562,6 +1562,12 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def es_so_enrollments_with_service_since(user, date)
+      service_history_entries.visible_in_window_to(user).joins(:project).
+        hud_homeless.
+        service_within_date_range(start_date: date, end_date: Date.current).distinct
+    end
+
     def staff_types
       [:case_manager, :assigned_staff, :counselor, :outreach_counselor]
     end
