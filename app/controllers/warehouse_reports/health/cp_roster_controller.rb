@@ -14,7 +14,7 @@ module WarehouseReports::Health
 
     def show
       @file = file_scope.find(params[:id].to_i)
-      @rows = @file.rosters.page(params[:page]).per(25)
+      @rows = @file.rosters
     end
 
     def roster
