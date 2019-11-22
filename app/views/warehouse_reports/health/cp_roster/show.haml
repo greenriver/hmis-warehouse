@@ -4,8 +4,7 @@
 %h1= content_for :title
 
 %div.overflow-scroll
-  %p= paginate @rows
-  %table.table.table-sm.table-hover
+  %table.table.table-sm.table-hover{id: "jRosterTable"}
     %thead
       %tr
         - @file.columns.values.each do |label|
@@ -15,3 +14,9 @@
         %tr
           - @file.columns.keys.each do |key|
             %td= entry[key]
+
+= content_for :page_js do
+  :javascript
+    $(document).ready( function () {
+      $('#jRosterTable').DataTable();
+    } );
