@@ -14,13 +14,14 @@ module SimilarityMetric::Tasks
       Rails.logger.info "Generating some match candidates: #{@opts.to_json}..."
       start_time = Time.now
       metrics = SimilarityMetric::Base.usable.all.reject(&:bogus?)
-      clients = GrdaWarehouse::Hud::Client
-      matches = GrdaWarehouse::ClientMatch
-      ct = clients.arel_table
-      mt = matches.arel_table
-      scope = clients.
+      clients_source = GrdaWarehouse::Hud::Client
+      matches_source = GrdaWarehouse::ClientMatch
+      ct = clients_source.arel_table
+      mt = matches_source.arel_table
+      # Find clients who don't have a match in the matches table
+      scope = clients_source.
         destination.
-        where( matches.where( mt[:destination_client_id].eq ct[:id] ).exists.not ).
+        where( matches_source.where( mt[:destination_client_id].eq ct[:id] ).exists.not ).
         preload(:source_clients).
         order( id: :desc ).
         limit(@opts[:batch_size])
@@ -31,8 +32,8 @@ module SimilarityMetric::Tasks
           break
         end
         Rails.logger.info "Checking #{dest.id}..."
-        candidates = matches.create_candidates!(dest, threshold: @opts[:threshold], metrics: metrics)
-        match = matches.create! do |m|
+        candidates = matches_source.create_candidates!(dest, threshold: @opts[:threshold], metrics: metrics)
+        match = matches_source.create! do |m|
           m.destination_client_id = dest.id
           m.source_client_id = dest.id
           m.status = 'processed_sources'
