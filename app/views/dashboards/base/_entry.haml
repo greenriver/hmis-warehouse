@@ -15,12 +15,12 @@
       %h4.title
         #{@report.sub_population_title.pluralize} Newly Homeless During Time Period
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.first_time_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.first_time_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types}), target: :_blank
     .rrh__enrolled.chunk.l-page__w-50
       %h4.title
         #{@report.sub_population_title.pluralize} Re-Entering Homelessness During the Time Period
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.re_entry_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]}), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.re_entry_client_count, @report.sub_population_title), polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types}), target: :_blank
 
 
   .o-chart
@@ -38,8 +38,8 @@
 
 = content_for :page_js do
   - if can_see_client_details?
-    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
-    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: [:es, :sh, :so, :th]})}"
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types})}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types})}"
   :javascript
     var entry_support_link = '#{entry_support_link}'
 
