@@ -8,7 +8,7 @@ module CohortColumns
   class FirstName < ReadOnly
     attribute :column, String, lazy: true, default: :first_name
     attribute :translation_key, String, lazy: true, default: 'First Name'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def column_editable?
       false
@@ -27,7 +27,7 @@ module CohortColumns
     end
 
     def display_read_only(user)
-      html = content_tag(:span, class: "hidden") do
+      html = content_tag(:span, class: 'hidden') do
         value(cohort_client)
       end
       if user.can_view_clients?

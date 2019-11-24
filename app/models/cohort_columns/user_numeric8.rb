@@ -8,6 +8,6 @@ module CohortColumns
   class UserNumeric8 < ::CohortColumns::Integer
     attribute :column, String, lazy: true, default: :user_numeric_8
     attribute :translation_key, String, lazy: true, default: 'User Numeric 9'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
   end
 end

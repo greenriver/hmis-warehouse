@@ -16,6 +16,7 @@ AllCops:
     - 'app/models/bo/**/*.rb'
     - 'app/models/cas/**/*.rb'
     - 'app/models/censuses/**/*.rb'
+    - 'app/models/cohort_columns/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
     - 'lib/**/*.rb'
@@ -138,8 +139,7 @@ Lint/UnusedMethodArgument:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
 
 Style/DoubleNegation:
-  Exclude:
-    - 'lib/rds_sql_server/rds.rb'
+  Enabled: false
 
 Style/WordArray:
   EnforcedStyle: brackets

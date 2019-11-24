@@ -6,15 +6,13 @@
 
 module CohortColumns
   class Select < Base
-
-    
     def default_input_type
       :select2
     end
-    
-    def display_for user
+
+    def display_for(user)
       if display_as_editable?(user, cohort_client)
-        select(form_group, column, available_options, {include_blank: true, selected: value(cohort_client)}, {class: ['select2', input_class]})
+        select(form_group, column, available_options, { include_blank: true, selected: value(cohort_client) }, class: ['select2', input_class])
       else
         display_read_only(user)
       end
@@ -24,15 +22,14 @@ module CohortColumns
       'dropdown'
     end
 
-    def display_read_only user
+    def display_read_only(_user)
       value(cohort_client)
     end
-    
+
     def available_options
-      Rails.cache.fetch("available_options_for_#{self.column}", expires_in: 5.minutes) do
-        GrdaWarehouse::CohortColumnOption.where(cohort_column: self.column, active: true).order(value: :asc).pluck(:value) 
+      Rails.cache.fetch("available_options_for_#{column}", expires_in: 5.minutes) do
+        GrdaWarehouse::CohortColumnOption.where(cohort_column: column, active: true).order(value: :asc).pluck(:value)
       end
     end
-    
   end
 end

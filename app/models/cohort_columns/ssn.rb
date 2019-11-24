@@ -8,7 +8,7 @@ module CohortColumns
   class Ssn < ReadOnly
     attribute :column, String, lazy: true, default: :ssnumber
     attribute :translation_key, String, lazy: true, default: 'SSN'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def value(cohort_client)
       ssn(cohort_client.client.SSN)

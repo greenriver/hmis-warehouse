@@ -8,7 +8,7 @@ module CohortColumns
   class RrhSsvfEligible < ReadOnly
     attribute :column, String, lazy: true, default: :rrh_ssvf_eligible
     attribute :translation_key, String, lazy: true, default: 'SSVF Eligible (from RRH Assessment)'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def renderer
       'html'
@@ -18,7 +18,7 @@ module CohortColumns
       checkmark_or_x text_value(cohort_client)
     end
 
-    def text_value cohort_client
+    def text_value(cohort_client)
       cohort_client.client.ssvf_eligible
     end
   end
