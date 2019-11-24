@@ -9,7 +9,11 @@
   %tbody
     - @clients.each do |service|
       %tr
-        %td= link_to_if can_view_clients_or_window?, service.client.name, client_path(service.client)
+        %td
+          - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
+            = link_to_if can_view_clients_or_window?, service.client.name, client_path(service.client)
+          - else
+            Confidential Client
         %td= service.first_date_in_program
         %td= service.last_date_in_program
 %p= paginate @clients

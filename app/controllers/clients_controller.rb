@@ -274,7 +274,7 @@ class ClientsController < ApplicationController
   end
   helper_method :dp
 
-  def user_can_view_confidential_names?
+  def can_view_confidential_enrollment_details?
     can_view_projects? && can_view_clients?
   end
 end

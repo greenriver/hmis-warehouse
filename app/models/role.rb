@@ -377,6 +377,10 @@ class Role < ActiveRecord::Base
         description: 'This permission grants access to run all HUD reports, limited by data access assignments.  Users can only see results for HUD reports they initiated.',
         administrative: false,
       },
+      can_view_confidential_enrollment_details: {
+        description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
+        administrative: true,
+      },
     }
   end
 
