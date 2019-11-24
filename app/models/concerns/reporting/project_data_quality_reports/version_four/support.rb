@@ -4,17 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reporting::ProjectDataQualityReports::VersionFour::Support
+module Reporting::ProjectDataQualityReports::VersionFour::Support # rubocop:disable Style/ClassAndModuleChildren
   extend ActiveSupport::Concern
   include ActionView::Helpers
   include ActionView::Context
   included do
-
-    def support_for options
+    def support_for(options)
       return {} unless options[:method].present?
-      return {} unless support_method_whitelist.detect{ |m| m == options[:method].to_sym }
+      return {} unless support_method_whitelist.detect { |m| m == options[:method].to_sym }
+
       support_method = "#{options[:method]}_support"
-      self.send(support_method, options)
+      send(support_method, options)
     end
 
     def support_method_whitelist
@@ -43,7 +43,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       ]
     end
 
-    def enrolled_clients_support options
+    def enrolled_clients_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.pluck(*enrollment_support_columns.values),
@@ -51,7 +51,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def enrolled_households_support options
+    def enrolled_households_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: enrolled_household_heads.pluck(*enrollment_support_columns.values),
@@ -59,7 +59,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def active_clients_support options
+    def active_clients_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: active_clients.pluck(*enrollment_support_columns.values),
@@ -67,7 +67,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def active_households_support options
+    def active_households_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: active_households.pluck(*enrollment_support_columns.values),
@@ -75,7 +75,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def entering_clients_support options
+    def entering_clients_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: entering_clients.pluck(*enrollment_support_columns.values),
@@ -83,7 +83,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def entering_households_support options
+    def entering_households_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: entering_households.pluck(*enrollment_support_columns.values),
@@ -91,7 +91,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def exiting_clients_support options
+    def exiting_clients_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: exiting_clients.pluck(*enrollment_support_columns.values),
@@ -99,7 +99,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def exiting_households_support options
+    def exiting_households_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: exiting_households.pluck(*enrollment_support_columns.values),
@@ -107,7 +107,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def dob_after_entry_support options
+    def dob_after_entry_support(_options)
       {
         headers: client_support_columns.keys,
         counts: enrolled_clients.where(dob_after_entry_date: true).
@@ -116,7 +116,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def final_month_service_support options
+    def final_month_service_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(service_within_last_30_days: false).
@@ -125,7 +125,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def service_after_exit_date_support options
+    def service_after_exit_date_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: exiting_clients.where(service_after_exit: true).
@@ -134,7 +134,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def move_in_date_after_threshold_support options
+    def move_in_date_after_threshold_support(_options)
       {
         headers: ph_support_columns.keys,
         counts: move_in_date_above_threshold.pluck(*ph_support_columns.values),
@@ -142,7 +142,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def household_type_mismatch_support options
+    def household_type_mismatch_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(incorrect_household_type: true).
@@ -151,7 +151,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def enrollments_with_no_service_support options
+    def enrollments_with_no_service_support(_options)
       {
         headers: enrollment_support_columns.keys,
         counts: enrolled_clients.where(days_of_service: 0).
@@ -160,28 +160,22 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def project_completeness_support options
+    def project_completeness_support(options)
       key = options[:column].to_sym
       metric = completeness_metrics[key]
       measure = options[:metric].to_sym
       title = "#{metric[:label]} #{options[:metric].humanize}"
       denominator = metric[:denominator]
       count_scope = send(denominator).where("#{key}_#{measure}" => true)
-      if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
-        count_scope = count_scope.where(project_id: options[:selected_project_id].to_i)
-      end
+      count_scope = count_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       support = {
         headers: completeness_support_columns(key).keys,
         counts: count_scope.pluck(*completeness_support_columns(key).values),
         title: title,
       }
-      if key == :ssn
-        support[:description] = ssn_warning_html
-      end
-      if key == :dob
-        support[:description] = dob_warning_html
-      end
-      return support
+      support[:description] = ssn_warning_html if key == :ssn
+      support[:description] = dob_warning_html if key == :dob
+      support
     end
 
     def ssn_warning_html
@@ -193,7 +187,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
             ::HUD.describe_valid_social_rules.map do |rule|
               content_tag(:li, rule)
             end.join.html_safe
-          end
+          end,
         ].join.html_safe
       end
     end
@@ -207,16 +201,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
             ::HUD.describe_valid_dob_rules.map do |rule|
               content_tag(:li, rule)
             end.join.html_safe
-          end
+          end,
         ].join.html_safe
       end
     end
 
-    def average_time_to_enter_support options
+    def average_time_to_enter_support(options)
       enrollment_scope = enrolled_clients
-      if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
-        enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i)
-      end
+      enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       {
         headers: timeliness_support_columns.keys,
         counts: enrollment_scope.pluck(*timeliness_support_columns.values),
@@ -224,11 +216,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def average_time_to_exit_support options
+    def average_time_to_exit_support(options)
       enrollment_scope = exiting_clients
-      if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
-        enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i)
-      end
+      enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       {
         headers: timeliness_support_columns.keys,
         counts: enrollment_scope.pluck(*timeliness_support_columns.values),
@@ -236,13 +226,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def enrolled_length_of_stay_support options
-      bucket = self.class.length_of_stay_buckets.values.detect{ |r| r.to_s == options[:metric] }
+    def enrolled_length_of_stay_support(options)
+      bucket = self.class.length_of_stay_buckets.values.detect { |r| r.to_s == options[:metric] }
       return {} unless bucket.present?
+
       enrollment_scope = enrolled_clients.where(days_of_service: bucket)
-      if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
-        enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i)
-      end
+      enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       {
         headers: enrollment_support_columns.keys,
         counts: enrollment_scope.pluck(*enrollment_support_columns.values),
@@ -250,11 +239,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def ph_destinations_support options
+    def ph_destinations_support(options)
       enrollment_scope = exiting_clients.where(destination_id: HUD.permanent_destinations)
-      if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
-        enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i)
-      end
+      enrollment_scope = enrollment_scope.where(project_id: options[:selected_project_id].to_i) if options[:selected_project_id]&.to_i&.to_s == options[:selected_project_id]
       {
         headers: enrollment_support_columns.keys,
         counts: enrollment_scope.pluck(*enrollment_support_columns.values),
@@ -262,7 +249,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def retained_income_support options
+    def retained_income_support(options)
       included_clients = enrolled_clients.where.not(income_at_later_date_overall: nil)
       a_t = Reporting::DataQualityReports::Enrollment.arel_table
       where = case options[:metric].to_sym
@@ -273,11 +260,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       when :overall_income
         a_t[:income_at_later_date_overall].gteq(a_t[:income_at_penultimate_overall])
       when :earned_income_20
-        a_t[:income_at_later_date_earned].gt(a_t[:income_at_penultimate_earned] * Arel::Nodes::SqlLiteral.new('1.20') )
+        a_t[:income_at_later_date_earned].gt(a_t[:income_at_penultimate_earned] * Arel::Nodes::SqlLiteral.new('1.20'))
       when :non_employment_cash_income_20
         a_t[:income_at_later_date_non_employment_cash].gt(a_t[:income_at_penultimate_non_employment_cash] * Arel::Nodes::SqlLiteral.new('1.20'))
       when :overall_income_20
-        a_t[:income_at_later_date_overall].gt(a_t[:income_at_penultimate_overall] * Arel::Nodes::SqlLiteral.new('1.20') )
+        a_t[:income_at_later_date_overall].gt(a_t[:income_at_penultimate_overall] * Arel::Nodes::SqlLiteral.new('1.20'))
       end
       {
         headers: income_support_columns.keys,
@@ -286,16 +273,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def no_income_support options
+    def no_income_support(options)
       included_clients = enrollments.enrolled.adult_or_head_of_household
 
       ids = case options[:metric].to_sym
-        when :no_earned_income
-          clients_with_no_income[:earned]
-        when :no_non_employment_cash_income
-          clients_with_no_income[:non_employment_cash]
-        when :no_income_overall
-          clients_with_no_income[:overall]
+      when :no_earned_income
+        clients_with_no_income[:earned]
+      when :no_non_employment_cash_income
+        clients_with_no_income[:non_employment_cash]
+      when :no_income_overall
+        clients_with_no_income[:overall]
       end
       {
         headers: no_income_support_columns.keys,
@@ -346,7 +333,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
       }
     end
 
-    def completeness_support_columns column
+    def completeness_support_columns(column)
       @completeness_support_columns ||= client_support_columns
       case column
       when :dob
@@ -374,18 +361,18 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         @completeness_support_columns['Exit Response'] = :income_at_later_date_response
       else
         @completeness_support_columns[completeness_metrics[column][:label]] = column
-      # when :veteran
-      #   @completeness_support_columns['Veteran Status'] = :veteran_status
-      # when :ethnicity
-      #   @completeness_support_columns['Ethnicity'] = :ethnicity
-      # when :race
-      #   @completeness_support_columns['Ethnicity'] = :race
-      # when :disabling_condition
-      #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
-      # when :disabling_condition
-      #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
+        # when :veteran
+        #   @completeness_support_columns['Veteran Status'] = :veteran_status
+        # when :ethnicity
+        #   @completeness_support_columns['Ethnicity'] = :ethnicity
+        # when :race
+        #   @completeness_support_columns['Ethnicity'] = :race
+        # when :disabling_condition
+        #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
+        # when :disabling_condition
+        #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
       end
-      return @completeness_support_columns
+      @completeness_support_columns
     end
 
     def income_support_columns
@@ -428,7 +415,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
     end
 
     def timeliness_support_columns
-      @client_support_columns ||= {
+      @timeliness_support_columns ||= {
         'Client ID' => :client_id,
         'First Name' => :first_name,
         'Last Name' => :last_name,
@@ -441,6 +428,5 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support
         'Project' => :project_name,
       }
     end
-
   end
 end

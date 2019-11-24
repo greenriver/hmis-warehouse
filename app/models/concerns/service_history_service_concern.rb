@@ -36,7 +36,7 @@ module ServiceHistoryServiceConcern
       where(arel_table[:literally_homeless].eq(true))
     end
 
-    scope :homeless, -> (chronic_types_only: false) do
+    scope :homeless, ->(chronic_types_only: false) do
       if chronic_types_only
         where(arel_table[:literally_homeless].eq(true))
       else
@@ -52,15 +52,15 @@ module ServiceHistoryServiceConcern
       where(arel_table[:homeless].eq(false))
     end
 
-    scope :hud_homeless, -> (chronic_types_only: true) do
+    scope :hud_homeless, ->(chronic_types_only: true) do # rubocop:disable Lint/UnusedBlockArgument
       homeless(chronic_types_only: true)
     end
 
-    scope :in_project_type, -> (project_types) do
+    scope :in_project_type, ->(project_types) do
       where(project_type_column => project_types)
     end
 
-    scope :service_within_date_range, -> (start_date: , end_date: ) do
+    scope :service_within_date_range, ->(start_date:, end_date:) do
       at = arel_table
       service.where(at[:date].gteq(start_date).and(at[:date].lteq(end_date)))
     end
@@ -69,16 +69,14 @@ module ServiceHistoryServiceConcern
       service_in_prior_years(years: 3)
     }
 
-    scope :service_in_prior_years, -> (years: 3) do
+    scope :service_in_prior_years, ->(years: 3) do
       service_within_date_range(start_date: years.years.ago.to_date, end_date: Date.current)
     end
 
     def self.service_types
       service_types = ['service']
-      if GrdaWarehouse::Config.get(:so_day_as_month)
-        service_types << 'extrapolated'
-      end
-      return service_types
+      service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
+      service_types
     end
   end
 end

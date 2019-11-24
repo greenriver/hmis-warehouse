@@ -45,7 +45,7 @@ module PitPopulations
         multiple_races: {},
         chronically_homeless_persons: {},
       },
-      adults:{
+      adults: {
         total_number_of_households: {},
         number_of_youth: {},
         number_of_adults: {},
@@ -62,7 +62,7 @@ module PitPopulations
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
         chronically_homeless_persons: {},
-      }
+      },
     },
     homeless_sub: {
       homeless_subpopulations: {
@@ -74,7 +74,7 @@ module PitPopulations
         'adults with HIV/AIDS indefinite and impairs' => {},
         victims_of_domestic_violence: {},
         victims_of_domestic_violence_currently_fleeing: {},
-      }
+      },
     },
     youth: {
       unaccompanied_youth: {
@@ -114,7 +114,7 @@ module PitPopulations
         multiple_races: {},
         chronically_homeless_households: {},
         chronically_homeless_persons: {},
-      }
+      },
     },
     veteran: {
       veteran_family: {
@@ -154,46 +154,46 @@ module PitPopulations
         native_hawaiian_or_other_pacific_islander: {},
         multiple_races: {},
         chronically_homeless_persons: {},
-      }
+      },
     },
-  }
+  }.freeze
 
-  HOMELESS_BREAKDOWNS = [:es, :th, :so]
-  HOMELESS_CHILD_BREAKDOWNS = [:es, :th, :sh, :so]
-  HOMELESS_ADULT_BREAKDOWNS = [:es, :th, :sh, :so]
-  HOMELESS_SUB_BREAKDOWNS = [:es, :th, :sh, :so]
-  UNACCOMPANIED_YOUTH_BREAKDOWNS = [:es, :th, :sh, :so]
-  PARENTING_YOUTH_BREAKDOWNS = [:es, :th, :so]
-  VETERAN_FAMILY_BREAKDOWNS = [:es, :th, :so]
-  VETERAN_ADULT_BREAKDOWNS = [:es, :th, :sh, :so]
+  HOMELESS_BREAKDOWNS = [:es, :th, :so].freeze
+  HOMELESS_CHILD_BREAKDOWNS = [:es, :th, :sh, :so].freeze
+  HOMELESS_ADULT_BREAKDOWNS = [:es, :th, :sh, :so].freeze
+  HOMELESS_SUB_BREAKDOWNS = [:es, :th, :sh, :so].freeze
+  UNACCOMPANIED_YOUTH_BREAKDOWNS = [:es, :th, :sh, :so].freeze
+  PARENTING_YOUTH_BREAKDOWNS = [:es, :th, :so].freeze
+  VETERAN_FAMILY_BREAKDOWNS = [:es, :th, :so].freeze
+  VETERAN_ADULT_BREAKDOWNS = [:es, :th, :sh, :so].freeze
   included do
     def setup_answers
       @answers = POPULATIONS.deep_dup
-      @answers[:homeless][:family].each do |q, breakdowns|
-        breakdowns.merge!(HOMELESS_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:homeless][:family].each do |_q, breakdowns|
+        breakdowns.merge!(HOMELESS_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:homeless][:children].each do |q, breakdowns|
-        breakdowns.merge!(HOMELESS_CHILD_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:homeless][:children].each do |_q, breakdowns|
+        breakdowns.merge!(HOMELESS_CHILD_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:homeless][:adults].each do |q, breakdowns|
-        breakdowns.merge!(HOMELESS_ADULT_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:homeless][:adults].each do |_q, breakdowns|
+        breakdowns.merge!(HOMELESS_ADULT_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:homeless_sub].each do |tab, questions|
-        questions.each do |q, breakdowns|
-          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:homeless_sub].each do |_tab, questions|
+        questions.each do |_q, breakdowns|
+          breakdowns.merge!(HOMELESS_SUB_BREAKDOWNS.map { |m| [m, 0] }.to_h)
         end
       end
-      @answers[:youth][:youth_family].each do |q, breakdowns|
-        breakdowns.merge!(PARENTING_YOUTH_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:youth][:youth_family].each do |_q, breakdowns|
+        breakdowns.merge!(PARENTING_YOUTH_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:youth][:unaccompanied_youth].each do |q, breakdowns|
-        breakdowns.merge!(UNACCOMPANIED_YOUTH_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:youth][:unaccompanied_youth].each do |_q, breakdowns|
+        breakdowns.merge!(UNACCOMPANIED_YOUTH_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:veteran][:veteran_family].each do |q, breakdowns|
-        breakdowns.merge!(VETERAN_FAMILY_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:veteran][:veteran_family].each do |_q, breakdowns|
+        breakdowns.merge!(VETERAN_FAMILY_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
-      @answers[:veteran][:veteran_adults].each do |q, breakdowns|
-        breakdowns.merge!(VETERAN_ADULT_BREAKDOWNS.map{|m| [m, 0]}.to_h)
+      @answers[:veteran][:veteran_adults].each do |_q, breakdowns|
+        breakdowns.merge!(VETERAN_ADULT_BREAKDOWNS.map { |m| [m, 0] }.to_h)
       end
       @answers
     end
