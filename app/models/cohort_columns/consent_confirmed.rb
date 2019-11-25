@@ -15,7 +15,9 @@ module CohortColumns
     end
 
     def value cohort_client
-      checkmark_or_x text_value(cohort_client)
+      html = checkmark_or_x text_value(cohort_client)
+      html += content_tag(:span, cohort_client.client.release_current_status, class: "mp-2")
+      html
     end
 
     def text_value cohort_client

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191113130108) do
+ActiveRecord::Schema.define(version: 20191119200007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -306,6 +306,48 @@ ActiveRecord::Schema.define(version: 20191113130108) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "ed_ip_visit_files", force: :cascade do |t|
+    t.string   "type"
+    t.string   "file"
+    t.string   "content"
+    t.integer  "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ed_ip_visit_files", ["created_at"], name: "index_ed_ip_visit_files_on_created_at", using: :btree
+  add_index "ed_ip_visit_files", ["deleted_at"], name: "index_ed_ip_visit_files_on_deleted_at", using: :btree
+  add_index "ed_ip_visit_files", ["updated_at"], name: "index_ed_ip_visit_files_on_updated_at", using: :btree
+  add_index "ed_ip_visit_files", ["user_id"], name: "index_ed_ip_visit_files_on_user_id", using: :btree
+
+  create_table "ed_ip_visits", force: :cascade do |t|
+    t.integer  "ed_ip_visit_file_id",   null: false
+    t.string   "medicaid_id"
+    t.string   "last_name"
+    t.string   "first_name"
+    t.string   "gender"
+    t.date     "dob"
+    t.date     "admit_date"
+    t.date     "discharge_date"
+    t.string   "discharge_disposition"
+    t.string   "encounter_major_class"
+    t.string   "visit_type"
+    t.string   "encounter_facility"
+    t.string   "chief_complaint"
+    t.string   "diagnosis"
+    t.string   "attending_physician"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ed_ip_visits", ["created_at"], name: "index_ed_ip_visits_on_created_at", using: :btree
+  add_index "ed_ip_visits", ["deleted_at"], name: "index_ed_ip_visits_on_deleted_at", using: :btree
+  add_index "ed_ip_visits", ["ed_ip_visit_file_id"], name: "index_ed_ip_visits_on_ed_ip_visit_file_id", using: :btree
+  add_index "ed_ip_visits", ["medicaid_id"], name: "index_ed_ip_visits_on_medicaid_id", using: :btree
+  add_index "ed_ip_visits", ["updated_at"], name: "index_ed_ip_visits_on_updated_at", using: :btree
 
   create_table "eligibility_inquiries", force: :cascade do |t|
     t.date     "service_date",                               null: false

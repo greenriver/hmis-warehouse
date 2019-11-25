@@ -87,28 +87,28 @@ module GrdaWarehouse::Hud
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients
 
-    has_one :warehouse_client_source, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :source_id, inverse_of: :source
-    has_many :warehouse_client_destination, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :destination_id, inverse_of: :destination
+    has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+    has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
     has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
-    has_one :first_service_history, -> { where record_type: 'first' }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
+    has_one :first_service_history, -> { where record_type: 'first' }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
     has_one :api_id, class_name: 'GrdaWarehouse::ApiClientDataSourceId'
     has_many :eto_client_lookups, class_name: 'GrdaWarehouse::EtoQaaws::ClientLookup'
     has_many :eto_touch_point_lookups, class_name: 'GrdaWarehouse::EtoQaaws::TouchPointLookup'
-    has_one :hmis_client, class_name: GrdaWarehouse::HmisClient.name
+    has_one :hmis_client, class_name: 'GrdaWarehouse::HmisClient'
 
     has_many :service_history_enrollments
     has_many :service_history_services
-    has_many :service_history_entries, -> { entry }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
+    has_many :service_history_entries, -> { entry }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years
-    }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name
+    }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
-    has_many :enrollments, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client
@@ -159,8 +159,8 @@ module GrdaWarehouse::Hud
     has_many :source_enrollment_income_benefits, through: :source_enrollments, source: :income_benefits
     has_many :source_enrollment_services, through: :source_enrollments, source: :services
     has_many :source_client_attributes_defined_text, through: :source_clients, source: :client_attributes_defined_text
-    has_many :staff_x_clients, class_name: GrdaWarehouse::HMIS::StaffXClient.name, inverse_of: :client
-    has_many :staff, class_name: GrdaWarehouse::HMIS::Staff.name, through: :staff_x_clients
+    has_many :staff_x_clients, class_name: 'GrdaWarehouse::HMIS::StaffXClient', inverse_of: :client
+    has_many :staff, class_name: 'GrdaWarehouse::HMIS::Staff', through: :staff_x_clients
     has_many :source_api_ids, through: :source_clients, source: :api_id
     has_many :source_eto_client_lookups, through: :source_clients, source: :eto_client_lookups
     has_many :source_eto_touch_point_lookups, through: :source_clients, source: :eto_touch_point_lookups
@@ -170,23 +170,23 @@ module GrdaWarehouse::Hud
 
     has_many :cas_reports, class_name: 'GrdaWarehouse::CasReport', inverse_of: :client
 
-    has_many :chronics, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
+    has_many :chronics, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
 
     has_many :chronics_in_range, -> (range) do
       where(date: range)
-    end, class_name: GrdaWarehouse::Chronic.name, inverse_of: :client
-    has_one :patient, class_name: Health::Patient.name
+    end, class_name: 'GrdaWarehouse::Chronic', inverse_of: :client
+    has_one :patient, class_name: 'Health::Patient'
 
-    has_many :notes, class_name: GrdaWarehouse::ClientNotes::Base.name, inverse_of: :client
-    has_many :chronic_justifications, class_name: GrdaWarehouse::ClientNotes::ChronicJustification.name
-    has_many :window_notes, class_name: GrdaWarehouse::ClientNotes::WindowNote.name
-    has_many :anomaly_notes, class_name: GrdaWarehouse::ClientNotes::AnomalyNote.name
-    has_many :cohort_notes, class_name: GrdaWarehouse::ClientNotes::CohortNote.name
+    has_many :notes, class_name: 'GrdaWarehouse::ClientNotes::Base', inverse_of: :client
+    has_many :chronic_justifications, class_name: 'GrdaWarehouse::ClientNotes::ChronicJustification'
+    has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
+    has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
+    has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
 
-    has_many :anomalies, class_name: GrdaWarehouse::Anomaly.name
-    has_many :cas_houseds, class_name: GrdaWarehouse::CasHoused.name
+    has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
+    has_many :cas_houseds, class_name: 'GrdaWarehouse::CasHoused'
 
-    has_many :user_clients, class_name: GrdaWarehouse::UserClient.name
+    has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :users, through: :user_clients, inverse_of: :clients
 
     has_many :cohort_clients, dependent: :destroy
@@ -194,8 +194,8 @@ module GrdaWarehouse::Hud
 
     has_many :enrollment_change_histories
 
-    has_many :verification_sources, class_name: GrdaWarehouse::VerificationSource.name
-    has_many :disability_verification_sources, class_name: GrdaWarehouse::VerificationSource::Disability.name
+    has_many :verification_sources, class_name: 'GrdaWarehouse::VerificationSource'
+    has_many :disability_verification_sources, class_name: 'GrdaWarehouse::VerificationSource::Disability'
 
     # do not include ineligible clients for Sync with CAS
     def active_cohorts
@@ -512,7 +512,7 @@ module GrdaWarehouse::Hud
       start_age = 0 unless start_age.is_a?(Integer)
       end_age   = nil unless end_age.is_a?(Integer)
       if end_age.present?
-        where(DOB: (end_date - end_age.years)..(start_date - start_age.years))
+        where(DOB: (start_date - end_age.years)..(end_date - start_age.years))
       else
         where(arel_table[:DOB].lteq(start_date - start_age.years))
       end
@@ -1562,6 +1562,12 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def es_so_enrollments_with_service_since(user, date)
+      service_history_entries.visible_in_window_to(user).joins(:project).
+        hud_homeless.
+        service_within_date_range(start_date: date, end_date: Date.current).distinct
+    end
+
     def staff_types
       [:case_manager, :assigned_staff, :counselor, :outreach_counselor]
     end
@@ -2175,8 +2181,10 @@ module GrdaWarehouse::Hud
       self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
-        GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
-        GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
+        GrdaWarehouse::ClientMatch.processed_or_candidate.
+          where(source_client_id: m.id).destroy_all
+        GrdaWarehouse::ClientMatch.processed_or_candidate.
+          where(destination_client_id: m.id).destroy_all
       end
       moved
     end

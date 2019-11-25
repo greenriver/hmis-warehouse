@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
+require 'memoist'
 
 module GrdaWarehouse
   class Cohort < GrdaWarehouseBase

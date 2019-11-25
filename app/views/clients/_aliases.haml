@@ -4,7 +4,7 @@
     = "Marked deceased on: #{@client.deceased_on}"
 
 - if aliases.any?
-  %ul.client__aliases.d-flex.list-unstyled.mt-6
+  %ul.client__aliases.d-flex.list-unstyled.mb-0
     - aliases.each do |name|
       - sn = name[:ds]
       - full_name = name[:name]
@@ -13,3 +13,7 @@
           = sn
         %span.client__client-name-title
           = full_name
+%p
+  %em.text-muted
+    Client ID:
+    %strong= @client.id

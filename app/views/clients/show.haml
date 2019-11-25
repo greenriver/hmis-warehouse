@@ -30,10 +30,10 @@
   -# load in all the bits of aggregate statistics via ajax
   = content_for :page_js do
     - source_clients = @client.source_clients.preload(:data_source, :organizations)
-    - if can_view_clients?
+    - if can_view_confidential_names?
       - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h
     - else
-      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map{ |o| o.name unless source_clients.joins(enrollments: :project).where(Project: {OrganizationID: o.OrganizationID, data_source_id: o.data_source_id}).where(Project: {confidential: true}).any?}.to_sentence] ] }.to_h
+      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source.short_name, c.organizations.map{ |o| o.name unless source_clients.joins(enrollments: :project).where(Project: {OrganizationID: o.OrganizationID, data_source_id: o.data_source_id}).where(Project: {confidential: true}).any?}.compact.to_sentence] ] }.to_h
     :javascript
       var rollupPath = #{rollup_client_path(@client, partial: '').to_json};
       var clients = #{js_clients.to_json};

@@ -89,7 +89,6 @@ module Clients
     end
 
     private def set_client
-      # binding.pry
       @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
