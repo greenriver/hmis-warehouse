@@ -309,10 +309,11 @@ class Role < ActiveRecord::Base
         description: 'Required for access to reports assigned to a user',
         administrative: false,
       },
-      can_view_project_data_quality_client_details: {
-        description: 'Drill-down access to client level details on project data quality reports',
-        administrative: true,
-      },
+      # Removed 11/24/2019 -- no longer in use
+      # can_view_project_data_quality_client_details: {
+      #   description: 'Drill-down access to client level details on project data quality reports',
+      #   administrative: true,
+      # },
       # can_manage_organization_users: {
       #   description: 'Can assign users to organizations',
       #   administrative: true,
