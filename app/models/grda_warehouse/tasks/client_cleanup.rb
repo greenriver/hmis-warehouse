@@ -142,6 +142,7 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_dob(dest_attr, source_clients)
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
       dest_attr = choose_best_gender(dest_attr, source_clients)
+      dest_attr = choose_best_race(dest_attr, source_clients)
 
       dest_attr
     end
@@ -219,7 +220,7 @@ module GrdaWarehouse::Tasks
       # Get the best Gender (has 0..4, newest breaks the tie)
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
-      if !known_values.include?(dest_attr[:Gender]) or known_value_gender_clients.any?
+      if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
         known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
       end
@@ -227,8 +228,40 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_race dest_attr, source_clients
-      # FIXME: Most recent 0 or 1 if no 0 or 1 use the most recent value
+      # Most recent 0 or 1 if no 0 or 1 use the most recent value
+      # Valid responses for race categories are [0, 1, 99]
+      # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
+      known_values = [0, 1]
+      # Sort in reverse chronological order (newest first)
+      sorted_source_clients = source_clients.sort_by.sort{|a, b| b[:DateUpdated] <=> a[:DateUpdated]}
 
+      race_columns.each do |col|
+        sorted_source_clients.each do |source_client|
+          value = source_client[col]
+          current_value = dest_attr[col]
+          # if we have a 0 or 1 use it
+          # otherwise only replace if the current value isn't a 0 or 1
+          dest_attr[col] = if known_values.include?(value)
+            value
+          elsif !known_values.include?(current_value)
+            value
+          else
+            current_value
+          end
+
+          # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
+          # the destination client response
+          break if known_values.include?(value)
+
+        end
+      end
+      # if we still don't have any responses, use the most-recent RaceNone response
+      dest_attr[:RaceNone] = sorted_source_clients.first[:RaceNone] if dest_attr.values_at(*race_columns).any?(1)
+      dest_attr
+    end
+
+    private def race_columns
+      @race_columns ||= GrdaWarehouse::Hud::Client.race_fields.map(&:to_sym) - [:RaceNone]
     end
 
     def choose_best_ethnicity dest_attr, source_clients
@@ -274,7 +307,7 @@ module GrdaWarehouse::Tasks
               Hash[client_columns.keys.zip(row)]
             end
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
-          choose_attributes_from_sources(dest_attr, source_clients)
+          dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
@@ -318,6 +351,13 @@ module GrdaWarehouse::Tasks
         DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql,
         DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
         DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
+        AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative').to_sql,
+        Asian: cl(c_t[:Asian], 99).as('Asian').to_sql,
+        BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
+        NativeHIOtherPacific: cl(c_t[:NativeHIOtherPacific], 99).as('NativeHIOtherPacific').to_sql,
+        White: cl(c_t[:White], 99).as('White').to_sql,
+        RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
+        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,
       }
     end
 
