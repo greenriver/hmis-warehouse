@@ -34,7 +34,7 @@
               - displayed << enrollment.EnrollmentID
               %tr
                 %th{colspan: 10}
-                  = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_names?)
+                  = enrollment.project&.organization_and_name(include_confidential_names: can_view_confidential_enrollment_details?)
 
             %tr
               %td.id-sqr{ 'data-id' => enrollment.client.id }

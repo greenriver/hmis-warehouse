@@ -1,6 +1,7 @@
-- seen_before = ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
-- unless window
+- if can_view_confidential_enrollment_details?
   - seen_before = ( projects = @client.last_projects_served_by(include_confidential_names: true).select(&:present?) ).any?
+- else
+  - seen_before = ( projects = @client.last_projects_served_by.map(&:presence).compact ).any?
 
 - if @client.service_history_enrollments.empty?
   = "There is no service record for #{@client.name}"
@@ -37,10 +38,8 @@
 
       %li
         %h4 Veteran:
-        - if window
-          %span= yes_no @client.source_clients.visible_in_window_to(current_user).map(&:veteran?).include?(true)
-        - else
-          %span= yes_no @client.veteran?
+        %span= yes_no @client.source_clients.viewable_by(current_user).map(&:veteran?).include?(true)
+
       %li
         %h4 Disabled:
         %span= yes_no @client.currently_disabled?
