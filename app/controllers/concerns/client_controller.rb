@@ -240,7 +240,6 @@ module ClientController
 
     # ajaxy method to render a particular rollup table
     def rollup
-      @include_confidential_names = user_can_view_confidential_names?
       allowed_rollups = [
         '/clients/rollup/assessments',
         '/clients/rollup/verifications',
