@@ -273,8 +273,4 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
-
-  def can_view_confidential_enrollment_details?
-    can_view_projects? && can_view_clients?
-  end
 end
