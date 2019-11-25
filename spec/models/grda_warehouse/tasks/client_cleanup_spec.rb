@@ -310,7 +310,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
 
         it 'uses newest known race value' do
-          destination_client.update(Gender: 1)
+          destination_client.update(col => 1)
           source_1.update(col => 1, DateUpdated: 2.days.ago)
           source_2.update(col => 0, DateUpdated: 1.days.ago)
           @cleanup.update_client_demographics_based_on_sources
@@ -358,7 +358,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         end
 
         it "uses newest known #{col} value" do
-          destination_client.update(Gender: 1)
+          destination_client.update(col => 1)
           source_1.update(col => 1, DateUpdated: 2.days.ago)
           source_2.update(col => 0, DateUpdated: 1.days.ago)
           @cleanup.update_client_demographics_based_on_sources
