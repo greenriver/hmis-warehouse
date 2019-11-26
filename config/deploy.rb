@@ -19,7 +19,7 @@ else
   set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && #{fetch(:rvm_custom_path)}/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
 end
 
-if ENV['SYSTEMD_APP_SERVER_NAME']
+if ENV['SYSTEMD_APP_SERVER_NAME'] != ''
   # Assuming stand-alone app server
   after 'deploy:symlink:release', :restart_puma do
     on roles(:web)  do
