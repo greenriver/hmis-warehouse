@@ -1,5 +1,7 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+  deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
+  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
   config.cache_classes = true
