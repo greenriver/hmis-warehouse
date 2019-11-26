@@ -22,7 +22,7 @@ module Health
     end
 
     def url
-      warehouse_reports_health_ssm_exports_url(host: ENV.fetch('HOSTNAME'))
+      warehouse_reports_health_ssm_exports_url(host: ENV.fetch('FQDN'))
     end
 
     def status
