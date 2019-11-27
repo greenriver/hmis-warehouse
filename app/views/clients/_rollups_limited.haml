@@ -22,7 +22,7 @@
       = render 'clients/ongoing_enrollments_limited'
     .client__recent-es-so.mt-6
       %h3 Recent Unsheltered Contacts
-      = render 'clients/recent_es_so'
+      = render 'clients/recent_es_so', client: @client
 - if GrdaWarehouse::Config.get(:eto_api_available)
   .row
     .col-sm-6
