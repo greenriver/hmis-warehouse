@@ -22,8 +22,9 @@
     - if can_see_raw_hmis_data?
       = link_to 'HMIS', hmi_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
 
-  %td
-    = checkmark project.confidential
+  %td.text-center
+    %span{data: {toggle: :tooltip, title: project.confidential_hint}}
+      = checkmark project.confidential
 
   %td
     .d-flex

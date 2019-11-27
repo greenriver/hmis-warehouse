@@ -3,7 +3,7 @@
     .client__image{ style: "background-image: url(#{ image_client_path })" }
   %section.o-section-card.mb-0
     .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
-      = render 'clients/service_summary', window: ! can_view_confidential_names?
+      = render 'clients/service_summary'
 
     .d-flex.align-items-start.flex-wrap
       .client-consent-status.d-none--empty.mb-3.mr-8<
