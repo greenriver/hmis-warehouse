@@ -250,15 +250,15 @@ module Import::HMISSixOneOne::Shared # rubocop:disable Style/ClassAndModuleChild
       to_add.each_slice(200) do |batch|
         new.insert_batch(self, headers, batch.map(&:values), transaction: false)
         stats[:lines_added] += batch.size
-      rescue Exception => exception
+      rescue Exception
         message = "Failed to add batch for #{name}, attempting individual inserts"
         stats[:errors] << { message: message, line: '' }
         Rails.logger.warn(message)
         # Try again to add the individual batch
         batch.each do |row|
           create(row)
-        rescue Exception
-          message = "Failed to add #{name}: #{exception.message}; giving up on this one."
+        rescue Exception => e
+          message = "Failed to add #{name}: #{e.message}; giving up on this one."
           stats[:errors] << { message: message, line: row.inspect }
           Rails.logger.warn(message)
         end

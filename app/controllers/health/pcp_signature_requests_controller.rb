@@ -59,7 +59,7 @@ module Health
         respond_with(@signature_request, location: polymorphic_path(careplans_path_generator, client_id: @client.id))
       else
         render(:new)
-        return
+        nil
       end
     end
 

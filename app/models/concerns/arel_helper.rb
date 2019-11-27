@@ -58,7 +58,7 @@ module ArelHelper
       self.class.acase conditions, elsewise: elsewise
     end
 
-    def cast(exp, as) # rubocop:disable Naming/UncommunicativeMethodParamName
+    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
       self.class.cast exp, as
     end
 
@@ -358,7 +358,7 @@ module ArelHelper
     end
 
     # bonk out a type casting
-    def cast(exp, as) # rubocop:disable Naming/UncommunicativeMethodParamName
+    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]

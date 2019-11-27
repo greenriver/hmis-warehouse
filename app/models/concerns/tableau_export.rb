@@ -54,7 +54,7 @@ module TableauExport
         coc_code: ec_t[:CoCCode], # in use
         coc_name: nil, # in use
       }
-      repeaters     = [:prog, :entry, :exit, :destination, :coc_code, :coc_name]
+      repeaters = [:prog, :entry, :exit, :destination, :coc_code, :coc_name]
       non_repeaters = spec.keys - repeaters
 
       scope = model.

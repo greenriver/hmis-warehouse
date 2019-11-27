@@ -65,8 +65,10 @@ module Censuses
 
         # only show the all sources summary if there is more than one source
         if @shape.count > 1
-          compute_dimension(start_date, end_date, 'all', 'all', 'all',
-            'All Programs from All Sources', GrdaWarehouse::Census::ByProject.night_by_night)
+          compute_dimension(
+            start_date, end_date, 'all', 'all', 'all',
+            'All Programs from All Sources', GrdaWarehouse::Census::ByProject.night_by_night
+          )
         end
       end
       @shape
@@ -206,7 +208,7 @@ module Censuses
           counts[date] += inventory.beds if inventory.Availability.present? && inventory.Availability != 1
         end
       end
-      counts.values.sum.to_f / counts.values.count.to_f
+      counts.values.sum.to_f / counts.values.count
     end
   end
 end

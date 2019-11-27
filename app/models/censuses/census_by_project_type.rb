@@ -125,10 +125,15 @@ module Censuses
       GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do |project_type|
         next unless clients[project_type].present? && !clients[project_type].empty?
 
-        add_combined_dimension(clients[project_type], (GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]).to_s,
-          GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
-        add_trend_dimension(compute_trend(clients[project_type]), "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]} trend",
-          GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type])
+        add_combined_dimension(
+          clients[project_type],
+          (GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]).to_s,
+          GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type],
+        )
+        add_trend_dimension(
+          compute_trend(clients[project_type]), "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]} trend",
+          GrdaWarehouse::Hud::Project::PROJECT_TYPE_COLORS[project_type]
+        )
       end
 
       totals = total.map { |date, value| { x: date, y: value } }
