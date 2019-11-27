@@ -2184,8 +2184,10 @@ module GrdaWarehouse::Hud
       self.class.clear_view_cache(other_client.id)
       # un-match anyone who we just moved so they don't show up in the matching again until they've been checked
       moved.each do |m|
-        GrdaWarehouse::ClientMatch.where(source_client_id: m.id).destroy_all
-        GrdaWarehouse::ClientMatch.where(destination_client_id: m.id).destroy_all
+        GrdaWarehouse::ClientMatch.processed_or_candidate.
+          where(source_client_id: m.id).destroy_all
+        GrdaWarehouse::ClientMatch.processed_or_candidate.
+          where(destination_client_id: m.id).destroy_all
       end
       moved
     end

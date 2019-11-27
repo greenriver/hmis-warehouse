@@ -4,5 +4,5 @@
   .o-page__header
     %h1= title
   = render 'clients/breadcrumbs'
-  = render 'clients/tab_navigation', current: polymorphic_path(goals_path_generator)
+  = render 'clients/tab_navigation', current: polymorphic_path(goals_path_generator, client_id: @client)
   = render 'goals', fullscreen: true, enabled: true

@@ -36,9 +36,11 @@
           %span.badge.badge-primary{data: {status: status}}= count
 - if @matches.empty?
   %p There are no #{@status} client matches at this time.
-- @matches.group_by{|m| m.destination_client.destination_client}.each do |dest, matches|
+
+- @matches.group_by{|m| m.destination_client}.each do |dest, matches|
   .merge-row
     %h4
+      - next unless dest
       = dest.full_name
       = link_to client_path(dest.id) do
         %span{data: {toggle: :tooltip, title: "Warehouse record for #{dest.full_name}."}}

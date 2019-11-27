@@ -3,10 +3,11 @@
 .row
   .col-sm-8
     %h1= content_for :title
-  .col-sm-4.text-right
-    = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
-      %i.icon-pencil
-      Edit Project
+  - if can_edit_projects?
+    .col-sm-4.text-right
+      = link_to edit_project_path(@project), class: ['btn', 'btn-sm', 'btn-secondary'] do
+        %i.icon-pencil
+        Edit Project
 .row
   .col-sm-8
     %table.table.table-sm.table-hover
@@ -70,7 +71,8 @@
           %th Project Contacts
           %td= link_to 'View/Edit', project_contacts_path(@project)
       %tr
-        %th Confidential Project?
+        %th
+          %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
         %td= checkmark @project.confidential?
       - if @project.data_quality_reports.any?
         %tr

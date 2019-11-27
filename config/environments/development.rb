@@ -29,7 +29,7 @@ Rails.application.configure do
 
   if ENV['SMTP_SERVER'] && ENV['SMTP_USERNAME'] && ENV['SMTP_PASSWORD']
     config.action_mailer.delivery_method = :smtp
-    config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], protocol: 'http'}
+    config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'http'}
     config.action_mailer.smtp_settings = {
       address: ENV['SMTP_SERVER'],
       port: 587,
@@ -57,6 +57,7 @@ Rails.application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = true
+  # config.action_controller.asset_host = ENV['FQDN']
 
   # Suppress logger output for asset requests.
   config.assets.quiet = true
@@ -65,7 +66,7 @@ Rails.application.configure do
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
-  config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], port: ENV['PORT'] }
+  config.action_mailer.default_url_options = { host: ENV['FQDN'], port: ENV['PORT'] }
 
   # don't need email sandbox with letter opener
   config.sandbox_email_mode = true
