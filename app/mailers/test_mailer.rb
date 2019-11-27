@@ -16,7 +16,7 @@ class TestMailer < ApplicationMailer
       to: [email],
       subject: 'test',
     ) do |format|
-      format.text { render plain: "Test #{SecureRandom.hex(6)}" }
+      format.text { render plain: "Test #{SecureRandom.hex(6)} Try this: #{clients_url}" }
     end
   end
 end
