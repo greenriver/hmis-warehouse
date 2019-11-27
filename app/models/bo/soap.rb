@@ -39,12 +39,12 @@ module Bo
     end
 
     def data_from(url, xml)
-      response = request url, xml
-      raise RequestFailed, "Failed to request #{url}; #{response.response_code} http code" unless got_response?
+      response = request(url, xml)
+      raise RequestFailed, "Failed to request #{url}; #{response.response_code} http code" unless got_response?(response)
 
       parsed_result = Hash.from_xml(response.body_str)
       begin
-        table = parsed_result['Envelope']['Body']['runQueryAsAServiceResponse']['table']
+        table = parsed_result.dig('Envelope', 'Body', 'runQueryAsAServiceResponse', 'table')
         return [] if table.blank?
 
         table['row'].map do |row|
@@ -53,7 +53,6 @@ module Bo
           end.to_h
         end
       rescue StandardError
-        # raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code #{xml} #{parsed_result}"
         raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code"
       end
     end
