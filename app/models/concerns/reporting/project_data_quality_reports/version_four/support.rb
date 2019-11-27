@@ -361,16 +361,6 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support # rubocop:disa
         @completeness_support_columns['Exit Response'] = :income_at_later_date_response
       else
         @completeness_support_columns[completeness_metrics[column][:label]] = column
-        # when :veteran
-        #   @completeness_support_columns['Veteran Status'] = :veteran_status
-        # when :ethnicity
-        #   @completeness_support_columns['Ethnicity'] = :ethnicity
-        # when :race
-        #   @completeness_support_columns['Ethnicity'] = :race
-        # when :disabling_condition
-        #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
-        # when :disabling_condition
-        #   @completeness_support_columns['Disabling Condition'] = :disabling_condition
       end
       @completeness_support_columns
     end
