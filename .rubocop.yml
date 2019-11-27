@@ -131,8 +131,9 @@ Style/AccessModifierDeclarations:
 Metrics/ModuleLength:
   Enabled: false
 
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
+  IndentationWidth: 2
 
 Style/RegexpLiteral:
   EnforcedStyle: slashes
@@ -166,4 +167,7 @@ Style/Lambda:
   Enabled: false
 
 Style/AsciiComments:
+  Enabled: false
+
+Style/OneLineConditional:
   Enabled: false
