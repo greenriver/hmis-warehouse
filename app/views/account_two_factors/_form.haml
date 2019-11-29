@@ -1,20 +1,26 @@
 - if @user.two_factor_enabled?
   .row
-    .col-6
+    .col-sm
       .alert.alert-info
         %p
-          Two-Factor Authentication is enabled for this account.
+          Two-Factor Authentication is
+          - if @user.enforced_2fa?
+            required and
+          enabled for this account.
       %p
-        You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes, but note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
+        You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes.
+      %p
+        Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
       %p
         = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { confirm: 'Clicking OK below will invalidate any prior backup codes. Are you sure you would like to generate new codes?', loads_in_pjax_modal: true } do
           Generate Backup Codes
-    .col-6
-      .well
-        %p If Two-Factor Authentication is no longer necessary, you may disable it below.
-        = link_to account_two_factor_path, method: :delete, class: ['btn', 'btn-danger'] do
-          %i.icon-cross
-          Disable Two-Factor Authentication
+    - unless @user.enforced_2fa?
+      .col-sm
+        .well
+          %p If Two-Factor Authentication is no longer necessary, you may disable it below.
+          = link_to account_two_factor_path, method: :delete, class: ['btn', 'btn-danger'] do
+            %i.icon-cross
+            Disable Two-Factor Authentication
 - else
   .row
     .col-sm-8
