@@ -14,7 +14,14 @@
       %p
         = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { confirm: 'Clicking OK below will invalidate any prior backup codes. Are you sure you would like to generate new codes?', loads_in_pjax_modal: true } do
           Generate Backup Codes
-    - unless @user.enforced_2fa?
+    - if @user.enforced_2fa?
+      .col-sm
+        .well
+          %p Need to setup a new Two-Factor device? Clicking the button below will invalidate all current Two-Factor devices and allow you to setup a new device
+          = link_to account_two_factor_path, method: :delete, class: ['btn', 'btn-warning'], data: { confirm: 'Clicking OK below will invalidate all current Two-Factor devices and you will be required to setup a new device. Are you sure you would like to continue?' } do
+            %i.icon-settings_backup_restore
+            Setup New Device
+    - else
       .col-sm
         .well
           %p If Two-Factor Authentication is no longer necessary, you may disable it below.

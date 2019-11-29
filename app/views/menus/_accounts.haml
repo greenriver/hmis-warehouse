@@ -1,7 +1,7 @@
 %ul.o-menu__group.list-unstyled
   - if current_user.present?
     %li.o-menu__item.current_user-name.o-text--semibold
-      = @user.name
+      = current_user.name
   - if can_view_some_secure_files?
     %li.o-menu__item
       = link_to secure_files_path, class: 'o-menu__link' do
