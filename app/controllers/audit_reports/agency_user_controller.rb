@@ -31,7 +31,7 @@ module AuditReports
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
-          filename = "#{@agency.downcase.tr(' ', '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}"
+          filename = "#{@agency.downcase.tr(' ', '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
