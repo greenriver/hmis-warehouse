@@ -200,7 +200,7 @@ class ClientsController < ApplicationController
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
-      return
+      nil
     end
   end
 

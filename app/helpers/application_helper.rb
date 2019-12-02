@@ -219,7 +219,8 @@ module ApplicationHelper
   def embedded_svg(symbol_name, *args)
     options = args.extract_options!
     style = "height: #{options[:height]}; width: #{options[:width]}" if options[:height]
-    content_tag(:div,
+    content_tag(
+      :div,
       content_tag(
         :svg,
         content_tag(
@@ -232,7 +233,8 @@ module ApplicationHelper
         style: style,
       ),
       class: "icon-svg #{options[:wrapper_class]}",
-      style: style)
+      style: style,
+    )
   end
 
   def help_link

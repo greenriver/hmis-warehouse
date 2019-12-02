@@ -15,8 +15,8 @@ class SecureFilesController < ApplicationController
 
   def show
     send_data(@secure_file.content,
-      type: @secure_file.content_type,
-      filename: File.basename(@secure_file.file.to_s))
+              type: @secure_file.content_type,
+              filename: File.basename(@secure_file.file.to_s))
   end
 
   def destroy

@@ -13,14 +13,14 @@ module CohortColumns
     include ArelHelper
     attr_accessor :column, :translation_key, :title, :hint, :visible
     attribute :visible, Boolean, lazy: false, default: true
-    attribute :input_type, String, lazy: true, default: -> (r,_) { r.default_input_type }
+    attribute :input_type, String, lazy: true, default: ->(r, _) { r.default_input_type }
     attribute :cohort
     attribute :cohort_names
     attribute :cohort_client
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
 
-    def display_as_editable? user, cohort_client
+    def display_as_editable?(user, _cohort_client)
       # cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || ! cohort_client.ineligible? && editable)
       cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohorts? || editable)
     end
@@ -33,11 +33,11 @@ module CohortColumns
       :string
     end
 
-    def has_default_value?
+    def default_value?
       false
     end
 
-    def default_value client_id
+    def default_value(_client_id)
       nil
     end
 
@@ -70,7 +70,7 @@ module CohortColumns
       "cohort_client[#{cohort_client.id}]"
     end
 
-    def value cohort_client
+    def value(cohort_client)
       cohort_client.send(column)
     end
 

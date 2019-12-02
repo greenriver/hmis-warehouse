@@ -5,6 +5,5 @@ module Bo
     attr_encrypted :pass, key: ENV['ENCRYPTION_KEY']
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
-
   end
 end

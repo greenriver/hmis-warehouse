@@ -19,23 +19,27 @@ module ChaHelper
   end
 
   def cha_select(form_field, field)
-    form_field.input field,
+    form_field.input(
+      field,
       label: _("CHA #{field.upcase}"),
       collection: cha_options[field],
       selected: form_field.object.answer(field),
-      include_blank: true
+      include_blank: true,
+    )
   end
 
   def cha_radios(form_field, field)
     capture do
       concat content_tag(:h4, header_for(field))
       concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
-      concat form_field.input field,
+      concat form_field.input(
+        field,
         label: _("CHA #{field.upcase}"),
         as: :radio_buttons,
         collection: cha_options[field],
         checked: form_field.object.answer(field),
-        hint: hint_for(field)
+        hint: hint_for(field),
+      )
     end
   end
 
@@ -43,19 +47,23 @@ module ChaHelper
     capture do
       concat content_tag(:strong, header_for(field))
       concat content_tag(:p, subheader_for(field), class: 'cha__help-text')
-      concat form_field.input field,
+      concat form_field.input(
+        field,
         label: _("CHA #{field.upcase}"),
         as: :check_boxes,
         collection: cha_options[field],
-        checked: form_field.object.answer(field)
+        checked: form_field.object.answer(field),
+      )
     end
   end
 
   def cha_datepicker(form_field, field, input_html_options = {})
-    form_field.input field,
+    form_field.input(
+      field,
       label: _("CHA #{field.upcase}"),
       as: :date_picker,
-      input_html: input_html_options[:input_html] || { value: form_field.object.answer(field) }
+      input_html: input_html_options[:input_html] || { value: form_field.object.answer(field) },
+    )
   end
 
   def cha_string(form_field, field, input_html_options = {})
@@ -66,17 +74,21 @@ module ChaHelper
       if (subheader = subheader_for(field))
         concat content_tag(:p, raw(subheader), class: 'cha__help-text')
       end
-      concat form_field.input field,
+      concat form_field.input(
+        field,
         label: _("CHA #{field.upcase}"),
-        input_html: input_html_options[:input_html] || { value: form_field.object.answer(field) }
+        input_html: input_html_options[:input_html] || { value: form_field.object.answer(field) },
+      )
     end
   end
 
   def cha_text(form_field, field)
-    form_field.input field,
+    form_field.input(
+      field,
       label: _("CHA #{field.upcase}"),
       as: :text,
-      input_html: { value: form_field.object.answer(field) }
+      input_html: { value: form_field.object.answer(field) },
+    )
   end
 
   def header_for(field)

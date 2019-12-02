@@ -300,7 +300,7 @@ module DefaultFileTypes
           group: 'Document Type',
           note: 'Please specify contents under note',
           weight: 15,
-        }
+        },
       ]
     end
   end

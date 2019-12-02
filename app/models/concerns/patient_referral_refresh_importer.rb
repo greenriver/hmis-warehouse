@@ -32,6 +32,5 @@ module PatientReferralRefreshImporter
         exported_on: 'Export_Date',
       }
     end
-
   end
 end

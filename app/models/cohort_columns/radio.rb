@@ -6,22 +6,19 @@
 
 module CohortColumns
   class Radio < Base
-
-
     def default_input_type
       :radio_buttons
     end
 
     def available_options
-      {true => 'yes', false => 'no'}
+      { true => 'yes', false => 'no' }
     end
 
-    def display_for user
+    def display_for(user)
       value = value(cohort_client)
       if display_as_editable?(user, cohort_client)
         content_tag(:div, class: 'form-group cohort-client__input') do
-
-          available_options.map do |k,v|
+          available_options.map do |k, v|
             selected = if k == true
               !!value
             elsif k == false
@@ -43,9 +40,8 @@ module CohortColumns
       end
     end
 
-    def display_read_only user
+    def display_read_only(_user)
       available_options[value(cohort_client)]
     end
-    
   end
 end

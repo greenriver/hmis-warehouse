@@ -6,16 +6,15 @@
 
 module Censuses
   class CensusByProgram < ProgramBase
-
     # what projects should be included?
-    def census_projects_scope user:
+    def census_projects_scope(user:)
       GrdaWarehouse::Hud::Project.residential.
         viewable_by(user).
         order(:data_source_id, :OrganizationID)
     end
 
     # what data should be included?
-    def census_data_scope user:
+    def census_data_scope(user:)
       GrdaWarehouse::Census::ByProject.all.
         joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(user))
