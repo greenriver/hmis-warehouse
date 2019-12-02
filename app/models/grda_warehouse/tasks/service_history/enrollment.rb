@@ -117,12 +117,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
             insert = build_service_history_enrollment_insert(exit_record(date))
             service_history_enrollment_source.connection.insert(insert.to_sql)
           end
-
-          # sometimes we have enrollments for projects that no longer exist
-          return false unless project.present?
-          if days.any?
-            insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000)
-          end
+        end
+        # sometimes we have enrollments for projects that no longer exist
+        return false unless project.present?
+        if days.any?
+          insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000)
         end
       end
       update(processed_as: calculate_hash)
