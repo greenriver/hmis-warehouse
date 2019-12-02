@@ -17,9 +17,11 @@ module HealthFileController
 
     def download
       @file = @upload_object.health_file
-      send_data @file.content,
+      send_data(
+        @file.content,
         type: @file.content_type,
-        filename: File.basename(@file.file.to_s)
+        filename: File.basename(@file.file.to_s),
+      )
     end
 
     def remove_file

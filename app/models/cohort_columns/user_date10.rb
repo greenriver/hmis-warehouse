@@ -8,6 +8,6 @@ module CohortColumns
   class UserDate10 < CohortDate
     attribute :column, String, lazy: true, default: :user_date_10
     attribute :translation_key, String, lazy: true, default: 'User Date 10'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
   end
 end

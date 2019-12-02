@@ -286,7 +286,7 @@ module WarehouseReports
         GrdaWarehouse::Hud::Enrollment.arel_table
       end
 
-      def normalize_hash(h) # rubocop:disable Naming/UncommunicativeMethodParamName
+      def normalize_hash(h) # rubocop:disable Naming/MethodParameterName
         h = h.to_hash.first
         h.map { |k, v| [k.tr('_', ' '), v] }.to_h.with_indifferent_access
       end

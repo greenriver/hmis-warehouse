@@ -13,6 +13,13 @@ AllCops:
     - 'app/mail_interceptors/**/*.rb'
     - 'app/mailers/**/*.rb'
     # - 'app/models/**/*.rb'
+    - 'app/models/bo/**/*.rb'
+    - 'app/models/cas/**/*.rb'
+    - 'app/models/censuses/**/*.rb'
+    - 'app/models/cohort_columns/**/*.rb'
+    - 'app/models/concerns/**/*.rb'
+
+    - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
     - 'lib/**/*.rb'
@@ -124,8 +131,9 @@ Style/AccessModifierDeclarations:
 Metrics/ModuleLength:
   Enabled: false
 
-Layout/AlignParameters:
+Layout/ParameterAlignment:
   EnforcedStyle: with_fixed_indentation
+  IndentationWidth: 2
 
 Style/RegexpLiteral:
   EnforcedStyle: slashes
@@ -135,8 +143,7 @@ Lint/UnusedMethodArgument:
     - 'lib/rds_sql_server/hmis_sql_server.rb'
 
 Style/DoubleNegation:
-  Exclude:
-    - 'lib/rds_sql_server/rds.rb'
+  Enabled: false
 
 Style/WordArray:
   EnforcedStyle: brackets
@@ -154,4 +161,13 @@ Style/EmptyMethod:
   EnforcedStyle: expanded
 
 Layout/SpaceInsideRangeLiteral:
+  Enabled: false
+
+Style/Lambda:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/OneLineConditional:
   Enabled: false

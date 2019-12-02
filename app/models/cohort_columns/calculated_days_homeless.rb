@@ -8,7 +8,7 @@ module CohortColumns
   class CalculatedDaysHomeless < ReadOnly
     attribute :column, String, lazy: true, default: :calculated_days_homeless
     attribute :translation_key, String, lazy: true, default: 'Calculated Days Homeless*'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def description
       'Days homeless on the effective date, or today'
