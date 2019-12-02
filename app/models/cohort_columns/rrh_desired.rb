@@ -17,7 +17,7 @@ module CohortColumns
       checkmark_or_x text_value(cohort_client)
     end
 
-    def text_value cohort_client
+    def text_value(cohort_client)
       cohort_client.client.rrh_desired
     end
   end

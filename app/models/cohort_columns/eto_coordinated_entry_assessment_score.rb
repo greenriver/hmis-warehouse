@@ -8,7 +8,7 @@ module CohortColumns
   class EtoCoordinatedEntryAssessmentScore < ReadOnly
     attribute :column, String, lazy: true, default: :eto_coordinated_entry_assessment_score
     attribute :translation_key, String, lazy: true, default: 'Coordinated Entry Assessment Score'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def description
       'Most recent score from ETO'

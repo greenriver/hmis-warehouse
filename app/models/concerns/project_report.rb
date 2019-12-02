@@ -40,7 +40,7 @@ module ProjectReport
         joins(:enrollment).
         merge(
           GrdaWarehouse::Hud::Enrollment.
-            where(MoveInDate: (start_date..end_date))
+            where(MoveInDate: (start_date..end_date)),
         )
     end
 
@@ -53,7 +53,9 @@ module ProjectReport
     end
 
     def bed_utilization_percent(start_date:, end_date:)
-      (average_daily_client_counts(start_date: start_date, end_date: end_date).to_f / bed_inventory_counts(start_date: start_date, end_date: end_date) * 100).round rescue 'N/A'
+      (average_daily_client_counts(start_date: start_date, end_date: end_date).to_f / bed_inventory_counts(start_date: start_date, end_date: end_date) * 100).round
+    rescue StandardError
+      'N/A'
     end
 
     def day_count(start_date:, end_date:)
@@ -65,7 +67,7 @@ module ProjectReport
     end
 
     def inventory_scope(start_date:, end_date:)
-      self.inventories.merge(GrdaWarehouse::Hud::Inventory.within_range(start_date..end_date))
+      inventories.merge(GrdaWarehouse::Hud::Inventory.within_range(start_date..end_date))
     end
 
     def entering_scope(start_date:, end_date:)
@@ -95,6 +97,5 @@ module ProjectReport
     def service_source
       GrdaWarehouse::ServiceHistoryService
     end
-
   end
 end

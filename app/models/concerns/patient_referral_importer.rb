@@ -60,6 +60,5 @@ module PatientReferralImporter
         exported_on: 'Export_Date',
       }
     end
-
   end
 end

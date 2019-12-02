@@ -28,27 +28,19 @@ module CohortColumns
 
     def comments
       comments = ''
-      if inactive
-        comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n"
-      end
-      if cohort_client.ineligible?
-        comments += "Client ineligible\r\n"
-      end
-      return comments
+      comments += "No homeless service in #{@cohort.days_of_inactivity} days\r\n" if inactive
+      comments += "Client ineligible\r\n" if cohort_client.ineligible?
+      comments
     end
 
     def value(cohort_client) # OK
       html = ''
-      if inactive
-        html += content_tag(:i, ' ', class: "icon-warning warning")
-      end
-      if cohort_client.ineligible?
-        html += content_tag(:i, ' ', class: "icon-notification warning")
-      end
-      return html
+      html += content_tag(:i, ' ', class: 'icon-warning warning') if inactive
+      html += content_tag(:i, ' ', class: 'icon-notification warning') if cohort_client.ineligible?
+      html
     end
 
-    def text_value cohort_client
+    def text_value(_cohort_client)
       comments
     end
 
@@ -65,12 +57,12 @@ module CohortColumns
     end
 
     def inactivity_class
-      if inactive
-        'homeless_inactive'
-        ''
-      else
-        ''
-      end
+      ''
+      # if inactive
+      #   'homeless_inactive'
+      # else
+      #   ''
+      # end
     end
 
     def metadata
@@ -85,11 +77,11 @@ module CohortColumns
       }
     end
 
-    def display_for user
+    def display_for(_user)
       display_read_only
     end
 
-    def display_read_only user
+    def display_read_only(_user)
       value(cohort_client)
     end
   end

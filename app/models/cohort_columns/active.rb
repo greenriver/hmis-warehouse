@@ -8,13 +8,13 @@ module CohortColumns
   class Active < CohortBoolean
     attribute :column, Boolean, lazy: true, default: :active
     attribute :translation_key, String, lazy: true, default: 'Active'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
-    def has_default_value?
+    def default_value?
       true
     end
 
-    def default_value client_id
+    def default_value(_client_id)
       true
     end
   end

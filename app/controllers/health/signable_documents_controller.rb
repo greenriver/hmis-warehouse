@@ -78,14 +78,12 @@ module Health
 
       if @doc.signer_hash(params[:email]) == params[:hash] && ! @doc.expired? && ! @doc.signed?
         if @doc.signature_request&.pcp_request?
-          params[:post_sign_path] = polymorphic_path(
-            [:signed] + careplan_path_generator + [:signable_document],
-            client_id: params[:client_id],
-            careplan_id: params[:careplan_id],
-            id: @doc.id,
-            hash: params[:hash],
-            email: params[:email],
-          )
+          params[:post_sign_path] = polymorphic_path([:signed] + careplan_path_generator + [:signable_document],
+                                                     client_id: params[:client_id],
+                                                     careplan_id: params[:careplan_id],
+                                                     id: @doc.id,
+                                                     hash: params[:hash],
+                                                     email: params[:email])
         end
         @signature_request_url = @doc.signature_request_url(params[:email])
       elsif @doc.signed?
@@ -95,7 +93,7 @@ module Health
         @state = :expired
       else
         not_authorized!
-        return
+        nil
       end
     rescue HelloSign::Error, HelloSign::Error::Conflict
       render 'error'
