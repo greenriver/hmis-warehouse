@@ -23,7 +23,7 @@ module HealthGoal
     @goal = Health::Goal::Hpc.create(opts)
     if ! request.xhr?
       respond_with(@goal, location: after_path)
-      return
+      nil
     else
       render 'health/goals/create'
     end
@@ -39,7 +39,7 @@ module HealthGoal
     @goal.update(goal_params)
     if ! request.xhr?
       respond_with(@goal, location: after_path)
-      return
+      nil
     else
       render 'health/goals/update'
     end

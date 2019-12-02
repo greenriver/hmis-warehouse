@@ -9,8 +9,10 @@ class Users::SessionsController < Devise::SessionsController
 
   skip_before_action :check_two_factor_requirement, only: [:destroy]
 
-  prepend_before_action :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? }
+  prepend_before_action(
+    :authenticate_with_two_factor,
+    if: -> { action_name == 'create' && two_factor_enabled? },
+  )
 
   def create
     super do |resource|

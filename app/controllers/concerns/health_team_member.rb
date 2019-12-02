@@ -23,7 +23,7 @@ module HealthTeamMember
     if ! request.xhr?
       @member = klass.create(opts)
       respond_with(@member, location: after_path)
-      return
+      nil
     else
       @new_member = klass.create(opts)
     end

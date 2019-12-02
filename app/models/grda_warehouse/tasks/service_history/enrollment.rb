@@ -118,7 +118,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
             service_history_enrollment_source.connection.insert(insert.to_sql)
           end
         end
-
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
         if days.any?
@@ -129,7 +128,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return true
     end
 
-    def set_entry_record_id
+    def entry_record_id
       @entry_record_id ||= service_history_enrollment.id
     end
 
@@ -222,12 +221,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present? && service_history_enrollment.present?
-      set_entry_record_id()
 
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         where(
           record_type: :service,
-          service_history_enrollment_id: @entry_record_id
+          service_history_enrollment_id: entry_record_id()
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -235,10 +233,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def extrapolated_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
-      set_entry_record_id()
+
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
-          service_history_enrollment_id: @entry_record_id
+          service_history_enrollment_id: entry_record_id()
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -346,9 +344,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def default_service_day
-      set_entry_record_id()
       @default_service_day ||= {
-        service_history_enrollment_id: @entry_record_id,
+        service_history_enrollment_id: entry_record_id(),
         date: nil,
         service_type: nil,
         age: nil,
