@@ -38,7 +38,7 @@
 
       %li
         %h4 Veteran:
-        %span= yes_no @client.source_clients.viewable_by(current_user).map(&:veteran?).include?(true)
+        %span= yes_no @client.veteran?
 
       %li
         %h4 Disabled:
