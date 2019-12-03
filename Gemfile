@@ -12,7 +12,7 @@ gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 5.2'
+gem "rails", '5.2.3'
 gem "bootsnap"
 gem 'bcrypt'
 gem "haml-rails"
