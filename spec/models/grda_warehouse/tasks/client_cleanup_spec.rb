@@ -715,7 +715,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         it "overwrites nil #{col} if something is non-blank" do
           source_1.update(col => nil, DateUpdated: 3.days.ago)
           source_2.update(col => 99, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -727,7 +727,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 1
           source_1.update(col => 99, DateUpdated: 3.days.ago)
           source_2.update(col => 8, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -739,7 +739,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 0
           source_1.update(col => 1, DateUpdated: 1.day.ago)
           source_2.update(col => 0, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -751,7 +751,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 0
           source_1.update(col => 0, DateUpdated: 2.days.ago)
           source_2.update(col => 1, DateUpdated: 1.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -765,7 +765,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
         it "overwrites nil #{col} if something is non-blank" do
           source_1.update(col => nil, DateUpdated: 3.days.ago)
           source_2.update(col => 99, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -777,7 +777,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 1
           source_1.update(col => 99, DateUpdated: 3.days.ago)
           source_2.update(col => 8, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -789,7 +789,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 0
           source_1.update(col => 1, DateUpdated: 1.day.ago)
           source_2.update(col => 0, DateUpdated: 2.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
@@ -801,7 +801,7 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
           @dest_attr[col] = 0
           source_1.update(col => 0, DateUpdated: 2.days.ago)
           source_2.update(col => 1, DateUpdated: 1.days.ago)
-          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values).map do |row|
+          client_sources = GrdaWarehouse::Hud::Client.where(id: [source_1.id, source_2.id]).pluck(*@cleanup.client_columns.values.map { |column| Arel.sql(column) }).map do |row|
             Hash[@cleanup.client_columns.keys.zip(row)]
           end
 
