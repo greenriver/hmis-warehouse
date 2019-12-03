@@ -63,7 +63,10 @@ module Reporting::MonthlyReports
     end
 
     def remove_unused_client_ids
-      self.class.where.not(client_id: Reporting::MonthlyClientIds.distinct.select(:client_id)).delete_all
+      self.class.where.not(client_id:
+        Reporting::MonthlyClientIds.where(report_type: self.class.name).
+          distinct.select(:client_id)
+      ).delete_all
     end
 
     def populate_used_client_ids
