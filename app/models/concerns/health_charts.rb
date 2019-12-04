@@ -203,7 +203,7 @@ module HealthCharts
     def load_health_self_sufficiency_old_object_scores(assessment)
       # client.self_sufficiency_assessments
       scores = []
-      if assessment.answers[:sections].positive?
+      if assessment.answers[:sections].count.positive?
         scores = assessment.answers[:sections].first[:questions].select do |row|
           ssm_question_titles.include?(row[:question])
         end.map do |row|
