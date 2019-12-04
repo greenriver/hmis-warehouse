@@ -6,8 +6,7 @@
 
 module Health::Tasks
   class CheckPatientEligibility
-
-    def check(eligibility_date, batch_size:, test: false)
+    def check(eligibility_date, batch_size:, user: nil, test: false)
       patients = Health::EligibilityInquiry.patients.order(:id)
       offset = 0
       loop do
@@ -26,14 +25,14 @@ module Health::Tasks
           Health::EligibilityResponse.create(
             eligibility_inquiry: inquiry,
             response: result.response,
-            user: nil,
+            user: user,
           )
           Health::FlagIneligiblePatientsJob.perform_later(inquiry.id)
         else
           Health::EligibilityResponse.create(
             eligibility_inquiry: inquiry,
             response: result.error_message,
-            user: nil,
+            user: user,
           )
         end
       end

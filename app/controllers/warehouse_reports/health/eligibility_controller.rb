@@ -27,10 +27,14 @@ module WarehouseReports::Health
     end
 
     def create
-      eligibility_date = create_params[:eligibility_date]&.to_date
-      @report = Health::EligibilityInquiry.create(service_date: eligibility_date)
-      @report.build_inquiry_file
-      @report.save
+      if params[:commit] == 'Generate Eligibility File'
+        eligibility_date = create_params[:eligibility_date]&.to_date
+        @report = Health::EligibilityInquiry.create(service_date: eligibility_date)
+        @report.build_inquiry_file
+        @report.save
+      else
+        Health::CheckPatientEligibilityJob.perform_now(create_params[:eligibility_date], current_user)
+      end
       redirect_to action: :index
     end
 
