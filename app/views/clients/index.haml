@@ -25,7 +25,7 @@
         = _('Process Duplicates')
 
   .table-utilities
-    - if params.permit![:q].present?
+    - if params[:q].present?
       %p.mr-5= page_entries_info @clients, entry_name: _('client')
       .client__current-sort-filter
         Currently sorted by:

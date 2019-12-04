@@ -15,7 +15,7 @@
       .col-sm-6
         Limit by population
         %p.help-block.label-helper.label-helper--info Multiple selections combine scopes. For example: "Individual Adults" who are also "Veterans"
-        = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params.permit![:actives_population]), class: 'select2', style: 'width: 100%;', multiple: true, include_blank: 'All Clients')
+        = select_tag('actives[actives_population]', options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.except('All Clients', 'Non-Veterans'), :last, :first, params[:actives_population]), class: 'select2', style: 'width: 100%;', multiple: true, include_blank: 'All Clients')
     .row.mt-4
       .col-sm-8
         %p

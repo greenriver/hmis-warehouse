@@ -15,12 +15,12 @@
     = form_tag(nil, method: "get") do
 
       -# preserve sort and search for filtering
-      - if params.permit![:sort]
-        = hidden_field_tag :sort, params.permit![:sort]
-      - if params.permit![:direction]
-        = hidden_field_tag :direction, params.permit![:direction]
-      - if params.permit![:q]
-        = hidden_field_tag :q, params.permit![:q]
+      - if params[:sort]
+        = hidden_field_tag :sort, params[:sort]
+      - if params[:direction]
+        = hidden_field_tag :direction, params[:direction]
+      - if params[:q]
+        = hidden_field_tag :q, params[:q]
 
       .o-filtration__option.row
         .col-sm-12
@@ -39,16 +39,16 @@
       .o-filtration__option.row.mb-4
         .col-sm-4.mb-3
           %label Data Source
-          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.source.viewable_by(current_user).each, :id, :name, params.permit![:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
+          = select_tag(:data_source_id, options_from_collection_for_select(GrdaWarehouse::DataSource.source.viewable_by(current_user).each, :id, :name, params[:data_source_id]), include_blank: 'All Data Sources', class: 'select2', style: 'width: 100%;')
 
         - if can_view_vspdat?
           .col-sm-4.mb-3
             %label VSPDAT Vulnerability
-            = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params.permit![:vulnerability]), class: 'select2', style: 'width: 100%;')
+            = select_tag(:vulnerability, options_from_collection_for_select({'' => 'All Vulnerabilities', low: 'Low Vulnerabilty', medium: 'Medium Vulnerabilty', high: 'High Vulnerabilty', all: 'All Clients with VI-SPDATs'}, :first, :last, params[:vulnerability]), class: 'select2', style: 'width: 100%;')
 
         .col-sm-4.mb-3
           %label Age Group
-          = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params.permit![:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
+          = select_tag(:age_group, options_from_collection_for_select(GrdaWarehouse::Hud::Client.ahar_age_groups.map{|k,r| [k,r[:name]]}.to_h, :first, :last, params[:age_group]), include_blank: 'All Ages', class: 'select2', style: 'width: 100%;')
 
       .o-filtration__option
         .checkbox
@@ -59,7 +59,7 @@
       .o-filtration__option.row
         .col-sm-8
           %label Population
-          = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params.permit![:population]), class: 'select2', style: 'width: 100%;')
+          = select_tag(:population, options_from_collection_for_select(GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, :last, :first, params[:population]), class: 'select2', style: 'width: 100%;')
 
       .o-filtration__actions.form__actions
         = link_to clients_path, class:'btn btn-secondary' do

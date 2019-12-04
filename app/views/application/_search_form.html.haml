@@ -1,6 +1,6 @@
 - tooltip = nil unless tooltip.present?
 = form_tag(nil, method: "get") do
   .input-group
-    %input.form-control{name: 'q', autofocus: true, type: :text, placeholder: @prompt, value: @query || params.permit![:q],  data: { toggle: 'tooltip', title: tooltip } }
+    %input.form-control{name: 'q', autofocus: true, type: :text, placeholder: @prompt, value: @query || params[:q],  data: { toggle: 'tooltip', title: tooltip } }
     %span.input-group-append
       %button.btn.btn-secondary{type: :submit} Search

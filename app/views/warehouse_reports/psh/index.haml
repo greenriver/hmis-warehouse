@@ -15,6 +15,7 @@
     var pre_placement_leavers_to_stabilization_chart_data = #{@report.time_in_pre_placement_exit_to_stabilization_data.to_json.html_safe}
     var pre_placement_leavers_no_stabilization_chart_data = #{@report.time_in_pre_placement_exit_no_stabilization_data.to_json.html_safe}
     var stabilization_chart_data = #{@report.time_in_stabilization_data.to_json.html_safe}
+    // FIXME replace all 'permit!'s with a whitelist and remove from brakeman.ignore
     var timeInPrePlacementExitToStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitToStabilizationChart', pre_placement_leavers_to_stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.permit!.merge(metric: :pre_placement_stabilization_exit))}');
     var timeInPrePlacementExitNoStabilizationChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementExitNoStabilizationChart', pre_placement_leavers_no_stabilization_chart_data, '#{clients_warehouse_reports_psh_index_path(params.permit!.merge(metric: :pre_placement_no_stabilization_exit))}');
     var timeInPrePlacementChart = new App.WarehouseReports.Rrh.Time('.jTimeInPrePlacementChart', pre_placement_leavers_chart_data, '#{clients_warehouse_reports_psh_index_path(params.permit!.merge(metric: :pre_placement_any_exit))}');

@@ -5,7 +5,7 @@
         = render 'warehouse_reports/date_range_filters', f:f
       .col-md-4.d-flex.align-items-center
         .form-group.form-check.mt-no-label
-          = check_box_tag(:ph, true, params.permit![:ph].present?, class: 'form-check-input')
+          = check_box_tag(:ph, true, params[:ph].present?, class: 'form-check-input')
           %label.form-check-label{for: :ph} PH Only
 
     .row

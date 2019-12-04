@@ -12,7 +12,7 @@ class CohortColumnNamesController < ApplicationController
   end
 
   def create
-    translate_columns(params.permit![:translation]) if params.include? :translation
+    translate_columns(params[:translation]) if params.include? :translation
 
     redirect_to new_cohort_column_name_url
   end

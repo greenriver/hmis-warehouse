@@ -34,7 +34,7 @@ class MessagesController < ApplicationController
   end
 
   def poll
-    ids = params.permit![:ids] || []
+    ids = params[:ids] || []
     query = messages.unseen.where.not(id: ids)
     @unseen_count = query.count
     @messages = query.limit(10)
