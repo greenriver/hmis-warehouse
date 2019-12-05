@@ -51,7 +51,7 @@ module GrdaWarehouse
           sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
         end
         if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+          sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
         end
         window.where(sql)
       # You can only see files you uploaded
@@ -61,7 +61,7 @@ module GrdaWarehouse
           sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
         end
         if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+          sql = sql.or(arel_table[:id].in(Arel.sql(verified_homeless_history.select(:id).to_sql)))
         end
         where(sql)
       else
@@ -104,6 +104,18 @@ module GrdaWarehouse
         where(taggable_type: "GrdaWarehouse::File").
         pluck(:taggable_id)
       self.where.not(id: consent_form_tagging_ids)
+    end
+
+    scope :verified_homeless_history, -> do
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
+      verified_homeless_history_tag_ids = ActsAsTaggableOn::Tag.where(
+        name: GrdaWarehouse::AvailableFileTag.verified_homeless_history.pluck(:name)
+      ).pluck(:id)
+      verified_homeless_history_tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: verified_homeless_history_tag_ids).
+        where(taggable_type: "GrdaWarehouse::File").
+        pluck(:taggable_id)
+      self.where(id: verified_homeless_history_tagging_ids)
     end
 
     scope :confirmed, -> do
