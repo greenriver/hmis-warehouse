@@ -50,11 +50,17 @@ module GrdaWarehouse
         if GrdaWarehouse::Config.get(:consent_visible_to_all)
           sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
         end
+        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+        end
         window.where(sql)
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads?
         sql = arel_table[:user_id].eq(user.id)
         if GrdaWarehouse::Config.get(:consent_visible_to_all)
+          sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
+        end
+        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
           sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
         end
         where(sql)
