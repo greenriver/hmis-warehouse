@@ -290,7 +290,16 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :family, -> do
-      where(presented_as_individual: false)
+      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
+        where(presented_as_individual: false)
+      else
+        where(
+          arel_table[:presented_as_individual].eq(false).
+          and(arel_table[:age].gt(17)).
+          and(arel_table[:other_clients_under_18].gt(0)).
+          and(arel_table[:head_of_household].eq(true))
+        )
+      end
     end
 
     scope :individual, -> do
