@@ -19,13 +19,11 @@ App.select2.initToggleSelectAll = ($select) =>
       classAction = 'removeClass'
       html = """
         <span class='mr-2'>Select all</span>
-        <i class='icon-checkbox-checked' />
       """
     else# if $select.select2('data').length < $select.find('option').length
       classAction = 'addClass'
       html = """
         <span class='mr-2'>Select none</span>
-        <i class='icon-checkbox-unchecked' />
       """
     $selectAllLink.html(html)
     $select2Container[classAction]('all-selected')
@@ -39,13 +37,11 @@ App.select2.initToggleSelectAll = ($select) =>
     classAction = 'removeClass'
     html = """
       <span class='mr-2'>Select all</span>
-      <i class='icon-checkbox-checked' />
     """
     if !allSelected
       classAction = 'addClass'
       html = """
         <span class='mr-2'>Select none</span>
-        <i class='icon-checkbox-unchecked' />
       """
     $selectAllLink.html(html)
     $select2Container[classAction]('all-selected')
@@ -63,7 +59,6 @@ App.select2.initToggleSelectAll = ($select) =>
   $labelWrapper.append $("""
     <div class="select2-select-all j-select2-select-all" data-selected="false" >
       <span class='mr-2'>Select all</span>
-      <i class='icon-checkbox-checked' />
     </div>
   """)
   $label.prependTo $labelWrapper
