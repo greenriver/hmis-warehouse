@@ -440,9 +440,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       age.present? && age < 25 && age > 17
     end
 
-    def juvenile?(age)
-      age.present? && age < 19 && age > 12
-    end
+    # def juvenile?(age)
+    #   age.present? && age < 19 && age > 12
+    # end
 
     def adult?(age)
       age.present? && age > 17
@@ -469,7 +469,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # client is 13 - 18 and head of household
     def juvenile?
       @juvenile ||= begin
-        juvenile?(client_age_at_entry) && head_of_household?
+        age.present? && age < 19 && age > 12 && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
       end
     end
 
