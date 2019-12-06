@@ -28,6 +28,10 @@ module Health
     belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
     belongs_to :ed_ip_visit_file
 
+    scope :valid, -> do
+      where.not(admit_date: nil, visit_type: nil)
+    end
+
     def self.header_map
       {
         medicaid_id: 'Medicaid',

@@ -1281,6 +1281,32 @@ module GrdaWarehouse::Hud
       households[[household_id, data_source_id]] if households.present?
     end
 
+    def self.dashboard_family_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        warning = 'Clients presenting as families enrolled in homeless projects (ES, SH, SO, TH).'
+      else # uses project serves families
+        warning = 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the enrollment is at a project with inventory for families.'
+      end
+      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
+
+      warning + ' ' + family_means_adult_child_warning
+    end
+
+    def self.report_family_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        warning = 'Clients are limited to those presenting as families.'
+      else # uses project serves families
+        warning = 'Clients are limited to clients enrolled in a project with inventory for families.'
+      end
+      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
+
+      warning + ' ' + family_means_adult_child_warning
+    end
+
+    def self.family_means_adult_child_warning
+      'Clients are further limited to only Heads of Household who presented with children.'
+    end
+
     # after and before take dates, or something like 3.years.ago
     def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
