@@ -62,6 +62,7 @@ module Admin
         :weight,
         :note,
         :consent_form,
+        :verified_homeless_history,
         :notification_trigger,
         :document_ready,
         :requires_effective_date,
