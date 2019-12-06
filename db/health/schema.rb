@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191119200007) do
+ActiveRecord::Schema.define(version: 20191206194129) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -57,6 +57,12 @@ ActiveRecord::Schema.define(version: 20191119200007) do
     t.string   "id_in_source"
     t.string   "patient_id"
     t.integer  "data_source_id",   default: 6, null: false
+  end
+
+  create_table "ar_internal_metadata", primary_key: "key", force: :cascade do |t|
+    t.string   "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "careplan_equipment", force: :cascade do |t|
@@ -312,9 +318,12 @@ ActiveRecord::Schema.define(version: 20191119200007) do
     t.string   "file"
     t.string   "content"
     t.integer  "user_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
     t.datetime "deleted_at"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "failed_at"
   end
 
   add_index "ed_ip_visit_files", ["created_at"], name: "index_ed_ip_visit_files_on_created_at", using: :btree
