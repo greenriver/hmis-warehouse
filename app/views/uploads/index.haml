@@ -5,7 +5,7 @@
   .col-sm-4
     - if can_upload_hud_zips?
       .pull-right
-        = link_to new_data_source_upload_path, class: 'btn btn-primary pull-right' do 
+        = link_to new_data_source_upload_path, class: 'btn btn-primary pull-right mb-4' do
           %span.icon-plus
           Upload HUD CSV
 
@@ -30,6 +30,6 @@
                     = link_to upload.import_time, import_path(id: upload.import_log.id)
                   - else
                     = upload.import_time
-               
+
 
 %p= paginate @uploads

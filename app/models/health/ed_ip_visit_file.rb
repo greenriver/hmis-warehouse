@@ -55,14 +55,27 @@ module Health
       }
     end
 
+    def csv_date_columns
+      @csv_date_columns ||= [
+        :dob,
+        :admit_date,
+        :discharge_date,
+      ]
+    end
+
     def create_visits!
       if check_header
-        ::CSV.parse(content, headers: true) do |row|
+        ::CSV.parse(content, headers: true).each do |row|
           model_row = {
             ed_ip_visit_file_id: self.id,
           }
           self.class.header_map.each do |column, title|
-            model_row[column] = row[title]
+            value = row[title]
+            if csv_date_columns.include?(column) && value
+              model_row[column] = Date.strptime(value, '%m/%d/%Y')
+            else
+              model_row[column] = value
+            end
           end
           Health::EdIpVisit.create(model_row)
         end
