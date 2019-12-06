@@ -14,7 +14,7 @@
         = f.input :eligibility_date, as: :date_picker, input_html: { value: Date.current}, label: 'Determine if patients are eligible on'
 
   - content_for :filter_actions do
-    = f.submit 'Generate Eligibility File', class: "btn btn-primary mt-no-label"
+    = f.submit generate_eligibility_file_button_text, class: "btn btn-primary mt-no-label"
     = f.submit 'Submit Eligibility Via API', class: "btn btn-secondary mt-no-label"
 
   = render 'warehouse_reports/filters', f:f, submit_button: nil
