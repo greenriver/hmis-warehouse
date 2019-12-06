@@ -120,7 +120,7 @@ gem 'exception_notification'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
-gem 'puma', '~> 3.7.1'
+gem 'puma', '~> 3.12.2'
 
 gem 'newrelic_rpm', require: false
 # gem "temping", require: false
