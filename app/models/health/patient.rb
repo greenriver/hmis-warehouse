@@ -923,7 +923,7 @@ module Health
 
     def ed_ip_visits_for_chart
       @ed_ip_visits_for_chart ||= begin
-        visits = ed_ip_visits.group(
+        visits = ed_ip_visits.valid.group(
           Arel.sql("DATE_TRUNC('month', admit_date)"),
           :encounter_major_class
         ).count.sort_by{ |(date, type), _| [date, type] }
