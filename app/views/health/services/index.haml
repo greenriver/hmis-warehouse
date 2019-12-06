@@ -2,7 +2,9 @@
 
 = content_for(:title, "Services and Equipment for #{@patient.name}")
 %h1= content_for(:title)
-= render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client.id)
+
+= render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:services], client_id: @client)
 = render 'health/patient_release_status'
+= render 'health/patient_form_status'
 = render 'index'
 

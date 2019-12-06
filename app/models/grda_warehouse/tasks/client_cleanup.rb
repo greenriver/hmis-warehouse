@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-# NOTE: To force a rebuild that includes data that isn't the dates involved, you need to 
+# NOTE: To force a rebuild that includes data that isn't the dates involved, you need to
 # also set the processed_hash on the enrollment to nil
 
 module GrdaWarehouse::Tasks
@@ -80,7 +80,7 @@ module GrdaWarehouse::Tasks
 
         if count > 0
           @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
-          query.update_all(processed_as: nil, processed_hash: nil)
+          query.invalidate_processing!
         end
         debug_log "Checking for enrollments flagged as family where they should be individual"
         query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
@@ -94,7 +94,7 @@ module GrdaWarehouse::Tasks
         debug_log "Found #{count}"
         if count > 0
           @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
-          query.update_all(processed_as: nil, processed_hash: nil)
+          query.invalidate_processing!
         end
       end
     end
@@ -142,6 +142,8 @@ module GrdaWarehouse::Tasks
       dest_attr = choose_best_dob(dest_attr, source_clients)
       dest_attr = choose_best_veteran_status(dest_attr, source_clients)
       dest_attr = choose_best_gender(dest_attr, source_clients)
+      dest_attr = choose_best_race(dest_attr, source_clients)
+      dest_attr = choose_best_ethnicity(dest_attr, source_clients)
 
       dest_attr
     end
@@ -150,7 +152,7 @@ module GrdaWarehouse::Tasks
       # Get the best name (has name and quality is full or partial, oldest breaks the tie)
       non_blank_names = source_clients.select{|sc| (sc[:FirstName].present? or sc[:LastName].present?)}
       if non_blank_names.any?
-        best_name_client = non_blank_names.sort do |a, b| 
+        best_name_client = non_blank_names.sort do |a, b|
           comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
@@ -169,7 +171,7 @@ module GrdaWarehouse::Tasks
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
       non_blank_ssn = source_clients.select{|sc| sc[:SSN].present?}
       if non_blank_ssn.any?
-        dest_attr[:SSN] = non_blank_ssn.sort do |a, b| 
+        dest_attr[:SSN] = non_blank_ssn.sort do |a, b|
           comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
@@ -190,7 +192,7 @@ module GrdaWarehouse::Tasks
       elsif source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
         dest_attr[:VeteranStatus] = 1
       else
-        dest_attr[:VeteranStatus] = source_clients.sort do |a, b| 
+        dest_attr[:VeteranStatus] = source_clients.sort do |a, b|
           a[:DateUpdated] <=> b[:DateUpdated]
         end.last[:VeteranStatus]
       end
@@ -202,7 +204,7 @@ module GrdaWarehouse::Tasks
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select{|sc| sc[:DOB].present?}
       if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.sort do |a, b| 
+        dest_attr[:DOB] = non_blank_dob.sort do |a, b|
           comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
@@ -219,9 +221,73 @@ module GrdaWarehouse::Tasks
       # Get the best Gender (has 0..4, newest breaks the tie)
       known_values = [0, 1, 2, 3, 4]
       known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
-      if !known_values.include?(dest_attr[:Gender]) or known_value_gender_clients.any?
+      if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
         known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
         dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
+      end
+      dest_attr
+    end
+
+    def choose_best_race dest_attr, source_clients
+      # Most recent 0 or 1 if no 0 or 1 use the most recent value
+      # Valid responses for race categories are [0, 1, 99]
+      # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
+      known_values = [0, 1]
+      # Sort in reverse chronological order (newest first)
+      sorted_source_clients = source_clients.sort_by.sort{|a, b| b[:DateUpdated] <=> a[:DateUpdated]}
+
+      race_columns.each do |col|
+        sorted_source_clients.each do |source_client|
+          value = source_client[col]
+          current_value = dest_attr[col]
+          # if we have a 0 or 1 use it
+          # otherwise only replace if the current value isn't a 0 or 1
+          dest_attr[col] = if known_values.include?(value)
+            value
+          elsif !known_values.include?(current_value)
+            value
+          else
+            current_value
+          end
+
+          # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
+          # the destination client response
+          break if known_values.include?(value)
+
+        end
+      end
+      # if we still don't have any responses, use the most-recent RaceNone response
+      dest_attr[:RaceNone] = sorted_source_clients.first[:RaceNone] if dest_attr.values_at(*race_columns).any?(1)
+      dest_attr
+    end
+
+    private def race_columns
+      @race_columns ||= GrdaWarehouse::Hud::Client.race_fields.map(&:to_sym) - [:RaceNone]
+    end
+
+    def choose_best_ethnicity dest_attr, source_clients
+      # Most recent 0 or 1 if no 0 or 1 use the most recent value
+      known_values = [0, 1]
+      # Sort in reverse chronological order (newest first)
+      sorted_source_clients = source_clients.sort_by.sort{|a, b| b[:DateUpdated] <=> a[:DateUpdated]}
+      col = :Ethnicity
+      sorted_source_clients.each do |source_client|
+        value = source_client[col]
+        current_value = dest_attr[col]
+        # if we have a 0 or 1 use it
+        # otherwise only replace if the current value isn't a 0 or 1
+        dest_attr[col] = if known_values.include?(value)
+          value
+        elsif !known_values.include?(current_value)
+          value
+        else
+          current_value
+        end
+
+        # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
+        # the destination client response
+        break if known_values.include?(value)
+
       end
       dest_attr
     end
@@ -229,7 +295,7 @@ module GrdaWarehouse::Tasks
     # Populate source client changes onto the destination client
     # Loop over all destination clients
     #   1. Sort source clients by UpdatedDate desc
-    #   2. Walking down the source clients, update destination with the first found attribute 
+    #   2. Walking down the source clients, update destination with the first found attribute
     #     of the following attributes
     #     a. SSN
     #     b. DOB
@@ -264,14 +330,14 @@ module GrdaWarehouse::Tasks
               Hash[client_columns.keys.zip(row)]
             end
           dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
-          choose_attributes_from_sources(dest_attr, source_clients)
+          dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
           if dest.DOB != dest_attr[:DOB]
             logger.info "Invalidating service history for #{dest.id}"
             dest.invalidate_service_history unless @dry_run
           end
-          # We can speed this up if we want later.  If there's only one source client and the 
+          # We can speed this up if we want later.  If there's only one source client and the
           # updated dates match, there's no need to update the destination
           dest.update(dest_attr) unless @dry_run
           changed[:dobs] << dest.id if dest.DOB != dest_attr[:DOB]
@@ -294,20 +360,27 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    def client_columns 
+    def client_columns
       @client_columns ||= {
-        FirstName: c_t[:FirstName].to_sql, 
-        LastName: c_t[:LastName].to_sql, 
-        SSN: c_t[:SSN].to_sql, 
+        FirstName: c_t[:FirstName].to_sql,
+        LastName: c_t[:LastName].to_sql,
+        SSN: c_t[:SSN].to_sql,
         DOB: c_t[:DOB].to_sql,
         Gender: c_t[:Gender].to_sql,
         VeteranStatus: c_t[:VeteranStatus].to_sql,
         verified_veteran_status: c_t[:verified_veteran_status].to_sql,
-        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql, 
-        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql, 
-        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql, 
+        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql,
+        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql,
+        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql,
         DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
         DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
+        AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative').to_sql,
+        Asian: cl(c_t[:Asian], 99).as('Asian').to_sql,
+        BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
+        NativeHIOtherPacific: cl(c_t[:NativeHIOtherPacific], 99).as('NativeHIOtherPacific').to_sql,
+        White: cl(c_t[:White], 99).as('White').to_sql,
+        RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
+        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,
       }
     end
 
@@ -329,7 +402,7 @@ module GrdaWarehouse::Tasks
     end
 
     # Sometimes client merging doesn't do a very good job of cleaning up
-    # the service history table, just make sure we don't have any records 
+    # the service history table, just make sure we don't have any records
     # for clients that no longer exist
     def remove_unused_service_history
       sh_client_ids = service_history_source.entry.distinct.pluck(:client_id)
@@ -410,7 +483,7 @@ module GrdaWarehouse::Tasks
           distinct.select(:client_id)).
         pluck(:id, :DOB).
         map.to_h
-      
+
       service_history_ages.each do |id, age, entry_date|
         next unless dob = clients[id] # ignore blanks
         client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
@@ -447,8 +520,8 @@ module GrdaWarehouse::Tasks
               where(age: nil).
               joins(:enrollment).
               select(e_t[:id].as('id').to_sql)
-          ).update_all(processed_as: nil)
-          client.invalidate_service_history   
+          ).invalidate_processing!
+          client.invalidate_service_history
         end
       end
     end

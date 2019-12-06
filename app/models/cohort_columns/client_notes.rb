@@ -8,7 +8,7 @@ module CohortColumns
   class ClientNotes < Base
     attribute :column, String, lazy: true, default: :client_notes
     attribute :translation_key, String, lazy: true, default: 'Client Notes'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def column_editable?
       false
@@ -18,11 +18,11 @@ module CohortColumns
       :notes
     end
 
-    def value(cohort_client) # OK
+    def value(_cohort_client) # OK
       nil
     end
 
-    def display_for user
+    def display_for(user)
       display_read_only(user)
     end
 
@@ -31,20 +31,20 @@ module CohortColumns
     end
 
     def comments
-      cohort_client.client.cohort_notes.reverse.map do |note|
+      cohort_client.client.cohort_notes.order(updated_at: :desc).map do |note|
         "#{note.note} -- #{note.user.name} on #{note.updated_at.to_date}"
       end.join("\r\n\r\n").html_safe
     end
 
-    def display_read_only user
+    def display_read_only(_user)
       note_count = cohort_client.client.cohort_notes.length || 0
       path = cohort_cohort_client_client_notes_path(cohort, cohort_client)
-      html = content_tag(:span, note_count, class: "hidden")
-      html += link_to note_count, path, class: 'badge badge-primary', data: {loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column}
+      html = content_tag(:span, note_count, class: 'hidden')
+      html += link_to pluralize(note_count, 'note'), path, class: 'badge badge-primary py-1 px-2', data: { loads_in_pjax_modal: true, cohort_client_id: cohort_client.id, column: column }
       html
     end
 
-    def text_value cohort_client
+    def text_value(cohort_client)
       self.cohort_client = cohort_client
       comments
     end

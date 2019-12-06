@@ -2,9 +2,10 @@ namespace :db do
   namespace :migrate do
     desc "Call the db:migrate subvariant for all the different databases"
     task :all do
-      system `bin/rake db:migrate`
-      system `bin/rake warehouse:db:migrate`
-      system `bin/rake health:db:migrate`
+      system 'bin/rake db:migrate'
+      system 'bin/rake warehouse:db:migrate'
+      system 'bin/rake health:db:migrate'
+      system 'bin/rake reporting:db:migrate'
     end
   end
 

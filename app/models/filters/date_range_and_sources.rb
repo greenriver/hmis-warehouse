@@ -13,6 +13,9 @@ module Filters
     attribute :project_group_ids, Array, default: []
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
+    attribute :cohort_ids, Array, default: []
+    attribute :start_age, Integer, default: 17
+    attribute :end_age, Integer, default: 25
 
     validates_presence_of :start, :end
 
@@ -54,6 +57,12 @@ module Filters
 
     def all_project_ids
       GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+    end
+
+    def clients_from_cohorts
+      GrdaWarehouse::Hud::Client.joins(:cohort_clients).
+        merge(GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_ids)).
+        distinct
     end
 
     def user

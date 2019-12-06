@@ -4,7 +4,7 @@
 
   enrollments = @client.enrollments_for_rollup(
     en_scope: scope.visible_in_window_to(current_user),
-    include_confidential_names: @include_confidential_names,
+    include_confidential_names: can_view_confidential_enrollment_details?,
     only_ongoing: only_ongoing
   )
 

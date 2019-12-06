@@ -49,6 +49,7 @@ config/letsencrypt_plugin.yml
 .env.local
 app/mail_interceptors/sandbox_email_interceptor.rb
 node_modules
+*.swp
 
 # Environment normalization:
 /vendor/bundle

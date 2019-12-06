@@ -1,0 +1,24 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_youth_export_index_path,  html: { class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-6
+        = render 'warehouse_reports/date_range_filters', f:f
+      .col-3
+        = f.input :start_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age greater than'
+      .col-3
+        = f.input :end_age, collection: (0..100), input_html: { class: :select2 }, label: 'Age less than'
+
+    .row.mt-4
+      .col-sm-6.mb-4
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+      .col-sm-6.mb-4
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+      .col-sm-6.mb-4
+        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+      .col-sm-6.mb-4
+        = f.input :cohort_ids, collection: GrdaWarehouse::Cohort.active.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Cohorts'
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Query Report'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil

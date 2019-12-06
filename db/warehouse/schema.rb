@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191102185935) do
+ActiveRecord::Schema.define(version: 20191205155752) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1032,22 +1032,29 @@ ActiveRecord::Schema.define(version: 20191102185935) do
   add_index "api_client_data_source_ids", ["data_source_id"], name: "index_api_client_data_source_ids_on_data_source_id", using: :btree
   add_index "api_client_data_source_ids", ["warehouse_id"], name: "index_api_client_data_source_ids_on_warehouse_id", using: :btree
 
+  create_table "ar_internal_metadata", primary_key: "key", force: :cascade do |t|
+    t.string   "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "available_file_tags", force: :cascade do |t|
     t.string   "name"
     t.string   "group"
     t.string   "included_info"
-    t.integer  "weight",                   default: 0
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
-    t.boolean  "document_ready",           default: false
-    t.boolean  "notification_trigger",     default: false
-    t.boolean  "consent_form",             default: false
+    t.integer  "weight",                    default: 0
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
+    t.boolean  "document_ready",            default: false
+    t.boolean  "notification_trigger",      default: false
+    t.boolean  "consent_form",              default: false
     t.string   "note"
-    t.boolean  "full_release",             default: false, null: false
-    t.boolean  "requires_effective_date",  default: false, null: false
-    t.boolean  "requires_expiration_date", default: false, null: false
+    t.boolean  "full_release",              default: false, null: false
+    t.boolean  "requires_effective_date",   default: false, null: false
+    t.boolean  "requires_expiration_date",  default: false, null: false
     t.string   "required_for"
-    t.boolean  "coc_available",            default: false, null: false
+    t.boolean  "coc_available",             default: false, null: false
+    t.boolean  "verified_homeless_history", default: false, null: false
   end
 
   create_table "bo_configs", force: :cascade do |t|
@@ -1148,6 +1155,7 @@ ActiveRecord::Schema.define(version: 20191102185935) do
     t.string   "event_contact"
     t.string   "event_contact_agency"
     t.integer  "vacancy_id"
+    t.string   "housing_type"
   end
 
   add_index "cas_reports", ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true, using: :btree
@@ -1241,6 +1249,7 @@ ActiveRecord::Schema.define(version: 20191102185935) do
     t.boolean  "acute_medical_condition",              default: false
     t.boolean  "acute_psychiatric_condition",          default: false
     t.boolean  "acute_substance_abuse",                default: false
+    t.boolean  "location_no_preference"
   end
 
   add_index "ce_assessments", ["assessor_id"], name: "index_ce_assessments_on_assessor_id", using: :btree
@@ -1583,6 +1592,8 @@ ActiveRecord::Schema.define(version: 20191102185935) do
     t.boolean "show_vispdats_on_dashboards",               default: false
     t.boolean "rrh_cas_readiness",                         default: false
     t.string  "cas_days_homeless_source",                  default: "days_homeless"
+    t.boolean "consent_visible_to_all",                    default: false
+    t.boolean "verified_homeless_history_visible_to_all",  default: false,                    null: false
   end
 
   create_table "contacts", force: :cascade do |t|
@@ -3969,6 +3980,23 @@ ActiveRecord::Schema.define(version: 20191102185935) do
   end
 
   add_index "youth_case_managements", ["deleted_at"], name: "index_youth_case_managements_on_deleted_at", using: :btree
+
+  create_table "youth_exports", force: :cascade do |t|
+    t.integer  "user_id",      null: false
+    t.jsonb    "options"
+    t.jsonb    "headers"
+    t.jsonb    "rows"
+    t.integer  "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "youth_exports", ["created_at"], name: "index_youth_exports_on_created_at", using: :btree
+  add_index "youth_exports", ["updated_at"], name: "index_youth_exports_on_updated_at", using: :btree
+  add_index "youth_exports", ["user_id"], name: "index_youth_exports_on_user_id", using: :btree
 
   create_table "youth_follow_ups", force: :cascade do |t|
     t.integer  "client_id"

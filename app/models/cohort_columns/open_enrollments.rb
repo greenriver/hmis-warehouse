@@ -9,7 +9,7 @@ module CohortColumns
     include ArelHelper
     attribute :column, String, lazy: true, default: :open_enrollments
     attribute :translation_key, String, lazy: true, default: 'Open Residential Enrollments'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def column_editable?
       false
@@ -27,26 +27,28 @@ module CohortColumns
       cohort_client.client.processed_service_history&.open_enrollments
     end
 
-    def text_value cohort_client
+    def text_value(cohort_client)
       v = value(cohort_client)
       return '' unless v.present?
+
       v&.map(&:last)&.join(' ')
     end
 
-    def display_for user
+    def display_for(user)
       display_read_only(user)
     end
 
-    def display_read_only user
-      if open_enrollments = value(cohort_client)
-        open_enrollments.map do |project_type, text|
-          content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
-            content_tag(:em, class: 'service-type__program-type') do
-              text
-            end
+    def display_read_only(_user)
+      open_enrollments = value(cohort_client)
+      return unless open_enrollments
+
+      open_enrollments.map do |project_type, text|
+        content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
+          content_tag(:em, class: 'service-type__program-type') do
+            text
           end
-        end.join(' ').html_safe
-      end
+        end
+      end.join(' ').html_safe
     end
   end
 end

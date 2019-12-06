@@ -81,6 +81,14 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where.not(staff_email: nil)
   end
 
+  scope :with_housing_status, -> do
+    where.not(housing_status: [nil, ''], collected_at: nil)
+  end
+
+  scope :within_range, -> (range) do
+    where(collected_at: range)
+  end
+
   def self.set_missing_vispdat_scores
     # Process in batches, but ensure the batches occur such that the most recently completed are last
     # Fetch the ids, in order of unprocessed vispdat records
@@ -93,13 +101,14 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     ids.each_slice(100) do |batch|
       # fetch the batch, in order
       vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
         hmis_form.vispdat_total_score = hmis_form.vispdat_score_total
         hmis_form.vispdat_family_score = hmis_form.vispdat_score_family
         hmis_form.vispdat_youth_score = hmis_form.vispdat_score_youth
         hmis_form.vispdat_months_homeless = hmis_form.vispdat_homless_months
         hmis_form.vispdat_times_homeless = hmis_form.vispdat_homless_times
         hmis_form.vispdat_score_updated_at = Time.now
-        if hmis_form.changed?
+        if hmis_form.changed? && hmis_form&.destination_client
           hmis_form.save
           hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
         end

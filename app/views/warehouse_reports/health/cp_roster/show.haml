@@ -1,0 +1,22 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+- title = "#{@file.label} uploaded on #{@file.created_at}"
+- content_for :title, title
+%h1= content_for :title
+
+%div.overflow-scroll
+  %table.table.table-sm.table-hover{id: "jRosterTable"}
+    %thead
+      %tr
+        - @file.columns.values.each do |label|
+          %th= label
+    %tbody
+      - @rows.each do |entry|
+        %tr
+          - @file.columns.keys.each do |key|
+            %td= entry[key]
+
+= content_for :page_js do
+  :javascript
+    $(document).ready( function () {
+      $('#jRosterTable').DataTable();
+    } );

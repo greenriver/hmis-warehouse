@@ -17,6 +17,31 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(processed_as: nil)
     end
 
+    def self.batch_process_unprocessed!
+      queue_batch_process_unprocessed!
+      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
+    end
+
+    def self.queue_batch_process_unprocessed!
+      unprocessed.joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
+          Delayed::Job.enqueue(
+            ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(
+              enrollment_ids: batch
+            ),
+            queue: :low_priority
+          )
+      end
+    end
+
+    def self.batch_process_date_range!(date_range)
+      open_during_range(date_range).
+        joins(:project, :destination_client).
+        pluck_in_batches(:id, batch_size: 250) do |batch|
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      end
+    end
+
     def service_history_valid?
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
@@ -93,7 +118,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
             service_history_enrollment_source.connection.insert(insert.to_sql)
           end
         end
-
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
         if days.any?
@@ -104,7 +128,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return true
     end
 
-    def set_entry_record_id
+    def entry_record_id
       @entry_record_id ||= service_history_enrollment.id
     end
 
@@ -197,12 +221,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def service_dates_from_service_history_for_enrollment
       return [] unless destination_client.present? && service_history_enrollment.present?
-      set_entry_record_id()
 
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         where(
           record_type: :service,
-          service_history_enrollment_id: @entry_record_id
+          service_history_enrollment_id: entry_record_id()
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -210,10 +233,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def extrapolated_dates_from_service_history_for_enrollment
       return [] unless destination_client.present?
-      set_entry_record_id()
+
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
-          service_history_enrollment_id: @entry_record_id
+          service_history_enrollment_id: entry_record_id()
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -323,9 +346,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def default_service_day
-      set_entry_record_id()
       @default_service_day ||= {
-        service_history_enrollment_id: @entry_record_id,
+        service_history_enrollment_id: entry_record_id(),
         date: nil,
         service_type: nil,
         age: nil,

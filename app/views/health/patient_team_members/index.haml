@@ -4,7 +4,7 @@
   .o-page__header
     %h1= title
   = render 'clients/breadcrumbs'
-  = render 'clients/tab_navigation', current: polymorphic_path(team_members_path_generator)
+  = render 'clients/tab_navigation', current: polymorphic_path(team_members_path_generator, client_id: @client)
   %section.c-card.c-card--block.c-card--no-padding
     .c-card__header.c-card__header--external
       %h2 Care Team Members

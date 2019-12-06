@@ -25,7 +25,7 @@ module Health
       @patient.build_team_memeber!(patient_params[:care_coordinator_id], current_user) if patient_params[:care_coordinator_id].present?
       if request.xhr?
         head(:ok)
-        return
+        nil
       else
         respond_with(@patient, location: health_patients_path)
       end

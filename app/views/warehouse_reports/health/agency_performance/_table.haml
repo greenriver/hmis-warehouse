@@ -16,32 +16,105 @@
       %tr
         %td= agency.name
         %td.text-right
-          - title = "#{pluralize(agency.patient_referrals.size, 'Patient')} Assigned"
-          = link_to_if permission, agency.patient_referrals.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.patient_referrals), data: { loads_in_pjax_modal: true }
+          - scope = agency.patient_referrals
+          - title = "#{pluralize(scope.size, 'Patient')} Assigned"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.text-right
-          - title = "#{pluralize(agency.consented_patients.size, 'Patient')} Consented"
-          = link_to_if permission, agency.consented_patients.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.consented_patients), data: { loads_in_pjax_modal: true }
+          - scope = agency.consented_patients
+          - title = "#{pluralize(scope.size, 'Patient')} Consented"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.text-right
-          - title = "#{pluralize(agency.with_chas.size, 'Patient')} with CHAs"
-          = link_to_if permission, agency.with_chas.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_chas), data: { loads_in_pjax_modal: true }
+          - scope = agency.with_chas
+          - title = "#{pluralize(scope.size, 'Patient')} with CHAs"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.agency-performance__without.text-right
-          - title = "#{pluralize(agency.without_chas.size, 'Patient')} without CHAs"
-          = link_to_if permission, agency.without_chas.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_chas), data: { loads_in_pjax_modal: true }
+          - scope = agency.without_chas
+          - title = "#{pluralize(scope.size, 'Patient')} without CHAs"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.text-right
-          - title = "#{pluralize(agency.with_ssms.size, 'Patient')} with SSMs"
-          = link_to_if permission, agency.with_ssms.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_ssms), data: { loads_in_pjax_modal: true }
+          - scope = agency.with_ssms
+          - title = "#{pluralize(scope.size, 'Patient')} with SSMs"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.agency-performance__without.text-right
-          - title = "#{pluralize(agency.without_ssms.size, 'Patient')} without SSMs"
-          = link_to_if permission, agency.without_ssms.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_ssms), data: { loads_in_pjax_modal: true }
+          - scope = agency.without_ssms
+          - title = "#{pluralize(scope.size, 'Patient')} without SSMs"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
+
         %td.text-right
-          - title = "#{pluralize(agency.with_signed_careplans.size, 'Patient')} with Signed Care Plans"
-          = link_to_if permission, agency.with_signed_careplans.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.with_signed_careplans), data: { loads_in_pjax_modal: true }
+          - scope = agency.with_signed_careplans
+          - title = "#{pluralize(scope.size, 'Patient')} with Signed Care Plans"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.agency-performance__without.text-right
-          - title = "#{pluralize(agency.without_signed_careplans.size, 'Patient')} without Signed Care Plans"
-          = link_to_if permission, agency.without_signed_careplans.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_signed_careplans), data: { loads_in_pjax_modal: true }
+          - scope = agency.without_signed_careplans
+          - title = "#{pluralize(scope.size, 'Patient')} without Signed Care Plans"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
         %td.agency-performance__without.agency-performance__date-effected.text-right
-          - title = "#{pluralize(agency.without_qualifying_activities_within_range.size, 'Patient')} without Qualifying Activities in Chosen Date Range"
-          = link_to_if permission, agency.without_qualifying_activities_within_range.size, polymorphic_path(detail_path, agency_id: agency.id, section: title, patient_ids: agency.without_qualifying_activities_within_range), data: { loads_in_pjax_modal: true }
+          - scope = agency.without_qualifying_activities_within_range
+          - title = "#{pluralize(scope.size, 'Patient')} without Qualifying Activities in Chosen Date Range"
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+          - else
+            scope.size
   - if @agencies.size > 1
     %tfoot
       %tr

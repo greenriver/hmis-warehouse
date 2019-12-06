@@ -13,7 +13,7 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_search_window!, only: [:index]
+  before_action :require_can_view_or_search_clients_or_window!, only: [:index]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
 
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
@@ -22,6 +22,8 @@ class ClientsController < ApplicationController
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
+  # This should no longer be needed
+  # We can rely on searchable_by and viewable_by scopes on Client
   before_action :check_release, only: [:show]
   after_action :log_client, only: [:show, :edit, :merge, :unmerge]
 
@@ -104,7 +106,7 @@ class ClientsController < ApplicationController
       merged << c
     end
     Importing::RunAddServiceHistoryJob.perform_later
-    redirect_to({ action: :edit }, notice: "Client records merged with #{merged.join(', ')}. Service history rebuild queued.")
+    redirect_to({ action: :edit }, notice: "Client records merged with #{merged.map(&:name).join(', ')}. Service history rebuild queued.")
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error e.inspect
 
@@ -198,7 +200,7 @@ class ClientsController < ApplicationController
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
-      return
+      nil
     end
   end
 
@@ -206,10 +208,22 @@ class ClientsController < ApplicationController
     GrdaWarehouse::Hud::Client
   end
 
+  # should always return a destination client, but some visibility
+  # is governed by the source client, some by the destination
   private def client_scope
-    client_source.destination.
-      joins(source_clients: :data_source).
-      merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
+    visble_by_source = Arel.sql(
+      GrdaWarehouse::WarehouseClient.joins(:source).
+        merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+        select(:destination_id).to_sql,
+    )
+    visible_by_destination = Arel.sql(GrdaWarehouse::Hud::Client.viewable_by(current_user).select(:id).to_sql)
+
+    client_source.destination.where(Arel.sql(client_source.arel_table[:id].in(visble_by_source).or(client_source.arel_table[:id].in(visible_by_destination)).to_sql))
+  end
+
+  # Should always return any clients, source or destination that match
+  def client_search_scope
+    client_source.searchable_by(current_user)
   end
 
   private def project_scope
@@ -239,10 +253,6 @@ class ClientsController < ApplicationController
       )
   end
 
-  def client_search_scope
-    client_source.searchable.joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(current_user))
-  end
-
   private def assessment_scope
     if can_view_clients?
       GrdaWarehouse::HmisForm
@@ -263,8 +273,4 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
-
-  def user_can_view_confidential_names?
-    can_view_projects? && can_view_clients?
-  end
 end

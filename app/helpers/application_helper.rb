@@ -219,7 +219,8 @@ module ApplicationHelper
   def embedded_svg(symbol_name, *args)
     options = args.extract_options!
     style = "height: #{options[:height]}; width: #{options[:width]}" if options[:height]
-    content_tag(:div,
+    content_tag(
+      :div,
       content_tag(
         :svg,
         content_tag(
@@ -232,7 +233,8 @@ module ApplicationHelper
         style: style,
       ),
       class: "icon-svg #{options[:wrapper_class]}",
-      style: style)
+      style: style,
+    )
   end
 
   def help_link
@@ -252,5 +254,14 @@ module ApplicationHelper
       controller_path: controller_path,
       action_name: action_name,
     )
+  end
+
+  # link_to_if doesn't print the block if the condition is true, this does
+  def if_link_to(condition, name = nil, options = nil, html_options = nil, &block)
+    if condition
+      link_to(name, options, html_options, &block)
+    else
+      link_to_if(false, name, options, html_options, &block)
+    end
   end
 end

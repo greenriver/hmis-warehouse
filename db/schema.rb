@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191029172244) do
+ActiveRecord::Schema.define(version: 20191124135304) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -59,6 +59,12 @@ ActiveRecord::Schema.define(version: 20191029172244) do
 
   create_table "agencies", force: :cascade do |t|
     t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "ar_internal_metadata", primary_key: "key", force: :cascade do |t|
+    t.string   "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -230,6 +236,16 @@ ActiveRecord::Schema.define(version: 20191029172244) do
     t.integer "nickname_id"
   end
 
+  create_table "old_passwords", force: :cascade do |t|
+    t.string   "encrypted_password",       null: false
+    t.string   "password_archivable_type", null: false
+    t.integer  "password_archivable_id",   null: false
+    t.string   "password_salt"
+    t.datetime "created_at"
+  end
+
+  add_index "old_passwords", ["password_archivable_type", "password_archivable_id"], name: "index_password_archivable", using: :btree
+
   create_table "report_results", force: :cascade do |t|
     t.integer  "report_id"
     t.integer  "import_id"
@@ -381,6 +397,7 @@ ActiveRecord::Schema.define(version: 20191029172244) do
     t.boolean  "can_view_own_hud_reports",                            default: false
     t.boolean  "enforced_2fa",                                        default: false
     t.boolean  "can_edit_access_groups",                              default: false
+    t.boolean  "can_view_confidential_enrollment_details",            default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree
@@ -397,6 +414,33 @@ ActiveRecord::Schema.define(version: 20191029172244) do
   end
 
   add_index "similarity_metrics", ["type"], name: "index_similarity_metrics_on_type", unique: true, using: :btree
+
+  create_table "taggings", force: :cascade do |t|
+    t.integer  "tag_id"
+    t.string   "taggable_type"
+    t.integer  "taggable_id"
+    t.string   "tagger_type"
+    t.integer  "tagger_id"
+    t.string   "context",       limit: 128
+    t.datetime "created_at"
+  end
+
+  add_index "taggings", ["context"], name: "index_taggings_on_context", using: :btree
+  add_index "taggings", ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true, using: :btree
+  add_index "taggings", ["tag_id"], name: "index_taggings_on_tag_id", using: :btree
+  add_index "taggings", ["taggable_id", "taggable_type", "context"], name: "index_taggings_on_taggable_id_and_taggable_type_and_context", using: :btree
+  add_index "taggings", ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy", using: :btree
+  add_index "taggings", ["taggable_id"], name: "index_taggings_on_taggable_id", using: :btree
+  add_index "taggings", ["taggable_type"], name: "index_taggings_on_taggable_type", using: :btree
+  add_index "taggings", ["tagger_id", "tagger_type"], name: "index_taggings_on_tagger_id_and_tagger_type", using: :btree
+  add_index "taggings", ["tagger_id"], name: "index_taggings_on_tagger_id", using: :btree
+
+  create_table "tags", force: :cascade do |t|
+    t.string  "name"
+    t.integer "taggings_count", default: 0
+  end
+
+  add_index "tags", ["name"], name: "index_tags_on_name", unique: true, using: :btree
 
   create_table "tokens", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -514,6 +558,7 @@ ActiveRecord::Schema.define(version: 20191029172244) do
     t.datetime "expired_at"
     t.integer  "confirmed_2fa",                     default: 0,           null: false
     t.string   "otp_backup_codes",                                                     array: true
+    t.datetime "password_changed_at"
   end
 
   add_index "users", ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree

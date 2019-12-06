@@ -4,10 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reporting::MonthlyReports::MonthlyReportCharts
+module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/ClassAndModuleChildren
   extend ActiveSupport::Concern
   included do
-
     attr_accessor :organization_ids
     attr_accessor :project_ids
     attr_accessor :months
@@ -16,8 +15,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
-    scope :in_months, -> (months) do
+    scope :in_months, ->(months) do
       return none unless months.present?
+
       ors = months.map do |year, month|
         arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
       end
@@ -52,18 +52,21 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       where(destination_id: HUD.permanent_destinations)
     end
 
-    scope :for_organizations, -> (organization_ids) do
+    scope :for_organizations, ->(organization_ids) do
       return all unless organization_ids.present?
+
       where(organization_id: organization_ids)
     end
 
-    scope :for_projects, -> (project_ids) do
+    scope :for_projects, ->(project_ids) do
       return all unless project_ids.present?
+
       where(project_id: project_ids)
     end
 
-    scope :for_project_types, -> (project_types) do
+    scope :for_project_types, ->(project_types) do
       return all unless project_types.present?
+
       project_type_codes = []
       project_types.each do |type|
         project_type_codes += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.try(:[], type)
@@ -75,22 +78,21 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       where(head_of_household: 1)
     end
 
-    scope :filtered, -> (filter) do
+    scope :filtered, ->(filter) do
       return all if filter.nil?
+
       client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
       client_ids += GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(
-        GrdaWarehouse::HmisForm.vispdat.where.not(vispdat_total_score: nil)
+        GrdaWarehouse::HmisForm.vispdat.where.not(vispdat_total_score: nil),
       ).distinct.pluck(:id)
-      if filter[:vispdat].presence == :without_vispdat
-        return where.not(client_id: client_ids)
-      elsif filter[:vispdat].presence == :with_vispdat
-        return where(client_id: client_ids)
-      end
+      return where.not(client_id: client_ids) if filter[:vispdat].presence == :without_vispdat
+      return where(client_id: client_ids) if filter[:vispdat].presence == :with_vispdat
+
       return all
     end
 
     def months_in_dates
-      @months_in_dates ||= months.map{|year, month| Date.new(year, month, 1) }
+      @months_in_dates ||= months.map { |year, month| Date.new(year, month, 1) }
     end
 
     def clients_for_report
@@ -99,8 +101,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
         for_projects(project_ids).
         for_project_types(project_types).
         filtered(filter)
-
     end
+
     def enrolled_clients
       clients_for_report.enrolled
     end
@@ -130,8 +132,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def active_household_count
       self.class.enrolled.in_months(months).
-      where(household_id: active_clients.select(:household_id)).
-      heads_of_household.select(:client_id).distinct.count
+        where(household_id: active_clients.select(:household_id)).
+        heads_of_household.select(:client_id).distinct.count
     end
 
     def entered_clients
@@ -144,8 +146,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def entered_household_count
       self.class.enrolled.in_months(months).
-      where(household_id: entered_clients.select(:household_id)).
-      heads_of_household.select(:client_id).distinct.count
+        where(household_id: entered_clients.select(:household_id)).
+        heads_of_household.select(:client_id).distinct.count
     end
 
     def exited_clients
@@ -158,8 +160,8 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
     def exited_household_count
       self.class.enrolled.in_months(months).
-      where(household_id: exited_clients.select(:household_id)).
-      heads_of_household.select(:client_id).distinct.count
+        where(household_id: exited_clients.select(:household_id)).
+        heads_of_household.select(:client_id).distinct.count
     end
 
     def first_time_clients
@@ -183,21 +185,21 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def homeless_project_types
-      homeless_project_type_ids.map{|m| HUD.project_type(m)}
+      homeless_project_type_ids.map { |m| HUD.project_type(m) }
     end
 
     def census_by_project_type
-      data = Hash[homeless_project_type_ids.zip()]
+      data = Hash[homeless_project_type_ids.zip]
       counts = active_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
-        months.reverse.each do |year, month|
+        months.reverse_each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
           data[project_type_id] << counts[[year, month, project_type_id]]
         end
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
 
     def census_by_month
@@ -205,15 +207,15 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       totals = active_clients.group(:year, :month).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
-      months.reverse.each do |year, month|
+      months.reverse_each do |year, month|
         data['totals'] ||= ['Total']
         data['totals'] << totals[[year, month]]
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
 
     def months_strings
-      months_in_dates.map{|m| m.strftime('%b %Y')}.reverse
+      months_in_dates.map { |m| m.strftime('%b %Y') }.reverse
     end
 
     def month_x_axis_labels
@@ -221,20 +223,20 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     def entry_re_entry_data
-      data = {new: [:New], returning: [:Returning]}
+      data = { new: [:New], returning: [:Returning] }
       new_entries = first_time_clients.group(:year, :month).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
       returning_entries = re_entry_clients.group(:year, :month).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
-      months.reverse.each do |year, month|
+      months.reverse_each do |year, month|
         new_count = (new_entries[[year, month]] || 0)
         returning_count = (returning_entries[[year, month]] || 0)
         data[:new] << new_count
         data[:returning] << returning_count
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
 
     # def first_time_entry_locations
@@ -260,33 +262,33 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     # end
 
     def first_time_entry_locations
-      data = Hash[homeless_project_type_ids.zip()]
+      data = Hash[homeless_project_type_ids.zip]
       total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
       counts = first_time_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
-        months.reverse.each do |year, month|
+        months.reverse_each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
           data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
         end
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
 
     def re_entry_locations
-      data = Hash[homeless_project_type_ids.zip()]
+      data = Hash[homeless_project_type_ids.zip]
       total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
       counts = re_entry_clients.group(:year, :month, :project_type).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
       homeless_project_type_ids.each do |project_type_id|
-        months.reverse.each do |year, month|
+        months.reverse_each do |year, month|
           data[project_type_id] ||= [HUD.project_type(project_type_id)]
           data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
         end
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
 
     def all_housed_clients
@@ -305,21 +307,25 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       housed_clients.select(:client_id).distinct.count
     end
 
-    def in_percentage partial, total
-      return 0 unless total.present? && total > 0
-      ((partial / total.to_f) * 100).round(1) rescue 0
+    def in_percentage(partial, total)
+      return 0 unless total.present? && total.positive?
+
+      begin
+        ((partial / total.to_f) * 100).round(1)
+      rescue StandardError
+        0
+      end
     end
 
     def housed_by_month
-      data = {housed: [:Housed]}
+      data = { housed: [:Housed] }
       housed = housed_clients.group(:year, :month).
         order(year: :asc, month: :asc).
         select(:client_id).distinct.count
-      months.reverse.each do |year, month|
+      months.reverse_each do |year, month|
         data[:housed] << (housed[[year, month]] || 0)
       end
-      return data.values.unshift(month_x_axis_labels)
+      data.values.unshift(month_x_axis_labels)
     end
-
   end
 end

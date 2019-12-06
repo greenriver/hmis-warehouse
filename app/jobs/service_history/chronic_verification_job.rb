@@ -21,7 +21,7 @@ module ServiceHistory
       options = {
         client_id: @client_id,
         years: @years,
-        host: ENV['HOSTNAME'],
+        host: ENV['FQDN'],
         protocol: 'https',
       }
       app.get(pdf_window_client_history_url(options))

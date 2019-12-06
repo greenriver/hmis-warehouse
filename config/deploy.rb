@@ -1,15 +1,38 @@
 # config valid only for current version of Capistrano
 lock '~> 3.11.0'
 
-set :application, 'warhouse'
+set :application, 'warehouse'
 set :repo_url, 'https://github.com/greenriver/hmis-warehouse.git'
 set :client, ENV.fetch('CLIENT')
 
 set :whenever_identifier, ->{ "#{fetch(:client)}-#{fetch(:application)}_#{fetch(:stage)}" }
 set :cron_user, ENV.fetch('CRON_USER') { 'ubuntu'}
 set :whenever_roles, [:cron, :production_cron, :staging_cron]
-set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && /usr/share/rvm/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
-set :passenger_restart_command, 'sudo passenger-config restart-app --ignore-passenger-not-running --ignore-app-not-running'
+set :chmod_path, ENV.fetch('CHMOD_PATH') { '/bin/chmod' }
+set :chown_path, ENV.fetch('CHOWN_PATH') { '/bin/chown' }
+set :systemctl_path, ENV.fetch('SYSTEMCTL_PATH') { '/bin/systemctl' }
+
+if ENV['WHENEVER_HACK']=='true'
+  set :whenever_command, -> { "cat #{fetch(:release_path)}/.new_cron | sudo crontab -u #{fetch(:cron_user)} -" }
+  before 'whenever:update_crontab', 'prime_whenever'
+else
+  set :whenever_command, -> { "bash -l -c 'cd #{fetch(:release_path)} && #{fetch(:rvm_custom_path)}/bin/rvmsudo ./bin/bundle exec whenever -u #{fetch(:cron_user)} --update-crontab #{fetch(:whenever_identifier)} --set \"environment=#{fetch(:rails_env)}\" '" }
+end
+
+if ENV['SYSTEMD_APP_SERVER_NAME'] != '' && !ENV['SYSTEMD_APP_SERVER_NAME'].nil?
+  # Assuming stand-alone app server
+  after 'deploy:symlink:release', :restart_puma do
+    on roles(:web)  do
+      # reload or restart might not switch directories correctly
+      sudo "#{fetch(:systemctl_path)}", "stop", ENV['SYSTEMD_APP_SERVER_NAME']
+      sudo "#{fetch(:systemctl_path)}", "start", ENV['SYSTEMD_APP_SERVER_NAME']
+    end
+  end
+  before 'restart_puma',  :group_writable_and_owned_by_shared_user
+else
+  set :passenger_restart_command, 'sudo passenger-config restart-app --ignore-passenger-not-running --ignore-app-not-running'
+  before 'passenger:restart',  :group_writable_and_owned_by_shared_user
+end
 
 if !ENV['FORCE_SSH_KEY'].nil?
   set :ssh_options, {
@@ -32,14 +55,19 @@ set :deploy_user , ENV.fetch('DEPLOY_USER')
 set :rvm_custom_path, ENV.fetch('RVM_CUSTOM_PATH') { '/usr/share/rvm' }
 set :rvm_ruby_version, "#{File.read('.ruby-version').strip.split('-')[1]}@global"
 
-task :group_writable_and_owned_by_ubuntu do
+task :group_writable_and_owned_by_shared_user do
   on roles(:app) do
-    execute "sudo chmod --quiet g+w -R  #{fetch(:deploy_to)}"
-    execute "sudo chown --quiet ubuntu:ubuntu -R #{fetch(:deploy_to)}"
+    sudo "#{fetch(:chmod_path)} --quiet g+w -R #{fetch(:deploy_to)}"
+
+    sudo "#{fetch(:chown_path)} --quiet #{fetch(:cron_user)}:#{fetch(:cron_user)} -R #{fetch(:deploy_to)}"
+
+    # DHCD's sudo rules are brittle, thus:
+    capture("ls -1 #{fetch(:deploy_to)}/shared/log/*").each_line do |line|
+      sudo "#{fetch(:chown_path)} --quiet #{fetch(:cron_user)}:#{fetch(:cron_user)} -R #{line.chomp}"
+    end
   end
 end
-before 'passenger:restart',  :group_writable_and_owned_by_ubuntu
-after 'deploy:log_revision', :group_writable_and_owned_by_ubuntu
+after 'deploy:log_revision', :group_writable_and_owned_by_shared_user
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
@@ -58,7 +86,7 @@ after 'deploy:log_revision', :group_writable_and_owned_by_ubuntu
 # set :format_options, command_output: true, log_file: 'log/capistrano.log', color: :auto, truncate: :auto
 
 # Default value for :pty is false
-# set :pty, true
+#set :pty, true
 
 # Default value for :linked_files is []
 set :linked_files, fetch(:linked_files, []).push(

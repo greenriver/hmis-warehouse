@@ -4,8 +4,9 @@
   .o-page__header
     %h1= "#{content_for(:title)} for #{@client.full_name}"
   = render 'clients/breadcrumbs'
-  = render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:files])
+  = render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:files], client_id: @client)
   = render 'health/patient_release_status'
+  = render 'health/patient_form_status'
   .row
     .col-sm-8
       = render 'health/files/file_list'

@@ -9,5 +9,7 @@ module Filters
   class DisabilitiesReportFilter < DateRangeWithSubPopulation
     attribute :disabilities, Array, lazy: true, default: []
     attribute :project_types, Array, lazy: true, default: []
+
+    validates_presence_of :disabilities, :project_types
   end
 end

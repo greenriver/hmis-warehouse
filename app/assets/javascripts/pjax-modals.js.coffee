@@ -16,6 +16,7 @@ $ ->
       @linkTriggers = $(@linkTriggerAttr)
       @formTriggerAttr = '[data-submits-to-pjax-modal]'
       @formTriggers = $(@formTriggerAttr)
+      @initialPath = window.location.pathname
 
     listen: ->
       @_registerLoadingIndicator()
@@ -35,14 +36,16 @@ $ ->
         @modal.find("[data-pjax-modal-body]").hide()
         @modal.find("[data-pjax-modal-footer]").hide()
         @open()
+        history.pushState({}, 'Modal', $(e.target).attr("href"));
 
     _registerForms: ->
       $(document).on 'submit', @formTriggerAttr, (evt) =>
         @open()
-        $.pjax.submit evt, @containerAttr, timeout: false, push: false
+        $.pjax.submit evt, @containerAttr, timeout: false, push: false, scrollTo: false
 
     _registerClose: ->
       $('body').on 'click', '[pjax-modal-close]', (e) =>
+        history.pushState({}, 'Modal', @initialPath);
         @closeModal()
 
     closeModal: ->

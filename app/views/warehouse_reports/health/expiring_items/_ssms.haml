@@ -1,0 +1,30 @@
+- if @report.expiring_ssm_forms.exists?
+  .expiring-ssm-forms.mr-6
+    %h2 Expiring SSM Forms
+    %p The following patients have self-sufficiency matrix forms that will expire in the next month.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expiring_ssm_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_ssm_form.expires_on || 'Incomplete'
+
+- if @report.expired_ssm_forms.exists?
+  .expired-ssm-forms
+    %h2 Expired SSM Forms
+    %p The following patients have self-sufficiency matrix forms that have expired.
+    %table.table.table-hover
+      %thead
+        %tr
+          %th Patient
+          %th Expiration Date
+      %tbody
+        - @report.expired_ssm_forms.each do |patient|
+          %tr
+            %td= link_to patient.name, client_health_patient_index_path(patient.client)
+            %td= patient.recent_ssm_form.expires_on || 'Incomplete'
+

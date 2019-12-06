@@ -9,8 +9,10 @@ class Users::SessionsController < Devise::SessionsController
 
   skip_before_action :check_two_factor_requirement, only: [:destroy]
 
-  prepend_before_action :authenticate_with_two_factor,
-    if: -> { action_name == 'create' && two_factor_enabled? }
+  prepend_before_action(
+    :authenticate_with_two_factor,
+    if: -> { action_name == 'create' && two_factor_enabled? },
+  )
 
   def create
     super do |resource|
@@ -21,7 +23,14 @@ class Users::SessionsController < Devise::SessionsController
 
   # configure auto_session_timeout
   def active
-    render_session_status
+    respond_to do |format|
+      format.json do
+        render_session_status
+      end
+      format.html do
+        redirect_to(root_path)
+      end
+    end
   end
 
   def timeout

@@ -2,6 +2,6 @@
 = render 'clients/breadcrumbs'
 
 = render 'clients/aliases'
-= render 'clients/tab_navigation', current: client_vispdats_path(client_id: @client.id)
+= render 'clients/tab_navigation', current: polymorphic_path(vispdats_path_generator, client_id: @client)
 
 = render 'list'

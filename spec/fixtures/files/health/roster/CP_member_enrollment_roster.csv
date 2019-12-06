@@ -1,0 +1,6 @@
+member_id,performance_year,region,service_area,aco_pidsl,aco_name,pcc_pidsl,pcc_name,pcc_npi,pcc_taxid,mco_pidsl,mco_name,enrolled_flag,enroll_type,enroll_stop_reason,rating_category_char_cd,ind_dds,ind_dmh,ind_dta,ind_dss,cde_hcb_waiver,cde_waiver_category,span_start_date,span_end_date,span_mem_days,cp_prov_type,cp_plan_type,cp_pidsl,cp_prov_name,cp_enroll_dt,cp_disenroll_dt,cp_start_rsn,cp_stop_rsn,ind_medicare_a,ind_medicare_b,tpl_coverage_cat
+M1,2019,SOUTHERN,Barnstable,,,,,,,111111XXXZ,BMC HEALTHNET PLAN,Y,,,RC1 child,N,N,N,N,N/A,1902(R)2,,,,,,,,,,,,,,
+M3,2017,SOUTHERN,Brockton,,,,,,,,,N,,,,N,N,Y,N,N/A,Base,,,,,,,,,,,,,,
+M3,2017,SOUTHERN,Plymouth,11000000XX,BMC HEALTHNET PLAN SIGNATURE ALLIANCE,123456789Z,SUPERB MEDICAL SERVICES PC,,42547701,111111XXXZ,TUFTS HEALTH TOGETHER,N,,,RC2 adult,N,N,N,N,N/A,Base,,,,,,,,,,,,,,
+M4,PostACO-2018,SOUTHERN,Brockton,11000000XX,STEWARD HEALTH CHOICE,123456789Z,SUPERB MEDICAL SERVICES PC,6664477109,42547701,,,N,,,RC2 adult,N,N,N,N,N/A,Base,,,,,,,,,,,,,,
+M5,2017,SOUTHERN,New Bedford,11000000XX,BMC HEALTHNET PLAN SOUTHCOAST ALLIANCE,,,,,,,N,,,RC2 adult,N,N,N,N,N/A,Base,,,,,,,,,,,,,,

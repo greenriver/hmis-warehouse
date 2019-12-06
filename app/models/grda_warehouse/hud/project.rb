@@ -186,7 +186,6 @@ module GrdaWarehouse::Hud
     has_many :residential_projects, through: :affiliations
 
     has_many :enrollment_cocs, **hud_assoc(:ProjectID, 'EnrollmentCoc'), inverse_of: :project
-    has_many :user_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::UserViewableEntity'
 
     # Warehouse Reporting
     has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
@@ -369,12 +368,24 @@ module GrdaWarehouse::Hud
         )
       end
     end
-    scope :editable_by, -> (user) { viewable_by user }
+    scope :editable_by, -> (user) do
+      if user&.can_edit_projects?
+        viewable_by user
+      else
+        none
+      end
+    end
 
     private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
-      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = if group_ids.empty?
+        "0=1"
+      else
+        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+      end
 
       <<-SQL.squish
 
@@ -386,7 +397,7 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(sti_name)}
               AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
               AND
@@ -397,10 +408,16 @@ module GrdaWarehouse::Hud
     end
 
     private_class_method def self.has_access_to_project_through_organization(user, q, qc)
-      viewability_table   = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = if group_ids.empty?
+        "0=1"
+      else
+        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+      end
 
       <<-SQL.squish
 
@@ -414,7 +431,7 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::Hud::Organization.sti_name)}
               AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
@@ -430,9 +447,15 @@ module GrdaWarehouse::Hud
 
     private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
-      viewability_table = GrdaWarehouse::UserViewableEntity.quoted_table_name
+      viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
-      viewability_deleted_column_name = GrdaWarehouse::UserViewableEntity.paranoia_column
+      viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
+      group_ids = user.access_groups.pluck(:id)
+      group_id_query = if group_ids.empty?
+        "0=1"
+      else
+        "#{viewability_table}.#{qc.('access_group_id')} IN (#{group_ids.join(', ')})"
+      end
 
       <<-SQL.squish
 
@@ -446,7 +469,7 @@ module GrdaWarehouse::Hud
               AND
               #{viewability_table}.#{qc.('entity_type')} = #{q.(GrdaWarehouse::DataSource.sti_name)}
               AND
-              #{viewability_table}.#{qc.('user_id')}     = #{user.id}
+              #{group_id_query}
               AND
               #{viewability_table}.#{qc.(viewability_deleted_column_name)} IS NULL
             WHERE
@@ -532,13 +555,13 @@ module GrdaWarehouse::Hud
 
     def organization_and_name(include_confidential_names: false)
       if include_confidential_names
-        "#{organization&.name} / #{name}"
+        "#{organization&.OrganizationName} / #{self.ProjectName}"
       else
-        project_name = self.class.confidentialize(name: name)
+        project_name = self.class.confidentialize(name: self.ProjectName)
         if project_name == self.class.confidential_project_name
           "#{project_name}"
         else
-          "#{organization&.name} / #{name}"
+          "#{organization&.OrganizationName} / #{self.ProjectName}"
         end
       end
     end
@@ -651,6 +674,10 @@ module GrdaWarehouse::Hud
           end
         end
       end
+    end
+
+    def confidential_hint
+      'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
     def safe_project_name

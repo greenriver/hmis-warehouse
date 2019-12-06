@@ -8,6 +8,7 @@ module Clients
   class FilesController < ApplicationController
     include ClientPathGenerator
     include PjaxModalController
+    include ClientDependentControllers
 
     before_action :require_window_file_access!
     before_action :set_client
@@ -66,7 +67,7 @@ module Clients
           effective_date: allowed_params[:effective_date],
           expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed],
-          coc_code: allowed_params[:coc_code],
+          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
         }
 
         @file.assign_attributes(attrs)
@@ -96,15 +97,14 @@ module Clients
     end
 
     def update
-      if can_manage_client_files? && can_confirm_housing_release?
-        attrs = file_params
+      attrs = if can_confirm_housing_release?
+        file_params
       elsif can_manage_client_files?
         file_params.except(:consent_form_confirmed)
-      elsif can_confirm_housing_release?
-        attrs = consent_params
       else
         not_authorized!
       end
+      @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
 
       attrs[:effective_date] = attrs[:consent_form_signed_on] if attrs.key?(:consent_form_signed_on)
       @file.update(attrs)
@@ -229,7 +229,8 @@ module Clients
           :consent_form_confirmed,
           :effective_date,
           :expiration_date,
-          :coc_code,
+          :consent_revoked_at,
+          coc_codes: [],
           tag_list: [],
         )
     end
@@ -246,7 +247,7 @@ module Clients
     end
 
     def set_client
-      @client = client_scope.find(params[:client_id].to_i)
+      @client = searchable_client_scope.find(params[:client_id].to_i)
     end
 
     def set_file
@@ -257,16 +258,8 @@ module Clients
       @files = file_scope
     end
 
-    def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
     def file_source
       GrdaWarehouse::ClientFile
-    end
-
-    def client_scope
-      client_source.destination
     end
 
     protected def title_for_show

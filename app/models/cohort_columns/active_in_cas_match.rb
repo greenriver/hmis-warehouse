@@ -8,7 +8,7 @@ module CohortColumns
   class ActiveInCasMatch < ReadOnly
     attribute :column, String, lazy: true, default: :active_in_cas_match
     attribute :translation_key, String, lazy: true, default: 'Active CAS Match'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def renderer
       'html'
@@ -18,7 +18,7 @@ module CohortColumns
       checkmark_or_x text_value(cohort_client)
     end
 
-    def text_value cohort_client
+    def text_value(cohort_client)
       cohort_client.client.processed_service_history&.active_in_cas_match || false
     end
   end

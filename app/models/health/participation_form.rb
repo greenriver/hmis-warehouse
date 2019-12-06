@@ -22,6 +22,7 @@ module Health
 
     belongs_to :case_manager, class_name: 'User'
     belongs_to :reviewed_by, class_name: 'User'
+    belongs_to :patient
 
     has_one :health_file, class_name: 'Health::ParticipationFormFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
@@ -42,8 +43,27 @@ module Health
       )
     end
 
+    scope :unsigned, -> do
+      where(signature_on: nil)
+    end
     scope :signed, -> do
       where.not(signature_on: nil)
+    end
+    scope :active, -> do
+      valid.where(arel_table[:signature_on].gteq(1.years.ago))
+    end
+    scope :expired, -> do
+      where(arel_table[:signature_on].lt(1.years.ago))
+    end
+    scope :expiring_soon, -> do
+      where(signature_on: 1.years.ago..11.months.ago)
+    end
+    scope :recently_signed, -> do
+      active.where(arel_table[:signature_on].gteq(1.months.ago))
+    end
+    scope :after_enrollment_date, -> do
+      joins(patient: :patient_referral).
+      where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date]))
     end
 
     attr_accessor :reviewed_by_supervisor, :file
@@ -54,6 +74,12 @@ module Health
         self.reviewer = reviewed_by.name
         self.reviewed_at = DateTime.current
       end
+    end
+
+    def expires_on
+      return unless signature_on
+
+      signature_on.to_date + 1.years
     end
 
     def file_or_location
