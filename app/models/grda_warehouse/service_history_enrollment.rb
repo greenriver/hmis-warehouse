@@ -294,9 +294,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         where(presented_as_individual: false)
       else
         where(
+          # Client is in enrollment household with more than one member
           arel_table[:presented_as_individual].eq(false).
+          # Client is an adult
           and(arel_table[:age].gt(17)).
+          # Enrollment household contains at least one child
           and(arel_table[:other_clients_under_18].gt(0)).
+          # Client is the head of household
           and(arel_table[:head_of_household].eq(true))
         )
       end
