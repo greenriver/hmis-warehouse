@@ -12,6 +12,8 @@
     = @range.start
     to
     = @range.end
+    - if @sub_population == :family
+      = GrdaWarehouse::Hud::Client.report_family_warning
   %h4 All Clients Added
   .row
     .col-sm-10
