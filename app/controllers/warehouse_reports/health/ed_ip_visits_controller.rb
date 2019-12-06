@@ -32,6 +32,8 @@ module WarehouseReports::Health
 
     def destroy
       file = file_scope.find(params[:id].to_i)
+      # These files are sometimes huge, so batch delete visits
+      file.ed_ip_visits.update_all(deleted_at: Time.current)
       file.destroy
       redirect_to action: :index
     end

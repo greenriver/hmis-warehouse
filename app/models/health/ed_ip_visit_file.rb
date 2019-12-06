@@ -79,6 +79,7 @@ module Health
 
     def create_visits!
       update(started_at: Time.current)
+      visits = []
       if check_header
         ::CSV.parse(content, headers: true).each do |row|
           model_row = {
@@ -92,8 +93,9 @@ module Health
               model_row[column] = value
             end
           end
-          Health::EdIpVisit.create(model_row)
+          visits << Health::EdIpVisit.new(model_row)
         end
+        Health::EdIpVisit.import(visits)
         update(completed_at: Time.current)
         return true
       else
