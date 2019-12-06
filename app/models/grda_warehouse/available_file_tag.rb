@@ -16,6 +16,10 @@ module GrdaWarehouse
       where(consent_form: true)
     end
 
+    scope :verified_homeless_history, -> do
+      where(verified_homeless_history: true)
+    end
+
     scope :full_release, -> do
       consent_forms.where(full_release: true)
     end
