@@ -73,6 +73,7 @@ module Import::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
     def needs_update?(row:, existing:, soft_delete_time: nil) # rubocop:disable Lint/UnusedMethodArgument
       # Incoming is newer
       return false if row[:DateUpdated].blank?
+      return true if existing&.updated_at.blank?
 
       incoming_newer = row[:DateUpdated].to_time > existing.updated_at
       if incoming_newer
