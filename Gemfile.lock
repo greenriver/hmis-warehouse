@@ -1250,7 +1250,7 @@ GEM
     pry-rails (0.3.9)
       pry (>= 0.10.4)
     public_suffix (4.0.1)
-    puma (3.7.1)
+    puma (3.12.2)
     pwned (1.2.1)
     rack (2.0.7)
     rack-attack (6.2.1)
@@ -1594,7 +1594,7 @@ DEPENDENCIES
   paranoia (~> 2.0)
   pg
   pry-rails
-  puma (~> 3.7.1)
+  puma (~> 3.12.2)
   rack-attack
   rack-mini-profiler
   rails (= 5.2.3)

@@ -23,8 +23,8 @@ module WarehouseReports::Health
         user: current_user,
         file: visit_params[:content].original_filename,
       )
-      @file.create_visits!
-      redirect_to warehouse_reports_health_ed_ip_visit_path(@file)
+      Health::EdIpImportJob.perform_later(@file.id)
+      redirect_to warehouse_reports_health_ed_ip_visits_path
     rescue Exception => e
       flash[:error] = "Error processing uploaded file #{e}"
       redirect_to action: :index
@@ -32,6 +32,8 @@ module WarehouseReports::Health
 
     def destroy
       file = file_scope.find(params[:id].to_i)
+      # These files are sometimes huge, so batch delete visits
+      file.ed_ip_visits.update_all(deleted_at: Time.current)
       file.destroy
       redirect_to action: :index
     end

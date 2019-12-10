@@ -40,6 +40,14 @@ module GrdaWarehouse
       canceled.where(updated_at: (start_date..end_date))
     end
 
+    scope :on_route, -> (route_name) do
+      where(match_route: route_name)
+    end
+
+    def self.match_routes
+      distinct.order(match_route: :asc).pluck(:match_route)
+    end
+
     def self.reason_attributes
       {
         client_id: 'Client',

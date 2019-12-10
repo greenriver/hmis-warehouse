@@ -47,7 +47,7 @@ module WarehouseReports::Cas
     private def step_params
       return {} unless params.key? :steps
 
-      params.require(:steps).permit(:first, :second, :unit)
+      params.require(:steps).permit(:route, :first, :second, :unit)
     end
 
     def date_range_options

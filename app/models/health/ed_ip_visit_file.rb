@@ -36,6 +36,20 @@ module Health
     belongs_to :patient, primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :ed_ip_visits, dependent: :destroy
 
+    def status
+      if failed_at.present?
+        'Failed to import'
+      elsif completed_at.present?
+        'Imported'
+      elsif started_at.present?
+        'Importing...'
+      elsif updated_at < 3.hours.ago
+        'Failed to import'
+      else
+        'Queued for import'
+      end
+    end
+
     def self.header_map
       {
         medicaid_id: 'Medicaid ID',
@@ -55,19 +69,37 @@ module Health
       }
     end
 
+    def csv_date_columns
+      @csv_date_columns ||= [
+        :dob,
+        :admit_date,
+        :discharge_date,
+      ]
+    end
+
     def create_visits!
+      update(started_at: Time.current)
+      visits = []
       if check_header
-        ::CSV.parse(content, headers: true) do |row|
+        ::CSV.parse(content, headers: true).each do |row|
           model_row = {
             ed_ip_visit_file_id: self.id,
           }
           self.class.header_map.each do |column, title|
-            model_row[column] = row[title]
+            value = row[title]
+            if csv_date_columns.include?(column) && value
+              model_row[column] = Date.strptime(value, '%m/%d/%Y')
+            else
+              model_row[column] = value
+            end
           end
-          Health::EdIpVisit.create(model_row)
+          visits << Health::EdIpVisit.new(model_row)
         end
+        Health::EdIpVisit.import(visits)
+        update(completed_at: Time.current)
         return true
       else
+        update(failed_at: Time.current)
         return false
       end
     end
