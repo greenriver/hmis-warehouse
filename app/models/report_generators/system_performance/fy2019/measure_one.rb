@@ -379,9 +379,9 @@ module ReportGenerators::SystemPerformance::Fy2019
       es_so_sh_client_ids = add_filters(scope: es_so_sh_scope).distinct.pluck(:client_id)
 
       # Clients from PH & TH under certain conditions
-      homeless_living_situations = [16, 1, 18, 27]
-      institutional_living_situations = [15, 6, 7, 24, 4, 5]
-      housed_living_situations = [14, 23, 21, 3, 22, 19, 25, 20, 26, 12, 13, 2, 8, 9, 99]
+      homeless_living_situations = [16, 1, 18]
+      institutional_living_situations = [15, 6, 7, 25, 4, 5]
+      housed_living_situations = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]
 
       ph_th_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         hud_project_type(PH + TH).

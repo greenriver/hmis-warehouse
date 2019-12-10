@@ -17,6 +17,8 @@ module ReportGenerators::SystemPerformance::Fy2019
     # SH = [8]
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
 
+    FUNDING_SOURCES= [2, 3, 4, 5, 43, 44]
+
     def run!
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
@@ -188,7 +190,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(:client, project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: {Funder: FUNDING_SOURCES}).
         grant_funded_between(start_date: @report_start, end_date: @report_end + 1.day)
         if @report.options['coc_code'].present?
           stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
@@ -258,7 +260,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: {Funder: FUNDING_SOURCES}).
         grant_funded_between(start_date: @report_start,
           end_date: @report_end + 1.day)
 
@@ -274,7 +276,7 @@ module ReportGenerators::SystemPerformance::Fy2019
             distinct
         ).
         joins(:client, project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: {Funder: FUNDING_SOURCES}).
         grant_funded_between(start_date: @report_start,
           end_date: @report_end + 1.day)
 
