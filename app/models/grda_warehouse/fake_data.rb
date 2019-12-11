@@ -42,7 +42,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastName: -> (value) { fake_name(type: :last) },
       SSN: -> (value) { fake_ssn(value) if value.present?},
       DOB: -> (value) {
-        Faker::Date.between(70.years.ago, 1.years.ago) if value.present?
+        Faker::Date.between(from: 70.years.ago, to: 1.years.ago) if value.present?
       },
       PersonalID: -> (value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: -> (value) { Faker::Internet.user_name(5..8) },
