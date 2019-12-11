@@ -257,11 +257,12 @@ module ReportGenerators::SystemPerformance::Fy2019
         last_date_in_program: she_t[:last_date_in_program].to_sql,
         DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
         MoveInDate: e_t[:MoveInDate].to_sql,
+        DOB: c_t[:DOB].to_sql,
       }
       #Rails.logger.info "Calculating Days Homeless for: #{id}"
       # Load all bed nights
       all_night_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:enrollment, :service_history_services).
+        joins(:enrollment, :service_history_services, :client).
         where(client_id: id).
         hud_project_type(PH + TH + ES + SH)
 
@@ -281,7 +282,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           next unless literally_homeless?(client_id: id, enrollment_id: entry[:enrollment_id])
           # 3.917.3 - add any days prior to project entry
           if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
-            start_date = [entry[:DateToStreetESSH].to_date, LOOKBACK_STOP_DATE.to_date].max
+            start_date = [entry[:DateToStreetESSH].to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB].to_date].max
             new_nights = (start_date..entry[:first_date_in_program]).map do |date|
               {
                 date: date,
@@ -298,6 +299,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           # included in the acceptable project types.  Convert the project type of any days pre-move-in
           # for PH to a project type we will be counting
           if PH.include?(entry[:project_type])
+            start_date = [entry[:first_date_in_program].to_date, entry[:DOB].to_date].max
             stop_date = nil
             if entry[:MoveInDate].present? && entry[:MoveInDate] > entry[:first_date_in_program]
               stop_date = [entry[:MoveInDate], @report_end + 1.day].min
@@ -305,7 +307,7 @@ module ReportGenerators::SystemPerformance::Fy2019
               stop_date = [entry[:last_date_in_program] - 1.day, @report_end].min rescue @report_end
             end
             next unless stop_date.present?
-            date_range = (entry[:first_date_in_program]...stop_date)
+            date_range = (start_date...stop_date)
             date_range.each do |date|
               check = {
                 enrollment_id: entry[:enrollment_id],
