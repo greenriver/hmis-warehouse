@@ -7,7 +7,7 @@
 module Reports::SystemPerformance::Fy2019
   class Base < Report
     def self.report_name
-      'HUD System Performance Reports - FY 2018'
+      'HUD System Performance Reports - FY 2019'
     end
 
     def report_group_name
