@@ -19,6 +19,10 @@ default: &default
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
   database: <%= ENV['DATABASE_APP_DB'] %>
+  <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
+  sslmode: 'verify-full'
+  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+  <% end %>
 
 <%= ENV['RAILS_ENV'] %>_cas:
   <<: *default
