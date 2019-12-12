@@ -12,7 +12,7 @@ module Health::Tasks
         distinct.
         pluck(:care_coordinator_id)
 
-      User.where(id: care_coordinator_ids).each do |user|
+      User.active.where(id: care_coordinator_ids).each do |user|
         ineligible_patients = patient_scope.
           no_coverage.
           where(care_coordinator_id: user.id).
