@@ -7,11 +7,27 @@
 
 - if @agency.users.exists?
 
-  %table.table.table-hover.mt-6
-    %thead
-      %tr
-        %th Users
-    %tbody
-      - @agency.users.each do |user|
-        %tr
-          %td= user.name_with_email
+  %ul.nav.nav-tabs.mb-0
+    %li.nav-item
+      %a.nav-link.active{href: '#active', role: "presentation", data: {toggle: :tab}, aria: {controls:"active", selected:"true"}}
+        Active Users
+        .badge.badge-primary.badge-pill
+          #{@agency.users.active.count}
+    %li.nav-item
+      %a.nav-link{href: '#inactive', role: "presentation", data: {toggle: :tab}, aria: {controls:"inactive", selected:"false"}}
+        Inactive Users
+
+  .tab-content
+    .tab-pane.show.active.fade#active{role: 'tabpanel', aria: {labelledby: 'active'}}
+      %table.table.table-hover
+        %tbody
+          - @agency.users.active.each do |user|
+            %tr
+              %td= user.name_with_email
+
+    .tab-pane.fade#inactive{role: 'tabpanel', aria: {labelledby: 'inactive'}}
+      %table.table.table-hover
+      %tbody
+        - @agency.users.inactive.each do |user|
+          %tr
+            %td= user.name_with_email
