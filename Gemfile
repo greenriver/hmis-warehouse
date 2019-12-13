@@ -28,7 +28,7 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
+gem 'carrierwave', '~> 2.0'
 gem 'carrierwave-i18n'
 gem 'ruby-filemagic'
 gem 'mini_magick'
