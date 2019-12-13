@@ -19,6 +19,7 @@ module Health
     attr_accessor :batch
 
     has_one :eligibility_response, dependent: :destroy
+    has_many :batches, class_name: 'Health::EligibilityInquiry', foreign_key: :batch_id, dependent: :destroy
 
     scope :pending, -> () do
       where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
@@ -28,6 +29,10 @@ module Health
       Health::Patient.participating.
         joins(:patient_referral).
         where.not(medicaid_id: nil)
+    end
+
+    def batch_responses
+      Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
     end
 
     def build_inquiry_file
