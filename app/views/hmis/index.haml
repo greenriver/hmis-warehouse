@@ -19,7 +19,7 @@
 
       %tbody
         - @results.each do |result|
-          - url = hmi_path(result, type: params.permit![:search].try(:[], :type))
+          - url = hmi_path(result, type: params[:search].try(:[], :type))
           %tr
             %td= link_to result.data_source.name, data_source_path(result.data_source)
             %td= link_to result.id, url

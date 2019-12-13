@@ -1,0 +1,18 @@
+- enrollments = client.es_so_enrollments_with_service_since(current_user, 3.months.ago)
+.rollup-container.c-card.c-card--flush
+  - if enrollments.any?
+    %table.table
+      %thead
+        %tr
+          %th Entry
+          %th Last Seen
+          %th Program Name
+      %tbody
+        - enrollments.each do |e|
+          %tr
+            %td= e.first_date_in_program
+            %td= e.service_history_services.maximum(:date)
+            %td= e.project.safe_project_name
+  - else
+    .no-data
+      No current enrollments

@@ -27,7 +27,7 @@ class AddCohortClientsJob < BaseJob
       where(cohort_id: cohort.id, client_id: client_id).first_or_initialize
     cohort_client.deleted_at = nil
     cohort_source.available_columns.each do |column|
-      if column.has_default_value?
+      if column.default_value?
         column.cohort = cohort
         cohort_client[column.column] = column.default_value(client_id)
       end

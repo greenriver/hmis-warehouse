@@ -16,19 +16,19 @@ class HmisController < ApplicationController
 
   def index
     if searched?
-      @type = params.permit![:search].try(:[], :type)
-      @id = params.permit![:search].try(:[], :id)
+      @type = params[:search].try(:[], :type)
+      @id = params[:search].try(:[], :id)
     end
 
     @results = load_results
   end
 
   def show
-    @type = params.permit![:type] if valid_class(params.permit![:type]).present?
+    @type = params[:type] if valid_class(params[:type]).present?
   end
 
   private def searched?
-    @searched = params.permit![:search].present?
+    @searched = params[:search].present?
   end
   helper_method :searched?
 
@@ -36,12 +36,12 @@ class HmisController < ApplicationController
     return [] unless @searched
 
     # whitelist the passed in class
-    @klass = valid_class(params.permit![:search].try(:[], :type))
+    @klass = valid_class(params[:search].try(:[], :type))
     return [] unless @klass.present?
-    return [] unless params.permit![:search][:id].present?
+    return [] unless params[:search][:id].present?
 
     # can't force to_i since this might be a string
-    @query = params.permit![:search][:id]
+    @query = params[:search][:id]
     # long string searches against integers make postgres unhappy
     # limit the search to the HUD key if the search isn't an integer
     if @query.to_i == @query
@@ -61,7 +61,7 @@ class HmisController < ApplicationController
   end
 
   private def set_item
-    @klass = valid_class(params.permit![:type])
+    @klass = valid_class(params[:type])
     return nil unless @klass.present?
 
     @item = item_scope.find(params[:id].to_i)

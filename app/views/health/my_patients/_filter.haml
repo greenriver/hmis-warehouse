@@ -14,25 +14,25 @@
     = form_tag(nil, method: :get) do
       %label Status
       -# preserve search for filtering
-      - if params.permit![:q] && params.permit![:q][:full_text_search]
-        = hidden_field_tag 'q[full_text_search]', params.permit![:q][:full_text_search]
+      - if params[:q] && params[:q][:full_text_search]
+        = hidden_field_tag 'q[full_text_search]', params[:q][:full_text_search]
       .radio
-        - active = params.permit![:filter].blank? || params.permit![:filter][:population] == 'all'
+        - active = params[:filter].blank? || params[:filter][:population] == 'all'
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} 
           All
       .radio
-        - active = params.permit![:filter].present? && params.permit![:filter][:population] == 'not_engaged'
+        - active = params[:filter].present? && params[:filter][:population] == 'not_engaged'
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} 
           Not engaged
       .radio
-        - active = params.permit![:filter].present? && params.permit![:filter][:population] == 'no_activities'
+        - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 
           0 Recent Qualifying Activities
       .radio
-        - active = params.permit![:filter].present? && params.permit![:filter][:population] == 'engagement_ending'
+        - active = params[:filter].present? && params[:filter][:population] == 'engagement_ending'
         %label{class: "#{active ? :active : ''}"}
           %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active} 
           Engagement Period Ending
@@ -40,9 +40,9 @@
       .select
         %select{name: 'filter[user]'}
           %option{value: ''} All
-          %option{value: current_user.id, selected: params.permit![:filter].try(:[], :user) == current_user.id ? :selected : ''}= current_user.name
+          %option{value: current_user.id, selected: params[:filter].try(:[], :user) == current_user.id ? :selected : ''}= current_user.name
           - current_user.care_coordinators.each do |u|
-            %option{value: u.id, selected: params.permit![:filter].try(:[], :user) == u.id ? :selected : ''}= u.name
+            %option{value: u.id, selected: params[:filter].try(:[], :user) == u.id ? :selected : ''}= u.name
       .o-filtration__actions.form__actions
         = link_to health_my_patients_path, class:'btn btn-secondary' do
           %span.icon-cross.icon-inline

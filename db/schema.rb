@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_11_15_192256) do
+ActiveRecord::Schema.define(version: 2019_11_24_135304) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -353,6 +353,7 @@ ActiveRecord::Schema.define(version: 2019_11_15_192256) do
     t.boolean "enforced_2fa", default: false
     t.boolean "can_view_all_hud_reports", default: false
     t.boolean "can_view_own_hud_reports", default: false
+    t.boolean "can_view_confidential_enrollment_details", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 

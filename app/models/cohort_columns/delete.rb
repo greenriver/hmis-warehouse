@@ -22,11 +22,11 @@ module CohortColumns
       'html'
     end
 
-    def value(cohort_client) # OK
+    def value(_cohort_client) # OK
       nil
     end
 
-    def display_for user
+    def display_for(user)
       if user.can_manage_cohorts? || user.can_edit_cohort_clients?
         display_read_only(user)
       else
@@ -34,8 +34,8 @@ module CohortColumns
       end
     end
 
-    def display_read_only user
-      content_tag(:a, href: pre_destroy_cohort_cohort_client_path(cohort, cohort_client), class: "btn btn-danger btn-sm btn-icon-only", data: {loads_in_pjax_modal: true}) do
+    def display_read_only(_user)
+      content_tag(:a, href: pre_destroy_cohort_cohort_client_path(cohort, cohort_client), class: 'btn btn-danger btn-sm btn-icon-only', data: { loads_in_pjax_modal: true }) do
         content_tag(:i, '', class: 'icon-cross')
       end
     end

@@ -6,5 +6,5 @@
   %tbody
     - @report.metrics.each do |key, label|
       %tr
-        %td= link_to label, details_warehouse_reports_outflow_index_path(filter: params.permit![:filter], key: key), data: {loads_in_pjax_modal: true}
+        %td= link_to label, details_warehouse_reports_outflow_index_path(filter: params[:filter], key: key), data: {loads_in_pjax_modal: true}
         %td= @report.send(key).count

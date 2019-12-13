@@ -23,7 +23,7 @@ module TableauExport
       [
         1, # => 'Emergency Shelter',
         2, #=> 'Transitional Housing',
-        3, #=> 'PH - Permanent Supportive Housing',
+        3, #=> 'PH – Permanent Supportive Housing',
         4, #=> 'Street Outreach',
         # 6, #=> 'Services Only',
         # 7, #=> 'Other',
@@ -42,41 +42,39 @@ module TableauExport
     end
     private_class_method :null
 
-
     def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
-      model = she_t.engine
+      model = GrdaWarehouse::ServiceHistoryEnrollment
       spec = {
-        client_uid:  she_t[:client_id], # in use
-        hh_config:   she_t[:presented_as_individual],
-        prog:        she_t[she_t.engine.project_type_column], # in use
-        entry:       she_t[:first_date_in_program], # in use
-        exit:        she_t[:last_date_in_program], # in use
+        client_uid: she_t[:client_id], # in use
+        hh_config: she_t[:presented_as_individual],
+        prog: she_t[she_t.engine.project_type_column], # in use
+        entry: she_t[:first_date_in_program], # in use
+        exit: she_t[:last_date_in_program], # in use
         destination: she_t[:destination], # in use
-        coc_code:    ec_t[:CoCCode], # in use
-        coc_name:    nil, # in use
+        coc_code: ec_t[:CoCCode], # in use
+        coc_name: nil, # in use
       }
-      repeaters     = %i( prog entry exit destination coc_code coc_name )
+      repeaters = [:prog, :entry, :exit, :destination, :coc_code, :coc_name]
       non_repeaters = spec.keys - repeaters
 
       scope = model.
-        joins( :client, enrollment: :enrollment_cocs ).
+        joins(:client, enrollment: :enrollment_cocs).
         # merge( model.hud_residential ). # maybe spurious?
         merge(
           model.in_project_type(project_types).
-            open_between( start_date: start_date, end_date: end_date ).
-            with_service_between( start_date: start_date, end_date: end_date )
+            open_between(start_date: start_date, end_date: end_date).
+            with_service_between(start_date: start_date, end_date: end_date),
         ).
-        where( ec_t[:DataCollectionStage].eq 1 ).
-        order( she_t[:client_id].asc ).
-        order( she_t[:first_date_in_program].asc ).
-        order( she_t[:last_date_in_program].asc )
+        where(ec_t[:DataCollectionStage].eq 1).
+        order(she_t[:client_id].asc).
+        order(she_t[:first_date_in_program].asc).
+        order(she_t[:last_date_in_program].asc)
 
-      if coc_code.present?
-        scope = scope.where( ec_t[:CoCCode].eq coc_code )
-      end
+      scope = scope.where(ec_t[:CoCCode].eq coc_code) if coc_code.present?
       paths = scope
       spec.each do |header, selector|
         next if selector.nil?
+
         paths = paths.select selector.as(header.to_s)
       end
 
@@ -85,13 +83,12 @@ module TableauExport
       # we collect the rows and then pad them with nils, as needed so they are all the same width
       paths = model.connection.select_all(paths.to_sql)
 
-      paths = paths.group_by{ |h| h['client_uid'] }
-      max_entries = 1
+      paths = paths.group_by { |h| h['client_uid'] }
       rows = []
       headers = Set[*non_repeaters]
 
-      paths.each do |_,paths|
-        path = paths.last # get the common data from the most recent enrollment
+      paths.each do |_, inner_paths|
+        path = inner_paths.last # get the common data from the most recent enrollment
         row = []
         non_repeaters.map do |h|
           value = path[h.to_s].presence
@@ -105,10 +102,10 @@ module TableauExport
           row << value
         end
 
-        paths.first(3).each_with_index do |path, i|
+        inner_paths.first(3).each_with_index do |inner_path, i|
           repeaters.each do |h|
-            headers << "#{h}#{ i + 1 }".to_sym
-            value = path[h.to_s].presence
+            headers << "#{h}#{i + 1}".to_sym
+            value = inner_path[h.to_s].presence
             value = case h
             # when :prog
             #   ::HUD.project_type value.to_i if value
@@ -117,7 +114,7 @@ module TableauExport
             # when :destination
             #   ::HUD.destination value.to_i if value
             when :coc_name
-              ::HUD.coc_name(path['coc_code'])
+              ::HUD.coc_name(inner_path['coc_code'])
             else
               value
             end

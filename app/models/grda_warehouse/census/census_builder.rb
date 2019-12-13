@@ -23,7 +23,7 @@ module GrdaWarehouse::Census
 
         GrdaWarehouseBase.transaction do
           # Remove any existing census data for the batch range
-          ByProjectType.delete_all(date: batch_start_date..batch_end_date)
+          ByProjectType.where(date: batch_start_date..batch_end_date).delete_all
 
           # Save the new batch
           # batch_by_project_type.by_count.values.each(&:save)
@@ -42,7 +42,7 @@ module GrdaWarehouse::Census
           batch_by_project.build_census_batch
 
           # Remove any existing census data for the batch range
-          ByProject.delete_all(date: batch_start_date..batch_end_date)
+          ByProject.where(date: batch_start_date..batch_end_date).delete_all
 
           # Save the new batch
           headers = nil

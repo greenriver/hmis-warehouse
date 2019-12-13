@@ -69,11 +69,11 @@ module WarehouseReports
       end
 
       def client_column?(column)
-        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Client
+        GrdaWarehouse::Hud::Client.column_names.include?(column.to_s)
       end
 
       def enrollment_column?(column)
-        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Enrollment
+        GrdaWarehouse::Hud::Enrollment.column_names.include?(column.to_s)
       end
 
       def client_columns
@@ -286,7 +286,7 @@ module WarehouseReports
         GrdaWarehouse::Hud::Enrollment.arel_table
       end
 
-      def normalize_hash(h) # rubocop:disable Naming/UncommunicativeMethodParamName
+      def normalize_hash(h) # rubocop:disable Naming/MethodParameterName
         h = h.to_hash.first
         h.map { |k, v| [k.tr('_', ' '), v] }.to_h.with_indifferent_access
       end

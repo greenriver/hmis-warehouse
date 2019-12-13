@@ -15,7 +15,7 @@
       %h4.title
         Enrolled Clients
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.enrolled_client_count, 'client'), warehouse_reports_enrolled_project_type_index_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_type: [:es, :sh, :so, :th], project_ids: @project_ids, organization_ids: @organization_ids}), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.enrolled_client_count, 'client'), warehouse_reports_enrolled_project_type_index_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_type: @report.project_types, project_ids: @project_ids, organization_ids: @organization_ids}), target: :_blank
         \/
         = pluralize(@report.enrolled_household_count, 'households')
       .description
@@ -35,7 +35,7 @@
       %h4.title
         Enterers
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids}, project_type: [:es, :sh, :so, :th]), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.entered_client_count, 'client'), warehouse_reports_client_details_entries_path(range: {sub_population: @report.sub_population, start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, project_type: @report.project_types}), target: :_blank
         \/
         = pluralize(@report.entered_household_count, 'households')
       .description

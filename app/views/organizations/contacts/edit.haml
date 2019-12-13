@@ -1,4 +1,4 @@
-- remote_submit = params.permit![:remote_submit] == 'true'
+- remote_submit = params[:remote_submit] == 'true'
 - title = "Manage Organization Contacts for #{@entity.OrganizationName}"
 - content_for :modal_title, title
 .row

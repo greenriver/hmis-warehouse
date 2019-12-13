@@ -20,11 +20,9 @@ module WarehouseReports
     # download
     def show
       @file = @report.file
-      send_data(
-        @file.content,
-        type: @file.content_type,
-        filename: "#{@report.display_coc_code}.zip",
-      )
+      send_data @file.content,
+                type: @file.content_type,
+                filename: "#{@report.display_coc_code}.zip"
     end
 
     def create

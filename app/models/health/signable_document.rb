@@ -266,8 +266,8 @@ module Health
       return nil if self.hs_initial_response.nil?
 
       res = Array.wrap(self.hs_initial_response['signatures']).find do |r|
-        r['signer_email_address'] == email
-      end
+        r.dig('data', 'signer_email_address') == email
+      end['data']
 
       res.present? ? res['signature_id'] : 'error'
     end

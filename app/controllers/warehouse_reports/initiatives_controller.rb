@@ -116,7 +116,7 @@ module WarehouseReports
 
       if @report.updated_at > 3.months.ago && @report.token.present? && @report.token == params[:token]
         @report = report_source.find(params[:id].to_i)
-        return true
+        true
       else
         raise ActionController::RoutingError, 'Not Found'
       end

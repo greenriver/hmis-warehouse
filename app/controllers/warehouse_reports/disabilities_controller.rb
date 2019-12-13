@@ -13,9 +13,20 @@ module WarehouseReports
 
     def index
       @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
-
-      WarehouseReports::RunEnrolledDisabledJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
       @reports = report_source.ordered.limit(50)
+      raise hi
+    end
+
+    def create
+      @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
+      @filter.valid?
+      @report = report_source.new(parameters: filter_params)
+      if @report.valid?
+        WarehouseReports::RunEnrolledDisabledJob.perform_later(job_params.merge(current_user_id: current_user.id))
+      else
+        flash[:error] = @report.errors.messages.values.join('<br />').html_safe
+      end
+      redirect_to(warehouse_reports_disabilities_path)
     end
 
     def show
@@ -53,6 +64,16 @@ module WarehouseReports
       @report = report_source.find params[:id].to_i
     end
 
+    def job_params
+      require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        disabilities: [],
+        project_types: [],
+      )
+    end
+
     def filter_params
       f_params = params.require(:filter).permit(
         :start,
@@ -61,7 +82,8 @@ module WarehouseReports
         disabilities: [],
         project_types: [],
       )
-      f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) } if f_params[:disabilities].present?
+      f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) }.reject(&:blank?) if f_params[:disabilities].present?
+      f_params[:project_types] = f_params[:project_types].reject(&:blank?)
       f_params
     rescue StandardError
       {}

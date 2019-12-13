@@ -17,7 +17,7 @@ module Admin
       # sort / paginate
       @roles = role_scope.
         order(sort_column => sort_direction).
-        page(params.permit![:page]).per(25)
+        page(params[:page]).per(25)
     end
 
     def new
@@ -72,11 +72,11 @@ module Admin
     end
 
     def sort_column
-      role_scope.column_names.include?(params.permit![:sort]) ? params.permit![:sort] : 'name'
+      role_scope.column_names.include?(params[:sort]) ? params[:sort] : 'name'
     end
 
     def sort_direction
-      ['asc', 'desc'].include?(params.permit![:direction]) ? params.permit![:direction] : 'asc'
+      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
     end
   end
 end

@@ -411,13 +411,14 @@ module GrdaWarehouse::Census
 
     def get_aggregate_client_counts(joins:, client_scope:, second_scope: nil)
       ids = {}
-      GrdaWarehouse::ServiceHistoryService.joins(*joins).
+      query = GrdaWarehouse::ServiceHistoryService.joins(*joins).
         where(date: (@start_date..@end_date)).
-        merge(client_scope).
-        merge(second_scope).
-        distinct.
-        group(:date).
-        count(:client_id)
+        merge(client_scope)
+      unless second_scope.nil?
+        query = query.merge(second_scope)
+      end
+
+      query.distinct.group(:date).count(:client_id)
     end
   end
 end

@@ -4,17 +4,31 @@
       %p
         Limit to matches created within a date range.
       .row
-        .col-sm-3
+        .col-3
           = f.input :start, as: :date_picker, input_html: {value: @range.start, class: 'form-control jStart'}, label: false
-        .col-sm-3
+        .col-1.text-center.pt-2
+          to
+        .col-3
           = f.input :end, as: :date_picker, input_html: {value: @range.end, class: 'form-control jStart'}, label: false
   .row
-    .col-sm-5
-      = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
-    .col-sm-5
-      = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
+    .col
+      = f.input :route, collection: @step_range.available_routes, input_html: {value: @step_range.route, class: [:select2, :jTrigger]}
+  .row
+    .col-6.jDependent
+      = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step', class: :select2 }
+    .col-6.jDependent
+      = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step', class: :select2}
 
 - content_for :filter_actions do
   = f.submit 'Update', class: 'btn btn-primary mt-no-label'
 
 = render 'warehouse_reports/filters', f:f
+
+= content_for :page_js do
+  :javascript
+    $(function(){
+      $('.jTrigger').on('change', function(e){
+        $('.jDependent :input').val('');
+        $(this).closest('form').submit();
+      });
+    });

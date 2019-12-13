@@ -8,10 +8,10 @@ module CohortColumns
   class HousingSearchAgency < Select
     attribute :column, String, lazy: true, default: :housing_search_agency
     attribute :translation_key, String, lazy: true, default: 'Housing Search Agency'
-    attribute :title, String, lazy: true, default: -> (model, attr) { _(model.translation_key)}
+    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
 
     def available_options
-      Rails.cache.fetch("all_project_names", expires_in: 5.minutes) do
+      Rails.cache.fetch('all_project_names', expires_in: 5.minutes) do
         agencies = Set.new
         GrdaWarehouse::Hud::Project.distinct.
           joins(:organization).
@@ -24,6 +24,5 @@ module CohortColumns
         agencies.to_a.sort
       end
     end
-
   end
 end

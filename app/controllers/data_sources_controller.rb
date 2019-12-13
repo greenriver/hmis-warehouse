@@ -12,12 +12,12 @@ class DataSourcesController < ApplicationController
 
   def index
     # search
-    @data_sources = if params.permit![:q].present?
-      data_source_scope.text_search(params.permit![:q])
+    @data_sources = if params[:q].present?
+      data_source_scope.text_search(params[:q])
     else
       data_source_scope
     end
-    @data_sources = @data_sources.order(name: :asc).page(params.permit![:page]).per(25)
+    @data_sources = @data_sources.order(name: :asc).page(params[:page]).per(25)
     # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
   end
 
@@ -27,7 +27,7 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
-      merge(p_t.engine.viewable_by(current_user)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
       includes(projects: [:project_cocs, :geographies, :inventories]).
       references(projects: [:project_cocs, :geographies, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)

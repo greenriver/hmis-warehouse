@@ -275,17 +275,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map do |id| [id, {}] end.to_h
 
       GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
-        pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
           spans_by_id[ds][:start_date] = date
         end
 
       GrdaWarehouse::Hud::Service.group(:data_source_id).
-        pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
           spans_by_id[ds][:end_date] = date
         end
 
       GrdaWarehouse::Hud::Exit.group(:data_source_id).
-        pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
           if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
             spans_by_id[ds][:end_date] = date
           end

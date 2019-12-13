@@ -11,7 +11,7 @@
         - @report.expiring_ssm_forms.each do |patient|
           %tr
             %td= link_to patient.name, client_health_patient_index_path(patient.client)
-            %td= patient.recent_ssm_form.expires_on || 'Incomplete'
+            %td= patient.recent_ssm_form&.expires_on || 'Incomplete'
 
 - if @report.expired_ssm_forms.exists?
   .expired-ssm-forms
@@ -26,5 +26,5 @@
         - @report.expired_ssm_forms.each do |patient|
           %tr
             %td= link_to patient.name, client_health_patient_index_path(patient.client)
-            %td= patient.recent_ssm_form.expires_on || 'Incomplete'
+            %td= patient.recent_ssm_form&.expires_on || 'Incomplete'
 

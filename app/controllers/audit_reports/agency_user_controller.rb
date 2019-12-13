@@ -31,7 +31,7 @@ module AuditReports
         end
         format.xlsx do
           @users = @users.order(:last_name, :first_name)
-          filename = "#{@agency.downcase.tr(' ', '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}"
+          filename = "#{@agency.downcase.tr(' ', '-')}-audit-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -135,7 +135,7 @@ module AuditReports
               user_id: batch,
               item_model: GrdaWarehouse::Hud::Client.name,
             ).
-            group(:user_id, datepart(al_t.engine, 'month', al_t[:created_at]).to_sql).
+            group(:user_id, datepart(ActivityLog, 'month', al_t[:created_at]).to_sql).
             distinct.
             count(:item_id).each do |(user_id, month), count|
             history[user_id] ||= []

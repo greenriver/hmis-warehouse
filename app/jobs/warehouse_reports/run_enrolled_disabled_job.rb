@@ -39,8 +39,8 @@ module WarehouseReports
         enrollment_scope = enrollment_scope.send(population) if population.present?
 
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          where(Disabilities: { DisabilityType: filter_params[:disabilities], DisabilityResponse: [1, 2, 3] }).
-          where(Project: { project_source.project_type_column => filter_params[:project_types] }).
+          merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities], DisabilityResponse: [1, 2, 3])).
+          merge(GrdaWarehouse::Hud::Project.with_project_type(filter_params[:project_types])).
           merge(enrollment_scope).
           distinct.
           includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).

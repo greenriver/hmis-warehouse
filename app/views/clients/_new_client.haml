@@ -1,4 +1,4 @@
-- if GrdaWarehouse::DataSource.authoritative.any? && params.permit![:q].present? && can_create_clients?
+- if GrdaWarehouse::DataSource.authoritative.any? && params[:q].present? && can_create_clients?
   .slab
     %p
       .row

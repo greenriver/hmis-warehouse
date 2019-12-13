@@ -63,7 +63,10 @@ module Reporting::MonthlyReports
     end
 
     def remove_unused_client_ids
-      self.class.where.not(client_id: Reporting::MonthlyClientIds.distinct.select(:client_id)).delete_all
+      self.class.where.not(client_id:
+        Reporting::MonthlyClientIds.where(report_type: self.class.name).
+          distinct.select(:client_id)
+      ).delete_all
     end
 
     def populate_used_client_ids
@@ -242,8 +245,8 @@ module Reporting::MonthlyReports
         pluck(
           :client_id,
           :project_type,
-          Arel.sql(cast(datepart(shs_t.class.engine, 'month', shs_t[:date]), 'INTEGER').to_sql),
-          Arel.sql(cast(datepart(shs_t.class.engine, 'year', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'month', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'year', shs_t[:date]), 'INTEGER').to_sql),
         ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]

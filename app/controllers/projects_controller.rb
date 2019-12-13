@@ -13,7 +13,7 @@ class ProjectsController < ApplicationController
 
   def index
     # search
-    @projects = if params.permit![:q].present?
+    @projects = if params[:q].present?
       project_source.text_search(params[:q])
     else
       project_scope
@@ -24,7 +24,7 @@ class ProjectsController < ApplicationController
     column = o_t[:OrganizationName] if sort_column == 'organization_id'
     sort = column.send(sort_direction)
     # Filter
-    @projects = @projects.filter(filter_columns) if params.permit![:project].present?
+    @projects = @projects.filter(filter_columns) if params[:project].present?
     @projects = @projects.
       includes(:organization).
       preload(:geographies).

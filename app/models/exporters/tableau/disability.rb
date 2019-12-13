@@ -18,11 +18,11 @@ module Exporters::Tableau::Disability
         end_date:             she_t[:last_date_in_program],
       }
 
-      model = c_t.engine
+      model = GrdaWarehouse::Hud::Client
 
       scope = model.
         joins( service_history_enrollments: { enrollment: [ :disabilities, :enrollment_coc_at_entry ] } ).
-        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
+        merge( GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         where( d_t[:DisabilityResponse].in [1,2,3] ).
         # for aesthetics
         order( she_t[:client_id].asc ).

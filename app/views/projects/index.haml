@@ -24,7 +24,7 @@
               collection: GrdaWarehouse::DataSource.names,
             },
           }
-        - selected = params.permit![:project] || filters.keys.map{|m| [m, []]}.to_h
+        - selected = params[:project] || filters.keys.map{|m| [m, []]}.to_h
         %table.table.table-sm.table-hover
           %thead
             %tr

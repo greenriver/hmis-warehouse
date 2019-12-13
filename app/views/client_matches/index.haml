@@ -30,15 +30,18 @@
 %ul.nav.nav-tabs
   - @possible_statuses.each do |label, status|
     %li.nav-item{class:('active' if status == @status)}
+      - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
       = link_to url_for(params.permit!.merge(status: status, page: nil)), class: 'nav-link' do
         = label
         - if (count = @counts[status].to_i) > 0
           %span.badge.badge-primary{data: {status: status}}= count
 - if @matches.empty?
   %p There are no #{@status} client matches at this time.
-- @matches.group_by{|m| m.destination_client.destination_client}.each do |dest, matches|
+
+- @matches.group_by{|m| m.destination_client}.each do |dest, matches|
   .merge-row
     %h4
+      - next unless dest
       = dest.full_name
       = link_to client_path(dest.id) do
         %span{data: {toggle: :tooltip, title: "Warehouse record for #{dest.full_name}."}}

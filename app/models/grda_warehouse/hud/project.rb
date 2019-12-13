@@ -368,7 +368,13 @@ module GrdaWarehouse::Hud
         )
       end
     end
-    scope :editable_by, -> (user) { viewable_by user }
+    scope :editable_by, -> (user) do
+      if user&.can_edit_projects?
+        viewable_by user
+      else
+        none
+      end
+    end
 
     def self.has_access_to_project_through_viewable_entities(user, q, qc)
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
@@ -668,6 +674,10 @@ module GrdaWarehouse::Hud
           end
         end
       end
+    end
+
+    def confidential_hint
+      'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
     def safe_project_name

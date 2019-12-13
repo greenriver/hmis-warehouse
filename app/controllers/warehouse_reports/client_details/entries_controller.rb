@@ -19,11 +19,7 @@ module WarehouseReports::ClientDetails
       @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      @project_type_codes = begin
-                              params[:project_type].map(&:presence).map(&:to_sym)
-                            rescue StandardError
-                              [:es]
-                            end
+      @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es]
       @project_type = []
       @project_type_codes.each do |code|
         @project_type += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]

@@ -15,7 +15,8 @@
         - else
           Patient record is not correctly assigned
     .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
-      = render 'health/patients/homeless_service', patient: patient
+      - if patient.client
+        = render 'clients/recent_es_so', client: patient.client
       %section#appointments-list.jAppointments{data: {path: upcoming_window_client_health_appointments_path(client_id: patient.client.id)}}
     .patient__action-needed
       .mb-4

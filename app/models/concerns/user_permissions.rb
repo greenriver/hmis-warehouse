@@ -42,7 +42,6 @@ module UserPermissions
         :can_access_some_version_of_clients,
         :has_some_edit_access_to_youth_intakes,
         :can_manage_an_agency,
-        :can_view_confidential_names,
         :can_view_hud_reports,
         :can_access_some_cohorts,
         :can_access_client_search,
@@ -159,15 +158,15 @@ module UserPermissions
       can_view_own_hud_reports? || can_view_all_hud_reports?
     end
 
-    def has_administrative_access_to_health
+    def has_administrative_access_to_health # rubocop:disable Naming/PredicateName
       can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
     end
 
-    def has_patient_referral_review_access
+    def has_patient_referral_review_access # rubocop:disable Naming/PredicateName
       can_approve_patient_assignments? || can_manage_patients_for_own_agency?
     end
 
-    def has_some_patient_access
+    def has_some_patient_access # rubocop:disable Naming/PredicateName
       can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
     end
 
@@ -175,21 +174,16 @@ module UserPermissions
       can_view_client_window? || can_view_clients? || can_edit_clients?
     end
 
-    def has_some_edit_access_to_youth_intakes
+    def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
-    end
-
-    def can_view_confidential_names
-      can_view_projects? && can_view_clients?
     end
 
     def can_access_some_cohorts
       can_manage_cohorts? || can_edit_cohort_clients? || can_edit_assigned_cohorts? || can_view_assigned_cohorts?
     end
 
-
     # Allow all methods above to respond with or without a ?
-    self.additional_permissions.each do |permission|
+    additional_permissions.each do |permission|
       alias_method "#{permission}?", permission
     end
   end

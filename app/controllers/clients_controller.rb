@@ -200,7 +200,7 @@ class ClientsController < ApplicationController
       send_data image, type: MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
-      return
+      nil
     end
   end
 
@@ -273,8 +273,4 @@ class ClientsController < ApplicationController
     datepart table, part, date
   end
   helper_method :dp
-
-  def user_can_view_confidential_names?
-    can_view_projects? && can_view_clients?
-  end
 end

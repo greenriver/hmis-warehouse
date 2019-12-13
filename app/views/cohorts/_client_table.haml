@@ -1,6 +1,6 @@
 - size = :md
-- if params.permit![:size] && [:md, :lg, :xl].include?(params.permit![:size].to_sym)
-  - size = params.permit![:size].to_sym
+- if params[:size] && [:md, :lg, :xl].include?(params[:size].to_sym)
+  - size = params[:size].to_sym
 .table-wrapper
   .row
     .col-sm-7.cohort--table-info

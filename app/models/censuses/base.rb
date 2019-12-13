@@ -6,7 +6,6 @@
 
 module Censuses
   class Base
-
     def self.available_census_types
       [
         Censuses::CensusBedNightProgram,
@@ -15,6 +14,5 @@ module Censuses
         Censuses::CensusVeteran,
       ]
     end
-
   end
 end

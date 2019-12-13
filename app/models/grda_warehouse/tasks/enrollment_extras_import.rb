@@ -116,7 +116,7 @@ module GrdaWarehouse::Tasks
       project_id = parse_project_id(project_id_etc)
       personal_id = clean_string(personal_id)
       project_entry_id = clean_string(project_entry_id)
-      enrollment = e_t.engine.
+      enrollment = GrdaWarehouse::Hud::Enrollment.
         where( e_t[:PersonalID].eq personal_id ).
         where( e_t[:data_source_id].eq @data_source_id ).
         where( e_t[:EnrollmentID].eq project_entry_id ).
@@ -168,7 +168,7 @@ module GrdaWarehouse::Tasks
         project_id = parse_project_id(project_id_etc)
         personal_id = clean_string(personal_id)
         project_entry_id = clean_string(project_entry_id)
-        enrollment = e_t.engine.
+        enrollment = GrdaWarehouse::Hud::Enrollment.
           where( e_t[:PersonalID].eq personal_id.to_s ).
           where( e_t[:data_source_id].eq @data_source_id ).
           where( e_t[:EnrollmentID].eq project_entry_id.to_s ).
@@ -189,7 +189,7 @@ module GrdaWarehouse::Tasks
         next if row.none?(&:present?)
         project_id_etc, group = row
         project_id = parse_project_id(project_id_etc)
-        p_t.engine.where( ProjectID: project_id, data_source_id: @data_source_id ).update_all local_planning_group: group
+        GrdaWarehouse::Hud::Projec.where( ProjectID: project_id, data_source_id: @data_source_id ).update_all local_planning_group: group
       end
     end
 

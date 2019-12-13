@@ -17,9 +17,12 @@
       .rollup{data: {partial: :contact_information}}
         %h3 Contact Information
   .col-sm-6
-    .client__current-enrollments
+    .client__current-enrollments.mt-4
       %h3 Current Program Enrollments
       = render 'clients/ongoing_enrollments_limited'
+    .client__recent-es-so.mt-6
+      %h3 Recent Unsheltered Contacts
+      = render 'clients/recent_es_so', client: @client
 - if GrdaWarehouse::Config.get(:eto_api_available)
   .row
     .col-sm-6

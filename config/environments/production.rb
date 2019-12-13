@@ -1,5 +1,7 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+  deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
+  slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -92,7 +94,7 @@ Rails.application.configure do
 
   config.sandbox_email_mode = false
   config.action_mailer.delivery_method = deliver_method
-  config.action_mailer.default_url_options = { host: ENV['HOSTNAME'], protocol: 'https'}
+  config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'https'}
   if deliver_method == :smtp
     config.action_mailer.smtp_settings = {
       address: ENV['SMTP_SERVER'],

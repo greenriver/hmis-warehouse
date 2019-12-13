@@ -37,6 +37,7 @@ Rails.application.routes.draw do
           get :upcoming
         end
       end
+      resources :ed_ip_visits, only: [:index], controller: '/health/ed_ip_visits'
       resources :medications, only: [:index], controller: '/health/medications'
       resources :problems, only: [:index], controller: '/health/problems'
       resources :self_sufficiency_matrix_forms, controller: '/health/self_sufficiency_matrix_forms' do
@@ -235,7 +236,7 @@ Rails.application.routes.draw do
         get :running
       end
     end
-    resources :disabilities, only: [:index, :show, :destroy] do
+    resources :disabilities, only: [:index, :create, :show, :destroy] do
       collection do
         get :summary
         get :running
@@ -367,6 +368,7 @@ Rails.application.routes.draw do
           post :enrollment
         end
       end
+      resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
     end
   end
 

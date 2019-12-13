@@ -50,6 +50,7 @@ module Admin
         :show_vispdats_on_dashboards,
         :cas_days_homeless_source,
         :consent_visible_to_all,
+        :verified_homeless_history_visible_to_all,
         client_details: [],
       )
     end
