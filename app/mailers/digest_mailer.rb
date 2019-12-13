@@ -7,6 +7,8 @@
 class DigestMailer < ApplicationMailer
   def digest(user, messages)
     @messages = messages
+    return unless user.active?
+
     mail to: user.email, subject: "#{prefix} #{user.email_schedule} digest"
   end
 end

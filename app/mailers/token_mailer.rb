@@ -6,8 +6,10 @@
 
 class TokenMailer < DatabaseMailer
   def note_added(user, token)
-    @token = token
     @user = user
+    @token = token
+    return unless @user.active?
+
     mail(to: @user.email, subject: 'Client note added')
   end
 end
