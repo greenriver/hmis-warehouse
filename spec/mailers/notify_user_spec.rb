@@ -56,6 +56,21 @@ RSpec.describe NotifyUser, type: :mailer do
       end
     end
 
+    context 'and no active users to notify' do
+      let(:user) { create :user, notify_on_vispdat_completed: true, active: false }
+
+      before(:each) do
+        user
+      end
+
+      it 'then no mail sent' do
+        expect(vispdat_mail.subject).to be_nil
+        expect(vispdat_mail.to).to be_nil
+        expect(vispdat_mail.from).to be_nil
+        expect(vispdat_mail.body).to be_empty
+      end
+    end
+
     context 'by the user' do
       let(:vispdat) { create :vispdat, user_id: user.id }
 
@@ -138,6 +153,23 @@ RSpec.describe NotifyUser, type: :mailer do
           end
           it 'contains the client id' do
             expect(client_mail_body).to match "##{client.id}"
+          end
+        end
+
+        context 'but the user is inactive' do
+          let(:client) { build :grda_warehouse_hud_client, creator_id: other_user.id }
+          before(:each) do
+            user.active = false
+            user.save
+            client.send_notifications = true
+            client.save
+          end
+
+          it 'no email is sent' do
+            expect(client_mail.subject).to be_nil
+            expect(client_mail.to).to be_nil
+            expect(client_mail.from).to be_nil
+            expect(client_mail.body).to be_empty
           end
         end
       end
