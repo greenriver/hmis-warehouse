@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191206194129) do
+ActiveRecord::Schema.define(version: 20191212151341) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -368,7 +368,10 @@ ActiveRecord::Schema.define(version: 20191206194129) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "internal",                   default: false
+    t.integer  "batch_id"
   end
+
+  add_index "eligibility_inquiries", ["batch_id"], name: "index_eligibility_inquiries_on_batch_id", using: :btree
 
   create_table "eligibility_responses", force: :cascade do |t|
     t.integer  "eligibility_inquiry_id"
