@@ -1345,7 +1345,7 @@ GEM
       activesupport (>= 5.0)
       i18n
       polyamorous (= 2.3.0)
-    ratonvirus (0.1.0)
+    ratonvirus (0.1.1)
       activesupport (~> 5.0)
     ratonvirus-clamby (0.1.0)
       clamby (~> 1.6)
