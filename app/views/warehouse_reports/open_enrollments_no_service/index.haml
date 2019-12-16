@@ -3,7 +3,7 @@
 .d-flex
   %h1= title
   .ml-auto
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       Download Excel
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 %p Empty "Most Recent Service" indicates enrollments with no days served.

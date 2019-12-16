@@ -31,6 +31,6 @@
       = link_to new_cohort_cohort_client_path(cohort_id: @cohort.id), class: 'btn btn-secondary btn-sm' do
         %i.icon-users
         Add Clients
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary btn-sm'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary btn-sm'}) do
       %i.icon-download2
       Download

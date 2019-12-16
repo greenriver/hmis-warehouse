@@ -8,7 +8,7 @@
   = render 'parameters', report: @report
   .d-flex
     = render 'sort', sort_options: @sort_options
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
 
 %table.table.table-sm
