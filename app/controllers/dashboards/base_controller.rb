@@ -113,10 +113,10 @@ module Dashboards
         permit(
           :start_month,
           :end_month,
-          :organization_ids,
-          :project_ids,
-          :project_types,
           :limit_to_vispdat,
+          organization_ids: [],
+          project_ids: [],
+          project_types: [],
         )
     end
     helper_method :report_params
