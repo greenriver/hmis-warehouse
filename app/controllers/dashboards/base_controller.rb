@@ -106,6 +106,21 @@ module Dashboards
     end
     helper_method :can_see_client_details?
 
+    def report_params
+      return {} if params[:choose_report].blank?
+
+      params.require(:choose_report).
+        permit(
+          :start_month,
+          :end_month,
+          :organization_ids,
+          :project_ids,
+          :project_types,
+          :limit_to_vispdat,
+        )
+    end
+    helper_method :report_params
+
     def set_available_months
       @available_months ||= active_report_class.distinct.order(year: :desc, month: :desc). # rubocop:disable Naming/MemoizedInstanceVariableName
         pluck(:year, :month).map do |year, month|
@@ -117,12 +132,12 @@ module Dashboards
     # to_i.to_s to ensure end result is an integer
     def set_chosen_months
       @start_month = begin
-                       JSON.parse(params[:choose_report][:start_month]).map(&:to_i).to_s
+                       JSON.parse(report_params[:start_month]).map(&:to_i).to_s
                      rescue StandardError
                        [6.months.ago.year, 6.months.ago.month].to_s
                      end
       @end_month = begin
-                     JSON.parse(params[:choose_report][:end_month]).map(&:to_i).to_s
+                     JSON.parse(report_params[:end_month]).map(&:to_i).to_s
                    rescue StandardError
                      [1.months.ago.year, 1.months.ago.month].to_s
                    end
@@ -159,12 +174,12 @@ module Dashboards
 
     def set_project_and_organization_ids
       @organization_ids = begin
-        params[:choose_report][:organization_ids].map(&:presence).compact.map(&:to_i)
+        report_params[:organization_ids].map(&:presence).compact.map(&:to_i)
       rescue StandardError
         []
       end
       @project_ids = begin
-        params[:choose_report][:project_ids].map(&:presence).compact.map(&:to_i)
+        report_params[:project_ids].map(&:presence).compact.map(&:to_i)
       rescue StandardError
         []
       end
@@ -193,7 +208,7 @@ module Dashboards
       # Whitelist values
       @limit_to_vispdat = begin
         vispdat_limits.values.detect do |v|
-          v == params[:choose_report][:limit_to_vispdat].to_sym
+          v == report_params[:limit_to_vispdat].to_sym
         end
       rescue StandardError
         :all_clients
