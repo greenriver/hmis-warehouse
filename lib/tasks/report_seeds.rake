@@ -35,6 +35,7 @@ namespace :reports do
       'Reports::Ahar::Fy2017::ByDataSource',
       'Reports::Pit::Fy2017::Base',
       'Reports::Pit::Fy2017::ByProject',
+      'Reports::Hic::Fy2017::Base',
       'Reports::DataQuality::Fy2016::Q1',
       'Reports::DataQuality::Fy2016::Q2',
       'Reports::DataQuality::Fy2016::Q3',
@@ -154,9 +155,15 @@ namespace :reports do
     r = Reports::Pit::Fy2018::ByProject.where(name: 'PIT By Project - 2018').first_or_create
     r.update(weight: 2, report_results_summary: rs)
 
-    rs = ReportResultsSummaries::Hic::Fy2017.where(name: 'Housing Inventory Counts - FY 2017').first_or_create
+    # rs = ReportResultsSummaries::Hic::Fy2017.where(name: 'Housing Inventory Counts - FY 2017').first_or_create
+    # rs.update(weight: 0)
+    # r = Reports::Hic::Fy2017::Base.where(name: 'HIC').first_or_create
+    # r.update(weight: 1, report_results_summary: rs)
+
+    rs = ReportResultsSummaries::Hic::Fy2019.where(name: 'Housing Inventory Counts - FY 2019').first_or_create
     rs.update(weight: 0)
-    r = Reports::Hic::Fy2017::Base.where(name: 'HIC').first_or_create
+
+    r = Reports::Hic::Fy2019::Base.where(name: 'HIC').first_or_create
     r.update(weight: 1, report_results_summary: rs)
 
     # rs = ReportResultsSummaries::DataQuality::Fy2016.where(name: 'HUD Data Quality Report 2016').first_or_create
