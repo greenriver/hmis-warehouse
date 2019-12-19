@@ -16,6 +16,8 @@
       = f.input :owns_cell_phone, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth own a cell phone?'
       = f.input :secondary_education, as: :radio_buttons, collection: @intake.available_secondary_education
       = f.input :attending_college, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth attending college?'
+      = f.input :college_pilot, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth part of the College Pilot Program?'
+      = f.input :graduating_college, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth graduating college this year?'
       = f.input :health_insurance, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth have health insurance?'
       = f.input :client_dob, as: :date_picker, label: 'Youth Birthday'
       = f.input :staff_believes_youth_under_24, as: :radio_buttons, collection: @intake.yes_no, label: 'Staff believes youth is 24 or under?'
