@@ -171,6 +171,33 @@
         %td= @report.total_served.count
 
 .row
+  %h2 C. College Student Services
+  %table.table.table-sm
+    %tbody
+      %tr
+        %th
+          1. Transitional Housing & Case Management (enrolled students)
+        %th
+          Number of Pilot Program  students receiving Transitional Housing & Case Management services
+        %td= @report.c_one.count
+      %tr
+        %th
+          2. Transitional Housing & Case Management (graduating students)
+        %th
+          Number of Pilot Program students graduating students receiving Transitional Housing & Case Management services
+        %td= @report.c_two.count
+      %tr
+        %th
+          3. Number College students
+        %th
+          Number of College students not officially enrolled in the campus pilot program that are receiving services
+        %td= @report.c_three.count
+      %tr
+        %th TOTAL COLLEGE STUDENTS SERVED
+        %th Number of YYA served
+        %td= @report.total_college.count
+
+.row
   %h2 F. Demographics
   %table.table.table-sm
     %tbody
