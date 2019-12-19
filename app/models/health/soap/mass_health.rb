@@ -51,7 +51,8 @@ module Health::Soap
     end
 
     def response(result)
-      result.last
+      result.last ||
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'Payload')
     end
 
     def payload_id(result)
