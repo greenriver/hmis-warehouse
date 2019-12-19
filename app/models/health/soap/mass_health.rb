@@ -46,7 +46,8 @@ module Health::Soap
     end
 
     def success?(result)
-      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorCode') == 'Success'
+      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorCode') == 'Success' ||
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorCode') == 'Success'
     end
 
     def response(result)
@@ -54,7 +55,8 @@ module Health::Soap
     end
 
     def payload_id(result)
-      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'PayloadID')
+      result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'PayloadID') ||
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'PayloadID')
     end
 
     def error_message(result)
