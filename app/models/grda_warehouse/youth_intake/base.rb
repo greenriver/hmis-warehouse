@@ -128,7 +128,7 @@ module GrdaWarehouse::YouthIntake
     def available_housing_stati
       @available_housing_stati ||= {
         'Stably housed' => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
-        'At risk of homelessness' => 'At risk of homelessness <em>(About to lose primary nighttime residence within 14 days, no subsequent residence identified, and the individual lacks the resources or support networks needed to obtain other permanent housing.)</em>'.html_safe,
+        'At risk of homelessness' => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
         'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness',
         'Experiencing homelessness: couch surfing' => 'Experiencing homelessness: couch surfing',
         'Experiencing homelessness: street' => 'Experiencing homelessness: street',

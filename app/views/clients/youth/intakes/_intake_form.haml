@@ -10,7 +10,7 @@
 
     .youth-intake__client-demographics
       = f.input :unaccompanied, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth unaccompanied?', hint: 'An individual who is not in the physical custody or care of a parent / legal guardian'
-      = f.input :street_outreach_contact, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth a street outreach contact',  hint: 'A street outreach contact is a youth who we know from outreach, and as a result have limited information on.  Street outreach youth should be considered street outreach contacts until they are no longer living on th streets.  Note: It is possible for a youth to be working with drop-in staff and be in case management, but still be a street outreach contact.'
+      = f.input :street_outreach_contact, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth a street outreach contact',  hint: 'An outreach contact is made by EOHHS-funded staff who go off-site and create a first point of contact.'
       = f.input :housing_status, as: :radio_buttons, collection: @intake.available_housing_stati.invert
       = f.input :other_agency_involvement, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth involved with any other state agencies?'
       = f.input :owns_cell_phone, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth own a cell phone?'
