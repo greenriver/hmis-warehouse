@@ -38,16 +38,6 @@ module WarehouseReports
       respond_with(@report, location: warehouse_reports_youth_export_index_path)
     end
 
-    def beautify_option(_key, value)
-      return value unless value.is_a?(Array)
-
-      clean = value.select(&:present?).map(&:to_i)
-      return clean unless clean.count > 5
-
-      "[#{clean[0...5].to_sentence(last_word_connector: ', ')}, ...]"
-    end
-    helper_method :beautify_option
-
     private def set_report
       @report = report_scope.find(params[:id])
     end
