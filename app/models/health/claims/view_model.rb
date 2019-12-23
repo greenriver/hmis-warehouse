@@ -64,6 +64,7 @@ module Health::Claims
           ['SSN', @patient.ssn],
           ['Medicaid ID', @patient.medicaid_id],
           ['Primary Care Provider', @patient.primary_care_physician],
+          ['Assignment Date', @patient.enrollment_start_date],
           # ['Team', team]
         ]
         result[:demographics].push([
