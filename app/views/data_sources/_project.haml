@@ -54,24 +54,4 @@
         Overridden as
         = HUD.housing_type project.housing_type_override
   %td
-    .d-flex
-      .mb-2.mr-2
-        = project.geographies&.map(&:Geocode)&.join('; ').presence || 'None'
-      - if can_edit_projects? && project.geographies.any?
-        .ml-auto
-          = link_to edit_geography_path(project.geographies&.first), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only'] do
-            %i.icon-pencil
-    - if project.geographies&.map(&:geocode_override).compact.present?
-      .o-text--italic.mb-2
-        Overridden as
-        = project.geographies.map(&:geocode_override).join(', ')
-
-  %td
-    .mb-2
-      = project.geographies&.map{|m| HUD.geography_type(m.GeographyType)}&.join('; ').presence || 'None'
-    - if project.geographies&.map(&:geography_type_override).compact.present?
-      .o-text--italic.mb-2
-        Overridden as
-        = project.geographies.map{|m| HUD.geography_type m.geography_type_override}.join(', ')
-  %td
     = checkmark_or_x(project.inventories.present? )

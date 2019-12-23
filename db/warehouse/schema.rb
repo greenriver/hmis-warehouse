@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191205155752) do
+ActiveRecord::Schema.define(version: 20191223141858) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1588,6 +1588,7 @@ ActiveRecord::Schema.define(version: 20191205155752) do
     t.string  "cas_days_homeless_source",                  default: "days_homeless"
     t.boolean "consent_visible_to_all",                    default: false
     t.boolean "verified_homeless_history_visible_to_all",  default: false,                    null: false
+    t.boolean "only_most_recent_import",                   default: false
   end
 
   create_table "contacts", force: :cascade do |t|
