@@ -7,6 +7,14 @@
 module Reports
   class Hic::ExportsController < Hic::BaseController
     def show
+      @partial = versions.detect { |v| v == params[:version] } || versions.last
+    end
+
+    private def versions
+      [
+        'fy2017',
+        'fy2019',
+      ]
     end
   end
 end

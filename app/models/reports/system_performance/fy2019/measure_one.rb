@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reports::SystemPerformance::Fy2017
-  class MeasureThree < Base
-   
+module Reports::SystemPerformance::Fy2019
+  class MeasureOne < Base
+
   end
 end

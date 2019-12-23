@@ -7,11 +7,17 @@
     - if can_manage_agency?
       %li.o-menu__item
         = link_to assigned_agencies_path, class: 'o-menu__link' do
-          = _('My Agency\'s Clients')
+          - if can_view_aggregate_health? || can_view_patients_for_own_agency?
+            = _('My Agency\'s HMIS Clients')
+          - else
+            = _('My Agency\'s Clients')
     - if can_view_clients? || can_edit_clients? || can_search_window?
       %li.o-menu__item
         = link_to assigned_clients_path, class: 'o-menu__link' do
-          = _('My Clients')
+          - if can_view_aggregate_health? || can_view_patients_for_own_agency?
+            = _('My HMIS Clients')
+          - else
+            = _('My Clients')
     - if can_access_client_search?
       %li.o-menu__item
         = link_to clients_path, class: 'o-menu__link' do

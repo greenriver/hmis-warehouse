@@ -327,6 +327,33 @@ module GrdaWarehouse::WarehouseReports::Youth
       @total_served ||= (all_open_intakes + four_a + five_a + six_a).uniq
     end
 
+    # C. College Student Services
+
+    def college_scope
+      GrdaWarehouse::YouthIntake::Base.
+        served.
+        open_between(start_date: @start_date, end_date: @end_date)
+    end
+
+    def c_one_college_pilot
+      @c_one ||= get_client_ids(college_scope.
+        where(college_pilot: 'Yes'))
+    end
+
+    def c_two_graduating_college_pilot
+      @c_two ||= get_client_ids(college_scope.
+        where(college_pilot: 'Yes', graduating_college: 'Yes'))
+    end
+
+    def c_three_college_non_pilot
+      @c_three ||= get_client_ids(college_scope.
+        where(college_pilot: 'No', attending_college: 'Yes'))
+    end
+
+    def total_college
+      @total_college ||= (c_one_college_pilot + c_two_graduating_college_pilot + c_three_college_non_pilot).uniq
+    end
+
     # F. Demographics
 
     def demographics_scope

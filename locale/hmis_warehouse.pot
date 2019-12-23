@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-01 11:04-0400\n"
-"PO-Revision-Date: 2019-11-01 11:04-0400\n"
+"POT-Creation-Date: 2019-12-23 14:18-0500\n"
+"PO-Revision-Date: 2019-12-23 14:18-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3450,6 +3450,9 @@ msgstr ""
 msgid "Client Search"
 msgstr ""
 
+msgid "Client does not have a community preference."
+msgstr ""
+
 msgid "Clients"
 msgstr ""
 
@@ -3618,10 +3621,16 @@ msgstr ""
 msgid "My Agency's Clients"
 msgstr ""
 
+msgid "My Agency's HMIS Clients"
+msgstr ""
+
 msgid "My Agency's Patients"
 msgstr ""
 
 msgid "My Clients"
+msgstr ""
+
+msgid "My HMIS Clients"
 msgstr ""
 
 msgid "My Patients"
@@ -3772,6 +3781,9 @@ msgid "client"
 msgstr ""
 
 msgid "cohort enrollment"
+msgstr ""
+
+msgid "groups"
 msgstr ""
 
 msgid "housing"

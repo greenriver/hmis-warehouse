@@ -27,7 +27,7 @@ module Reports::Hic::Fy2017
     end
 
     def results_path
-      reports_hic_export_path
+      reports_hic_export_path(version: 'fy2017')
     end
   end
 end
