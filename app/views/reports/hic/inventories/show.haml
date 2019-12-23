@@ -1,0 +1,15 @@
+- title = "HIC Exports"
+- content_for :title, title
+= render '/reports/breadcrumbs'
+%h1= title
+
+The HIC inventory CSV will contain the inventory records that are open on the specified date.
+
+.row
+  .col-4
+    = simple_form_for :report, url: "#{reports_hic_inventory_path}.csv" , method: :get do |f|
+      .form-inputs
+        = f.input :date, as: :date_picker, input_html: { value: @date }
+
+      .form-actions
+        = f.submit "Download CSV"
