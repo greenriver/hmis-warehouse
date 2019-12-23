@@ -77,6 +77,7 @@ module GrdaWarehouse::WarehouseReports::Youth
           client.gender,
           HUD.veteran_status(client.VeteranStatus),
           ApplicationController.helpers.yes_no(client_disabled?(client), include_icon: false),
+          days_homeless(client),
           HUD.destination(exit_for_client(client)&.Destination),
           HUD.living_situation(enrollment_for_client(client)&.LivingSituation),
           HUD.residence_prior_length_of_stay(enrollment_for_client(client)&.LengthOfStay),
@@ -128,6 +129,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         'Gender',
         'Veteran Status',
         'Disabling Condition',
+        'Total Days Homeless in Last 3 Years',
         'Destination',
         'Prior Living Situation',
         'Length of Stay',
@@ -359,5 +361,11 @@ module GrdaWarehouse::WarehouseReports::Youth
       @vispdats[client.id]
     end
 
+    def days_homeless(client)
+      @days_homeless ||= begin
+        clients.joins(:processed_service_history).pluck(:client_id, :days_homeless_last_three_years).to_h
+      end
+      @days_homeless[client.id] || 0
+    end
   end
 end

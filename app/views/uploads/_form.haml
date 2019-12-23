@@ -50,5 +50,5 @@
             = f.hidden_field :import_type, value: :hmis_611
           .form-actions
             = f.button :submit, value: 'Upload Zip'
-
-      = render 'common/panel_collapse', id: 'hmis_611', title: 'HMIS 6.12 format'
+      - unless GrdaWarehouse::Config.get(:only_most_recent_import)
+        = render 'common/panel_collapse', id: 'hmis_611', title: 'HMIS 6.12 format'

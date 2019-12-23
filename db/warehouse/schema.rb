@@ -4049,6 +4049,8 @@ ActiveRecord::Schema.define(version: 20191223161021) do
     t.datetime "updated_at",                                               null: false
     t.datetime "deleted_at"
     t.boolean  "turned_away",                              default: false, null: false
+    t.string   "college_pilot",                            default: "No",  null: false
+    t.string   "graduating_college",                       default: "No",  null: false
   end
 
   add_index "youth_intakes", ["created_at"], name: "index_youth_intakes_on_created_at", using: :btree
