@@ -51,6 +51,7 @@ module Admin
         :cas_days_homeless_source,
         :consent_visible_to_all,
         :verified_homeless_history_visible_to_all,
+        :only_most_recent_import,
         client_details: [],
       )
     end
