@@ -77,7 +77,7 @@ module WarehouseReports::Cas
     private def step_params
       return {} unless params.key? :steps
 
-      params.require(:steps).permit(:first, :second, :unit)
+      params.require(:steps).permit(:first, :second, :unit, :route)
     end
 
     # creates a histogram mapping intervals to numbers of occurrences

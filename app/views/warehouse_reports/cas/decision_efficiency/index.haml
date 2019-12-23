@@ -20,20 +20,31 @@
             Limit to matches created within a date range.
             = render 'filter', f: f
           .row
-            .col-sm-5
-              = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step' }
-            .col-sm-5
-              = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step'}
+            .col
+              = f.input :route, collection: @step_range.available_routes, input_html: {value: @step_range.route, class: [:select2, :jTrigger]}
+          .row
+            .col-sm-5.jDependent
+              = f.input :first, label: 'From Completion of', collection: @step_range.ordered_steps.keys, include_blank: false, input_html: { id: 'first-step', class: :select2 }
+            .col-sm-5.jDependent
+              = f.input :second, label: 'To Completion of', collection: @step_range.ordered_steps[@step_range.first], include_blank: false, input_html: { id: 'second-step', class: :select2 }
             .col-sm-2
-              = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: {class: 'jUnits'}
-
-%canvas#counts{ width: 800, height: 200, data: {legal_steps: @step_range.ordered_steps.to_json} }
-#stats(style="display:table;margin:1em auto;")
+              = f.input :unit, label: 'In', collection: @step_range.units.map{|m| [m.titleize.pluralize, m]}, include_blank: false, input_html: {class: 'jUnits select2'}
+.well
+  %canvas#counts{ width: 800, height: 200, data: {legal_steps: @step_range.ordered_steps.to_json} }
+  #stats(style="display:table;margin:1em auto;")
 
 - content_for :page_js do
   :javascript
     $(function(){
+      $('.jTrigger').on('change', function(e){
+        $('.jDependent :input').val('');
+        $form = $(this).closest('form');
+        console.log($form.serialize());
+        window.location.href = window.location.href + '?' + $form.serialize();
+      });
       var chart = $('#counts');
       var efficiency_chart = new App.WarehouseReports.Cas.DecisionEfficiency(chart);
     });
+
+
 

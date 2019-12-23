@@ -415,7 +415,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def requestor
       return nil unless requestor_id.present?
-      @requestor ||= User.find(requestor_id)
+      @requestor ||= User.active.find(requestor_id)
     end
 
     def notifications_sent
