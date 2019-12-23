@@ -20,10 +20,10 @@ module Reporting::DataQualityReports
       project.funders.map{ |f| HUD.funding_source f.Funder&.to_i }.uniq.join(', ')
     end
     def calculate_geocode project:
-      project.geographies.map(&:Geocode).uniq.join(', ')
+      project.project_cocs.map(&:Geocode).uniq.join(', ')
     end
     def calculate_geography_type project:
-      project.geographies.map do |m|
+      project.project_cocs.map do |m|
         HUD::geography_type(m.GeographyType)
       end.uniq.join(', ')
     end
