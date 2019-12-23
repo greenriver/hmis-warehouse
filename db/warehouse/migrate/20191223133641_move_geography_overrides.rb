@@ -1,4 +1,4 @@
-class MoveGeographyOverrides < ActiveRecord::Migration
+class MoveGeographyOverrides < ActiveRecord::Migration[4.2]
   def up
     [:geography_type_override, :geocode_override].each do |col|
       GrdaWarehouse::Hud::Geography.where.not(col => nil).each do |geo|
