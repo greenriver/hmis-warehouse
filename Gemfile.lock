@@ -1296,7 +1296,7 @@ GEM
     public_suffix (4.0.1)
     puma (3.12.2)
     pwned (1.2.1)
-    rack (2.0.7)
+    rack (2.0.8)
     rack-attack (6.2.1)
       rack (>= 1.0, < 3)
     rack-mini-profiler (1.1.4)
