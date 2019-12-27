@@ -1594,6 +1594,21 @@ module GrdaWarehouse::Hud
         service_within_date_range(start_date: date, end_date: Date.current).distinct
     end
 
+    def cas_pregnancy_status
+      one_year_ago = 1.years.ago.to_date
+      in_last_year = one_year_ago .. Date.current
+      hmis_pregnancy = source_health_and_dvs.where(PregnancyStatus: 1).
+        where(hdv_t[:InformationDate].gt(one_year_ago).
+          or(hdv_t[:DueDate].gt(Date.current - 3.months))).exists?
+      vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
+      eto_pregnancy = source_hmis_forms.vispdat.
+        vispdat_pregnant.
+        where(collected_at: in_last_year).
+        exists?
+
+      hmis_pregnancy || vispdat_pregnancy || eto_pregnancy
+    end
+
     def staff_types
       [:case_manager, :assigned_staff, :counselor, :outreach_counselor]
     end
