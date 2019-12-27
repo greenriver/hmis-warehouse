@@ -1,6 +1,3 @@
-= content_for :crumbs do
-  = link_to clients_path do
-    &laquo; Client search
 - content_for :title, t('.title')
 %h1= content_for :title
 = render partial: 'menus/admin_tabs'
@@ -17,78 +14,56 @@
         Add a User Account
 
 %ul.nav.nav-tabs
+  %li.nav-item.active
+    = link_to 'Active Accounts', admin_users_path, class: 'nav-link'
   %li.nav-item
-    %a.nav-link.active{href: '#active', role: "presentation", data: {toggle: :tab}}
-      Active Accounts
-  %li.nav-item
-    %a.nav-link{href: '#inactive', role: "presentation", data: {toggle: :tab}}
-      Inactive Accounts
-.tab-content
-  .tab-pane.active#active
-    .table-utilities
-      %p= page_entries_info @users, entry_name: _('user account')
-      :ruby
-        columns = ['last_name', 'first_name', 'email']
-        directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
-        titles = {}
-        directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
+    = link_to 'Inactive Accounts', admin_inactive_users_path, class: 'nav-link'
 
-    .row
-      .col-sm-12
-        .table-responsive
-          %table.table.table-sm
-            %thead
-              %tr
-                - titles.each do | k, title |
-                  %th
-                    = sort_link(titles[k], k, directions)
-                    %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
-                %th Status
-                %th Roles
-                %th
-                %th
-                %th
-            %tbody
-              - @users.each do |user|
-                %tr
-                  %td= user.last_name
-                  %td= user.first_name
-                  %td
-                    = user.email
-                    - if user.agency
-                      .user__agency
-                        %em.text-muted= user.agency.name
-                  %td= render 'user_invitation_status', user: user
-                  %td= user.roles.map(&:name).join(', ')
-                  %td
-                    = link_to admin_user_audit_path(user), class: 'btn btn-link' do
-                      %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
-                  %td
-                    = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
-                      %i.icon-pencil
-                      Edit
-                  %td{style: 'white-space: nowrap;'}
-                    = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
-                      %i.icon-cross
-                      De-Activate
+.table-utilities
+%p= page_entries_info @users, entry_name: _('user account')
+:ruby
+  columns = ['last_name', 'first_name', 'email']
+  directions = current_sort_order(Hash[columns.map {|x| [x, nil]}])
+  titles = {}
+  directions.each {| k,v | titles[k] = @users.human_attribute_name(k)}
 
-        %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}
-  .tab-pane#inactive
+.row
+  .col-sm-12
     .table-responsive
       %table.table.table-sm
         %thead
           %tr
-            %th Name
-            %th Email
+            - titles.each do | k, title |
+              %th
+                = sort_link(titles[k], k, directions)
+                %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
+            %th Status
+            %th Roles
+            %th
+            %th
             %th
         %tbody
-          - @inactive_users.each do |user|
+          - @users.each do |user|
             %tr
-              %td
-                = user.name
+              %td= user.last_name
+              %td= user.first_name
               %td
                 = user.email
+                - if user.agency
+                  .user__agency
+                    %em.text-muted= user.agency.name
+              %td= render 'user_invitation_status', user: user
+              %td= user.roles.map(&:name).join(', ')
               %td
-                = simple_form_for(user, url: reactivate_admin_user_path(user)) do |f|
-                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
-                    Re-activate
+                = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                  %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+              %td
+                = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
+                  %i.icon-pencil
+                  Edit
+              %td{style: 'white-space: nowrap;'}
+                = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
+                  %i.icon-cross
+                  De-Activate
+
+    %p= paginate @users, params: {sort: directions.compact.keys.first, direction: directions.compact.values.first}

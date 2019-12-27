@@ -1,0 +1,42 @@
+- content_for :title, t('.title')
+%h1= content_for :title
+= render partial: 'menus/admin_tabs'
+.o-page
+  .o-page__header
+    - @prompt = t '.search_prompt'
+
+    .o-page__controls
+      .o-page__search
+        = render 'search_form'
+
+%ul.nav.nav-tabs
+  %li.nav-item
+    = link_to 'Active Accounts', admin_users_path, class: 'nav-link'
+  %li.nav-item.active
+    = link_to 'Inactive Accounts', admin_inactive_users_path, class: 'nav-link'
+
+.table-utilities
+  %p= page_entries_info @users, entry_name: _('user account')
+
+.row
+  .col-sm-12
+    .table-responsive
+      %table.table.table-sm
+        %thead
+          %tr
+            %th Name
+            %th Email
+            %th
+        %tbody
+          - @users.each do |user|
+            %tr
+              %td
+                = user.name
+              %td
+                = user.email
+              %td
+                = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
+                  = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do
+                    Re-activate
+
+    %p= paginate @users

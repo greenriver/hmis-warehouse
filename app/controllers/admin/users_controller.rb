@@ -30,7 +30,6 @@ module Admin
         preload(:roles).
         order(sort_column => sort_direction).
         page(params[:page]).per(25)
-      @inactive_users = User.inactive
     end
 
     def edit
@@ -81,14 +80,6 @@ module Admin
     def destroy
       @user.update(active: false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
-    end
-
-    def reactivate
-      @user = User.inactive.find(params[:id].to_i)
-      pass = Devise.friendly_token(50)
-      @user.update(active: true, password: pass, password_confirmation: pass)
-      @user.send_reset_password_instructions
-      redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end
 
     def title_for_show

@@ -60,7 +60,11 @@ en:
     users:
       index:
         title: 'Manage User Accounts'
-        search_prompt: 'Search user accounts...'
+        search_prompt: 'Search active user accounts...'
+    inactive_users:
+      index:
+        title: 'Manage User Accounts'
+        search_prompt: 'Search inactive user accounts...'
   clients:
     index:
       title: 'Clients'
