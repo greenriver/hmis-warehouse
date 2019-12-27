@@ -48,6 +48,8 @@ module Importing
         if GrdaWarehouse::HmisForm.vispdat.exists?
           GrdaWarehouse::HmisForm.set_missing_vispdat_scores
           @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+          GrdaWarehouse::HmisForm.set_missing_vispdat_pregnancies
+          @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints') if @send_notifications
           GrdaWarehouse::HmisForm.set_part_of_a_family
           @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
         end
