@@ -1606,7 +1606,7 @@ module GrdaWarehouse::Hud
         where(collected_at: in_last_year).
         exists?
 
-      hmis_pregnancy || vispdat_pregnancy
+      hmis_pregnancy || vispdat_pregnancy || eto_pregnancy
     end
 
     def staff_types
