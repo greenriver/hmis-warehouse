@@ -89,6 +89,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(collected_at: range)
   end
 
+  scope :vispdat_pregnant, -> do
+    where(vispdat_pregnant: 'Yes')
+  end
+
   def self.set_missing_vispdat_scores
     # Process in batches, but ensure the batches occur such that the most recently completed are last
     # Fetch the ids, in order of unprocessed vispdat records

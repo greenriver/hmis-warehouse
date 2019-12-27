@@ -1595,14 +1595,16 @@ module GrdaWarehouse::Hud
     end
 
     def cas_pregnancy_status
-      in_last_year = Date.current - 1.year .. Date.current
+      one_year_ago = 1.years.ago.to_date
+      in_last_year = one_year_ago .. Date.current
       hmis_pregnancy = source_health_and_dvs.where(PregnancyStatus: 1).
-        where(hdv_t[:InformationDate].gt(Date.current - 1.year).
+        where(hdv_t[:InformationDate].gt(one_year_ago).
           or(hdv_t[:DueDate].gt(Date.current - 3.months))).exists?
       vispdat_pregnancy = vispdats.completed.where(pregnant_answer: 1, submitted_at: in_last_year).exists?
       eto_pregnancy = source_hmis_forms.vispdat.
+        vispdat_pregnant.
         where(collected_at: in_last_year).
-        pluck(:vispdat_pregnant).any?
+        exists?
 
       hmis_pregnancy || vispdat_pregnancy
     end
