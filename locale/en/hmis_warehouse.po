@@ -3449,6 +3449,9 @@ msgstr ""
 msgid "Client Search"
 msgstr ""
 
+msgid "Client does not have a community preference."
+msgstr ""
+
 msgid "Clients"
 msgstr ""
 
@@ -3522,9 +3525,6 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
-msgstr ""
-
-msgid "Health Report"
 msgstr ""
 
 msgid "Housing"
@@ -3617,10 +3617,16 @@ msgstr ""
 msgid "My Agency's Clients"
 msgstr ""
 
+msgid "My Agency's HMIS Clients"
+msgstr ""
+
 msgid "My Agency's Patients"
 msgstr ""
 
 msgid "My Clients"
+msgstr ""
+
+msgid "My HMIS Clients"
 msgstr ""
 
 msgid "My Patients"
@@ -3771,6 +3777,9 @@ msgid "client"
 msgstr ""
 
 msgid "cohort enrollment"
+msgstr ""
+
+msgid "groups"
 msgstr ""
 
 msgid "housing"

@@ -7,7 +7,7 @@
   .o-page__filter
     = render 'filter'
   .o-page__link.ml-auto
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       %i.icon-download2
       Tracking Sheet
 %p.mr-5= page_entries_info @patients, entry_name: _('patient')

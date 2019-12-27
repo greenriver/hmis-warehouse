@@ -2,7 +2,7 @@
   = "#{@title} - Supporting Data"
 - if @counts.any?
   .text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon-download2
       Download
   %table.table.table-sm.table-hover

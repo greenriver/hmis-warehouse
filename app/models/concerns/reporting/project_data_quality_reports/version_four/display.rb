@@ -1298,7 +1298,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display # rubocop:disa
     def count_income_as_zero?(later_response:, later_value:, earlier_response:, earlier_value:)
       return true if later_response.present? && later_response.zero?
       return true if later_response == 1 && (later_value.nil? || later_value.zero?)
-      return true if later_response.nil? && (earlier_response.zero? || earlier_response.nil?)
+      return true if later_response.nil? && (earlier_response.nil? || earlier_response.zero?)
       return true if later_response.nil? && earlier_response == 1 && (earlier_value.nil? || earlier_value.zero?)
 
       false

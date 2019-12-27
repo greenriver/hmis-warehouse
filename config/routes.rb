@@ -636,6 +636,10 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :inactive_users, except: [:show, :new, :create] do
+      patch :reactivate, on: :member
+    end
+
     resources :roles
     resources :groups
     resources :agencies

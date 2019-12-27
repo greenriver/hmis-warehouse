@@ -167,6 +167,7 @@ module GrdaWarehouse::Tasks
         default_shelter_agency_contacts: :default_shelter_agency_contacts,
         tags: :cas_tags,
         vash_eligible: :vash_eligible,
+        pregnancy_status: :cas_pregnancy_status
       }
     end
   end

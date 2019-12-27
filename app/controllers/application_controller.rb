@@ -46,6 +46,12 @@ class ApplicationController < ActionController::Base
 
   force_ssl if Rails.configuration.force_ssl
 
+  # To permit merge(link_params) when creating a new link from existing parameters
+  def link_params
+    params.permit!
+  end
+  helper_method :link_params
+
   protected
 
   # Removed 7/30/2019 -- no longer in use, brakeman identified as Possible unprotected redirect

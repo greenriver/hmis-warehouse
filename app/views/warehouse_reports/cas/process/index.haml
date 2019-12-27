@@ -20,7 +20,7 @@
         and
         %strong #{@step_range.second}.
     .col-sm-2.ml-auto
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
   %table.table.table-hover
     %thead

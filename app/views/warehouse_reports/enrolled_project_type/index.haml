@@ -10,7 +10,7 @@
       - if @sub_population == :family
         = GrdaWarehouse::Hud::Client.report_family_warning
     .col.pull-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
   .row
     .col

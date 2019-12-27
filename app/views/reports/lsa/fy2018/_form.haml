@@ -10,7 +10,6 @@
         %th HousingType
         %th Geocode
         %th GeographyType
-        %th Geography InformationDate
         %th Funder
     %tbody
       - @missing_projects.each do |project|
@@ -21,7 +20,6 @@
           %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
           %td= yes_no(! @missing_data[:missing_gepgraphy_type].include?(project))
-          %td= yes_no(! @missing_data[:missing_gepgraphy_information_date].include?(project))
           %td= yes_no(! @missing_data[:invalid_funders].include?(project))
 
 = simple_form_for :report_result do |f|

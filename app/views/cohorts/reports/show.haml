@@ -4,7 +4,7 @@
 %p Show cohort changes during the following date range.
 = render 'filter'
 .pull-right
-  = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+  = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
     Download Excel
 
 %table.table.table-sm

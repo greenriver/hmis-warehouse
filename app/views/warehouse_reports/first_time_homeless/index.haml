@@ -20,7 +20,7 @@
       .jCharts
         %p.jLoading.text-center Loading...
     .col-sm-2.text-right
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
   %table.table.table-sm.table-hover

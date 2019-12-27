@@ -7,12 +7,11 @@
 module Reports
   class Hic::InventoriesController < Hic::BaseController
     def show
+      @date = params.dig(:report, :date)&.to_date || Date.current
       @inventories = GrdaWarehouse::Hud::Inventory.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
-        where(
-          i_t[:InventoryStartDate].gt((Time.current.beginning_of_year - 1.year).to_date).or(i_t[:InventoryStartDate].eq(nil)),
-        ).
+        merge(GrdaWarehouse::Hud::Inventory.within_range(@date..@date)).
         distinct
       respond_to do |format|
         format.html

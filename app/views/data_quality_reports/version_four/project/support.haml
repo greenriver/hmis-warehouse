@@ -2,7 +2,7 @@
   = "Project Data Quality Report for #{@project.name} - #{@details_title}"
 - if @data.any?
   .pull-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto mb-2'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto mb-2'}) do
       %i.icon-download2
       Download Excel
   - if @data[:description].present?

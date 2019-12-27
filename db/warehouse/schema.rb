@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_12_05_155752) do
+ActiveRecord::Schema.define(version: 2019_12_23_203007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1543,6 +1543,7 @@ ActiveRecord::Schema.define(version: 2019_12_05_155752) do
     t.string "cas_days_homeless_source", default: "days_homeless"
     t.boolean "consent_visible_to_all", default: false
     t.boolean "verified_homeless_history_visible_to_all", default: false, null: false
+    t.boolean "only_most_recent_import", default: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1877,6 +1878,8 @@ ActiveRecord::Schema.define(version: 2019_12_05_155752) do
     t.string "staff_email"
     t.datetime "eto_last_updated"
     t.string "housing_status"
+    t.string "vispdat_pregnant"
+    t.date "vispdat_pregnant_updated_at"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
@@ -3903,6 +3906,8 @@ ActiveRecord::Schema.define(version: 2019_12_05_155752) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "turned_away", default: false, null: false
+    t.string "college_pilot", default: "No", null: false
+    t.string "graduating_college", default: "No", null: false
     t.index ["created_at"], name: "index_youth_intakes_on_created_at"
     t.index ["deleted_at"], name: "index_youth_intakes_on_deleted_at"
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"

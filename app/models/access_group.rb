@@ -27,7 +27,7 @@ class AccessGroup < ActiveRecord::Base
   end
 
   scope :user, -> do
-    where.not(user_id: nil)
+    joins(:users)
   end
 
   scope :for_user, -> (user) do
