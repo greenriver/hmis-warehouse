@@ -3527,9 +3527,6 @@ msgstr ""
 msgid "HUES Eligible"
 msgstr ""
 
-msgid "Health Report"
-msgstr ""
-
 msgid "Housing"
 msgstr ""
 
