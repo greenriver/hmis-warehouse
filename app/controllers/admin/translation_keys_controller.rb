@@ -17,7 +17,18 @@ module Admin
       search_options = params.require(:search).permit(:q, :missing_translations) if params[:search]
       @search = Search.new(search_options)
       @translation_keys = translation_key_source.order(key: :asc)
-      @translation_keys = @translation_keys.where(tk_t[:key].matches("%#{@search.q}%")) if @search.q.present?
+      if @search.q.present?
+        @translation_keys = @translation_keys.where(
+          tk_t[:key].matches("%#{@search.q}%").
+            or(
+              tk_t[:id].in(
+                Arel.sql(
+                  translation_text_source.where(tt_t[:text].matches("%#{@search.q}%")).select(:translation_key_id).to_sql,
+                ),
+              ),
+            ),
+        )
+      end
       if @search.missing_translations
         @translation_keys = @translation_keys.
           where(

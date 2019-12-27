@@ -23,6 +23,8 @@ class ProjectCocsController < ApplicationController
   private def project_coc_params
     params.require(:project_coc).permit(
       :hud_coc_code,
+      :geocode_override,
+      :geography_type_override,
     )
   end
 

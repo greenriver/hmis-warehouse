@@ -76,6 +76,15 @@ module ApplicationHelper
     content_tag :span, number.to_s.gsub(/(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/, 'XXX-XX-\3')
   end
 
+  def beautify_option(_key, value)
+    return value unless value.is_a?(Array)
+
+    clean = value.select(&:present?).map(&:to_i)
+    return clean unless clean.count > 5
+
+    "[#{clean[0...5].to_sentence(last_word_connector: ', ')}, ...]"
+  end
+
   def dob_or_age(dob)
     if can_view_full_dob?
       dob

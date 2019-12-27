@@ -7,6 +7,8 @@
         %th
         %th ProjectCoCID
         %th CoC Code
+        %th Geocode
+        %th Geography Type
         %th
     %tbody
       - project_cocs.all.each do |p_coc|
@@ -22,6 +24,20 @@
               %em
                 Overridden as
                 = p_coc.hud_coc_code
+          %td
+            = p_coc.Geocode
+            - if p_coc.geocode_override.present?
+              %br
+              %em
+                Overridden as
+                = p_coc.geocode_override
+          %td
+            = HUD.geography_type p_coc.GeographyType
+            - if p_coc.geography_type_override.present?
+              %br
+              %em
+                Overridden as
+                = HUD.geography_type p_coc.geography_type_override
           %td
             - if can_edit_projects?
               = link_to edit_project_coc_path(p_coc), class: ['btn', 'btn-sm', 'btn-secondary'] do
