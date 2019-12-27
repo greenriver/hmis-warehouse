@@ -930,18 +930,32 @@ module Health
         dates = {}
         visits.each do |(date, type), count|
           date = date.to_date
-          dates[date] ||= {
-            'Emergency' => 0,
-            'Inpatient' => 0,
-          }
-          dates[date]['Emergency'] += count if type == 'Emergency'
-          dates[date]['Inpatient'] += count if type == 'Inpatient'
+          year = date.year
+          dates[year] ||= begin
+            start_date = date.beginning_of_year
+            (0..11).to_a.map do |offset|
+              [
+                start_date + offset.months,
+                {
+                  'Emergency' => 0,
+                  'Inpatient' => 0,
+                }
+              ]
+            end.to_h
+          end
+          dates[year][date]['Emergency'] += count if type == 'Emergency'
+          dates[year][date]['Inpatient'] += count if type == 'Inpatient'
         end
-        {
-          'x' => dates.keys,
-          'Emergency' => dates.values.map{|m| m['Emergency'] },
-          'Inpatient' => dates.values.map{|m| m['Inpatient'] },
-        }
+        dates.map do |year, visits|
+          [
+            year,
+            {
+              'x' => visits.keys,
+              'Emergency' => visits.values.map{|m| m['Emergency'] },
+              'Inpatient' => visits.values.map{|m| m['Inpatient'] },
+            }
+          ]
+        end.to_h
       end
     end
 
