@@ -1,0 +1,61 @@
+- content_for :title,  "Upload for #{@data_source.name}"
+= render 'breadcrumbs'
+.row
+  .col-sm-8
+    %h1= content_for :title
+
+.well.d-flex.align-items-center.flex-wrap
+  %dl.mr-auto
+    %dt Uploaded on
+    %dd= @upload.created_at.to_date
+  %dl.mr-auto
+    %dt Status
+    %dd= @upload.status
+  - if @upload.completed?
+    %dl.mr-auto
+      %dt Rows Uploaded
+      %dd= @upload.uploaded_count
+    %dl.mr-auto
+      %dt Clients Matched
+      %dd= @upload.matched_count
+%h3 Clients
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-sm.table-hover
+        %thead
+          %tr
+            %th First Name
+            %th Middle Name
+            %th Last Name
+            %th SSN
+            %th DOB
+            %th Possible Matches
+        %tbody
+          - @upload.ad_hoc_clients.find_each do |client|
+            %tr
+              %td
+                - if client.client_id && client.first_name
+                  = link_to client.first_name, client_path(client.client_id)
+                - else
+                  = client.first_name
+              %td
+                - if client.client_id && client.middle_name
+                  = link_to client.middle_name, client_path(client.client_id)
+                - else
+                  = client.middle_name
+              %td
+                - if client.client_id && client.last_name
+                  = link_to client.last_name, client_path(client.client_id)
+                - else
+                  = client.last_name
+              %td= ssn(client.ssn)
+              %td= dob_or_age(client.dob)
+              %td
+                - unless client.client_id
+                  - unique_ids = client.matching_client_ids.uniq
+                  - if unique_ids.count == 0
+                    None found
+                  - else
+                    (#{unique_ids.count})
+                    = unique_ids.join(', ')

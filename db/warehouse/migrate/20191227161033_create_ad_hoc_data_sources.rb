@@ -4,7 +4,7 @@ class CreateAdHocDataSources < ActiveRecord::Migration
       t.string :name
       t.string :short_name
       t.string :description
-      t.boolean :active
+      t.boolean :active, null: false, default: true
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
     end
@@ -18,11 +18,18 @@ class CreateAdHocDataSources < ActiveRecord::Migration
       t.datetime :completed_at
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
+      t.string :import_errors
+      t.string :file
+      t.string :name
+      t.string :size
+      t.string :content_type
+      t.binary :content
     end
 
     create_table :ad_hoc_clients do |t|
       t.references :ad_hoc_data_source
       t.references :client
+      t.jsonb :matching_client_ids
       t.references :batch
       t.string :first_name
       t.string :middle_name

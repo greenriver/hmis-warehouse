@@ -5,14 +5,18 @@
 ###
 
 class AdHocDataSourcesController < ApplicationController
-  before_action :can_manage_ad_hoc_data_sources!
-  before_action :set_data_source, only: [:show, :update, :destroy]
+  before_action :require_can_manage_ad_hoc_data_sources!
+  before_action :set_data_source, only: [:show, :update, :edit, :destroy]
 
   def index
-    @data_sources = data_source_scope.order(name: :asc).page(params[:page]).per(25)
+    @data_sources = data_source_scope.active.order(name: :asc).page(params[:page]).per(25)
   end
 
   def show
+    @uploads = @data_source.ad_hoc_batches.order(id: :desc).page(params[:page]).per(25)
+  end
+
+  def edit
   end
 
   def new
@@ -20,50 +24,22 @@ class AdHocDataSourcesController < ApplicationController
   end
 
   def create
-    @data_source = data_source_source.new(data_source_params)
-    if @data_source.save
-      current_user.add_viewable @data_source
-      flash[:notice] = "#{@data_source.name} created."
-      redirect_to action: :index
-    else
-      flash[:error] = _('Unable to create new Data Source')
-      render action: :new
-    end
+    @data_source = data_source_source.create(data_source_params)
+    respond_with(@data_source, location: ad_hoc_data_sources_path)
   end
 
   def update
-    error = false
-    begin
-      GrdaWarehouse::Hud::Project.transaction do
-        visible_in_window = data_source_params[:visible_in_window] || false
-        import_paused = data_source_params[:import_paused] || false
-        source_id = data_source_params[:source_id]
-        @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused, source_id: source_id)
-      end
-    rescue StandardError => e
-      error = true
-    end
-    if error
-      flash[:error] = "Unable to update data source. #{e}"
-      render :show
-    else
-      redirect_to data_source_path(@data_source), notice: 'Data Source updated'
-    end
+    @data_source.update!(data_source_params)
+    respond_with(@data_source, location: ad_hoc_data_source_path(@data_source))
   end
 
   def destroy
-    ds_name = @data_source.name
-    if @data_source.has_data?
-      flash[:error] = "Unable to delete #{ds_name}, there is data associated with it."
-    else
-      @data_source.destroy
-      flash[:notice] = "Data Source: #{ds_name} was successfully removed."
-    end
-    redirect_to action: :index
+    @data_source.destroy
+    respond_with(@data_source)
   end
 
   private def data_source_params
-    params.require(:grda_warehouse_data_source).
+    params.require(:grda_warehouse_ad_hoc_data_source).
       permit(
         :name,
         :short_name,
@@ -82,5 +58,9 @@ class AdHocDataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_scope.find(params[:id].to_i)
+  end
+
+  def flash_interpolation_options
+    { resource_name: 'Ad-Hoc Data Source' }
   end
 end

@@ -382,6 +382,14 @@ class Role < ActiveRecord::Base
         description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
         administrative: true,
       },
+      can_manage_ad_hoc_data_sources: {
+        description: 'Can this user manage Ad-Hoc Data sources?',
+        administrative: true,
+      },
+      can_view_client_ad_hoc_data_sources: {
+        description: 'Can this user see if a client matched Ad-Hoc Data sources?',
+        administrative: false,
+      },
     }
   end
 
@@ -478,14 +486,6 @@ class Role < ActiveRecord::Base
       can_unsubmit_submitted_claims: {
         description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
-      },
-      can_manage_ad_hoc_data_sources: {
-        description: 'Can this user manage Ad-Hoc Data sources?',
-        administrative: true,
-      },
-      can_view_client_ad_hoc_data_sources: {
-        description: 'Can this user see if a client matched Ad-Hoc Data sources?',
-        administrative: false,
       },
     }
   end

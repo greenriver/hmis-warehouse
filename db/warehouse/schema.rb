@@ -1004,6 +1004,12 @@ ActiveRecord::Schema.define(version: 20191227161033) do
     t.datetime "created_at",            null: false
     t.datetime "updated_at",            null: false
     t.datetime "deleted_at"
+    t.string   "import_errors"
+    t.string   "file"
+    t.string   "name"
+    t.string   "size"
+    t.string   "content_type"
+    t.binary   "content"
   end
 
   add_index "ad_hoc_batches", ["created_at"], name: "index_ad_hoc_batches_on_created_at", using: :btree
@@ -1013,6 +1019,7 @@ ActiveRecord::Schema.define(version: 20191227161033) do
   create_table "ad_hoc_clients", force: :cascade do |t|
     t.integer  "ad_hoc_data_source_id"
     t.integer  "client_id"
+    t.jsonb    "matching_client_ids"
     t.integer  "batch_id"
     t.string   "first_name"
     t.string   "middle_name"
@@ -1032,9 +1039,9 @@ ActiveRecord::Schema.define(version: 20191227161033) do
     t.string   "name"
     t.string   "short_name"
     t.string   "description"
-    t.boolean  "active"
-    t.datetime "created_at",  null: false
-    t.datetime "updated_at",  null: false
+    t.boolean  "active",      default: true, null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
     t.datetime "deleted_at"
   end
 

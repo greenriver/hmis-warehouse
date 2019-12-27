@@ -1,0 +1,37 @@
+- content_for :title,  @data_source.name
+= render 'breadcrumbs'
+.row
+  .col-sm-8
+    %h1= content_for :title
+    - unless @data_source.active
+      %p.alert.alert-danger
+        This Ad-Hoc Data Source is inactive.
+    = simple_format(@data_source.description)
+  .col-sm-4.text-right.mb-4
+    = link_to new_ad_hoc_data_source_upload_path(@data_source), class: 'btn btn-primary' do
+      %span.icon-plus
+      Upload Batch
+    = link_to edit_ad_hoc_data_source_path(@data_source), class: 'btn btn-secondary mt-4' do
+      %span.icon-pencil
+      Edit Data Source
+
+%p= paginate(@uploads)
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-sm.table-hover
+        %thead
+          %tr
+            %th Description
+            %th Uploaded On
+            %th Status
+            %th
+        %tbody
+          - @uploads.each do |upload|
+            %tr
+              %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
+              %td= upload.created_at.to_date
+              %td= upload.status
+              %td
+                = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do
+                  %icon.icon-cross

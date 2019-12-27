@@ -1,4 +1,11 @@
 - content_for :title,  _('Data Sources')
+- if can_manage_ad_hoc_data_sources?
+  %ul.nav.nav-tabs
+    %li.nav-item.active
+      = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'
+    %li.nav-item
+      = link_to _('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
+
 .row
   .col-sm-8
     %h1= content_for :title

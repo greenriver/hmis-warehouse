@@ -46,6 +46,7 @@ end
 
 every 5.minutes do
   rake 'reporting:run_project_data_quality_reports'
+  rake 'reporting:run_ad_hoc_processing'
 end
 
 every 4.hours do
