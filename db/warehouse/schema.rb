@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191223203007) do
+ActiveRecord::Schema.define(version: 20191227161033) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -993,6 +993,54 @@ ActiveRecord::Schema.define(version: 20191223203007) do
 
   add_index "User", ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id", using: :btree
   add_index "User", ["pending_date_deleted"], name: "index_User_on_pending_date_deleted", using: :btree
+
+  create_table "ad_hoc_batches", force: :cascade do |t|
+    t.integer  "ad_hoc_data_source_id"
+    t.string   "description"
+    t.integer  "uploaded_count"
+    t.integer  "matched_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ad_hoc_batches", ["created_at"], name: "index_ad_hoc_batches_on_created_at", using: :btree
+  add_index "ad_hoc_batches", ["deleted_at"], name: "index_ad_hoc_batches_on_deleted_at", using: :btree
+  add_index "ad_hoc_batches", ["updated_at"], name: "index_ad_hoc_batches_on_updated_at", using: :btree
+
+  create_table "ad_hoc_clients", force: :cascade do |t|
+    t.integer  "ad_hoc_data_source_id"
+    t.integer  "client_id"
+    t.integer  "batch_id"
+    t.string   "first_name"
+    t.string   "middle_name"
+    t.string   "last_name"
+    t.string   "ssn"
+    t.date     "dob"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ad_hoc_clients", ["created_at"], name: "index_ad_hoc_clients_on_created_at", using: :btree
+  add_index "ad_hoc_clients", ["deleted_at"], name: "index_ad_hoc_clients_on_deleted_at", using: :btree
+  add_index "ad_hoc_clients", ["updated_at"], name: "index_ad_hoc_clients_on_updated_at", using: :btree
+
+  create_table "ad_hoc_data_sources", force: :cascade do |t|
+    t.string   "name"
+    t.string   "short_name"
+    t.string   "description"
+    t.boolean  "active"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.datetime "deleted_at"
+  end
+
+  add_index "ad_hoc_data_sources", ["created_at"], name: "index_ad_hoc_data_sources_on_created_at", using: :btree
+  add_index "ad_hoc_data_sources", ["deleted_at"], name: "index_ad_hoc_data_sources_on_deleted_at", using: :btree
+  add_index "ad_hoc_data_sources", ["updated_at"], name: "index_ad_hoc_data_sources_on_updated_at", using: :btree
 
   create_table "administrative_events", force: :cascade do |t|
     t.integer  "user_id",     null: false
