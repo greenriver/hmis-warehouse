@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191223161021) do
+ActiveRecord::Schema.define(version: 20191223203007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1925,8 +1925,8 @@ ActiveRecord::Schema.define(version: 20191223161021) do
     t.text     "api_response"
     t.string   "name"
     t.text     "answers"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
     t.integer  "response_id"
     t.integer  "subject_id"
     t.datetime "collected_at"
@@ -1934,7 +1934,7 @@ ActiveRecord::Schema.define(version: 20191223161021) do
     t.string   "assessment_type"
     t.string   "collection_location"
     t.integer  "assessment_id"
-    t.integer  "data_source_id",           null: false
+    t.integer  "data_source_id",              null: false
     t.integer  "site_id"
     t.datetime "vispdat_score_updated_at"
     t.float    "vispdat_total_score"
@@ -1945,6 +1945,8 @@ ActiveRecord::Schema.define(version: 20191223161021) do
     t.string   "staff_email"
     t.datetime "eto_last_updated"
     t.string   "housing_status"
+    t.string   "vispdat_pregnant"
+    t.date     "vispdat_pregnant_updated_at"
   end
 
   add_index "hmis_forms", ["assessment_id"], name: "index_hmis_forms_on_assessment_id", using: :btree
