@@ -22,6 +22,7 @@ module Health
     has_many :batches, class_name: 'Health::EligibilityInquiry', foreign_key: :batch_id, dependent: :destroy
 
     scope :pending, -> () do
+      where.not(inquiry: nil).
       where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
     end
 

@@ -5,6 +5,12 @@
       = d3_base_chart('d3-housing-status__chart', 'd3-housing-status__dates', 'Housing Status')
   .row
     .col-sm-12
+      - if @patient.ed_ip_visits.exists?
+        %section#ed_ip_visits.jEdIpVists{data: {path: window_client_health_ed_ip_visits_path(@client.to_param, format: :json)}}
+          %h2 ED & IP Visits
+          .jEdIpVisitChart.opaque-area-chart
+  .row
+    .col-sm-12
       .ss-matrix__container
         .clearfix
           %h4 Self Sufficiency Scores
@@ -35,7 +41,6 @@
         viewBoxSizing: true
       }
       var pc = new App.D3Chart.PatientCharts([hsChart])
-      
       var ssData = #{@client.health_self_sufficiency_scores.to_json.html_safe}
       var chart = new App.D3Chart.SelfSufficiencyScores('.d3-ss-matrix__chart', '.d3-ss__legend', {top: 20, right: 10, bottom: 20, left: 150}, ssData);
       chart.draw();

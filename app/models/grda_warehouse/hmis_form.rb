@@ -89,6 +89,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     where(collected_at: range)
   end
 
+  scope :vispdat_pregnant, -> do
+    where(vispdat_pregnant: 'Yes')
+  end
+
   def self.set_missing_vispdat_scores
     # Process in batches, but ensure the batches occur such that the most recently completed are last
     # Fetch the ids, in order of unprocessed vispdat records
@@ -102,19 +106,44 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       # fetch the batch, in order
       vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
         next unless hmis_form.destination_client.present?
+
         hmis_form.vispdat_total_score = hmis_form.vispdat_score_total
         hmis_form.vispdat_family_score = hmis_form.vispdat_score_family
         hmis_form.vispdat_youth_score = hmis_form.vispdat_score_youth
         hmis_form.vispdat_months_homeless = hmis_form.vispdat_homless_months
         hmis_form.vispdat_times_homeless = hmis_form.vispdat_homless_times
         hmis_form.vispdat_score_updated_at = Time.now
+
         if hmis_form.changed? && hmis_form&.destination_client
           hmis_form.save
           hmis_form.destination_client.update(vispdat_prioritization_days_homeless: hmis_form.vispdat_days_homeless)
         end
       end
     end
+  end
 
+  def self.set_missing_vispdat_pregnancies
+    # Process in batches, but ensure the batches occur such that the most recently completed are last
+    # Fetch the ids, in order of unprocessed vispdat records
+    ids = vispdat.oldest_first.
+      where(
+        arel_table[:vispdat_pregnant].eq(nil).
+          or(arel_table[:collected_at].gt(arel_table[:vispdat_pregnant_updated_at]))
+      ).pluck(:id)
+    # loop over those records in batches of 100
+    ids.each_slice(100) do |batch|
+      # fetch the batch, in order
+      vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.vispdat_pregnant = hmis_form.vispdat_pregnancy_status
+        hmis_form.vispdat_score_updated_at = Time.now
+
+        if hmis_form.changed?
+          hmis_form.save
+        end
+      end
+    end
   end
 
   # Pre-check part of a family if the client has a family score and are < 60
@@ -299,6 +328,18 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
     relevant_question = relevant_section[:questions].select do |question|
       question[:question].downcase.starts_with?('3. in the last three years, how many times have you been homeless?')
+    end&.first.try(:[], :answer)
+    relevant_question
+  end
+
+  def vispdat_pregnancy_status
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('wellness') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('20. for female respondents only: are you currently pregnant?')
     end&.first.try(:[], :answer)
     relevant_question
   end

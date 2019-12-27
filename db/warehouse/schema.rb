@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_12_23_161021) do
+ActiveRecord::Schema.define(version: 2019_12_23_203007) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1878,6 +1878,8 @@ ActiveRecord::Schema.define(version: 2019_12_23_161021) do
     t.string "staff_email"
     t.datetime "eto_last_updated"
     t.string "housing_status"
+    t.string "vispdat_pregnant"
+    t.date "vispdat_pregnant_updated_at"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
