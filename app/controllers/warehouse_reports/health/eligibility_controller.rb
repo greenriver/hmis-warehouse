@@ -11,8 +11,8 @@ module WarehouseReports::Health
     before_action :set_reports
 
     def index
-      @report = inquiry_scope.pending.first
-      if @report.present? && @report.inquiry.present?
+      @report = filtered_inquiry_scope.pending.first
+      if @report.present?
         render :edit
       else
         render :new
@@ -27,20 +27,24 @@ module WarehouseReports::Health
     end
 
     def create
-      if params[:commit] == generate_eligibility_file_button_text
-        eligibility_date = create_params[:eligibility_date]&.to_date
-        @report = Health::EligibilityInquiry.create(service_date: eligibility_date)
-        @report.build_inquiry_file
-        @report.save
-      else
-        Health::CheckPatientEligibilityJob.perform_later(create_params[:eligibility_date], current_user)
+      begin
+        if params[:commit] == generate_eligibility_file_button_text
+          eligibility_date = create_params[:eligibility_date]&.to_date
+          @report = Health::EligibilityInquiry.create(service_date: eligibility_date)
+          @report.build_inquiry_file
+          @report.save!
+        else
+          Health::CheckPatientEligibilityJob.perform_later(create_params[:eligibility_date], current_user)
+        end
+      rescue Exception
+        flash[:error] = 'Unable to create eligibility file.'
       end
       redirect_to action: :index
     end
 
     def update
       begin
-        @report = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).find(params[:id].to_i)
+        @report = filtered_inquiry_scope.find(params[:id].to_i)
         Health::EligibilityResponse.create(
           eligibility_inquiry: @report,
           response: update_params[:content].read,
@@ -55,7 +59,7 @@ module WarehouseReports::Health
     end
 
     def destroy
-      @report = inquiry_scope.find(params[:id].to_i)
+      @report = filtered_inquiry_scope.find(params[:id].to_i)
       @report.destroy
       redirect_to action: :index
     end
@@ -77,11 +81,15 @@ module WarehouseReports::Health
     end
 
     def set_reports
-      @reports = inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result']).page(params[:page]).per(20)
+      @reports = filtered_inquiry_scope.page(params[:page]).per(20)
+    end
+
+    def filtered_inquiry_scope
+      inquiry_scope.select(inquiry_scope.column_names - ['inquiry', 'result'])
     end
 
     def inquiry_scope
-      Health::EligibilityInquiry.where(internal: false).order(created_at: :desc)
+      Health::EligibilityInquiry.where(internal: false).order(id: :desc)
     end
 
     def generate_eligibility_file_button_text
