@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
-require 'CSV'
+require 'csv'
 class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   acts_as_paranoid
   mount_uploader :file, AdHocDataSourceUploader
