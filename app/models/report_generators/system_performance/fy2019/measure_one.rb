@@ -282,7 +282,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           next unless literally_homeless?(client_id: id, enrollment_id: entry[:enrollment_id])
           # 3.917.3 - add any days prior to project entry
           if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
-            start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB].to_date].compact.max
+            start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB]&.to_date].compact.max
             new_nights = (start_date..entry[:first_date_in_program]).map do |date|
               {
                 date: date,
