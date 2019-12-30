@@ -66,7 +66,7 @@
               - if can_impersonate_users?
                 %td
                   - if user.impersonateable_by?(true_user)
-                    = link_to impersonate_admin_user_path(user), method: :post do
+                    = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post do
                       %i.icon-enter
                       Become
               %td{style: 'white-space: nowrap;'}

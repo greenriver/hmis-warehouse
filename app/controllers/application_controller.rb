@@ -154,6 +154,7 @@ class ApplicationController < ActionController::Base
         'account_passwords',
       ],
     )
+    return if controller_path == 'admin/users' && action_name == 'stop_impersonating'
 
     flash[:alert] = 'Two factor authentication must be enabled for this account.'
     redirect_to edit_account_two_factor_path

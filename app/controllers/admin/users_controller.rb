@@ -9,7 +9,7 @@ module Admin
     include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
-    before_action :require_can_edit_users!
+    before_action :require_can_edit_users!, except: [:stop_impersonating]
     before_action :set_user, only: [:edit, :confirm, :update, :destroy, :impersonate]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy]
@@ -49,7 +49,7 @@ module Admin
       redirect_to root_path
     end
 
-    def stop_imporsonating
+    def stop_impersonating
       stop_impersonating_user
       redirect_to root_path
     end
