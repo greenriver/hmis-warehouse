@@ -15,8 +15,8 @@ ActiveRecord::Schema.define(version: 20191124135304) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
 
   create_table "access_group_members", force: :cascade do |t|
     t.integer  "access_group_id"

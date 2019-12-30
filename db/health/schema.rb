@@ -1111,8 +1111,8 @@ ActiveRecord::Schema.define(version: 20191230194535) do
     t.string   "hs_subject",             default: "Signature Request",                     null: false
     t.string   "hs_title",               default: "Signature Request",                     null: false
     t.text     "hs_message",             default: "You've been asked to sign a document."
-    t.jsonb    "signers",                default: [],                                      null: false
-    t.jsonb    "signed_by",              default: [],                                      null: false
+    t.jsonb    "signers",                default: "[]",                                    null: false
+    t.jsonb    "signed_by",              default: "[]",                                    null: false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "expires_at"
@@ -1233,6 +1233,18 @@ ActiveRecord::Schema.define(version: 20191230194535) do
   end
 
   add_index "versions", ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id", using: :btree
+
+  create_table "visits", force: :cascade do |t|
+    t.string   "department"
+    t.string   "visit_type"
+    t.string   "provider"
+    t.string   "id_in_source"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.string   "patient_id"
+    t.datetime "date_of_service"
+    t.integer  "data_source_id",  default: 1, null: false
+  end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"
   add_foreign_key "comprehensive_health_assessments", "patients"
