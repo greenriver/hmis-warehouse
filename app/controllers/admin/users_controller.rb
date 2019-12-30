@@ -10,8 +10,8 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
-    before_action :set_user, only: [:edit, :confirm, :update, :destroy]
-    after_action :log_user, only: [:show, :edit, :update, :destroy]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy]
+    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -35,6 +35,11 @@ module Admin
     def edit
       @agencies = Agency.order(:name)
       @user.set_initial_two_factor_secret!
+    end
+
+    def unlock
+      @user.unlock_access!
+      redirect_to({ action: :index }, notice: 'User unlocked')
     end
 
     def confirm

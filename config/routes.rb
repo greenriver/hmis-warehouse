@@ -632,6 +632,7 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
       patch :reactivate, on: :member
       member do
+        post :unlock
         post :confirm
       end
     end
