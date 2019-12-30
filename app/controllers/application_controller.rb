@@ -110,15 +110,11 @@ class ApplicationController < ActionController::Base
 
   # Sets whodunnit
   def user_for_paper_trail
-    if current_user.present?
-      if true_user.present? && true_user != current_user
-        "#{true_user.id} as #{current_user.id}"
-      else
-        current_user.id
-      end
-    else
-      'unauthenticated'
-    end
+    return 'unauthenticated' unless current_user.present?
+    return current_user.id unless true_user.present?
+    return current_user.id if true_user == current_user
+
+    "#{true_user.id} as #{current_user.id}"
   end
 
   def colorize(object)
