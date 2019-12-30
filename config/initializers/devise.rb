@@ -237,7 +237,10 @@ Devise.setup do |config|
 
   # Number of authentication tries before locking an account if lock_strategy
   # is failed attempts.
-  config.maximum_attempts = ENV.fetch('ALLOWED_PASSWORD_ATTEMPTS') { 10 }.to_i
+  # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
+  # hasn't been fixed yet https://github.com/tinfoil/devise-two-factor/pull/136
+  # https://github.com/tinfoil/devise-two-factor/pull/130
+  config.maximum_attempts = ENV.fetch('ALLOWED_PASSWORD_ATTEMPTS') { 10 }.to_i * 2
 
   # Time interval to unlock the account if :time is enabled as unlock_strategy.
   unlock_in = ENV.fetch('ACCOUNT_UNLOCK_HOURS') { 1 }.to_i
