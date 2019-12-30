@@ -199,7 +199,8 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length.
-  config.password_length = 10..128
+  min_password_length = ENV.fetch('PASSWORD_MINIMUM_LENGTH') { 12 }.to_i
+  config.password_length = min_password_length..128
 
   # Minimum number of times a pwned password must exist in the data set in order
   # to be reject.
@@ -240,7 +241,7 @@ Devise.setup do |config|
   # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
   # hasn't been fixed yet https://github.com/tinfoil/devise-two-factor/pull/136
   # https://github.com/tinfoil/devise-two-factor/pull/130
-  config.maximum_attempts = ENV.fetch('ALLOWED_PASSWORD_ATTEMPTS') { 10 }.to_i * 2
+  config.maximum_attempts = ENV.fetch('PASSWORD_ATTEMPTS_ALLOWED') { 10 }.to_i * 2
 
   # Time interval to unlock the account if :time is enabled as unlock_strategy.
   unlock_in = ENV.fetch('ACCOUNT_UNLOCK_HOURS') { 1 }.to_i
@@ -340,7 +341,9 @@ Devise.setup do |config|
   # config.expire_password_after = false
 
   # Need 1 char of A-Z, a-z and 0-9
-  # config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+  if ENV.fetch('PASSWORD_COMPLEXITY_ENFORCED') { false } == 'true'
+    config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+  end
 
   # How many passwords to keep in archive
   password_reuse_integer = ENV['PASSWORD_REUSE_LIMIT'].to_i.to_s == ENV['PASSWORD_REUSE_LIMIT']
