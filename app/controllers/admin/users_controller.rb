@@ -129,6 +129,7 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         :otp_required_for_login,
+        :expired_at,
         role_ids: [],
         access_group_ids: [],
         coc_codes: [],

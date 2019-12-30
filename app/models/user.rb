@@ -58,8 +58,20 @@ class User < ActiveRecord::Base
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
-  scope :active, -> {where active: true}
-  scope :inactive, -> {where active: false}
+  scope :active, -> do
+    where(
+      arel_table[:active].eq(true).and(
+        arel_table[:expired_at].eq(nil).
+        or(arel_table[:expired_at].gt(Time.current))
+      )
+    )
+  end
+  scope :inactive, -> do
+    where(
+     arel_table[:active].eq(false).
+     or(arel_table[:expired_at].lteq(Time.current))
+    )
+  end
   scope :not_system, -> { where.not(first_name: 'System') }
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -102,6 +114,10 @@ class User < ActiveRecord::Base
 
   def active_for_authentication?
     super && active
+  end
+
+  def future_expiration?
+    expired_at.present? && expired_at > Time.current
   end
 
   def limited_client_view?
