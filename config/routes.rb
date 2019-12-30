@@ -633,6 +633,10 @@ Rails.application.routes.draw do
       patch :reactivate, on: :member
       member do
         post :confirm
+        post :impersonate
+      end
+      collection do
+        post :stop_impersonating
       end
     end
     resources :inactive_users, except: [:show, :new, :create] do

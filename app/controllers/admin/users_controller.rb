@@ -10,7 +10,8 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
-    before_action :set_user, only: [:edit, :confirm, :update, :destroy]
+    before_action :set_user, only: [:edit, :confirm, :update, :destroy, :impersonate]
+    before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy]
     helper_method :sort_column, :sort_direction
 
@@ -40,6 +41,17 @@ module Admin
     def confirm
       @agencies = Agency.order(:name)
       update unless adding_admin?
+    end
+
+    def impersonate
+      become = User.find(params[:become_id].to_i)
+      impersonate_user(become)
+      redirect_to root_path
+    end
+
+    def stop_imporsonating
+      stop_impersonating_user
+      redirect_to root_path
     end
 
     def update
