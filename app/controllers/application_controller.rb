@@ -102,10 +102,23 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: current_user&.id,
+      user_id: true_user&.id,
       session_id: request.env['rack.session.record']&.session_id,
       request_id: request.uuid,
     }
+  end
+
+  # Sets whodunnit
+  def user_for_paper_trail
+    if current_user.present?
+      if true_user.present? && true_user != current_user
+        "#{true_user.id} as #{current_user.id}"
+      else
+        current_user.id
+      end
+    else
+      'unauthenticated'
+    end
   end
 
   def colorize(object)
