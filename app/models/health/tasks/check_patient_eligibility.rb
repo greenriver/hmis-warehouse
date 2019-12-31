@@ -6,16 +6,15 @@
 
 module Health::Tasks
   class CheckPatientEligibility
-    def check(eligibility_date, batch_size:, user: nil, test: false)
+    def check(eligibility_date, batch_size:, owner_id:, user: nil, test: false)
       patients = Health::EligibilityInquiry.patients.order(:id)
       offset = 0
-      owner = Health::EligibilityInquiry.create(service_date: eligibility_date)
       loop do
         batch = patients.limit(batch_size).offset(offset)
         break if batch.count == 0 # No more patients
         offset += batch_size
 
-        inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date, internal: true, batch: batch, batch_id: owner.id)
+        inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date, internal: true, batch: batch, batch_id: owner_id)
         edi_doc = inquiry.build_inquiry_file
         inquiry.save!
 
