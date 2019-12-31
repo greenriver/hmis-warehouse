@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_12_23_203007) do
+ActiveRecord::Schema.define(version: 2019_12_27_161033) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -969,6 +969,58 @@ ActiveRecord::Schema.define(version: 2019_12_23_203007) do
     t.string "source_hash"
     t.index ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id"
     t.index ["pending_date_deleted"], name: "index_User_on_pending_date_deleted"
+  end
+
+  create_table "ad_hoc_batches", id: :serial, force: :cascade do |t|
+    t.integer "ad_hoc_data_source_id"
+    t.string "description"
+    t.integer "uploaded_count"
+    t.integer "matched_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.string "import_errors"
+    t.string "file"
+    t.string "name"
+    t.string "size"
+    t.string "content_type"
+    t.binary "content"
+    t.index ["created_at"], name: "index_ad_hoc_batches_on_created_at"
+    t.index ["deleted_at"], name: "index_ad_hoc_batches_on_deleted_at"
+    t.index ["updated_at"], name: "index_ad_hoc_batches_on_updated_at"
+  end
+
+  create_table "ad_hoc_clients", id: :serial, force: :cascade do |t|
+    t.integer "ad_hoc_data_source_id"
+    t.integer "client_id"
+    t.jsonb "matching_client_ids"
+    t.integer "batch_id"
+    t.string "first_name"
+    t.string "middle_name"
+    t.string "last_name"
+    t.string "ssn"
+    t.date "dob"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_ad_hoc_clients_on_created_at"
+    t.index ["deleted_at"], name: "index_ad_hoc_clients_on_deleted_at"
+    t.index ["updated_at"], name: "index_ad_hoc_clients_on_updated_at"
+  end
+
+  create_table "ad_hoc_data_sources", id: :serial, force: :cascade do |t|
+    t.string "name"
+    t.string "short_name"
+    t.string "description"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_ad_hoc_data_sources_on_created_at"
+    t.index ["deleted_at"], name: "index_ad_hoc_data_sources_on_deleted_at"
+    t.index ["updated_at"], name: "index_ad_hoc_data_sources_on_updated_at"
   end
 
   create_table "administrative_events", id: :serial, force: :cascade do |t|
