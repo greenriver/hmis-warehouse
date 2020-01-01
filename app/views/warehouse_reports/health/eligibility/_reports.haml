@@ -11,7 +11,7 @@
       - @reports.each do |report|
         %tr
           %td
-            = link_to_unless(report.batches.present?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt") do
+            = link_to_unless(report.has_batch?, "For #{report.service_date}", "#{warehouse_reports_health_eligibility_url(report)}.txt") do
               For #{report.service_date} (via API in #{pluralize(report.batches.count, 'batch')})
           %td= report.created_at
           %td
@@ -23,7 +23,7 @@
             - else
               - responses = report.batch_responses
               - if responses.all?{ |r| r.response.present? }
-                - error = responses.detect{ |r| ! r.response.starts_with?('ISA')}.response
+                - error = responses.detect{ |r| ! r.response.starts_with?('ISA')}&.response
                 - if error.blank?
                   - eligible_clients = responses.map{ |r| r.eligible_clients }.sum
                   - ineligible_clients = responses.map{ |r| r.ineligible_clients }.sum
