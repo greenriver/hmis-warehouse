@@ -29,6 +29,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :locale
   before_action :set_gettext_locale
+  before_action :enforce_2fa!
 
   # Don't start in development if you have pending migrations
   prepend_before_action :check_all_db_migrations
