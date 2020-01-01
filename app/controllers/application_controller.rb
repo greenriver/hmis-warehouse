@@ -102,7 +102,7 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: true_user&.id,
+      user_id: warden&.user&.id,
       session_id: request.env['rack.session.record']&.session_id,
       request_id: request.uuid,
     }
