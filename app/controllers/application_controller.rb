@@ -9,6 +9,7 @@ require 'application_responder'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
+  impersonates :user
 
   include ControllerAuthorization
   include ActivityLogger
@@ -101,10 +102,19 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: current_user&.id,
+      user_id: warden&.user&.id,
       session_id: request.env['rack.session.record']&.session_id,
       request_id: request.uuid,
     }
+  end
+
+  # Sets whodunnit
+  def user_for_paper_trail
+    return 'unauthenticated' unless current_user.present?
+    return current_user.id unless true_user.present?
+    return current_user.id if true_user == current_user
+
+    "#{true_user.id} as #{current_user.id}"
   end
 
   def colorize(object)
@@ -153,6 +163,7 @@ class ApplicationController < ActionController::Base
         'account_passwords',
       ],
     )
+    return if controller_path == 'admin/users' && action_name == 'stop_impersonating'
 
     flash[:alert] = 'Two factor authentication must be enabled for this account.'
     redirect_to edit_account_two_factor_path
