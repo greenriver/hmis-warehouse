@@ -9,6 +9,7 @@ require 'application_responder'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
+  impersonates :user
 
   include ControllerAuthorization
   include ActivityLogger
@@ -111,6 +112,15 @@ class ApplicationController < ActionController::Base
     }
   end
 
+  # Sets whodunnit
+  def user_for_paper_trail
+    return 'unauthenticated' unless current_user.present?
+    return current_user.id unless true_user.present?
+    return current_user.id if true_user == current_user
+
+    "#{true_user.id} as #{current_user.id}"
+  end
+
   def colorize(object)
     # make a hash of the object, truncate it to an appropriate size and then turn it into
     # a css friendly hash code
@@ -140,6 +150,27 @@ class ApplicationController < ActionController::Base
     else
       root_path
     end
+  end
+
+  # If a user must have Two-factor authentication turned on, only let them go
+  # to their 2FA page and their account page
+  def enforce_2fa!
+    return unless current_user
+    return unless current_user.enforced_2fa?
+    return if current_user.two_factor_enabled?
+    return if controller_path.in?(
+      [
+        'users/sessions',
+        'accounts',
+        'account_two_factors',
+        'account_emails',
+        'account_passwords',
+      ],
+    )
+    return if controller_path == 'admin/users' && action_name == 'stop_impersonating'
+
+    flash[:alert] = 'Two factor authentication must be enabled for this account.'
+    redirect_to edit_account_two_factor_path
   end
 
   def check_all_db_migrations

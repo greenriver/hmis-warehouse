@@ -382,6 +382,10 @@ class Role < ApplicationRecord
         description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
         administrative: true,
       },
+      can_impersonate_users: {
+        description: 'Can become any other user.  Anyone with this permission can impersonate any other user and see whatever they would see.',
+        administrative: true,
+      },
     }
   end
 

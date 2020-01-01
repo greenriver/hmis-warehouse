@@ -1,0 +1,28 @@
+- if impersonating?
+  #impersonation-warning
+    .d-flex.pt-2.pb-2
+      .ml-auto
+        .navbar-text
+          %span.label.label-info
+            You are masquerading as #{current_user.name}
+      .ml-4.mr-6
+        .navbar-text
+          %span.label.label-info
+            = link_to stop_impersonating_admin_users_path, method: :post do
+              Switch Back
+              %i.icon-exit.ml-2
+- unless Rails.env.production?
+  #non-production-warning
+    .d-flex.pt-2.pb-2
+      - if Rails.env.development?
+        .git-branch.ml-auto
+          = branch_info
+        .rails-env.ml-4.mr-6
+          .navbar-text
+            %span.label.label-success
+              = Rails.env
+      - else
+        .rails-env.ml-auto.mr-6
+          .navbar-text
+            %span.label.label-success
+              = Rails.env

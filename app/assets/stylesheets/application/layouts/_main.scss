@@ -16,3 +16,9 @@
     max-width: calc(100vw - #{$nav-side-width});
   }
 }
+
+#impersonation-warning
+{
+  background-color: $brand-danger-d;
+  color: white;
+}
