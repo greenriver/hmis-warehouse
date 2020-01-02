@@ -4,6 +4,11 @@
       = f.error_notification
       .form-inputs
         = f.input :current_password, required: true, hint: 'Your current password is required to confirm your identity'
+        - if @user.password_rules.any?
+          %p Passwords Rules
+          %ul
+            - @user.password_rules.each do |rule|
+              %li= rule
         = f.input :password, required: true, label: 'New password'
         = f.input :password_confirmation, required: true
 

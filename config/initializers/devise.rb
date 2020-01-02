@@ -343,6 +343,8 @@ Devise.setup do |config|
   # Need 1 char of A-Z, a-z and 0-9
   if ENV.fetch('PASSWORD_COMPLEXITY_ENFORCED') { false } == 'true'
     config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+  else
+    config.password_complexity = {}
   end
 
   # How many passwords to keep in archive

@@ -7,6 +7,7 @@
 class User < ActiveRecord::Base
   include Rails.application.routes.url_helpers
   include UserPermissions
+  include PasswordRules
   has_paper_trail
   acts_as_paranoid
 
@@ -387,30 +388,28 @@ class User < ActiveRecord::Base
     name.humanize.titleize
   end
 
-  private
+  def self.whitelist_for_changes_display
+    [
+      'first_name',
+      'last_name email',
+      'phone',
+      'agency',
+      'receive_file_upload_notifications',
+      'notify_of_vispdat_completed',
+      'notify_on_anomaly_identified',
+    ].freeze
+  end
 
-    def self.whitelist_for_changes_display
-      [
-        'first_name',
-        'last_name email',
-        'phone',
-        'agency',
-        'receive_file_upload_notifications',
-        'notify_of_vispdat_completed',
-        'notify_on_anomaly_identified',
-      ].freeze
+  private def viewable(model)
+    if can_edit_anything_super_user?
+      model.all
+    else
+      model.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: access_groups.pluck(:id),
+          entity_type: model.sti_name,
+        ).select(:entity_id),
+      )
     end
-
-    def viewable(model)
-      if can_edit_anything_super_user?
-        model.all
-      else
-        model.where(
-          id: GrdaWarehouse::GroupViewableEntity.where(
-            access_group_id: access_groups.pluck(:id),
-            entity_type: model.sti_name,
-          ).select(:entity_id),
-        )
-      end
-    end
+  end
 end
