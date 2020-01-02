@@ -34,7 +34,9 @@ module WarehouseReports::Health
           @report.build_inquiry_file
           @report.save!
         else
-          Health::CheckPatientEligibilityJob.perform_later(create_params[:eligibility_date], current_user)
+          eligibility_date_string = create_params[:eligibility_date]
+          batch_owner = Health::EligibilityInquiry.create!(service_date: eligibility_date_string&.to_date, has_batch: true)
+          Health::CheckPatientEligibilityJob.perform_later(eligibility_date_string, batch_owner.id, current_user)
         end
       rescue Exception
         flash[:error] = 'Unable to create eligibility file.'

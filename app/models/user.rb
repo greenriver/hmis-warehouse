@@ -133,6 +133,11 @@ class User < ActiveRecord::Base
     current_sign_in_at < self.class.stale_account_threshold
   end
 
+  def impersonateable_by?(user)
+    return false unless user.present?
+
+    user != self
+  end
 
   # def role_keys
   #   [:admin, :dnd_staff, :housing_subsidy_admin]

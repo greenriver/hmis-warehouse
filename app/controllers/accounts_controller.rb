@@ -16,7 +16,7 @@ class AccountsController < ApplicationController
     changed_notes << 'Account name was updated.' if @user.first_name != account_params[:first_name] || @user.last_name != account_params[:last_name]
     changed_notes << 'Email schedule was updated.' if @user.email_schedule != account_params[:email_schedule]
     changed_notes << 'Phone number was updated.' if @user.phone != account_params[:phone]
-    changed_notes << 'Agency name was updated.' if @user.agency != account_params[:agency]
+    changed_notes << 'Agency name was updated.' if @user.agency_id.to_s != account_params[:agency].to_s && account_params[:agency].present?
 
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')

@@ -282,7 +282,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           next unless literally_homeless?(client_id: id, enrollment_id: entry[:enrollment_id])
           # 3.917.3 - add any days prior to project entry
           if entry[:DateToStreetESSH].present? && entry[:first_date_in_program] > entry[:DateToStreetESSH]
-            start_date = [entry[:DateToStreetESSH].to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB].to_date].max
+            start_date = [entry[:DateToStreetESSH]&.to_date, LOOKBACK_STOP_DATE.to_date, entry[:DOB]&.to_date].compact.max
             new_nights = (start_date..entry[:first_date_in_program]).map do |date|
               {
                 date: date,
@@ -299,7 +299,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           # included in the acceptable project types.  Convert the project type of any days pre-move-in
           # for PH to a project type we will be counting
           if PH.include?(entry[:project_type])
-            start_date = [entry[:first_date_in_program].to_date, entry[:DOB].to_date].max
+            start_date = [entry[:first_date_in_program].to_date, entry[:DOB]&.to_date].compact.max
             stop_date = nil
             if entry[:MoveInDate].present? && entry[:MoveInDate] > entry[:first_date_in_program]
               stop_date = [entry[:MoveInDate], @report_end + 1.day].min
@@ -500,10 +500,10 @@ module ReportGenerators::SystemPerformance::Fy2019
 
         child_candidates = add_filters(scope: child_candidates_scope).
           pluck(
-            :client_id, 
-            c_t[:DOB].to_sql, 
-            e_t[:EntryDate].to_sql, 
-            :age, 
+            :client_id,
+            c_t[:DOB].to_sql,
+            e_t[:EntryDate].to_sql,
+            :age,
             :head_of_household_id,
             :household_id,
             :enrollment_group_id,
@@ -531,9 +531,9 @@ module ReportGenerators::SystemPerformance::Fy2019
           where(she_t[:head_of_household].eq(true)).
           distinct.
           pluck(
-            :head_of_household_id, 
-            :client_id, 
-            :enrollment_group_id, 
+            :head_of_household_id,
+            :client_id,
+            :enrollment_group_id,
             :household_id
           ).map do |(hoh_id, client_id, enrollment_id, household_id)|
             [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]

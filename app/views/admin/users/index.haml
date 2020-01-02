@@ -39,9 +39,11 @@
                 %i{:class => ["fa", "fa-sort-#{directions[k]}"] }
             %th Status
             %th Roles
-            %th
-            %th
-            %th
+            %th Audit
+            %th Edit
+            - if can_impersonate_users?
+              %th Become
+            %th De-activate
         %tbody
           - @users.each do |user|
             %tr
@@ -61,6 +63,12 @@
                 = link_to(edit_admin_user_path(id: user), class: 'btn btn-link d-flex') do
                   %i.icon-pencil
                   Edit
+              - if can_impersonate_users?
+                %td
+                  - if user.impersonateable_by?(true_user)
+                    = link_to impersonate_admin_user_path(true_user, become_id: user.id), method: :post do
+                      %i.icon-enter
+                      Become
               %td{style: 'white-space: nowrap;'}
                 = link_to admin_user_path(user),  method: :delete, data: {confirm: "Would you really like to de-activate the account? #{user.name} will no longer be able to login."}, class: 'btn btn-link d-flex' do
                   %i.icon-cross

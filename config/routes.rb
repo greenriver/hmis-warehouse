@@ -634,6 +634,10 @@ Rails.application.routes.draw do
       member do
         post :unlock
         post :confirm
+        post :impersonate
+      end
+      collection do
+        post :stop_impersonating
       end
     end
     resources :inactive_users, except: [:show, :new, :create] do
