@@ -6,6 +6,7 @@
       = f.input :reset_password_token, as: :hidden
       = f.full_error :reset_password_token
       .form-inputs
+        = render 'users/password_rules'
         = f.input :password, label: "New password", required: true, autofocus: true, hint: ("#{@minimum_password_length} characters minimum" if @minimum_password_length)
         = f.input :password_confirmation, label: "Confirm your new password", required: true
       .form-actions
