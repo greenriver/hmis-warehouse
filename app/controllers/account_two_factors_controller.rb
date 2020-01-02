@@ -50,6 +50,10 @@ class AccountTwoFactorsController < ApplicationController
   end
 
   private def valid_otp_attempt?
-    @user.validate_and_consume_otp!(account_params[:otp_attempt])
+    @user.validate_and_consume_otp!(clean_code)
+  end
+
+  private def clean_code
+    account_params[:otp_attempt].gsub(/[^0-9.]/, '')
   end
 end

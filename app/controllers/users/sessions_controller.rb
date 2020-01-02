@@ -52,10 +52,14 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def valid_otp_attempt?(user)
-    user.validate_and_consume_otp!(user_params[:otp_attempt])
+    user.validate_and_consume_otp!(clean_code)
   end
 
   def valid_backup_code_attempt?(user)
-    user.invalidate_otp_backup_code!(user_params[:otp_attempt])
+    user.invalidate_otp_backup_code!(clean_code)
+  end
+
+  private def clean_code
+    user_params[:otp_attempt].gsub(/[^0-9.]/, '')
   end
 end
