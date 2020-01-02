@@ -199,7 +199,8 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length.
-  config.password_length = 10..128
+  min_password_length = ENV.fetch('PASSWORD_MINIMUM_LENGTH') { 12 }.to_i
+  config.password_length = min_password_length..128
 
   # Minimum number of times a pwned password must exist in the data set in order
   # to be reject.
@@ -237,10 +238,14 @@ Devise.setup do |config|
 
   # Number of authentication tries before locking an account if lock_strategy
   # is failed attempts.
-  config.maximum_attempts = 10
+  # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
+  # hasn't been fixed yet https://github.com/tinfoil/devise-two-factor/pull/136
+  # https://github.com/tinfoil/devise-two-factor/pull/130
+  config.maximum_attempts = ENV.fetch('PASSWORD_ATTEMPTS_ALLOWED') { 10 }.to_i * 2
 
   # Time interval to unlock the account if :time is enabled as unlock_strategy.
-  config.unlock_in = 1.hour
+  unlock_in = ENV.fetch('ACCOUNT_UNLOCK_HOURS') { 1 }.to_i
+  config.unlock_in = unlock_in.hour
 
   # Warn on the last attempt before the account is locked.
   config.last_attempt_warning = true
@@ -253,7 +258,8 @@ Devise.setup do |config|
   # Time interval you can reset your password with a reset password key.
   # Don't put a too small interval or your users won't have the time to
   # change their passwords.
-  config.reset_password_within = 6.hours
+  reset_password_within = ENV.fetch('PASSWORD_RESET_VALID_FOR_MINUTES') { 360 }.to_i
+  config.reset_password_within = reset_password_within.minutes
 
   # When set to false, does not sign a user in automatically after their password is
   # reset. Defaults to true, so a user is signed in automatically after a reset.
@@ -331,20 +337,42 @@ Devise.setup do |config|
   # ==> Security Extension
   # Configure security extension for devise
 
-  # Password expires after a configurable time (in seconds).
-  # Or expire passwords on demand by setting this configuration to `true`
-  # Use `user.need_password_change!` to expire a password.
-  # Setting the configuration to `false` will completely disable expiration checks.
-  # config.expire_password_after = 3.months | true | false
+  # Should the password expire (e.g 3.months)
+  # config.expire_password_after = false
 
-  # Need 1 char each of: A-Z, a-z, 0-9, and a punctuation mark or symbol
-  # config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+  # Need 1 char of A-Z, a-z and 0-9
+  if ENV.fetch('PASSWORD_COMPLEXITY_ENFORCED') { false } == 'true'
+    config.password_complexity = { digit: 1, lower: 1, symbol: 1, upper: 1 }
+  else
+    config.password_complexity = {}
+  end
 
-  # Number of old passwords in archive
-  # config.password_archiving_count = 5
+  # How many passwords to keep in archive
+  password_reuse_integer = ENV['PASSWORD_REUSE_LIMIT'].to_i.to_s == ENV['PASSWORD_REUSE_LIMIT']
+  limit_password_reuse =  password_reuse_integer || ENV['PASSWORD_REUSE_LIMIT'] == 'true'
+  if limit_password_reuse
+    config.password_archiving_count = 50
+  end
 
-  # Deny old password (true, false, count)
+  # Deny old passwords (true, false, number_of_old_passwords_to_check)
+  # Examples:
+  # config.deny_old_passwords = false # allow old passwords
+  # config.deny_old_passwords = true # will deny all the old passwords
+  # config.deny_old_passwords = 3 # will deny new passwords that matches with the last 3 passwords
   # config.deny_old_passwords = true
+  if limit_password_reuse
+    if password_reuse_integer
+      config.deny_old_passwords = ENV['PASSWORD_REUSE_LIMIT'].to_i
+    else
+      config.deny_old_passwords = true
+    end
+  else
+    config.deny_old_passwords = false
+  end
+
+  # enable email validation for :secure_validatable. (true, false, validation_options)
+  # dependency: see https://github.com/devise-security/devise-security/blob/master/README.md#e-mail-validation
+  # config.email_validation = true
 
   # captcha integration for recover form
   # config.captcha_for_recover = true
@@ -358,19 +386,10 @@ Devise.setup do |config|
   # captcha integration for unlock form
   # config.captcha_for_unlock = true
 
-  # security_question integration for recover form
-  # this automatically enables captchas (captcha_for_recover, as fallback)
-  # config.security_question_for_recover = false
+  # captcha integration for confirmation form
+  # config.captcha_for_confirmation = true
 
-  # security_question integration for unlock form
-  # this automatically enables captchas (captcha_for_unlock, as fallback)
-  # config.security_question_for_unlock = false
-
-  # security_question integration for confirmation form
-  # this automatically enables captchas (captcha_for_confirmation, as fallback)
-  # config.security_question_for_confirmation = false
-
-  # ==> Configuration for :expirable
   # Time period for account expiry from last_activity_at
-  # config.expire_after = 90.days
+  expire_after = ENV.fetch('ACCOUNT_EXPIRATION_DAYS') { 180 }.to_i
+  config.expire_after = expire_after.days
 end

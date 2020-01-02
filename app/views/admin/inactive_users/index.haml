@@ -26,14 +26,20 @@
           %tr
             %th Name
             %th Email
+            %th Roles
+            %th Audit
+            %th Status
             %th
         %tbody
           - @users.each do |user|
             %tr
+              %td= user.name
+              %td= user.email
+              %td= user.roles.map(&:name).join(', ')
               %td
-                = user.name
-              %td
-                = user.email
+                = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                  %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
+              %td= render 'admin/users/user_invitation_status', user: user
               %td
                 = simple_form_for(user, url: reactivate_admin_inactive_user_path(user)) do |f|
                   = f.button :button, data: { confirm: 'When re-activating an account, the password will be set to something random and an email will be sent to the address on file with a link to pick a new password.' }, class: 'btn btn-primary' do

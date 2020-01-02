@@ -3,9 +3,9 @@
     %h2
       = t "devise.invitations.new.header"
 =simple_form_for @user, url: confirm_users_invitations_path, html: { method: :post} do |f|
-  = devise_error_messages! 
+  = devise_error_messages!
 
   = render 'admin/users/form_fields', f: f
-  
+
   .form-actions.mt-4
     = f.button :submit, t("devise.invitations.new.submit_button")
