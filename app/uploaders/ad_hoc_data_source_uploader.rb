@@ -6,8 +6,6 @@
 
 # encoding: utf-8
 
-require 'carrierwave/uploader/magic_mime_whitelist'
-
 class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   # more robust check of the bytes in the upload using libmagic
   include CarrierWave::Uploader::MagicMimeWhitelist
