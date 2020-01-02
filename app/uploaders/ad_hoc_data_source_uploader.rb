@@ -7,8 +7,6 @@
 # encoding: utf-8
 
 class AdHocDataSourceUploader < CarrierWave::Uploader::Base
-  # more robust check of the bytes in the upload using libmagic
-  include CarrierWave::Uploader::MagicMimeWhitelist
   # we will use mini magics API to process attachments
   include CarrierWave::MiniMagick
 
