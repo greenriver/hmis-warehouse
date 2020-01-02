@@ -56,7 +56,8 @@ class ClientsController < ApplicationController
       @form = assessment_scope.find(params.require(:id).to_i)
       @client = @form.client
     else
-      @client = client_scope(id: params[:client_id].to_i).find(params[:client_id].to_i)
+      client_id = params[:client_id].to_i
+      @client = client_scope(id: client_id).find(client_id)
       if @client&.consent_form_valid?
         @form = assessment_scope.find(params.require(:id).to_i)
       else
@@ -213,13 +214,13 @@ class ClientsController < ApplicationController
   private def client_scope(id: nil)
     client_source.destination.where(
       Arel.sql(
-        client_source.arel_table[:id].in(visble_by_source(id: id)).
+        client_source.arel_table[:id].in(visible_by_source(id: id)).
         or(client_source.arel_table[:id].in(visible_by_destination(id: id))).to_sql,
       ),
     )
   end
 
-  private def visble_by_source(id: nil)
+  private def visible_by_source(id: nil)
     query = GrdaWarehouse::WarehouseClient.joins(:source).
       merge(GrdaWarehouse::Hud::Client.viewable_by(current_user))
     query = query.where(destination_id: id) if id.present?

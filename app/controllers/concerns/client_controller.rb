@@ -277,14 +277,14 @@ module ClientController
 
     protected def set_client
       # Do we have this client?
-      # If not, attempt to redirect to the most recent version
+      # If we don't, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
       # This query is slow, even as an exists query, so just attempt to load the client
       id = params[:id].to_i
       @client = client_scope(id: id).find_by(id: id)
       return if @client.present?
 
-      client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id].to_i
+      client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
       if client_id
         redirect_to controller: controller_name, action: action_name, id: client_id
         return
