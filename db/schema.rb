@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191227161954) do
+ActiveRecord::Schema.define(version: 20191230140045) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -400,6 +400,7 @@ ActiveRecord::Schema.define(version: 20191227161954) do
     t.boolean  "can_view_confidential_enrollment_details",            default: false
     t.boolean  "can_manage_ad_hoc_data_sources",                      default: false
     t.boolean  "can_view_client_ad_hoc_data_sources",                 default: false
+    t.boolean  "can_impersonate_users",                               default: false
   end
 
   add_index "roles", ["name"], name: "index_roles_on_name", using: :btree

@@ -390,6 +390,10 @@ class Role < ActiveRecord::Base
         description: 'Can this user see if a client matched Ad-Hoc Data sources?',
         administrative: false,
       },
+      can_impersonate_users: {
+        description: 'Can become any other user.  Anyone with this permission can impersonate any other user and see whatever they would see.',
+        administrative: true,
+      },
     }
   end
 
