@@ -1,4 +1,4 @@
-class CreateAdHocDataSources < ActiveRecord::Migration
+class CreateAdHocDataSources < ActiveRecord::Migration[4.2]
   def change
     create_table :ad_hoc_data_sources do |t|
       t.string :name
