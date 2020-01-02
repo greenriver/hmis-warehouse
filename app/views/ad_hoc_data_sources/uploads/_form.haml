@@ -1,0 +1,7 @@
+= simple_form_for @upload, url: ad_hoc_data_source_uploads_path do |f|
+  = f.error_notification
+  .form-inputs
+    = f.input :description
+    = f.input :file
+  .form-actions
+    = f.button :submit, value: 'Upload', class: 'btn btn-primary'
