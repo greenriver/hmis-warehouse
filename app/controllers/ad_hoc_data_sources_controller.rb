@@ -16,6 +16,10 @@ class AdHocDataSourcesController < ApplicationController
     @uploads = @data_source.ad_hoc_batches.order(id: :desc).page(params[:page]).per(25)
   end
 
+  def download
+    send_data data_source_source.blank_csv, filename: 'ad-hoc-template.csv'
+  end
+
   def edit
   end
 

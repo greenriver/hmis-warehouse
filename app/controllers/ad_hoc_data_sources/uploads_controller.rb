@@ -7,7 +7,7 @@
 class AdHocDataSources::UploadsController < ApplicationController
   before_action :require_can_manage_ad_hoc_data_sources!
   before_action :set_data_source
-  before_action :set_upload, only: [:show, :destroy]
+  before_action :set_upload, only: [:show, :destroy, :download]
 
   def index
     attributes = upload_source.column_names - ['content', 'file']
@@ -20,6 +20,10 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   def show
+  end
+
+  def download
+    send_data @upload.content, filename: @upload.name
   end
 
   def destroy
