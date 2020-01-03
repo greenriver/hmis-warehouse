@@ -167,7 +167,11 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       when :ssn
         clean_row[k] = row[title].gsub('-', '')
       when :dob
-        clean_row[k] = row[title].try(&:to_date)
+        begin
+          clean_row[k] = row[title].try(&:to_date)
+        rescue
+
+        end
       else
         clean_row[k] = row[title]
       end
