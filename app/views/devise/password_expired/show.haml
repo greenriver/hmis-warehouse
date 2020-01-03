@@ -6,7 +6,7 @@
       = f.error_notification
       = f.input :current_password, required: true, autofocus: true
       .form-inputs
-        = f.input :password, label: "New password", required: true, hint: ("#{@minimum_password_length} characters minimum" if @minimum_password_length)
+        = f.input :password, label: "New password", required: true
         = f.input :password_confirmation, label: "Confirm your new password", required: true
       .form-actions
         = f.button :submit, "Update my password"
