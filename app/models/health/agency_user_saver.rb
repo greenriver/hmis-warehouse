@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -9,7 +9,7 @@ module Health
 
     include ActiveModel::Model
 
-    attr_accessor :user_id, :agency_ids, :user, :agencies 
+    attr_accessor :user_id, :agency_ids, :user, :agencies
 
     def initialize(params={})
       @user_id = params[:user_id]

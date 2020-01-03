@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -9,13 +9,13 @@ module GrdaWarehouse
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
     belongs_to :user, foreign_key: :submitted_by
     has_many :notes, through: :client, source: :anomaly_notes
-    
+
     scope :resolved, -> { where(status: :resolved) }
     scope :unresolved, -> { where.not(status: :resolved) }
     scope :newly_minted, -> { where(status: :new) }
 
     has_paper_trail
-    
+
     def self.available_stati
       {
         new: 'New',

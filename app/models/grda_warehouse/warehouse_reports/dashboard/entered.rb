@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -15,7 +15,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       #   start = 6.months.ago.beginning_of_month.to_date
       # end
       {
-        start: start, 
+        start: start,
         end: 1.months.ago.end_of_month.to_date,
       }
     end
@@ -29,7 +29,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def init
       set_date_range()
-      
+
       # build hashes suitable for chartjs
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)
       @data = setup_data_structure(start_date: @range.start)
@@ -45,7 +45,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         [project_type.first, enrollment_counts(project_type).count]
       end.to_h
 
-      # fetch counts of new entries 
+      # fetch counts of new entries
       @client_entry_totals_by_type = @labels.map do |key, _|
         project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[key]
         [project_type.first, entry_counts(project_type).count]
@@ -89,7 +89,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
-    
+
 
     def bucket_clients clients
       buckets = {

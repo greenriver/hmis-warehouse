@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -47,8 +47,8 @@ module ReportGenerators::DataQuality::Fy2017
       )
       missing = @all_clients.select do |id, enrollments|
         enrollment = enrollments.last
-        (enrollment[:FirstName].blank? || 
-          enrollment[:LastName].blank? || 
+        (enrollment[:FirstName].blank? ||
+          enrollment[:LastName].blank? ||
           enrollment[:NameDataQuality].to_i == 99
         ) && ! counted.include?(id)
       end
@@ -188,7 +188,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.race_none(enrollments.last[:RaceNone]),
           ]
         end
@@ -205,7 +205,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: missing.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.race_none(enrollment[:RaceNone]),
           ]
         end
@@ -227,7 +227,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.ethnicity(enrollment[:Ethnicity]),
           ]
         end
@@ -244,13 +244,13 @@ module ReportGenerators::DataQuality::Fy2017
         data: missing.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.ethnicity(enrollment[:Ethnicity]),
           ]
         end
       )
       @answers[:q2_e6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
-      
+
     end
 
     def add_gender_answers
@@ -284,13 +284,13 @@ module ReportGenerators::DataQuality::Fy2017
         data: missing.map do |id, enrollments|
           enrollment = enrollments.last
           [
-            id, 
+            id,
             HUD.gender(enrollment[:Gender])
           ]
         end
       )
       @answers[:q2_e7][:value] = ((counted.size.to_f / all_client_count * 100)).round(2)
-      
+
     end
 
     def add_summary_info
@@ -299,17 +299,17 @@ module ReportGenerators::DataQuality::Fy2017
 
     def fetch_all_clients
       columns = {
-        client_id: she_t[:client_id].to_sql, 
+        client_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
-        project_type: she_t[:computed_project_type].to_sql, 
-        VeteranStatus: c_t[:VeteranStatus].to_sql, 
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
-        project_id: she_t[:project_id].to_sql, 
+        project_type: she_t[:computed_project_type].to_sql,
+        VeteranStatus: c_t[:VeteranStatus].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        project_id: she_t[:project_id].to_sql,
         data_source_id: she_t[:data_source_id].to_sql,
         NameDataQuality: c_t[:NameDataQuality].to_sql,
-        FirstName: c_t[:FirstName].to_sql, 
-        LastName: c_t[:LastName].to_sql, 
-        SSN: c_t[:SSN].to_sql, 
+        FirstName: c_t[:FirstName].to_sql,
+        LastName: c_t[:LastName].to_sql,
+        SSN: c_t[:SSN].to_sql,
         SSNDataQuality: c_t[:SSNDataQuality].to_sql,
         DOB: c_t[:DOB].to_sql,
         DOBDataQuality: c_t[:DOBDataQuality].to_sql,

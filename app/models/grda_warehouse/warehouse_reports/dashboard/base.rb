@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -42,13 +42,13 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::HousedClients,
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients,
-        }, 
+        },
       }
     end
 
     def self.available_sub_populations
       {
-        'All Clients' => :all_clients, 
+        'All Clients' => :all_clients,
         'Veterans' => :veteran,
         'Youth' => :youth,
         'Family' => :family,
@@ -77,7 +77,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     #   group(:client_id).
     #   count
     # end
-    
+
     def service_scope project_type
       homeless_service_history_source.
       with_service_between(start_date: @range.start, end_date: @range.end).
@@ -134,12 +134,12 @@ module GrdaWarehouse::WarehouseReports::Dashboard
 
     def service_history_columns
       {
-        client_id: she_t[:client_id].as('client_id').to_sql, 
-        project_id:  she_t[:project_id].as('project_id').to_sql, 
-        first_date_in_program:  she_t[:first_date_in_program].as('first_date_in_program').to_sql, 
-        last_date_in_program:  she_t[:last_date_in_program].as('last_date_in_program').to_sql, 
-        project_name:  she_t[:project_name].as('project_name').to_sql, 
-        project_type:  she_t[service_history_source.project_type_column].as('project_type').to_sql, 
+        client_id: she_t[:client_id].as('client_id').to_sql,
+        project_id:  she_t[:project_id].as('project_id').to_sql,
+        first_date_in_program:  she_t[:first_date_in_program].as('first_date_in_program').to_sql,
+        last_date_in_program:  she_t[:last_date_in_program].as('last_date_in_program').to_sql,
+        project_name:  she_t[:project_name].as('project_name').to_sql,
+        project_type:  she_t[service_history_source.project_type_column].as('project_type').to_sql,
         organization_id:  she_t[:organization_id].as('organization_id').to_sql,
         first_name: c_t[:FirstName].as('first_name').to_sql,
         last_name: c_t[:LastName].as('last_name').to_sql,
