@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -43,7 +43,7 @@ module Reports::Ahar::Fy2017
     def has_custom_form?
       true
     end
-    
+
     def has_options?
       true
     end
@@ -86,7 +86,7 @@ module Reports::Ahar::Fy2017
 
     def as_xml report_results
       user = report_results.user
-      completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d") 
+      completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d")
       results = report_results.results
       coc_name = report_results.options.try(:[], 'continuum_name') || continuum_name()
       Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |xml|
@@ -99,7 +99,7 @@ module Reports::Ahar::Fy2017
 
           xml.Category do
             results.each do |k,section|
-              xml.send(k) do 
+              xml.send(k) do
                 section.each do |label,value|
                   xml.send(label, value)
                 end

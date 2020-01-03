@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,7 +11,7 @@ module Importers::HMISSixOneOne
     def initialize(
       file_path: 'var/hmis_import',
       data_source_id:,
-      logger: Rails.logger, 
+      logger: Rails.logger,
       debug: true,
       host:,
       username:,
@@ -19,9 +19,9 @@ module Importers::HMISSixOneOne
       path:
     )
       super(
-        file_path: file_path, 
-        data_source_id: data_source_id, 
-        logger: logger, 
+        file_path: file_path,
+        data_source_id: data_source_id,
+        logger: logger,
         debug: debug
       )
       @sftp = connect(host: host, username: username, password: password)
@@ -43,7 +43,7 @@ module Importers::HMISSixOneOne
       end
       expand(file_path: file_path)
       super()
-      mark_upload_complete() 
+      mark_upload_complete()
     end
 
     def remove_import_files
@@ -54,20 +54,20 @@ module Importers::HMISSixOneOne
     def connect host:, username:, password:
       Rails.logger.info "Connecting to #{host}"
       Net::SFTP.start(
-        host, 
+        host,
         username,
         password: password,
         # verbose: :debug,
         auth_methods: ['publickey','password']
       )
     end
-      
+
     def copy_from_sftp
       return unless @sftp.present?
       return unless file = fetch_most_recent()
       log("Found #{file}")
       FileUtils.rmtree(@local_path) if File.exists? @local_path
-      FileUtils.mkdir_p(@local_path) 
+      FileUtils.mkdir_p(@local_path)
       @sftp.download!("#{@sftp_path}/#{file}", "#{@local_path}/#{file}")
       file_path = force_standard_zip(file)
     end
@@ -103,8 +103,8 @@ module Importers::HMISSixOneOne
 
     def upload file_path:
       @upload = GrdaWarehouse::Upload.new(
-        percent_complete: 0.0, 
-        data_source_id: @data_source.id, 
+        percent_complete: 0.0,
+        data_source_id: @data_source.id,
         user_id: 1,
       )
       @upload.file = Pathname.new(file_path).open

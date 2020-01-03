@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -24,16 +24,16 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           destination = 99 unless ::HUD.valid_destinations.keys.include?(destination)
           Hash[columns.zip([date, destination, client_id])]
         end
-      
+
 
       all_destinations = all_exits.map{|m| m[:destination]}.uniq
       all_date_buckets = (@start_date...@end_date).map{|date| date.strftime('%b %Y')}.uniq;
       all_date_buckets = all_date_buckets.zip(Array.new(all_date_buckets.size, 0)).to_h
-      
+
       @ph_clients = all_exits.select{|m| ::HUD.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
 
       @buckets = {}
-      
+
       all_destinations.each do |destination|
         label = ::HUD::destination(destination).to_s
         if label.is_a? Numeric
@@ -46,18 +46,18 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           ph: ::HUD.permanent_destinations.include?(destination),
         }
       end
-      
+
       # Count up all of the exits into buckets
       all_exits.each do |row|
         destination = row[:destination]
         date = row[:date].to_date
         @buckets[destination][:source_data][date.strftime('%b %Y')] ||= 0
-        @buckets[destination][:source_data][date.strftime('%b %Y')] += 1 
+        @buckets[destination][:source_data][date.strftime('%b %Y')] += 1
       end
 
       @all_exits_labels = @buckets&.values&.first.try(:[], :source_data)&.keys
       @ph_exits = @buckets.deep_dup.select{|_,m| m[:ph]}
-      
+
       # Add some chart.js friendly counts
       @ph_exits.each do |destination, group|
         @ph_exits[destination][:data] = group[:source_data].values

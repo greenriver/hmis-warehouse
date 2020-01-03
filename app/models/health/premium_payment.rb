@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -51,7 +51,7 @@ module Health
     end
 
     def summary
-      
+
       @summary = {}
       gs = as_json[:interchanges].detect{|h| h.keys.include? :functional_groups}[:functional_groups].first[:GS].map(&:values).flatten
       pid_sl = gs.detect{|h| h[:name] == "Application Receiver's Code"}[:value][:raw]

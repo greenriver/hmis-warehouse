@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -32,12 +32,12 @@ module ReportGenerators::DataQuality::Fy2017
 
     def fetch_all_clients
       columns = {
-        client_id: she_t[:client_id].to_sql, 
+        client_id: she_t[:client_id].to_sql,
         age: she_t[:age].to_sql,
         DOB: c_t[:DOB].to_sql,
-        project_type: she_t[:computed_project_type].to_sql, 
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql, 
-        project_id: she_t[:project_id].to_sql, 
+        project_type: she_t[:computed_project_type].to_sql,
+        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
+        project_id: she_t[:project_id].to_sql,
         data_source_id: she_t[:data_source_id].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,
@@ -72,7 +72,7 @@ module ReportGenerators::DataQuality::Fy2017
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Destination'],
         data: poor_quality.map do |id, enrollment|
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -94,26 +94,26 @@ module ReportGenerators::DataQuality::Fy2017
     #   e. [data collection stage] for [income and sources] = 1 AND [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_entry_answers
       client_ids = (@adults.keys + other_heads.keys).uniq
-      
+
       # This potentially contains more income records than we need
-      # since we only care about the most recent enrollment 
+      # since we only care about the most recent enrollment
       incomes = incomes_by_enrollment(client_ids: client_ids, stage: :entry)
       poor_quality = Hash.new
       client_ids.each do |id|
         enrollment = @all_clients[id].last
         if incomes[[
-          enrollment[:client_id], 
-          enrollment[:enrollment_group_id], 
-          enrollment[:project_id], 
+          enrollment[:client_id],
+          enrollment[:enrollment_group_id],
+          enrollment[:project_id],
           enrollment[:data_source_id],
         ]].blank?
           enrollment[:reason] = 'Missing income assessment'
           poor_quality[id] = enrollment
         else
           income = incomes[[
-            enrollment[:client_id], 
-            enrollment[:enrollment_group_id], 
-            enrollment[:project_id], 
+            enrollment[:client_id],
+            enrollment[:enrollment_group_id],
+            enrollment[:project_id],
             enrollment[:data_source_id]
           ]].last
           if enrollment[:first_date_in_program] != income[:first_date_in_program]
@@ -138,13 +138,13 @@ module ReportGenerators::DataQuality::Fy2017
         end
       end
       @clients_with_issues += poor_quality.keys
-      
+
       @answers[:q4_b3][:value] = poor_quality.size
       @support[:q4_b3][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -162,26 +162,26 @@ module ReportGenerators::DataQuality::Fy2017
     #   d. [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_exit_answers
       client_ids = adult_leavers_and_heads_of_household_leavers.keys
-      
+
       # This potentially contains more income records than we need
-      # since we only care about the most recent enrollment 
+      # since we only care about the most recent enrollment
       incomes = incomes_by_enrollment(client_ids: client_ids, stage: :exit)
       poor_quality = Hash.new
       client_ids.each do |id|
         enrollment = leavers[id]
         if incomes[[
-          enrollment[:client_id], 
-          enrollment[:enrollment_group_id], 
-          enrollment[:project_id], 
+          enrollment[:client_id],
+          enrollment[:enrollment_group_id],
+          enrollment[:project_id],
           enrollment[:data_source_id],
         ]].blank?
           enrollment[:reason] = 'Missing income assessment'
           poor_quality[id] = enrollment
         else
           income = incomes[[
-            enrollment[:client_id], 
-            enrollment[:enrollment_group_id], 
-            enrollment[:project_id], 
+            enrollment[:client_id],
+            enrollment[:enrollment_group_id],
+            enrollment[:project_id],
             enrollment[:data_source_id]
           ]].last
           if enrollment[:last_date_in_program] != income[:last_date_in_program]
@@ -206,13 +206,13 @@ module ReportGenerators::DataQuality::Fy2017
         end
       end
       @clients_with_issues += poor_quality.keys
-      
+
       @answers[:q4_b5][:value] = poor_quality.size
       @support[:q4_b5][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -241,9 +241,9 @@ module ReportGenerators::DataQuality::Fy2017
       poor_quality = Hash.new
       clients_with_enrollments.each do |id, enrollment|
         if incomes[[
-          enrollment[:client_id], 
-          enrollment[:enrollment_group_id], 
-          enrollment[:project_id], 
+          enrollment[:client_id],
+          enrollment[:enrollment_group_id],
+          enrollment[:project_id],
           enrollment[:data_source_id],
         ]].blank?
           enrollment[:reason] = 'Missing income assessment'
@@ -251,9 +251,9 @@ module ReportGenerators::DataQuality::Fy2017
         else
           anniversary = anniversary_date(enrollment[:first_date_in_program])
           anniversary_incomes = incomes[[
-            enrollment[:client_id], 
-            enrollment[:enrollment_group_id], 
-            enrollment[:project_id], 
+            enrollment[:client_id],
+            enrollment[:enrollment_group_id],
+            enrollment[:project_id],
             enrollment[:data_source_id]
           ]].select do |income|
             (income[:InformationDate] - anniversary).abs > 30
@@ -289,7 +289,7 @@ module ReportGenerators::DataQuality::Fy2017
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
-            id, 
+            id,
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -321,9 +321,9 @@ module ReportGenerators::DataQuality::Fy2017
         end
       end.group_by do |income|
         [
-          income[:client_id], 
-          income[:enrollment_group_id], 
-          income[:project_id], 
+          income[:client_id],
+          income[:enrollment_group_id],
+          income[:project_id],
           income[:data_source_id]
         ]
       end
@@ -333,16 +333,16 @@ module ReportGenerators::DataQuality::Fy2017
       @columns ||= begin
         income_source_columns = Hash[income_sources.map{|v| [v, ib_t[v].as(v.to_s).to_sql]}]
         {
-          client_id: she_t[:client_id].to_sql, 
-          project_id: she_t[:project_id].to_sql, 
+          client_id: she_t[:client_id].to_sql,
+          project_id: she_t[:project_id].to_sql,
           data_source_id: she_t[:data_source_id].to_sql,
           first_date_in_program: she_t[:first_date_in_program].to_sql,
           last_date_in_program: she_t[:last_date_in_program].to_sql,
-          project_name: she_t[:project_name].to_sql, 
+          project_name: she_t[:project_name].to_sql,
           InformationDate: ib_t[:InformationDate].to_sql,
           enrollment_group_id: she_t[:enrollment_group_id].to_sql,
           IncomeFromAnySource: ib_t[:IncomeFromAnySource].to_sql,
-        }.merge(income_source_columns)        
+        }.merge(income_source_columns)
       end
       @columns
     end
