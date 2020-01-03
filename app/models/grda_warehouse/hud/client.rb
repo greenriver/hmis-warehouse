@@ -402,11 +402,7 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    # scope :disabled, -> do
-    #   dt = Disability.arel_table
-    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    # end
-    #
+
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -849,16 +845,27 @@ module GrdaWarehouse::Hud
       c_t2.table_alias = 'source_clients'
       GrdaWarehouse::Hud::Client.destination.
         joins(:source_enrollment_disabilities).
-        where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3]}).
+        # NOTE: DisabilityResponse
+        # 1 is either Yes or Alcohol Abuse
+        # 2 is Drug abuse
+        # 3 is Both alcohol and drug abuse
+        where(Disabilities: {DisabilityType: [5, 6, 7, 8, 9, 10], DisabilityResponse: [1, 2, 3], IndefiniteAndImpairs: 1}).
         where(
           d_t2.project(Arel.star).where(
-            d_t2[:DateDeleted].eq(nil)
-          ).where(
-            d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
-          ).where(
-            d_t2[:InformationDate].gt(d_t1[:InformationDate])
-          ).where(
-            d_t2[:DisabilityResponse].in([0, 1, 2, 3])
+            d_t2[:DateDeleted].eq(nil).
+            and(
+              d_t2[:DisabilityType].eq(d_t1[:DisabilityType])
+            ).
+            and(
+              d_t2[:InformationDate].gt(d_t1[:InformationDate])
+            ).
+            and(
+              d_t2[:DisabilityResponse].eq(0).
+              or(
+                d_t2[:DisabilityResponse].in([1, 2, 3]).
+                and(d_t2[:IndefiniteAndImpairs].eq(1))
+              )
+            )
           ).
           join(e_t).on(
             e_t[:PersonalID].eq(d_t2[:PersonalID]).
