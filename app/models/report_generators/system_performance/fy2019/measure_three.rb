@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
 
 
-    def run!      
+    def run!
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
         calculate()
@@ -26,7 +26,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     end
 
     private
-   
+
     def calculate
       if start_report(Reports::SystemPerformance::Fy2019::MeasureThree.first)
         set_report_start_and_end()
@@ -37,7 +37,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         @support = @answers.deep_dup
 
         add_total_unsheltered_answers()
-                
+
         update_report_progress(percent: 30)
 
         add_homeless_breakdowns()
@@ -54,7 +54,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     def add_total_unsheltered_answers
       # Get totals
       shelter_types = ES + SH + TH
-      
+
       columns = [
         :client_id,
         :project_name,
@@ -64,7 +64,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         with_service_between(start_date: @report_start - 1.day, end_date: @report_end).
         hud_project_type(shelter_types)
       client_scope = add_filters(scope: client_scope)
-  
+
       clients = client_scope.
         select(*columns).
         distinct.
@@ -75,7 +75,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       @support[:three2_c2][:support] = add_support(
         headers: ['Client ID', 'Project', 'Start Date'],
-        data: clients.map do |id, enrollments| 
+        data: clients.map do |id, enrollments|
           [
             id,
             enrollments.map{|en| en[:project_name]}.join('; '),
@@ -94,7 +94,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         #     and ([date] < '#{@report.options['report_end']}' or ([date] <= '#{@report.options['report_end']}' and record_type = 'bed_night'))
         # "
         columns = {
-          client_id: :client_id, 
+          client_id: :client_id,
           project_type: :computed_project_type,
           project_name: :project_name,
           first_date_in_program: :first_date_in_program,
@@ -104,7 +104,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
 
         client_scope = add_filters(scope: client_scope)
-        
+
         clients = client_scope.
           select(*columns.values).distinct.
           pluck(*columns.values).map do |row|
@@ -112,7 +112,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           end.group_by do |row|
             [row[:client_id], row[:project_type]]
           end
-        
+
 
         # Relevant Project Types/Program Types
         # 1: Emergency Shelter (ES)
@@ -153,10 +153,10 @@ module ReportGenerators::SystemPerformance::Fy2019
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
-              project_names, 
+              project_names,
               entry_dates,
             ]
-          
+
           end
         )
         @support[:three2_c4][:support] = add_support(
@@ -166,10 +166,10 @@ module ReportGenerators::SystemPerformance::Fy2019
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
-              project_names, 
+              project_names,
               entry_dates,
             ]
-          
+
           end
         )
         @support[:three2_c5][:support] = add_support(
@@ -179,10 +179,10 @@ module ReportGenerators::SystemPerformance::Fy2019
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
-              project_names, 
+              project_names,
               entry_dates,
             ]
-          
+
           end
         )
         update_report_progress(percent: 90)

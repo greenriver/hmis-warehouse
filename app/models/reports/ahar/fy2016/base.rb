@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -38,7 +38,7 @@ module Reports::Ahar::Fy2016
 
     def as_xml report_results
       user = report_results.user
-      completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d") 
+      completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d")
       results = report_results.results
       Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |xml|
         xml.AHARReport('xmlns' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd', 'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance', 'xsi:schemaLocation' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd') do
@@ -50,7 +50,7 @@ module Reports::Ahar::Fy2016
 
           xml.Category do
             results.each do |k,section|
-              xml.send(k) do 
+              xml.send(k) do
                 section.each do |label,value|
                   xml.send(label, value)
                 end

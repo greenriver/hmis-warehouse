@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 module Exporters::Tableau::Pathways
   include ArelHelper
   include TableauExport
-  
+
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
       # make the recurring boilerplate
@@ -24,7 +24,7 @@ module Exporters::Tableau::Pathways
       # add boilerplate headers
       headers = %i( path t minmax ) + data.shift
       # do the cross product
-      
+
       if path.present?
         CSV.open path, 'wb', headers: true do |csv|
           export headers, data, boilerplate, csv

@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module Reports::Pit::Fy2017
-  class ByProject < Base    
+  class ByProject < Base
     def self.report_name
       'PIT By Project - FY 2017'
     end
