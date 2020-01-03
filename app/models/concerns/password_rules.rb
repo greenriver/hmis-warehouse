@@ -43,6 +43,9 @@ module PasswordRules
         rules << "Passwords must contain at least #{pluralize(v, 'upper case letter')}  (e.g., A, B, C)"
       end
     end
+
+    rules << 'Passwords cannot contain three or more sequential letters or numbers (abc, 432, etc.)' if password_sequential_characters_enforced?
+
     rules
   end
 
@@ -68,5 +71,39 @@ module PasswordRules
     [
       'Passwords that are included in a publicly available password list are not allowed',
     ]
+  end
+
+  private def password_sequential_characters_enforced?
+    ENV['PASSWORD_SEQUENTIAL_CHARACTERS_ENFORCED'] == 'true'
+  end
+
+  private def password_cannot_be_sequential
+    return false unless password_sequential_characters_enforced? && changing_password?
+    return unless sequential?(password) || repeating?(password)
+
+    errors.add(:password, 'has a sequential set of characters or digits')
+  end
+
+  # Returns true if the password contains sequential characters or numbers, forward or revers
+  # No abcd, hgfe, 5432, or 6789
+  private def sequential?(password)
+    return false unless password.present?
+
+    count = 3
+    regex = Regexp.new(/(?:(?:0(?=1)|1(?=2)|2(?=3)|3(?=4)|4(?=5)|5(?=6)|6(?=7)|7(?=8)|8(?=9)){#{count},}\d|(?:a(?=b)|b(?=c)|c(?=d)|d(?=e)|e(?=f)|f(?=g)|g(?=h)|h(?=i)|i(?=j)|j(?=k)|k(?=l)|l(?=m)|m(?=n)|n(?=o)|o(?=p)|p(?=q)|q(?=r)|r(?=s)|s(?=t)|t(?=u)|u(?=v)|v(?=w)|w(?=x)|x(?=y)|y(?=z)){#{count},}[a-z])/i, Regexp::IGNORECASE)
+    password.match?(regex) || password.reverse.match?(regex)
+  end
+
+  # Returns true if any characters repeat 4 or more times
+  private def repeating?(password)
+    return false unless password.present?
+
+    count = 3
+    regex = Regexp.new(/(.)\1{#{count},}/)
+    password.match?(regex)
+  end
+
+  private def changing_password?
+    changes&.keys&.include?('encrypted_password')
   end
 end
