@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 module Exporters::Tableau::PathwaysWithDest
   include ArelHelper
   include TableauExport
-  
+
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
 
