@@ -24,4 +24,11 @@ class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
     none
   end
 
+  def self.blank_csv
+    [
+      'First Name,Middle Name,Last Name,SSN,DOB',
+      'First,Middle,Last,000-00-000,2000-01-30'
+    ].join("\n")
+  end
+
 end
