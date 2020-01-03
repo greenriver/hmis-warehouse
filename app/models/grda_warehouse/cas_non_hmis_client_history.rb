@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module GrdaWarehouse
   class CasNonHmisClientHistory < GrdaWarehouseBase
-    
+
     scope :available_between, -> (start_date:, end_date:) do
       where(
         arel_table[:available_on].lt(end_date).

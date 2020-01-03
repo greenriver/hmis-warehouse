@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,7 +11,7 @@ module Exporters::Tableau
   include TableauExport
 
   module_function
-    #adjust to take report_id optionally 
+    #adjust to take report_id optionally
     def export_all path: 'var/exports/tableau', start_date: default_start, end_date: default_end, coc_code: nil, report_id:
       if report_id
         path = "#{path}/#{report_id}"
@@ -30,24 +30,24 @@ module Exporters::Tableau
         remove_path(path: path)
       end
     end
-    
+
     def zip_path path:, report_id:
       File.join(path, "#{report_id}.zip")
     end
-    
+
     def zip_report_folder path:, report_id:
       files = Dir.glob(File.join(path, '*')).map{|f| File.basename(f)}
       Zip::File.open(zip_path(path: path, report_id: report_id), Zip::File::CREATE) do |zipfile|
         files.each do |file_name|
           zipfile.add(
-            file_name, 
+            file_name,
             File.join(path, file_name)
           )
         end
       end
     end
 
-    def add_zip_to_report path:, report_id: 
+    def add_zip_to_report path:, report_id:
       report = GrdaWarehouse::DashboardExportReport.find(report_id)
       report_file = GrdaWarehouse::DashboardExportFile.new(user_id: report.user_id)
       file = Pathname.new(zip_path(path: path, report_id: report_id)).open
@@ -58,7 +58,7 @@ module Exporters::Tableau
       report.save!
     end
 
-    def remove_path path: 
+    def remove_path path:
       FileUtils.rmtree(path)
     end
 

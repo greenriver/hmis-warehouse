@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -53,7 +53,7 @@ module Reports::DataQuality::Fy2016
       display_string
     end
 
-    protected 
+    protected
 
     def project_group_string options
       if (pg_ids = options['project_group_ids']&.compact) && pg_ids&.any?
@@ -65,10 +65,10 @@ module Reports::DataQuality::Fy2016
 
     def project_id_string options
       str = ''
-      if options['project_id'].present? 
+      if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}" 
+            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -9,7 +9,7 @@ module Reports::Pit::Fy2017
     def self.report_name
       'PIT - FY 2017'
     end
-    
+
     def report_group_name
       'Point in Time (PIT)'
     end
