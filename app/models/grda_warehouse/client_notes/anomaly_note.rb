@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module GrdaWarehouse::ClientNotes
-  class AnomalyNote < Base 
+  class AnomalyNote < Base
     def self.type_name
       "Anomaly Note"
     end
@@ -18,4 +18,4 @@ module GrdaWarehouse::ClientNotes
       end
     end
   end
-end 
+end

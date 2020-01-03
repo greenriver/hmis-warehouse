@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -25,7 +25,7 @@ module EtoApi::Tasks
       @headers = [:site_id_in_data_source, :warehouse_id, :id_in_data_source, :last_contact, :data_source_id, :client_id]
     end
 
-    # Fetch client mapping from Gmail and replace all records for each data source with 
+    # Fetch client mapping from Gmail and replace all records for each data source with
     # new values
     def run!
       raise 'Implement in sub class'
@@ -46,14 +46,14 @@ module EtoApi::Tasks
       end
       @csv
     end
-    
+
     def translate_csv_for_warehouse(ds_id)
       @csv.map do |row|
         if row.length == @expected_headers.length
           if row['ClientGUID'].present?
             # remove the nasty {} that shouldn't be there, but somehow sneak back in
             row['ClientGUID'] = row['ClientGUID'].gsub('{', '').gsub('}', '').upcase
-            
+
             # attempt to find the client associated with this id for future joining
             client_id = client_id_from_personal_id(row['ClientGUID'].gsub('-',''))
             [
@@ -61,7 +61,7 @@ module EtoApi::Tasks
               row['ClientGUID'],
               row['CLID'],
               row['MaxAuditDate'],
-              ds_id, 
+              ds_id,
               client_id,
             ]
           end

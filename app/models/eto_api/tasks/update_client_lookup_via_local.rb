@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -17,7 +17,7 @@ module EtoApi::Tasks
       super()
     end
 
-    # Fetch client mapping from Gmail and replace all records for each data source with 
+    # Fetch client mapping from Gmail and replace all records for each data source with
     # new values
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)

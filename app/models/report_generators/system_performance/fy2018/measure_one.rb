@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -498,10 +498,10 @@ module ReportGenerators::SystemPerformance::Fy2018
 
         child_candidates = add_filters(scope: child_candidates_scope).
           pluck(
-            :client_id, 
-            c_t[:DOB].to_sql, 
-            e_t[:EntryDate].to_sql, 
-            :age, 
+            :client_id,
+            c_t[:DOB].to_sql,
+            e_t[:EntryDate].to_sql,
+            :age,
             :head_of_household_id,
             :household_id,
             :enrollment_group_id,
@@ -529,9 +529,9 @@ module ReportGenerators::SystemPerformance::Fy2018
           where(she_t[:head_of_household].eq(true)).
           distinct.
           pluck(
-            :head_of_household_id, 
-            :client_id, 
-            :enrollment_group_id, 
+            :head_of_household_id,
+            :client_id,
+            :enrollment_group_id,
             :household_id
           ).map do |(hoh_id, client_id, enrollment_id, household_id)|
             [[hoh_id, household_id], { client_id: client_id, enrollment_id: enrollment_id }]
