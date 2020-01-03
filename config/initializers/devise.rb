@@ -348,8 +348,8 @@ Devise.setup do |config|
   end
 
   # How many passwords to keep in archive
-  password_reuse_integer = ENV['PASSWORD_REUSE_LIMIT'].to_i.to_s == ENV['PASSWORD_REUSE_LIMIT']
-  limit_password_reuse =  password_reuse_integer || ENV['PASSWORD_REUSE_LIMIT'] == 'true'
+  is_password_reuse_an_integer = ENV['PASSWORD_REUSE_LIMIT'].to_i.to_s == ENV['PASSWORD_REUSE_LIMIT']
+  limit_password_reuse =  is_password_reuse_an_integer || ENV['PASSWORD_REUSE_LIMIT'] == 'true'
   if limit_password_reuse
     config.password_archiving_count = 50
   end
@@ -361,7 +361,7 @@ Devise.setup do |config|
   # config.deny_old_passwords = 3 # will deny new passwords that matches with the last 3 passwords
   # config.deny_old_passwords = true
   if limit_password_reuse
-    if password_reuse_integer
+    if is_password_reuse_an_integer
       config.deny_old_passwords = ENV['PASSWORD_REUSE_LIMIT'].to_i
     else
       config.deny_old_passwords = true

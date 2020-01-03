@@ -7,7 +7,6 @@ RSpec.describe Users::SessionsController, type: :request do
   describe 'Successful login' do
     before(:each) do
       post user_session_path(user: { email: user.email, password: user.password })
-      # post user_session_path(email: user.email, password: 'incorrect')
     end
 
     it 'user failed_attempts should not increment' do
@@ -18,7 +17,6 @@ RSpec.describe Users::SessionsController, type: :request do
   describe 'Un-successful login' do
     before(:each) do
       post user_session_path(user: { email: user.email, password: 'incorrect' })
-      # post user_session_path(email: user.email, password: 'incorrect')
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -31,7 +29,6 @@ RSpec.describe Users::SessionsController, type: :request do
     describe 'followed by a successful login' do
       before(:each) do
         post user_session_path(user: { email: user.email, password: user.password })
-        # post user_session_path(email: user.email, password: 'incorrect')
       end
 
       it 'user failed_attempts should return to 0' do

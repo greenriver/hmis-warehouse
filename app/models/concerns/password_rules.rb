@@ -66,7 +66,7 @@ module PasswordRules
 
   private def password_pwned_rules
     [
-      'Passwords that are included in a publicly password list are not allowed',
+      'Passwords that are included in a publicly available password list are not allowed',
     ]
   end
 end
