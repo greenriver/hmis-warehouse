@@ -11,6 +11,7 @@ module PasswordRules
   def password_rules
     @password_rules ||= begin
       rules = []
+      rules += password_expiration_rules
       rules += password_length_rules
       rules += complexity_rules
       rules += password_reuse_rules
@@ -27,6 +28,20 @@ module PasswordRules
 
   private def minimum_password_length
     Devise.password_length.first
+  end
+
+  private def password_expiration_rules
+    # if false, passwords don't expire
+    # if true, passwords can be expired, but it must be done by calling `user.need_password_change!`
+    return [] if [true, false].include?(Devise.expire_password_after)
+
+    note = "Passwords expire every #{pluralize(password_expiration_in_days, 'day')}"
+    note += "; your password was last changed #{pluralize((Date.current - password_changed_at.to_date).to_i, 'day')} ago" if password_changed_at.present?
+    [note]
+  end
+
+  private def password_expiration_in_days
+    Devise.expire_password_after.to_i / 60 / 60 / 24
   end
 
   private def complexity_rules

@@ -339,6 +339,14 @@ Devise.setup do |config|
 
   # Should the password expire (e.g 3.months)
   # config.expire_password_after = false
+  expire_password_after = ENV.fetch('PASSWORD_EXPIRATION_DAYS') { 'false' }
+  if expire_password_after == 'true'
+    config.expire_password_after = true
+  elsif expire_password_after == 'false'
+    config.expire_password_after = false
+  else
+    config.expire_password_after = expire_password_after.to_i
+  end
 
   # Need 1 char of A-Z, a-z and 0-9
   if ENV.fetch('PASSWORD_COMPLEXITY_ENFORCED') { false } == 'true'
