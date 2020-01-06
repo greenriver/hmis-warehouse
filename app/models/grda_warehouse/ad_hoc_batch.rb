@@ -14,7 +14,8 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   belongs_to :ad_hoc_data_source
   has_many :ad_hoc_clients, foreign_key: :batch_id, dependent: :destroy
 
-  validates :file, presence: true
+  validates_presence_of :file
+  validates_presence_of :description
 
   scope :un_started, -> do
     where(started_at: nil)

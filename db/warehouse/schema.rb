@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_12_27_161033) do
+ActiveRecord::Schema.define(version: 2020_01_06_005041) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -973,7 +973,7 @@ ActiveRecord::Schema.define(version: 2019_12_27_161033) do
 
   create_table "ad_hoc_batches", id: :serial, force: :cascade do |t|
     t.integer "ad_hoc_data_source_id"
-    t.string "description"
+    t.string "description", null: false
     t.integer "uploaded_count"
     t.integer "matched_count"
     t.datetime "started_at"
@@ -1011,7 +1011,7 @@ ActiveRecord::Schema.define(version: 2019_12_27_161033) do
   end
 
   create_table "ad_hoc_data_sources", id: :serial, force: :cascade do |t|
-    t.string "name"
+    t.string "name", null: false
     t.string "short_name"
     t.string "description"
     t.boolean "active", default: true, null: false

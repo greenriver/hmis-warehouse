@@ -7,8 +7,8 @@
 class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
   acts_as_paranoid
 
-  validates :name, presence: true
-  validates :short_name, presence: true
+  validates_presence_of :name
+  validates_presence_of :short_name
 
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
