@@ -19,6 +19,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::ActiveClients,
           parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::ActiveClients,
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::ActiveClients,
+          unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::ActiveClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::ActiveClients,
         },
         entered: {
@@ -30,6 +31,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::EnteredClients,
           parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::EnteredClients,
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::EnteredClients,
+          unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::EnteredClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::EnteredClients,
         },
         housed: {
@@ -41,6 +43,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::HousedClients,
           parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::HousedClients,
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients,
+          unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::HousedClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients,
         },
       }
@@ -55,6 +58,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         'Children' => :children,
         'Parenting Youth' => :parenting_youth,
         'Parenting Juveniles' => :parenting_children,
+        'Unaccompanied Minors' => :unaccompanied_minors,
         'Individual Adults' => :individual_adults,
         'Non-Veterans' => :non_veteran,
       }.sort.to_h.freeze
