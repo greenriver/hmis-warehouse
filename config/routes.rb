@@ -130,6 +130,7 @@ Rails.application.routes.draw do
       :non_veterans,
       :parenting_childrens,
       :parenting_youths,
+      :unaccompanied_minors,
       :veterans,
       :youths,
     ].freeze

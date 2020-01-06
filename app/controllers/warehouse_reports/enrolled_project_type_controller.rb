@@ -96,6 +96,7 @@ module WarehouseReports
         youth: scope.unaccompanied_youth,
         parenting_youth: scope.parenting_youth,
         parenting_children: scope.parenting_juvenile,
+        unaccompanied_minors: scope.unaccompanied_minors,
         individual_adults: scope.individual_adult,
         non_veteran: scope.non_veteran,
         family: scope.family,

@@ -1,0 +1,7 @@
+- content_for :title, 'Unaccompanied Minors Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'unaccompanied_minors'
+%p.text-muted
+  Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is between 13 and 17 years of age and the enrollment contains no one over 17.

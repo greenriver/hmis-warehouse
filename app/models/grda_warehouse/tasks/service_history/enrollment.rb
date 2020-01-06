@@ -267,6 +267,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @unaccompanied_youth = nil
       @parenting_youth = nil
       @parenting_juvenile = nil
+      @unaccompanied_minor = nil
       @children_only = nil
       @individual_adult = nil
       @individual_elder = nil
@@ -334,6 +335,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         unaccompanied_youth: unaccompanied_youth?,
         parenting_youth: parenting_youth?,
         parenting_juvenile: parenting_juvenile?,
+        unaccompanied_minor: unaccompanied_minor?,
         head_of_household: head_of_household?,
         children_only: children_only?,
         individual_adult: individual_adult?,
@@ -430,6 +432,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
+    def minor?(age)
+      age.present? && age > 12 && child?(age)
+    end
+
     def child?(age)
       age.present? && age < 18
     end
@@ -464,6 +470,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def parenting_juvenile?
       @parenting_juvenile ||= begin
         child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0
+      end
+    end
+
+    # client is 13 - 17 and there are no adults in the household
+    def unaccompanied_minor?
+      @unaccompanied_minor ||= begin
+        minor?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
       end
     end
 
