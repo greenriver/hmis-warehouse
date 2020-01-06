@@ -13,6 +13,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
 
   belongs_to :ad_hoc_data_source
   has_many :ad_hoc_clients, foreign_key: :batch_id, dependent: :destroy
+  belongs_to :user, optional: :true
 
   validates_presence_of :file
   validates_presence_of :description
@@ -162,19 +163,20 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   private def clean(row)
+
     clean_row = {}
     self.class.header_map.each do |k,title|
-      case k
-      when :ssn
-        clean_row[k] = row[title].gsub('-', '')
-      when :dob
-        begin
-          clean_row[k] = row[title].try(&:to_date)
-        rescue
-
+      begin
+        case k
+        when :ssn
+          clean_row[k] = row[title]&.gsub('-', '')
+        when :dob
+          clean_row[k] = row[title]&.to_date
+        else
+          clean_row[k] = row[title]
         end
-      else
-        clean_row[k] = row[title]
+      rescue
+        Rails.logger.error "Error processing #{k}"
       end
     end
     clean_row

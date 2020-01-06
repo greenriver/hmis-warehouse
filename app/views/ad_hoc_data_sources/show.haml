@@ -27,6 +27,7 @@
           %tr
             %th Description
             %th Uploaded On
+            %th Uploaded By
             %th Status
             %th Download Original
             %th
@@ -35,6 +36,7 @@
             %tr
               %td= link_to upload.description, ad_hoc_data_source_upload_path(@data_source, upload)
               %td= upload.created_at.to_date
+              %td= upload.user&.name
               %td= upload.status
               %td
                 = link_to download_ad_hoc_data_source_upload_path(@data_source, upload) do

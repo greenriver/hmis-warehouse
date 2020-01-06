@@ -34,7 +34,7 @@ class AdHocDataSources::UploadsController < ApplicationController
   def create
     # NOTE: sometimes Excel likes to add BOMs.  We don't need those, and anything else that's in upper ASCII can go too
     clean_file = upload_params[:file]&.read&.gsub(/[^[:ascii:]]/, '')
-    @upload = upload_source.create(upload_params.merge(ad_hoc_data_source_id: @data_source.id, content: clean_file))
+    @upload = upload_source.create(upload_params.merge(ad_hoc_data_source_id: @data_source.id, content: clean_file, user_id: current_user&.id))
     respond_with(@upload, location: ad_hoc_data_source_path(@data_source))
   end
 

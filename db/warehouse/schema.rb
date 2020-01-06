@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_06_005041) do
+ActiveRecord::Schema.define(version: 2020_01_06_010648) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -987,6 +987,7 @@ ActiveRecord::Schema.define(version: 2020_01_06_005041) do
     t.string "size"
     t.string "content_type"
     t.binary "content"
+    t.integer "user_id"
     t.index ["created_at"], name: "index_ad_hoc_batches_on_created_at"
     t.index ["deleted_at"], name: "index_ad_hoc_batches_on_deleted_at"
     t.index ["updated_at"], name: "index_ad_hoc_batches_on_updated_at"
