@@ -755,7 +755,7 @@ module GrdaWarehouse::Hud
         self.viewable_by(user).
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
+            pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
             options[org] ||= []
             options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
           end
