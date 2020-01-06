@@ -84,7 +84,7 @@ module GrdaWarehouse::WarehouseReports
       without_recent_service = scope.
         homeless.
         with_service_between(start_date: @filter.start, end_date: @filter.end, service_scope: :homeless).
-        where.not(client_id:  entries_scope.
+        where.not(client_id:  scope.
           homeless.
           with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current, service_scope: :homeless).
           select(:client_id)
