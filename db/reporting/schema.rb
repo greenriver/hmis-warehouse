@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_02_160019) do
+ActiveRecord::Schema.define(version: 2020_01_06_195304) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -213,6 +213,7 @@ ActiveRecord::Schema.define(version: 2019_08_02_160019) do
     t.integer "age_at_search_end"
     t.integer "age_at_housed_date"
     t.integer "age_at_housing_exit"
+    t.boolean "head_of_household", default: false
     t.index ["client_id"], name: "index_warehouse_houseds_on_client_id"
     t.index ["housed_date"], name: "index_warehouse_houseds_on_housed_date"
     t.index ["housing_exit"], name: "index_warehouse_houseds_on_housing_exit"

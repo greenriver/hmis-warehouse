@@ -1,5 +1,7 @@
 # Outflow Calculations
 
+Heads of Household calculations are limited to clients with enrollments identifying them as the Head of Household. Client calculations include Heads of Households. 
+
 ## Clients exiting to PH
 
 The count of the number of clients with an exit from ES, SH, TH, or SO in the reporting period with a self-reported destination that falls within the HUD-defined permanent destinations.
