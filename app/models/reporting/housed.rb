@@ -163,7 +163,6 @@ module Reporting
       where(head_of_household: true)
     end
 
-
     def self.available_subpopulations
       {
         youth: 'Youth (today)',
