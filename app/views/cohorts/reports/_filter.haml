@@ -7,4 +7,4 @@
       = f.input :end, input_html: {value: @range.end, class: 'form-control jStart'}, as: :date_picker
     .col-sm-4.mt-4
       %div.pull-right
-        = f.button :submit, value: 'Run Report', data: { disable: 'running...' }
+        = f.button :submit, value: 'Run Report', data: { disable_with: 'running...' }

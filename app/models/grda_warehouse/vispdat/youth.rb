@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -7,12 +7,12 @@
 module GrdaWarehouse::Vispdat
   class Youth < Base
 
-    %w( 
-      marijuana violence_between_family_members 
-      homeless_due_to_ran_away 
-      homeless_due_to_religions_beliefs 
-      homeless_due_to_family 
-      homeless_due_to_gender_identity 
+    %w(
+      marijuana violence_between_family_members
+      homeless_due_to_ran_away
+      homeless_due_to_religions_beliefs
+      homeless_due_to_family
+      homeless_due_to_gender_identity
       incarcerated_before_18
     ).each do |field|
       enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
@@ -66,7 +66,7 @@ module GrdaWarehouse::Vispdat
       homeless_due_to_family_answer_yes? ||
       homeless_due_to_gender_identity_answer_yes? ? 1 : 0
     end
-    
+
     def abuse_and_trauma_score
       violence_between_family_members_answer_yes? || abusive_answer_yes? ? 1 : 0
     end
@@ -77,10 +77,10 @@ module GrdaWarehouse::Vispdat
 
     def self.allowed_parameters
       super + [
-        :marijuana_answer, 
-        :homeless_due_to_ran_away_answer, 
-        :homeless_due_to_religions_beliefs_answer, 
-        :homeless_due_to_family_answer, 
+        :marijuana_answer,
+        :homeless_due_to_ran_away_answer,
+        :homeless_due_to_religions_beliefs_answer,
+        :homeless_due_to_family_answer,
         :homeless_due_to_gender_identity_answer,
         :violence_between_family_members_answer,
         :incarcerated_before_18_answer
@@ -104,7 +104,7 @@ module GrdaWarehouse::Vispdat
       due_to_abuse: "Because of an unhealthy or abusive relationship, either at home or elsewhere?",
       currently_pregnant: "Are you currently pregnant, have you ever been pregnant, or have you ever gotten someone pregnant?",
       marijuana: " If you've ever used marijuana, did you ever try it at age 12 or younger?",
-      
+
     }
 
     def question key

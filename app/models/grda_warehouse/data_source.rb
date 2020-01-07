@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -92,7 +92,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(current_scope.select(:id)))
+        working_scope = current_scope || self.none
+        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(working_scope.select(:id)))
         if user.can_view_or_search_clients_or_window?
           sql = sql.or(arel_table[:visible_in_window].eq(true))
         end
