@@ -9,8 +9,9 @@ module GrdaWarehouse::Confidence
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: :resource_id
 
     attr_accessor :notifier
+    after_initialize :add_notifier
 
-    def initialize
+    def add_notifier
       setup_notifier('Confidence Generator -- Days Homeless')
     end
 
