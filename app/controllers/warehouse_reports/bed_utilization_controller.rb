@@ -81,6 +81,7 @@ module WarehouseReports
 
     def set_filter
       options = {}
+      params.permit!
       if params[:mo].present?
         start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
         # NOTE: we need to pro-rate the current month

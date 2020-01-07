@@ -47,7 +47,7 @@ module TableauExport
       spec = {
         client_uid: she_t[:client_id], # in use
         hh_config: she_t[:presented_as_individual],
-        prog: she_t[she_t.engine.project_type_column], # in use
+        prog: she_t[model.project_type_column], # in use
         entry: she_t[:first_date_in_program], # in use
         exit: she_t[:last_date_in_program], # in use
         destination: she_t[:destination], # in use

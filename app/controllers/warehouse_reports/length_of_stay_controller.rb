@@ -94,7 +94,7 @@ module WarehouseReports
         'average',
       ]
       @filter = if params[:mo].present?
-        ::Filters::MonthAndOrganization.new params.require(:mo).merge(user: current_user)
+        ::Filters::MonthAndOrganization.new params.require(:mo).permit!.merge(user: current_user)
       else
         ::Filters::MonthAndOrganization.new(user: current_user)
       end
