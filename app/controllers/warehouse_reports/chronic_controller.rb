@@ -13,7 +13,10 @@ module WarehouseReports
     before_action :set_sort, except: [:index, :show, :running]
 
     def index
-      WarehouseReports::RunChronicJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
+      if params[:commit].present?
+        # Comment to prevent rubocop trailing if
+        WarehouseReports::RunChronicJob.perform_later(params.permit!.merge(current_user_id: current_user.id))
+      end
       @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
       @reports = report_source.ordered.
         select(report_source.column_names - ['data']).
