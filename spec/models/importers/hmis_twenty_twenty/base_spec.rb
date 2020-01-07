@@ -38,7 +38,7 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     it 'the database will have two events' do
       expect(GrdaWarehouse::Hud::Event.count).to eq(2)
     end
-    xit 'the database will have two living situations' do
+    it 'the database will have two living situations' do
       expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
     end
     it 'the database will have four users' do

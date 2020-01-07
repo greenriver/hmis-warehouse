@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -66,7 +66,7 @@ module GrdaWarehouse
     end
 
     def select_columns
-      (@columns + ['client_id'] - ['notes']).select(&:present?).join(', ')
+      (@columns + ['client_id'] - ['notes', 'client_notes']).select(&:present?).join(', ')
     end
 
     def copy_notes?

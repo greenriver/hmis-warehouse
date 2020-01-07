@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -88,8 +88,7 @@ module Importers::HmisTwentyTwenty
           @import.save
           import_services()
           @import.save
-          # FIXME: commented out 10/19/2019 until HMIS's correct export implementations
-          # import_current_living_situations()
+          import_current_living_situations()
           import_assessments()
           import_assessment_questions()
           import_assessment_results()
@@ -451,9 +450,13 @@ module Importers::HmisTwentyTwenty
         begin
           # remove any internal newlines
           row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
-
-          if @deidentified && klass.name == 'GrdaWarehouse::Import::HmisTwentyTwenty::Client'
-            klass.deidentify_client_name row
+          case klass.name
+          when 'GrdaWarehouse::Import::HmisTwentyTwenty::Client'
+            row = klass.deidentify_client_name(row) if @deidentified
+          when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
+            next unless row['AssessmentDate'].present?
+          when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
+            next unless row['CurrentLivingSituation'].present?
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)

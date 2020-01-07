@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -13,7 +13,7 @@ module ServiceHistoryServiceConcern
     # was performed within a date range, it isn't correctly interpreted
     # if used with ServiceHistoryEnrollment.with_service_between
     # unless it is explicitly a string
-    scope :service_excluding_extrapolated, -> { where("record_type = 'service'") }
+    scope :service_excluding_extrapolated, -> { where(record_type: :service) }
 
     scope :residential, -> {
       where(project_type_column => GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)

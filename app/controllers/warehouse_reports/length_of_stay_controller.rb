@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -94,7 +94,7 @@ module WarehouseReports
         'average',
       ]
       @filter = if params[:mo].present?
-        ::Filters::MonthAndOrganization.new params.require(:mo).merge(user: current_user)
+        ::Filters::MonthAndOrganization.new params.require(:mo).permit!.merge(user: current_user)
       else
         ::Filters::MonthAndOrganization.new(user: current_user)
       end

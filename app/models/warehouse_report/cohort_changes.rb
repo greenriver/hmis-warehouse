@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -18,11 +18,11 @@ class WarehouseReport::CohortChanges < OpenStruct
   def end_date
     self[:end_date]
   end
-  
+
   def cohort_id
     self[:cohort_id]
   end
-  
+
   def group client_id
     case client_id
     when *new_ids
@@ -65,11 +65,11 @@ class WarehouseReport::CohortChanges < OpenStruct
         # Sleeping questions
         sleeping_key = cc.sleeping_location&.strip.presence || 'Unknown'
         sleeping_locations[sleeping_key] ||= {
-          count: 0, 
-          of_color: 0, 
-          white: 0, 
-          lgbtq: 0, 
-          heterosexual: 0, 
+          count: 0,
+          of_color: 0,
+          white: 0,
+          lgbtq: 0,
+          heterosexual: 0,
           gender_diverse: 0,
           cisgender: 0,
         }
@@ -81,11 +81,11 @@ class WarehouseReport::CohortChanges < OpenStruct
         # Exit destination questions
         destination_key = cc.exit_destination&.strip.presence || 'No Destination'
         exit_destinations[destination_key] ||= {
-          count: 0, 
-          of_color: 0, 
-          white: 0, 
-          lgbtq: 0, 
-          heterosexual: 0, 
+          count: 0,
+          of_color: 0,
+          white: 0,
+          lgbtq: 0,
+          heterosexual: 0,
           gender_diverse: 0,
           cisgender: 0,
         }
@@ -102,7 +102,7 @@ class WarehouseReport::CohortChanges < OpenStruct
 
         if vispdat.present? && vispdat.submitted_at.present? && c_en.exit_date.present? && c_en.change_reason&.downcase == 'housed'
           time_to_housings << (c_en.exit_date.to_date - vispdat.submitted_at.to_date).to_i
-        end     
+        end
       end
       {
         sleeping_locations: sleeping_locations,

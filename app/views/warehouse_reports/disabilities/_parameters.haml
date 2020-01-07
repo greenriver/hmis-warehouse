@@ -1,6 +1,7 @@
+- parameters = report.parameters['filter'] || report.parameters
 .report-parameters
-  - start_date = report.parameters['filter']['start']
-  - end_date = report.parameters['filter']['end']
+  - start_date = parameters['start']
+  - end_date = parameters['end']
   - if start_date.present?
     .report-parameters__parameter
       %label.label.label-primary.parameter-label
@@ -9,7 +10,7 @@
         %strong
           = "#{start_date} .. #{end_date}"
 
-  - sub_population = report.parameters['filter']['sub_population'] || :all_clients
+  - sub_population = parameters['sub_population'] || :all_clients
   .report-parameters__parameter
     %label.label.label-primary.parameter-label
       Population
@@ -17,14 +18,14 @@
       %strong
       = available_sub_populations.invert[sub_population.to_sym]
 
-- report.parameters['filter']['disabilities'].each do |id|
+- parameters['disabilities'].each do |id|
   - next if id.blank?
   %label.label.label-primary
     %strong
       = ::HUD::disability_types[id.to_i]
   &nbsp;
 
-- report.parameters['filter']['project_types'].each do |id|
+- parameters['project_types'].each do |id|
   - next if id.blank?
   %label.label.label-default
     %strong

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -19,14 +19,14 @@ module EtoApi::Tasks
     include TsqlImport
     attr_accessor :logger
 
-    # Fetch client mapping from Gmail and replace all records for each data source with 
+    # Fetch client mapping from Gmail and replace all records for each data source with
     # new values
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)
       self.logger = Rails.logger
       logger.info "Fetching client mappings from ETO"
       @config = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_sftp.yml"))).result)[Rails.env]
-      @data_sources = GrdaWarehouse::DataSource.importable_via_s3.where(short_name: @config.keys).select do |ds| 
+      @data_sources = GrdaWarehouse::DataSource.importable_via_s3.where(short_name: @config.keys).select do |ds|
         @config[ds.short_name]['api_match_file'].present?
       end
       logger.info "Looking at #{@data_sources.count} data sources"
@@ -51,7 +51,7 @@ module EtoApi::Tasks
       connection_info = @config[data_source.short_name]
       return unless connection_info['api_match_file'].present?
       sftp = Net::SFTP.start(
-        connection_info['host'], 
+        connection_info['host'],
         connection_info['username'],
         password: connection_info['password'],
         # verbose: :debug,

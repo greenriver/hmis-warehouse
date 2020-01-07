@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module Reports::Ahar::Fy2017
-  class ByDataSource < Base    
+  class ByDataSource < Base
     def self.report_name
       'AHAR By Data Source - FY 2017'
     end
@@ -25,7 +25,7 @@ module Reports::Ahar::Fy2017
     def has_custom_form?
       true
     end
-    
+
     def has_options?
       true
     end

@@ -1,6 +1,6 @@
 - @jobs.each do |job|
   - parameters = YAML.load(job.handler).job_data['arguments'].first
-  - parameters['filter'].delete('_aj_hash_with_indifferent_access')
+  - parameters.delete('_aj_hash_with_indifferent_access')
   - report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new(parameters: parameters)
   %tr{class: 'jIncompleteReport'}
     %td= job.run_at

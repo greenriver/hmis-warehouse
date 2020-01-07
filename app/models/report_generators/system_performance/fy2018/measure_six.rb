@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -32,12 +32,12 @@ module ReportGenerators::SystemPerformance::Fy2018
     end
 
     private
-   
+
 
     def calculate
       # NOTE: HousingStatusAtEntry & HousingStatusAtExit = 5 -- this is where we determine if someone is a Category 3 (value would be 5)
       # This shows up in ProgramParticipation.  No one has HousingStatusAtEntry = 5.  Only at exit
-      
+
       # NOTE: Dependents do get flagged correctly as Category 3 if attached to a Head of Household
       if start_report(Reports::SystemPerformance::Fy2018::MeasureSix.first)
         set_report_start_and_end()
@@ -74,31 +74,31 @@ module ReportGenerators::SystemPerformance::Fy2018
       # 12: Homeless Prevention
       # 13: Rapid Re-Housing (PH)
       # 14: Coordinated Assessment
-            
+
     end
 
     def measure_6_a_and_b
       headers = [:client_id, :destination, :date, :first_date_in_program, :last_date_in_program, :project_type, :project_id, :data_source_id, :project_name]
       columns = {
-        client_id: :client_id, 
+        client_id: :client_id,
         destination: :destination,
         date: :date,
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
-        project_type: :computed_project_type, 
+        project_type: :computed_project_type,
         project_id: :project_id,
         data_source_id: :data_source_id,
         project_name: :project_name,
         household_id: :household_id,
       }
 
-      project_types = TH + SH + PH 
+      project_types = TH + SH + PH
       look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days)
       look_forward_until = @report_end - 730.days
 
       project_exits_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).
-        ended_between(start_date: look_back_until, 
+        ended_between(start_date: look_back_until,
           end_date: look_forward_until.to_date + 1.days).
         category_3.
         hud_project_type(project_types)
@@ -134,7 +134,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         case p_exit[:project_type].to_i
           when *SO
             project_exists_from[:so] << p_exit
-          when *ES 
+          when *ES
             project_exists_from[:es] << p_exit
           when *TH
             project_exists_from[:th] << p_exit
@@ -160,32 +160,32 @@ module ReportGenerators::SystemPerformance::Fy2018
 
 
       # Find anyone who has returned to homelessness after 14+ days
-      # Find their first return to homelessness and calculate the days between the 
+      # Find their first return to homelessness and calculate the days between the
       # time they exited to PH and returned to homelessness
       # NOTE: if the next entry is to a TH, the entry must be 14 days after the original
       # exit to count
-      # NOTE: if the next entry is to a PH, it is only counted if it occurs more than 14 
+      # NOTE: if the next entry is to a PH, it is only counted if it occurs more than 14
       # days after the original exit, or more than 14 days after a TH
       project_exit_counts = {
         c_0_180_days: {
-          so: {counts: [], support: []}, 
-          es: {counts: [], support: []}, 
-          th: {counts: [], support: []}, 
-          sh: {counts: [], support: []}, 
+          so: {counts: [], support: []},
+          es: {counts: [], support: []},
+          th: {counts: [], support: []},
+          sh: {counts: [], support: []},
           ph: {counts: [], support: []},
         },
         e_181_365_days: {
-          so: {counts: [], support: []}, 
-          es: {counts: [], support: []}, 
-          th: {counts: [], support: []}, 
-          sh: {counts: [], support: []}, 
+          so: {counts: [], support: []},
+          es: {counts: [], support: []},
+          th: {counts: [], support: []},
+          sh: {counts: [], support: []},
           ph: {counts: [], support: []},
-        }, 
+        },
         g_366_730_days: {
           so: {counts: [], support: []},
-          es: {counts: [], support: []}, 
-          th: {counts: [], support: []}, 
-          sh: {counts: [], support: []}, 
+          es: {counts: [], support: []},
+          th: {counts: [], support: []},
+          sh: {counts: [], support: []},
           ph: {counts: [], support: []},
         }
       }
@@ -193,7 +193,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         client_entries = {}
         client_entries_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           joins(:project).
-          started_between(start_date: p_exit[:last_date_in_program], 
+          started_between(start_date: p_exit[:last_date_in_program],
             end_date: @report.options['report_end'].to_date + 1.day).
           where(client_id: p_exit[:client_id])
 
@@ -202,7 +202,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         end
 
         client_entries_scope = add_filters(scope: client_entries_scope)
-        
+
         client_entries_all = client_entries_scope.
           order(date: :asc).
           pluck(*columns.values).map do |row|
@@ -211,12 +211,12 @@ module ReportGenerators::SystemPerformance::Fy2018
         # Build a useful universe of entries
         # Make note of project type each day, PH will take priority over TH which is > else
         client_entries_all.each do |entry|
-          
+
           client_entries[entry[:first_date_in_program]] ||= []
           client_entries[entry[:first_date_in_program]] << case entry[:project_type]
             when *SO
                'SO'
-            when *ES 
+            when *ES
               'ES'
             when *TH
               'TH'
@@ -226,12 +226,12 @@ module ReportGenerators::SystemPerformance::Fy2018
               'PH'
           end
         end
-        # Priority PH > TH > Other 
-        # NOTE: we'll set a check-date for permanent housing.  
-        # If you exit PH within 14 days of this, we don't count it, but update the date.  
-        # If we ever have an exit from permanent housing longer than 14 days after the 
+        # Priority PH > TH > Other
+        # NOTE: we'll set a check-date for permanent housing.
+        # If you exit PH within 14 days of this, we don't count it, but update the date.
+        # If we ever have an exit from permanent housing longer than 14 days after the
         # check date, we count it
-        ph_check_date = p_exit[:last_date_in_program].to_date 
+        ph_check_date = p_exit[:last_date_in_program].to_date
         client_entries.each do |day, project_types|
           day_count = (day.to_date - p_exit[:last_date_in_program].to_date).to_i
           # If the entry doesn't contain PH or TH, count it and move on
@@ -298,7 +298,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             if (day.to_date - ph_check_date).to_i < 14
               next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
                 where(
-                  first_date_in_program: day, 
+                  first_date_in_program: day,
                   client_id: p_exit[:client_id]
                 ).
                 hud_project_type(PH)
@@ -474,7 +474,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       @answers[:sixab_c7][:value] = @answers[:sixab_c2][:value] + @answers[:sixab_c3][:value] + @answers[:sixab_c4][:value] + @answers[:sixab_c5][:value] + @answers[:sixab_c6][:value]
       @answers[:sixab_e7][:value] = @answers[:sixab_e2][:value] + @answers[:sixab_e3][:value] + @answers[:sixab_e4][:value] + @answers[:sixab_e5][:value] + @answers[:sixab_e6][:value]
       @answers[:sixab_g7][:value] = @answers[:sixab_g2][:value] + @answers[:sixab_g3][:value] + @answers[:sixab_g4][:value] + @answers[:sixab_g5][:value] + @answers[:sixab_g6][:value]
-      
+
       # @answers[:sixab_d2][:value] = ((@answers[:sixab_c2][:value].to_f / @answers[:sixab_b2][:value]) * 100).round(2)
       # @answers[:sixab_d3][:value] = ((@answers[:sixab_c3][:value].to_f / @answers[:sixab_b3][:value]) * 100).round(2)
       @answers[:sixab_d4][:value] = ((@answers[:sixab_c4][:value].to_f / @answers[:sixab_b4][:value]) * 100).round(2)
@@ -514,9 +514,9 @@ module ReportGenerators::SystemPerformance::Fy2018
 
     def measure_6c_1
       # Select clients who have a recorded stay in  SH, TH and PH-RRH during the report period and who are Category 3
-      # who also don't have an ongoing enrollment at an SH, TH and PH-RRH on the final day of the report 
+      # who also don't have an ongoing enrollment at an SH, TH and PH-RRH on the final day of the report
       # eg. Those who were counted by SH, TH and PH-RRH, but exited to somewhere else
-       
+
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report.options['report_end']).
           hud_project_type(SH + TH + RRH + PH)
@@ -525,7 +525,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         category_3.
-        open_between(start_date: @report_start, 
+        open_between(start_date: @report_start,
           end_date: @report_end + 1.day).
         hud_project_type(SH + TH + RRH).
         where.not(client_id: client_id_scope.
@@ -558,11 +558,11 @@ module ReportGenerators::SystemPerformance::Fy2018
       universe += ph_without_move_in_scope.
         distinct.
         pluck(:client_id)
-      
+
       destinations = {}
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          ended_between(start_date: @report_start, 
+          ended_between(start_date: @report_start,
           end_date: @report_end + 1.day).
           hud_project_type(SH + TH + RRH + PH).
           where(client_id: id)
@@ -592,9 +592,9 @@ module ReportGenerators::SystemPerformance::Fy2018
 
     def measure_6c_2
       # Select clients who have a recorded stay in PH but not PH-RRH during the report period
-      # who also don't have an ongoing enrollment at a PH but not PH-RRH on the final day of the report 
+      # who also don't have an ongoing enrollment at a PH but not PH-RRH on the final day of the report
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
-      
+
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ongoing(on_date: @report_end).
           hud_project_type(PH_PSH)
@@ -603,7 +603,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         category_3.
-        open_between(start_date: @report_start, 
+        open_between(start_date: @report_start,
         end_date: @report_end + 1.day).
         hud_project_type(PH_PSH).
         where.not(client_id: client_id_scope.
@@ -621,7 +621,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         select(:client_id).
         distinct.
         pluck(:client_id)
-    
+
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         category_3.
         ongoing(on_date: @report_end).
@@ -630,22 +630,22 @@ module ReportGenerators::SystemPerformance::Fy2018
       if @report.options['coc_code'].present?
         stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
       end
-      
+
       stayers_scope = add_filters(scope: stayers_scope)
 
       stayers = stayers_scope.
         select(:client_id).
         distinct.
         pluck(:client_id)
-      
+
       destinations = {}
       leavers.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
-          ended_between(start_date: @report_start, 
+          ended_between(start_date: @report_start,
           end_date: @report_end + 1.day).
           hud_project_type(PH).
           where(client_id: id)
-        
+
         if @report.options['coc_code'].present?
           destination_scope = destination_scope.coc_funded_in(coc_code: @report.options['coc_code'])
         end
@@ -677,12 +677,12 @@ module ReportGenerators::SystemPerformance::Fy2018
       case answer
       when :sixab_b2, :sixab_b3, :sixab_b4, :sixab_b5, :sixab_b6
         {
-          headers: ['Client ID', 'Project Name'], 
+          headers: ['Client ID', 'Project Name'],
           counts: data.map{|m| [m[:client_id], m[:project_name]]},
         }
       when :sixab_c2, :sixab_c3, :sixab_c4, :sixab_c5, :sixab_c6, :sixab_e2, :sixab_e3, :sixab_e4, :sixab_e5, :sixab_e6, :sixab_g2, :sixab_g3, :sixab_g4, :sixab_g5, :sixab_g6
         {
-          headers: ['Client ID', 'Days'], 
+          headers: ['Client ID', 'Days'],
           counts: data,
         }
       else
@@ -747,7 +747,7 @@ module ReportGenerators::SystemPerformance::Fy2018
     end
 
     def destination_for(project_types, client_id, household_id)
-      children_without_destination(project_types)[[client_id, household_id]] 
+      children_without_destination(project_types)[[client_id, household_id]]
     end
 
     def setup_questions

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -36,6 +36,7 @@ module WarehouseReports
 
     def index
       report_params = { user: current_user }
+      params.permit!
       report_params.merge!(params[:q]) if params[:q]
       @query = MissingValuesQuery.new(**report_params.symbolize_keys)
       @query.valid? # this initializes the object so simple form will render it correctly
