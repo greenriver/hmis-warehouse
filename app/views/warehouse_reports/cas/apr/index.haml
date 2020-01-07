@@ -6,7 +6,7 @@
 = simple_form_for @range, as: :range, url: warehouse_reports_cas_apr_index_path, html: { method: :get } do |f|
   = render 'filter', f: f
 
-%p 
+%p
   The following counts are for CAS clients active between
   %strong #{@report[:start_date]}
   and
@@ -63,8 +63,8 @@
     %p= @report.unable_to_refer
   .col-sm-6.mt-6
     %p The following file contains dates that can be useful in calculating average lengths of time between match initiation and completion.
-    = link_to({action: :index, params: params, format: :xlsx}, {class: 'btn btn-primary'}) do
+    = link_to({action: :index, params: params&.permit!&.to_h, format: :xlsx}, {class: 'btn btn-primary'}) do
       %i.icon-download2
-      Download Match Dates 
+      Download Match Dates
 
 

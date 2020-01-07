@@ -66,7 +66,7 @@ module GrdaWarehouse
     end
 
     def select_columns
-      (@columns + ['client_id'] - ['notes']).select(&:present?).join(', ')
+      (@columns + ['client_id'] - ['notes', 'client_notes']).select(&:present?).join(', ')
     end
 
     def copy_notes?

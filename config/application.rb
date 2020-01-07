@@ -71,6 +71,9 @@ module BostonHmis
     config.assets.paths << Rails.root.join('node_modules')
 
     config.middleware.use Rack::Attack # needed pre rails 5.1
-   config.middleware.use IdProtector
+    config.middleware.use IdProtector
+
+    # FIXME: required to make forms in pjax modals work
+    config.action_controller.per_form_csrf_tokens = false
   end
 end

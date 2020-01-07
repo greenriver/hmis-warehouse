@@ -157,30 +157,31 @@ module Cohorts
           @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
         end
 
-        if @actives.key? :actives_population
-          populations = @actives[:actives_population]
-          populations.each do |population|
-            # Force service to fall within the correct age ranges for some populations
-            service_scope = if ['youth', 'children'].include? population.to_s
-              population
-            elsif population.to_s == 'parenting_children'
-              :children
-            elsif population.to_s == 'parenting_youth'
-              :youth
-            elsif population.to_s == 'individual_adult'
-              :adult
-            else
-              :current_scope
-            end
+        @actives[:actives_population] = [:all_clients] unless @actives.key? :actives_population
 
-            enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start],
-              end_date: @actives[:end],
-              service_scope: service_scope,
-            )
-
-            enrollment_scope = enrollment_scope.send(population)
+        populations = @actives[:actives_population]
+        populations.each do |population|
+          population = population.presence || :all_clients
+          # Force service to fall within the correct age ranges for some populations
+          service_scope = if ['youth', 'children'].include? population.to_s
+            population
+          elsif population.to_s == 'parenting_children'
+            :children
+          elsif population.to_s == 'parenting_youth'
+            :youth
+          elsif population.to_s == 'individual_adult'
+            :adult
+          else
+            :current_scope
           end
+
+          enrollment_scope = enrollment_scope.with_service_between(
+            start_date: @actives[:start],
+            end_date: @actives[:end],
+            service_scope: service_scope,
+          )
+
+          enrollment_scope = enrollment_scope.send(population)
         end
         # Active record seems to have trouble with the complicated nature of this scope
         @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")

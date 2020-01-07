@@ -8,7 +8,12 @@ module Chronic
   extend ActiveSupport::Concern
   included do
     def load_chronic_filter
-      @filter = ::Filters::Chronic.new(params[:filter])
+      filter_params = if params.is_a?(ActiveSupport::HashWithIndifferentAccess)
+        params
+      else
+        params.permit!
+      end
+      @filter = ::Filters::Chronic.new(filter_params[:filter])
       ct = chronic_source.arel_table
       client_table = client_source.arel_table
       filter_query = ct[:age].gt(@filter.min_age).
