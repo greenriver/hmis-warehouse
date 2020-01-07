@@ -64,7 +64,7 @@ module WarehouseReports
       end
       report.client_count = clients.size
       report.finished_at = DateTime.now
-      report.data = data.to_json
+      report.data = data
       report.save
 
       NotifyUser.active_veterans_report_finished(params[:current_user_id], report.id).deliver_later

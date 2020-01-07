@@ -15,7 +15,10 @@ module WarehouseReports
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      WarehouseReports::RunHudChronicJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
+      if params[:commit].present?
+        # Comment to prevent rubocop trailing if
+        WarehouseReports::RunHudChronicJob.perform_later(params.permit!.merge(current_user_id: current_user.id))
+      end
       @jobs = Delayed::Job.where(queue: 'hud_chronic_report').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
     end

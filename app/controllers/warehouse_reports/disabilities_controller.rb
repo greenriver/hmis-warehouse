@@ -14,7 +14,6 @@ module WarehouseReports
     def index
       @filter = ::Filters::DisabilitiesReportFilter.new(filter_params)
       @reports = report_source.ordered.limit(50)
-      raise hi
     end
 
     def create
@@ -22,7 +21,7 @@ module WarehouseReports
       @filter.valid?
       @report = report_source.new(parameters: filter_params)
       if @report.valid?
-        WarehouseReports::RunEnrolledDisabledJob.perform_later(job_params.merge(current_user_id: current_user.id))
+        WarehouseReports::RunEnrolledDisabledJob.perform_later({ filter: job_params }.merge(current_user_id: current_user.id))
       else
         flash[:error] = @report.errors.messages.values.join('<br />').html_safe
       end
@@ -65,7 +64,7 @@ module WarehouseReports
     end
 
     def job_params
-      require(:filter).permit(
+      params.require(:filter).permit(
         :start,
         :end,
         :sub_population,

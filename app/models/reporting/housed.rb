@@ -159,6 +159,9 @@ module Reporting
       where(arel_table[:housing_exit].lteq(end_date))
     end
 
+    scope :heads_of_households, -> do
+      where(head_of_household: true)
+    end
 
     def self.available_subpopulations
       {
@@ -320,6 +323,7 @@ module Reporting
         age_at_search_end: nil,
         age_at_housed_date: nil,
         age_at_housing_exit: nil,
+        head_of_household: nil,
       }
     end
 
@@ -404,6 +408,7 @@ module Reporting
         children_only: she_t[:children_only].to_sql,
         individual_adult: she_t[:individual_adult].to_sql,
         project_id: p_t[:id].to_sql,
+        head_of_household: she_t[:head_of_household].to_sql,
       }
     end
 
@@ -539,6 +544,7 @@ module Reporting
         children_only: she_t[:children_only],
         individual_adult: she_t[:individual_adult],
         project_id: p_t[:id],
+        head_of_household: she_t[:head_of_household],
       }
     end
 

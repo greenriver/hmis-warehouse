@@ -14,7 +14,7 @@ module WarehouseReports
 
     def index
       @range = ::Filters::DateRangeAndProject.new(report_params[:range])
-      WarehouseReports::RunActiveVeteransJob.perform_later(params.merge(current_user_id: current_user.id)) if params[:commit].present?
+      WarehouseReports::RunActiveVeteransJob.perform_later(params.permit!.merge(current_user_id: current_user.id)) if params[:commit].present?
       @reports = report_scope.select(report_scope.column_names - ['data']).ordered.limit(50)
     end
 
