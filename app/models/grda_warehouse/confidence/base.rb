@@ -51,7 +51,7 @@ module GrdaWarehouse::Confidence
     def self.should_run?
       # Date.current.wday == 6
       self.where(calculated_on: nil).
-      where(arel_table[:calculate_after].lt(Date.current)).exists?
+        where(arel_table[:calculate_after].lt(Date.current)).exists?
     end
 
     def self.fifteenth_of_last_month
