@@ -542,6 +542,12 @@ Rails.application.routes.draw do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
   end
+  resources :ad_hoc_data_sources do
+    resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
+      get :download, on: :member
+    end
+    get :download, on: :collection
+  end
 
   resources :organizations, only: [:index, :show] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
@@ -634,6 +640,7 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
       patch :reactivate, on: :member
       member do
+        post :unlock
         post :confirm
         post :impersonate
       end

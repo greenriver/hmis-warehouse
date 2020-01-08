@@ -40,7 +40,7 @@ RSpec.describe AccountPasswordsController, type: :request do
         expect(assigns(:user).errors.count).to eq 1
       end
       it 'redirects to edit' do
-        expect(response).to redirect_to edit_account_password_path
+        expect(response).to render_template(:edit)
       end
     end
 

@@ -1,0 +1,6 @@
+= f.error_notification
+.form-inputs
+  = f.input :name, hint: 'Please provide the full name of this data source.'
+  = f.input :short_name, input_html: {style: 'width: 10em;', maxlength: 15}, hint: 'A unique identifier for this data source.'
+  = f.input :description, as: :text
+  = f.input :active, label: 'Available for upload and display'
