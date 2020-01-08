@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
       #   create a new destination (based on the unprocessed client)
       #   add a associated record to WarehouseClient
       # If we do find a match:
-      #   create the assocaited WarehouseClient
+      #   create the associated WarehouseClient
 
       Rails.logger.info "Matching #{@unprocessed.size} unprocessed clients"
       matched = 0

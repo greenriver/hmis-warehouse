@@ -27,6 +27,10 @@ namespace :reporting do
     end
   end
 
+  desc "Run Ad-Hoc Upload processing"
+  task run_ad_hoc_processing: [:environment] do
+    GrdaWarehouse::AdHocBatch.process!
+  end
 
   # DB related, provides reporting:db:migrate etc.
   namespace :db do |ns|

@@ -1,0 +1,32 @@
+- content_for :title,  _('Ad-Hoc Data Sources')
+
+%ul.nav.nav-tabs
+  %li.nav-item
+    = link_to _('HMIS Data Sources'), data_sources_path, class: 'nav-link'
+  %li.nav-item.active
+    = link_to _('Ad-Hoc Data Sources'), ad_hoc_data_sources_path, class: 'nav-link'
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right.mb-4
+    = link_to new_ad_hoc_data_source_path, class: 'btn btn-primary' do
+      %span.icon-plus
+      Add Ad-Hoc Data Source
+
+%p= paginate(@data_sources)
+.row.table-utilities
+  .col-sm-12
+    .table-responsive
+      %table.table.table-sm.table-hover
+        %thead
+          %tr
+            %th Name
+            %th Short Name
+            %th Last Upload
+            %th
+        %tbody
+          - @data_sources.each do |data_source|
+            %tr
+              %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
+              %td= data_source.short_name
+              %td= data_source.ad_hoc_batches.maximum(:created_at)
