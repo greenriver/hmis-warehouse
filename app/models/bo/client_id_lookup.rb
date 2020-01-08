@@ -257,7 +257,7 @@ module Bo
           sleep((1..5).to_a.sample)
           next
         end
-        break unless response.present?
+        break if response.present?
 
         msg = "FAILURE: unable to successfully fetch #{settings[:url]}; response blank; options: #{message_options.inspect}"
         Rails.logger.info msg
