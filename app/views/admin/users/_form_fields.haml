@@ -1,7 +1,7 @@
 .row
   .col-sm-6
     %h3 User Information
-    .form-inputs
+    .form-inputs.well
       .row
         .col-sm-10
           = f.input :first_name, required: true
@@ -26,12 +26,17 @@
   .col-sm-6
     .form--checkbox-groups
       %h3 Notifications
-      %p Which notifications should this user receive?
-      = f.input :receive_file_upload_notifications, label: 'File uploads'
-      - if can_edit_vspdat? # you can only assign this if you can also edit them
-        = f.input :notify_on_vispdat_completed, label: "VI-SPDAT submissions", as: :boolean
-      - if GrdaWarehouse::DataSource.authoritative.exists?
-        = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
-      = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
+      .well
+        %p Which notifications should this user receive?
+        = f.input :receive_file_upload_notifications, label: 'File uploads'
+        - if can_edit_vspdat? # you can only assign this if you can also edit them
+          = f.input :notify_on_vispdat_completed, label: "VI-SPDAT submissions", as: :boolean
+        - if GrdaWarehouse::DataSource.authoritative.exists?
+          = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
+        = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
+    .form--expiration
+      %h3 Account Life-cycle
+      .well
+        = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
 
 = render '/users/user_viewable_entities', f: f, roles: Role.editable
