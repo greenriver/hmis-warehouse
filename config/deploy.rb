@@ -114,6 +114,44 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 # set :keep_releases, 5
 
 namespace :deploy do
+
+  ##########################################################
+  # Bootstrap database structure the first time you deploy #
+  ##########################################################
+  if ENV['FIRST_DEPLOY']=='true'
+    before :migrating, :load_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_warehouse_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "warehouse:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_health_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "health:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_reporting_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "reporting:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+  end
+  ##############################################################
+  # END Bootstrap database structure the first time you deploy #
+  ##############################################################
+
   after :migrating, :warehouse_migrations do
     on roles(:db)  do
       within release_path do
@@ -139,6 +177,13 @@ namespace :deploy do
     on roles(:db)  do
       within release_path do
         execute :rake, "reports:seed RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  after :report_seeds, :regular_seeds do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "db:seed RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end

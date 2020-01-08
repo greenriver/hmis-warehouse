@@ -56,6 +56,15 @@ namespace :warehouse do
       task :dump do
         Rake::Task["db:schema:dump"].invoke
       end
+
+      desc "Conditionally load the database schema"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if GrdaWarehouseBase.connection.tables.length == 0
+          Rake::Task['warehouse:db:schema:load'].invoke
+        else
+          puts "Refusing to load the warehouse database schema since there are tables present. This is not an error."
+        end
+      end
     end
 
     namespace :structure do

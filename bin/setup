@@ -24,26 +24,30 @@ Dir.chdir APP_ROOT do
       FileUtils.cp "#{file}.sample", file
     end
   end
-  unless File.exist?('.env')
-    puts "\n== Creating .env"
-    FileUtils.cp '.env.sample', '.env'
+  unless File.exist?('.env.local')
+    puts "\n== Creating .env.local"
+    FileUtils.cp '.env.sample', '.env.local'
   end
 
   puts "\n== Preparing Database =="
   system 'bundle exec rake db:create'
+  system 'bundle exec rake db:schema:conditional_load'
   system 'bundle exec rake db:migrate'
 
   puts "\n== Preparing Warehouse =="
   system 'bundle exec rake warehouse:db:create'
+  system 'bundle exec rake warehouse:db:schema:conditional_load'
   system 'bundle exec rake warehouse:db:migrate'
   system 'bundle exec rake grda_warehouse:seed_data_sources'
 
   puts "\n== Preparing Health Database =="
   system 'bundle exec rake health:db:create'
+  system 'bundle exec rake health:db:schema:conditional_load'
   system 'bundle exec rake health:db:migrate'
 
   puts "\n== Preparing Reporting Database =="
   system 'bundle exec rake reporting:db:create'
+  system 'bundle exec rake reporting:db:schema:conditional_load'
   system 'bundle exec rake reporting:db:migrate'
 
   puts "\n== Seeding Database =="
@@ -51,7 +55,7 @@ Dir.chdir APP_ROOT do
   system 'bundle exec rake grda_warehouse:seed_grades'
 
   puts "\n== Setting up test databases"
-  system 'RAILS_ENV=test; bundle exec rake db:setup_test'
+  system 'RAILS_ENV=test bundle exec rake db:setup_test'
 
   puts "\n== Removing old logs and tempfiles =="
   FileUtils.rm_f Dir.glob(File.join('log', '*'))
