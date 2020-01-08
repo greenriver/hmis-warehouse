@@ -110,19 +110,21 @@ module Health
       # NOTE: Remove COPY from activities_attributes -- if this is present in params we get unpermitted params
       # Let me know if there is a better solution @meborn
       # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
-      (params[:health_sdh_case_management_note][:activities_attributes] || {}).reject! { |k, _v| k == 'COPY' }
+      params.permit!
+      note_params = params[:health_sdh_case_management_note].to_h
+      (note_params[:activities_attributes] || {}).reject! { |k, _v| k == 'COPY' }
       # remove :_destroy on ajax
       # remove health_file on ajax
-      params[:health_sdh_case_management_note].except!(:health_file_attributes) if params[:commit] != 'Save Case Note'
+      note_params.except!(:health_file_attributes) if params[:commit] != 'Save Case Note'
       if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
-        (params[:health_sdh_case_management_note][:activities_attributes] || {}).keys.each do |key|
-          (params[:health_sdh_case_management_note][:activities_attributes] || {})[key].reject! { |k, _v| k == '_destroy' }
+        (note_params[:activities_attributes] || {}).keys.each do |key|
+          (note_params[:activities_attributes] || {})[key].reject! { |k, _v| k == '_destroy' }
         end
       end
       # remove empty element from topics array
-      (params[:health_sdh_case_management_note][:topics] || []).reject!(&:blank?)
+      (note_params[:topics] || []).reject!(&:blank?)
       # remove empty element from client action array
-      (params[:health_sdh_case_management_note][:client_action] || []).reject!(&:blank?)
+      (note_params[:client_action] || []).reject!(&:blank?)
     end
 
     private def add_calculated_params_to_activities!(permitted_params)

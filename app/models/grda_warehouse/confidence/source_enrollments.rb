@@ -12,11 +12,11 @@ module GrdaWarehouse::Confidence
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: :resource_id
 
     attr_accessor :notifier
+    after_initialize :add_notifier
 
-    def initialize
+    def add_notifier
       setup_notifier('Confidence Generator -- Source Enrollments')
     end
-
 
     def self.collection_dates_for_client client_id
       [{

@@ -181,11 +181,25 @@ after 'git:wrapper', :echo_options
 task :trigger_job_restarts do
   on roles(:app) do
     within release_path do
+      # Major ruby version upgrades might need a full cache clear:
+      # execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.clear\""
+
       execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)\""
     end
   end
 end
 after 'deploy:symlink:release', :trigger_job_restarts
+
+if ENV['RELOAD_NGINX']=='true'
+  task :reload_nginx do
+    on roles(:web) do
+      within release_path do
+        sudo "#{fetch(:systemctl_path)}", "reload", 'nginx'
+      end
+    end
+  end
+  after 'passenger:restart', :reload_nginx
+end
 
 # set this variable on your first deployments to each environment.
 # remove these lines after all servers are deployed.
