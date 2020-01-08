@@ -26,6 +26,7 @@ module Reporting::MonthlyReports
         youth: Reporting::MonthlyReports::Youth,
         parenting_youth: Reporting::MonthlyReports::ParentingYouth,
         parenting_children: Reporting::MonthlyReports::ParentingChildren,
+        unaccompanied_minors: Reporting::MonthlyReports::UnaccompaniedMinors,
         individual_adults: Reporting::MonthlyReports::IndividualAdults,
         non_veteran: Reporting::MonthlyReports::NonVeteran,
         family: Reporting::MonthlyReports::Family,

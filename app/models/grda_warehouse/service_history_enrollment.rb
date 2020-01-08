@@ -337,6 +337,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       parenting_juvenile
     end
 
+    scope :unaccompanied_minors, -> do
+      where(unaccompanied_minor: true)
+    end
+
     scope :individual_adult, -> do
       individual.adult
     end
@@ -360,6 +364,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         :children_only,
         :parenting_juvenile,
         :parenting_children,
+        :unaccompanied_minors,
         :individual_adult,
         :individual_adults,
       ]

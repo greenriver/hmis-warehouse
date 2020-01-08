@@ -27,6 +27,7 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_individual_client_counts(project_type), project_type_code, :individuals)
       add_clients_to_census_buckets(get_parenting_youth_client_counts(project_type), project_type_code, :parenting_youth)
       add_clients_to_census_buckets(get_parenting_juvenile_client_counts(project_type), project_type_code, :parenting_juveniles)
+      add_clients_to_census_buckets(get_unaccompanied_minors_client_counts(project_type), project_type_code, :unaccompanied_minors)
       add_clients_to_census_buckets(get_all_client_counts(project_type), project_type_code, :all_clients)
 
       beds_by_date = {}
@@ -89,6 +90,10 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_homeless_parenting_juvenile_client_counts(), :homeless, :parenting_juveniles)
       add_clients_to_census_buckets(get_literally_homeless_parenting_juvenile_client_counts(), :literally_homeless, :parenting_juveniles)
       add_clients_to_census_buckets(get_system_parenting_juvenile_client_counts(), :system, :parenting_juveniles)
+
+      add_clients_to_census_buckets(get_homeless_unaccompanied_minors_client_counts(), :homeless, :unaccompanied_minors)
+      add_clients_to_census_buckets(get_literally_homeless_unaccompanied_minors_client_counts(), :literally_homeless, :unaccompanied_minors)
+      add_clients_to_census_buckets(get_system_unaccompanied_minors_client_counts(), :system, :unaccompanied_minors)
 
       add_clients_to_census_buckets(get_homeless_all_clients_client_counts(), :homeless, :all_clients)
       add_clients_to_census_buckets(get_literally_homeless_all_clients_client_counts(), :literally_homeless, :all_clients)
@@ -364,6 +369,35 @@ module GrdaWarehouse::Census
       get_aggregate_client_counts(
         joins: :service_history_enrollment,
         client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile
+      )
+    end
+
+    # Unaccompanied Minors
+
+    def get_unaccompanied_minors_client_counts (project_type)
+      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors)
+    end
+
+    def get_homeless_unaccompanied_minors_client_counts
+      get_aggregate_client_counts(
+        joins: :service_history_enrollment,
+        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
+        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+      )
+    end
+
+    def get_literally_homeless_unaccompanied_minors_client_counts
+      get_aggregate_client_counts(
+        joins: :service_history_enrollment,
+        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
+        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+      )
+    end
+
+    def get_system_unaccompanied_minors_client_counts
+      get_aggregate_client_counts(
+        joins: :service_history_enrollment,
+        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors
       )
     end
 

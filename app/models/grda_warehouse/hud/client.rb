@@ -314,31 +314,78 @@ module GrdaWarehouse::Hud
 
     scope :individual_adult, -> (start_date: Date.current, end_date: Date.current) do
       adult(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          individual_adult.
+          select(:client_id)
+      )
     end
 
     scope :unaccompanied_youth, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          unaccompanied_youth.
+          select(:client_id)
+      )
     end
 
     scope :children_only, -> (start_date: Date.current, end_date: Date.current) do
       child(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          children_only.
+          select(:client_id)
+      )
     end
 
     scope :parenting_youth, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parenting_youth.
+          select(:client_id)
+      )
     end
 
     scope :parenting_juvenile, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parenting_juvenile.
+          select(:client_id)
+      )
+    end
+
+    scope :unaccompanied_minors, -> (start_date: Date.current, end_date: Date.current) do
+      youth(on: start_date).
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          unaccompanied_minors.
+          select(:client_id)
+      )
     end
 
     scope :family, -> (start_date: Date.current, end_date: Date.current) do
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          family.
+          select(:client_id)
+      )
     end
 
     scope :veteran, -> do
