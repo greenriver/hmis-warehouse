@@ -79,7 +79,7 @@ class ClientMatchesController < ApplicationController
     end
 
     respond_to do |format|
-      format.json { render json: @client_match.as_json(methods: [:source_group_id]) }
+      format.json { render json: @client_match.as_json }
       format.html { redirect_to(request.referrer.presence || match_clients.path) }
     end
   rescue ActiveRecord::StaleObjectError
