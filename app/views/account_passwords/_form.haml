@@ -4,6 +4,7 @@
       = f.error_notification
       .form-inputs
         = f.input :current_password, required: true, hint: 'Your current password is required to confirm your identity'
+        = render 'users/password_rules'
         = f.input :password, required: true, label: 'New password'
         = f.input :password_confirmation, required: true
 

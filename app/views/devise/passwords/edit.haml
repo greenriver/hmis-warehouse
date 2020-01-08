@@ -2,6 +2,7 @@
 .row
   .col-sm-6
     = simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }, wrapper: :vertical_form_hint_first) do |f|
+      = render 'users/password_rules'
       = f.error_notification
       = f.input :reset_password_token, as: :hidden
       = f.full_error :reset_password_token

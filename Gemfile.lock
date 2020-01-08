@@ -1511,7 +1511,7 @@ GEM
     timecop (0.9.1)
     tins (1.22.2)
     tiny_tds (2.1.2)
-    tzinfo (1.2.5)
+    tzinfo (1.2.6)
       thread_safe (~> 0.1)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)

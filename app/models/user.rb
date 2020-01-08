@@ -7,6 +7,7 @@
 class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include UserPermissions
+  include PasswordRules
   has_paper_trail
   acts_as_paranoid
 
@@ -16,15 +17,16 @@ class User < ApplicationRecord
          :recoverable,
          :rememberable,
          :trackable,
-         :validatable,
+         # :validatable,
+         :secure_validatable,
          :lockable,
          :timeoutable,
          :confirmable,
          :session_limitable,
          :pwned_password,
          :expirable,
-         # :password_expirable,
-         # :password_archivable,
+         :password_expirable,
+         :password_archivable,
          :two_factor_authenticatable,
          :two_factor_backupable,
          password_length: 10..128,
@@ -38,6 +40,7 @@ class User < ApplicationRecord
   after_save :create_access_group
 
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
+  validate :password_cannot_be_sequential, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
   validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
@@ -58,8 +61,20 @@ class User < ApplicationRecord
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
-  scope :active, -> {where active: true}
-  scope :inactive, -> {where active: false}
+  scope :active, -> do
+    where(
+      arel_table[:active].eq(true).and(
+        arel_table[:expired_at].eq(nil).
+        or(arel_table[:expired_at].gt(Time.current))
+      )
+    )
+  end
+  scope :inactive, -> do
+    where(
+     arel_table[:active].eq(false).
+     or(arel_table[:expired_at].lteq(Time.current))
+    )
+  end
   scope :not_system, -> { where.not(first_name: 'System') }
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -102,6 +117,10 @@ class User < ApplicationRecord
 
   def active_for_authentication?
     super && active
+  end
+
+  def future_expiration?
+    expired_at.present? && expired_at > Time.current
   end
 
   def limited_client_view?
@@ -376,30 +395,30 @@ class User < ApplicationRecord
     name.humanize.titleize
   end
 
-  private
+  def self.whitelist_for_changes_display
+    [
+      'first_name',
+      'last_name',
+      'email',
+      'phone',
+      'agency',
+      'receive_file_upload_notifications',
+      'notify_of_vispdat_completed',
+      'notify_on_anomaly_identified',
+    ].freeze
+  end
 
-    def self.whitelist_for_changes_display
-      [
-        'first_name',
-        'last_name email',
-        'phone',
-        'agency',
-        'receive_file_upload_notifications',
-        'notify_of_vispdat_completed',
-        'notify_on_anomaly_identified',
-      ].freeze
+  private def viewable(model)
+    if can_edit_anything_super_user?
+      model.all
+    else
+      model.where(
+        id: GrdaWarehouse::GroupViewableEntity.where(
+          access_group_id: access_groups.pluck(:id),
+          entity_type: model.sti_name,
+        ).select(:entity_id),
+      )
     end
+  end
 
-    def viewable(model)
-      if can_edit_anything_super_user?
-        model.all
-      else
-        model.where(
-          id: GrdaWarehouse::GroupViewableEntity.where(
-            access_group_id: access_groups.pluck(:id),
-            entity_type: model.sti_name,
-          ).select(:entity_id),
-        )
-      end
-    end
 end
