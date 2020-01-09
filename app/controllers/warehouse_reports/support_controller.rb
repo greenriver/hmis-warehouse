@@ -27,7 +27,7 @@ module WarehouseReports
       @counts = @data.counts[@key]
       respond_to do |format|
         format.xlsx do
-          render xlsx: :index, filename: "support-#{@section}-#{@key}.xlsx"
+          render xlsx: 'index', filename: "support-#{@section}-#{@key}.xlsx"
         end
         format.html {}
       end
