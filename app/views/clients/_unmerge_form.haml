@@ -35,30 +35,31 @@
             %th Merged
             %th Merged By
             %th
-          - source_clients.each do |c|
-            %tr
-              %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
-              - if GrdaWarehouse::Config.get(:healthcare_available)
-                %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
-                  = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
-                %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
-                  = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
-              %td= c.data_source.short_name
-              %td= c.uuid
-              %td= c.full_name
-              %td= c.DOB
-              %td= ssn c.SSN
-              %td= c.warehouse_client_source.reviewed_at
-              %td
-                - if (user = reviewers[c.warehouse_client_source.reviewd_by.to_i])
-                  = user.name
-                - if (match = c.warehouse_client_source.client_match)
-                  %br
-                  %button.btn.btn-xs{type: :button, data: {toggle: :popover, trigger: 'click', html: 'true', placement: :left, content: h(client_match_scorecard(match))}}
-                    Match Details
+          %tbody
+            - source_clients.each do |c|
+              %tr
+                %td.jSplit= f.input_field :merge, as: :boolean, checked_value: c.id, unchecked_value: nil, name: input_id
+                - if GrdaWarehouse::Config.get(:healthcare_available)
+                  %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent HMIS items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                    = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
+                  %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
+                    = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
+                %td= c.data_source.short_name
+                %td= c.uuid
+                %td= c.full_name
+                %td= c.DOB
+                %td= ssn c.SSN
+                %td= c.warehouse_client_source.reviewed_at
+                %td
+                  - if (user = reviewers[c.warehouse_client_source.reviewd_by.to_i])
+                    = user.name
+
+                  - if (match = c.warehouse_client_source.client_match)
+                    %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: {toggle: :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
+                      Match Details
 
         .form-actions
-        = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
+          = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
 
 = content_for :page_js do
   :javascript
