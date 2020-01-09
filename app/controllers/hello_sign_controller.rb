@@ -5,6 +5,7 @@
 ###
 
 class HelloSignController < ActionController::Base
+  skip_before_action :verify_authenticity_token
   def callback
     Rails.logger.info "HelloSign Callback data: params: #{params.ai(plain: true)}"
 
