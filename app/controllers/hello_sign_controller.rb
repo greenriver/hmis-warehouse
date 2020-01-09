@@ -7,8 +7,8 @@
 class HelloSignController < ActionController::Base
   skip_before_action :verify_authenticity_token
   def callback
+    params.permit!
     Rails.logger.info "HelloSign Callback data: params: #{params.ai(plain: true)}"
-
     response = CallbackResponse.new(params[:json])
 
     if response.valid? && response.has_careplan?
@@ -37,7 +37,7 @@ class HelloSignController < ActionController::Base
     def signable_document
       return @signable_document unless @signable_document.nil?
 
-      signable_document_id = _signature_request.dig('metadata', 'signable_document_id')
+      signable_document_id = _signature_request.dig('metadata', 'data', 'signable_document_id')
 
       @signable_document = Health::SignableDocument.find(signable_document_id)
     end
