@@ -1,5 +1,5 @@
 = content_for :crumbs do
-  = link_to warehouse_reports_outflow_index_path(filter: params[:filter]) do
+  = link_to warehouse_reports_outflow_index_path(filter: filter_options) do
     = "« Client Outflow Report"
 - title = @report.metrics[@key]
 - content_for :title, title
@@ -7,7 +7,7 @@
 
 - if @enrollments.any?
   .pull-right
-    = link_to details_warehouse_reports_outflow_index_path(filter: params[:filter], key: @key, format: :xlsx) do
+    = link_to details_warehouse_reports_outflow_index_path(filter: filter_options, key: @key, format: :xlsx) do
       Download
       %span.icon-download2
   %p Showing #{pluralize(@enrollments.count, 'row')}
