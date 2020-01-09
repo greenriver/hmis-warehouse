@@ -507,8 +507,15 @@ end
 def maintain_health_seeds
   Health::DataSource.where(name: 'BHCHP EPIC').first_or_create
   Health::DataSource.where(name: 'Patient Referral').first_or_create
+  GrdaWarehouse::DataSource.where(short_name: 'Health').first_or_create do |ds|
+    ds.name = 'Health'
+    ds.authoritative = true
+    ds.visible_in_window = false
+    ds.authoritative_type = 'health'
+    ds.save
+  end
 
-  Health::Cp.sender.first_or_create do|sender|
+  Health::Cp.sender.first_or_create do |sender|
     sender.update(
       mmis_enrollment_name: 'COORDINATED CARE HUB',
       trace_id: 'OPENPATH00',
@@ -517,4 +524,5 @@ def maintain_health_seeds
 end
 
 maintain_report_definitions()
+maintain_health_seeds()
 
