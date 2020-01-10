@@ -403,5 +403,11 @@ module Health
       completed_at && completed_at >= 1.years.ago
     end
 
+    def encounter_report_details
+      {
+        provider_name: nil,
+        housing_status: nil,
+      }
+    end
   end
 end
