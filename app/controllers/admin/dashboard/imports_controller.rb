@@ -18,6 +18,7 @@ module Admin::Dashboard
           :created_at,
           :updated_at,
           :files,
+          :upload_id,
         ).order(id: :desc).first_or_initialize
       end
 
