@@ -18,7 +18,7 @@ module Admin::Dashboard
           :created_at,
           :updated_at,
           :files,
-        ).order('id desc').first_or_initialize
+        ).order(id: :desc).first_or_initialize
       end
 
       return unless can_edit_anything_super_user?

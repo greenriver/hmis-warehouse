@@ -17,10 +17,12 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   end
 
   def import_time(details: false)
+    return unless persisted?
+
     if completed_at.present?
       seconds = ((completed_at - created_at)/1.minute).round * 60
       distance_of_time_in_words(seconds)
-    elsif upload_id.present? && upload.present?
+    elsif upload.present?
       upload.import_time(details: details)
     else
       if updated_at < 2.days.ago

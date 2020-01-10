@@ -9,11 +9,11 @@
         %th
           Imported On
         %td
-          - if import.id.present?
-            = link_to import.created_at, import_path(import)
+          - if import.persisted?
+            = link_to import&.created_at, import_path(import)
           - else
             %em Never run
-      - if import.id.present?
+      - if import.persisted?
         %tr
           %th
             Completed In
