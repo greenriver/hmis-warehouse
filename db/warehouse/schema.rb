@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_06_175129) do
+ActiveRecord::Schema.define(version: 2020_01_08_184052) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -256,10 +256,7 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "disabilities_date_created"
-    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
-    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id"
-    t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "disabilities_date_updated"
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx"
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID"
@@ -766,14 +763,11 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "income_benefits_date_created"
-    t.index ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id"
-    t.index ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "income_benefits_date_updated"
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID"
     t.index ["ExportID"], name: "income_benefits_export_id"
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID"
-    t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id"
@@ -876,7 +870,7 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.integer "HMISParticipatingProject"
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
-    t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
+    t.index "(COALESCE(act_as_project_type, \"ProjectType\"))", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_date_updated"
@@ -1706,10 +1700,10 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.string "enterprise_guid", null: false
+    t.integer "participant_site_identifier", null: false
     t.integer "site_id", null: false
     t.integer "subject_id", null: false
     t.datetime "last_updated"
-    t.integer "participant_site_identifier"
     t.index ["client_id"], name: "index_eto_client_lookups_on_client_id"
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id"
   end
@@ -2072,7 +2066,6 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.jsonb "all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
   end
 
@@ -2160,14 +2153,6 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.jsonb "sh_all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.jsonb "literally_homeless_juveniles", default: []
-    t.jsonb "system_juveniles", default: []
-    t.jsonb "homeless_juveniles", default: []
-    t.jsonb "ph_juveniles", default: []
-    t.jsonb "es_juveniles", default: []
-    t.jsonb "th__juveniles", default: []
-    t.jsonb "so_juveniles", default: []
-    t.jsonb "sh_juveniles", default: []
     t.jsonb "literally_homeless_unaccompanied_minors", default: []
     t.jsonb "system_unaccompanied_minors", default: []
     t.jsonb "homeless_unaccompanied_minors", default: []
@@ -2267,14 +2252,6 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.integer "th_beds", default: 0
     t.integer "so_beds", default: 0
     t.integer "sh_beds", default: 0
-    t.integer "literally_homeless_juveniles", default: 0
-    t.integer "system_juveniles", default: 0
-    t.integer "homeless_juveniles", default: 0
-    t.integer "ph_juveniles", default: 0
-    t.integer "es_juveniles", default: 0
-    t.integer "th_juveniles", default: 0
-    t.integer "so_juveniles", default: 0
-    t.integer "sh_juveniles", default: 0
     t.integer "literally_homeless_unaccompanied_minors", default: 0
     t.integer "system_unaccompanied_minors", default: 0
     t.integer "homeless_unaccompanied_minors", default: 0
@@ -2301,7 +2278,6 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.integer "beds", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
   end
 
@@ -2638,6 +2614,8 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
+    t.index ["date"], name: "index_service_history_services_on_date"
+    t.index ["project_type"], name: "index_service_history_services_on_project_type"
   end
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
@@ -3601,6 +3579,20 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "talentlms_configs", force: :cascade do |t|
+    t.string "subdomain"
+    t.string "encrypted_api_key"
+    t.string "encrypted_api_key_iv"
+  end
+
+  create_table "talentlms_logins", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "login"
+    t.string "encrypted_password"
+    t.string "encrypted_password_iv"
+    t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
+  end
+
   create_table "uploads", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
@@ -3863,8 +3855,8 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
     t.boolean "active_in_cas_match", default: false
     t.string "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.string "lgbtq_from_hmis"
     t.integer "days_homeless_plus_overrides"
+    t.string "lgbtq_from_hmis"
     t.index ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days"
     t.index ["days_served"], name: "index_warehouse_clients_processed_on_days_served"
     t.index ["homeless_days"], name: "index_warehouse_clients_processed_on_homeless_days"
@@ -4776,6 +4768,5 @@ ActiveRecord::Schema.define(version: 2020_01_06_175129) do
   add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
 
 end
