@@ -360,6 +360,7 @@ Rails.application.routes.draw do
       resources :enrollments
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
+      resources :encounters, only: [:index, :show, :create, :destroy]
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
