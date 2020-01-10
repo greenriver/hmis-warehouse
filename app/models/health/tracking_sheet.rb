@@ -7,73 +7,47 @@
 module Health
   class TrackingSheet
     include ArelHelper
+    include Health::CareplanDates
 
     def initialize patients
       @patient_ids = patients.map(&:id)
     end
 
+    private def patient_ids
+      @patient_ids
+    end
+
     def consented_date patient_id
-      @consented_dates ||= Health::ParticipationForm.where(patient_id: @patient_ids).
+      @consented_dates ||= Health::ParticipationForm.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:signature_on)
       @consented_dates[patient_id]&.to_date
     end
 
     def ssm_completed_date patient_id
-      @ssm_completed_dates ||= Health::SelfSufficiencyMatrixForm.where(patient_id: @patient_ids).
+      @ssm_completed_dates ||= Health::SelfSufficiencyMatrixForm.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:completed_at)
       @ssm_completed_dates[patient_id]&.to_date
     end
 
     def cha_completed_date patient_id
-      @cha_completed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: @patient_ids).
+      @cha_completed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:completed_at)
       @cha_completed_dates[patient_id]&.to_date
     end
 
     def cha_reviewed_date patient_id
-      @cha_reviewed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: @patient_ids).
+      @cha_reviewed_dates ||= Health::ComprehensiveHealthAssessment.where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:reviewed_at)
       @cha_reviewed_dates[patient_id]&.to_date
     end
 
-    def care_plan_patient_signed_date patient_id
-      @care_plan_patient_signed_dates ||= Health::Careplan.where(patient_id: @patient_ids).
-        group(:patient_id).
-        maximum(:patient_signed_on)
-      @care_plan_patient_signed_dates[patient_id]&.to_date
-    end
-
-    def care_plan_sent_to_provider_date patient_id
-      @care_plan_sent_to_provider_dates ||= begin
-        signature_request_dates = Health::Careplan.where(patient_id: @patient_ids).
-          group(:patient_id).
-          maximum(:provider_signature_requested_at)
-
-        signature_request_dates.each do |id, date|
-          if date.blank?
-            signature_request_dates[id] = care_plan_provider_signed_date(patient_id)
-          end
-        end
-        signature_request_dates
-      end
-
-      @care_plan_sent_to_provider_dates[patient_id]&.to_date
-    end
-
-    def care_plan_provider_signed_date patient_id
-      @care_plan_provider_signed_dates ||= Health::Careplan.where(patient_id: @patient_ids).
-        group(:patient_id).
-        maximum(:provider_signed_on)
-      @care_plan_provider_signed_dates[patient_id]&.to_date
-    end
-
     def most_recent_face_to_face_qa_date patient_id
       @most_recent_face_to_face_qa_dates ||= Health::QualifyingActivity.direct_contact.face_to_face.
-        where(patient_id: @patient_ids).
+        where(patient_id: patient_ids).
         group(:patient_id).
         maximum(:date_of_activity)
       @most_recent_face_to_face_qa_dates[patient_id]&.to_date
@@ -82,7 +56,7 @@ module Health
     # def most_recent_qa_from_case_management_note patient_id
     #   @most_recent_qa_from_case_management_notes ||= Health::SdhCaseManagementNote.
     #     joins(:activities).
-    #     where(patient_id: @patient_ids).
+    #     where(patient_id: patient_ids).
     #     group(:patient_id).
     #     maximum(:date_of_contact)
     #   @most_recent_qa_from_case_management_notes[patient_id]&.to_date
@@ -92,7 +66,7 @@ module Health
     #   @eto_form_ids ||= GrdaWarehouse::HmisForm.has_qualifying_activities.pluck(:id)
     #   @most_recent_qa_from_eto_case_notes ||= Health::QualifyingActivity.
     #     where(source_type: 'GrdaWarehouse::HmisForm', source_id: @eto_form_ids).
-    #     where(patient_id: @patient_ids).
+    #     where(patient_id: patient_ids).
     #     group(:patient_id).
     #     maximum(:date_of_activity)
     #   @most_recent_qa_from_eto_case_notes[patient_id]&.to_date
@@ -101,7 +75,7 @@ module Health
     # def most_recent_qa_from_epic_case_management_note patient_id
     #   @most_recent_qa_from_epic_case_management_notes ||= Health::EpicCaseNoteQualifyingActivity.
     #     joins(:patient).
-    #     merge(Health::Patient.where(id: @patient_ids)).
+    #     merge(Health::Patient.where(id: patient_ids)).
     #     group(:patient_id).
     #     maximum(:update_date)
     #   @most_recent_qa_from_epic_case_management_notes[patient_id]&.to_date
@@ -117,7 +91,7 @@ module Health
           ]
         ).
         joins(:patient).
-        merge(Health::Patient.where(id: @patient_ids)).
+        merge(Health::Patient.where(id: patient_ids)).
         group(:patient_id).
         maximum(:date_of_activity)
       @most_recent_qa_from_case_note[patient_id]
@@ -137,7 +111,7 @@ module Health
 
     def aco_name patient_id
       @aco_names ||= Health::AccountableCareOrganization.joins(patient_referrals: :patient).
-        merge(Health::Patient.where(id: @patient_ids)).
+        merge(Health::Patient.where(id: patient_ids)).
         pluck(hp_t[:id].to_sql, :name).to_h
       @aco_names[patient_id]
     end
