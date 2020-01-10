@@ -7,7 +7,7 @@ unless User.find_by(email: 'noreply@example.com').present?
 
   # Add a user.  This should not be added in production
   unless Rails.env =~ /production|staging/
-    inital_password = Faker::Internet.password(16)
+    inital_password = Faker::Internet.password(min_length: 16)
     user = User.new
     user.email = 'noreply@example.com'
     user.first_name = "Sample"
