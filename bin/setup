@@ -67,6 +67,9 @@ Dir.chdir APP_ROOT do
   variables = File.join styles, '_variables.scss'
   FileUtils.touch variables unless File.exist?(variables)
 
+  puts "\n== Creating System User =="
+  User.setup_system_user
+
   puts "\n== Restarting application server =="
   FileUtils.mkdir 'tmp' unless File.exist? 'tmp'
   restart = File.join ['tmp', 'restart.txt']
