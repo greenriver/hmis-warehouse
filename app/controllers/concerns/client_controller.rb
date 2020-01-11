@@ -184,15 +184,15 @@ module ClientController
         valid = false
       end
       if clean_params[:FirstName].blank?
-        @client.errors[:FirstName] = 'First name is required'
+        @client.errors.add(:FirstName, 'First name is required')
         valid = false
       end
       if clean_params[:LastName].blank?
-        @client.errors[:LastName] = 'Last name is required'
+        @client.errors.add(:LastName, 'Last name is required')
         valid = false
       end
       if clean_params[:DOB].blank?
-        @client.errors[:DOB] = 'Date of birth is required'
+        @client.errors.add(:DOB, 'Date of birth is required')
         valid = false
       end
       valid
