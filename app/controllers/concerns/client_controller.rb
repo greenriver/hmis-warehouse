@@ -180,19 +180,19 @@ module ClientController
     def validate_new_client_params(clean_params)
       valid = true
       unless [0, 9].include?(clean_params[:SSN].length)
-        @client.errors[:SSN] = 'SSN must contain 9 digits'
+        @client.errors.add(:SSN, :format, message: 'must contain 9 digits')
         valid = false
       end
       if clean_params[:FirstName].blank?
-        @client.errors.add(:FirstName, 'First name is required')
+        @client.errors.add(:FirstName, :required, message: 'is required')
         valid = false
       end
       if clean_params[:LastName].blank?
-        @client.errors.add(:LastName, 'Last name is required')
+        @client.errors.add(:LastName, :required, message: 'is required')
         valid = false
       end
       if clean_params[:DOB].blank?
-        @client.errors.add(:DOB, 'Date of birth is required')
+        @client.errors.add(:DOB, :required, message: 'Date of birth is required')
         valid = false
       end
       valid
