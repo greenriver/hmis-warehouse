@@ -18,6 +18,8 @@ module Health
       update(started_at: Time.current)
       activity_scope.find_each do |activity|
         patient = activity.patient
+        next unless patient
+
         record = {
           medicaid_id: patient.medicaid_id,
           dob: patient.birthdate,
@@ -33,6 +35,8 @@ module Health
           encounter_report: self
         }
         encounter = activity.source
+        next unless encounter
+
         record.merge(encounter.encounter_source)
         record.merge(encounter.encounter_report_details)
 
