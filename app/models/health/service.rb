@@ -58,5 +58,12 @@ module Health
       ]
     end
 
+    def encounter_report_details
+      {
+        provider_name: nil,
+        housing_status: nil,
+      }
+    end
+
   end
 end
