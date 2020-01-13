@@ -56,7 +56,7 @@ module Health
 
     def encounter_report_details
       {
-        provider_name: nil,
+        provider_name: provider,
         housing_status: nil,
       }
     end

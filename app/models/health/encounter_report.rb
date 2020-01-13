@@ -53,17 +53,6 @@ module Health
       warehouse_reports_health_encounters_url(host: ENV.fetch('FQDN'))
     end
 
-    def source_name(activity)
-      case activity.source_type
-      when 'Health::EpicQualifyingActivity'
-        'EPIC'
-      when 'GrdaWarehouse::HmisForm'
-        'ETO'
-      else
-        'Warehouse'
-      end
-    end
-
     def status
       if started_at.blank?
         "Queued"
@@ -85,7 +74,7 @@ module Health
     def activity_scope
       Health::QualifyingActivity.
         in_range(start_date..end_date).
-        includes(:patient)
+        includes(:patient, :source)
     end
   end
 end

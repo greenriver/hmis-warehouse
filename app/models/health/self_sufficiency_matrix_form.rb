@@ -413,7 +413,7 @@ module Health
     def encounter_report_details
       {
         provider_name: nil,
-        housing_status: nil,
+        housing_status: self.class::SECTIONS[:housing][self.housing_score],
       }
     end
   end
