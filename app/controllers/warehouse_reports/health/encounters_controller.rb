@@ -46,7 +46,7 @@ module WarehouseReports::Health
 
     private def set_report_range
       @start_date = report_params[:filter].try(:[], :start)&.to_date || Date.current.last_year.beginning_of_year
-      @end_date = report_params[:filter].try(:[], :start) &.to_date || Date.current.last_year.end_of_year
+      @end_date = report_params[:filter].try(:[], :end) &.to_date || Date.current.last_year.end_of_year
     end
 
     private def set_report

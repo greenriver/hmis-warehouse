@@ -17,6 +17,8 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   end
 
   def import_time(details: false)
+    return unless persisted?
+
     if completed_at.present?
       seconds = ((completed_at - created_at)/1.minute).round * 60
       distance_of_time_in_words(seconds)
