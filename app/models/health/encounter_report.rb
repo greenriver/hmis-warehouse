@@ -46,7 +46,7 @@ module Health
     end
 
     def url
-      warehouse_reports_health_encounter_url(self, host: ENV.fetch('FQDN'), format: :xlsx)
+      warehouse_reports_health_encounters_url(host: ENV.fetch('FQDN'))
     end
 
     def source_name(activity)
