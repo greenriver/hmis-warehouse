@@ -518,6 +518,13 @@ module Health
       date_of_activity.present? && patient&.patient_referral.present? && patient&.enrollment_start_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
     end
 
+    def encounter_report_details
+      {
+        provider_name: '',
+        housing_status: '',
+      }
+    end
+
     def once_per_day_procedure_codes
       [
         'G0506',

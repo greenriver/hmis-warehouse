@@ -252,5 +252,11 @@ module Health
       end
     end
 
+    def encounter_report_details
+      {
+        provider_name: nil,
+        housing_status: housing_status,
+      }
+    end
   end
 end
