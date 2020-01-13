@@ -1006,10 +1006,9 @@ module Health
       Health::QualifyingActivity.where(source: self, patient: patient)
     end
 
-    def encounter_report_details
+    def self.encounter_report_details
       {
         source: 'Warehouse',
-        housing_status: nil,
       }
     end
 

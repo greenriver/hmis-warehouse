@@ -169,10 +169,9 @@ module Health
       end
     end
 
-    def encounter_report_details
+    def self.encounter_report_details
       {
         source: 'ETO',
-        housing_status: nil,
       }
     end
   end

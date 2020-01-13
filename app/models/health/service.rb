@@ -58,10 +58,9 @@ module Health
       ]
     end
 
-    def encounter_report_details
+    def self.encounter_report_details
       {
         source: 'Warehouse',
-        housing_status: nil,
       }
     end
 
