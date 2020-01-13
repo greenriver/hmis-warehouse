@@ -29,12 +29,12 @@ module Health
 
           source: source_name(activity),
           encounter_type: activity.source_type.demodulize.titleize,
-          encounter_report: this
+          encounter_report: self
         }
         encounter = activity.source
         record.merge(encounter.encounter_report_details)
 
-        EncounterRecord.create(record)
+        Health::EncounterRecord.create(record)
       end
     end
 
