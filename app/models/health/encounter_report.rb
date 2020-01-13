@@ -31,6 +31,7 @@ module Health
           date: activity.date_of_activity,
           contact_reached: activity.reached_client,
           mode_of_contact: activity.mode_of_contact,
+          provider_name: activity.user_full_name,
 
           encounter_report: self
         }
