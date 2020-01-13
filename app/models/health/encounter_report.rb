@@ -15,6 +15,7 @@ module Health
     has_many :encounter_records
 
     def run_and_save!
+      update(started_at: Time.current)
       activity_scope.find_each do |activity|
         patient = activity.patient
         record = {
@@ -58,6 +59,24 @@ module Health
       else
         'Warehouse'
       end
+    end
+
+    def status
+      if started_at.blank?
+        "Queued"
+      elsif started_at.present? && completed_at.blank?
+        if started_at < 24.hours.ago
+          'Failed'
+        else
+          "Running since #{started_at}"
+        end
+      elsif completed?
+        "Complete"
+      end
+    end
+
+    def completed?
+      completed_at.present?
     end
 
     def activity_scope
