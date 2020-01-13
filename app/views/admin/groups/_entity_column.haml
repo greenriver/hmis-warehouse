@@ -12,7 +12,7 @@
 
   .c-columns__column-actions
     .c-columns__column-action.c-columns__column-action--add.hide.j-column-actions-add
-      = f.input name.parameterize('_').to_sym,  **entity, label: false
+      = f.input name.parameterize(separator: '_').to_sym,  **entity, label: false
     .c-columns__column-action.c-columns__column-action--remove.hide.j-column-actions-remove
       .d-flex.align-items-center
         %p.mr-2.mb-0 Are you sure you want to remove all the <b>#{name.pluralize}</b>?
