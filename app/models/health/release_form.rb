@@ -92,6 +92,13 @@ module Health
       end
     end
 
+    def encounter_source
+      {
+        source: 'Warehouse',
+        encounter_type: self.class.name.demodulize.titleize,
+      }
+    end
+
     def encounter_report_details
       {
         provider_name: nil,

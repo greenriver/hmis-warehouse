@@ -453,6 +453,13 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     rrh_assessment_score
   end
 
+  def encounter_source
+    {
+      source: 'ETO',
+      encounter_type: self.class.name.demodulize.titleize,
+    }
+  end
+
   def encounter_report_details
     {
       provider_name: nil,

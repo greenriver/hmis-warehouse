@@ -236,6 +236,13 @@ module Health
       provider_signed_on && patient_signed_on
     end
 
+    def encounter_source
+      {
+        source: 'Warehouse',
+        encounter_type: self.class.name.demodulize.titleize,
+      }
+    end
+
     def encounter_report_details
       {
         provider_name: provider.full_name,
