@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_13_153534) do
+ActiveRecord::Schema.define(version: 2020_01_13_160822) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -394,6 +394,7 @@ ActiveRecord::Schema.define(version: 2020_01_13_153534) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "completed_at"
+    t.datetime "started_at"
     t.index ["user_id"], name: "index_encounter_reports_on_user_id"
   end
 
