@@ -91,5 +91,12 @@ module Health
         errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end
+
+    def encounter_report_details
+      {
+        provider_name: nil,
+        housing_status: nil,
+      }
+    end
   end
 end

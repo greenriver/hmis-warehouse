@@ -120,6 +120,17 @@ module Health
       ))
     end
 
+    scope :active_between, -> (start_date, end_date) do
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = hpr_t[:enrollment_start_date]
+      d_2_end = hpr_t[:disenrollment_date]
+      joins(:patient_referral).
+        merge(Health::PatientReferral.where(
+          d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end))
+        ))
+    end
+
     scope :unprocessed, -> { where client_id: nil}
     scope :consent_revoked, -> {where.not(consent_revoked: nil)}
     scope :consented, -> {where(consent_revoked: nil)}

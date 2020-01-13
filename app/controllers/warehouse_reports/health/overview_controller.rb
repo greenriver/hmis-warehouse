@@ -7,7 +7,7 @@
 module WarehouseReports::Health
   class OverviewController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :require_can_view_aggregate_health!
+    before_action :require_can_view_member_health_reports!
 
     helper HealthOverviewHelper
 

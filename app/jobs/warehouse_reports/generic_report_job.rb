@@ -32,6 +32,7 @@ module WarehouseReports
       {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
+        'Health::EncounterReport' => ::Health::EncounterReport,
       }
     end
   end
