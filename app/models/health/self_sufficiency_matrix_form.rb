@@ -403,15 +403,9 @@ module Health
       completed_at && completed_at >= 1.years.ago
     end
 
-    def encounter_source
-      {
-        source: 'Warehouse',
-        encounter_type: self.class.name.demodulize.titleize,
-      }
-    end
-
     def encounter_report_details
       {
+        source: 'Warehouse',
         housing_status: self.class::SECTIONS[:housing][self.housing_score],
       }
     end

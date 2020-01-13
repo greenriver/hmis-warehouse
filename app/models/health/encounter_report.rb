@@ -34,15 +34,13 @@ module Health
             contact_reached: activity.reached_client,
             mode_of_contact: activity.mode_of_contact,
             provider_name: activity.user_full_name,
+            encounter_type: activity.source_type.demodulize.titleize,
 
             encounter_report_id: self.id,
           }
+
           encounter = activity.source
-          next unless encounter
-
-          record.merge(encounter.encounter_source)
-          record.merge(encounter.encounter_report_details)
-
+          record.merge(encounter.encounter_report_details) if encounter
           records << record
         end
         Health::EncounterRecord.import(records)

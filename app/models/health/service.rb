@@ -58,15 +58,9 @@ module Health
       ]
     end
 
-    def encounter_source
-      {
-        source: 'Warehouse',
-        encounter_type: self.class.name.demodulize.titleize,
-      }
-    end
-
     def encounter_report_details
       {
+        source: 'Warehouse',
         housing_status: nil,
       }
     end

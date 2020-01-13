@@ -627,13 +627,15 @@ module Health
     end
 
     def veteran_status
-      status = recent_cha&.answer(:r_q3)
-      if status == 'Yes'
-        'Veteran'
-      elsif status == 'No'
-        'Non-veteran'
-      else
-        nil
+      Rails.cache.fetch(['veteran_status', id], expires_in: 2.hours) do
+        status = recent_cha&.answer(:r_q3)
+        if status == 'Yes'
+          'Veteran'
+        elsif status == 'No'
+          'Non-veteran'
+        else
+          nil
+        end
       end
     end
 
