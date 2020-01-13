@@ -12,11 +12,19 @@ module Health
   class EncounterReport < HealthBase
     include Rails.application.routes.url_helpers
 
-    has_many :encounter_records
+    has_many :encounter_records, dependent: :destroy
 
     def run_and_save!
       update(started_at: Time.current)
       activity_scope.find_in_batches do |batch|
+        records = []
+        batch.each do |activity|
+          records << record_from(activity)
+        end
+        Health::EncounterRecord.import(records.compact)
+      end
+
+      activity_scope_with_preload.find_in_batches do |batch|
         records = []
         batch.each do |activity|
           records << record_from(activity)
@@ -48,11 +56,15 @@ module Health
       )
       if activity.source_type.in?(sources_requiring_preload)
         encounter = activity.source
+        return nil unless encounter
+
         record.assign_attributes(encounter.encounter_report_details)
       else
         source_class = activity.source_type.constantize
         record.assign_attributes(source_class.encounter_report_details)
       end
+
+      record
     end
 
     def title
@@ -85,7 +97,7 @@ module Health
       Health::QualifyingActivity.
         in_range(start_date..end_date).
         where.not(source_type: sources_requiring_preload).
-        includes(:patient, :source)
+        includes(:patient)
     end
 
     def activity_scope_with_preload
