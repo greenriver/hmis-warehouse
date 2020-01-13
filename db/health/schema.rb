@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_10_170125) do
+ActiveRecord::Schema.define(version: 2020_01_13_153534) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -393,6 +393,7 @@ ActiveRecord::Schema.define(version: 2020_01_10_170125) do
     t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "completed_at"
     t.index ["user_id"], name: "index_encounter_reports_on_user_id"
   end
 
@@ -1108,8 +1109,8 @@ ActiveRecord::Schema.define(version: 2020_01_10_170125) do
     t.string "hs_subject", default: "Signature Request", null: false
     t.string "hs_title", default: "Signature Request", null: false
     t.text "hs_message", default: "You've been asked to sign a document."
-    t.jsonb "signers", default: [], null: false
-    t.jsonb "signed_by", default: [], null: false
+    t.jsonb "signers", default: "[]", null: false
+    t.jsonb "signed_by", default: "[]", null: false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "expires_at"
@@ -1222,6 +1223,18 @@ ActiveRecord::Schema.define(version: 2020_01_10_170125) do
     t.string "session_id"
     t.string "request_id"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
+  create_table "visits", id: :serial, force: :cascade do |t|
+    t.string "department"
+    t.string "visit_type"
+    t.string "provider"
+    t.string "id_in_source"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "patient_id"
+    t.datetime "date_of_service"
+    t.integer "data_source_id", default: 1, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"

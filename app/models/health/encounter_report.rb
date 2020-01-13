@@ -6,13 +6,15 @@
 
 # ### HIPAA Risk Assessment
 # Risk: none
-# Control: no PHI
+# Control: no PHI, PHI is in encounter_records
 
 module Health
   class EncounterReport < HealthBase
+    include Rails.application.routes.url_helpers
+
     has_many :encounter_records
 
-    def populate!
+    def run_and_save!
       activity_scope.find_each do |activity|
         patient = activity.patient
         record = {
@@ -36,6 +38,15 @@ module Health
 
         Health::EncounterRecord.create(record)
       end
+      update(completed_at: Time.current)
+    end
+
+    def title
+      "Patient Encounters Export"
+    end
+
+    def url
+      warehouse_reports_health_encounter_url(self, host: ENV.fetch('FQDN'), format: :xlsx)
     end
 
     def source_name(activity)

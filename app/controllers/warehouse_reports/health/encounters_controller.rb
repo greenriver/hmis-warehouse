@@ -18,7 +18,11 @@ module WarehouseReports::Health
 
     def create
       report = Health::EncounterReport.create(start_date: @start_date, end_date: @end_date)
-      report.populate!
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: report.class.name,
+        report_id: report.id,
+      )
       redirect_to action: :index
     end
 

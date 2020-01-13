@@ -1,3 +1,8 @@
+- title = "Patient Encounters Export"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
 = render 'filter'
 
 - if @reports.any?
