@@ -449,11 +449,7 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    # scope :disabled, -> do
-    #   dt = Disability.arel_table
-    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    # end
-    #
+
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -929,6 +925,13 @@ module GrdaWarehouse::Hud
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_ids
       disabled_client_scope.pluck(:id)
+    end
+
+    scope :chronically_disabled, -> (end_date=Date.current) do
+      start_date = end_date - 3.years
+      joins(:source_enrollment_disabilities).
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
     end
 
     def deceased?

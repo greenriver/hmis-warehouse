@@ -116,6 +116,14 @@ module GrdaWarehouse::Hud
     has_one :destination_client, through: :client
     belongs_to :data_source
 
+    scope :disabled, -> do
+      where(DisabilityResponse: [1, 2, 3])
+    end
+
+    scope :chronically_disabled, -> do
+      disabled.where(IndefiniteAndImpairs: 1)
+    end
+
     #################################
     # Standard Cohort Scopes
     scope :veteran, -> do
