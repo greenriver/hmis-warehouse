@@ -52,6 +52,16 @@ module Health
       return ids.uniq
     end
 
+    def managed_care_ids
+      return eligibility_response.managed_care_ids unless has_batch
+
+      ids = []
+      batch_responses.each do |response|
+        ids = ids + response.managed_care_ids
+      end
+      return ids.uniq
+    end
+
     def batch_responses
       @batch_responses ||= Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
     end
