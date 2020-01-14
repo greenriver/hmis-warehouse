@@ -33,7 +33,7 @@ module Health
     end
 
     def eligible_ids
-      return eligibility_response.eligible_ids if batch_id.blank?
+      return eligibility_response.eligible_ids if !has_batch
 
       ids = []
       batch_responses.each do |response|
@@ -43,7 +43,7 @@ module Health
     end
 
     def ineligible_ids
-      return eligibility_response.ineligible_ids if batch_id.blank?
+      return eligibility_response.ineligible_ids if !has_batch
 
       ids = []
       batch_responses.each do |response|
