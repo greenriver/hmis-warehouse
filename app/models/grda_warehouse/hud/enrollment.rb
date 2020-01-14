@@ -461,8 +461,10 @@ module GrdaWarehouse::Hud
     end
 
     scope :open_during_range, -> (range) do
-      d_1_start = range.start
-      d_1_end = range.end
+      # convert the range into a standard range for backwards compatability
+      range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
+      d_1_start = range.first
+      d_1_end = range.last
       d_2_start = e_t[:EntryDate]
       d_2_end = ex_t[:ExitDate]
       # Currently does not count as an overlap if one starts on the end of the other
@@ -475,8 +477,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :open_on_date, -> (date=Date.current) do
-      range = ::Filters::DateRange.new(start: date, end: date)
-      open_during_range(range)
+      open_during_range(date..date)
     end
 
     scope :heads_of_households, -> {
