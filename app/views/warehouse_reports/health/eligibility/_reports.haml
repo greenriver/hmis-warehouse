@@ -27,8 +27,9 @@
                 - if error.blank?
                   - eligible_clients = responses.map{ |r| r.eligible_clients }.sum
                   - ineligible_clients = responses.map{ |r| r.ineligible_clients }.sum
-                  %i.icon-checkmark
-                  = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients)"
+                  = link_to warehouse_reports_health_eligibility_result_url(report) do
+                    %i.icon-checkmark
+                    = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients)"
                 - else
                   %i.icon-warning
                   = error
