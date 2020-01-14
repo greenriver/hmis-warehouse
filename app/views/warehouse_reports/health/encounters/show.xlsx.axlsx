@@ -1,0 +1,40 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Patient Encounters') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Medicaid ID',
+      'DOB',
+      'Gender',
+      'Race',
+      'Ethnicity',
+      'Veteran Status',
+      'Date',
+      'Contact Reached',
+      'Mode of Contact',
+      'Provider Name',
+      'Housing Status',
+      'Source',
+      'Encounter Type',
+    ],
+    :style => title)
+  @encounters.each do |encounter|
+    sheet.add_row(
+     [
+        encounter['medicaid_id'],
+        encounter['dob'],
+        encounter['gender'],
+        encounter['race'],
+        encounter['ethnicity'],
+        encounter['veteran_status'],
+        encounter['date'],
+        encounter['contact_reached'],
+        encounter['mode_of_contact'],
+        encounter['provider_name'],
+        encounter['housing_status'],
+        encounter['source'],
+        encounter['encounter_type'],
+     ]
+   )
+  end
+end

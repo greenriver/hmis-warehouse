@@ -8,6 +8,7 @@
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
 
+require "stupidedi"
 module Health
   class EligibilityResponse < HealthBase
     acts_as_paranoid

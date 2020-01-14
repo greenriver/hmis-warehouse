@@ -45,13 +45,13 @@
   = simple_form_for @client, as: :client, url: polymorphic_path(path) do |f|
     .row
       .col-sm-2
-        = f.input :FirstName, label: 'First Name'
+        = f.input :FirstName, label: 'First Name', required: true
       .col-sm-2
         = f.input :MiddleName, label: 'Middle Name'
       .col-sm-2
-        = f.input :LastName, label: 'Last Name'
+        = f.input :LastName, label: 'Last Name', required: true
       .col-sm-3
-        = f.input :DOB, as: :date_picker, label: 'DOB'
+        = f.input :DOB, as: :date_picker, label: 'DOB', required: true
       .col-sm-3
         = f.input :SSN,  input_html: {maxlength: 11, class: 'jSSN'}, label: 'SSN'
     .row

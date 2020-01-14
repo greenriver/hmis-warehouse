@@ -59,7 +59,7 @@ module BostonHmis
     config.sandbox_email_mode = false
 
     # additional library paths
-    config.autoload_paths << Rails.root.join('lib', 'util')
+    config.eager_load_paths << Rails.root.join('lib', 'util')
 
     # force all requests over ssl by default
     config.force_ssl = true
