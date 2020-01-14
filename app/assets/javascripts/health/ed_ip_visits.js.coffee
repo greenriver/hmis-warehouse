@@ -32,21 +32,26 @@ class App.Health.EdIpVisits
                 rotate: 60
             y:
               tick:
-                count: =>
-                  max_value = Math.max.apply(Math, json_data['Emergency'].concat(json_data['Inpatient']))
-                  if max_value % 2
-                    max_value + 1
-                  else
-                    max_value + 2
+                values: @_ticks(json_data)
                 format: (x) ->
                   Math.round(x)
               label:
                 text: 'Encounters'
                 position: 'outer-middle'
+          grid:
+            y:
+              show: true
           size:
             height: 200
           bindto: selector
         })
+
+  _max_value: (data) ->
+    Math.max.apply(Math, data['Emergency'].concat(data['Inpatient']))
+
+  _ticks: (data) =>
+    [1..@_max_value(data)]
+
 
   _colors: (c, d) =>
     key = d
