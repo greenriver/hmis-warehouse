@@ -36,6 +36,7 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
       PersonalID: source_client.PersonalID,
       DisabilityType: 5,
       DisabilityResponse: 1,
+      IndefiniteAndImpairs: 1,
     )
   end
 
