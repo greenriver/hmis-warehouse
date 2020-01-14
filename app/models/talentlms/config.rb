@@ -27,12 +27,9 @@ module Talentlms
 
       json = JSON.parse(result.body_str)
       error = json['error'] if json.is_a?(Hash)
+      raise error['message'] if error.present?
 
-      if error.present?
-        raise error['message']
-      else
-        json
-      end
+      json
     end
 
     # Submit a 'post' request to TalentLMS
@@ -50,12 +47,9 @@ module Talentlms
 
       json = JSON.parse(result.body_str)
       error = json['error'] if json.is_a?(Hash)
+      raise error['message'] if error.present?
 
-      if error.present?
-        raise error['message']
-      else
-        json
-      end
+      json
     end
 
     # Generate a TalentLMS URL for this configuration.
