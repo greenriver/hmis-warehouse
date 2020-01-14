@@ -35,31 +35,37 @@ module Health
     def eligible_ids
       return eligibility_response.eligible_ids unless has_batch
 
-      ids = []
-      batch_responses.each do |response|
-        ids = ids + response.eligible_ids
+      @eligible_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.eligible_ids
+        end
+        return ids.uniq
       end
-      return ids.uniq
     end
 
     def ineligible_ids
       return eligibility_response.ineligible_ids unless has_batch
 
-      ids = []
-      batch_responses.each do |response|
-        ids = ids + response.ineligible_ids
+      @ineligible_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.ineligible_ids
+        end
+        return ids.uniq
       end
-      return ids.uniq
     end
 
     def managed_care_ids
       return eligibility_response.managed_care_ids unless has_batch
 
-      ids = []
-      batch_responses.each do |response|
-        ids = ids + response.managed_care_ids
+      @managed_care_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.managed_care_ids
+        end
+        return ids.uniq
       end
-      return ids.uniq
     end
 
     def batch_responses
