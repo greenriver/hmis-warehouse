@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -80,7 +80,7 @@ module WarehouseReports::Cas
         raise "unanticipated time unit: #{unit}"
       end
       at = GrdaWarehouse::CasReport.arel_table
-      at2 = Arel::Table.new at.table_name
+      at2 = at.dup
       at2.table_alias = 'at2'
       query = at.where(at[:match_started_at].between(@range.start..@range.end + 1.day)).
         join(at2).on(at[:client_id].eq(at2[:client_id]).
@@ -89,7 +89,7 @@ module WarehouseReports::Cas
           and(at2[:match_step].eq(second_step))).
         where(at2[:match_started_at].between(@range.start..@range.end + 1.day)).
         project(
-          seconds_diff(at.engine, at2[:updated_at], at[:updated_at]),
+          seconds_diff(GrdaWarehouse::CasReport, at2[:updated_at], at[:updated_at]),
           at[:match_id],
           at[:program_name],
           at[:sub_program_name],
@@ -99,7 +99,7 @@ module WarehouseReports::Cas
           at[:cas_client_id],
           at[:source_data_source],
         )
-      at.engine.connection.select_rows(query.to_sql).map do |row|
+      GrdaWarehouse::CasReport.connection.select_rows(query.to_sql).map do |row|
         h = Hash[[:days, :id, :program_name, :sub_program_name, :match_started_at, :match_route, :client_id, :cas_client_id, :source_data_source].zip(row)]
         h[:days] = (h[:days].to_f / divisor).round.to_i
         ::OpenStruct.new(h)

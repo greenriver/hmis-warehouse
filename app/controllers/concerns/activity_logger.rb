@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -29,7 +29,7 @@ module ActivityLogger
   included do
     def compose_activity
       attrs = {
-        user_id: current_user.try(:id),
+        user_id: true_user.try(:id),
         controller_name: params[:controller],
         ip_address: request.remote_ip,
         action_name: action_name,
@@ -49,10 +49,10 @@ module ActivityLogger
 
     def log_activity
       @activity.title = begin
-                          send("title_for_#{@activity.action_name}")
-                        rescue StandardError
-                          nil
-                        end
+        send("title_for_#{@activity.action_name}")
+      rescue StandardError
+        nil
+      end
       @activity.save if @activity.user_id.present?
     end
 

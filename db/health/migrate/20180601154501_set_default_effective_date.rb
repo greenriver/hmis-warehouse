@@ -1,4 +1,4 @@
-class SetDefaultEffectiveDate < ActiveRecord::Migration
+class SetDefaultEffectiveDate < ActiveRecord::Migration[4.2]
   def up
     Health::PatientReferral.all.each do |pr|
       pr.update(effective_date: pr.created_at)

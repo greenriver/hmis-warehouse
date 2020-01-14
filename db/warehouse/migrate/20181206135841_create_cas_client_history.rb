@@ -1,4 +1,4 @@
-class CreateCasClientHistory < ActiveRecord::Migration
+class CreateCasClientHistory < ActiveRecord::Migration[4.2]
   def change
     create_table :cas_non_hmis_client_histories do |t|
       t.integer :cas_client_id, null: false, index: true

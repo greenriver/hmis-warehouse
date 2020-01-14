@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -90,9 +90,9 @@ module GrdaWarehouse::Hud
 
     belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services
-    has_one :client, through: :enrollment, inverse_of: :services
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :services
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services
+    has_one :client, through: :enrollment, inverse_of: :services
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :services, optional: true
     has_one :project, through: :enrollment
     has_one :organization, through: :project
 
@@ -101,7 +101,7 @@ module GrdaWarehouse::Hud
     # really, the scope below should just be true, but it isn't; this culls things down to the most recent entry of the given type for the date
     scope :uniqueness_constraint, -> {
       st1 = arel_table
-      st2 = Arel::Table.new st1.table_name
+      st2 = st1.dup
       st2.table_alias = 'st2'
       where(
         st2.project(Arel.star).

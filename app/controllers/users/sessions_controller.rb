@@ -1,14 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 class Users::SessionsController < Devise::SessionsController
   include AuthenticatesWithTwoFactor
-
-  skip_before_action :check_two_factor_requirement, only: [:destroy]
-
   prepend_before_action(
     :authenticate_with_two_factor,
     if: -> { action_name == 'create' && two_factor_enabled? },
@@ -55,10 +52,14 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def valid_otp_attempt?(user)
-    user.validate_and_consume_otp!(user_params[:otp_attempt])
+    user.validate_and_consume_otp!(clean_code)
   end
 
   def valid_backup_code_attempt?(user)
-    user.invalidate_otp_backup_code!(user_params[:otp_attempt])
+    user.invalidate_otp_backup_code!(clean_code)
+  end
+
+  private def clean_code
+    user_params[:otp_attempt].gsub(/[^0-9.]/, '')
   end
 end

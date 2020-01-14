@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module Exporters::Tableau::EntryExit
 
   module_function
     def to_csv(start_date: default_start, end_date: default_end, coc_code: nil, path: nil)
-      model = she_t.engine
+      model = GrdaWarehouse::ServiceHistoryEnrollment
       export_scope = scope_for_export(start_date: default_start, end_date: default_end, coc_code: coc_code)
 
       if path.present?
@@ -26,7 +26,7 @@ module Exporters::Tableau::EntryExit
     end
 
     def columns
-      model = she_t.engine
+      model = GrdaWarehouse::ServiceHistoryEnrollment
       @columns ||= {
         data_source:                      she_t[:data_source_id],
         personal_id:                      c_t[:PersonalID],
@@ -51,7 +51,7 @@ module Exporters::Tableau::EntryExit
         veteran_status:                   c_t[:VeteranStatus], # in use
         gender:                           c_t[:Gender], # in use
         hispanic_latino:                  c_t[:Ethnicity],
-        **c_t.engine.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky # in use
+        **GrdaWarehouse::Hud::Client.race_fields.map{ |f| [ "primary_race_#{f}".to_sym, c_t[f.to_sym] ] }.to_h, # primary race logic is funky # in use
         # disabling_condition:              nil,
         # any_income_30days:                nil,
         res_prior_to_entry:               e_t[:LivingSituation],
@@ -78,7 +78,7 @@ module Exporters::Tableau::EntryExit
     end
 
     def scope_for_export start_date: default_start, end_date: default_end, coc_code: nil
-      model = she_t.engine
+      model = GrdaWarehouse::ServiceHistoryEnrollment
 
       export_scope = model.in_project_type(project_types).entry.
         open_between( start_date: start_date, end_date: end_date ).
@@ -93,7 +93,7 @@ module Exporters::Tableau::EntryExit
         # order( she_t[:last_date_in_program].desc )
 
       if coc_code.present?
-        export_scope = export_scope.merge( pc_t.engine.in_coc coc_code: coc_code )
+        export_scope = export_scope.merge( GrdaWarehouse::Hud::ProjectCoc.in_coc coc_code: coc_code )
       end
 
       return export_scope
@@ -143,7 +143,7 @@ module Exporters::Tableau::EntryExit
           order( she_t[:first_date_in_program].desc ).
           order( she_t[:last_date_in_program].desc )
         data = model.connection.select_all(export_scope.where(she_t[:client_id].in(batch_client_ids)).to_sql)
-        dobs = c_t.engine.where(id: batch_client_ids).pluck(:id, :DOB).to_h
+        dobs = GrdaWarehouse::Hud::Client.where(id: batch_client_ids).pluck(:id, :DOB).to_h
 
         clients = GrdaWarehouse::Hud::Client.where( id: batch_client_ids ).index_by(&:id)
         data_by_client = data.group_by do |row|
@@ -250,7 +250,7 @@ module Exporters::Tableau::EntryExit
               when 0 then 'f'
               end
             when :primary_race
-              fields = c_t.engine.race_fields.select{ |f| row["primary_race_#{f.downcase}"].to_i == 1 }
+              fields = GrdaWarehouse::Hud::Client.race_fields.select{ |f| row["primary_race_#{f.downcase}"].to_i == 1 }
               if fields.many?
                 'Multiracial'
               elsif fields.any?

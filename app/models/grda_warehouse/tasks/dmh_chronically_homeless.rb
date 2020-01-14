@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -17,7 +17,7 @@ module GrdaWarehouse::Tasks
     include TsqlImport
     CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
-  
+
     def run!
       logger.info "====DRY RUN====" if @dry_run
       logger.info "Updating status of DMH chronically homeless clients on #{@date}"
@@ -66,13 +66,13 @@ module GrdaWarehouse::Tasks
           # Add details for any chronically homeless client
           client = GrdaWarehouse::Hud::Client.find(client_id)
           add_client_details(
-            client: client, 
-            days_served: adjusted_homeless_dates_served, 
-            months_homeless: homeless_months.size, 
-            chronic_trigger: @chronic_trigger, 
+            client: client,
+            days_served: adjusted_homeless_dates_served,
+            months_homeless: homeless_months.size,
+            chronic_trigger: @chronic_trigger,
             dmh: true
           )
-         
+
         end
         if @show_progress
           @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
@@ -91,6 +91,6 @@ module GrdaWarehouse::Tasks
         logger.info 'Done updating status of chronically homeless clients'
       end
       logger.info 'Completed chronic calculations'
-    end   
+    end
   end
 end

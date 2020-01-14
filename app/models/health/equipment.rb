@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module Health
     phi_attr :comments, Phi::FreeText
 
     has_many :careplans
-    belongs_to :patient, required: true
+    belongs_to :patient
 
     validates_presence_of :item
     validates :quantity, numericality: { only_integer: true, allow_blank: true }
@@ -45,6 +45,12 @@ module Health
         'Issue',
         'Denied',
       ]
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
 
   end

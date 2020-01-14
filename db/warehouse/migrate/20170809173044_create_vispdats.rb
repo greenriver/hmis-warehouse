@@ -1,4 +1,4 @@
-class CreateVispdats < ActiveRecord::Migration
+class CreateVispdats < ActiveRecord::Migration[4.2]
   def change
     create_table :vispdats do |t|
       t.references :client, index: true

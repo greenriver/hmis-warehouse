@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,7 +11,7 @@ module SimilarityMetric::Tasks
     end
 
     def run!
-      Rails.logger.info "Generating some match candidates: #{@opts.to_json}..."
+      Rails.logger.info "Generating some match candidates: #{@opts.to_json.html_safe}..."
       start_time = Time.now
       metrics = SimilarityMetric::Base.usable.all.reject(&:bogus?)
       clients_source = GrdaWarehouse::Hud::Client

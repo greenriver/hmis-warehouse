@@ -1,4 +1,4 @@
-class UpdateIndexesOnProjectCoC < ActiveRecord::Migration
+class UpdateIndexesOnProjectCoC < ActiveRecord::Migration[4.2]
   def change
     remove_index("ProjectCoC", ["data_source_id"])
     add_index :ProjectCoC, [:data_source_id, :ProjectID, :CoCCode]

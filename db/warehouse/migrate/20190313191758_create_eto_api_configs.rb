@@ -1,4 +1,4 @@
-class CreateEtoApiConfigs < ActiveRecord::Migration
+class CreateEtoApiConfigs < ActiveRecord::Migration[4.2]
   def change
     create_table :eto_api_configs do |t|
       t.references :data_source, null: false, index: true

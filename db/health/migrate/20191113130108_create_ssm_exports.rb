@@ -1,4 +1,4 @@
-class CreateSsmExports < ActiveRecord::Migration
+class CreateSsmExports < ActiveRecord::Migration[4.2]
   def change
     create_table :ssm_exports do |t|
       t.references :user, index: true, null: false

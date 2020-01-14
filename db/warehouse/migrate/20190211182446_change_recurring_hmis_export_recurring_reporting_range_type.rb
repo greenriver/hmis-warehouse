@@ -1,4 +1,4 @@
-class ChangeRecurringHmisExportRecurringReportingRangeType < ActiveRecord::Migration
+class ChangeRecurringHmisExportRecurringReportingRangeType < ActiveRecord::Migration[4.2]
   def up
     change_column :recurring_hmis_exports, :reporting_range, :string, using: "CASE reporting_range WHEN 1 THEN 'fixed'
       WHEN 2 THEN 'n_days' WHEN 3 THEN 'month' WHEN 4 THEN 'year' END"

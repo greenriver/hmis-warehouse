@@ -1,4 +1,4 @@
-class AddActiveAndOthersToCohortClients < ActiveRecord::Migration
+class AddActiveAndOthersToCohortClients < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :active, :boolean, default: true, null: false
     add_column :cohort_clients, :provider, :string

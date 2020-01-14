@@ -1,4 +1,4 @@
-class CreateEligibilityResponse < ActiveRecord::Migration
+class CreateEligibilityResponse < ActiveRecord::Migration[4.2][4.2]
   def change
     create_table :eligibility_responses do |t|
       t.references :eligibility_inquiry

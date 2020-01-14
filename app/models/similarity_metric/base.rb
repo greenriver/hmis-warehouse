@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module SimilarityMetric
-  class Base < ActiveRecord::Base
+  class Base < ApplicationRecord
     self.table_name = :similarity_metrics
 
     scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }

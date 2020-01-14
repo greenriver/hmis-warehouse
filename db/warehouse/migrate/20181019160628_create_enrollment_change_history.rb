@@ -1,4 +1,4 @@
-class CreateEnrollmentChangeHistory < ActiveRecord::Migration
+class CreateEnrollmentChangeHistory < ActiveRecord::Migration[4.2]
   def change
     create_table :enrollment_change_histories do |t|
       t.references :client, index: true, null: false

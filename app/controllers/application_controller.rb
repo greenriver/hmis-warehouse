@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -9,26 +9,26 @@ require 'application_responder'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
+  impersonates :user
 
   include ControllerAuthorization
   include ActivityLogger
-  include ArelHelper
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
   before_action :authenticate_user!
   auto_session_timeout User.timeout_in
 
-  before_filter :set_paper_trail_whodunnit
-  before_filter :set_notification
-  before_filter :set_hostname
+  before_action :set_paper_trail_whodunnit
+  before_action :set_notification
+  before_action :set_hostname
 
-  around_filter :cache_grda_warehouse_base_queries
+  around_action :cache_grda_warehouse_base_queries
   before_action :compose_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :update, :destroy, :create, :new]
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
-  before_filter :set_gettext_locale
+  before_action :set_gettext_locale
   before_action :enforce_2fa!
 
   # Don't start in development if you have pending migrations
@@ -47,6 +47,12 @@ class ApplicationController < ActionController::Base
   end
 
   force_ssl if Rails.configuration.force_ssl
+
+  # To permit merge(link_params) when creating a new link from existing parameters
+  def link_params
+    params.permit!
+  end
+  helper_method :link_params
 
   protected
 
@@ -101,10 +107,19 @@ class ApplicationController < ActionController::Base
 
   def info_for_paper_trail
     {
-      user_id: current_user&.id,
+      user_id: warden&.user&.id,
       session_id: request.env['rack.session.record']&.session_id,
       request_id: request.uuid,
     }
+  end
+
+  # Sets whodunnit
+  def user_for_paper_trail
+    return 'unauthenticated' unless current_user.present?
+    return current_user.id unless true_user.present?
+    return current_user.id if true_user == current_user
+
+    "#{true_user.id} as #{current_user.id}"
   end
 
   def colorize(object)
@@ -153,6 +168,7 @@ class ApplicationController < ActionController::Base
         'account_passwords',
       ],
     )
+    return if controller_path == 'admin/users' && action_name == 'stop_impersonating'
 
     flash[:alert] = 'Two factor authentication must be enabled for this account.'
     redirect_to edit_account_two_factor_path
@@ -161,21 +177,9 @@ class ApplicationController < ActionController::Base
   def check_all_db_migrations
     return true unless Rails.env.development?
 
-    query = 'select version from schema_migrations'
-    # Warehouse
-    all = ActiveRecord::Migrator.migrations(['db/warehouse/migrate']).collect(&:version)
-    migrated = GrdaWarehouseBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
-
-    # Health
-    all = ActiveRecord::Migrator.migrations(['db/health/migrate']).collect(&:version)
-    migrated = HealthBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
-
-    # Reporting
-    all = ActiveRecord::Migrator.migrations(['db/reporting/migrate']).collect(&:version)
-    migrated = ReportingBase.connection.select_rows(query).flatten(1).map(&:to_i)
-    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" unless (all - migrated).empty?
+    raise ActiveRecord::MigrationError, "Warehouse Migrations pending. To resolve this issue, run:\n\n\t bin/rake warehouse:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(GrdaWarehouseBase.connection)
+    raise ActiveRecord::MigrationError, "Health Migrations pending. To resolve this issue, run:\n\n\t bin/rake health:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(HealthBase.connection)
+    raise ActiveRecord::MigrationError, "Reporting Migrations pending. To resolve this issue, run:\n\n\t bin/rake reporting:db:migrate RAILS_ENV=#{::Rails.env}" if ActiveRecord::Migration.check_pending!(ReportingBase.connection)
   end
 
   def pjax_request?

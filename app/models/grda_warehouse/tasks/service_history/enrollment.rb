@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -267,6 +267,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @unaccompanied_youth = nil
       @parenting_youth = nil
       @parenting_juvenile = nil
+      @unaccompanied_minor = nil
       @children_only = nil
       @individual_adult = nil
       @individual_elder = nil
@@ -302,8 +303,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(id: id).
         includes(:exit, :services, :destination_client).
         references(:exit, :services, :destination_client).
-        order(*enrollment_column_order.map(&:to_sql).join(', ') + ' NULLS FIRST').
-        pluck(nf('CONCAT', hash_columns).to_sql)
+        order(*enrollment_column_order).
+        pluck(Arel.sql(nf('CONCAT', hash_columns).to_sql))
     end
 
     def default_day
@@ -334,6 +335,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         unaccompanied_youth: unaccompanied_youth?,
         parenting_youth: parenting_youth?,
         parenting_juvenile: parenting_juvenile?,
+        unaccompanied_minor: unaccompanied_minor?,
         head_of_household: head_of_household?,
         children_only: children_only?,
         individual_adult: individual_adult?,
@@ -390,7 +392,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             data_source_id: self.data_source_id
           ).where.not(
             PersonalID: self.PersonalID
-          ).pluck(c_t[:DOB].as('dob').to_sql)
+          ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
       end
     end
 
@@ -430,6 +432,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
+    def minor?(age)
+      age.present? && age > 12 && child?(age)
+    end
+
     def child?(age)
       age.present? && age < 18
     end
@@ -464,6 +470,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def parenting_juvenile?
       @parenting_juvenile ||= begin
         child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0
+      end
+    end
+
+    # client is 13 - 17 and there are no adults in the household
+    def unaccompanied_minor?
+      @unaccompanied_minor ||= begin
+        minor?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
       end
     end
 
@@ -554,7 +567,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           ProjectID: self.ProjectID,
           RelationshipToHoH: [1, nil]
         ).
-        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
         pluck(:PersonalID)&.first || self.PersonalID
       end
     end
@@ -569,7 +582,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           ProjectID: self.ProjectID,
           RelationshipToHoH: [nil, 1]
         ).
-        order(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST').
+        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
         pluck(:MoveInDate)&.first || self.MoveInDate
       end
     end
@@ -673,16 +686,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def self.enrollment_column_order
       @enrollment_column_order ||= begin
         columns = enrollment_hash_columns.values.map do |col|
-          e_t[col].asc
+          Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += exit_hash_columns.values.map do |col|
-          ex_t[col].asc
+          Arel.sql(ex_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += service_hash_columns.values.map do |col|
-          s_t[col].asc
+          Arel.sql(s_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns += client_hash_columns.values.map do |col|
-          c_t[col].asc
+          Arel.sql(c_t[col].asc.to_sql + ' NULLS FIRST')
         end
         columns
       end

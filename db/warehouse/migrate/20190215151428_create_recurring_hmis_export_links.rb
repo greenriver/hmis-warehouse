@@ -1,4 +1,4 @@
-class CreateRecurringHmisExportLinks < ActiveRecord::Migration
+class CreateRecurringHmisExportLinks < ActiveRecord::Migration[4.2]
   def change
     create_table :recurring_hmis_export_links do |t|
       t.references :hmis_export

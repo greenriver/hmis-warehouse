@@ -1,4 +1,4 @@
-class CreateWarehouseReports < ActiveRecord::Migration
+class CreateWarehouseReports < ActiveRecord::Migration[4.2]
   def change
     create_table :warehouse_reports do |t|
       t.json :parameters

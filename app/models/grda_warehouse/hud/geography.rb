@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -91,7 +91,7 @@ module GrdaWarehouse::Hud
     end
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies
     belongs_to :data_source
 

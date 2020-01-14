@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -32,6 +32,7 @@ module WarehouseReports
       {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
+        'Health::EncounterReport' => ::Health::EncounterReport,
       }
     end
   end

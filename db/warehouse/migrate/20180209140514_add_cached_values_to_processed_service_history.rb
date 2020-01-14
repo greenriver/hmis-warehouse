@@ -1,4 +1,4 @@
-class AddCachedValuesToProcessedServiceHistory < ActiveRecord::Migration
+class AddCachedValuesToProcessedServiceHistory < ActiveRecord::Migration[4.2]
   def change
     add_column :warehouse_clients_processed, :first_homeless_date, :date
     add_column :warehouse_clients_processed, :last_homeless_date, :date

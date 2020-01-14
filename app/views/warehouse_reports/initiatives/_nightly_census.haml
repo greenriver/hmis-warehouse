@@ -46,10 +46,10 @@
     - content_for :page_js do
       :javascript
         $(document).ready(function() {
-          var chartData = #{chart_data.to_json}
-          var chartId = '#'+#{chart_id.to_json}
-          var legendId = '#'+#{legend_id.to_json}
-          var tableId = '#'+#{table_id.to_json}
+          var chartData = #{chart_data.to_json.html_safe}
+          var chartId = '#'+#{chart_id.to_json.html_safe}
+          var legendId = '#'+#{legend_id.to_json.html_safe}
+          var tableId = '#'+#{table_id.to_json.html_safe}
           var chart;
           $(window).on('resize', function() {
             if($(chartId).is(':visible')) {

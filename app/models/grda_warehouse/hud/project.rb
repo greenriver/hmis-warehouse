@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -156,7 +156,7 @@ module GrdaWarehouse::Hud
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
 
     has_and_belongs_to_many :project_groups,
       class_name: GrdaWarehouse::ProjectGroup.name,
@@ -376,7 +376,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    private_class_method def self.has_access_to_project_through_viewable_entities(user, q, qc)
+    def self.has_access_to_project_through_viewable_entities(user, q, qc)
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -407,7 +407,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_organization(user, q, qc)
+    def self.has_access_to_project_through_organization(user, q, qc)
       viewability_table   = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table       = quoted_table_name
       organization_table  = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -445,7 +445,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_data_source(user, q, qc)
+    def self.has_access_to_project_through_data_source(user, q, qc)
       data_source_table = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table     = quoted_table_name
@@ -479,7 +479,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_project_through_coc_codes(user, q, qc)
+    def self.has_access_to_project_through_coc_codes(user, q, qc)
       return '(1=0)' unless user.coc_codes.any?
 
       project_coc_table = GrdaWarehouse::Hud::ProjectCoc.quoted_table_name
@@ -755,7 +755,7 @@ module GrdaWarehouse::Hud
         self.viewable_by(user).
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name').to_sql, :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
+            pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
             options[org] ||= []
             options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
           end

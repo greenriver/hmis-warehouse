@@ -43,7 +43,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
     context 'with valid attributes' do
       before do # { post :create, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
-        post admin_administrative_events_path, grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event)
+        post admin_administrative_events_path, params: { grda_warehouse_administrative_event: attributes_for(:grda_warehouse_administrative_event) }
       end
 
       it 'creates administrative event' do
@@ -57,7 +57,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
     context 'with invalid attributes' do
       before do # { post :create, grda_warehouse_administrative_event: invalid_attr }
-        post admin_administrative_events_path, grda_warehouse_administrative_event: invalid_attr
+        post admin_administrative_events_path, params: { grda_warehouse_administrative_event: invalid_attr }
       end
 
       it 'does not save the new administrative_event' do
@@ -78,7 +78,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
     context 'with valid attributes' do
       before do
-        patch admin_administrative_event_path(administrative_event), grda_warehouse_administrative_event: valid_attr
+        patch admin_administrative_event_path(administrative_event), params: { grda_warehouse_administrative_event: valid_attr }
         administrative_event.reload
       end
 
@@ -101,7 +101,7 @@ RSpec.describe Admin::AdministrativeEventsController, type: :request do
 
     context 'with invalid attributes' do
       before do
-        patch admin_administrative_event_path(administrative_event), grda_warehouse_administrative_event: invalid_attr
+        patch admin_administrative_event_path(administrative_event), params: { grda_warehouse_administrative_event: invalid_attr }
         administrative_event.reload
       end
 

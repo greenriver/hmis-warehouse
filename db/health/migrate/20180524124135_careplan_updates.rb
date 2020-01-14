@@ -1,4 +1,4 @@
-class CareplanUpdates < ActiveRecord::Migration
+class CareplanUpdates < ActiveRecord::Migration[4.2][4.2]
   def change
     add_column :careplans, :initial_date, :datetime
     add_column :careplans, :review_date, :datetime

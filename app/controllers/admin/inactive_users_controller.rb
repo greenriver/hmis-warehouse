@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -31,7 +31,7 @@ module Admin
     def reactivate
       @user = User.inactive.find(params[:id].to_i)
       pass = Devise.friendly_token(50)
-      @user.update(active: true, password: pass, password_confirmation: pass)
+      @user.update(active: true, expired_at: nil, password: pass, password_confirmation: pass)
       @user.send_reset_password_instructions
       redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end

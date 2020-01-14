@@ -1,4 +1,4 @@
-class CreatePremiumPayments < ActiveRecord::Migration
+class CreatePremiumPayments < ActiveRecord::Migration[4.2]
   def change
     create_table :premium_payments do |t|
       t.references :user

@@ -1,4 +1,4 @@
-class CreateClidClientGuiDs < ActiveRecord::Migration
+class CreateClidClientGuiDs < ActiveRecord::Migration[4.2]
   def change
     create_table :api_client_data_source_ids do |t|
       t.string :warehouse_id, index: true

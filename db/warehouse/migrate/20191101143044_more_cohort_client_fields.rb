@@ -1,4 +1,4 @@
-class MoreCohortClientFields < ActiveRecord::Migration
+class MoreCohortClientFields < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :user_numeric_5, :integer
     add_column :cohort_clients, :user_numeric_6, :integer

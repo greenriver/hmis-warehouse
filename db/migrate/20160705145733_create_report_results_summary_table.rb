@@ -1,4 +1,4 @@
-class CreateReportResultsSummaryTable < ActiveRecord::Migration
+class CreateReportResultsSummaryTable < ActiveRecord::Migration[4.2]
   def change
     create_table :report_results_summaries do |t|
       t.string :name, null: false

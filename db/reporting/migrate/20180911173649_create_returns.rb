@@ -1,4 +1,4 @@
-class CreateReturns < ActiveRecord::Migration
+class CreateReturns < ActiveRecord::Migration[4.2]
   def change
     create_table :returns do |t|
       t.integer :service_history_enrollment_id, null: false, index: true

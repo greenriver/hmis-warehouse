@@ -1,4 +1,4 @@
-class AddDisabilityIndexes < ActiveRecord::Migration
+class AddDisabilityIndexes < ActiveRecord::Migration[4.2]
   def change
     add_index :Disabilities, :ProjectEntryID
     add_index :IncomeBenefits, :ProjectEntryID

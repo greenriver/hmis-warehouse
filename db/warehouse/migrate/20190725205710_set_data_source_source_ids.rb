@@ -1,4 +1,4 @@
-class SetDataSourceSourceIds < ActiveRecord::Migration
+class SetDataSourceSourceIds < ActiveRecord::Migration[4.2]
   def up
     # Pre-populate source_id with most recent SourceID from the export
     GrdaWarehouse::Hud::Export.select(:SourceID, :data_source_id, :ExportDate).order(ExportDate: :desc).distinct.each do |export|

@@ -1,4 +1,4 @@
-class CreateSdhCaseManagementNoteActivities < ActiveRecord::Migration
+class CreateSdhCaseManagementNoteActivities < ActiveRecord::Migration[4.2][4.2]
   def change
     create_table :sdh_case_management_note_activities do |t|
       t.integer :note_id

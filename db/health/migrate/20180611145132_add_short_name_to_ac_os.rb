@@ -1,4 +1,4 @@
-class AddShortNameToAcOs < ActiveRecord::Migration
+class AddShortNameToAcOs < ActiveRecord::Migration[4.2]
   def change
     add_column :accountable_care_organizations, :short_name, :string
     add_column :accountable_care_organizations, :mco_pid, :integer

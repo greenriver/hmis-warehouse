@@ -1,4 +1,4 @@
-class CreateGenerateServiceHistoryBatchLog < ActiveRecord::Migration
+class CreateGenerateServiceHistoryBatchLog < ActiveRecord::Migration[4.2]
   def change
     add_column :generate_service_history_log, :batches, :integer
     create_table :generate_service_history_batch_logs do |t|

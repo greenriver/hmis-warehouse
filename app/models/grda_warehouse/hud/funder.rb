@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -60,7 +60,7 @@ module GrdaWarehouse::Hud
     end
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
     belongs_to :data_source
 
     scope :open_between, -> (start_date:, end_date: ) do

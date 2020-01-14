@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -108,13 +108,21 @@ module GrdaWarehouse::Hud
       end
     end
 
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
     has_one :client, through: :enrollment, inverse_of: :disabilities
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     has_one :project, through: :enrollment
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :disabilities, optional: true
     has_one :destination_client, through: :client
     belongs_to :data_source
+
+    scope :disabled, -> do
+      where(DisabilityResponse: [1, 2, 3])
+    end
+
+    scope :chronically_disabled, -> do
+      disabled.where(IndefiniteAndImpairs: 1)
+    end
 
     #################################
     # Standard Cohort Scopes

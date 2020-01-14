@@ -1,4 +1,4 @@
-class AddHmisExportReport < ActiveRecord::Migration
+class AddHmisExportReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Operational Reports' => [
       {

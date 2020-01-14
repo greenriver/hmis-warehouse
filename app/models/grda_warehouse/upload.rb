@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,9 +11,9 @@ module GrdaWarehouse
     acts_as_paranoid
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
-    belongs_to :user, required: true
+    belongs_to :user
 
-    belongs_to :delayed_job, required: false, class_name: Delayed::Job.name
+    belongs_to :delayed_job, optional: true, class_name: Delayed::Job.name
     has_one :import_log, class_name: GrdaWarehouse::ImportLog.name, required: false
 
     mount_uploader :file, ImportUploader

@@ -1,4 +1,4 @@
-class CreateCohortColumnOptionsTable < ActiveRecord::Migration
+class CreateCohortColumnOptionsTable < ActiveRecord::Migration[4.2]
   def change
     create_table :cohort_column_options do |t|
       t.string :cohort_column, null: false

@@ -1,4 +1,4 @@
-class CreateDataMonitoring < ActiveRecord::Migration
+class CreateDataMonitoring < ActiveRecord::Migration[4.2]
   def change
     create_table :data_monitorings do |t|
       t.references :client, null: false, index: true

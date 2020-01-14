@@ -1,4 +1,4 @@
-class AddDetailReportAccess < ActiveRecord::Migration
+class AddDetailReportAccess < ActiveRecord::Migration[4.2]
 
   REPORTS = {
     'Operational Reports' => [

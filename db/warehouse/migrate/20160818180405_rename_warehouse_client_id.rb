@@ -1,4 +1,4 @@
-class RenameWarehouseClientId < ActiveRecord::Migration
+class RenameWarehouseClientId < ActiveRecord::Migration[4.2]
   def change
     rename_column :warehouse_clients_processed, :warehouse_client_id, :client_id
     rename_column :warehouse_client_service_history, :unduplicated_client_id, :client_id

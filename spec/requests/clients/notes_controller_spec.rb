@@ -29,7 +29,7 @@ RSpec.describe Clients::NotesController, type: :request do
   describe 'POST #create_note' do
     context 'with valid attributes' do
       before do
-        post client_notes_path(client), note: attributes_for(:grda_warehouse_client_notes_chronic_justification)
+        post client_notes_path(client), params: { note: attributes_for(:grda_warehouse_client_notes_chronic_justification) }
       end
 
       it 'creates client note' do
@@ -46,7 +46,7 @@ RSpec.describe Clients::NotesController, type: :request do
     end
 
     context 'with invalid attributes' do
-      before { post client_notes_path(client), note: { note: '' } } # invalid because note is an empty string
+      before { post client_notes_path(client), params: { note: { note: '' } } } # invalid because note is an empty string
 
       it 'does not save the new contact' do
         expect(GrdaWarehouse::ClientNotes::ChronicJustification.count).to eq(initial_note_count)

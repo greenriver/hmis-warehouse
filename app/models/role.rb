@@ -1,10 +1,10 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class Role < ActiveRecord::Base
+class Role < ApplicationRecord
   has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :users, through: :user_roles
   validates :name, presence: true
@@ -380,6 +380,18 @@ class Role < ActiveRecord::Base
       },
       can_view_confidential_enrollment_details: {
         description: 'Anyone with this permission will see the name of confidential projects in locations where it is associated with a client or enrollment.',
+        administrative: true,
+      },
+      can_manage_ad_hoc_data_sources: {
+        description: 'Can this user manage Ad-Hoc Data sources?',
+        administrative: true,
+      },
+      can_view_client_ad_hoc_data_sources: {
+        description: 'Can this user see if a client matched Ad-Hoc Data sources?',
+        administrative: false,
+      },
+      can_impersonate_users: {
+        description: 'Can become any other user.  Anyone with this permission can impersonate any other user and see whatever they would see.',
         administrative: true,
       },
     }

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -12,11 +12,11 @@ module GrdaWarehouse::Confidence
     belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: :resource_id
 
     attr_accessor :notifier
+    after_initialize :add_notifier
 
-    def initialize
+    def add_notifier
       setup_notifier('Confidence Generator -- Source Exits')
     end
-
 
     def self.collection_dates_for_client client_id
       [{

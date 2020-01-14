@@ -1,4 +1,4 @@
-class CreateCasHoused < ActiveRecord::Migration
+class CreateCasHoused < ActiveRecord::Migration[4.2]
   def change
     create_table :cas_houseds do |t|
       t.references :client, index: true, null: false

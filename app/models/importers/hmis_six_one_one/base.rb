@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 require 'zip'
 require 'csv'
 require 'charlock_holmes'
-require 'newrelic_rpm'
+# require 'newrelic_rpm'
 
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file

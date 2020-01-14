@@ -1,5 +1,13 @@
 - if user.invitation_status == :active
-  Active
+  - if user.access_locked?
+    Account locked.
+    = link_to 'Unlock', unlock_admin_user_path(user), method: :post
+  - elsif user.expired?
+    Account Expired #{user.expired_at}
+  - elsif user.future_expiration?
+    Account will expire on #{user.expired_at.to_date}
+  - else
+    Active
 - elsif user.invitation_status == :pending_confirmation
   Pending Confirmation.
   %br

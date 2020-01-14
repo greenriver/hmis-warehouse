@@ -1,4 +1,4 @@
-class AddHealthAgencyPermission < ActiveRecord::Migration
+class AddHealthAgencyPermission < ActiveRecord::Migration[4.2]
   def up
     Role.ensure_permissions_exist
     Role.where(name: 'Health agency manager').first_or_create(

@@ -1,4 +1,4 @@
-class AddHashCalculationsToHmisData < ActiveRecord::Migration
+class AddHashCalculationsToHmisData < ActiveRecord::Migration[4.2]
   def change
     [
       "Affiliation",

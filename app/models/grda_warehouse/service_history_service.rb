@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,6 +11,12 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   belongs_to :service_history_enrollment, inverse_of: :service_history_services
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :enrollment, through: :service_history_enrollment
+
+  scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
+    # FIXME is all the right choice if service_scope returns nil?
+    (send(service_scope) || all).
+      where(date: start_date..end_date)
+  end
 
   scope :hud_project_type, -> (project_types) do
     in_project_type(project_types)

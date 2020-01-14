@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -372,7 +372,7 @@ module Exporters::HmisTwentyTwenty
         and(e_t[:data_source_id].eq(c_t[:data_source_id]))
       ).where(
         project_exists_for_enrollment
-      ).exists
+      ).arel.exists
     end
 
 
@@ -380,7 +380,7 @@ module Exporters::HmisTwentyTwenty
       project_scope.where(
         p_t[:ProjectID].eq(e_t[:ProjectID]).
         and(p_t[:data_source_id].eq(e_t[:data_source_id]))
-      ).exists
+      ).arel.exists
     end
 
     def setup_export

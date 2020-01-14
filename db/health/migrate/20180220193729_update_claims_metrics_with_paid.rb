@@ -1,4 +1,4 @@
-class UpdateClaimsMetricsWithPaid < ActiveRecord::Migration
+class UpdateClaimsMetricsWithPaid < ActiveRecord::Migration[4.2]
   def change
     tables = [
       :claims_top_conditions,

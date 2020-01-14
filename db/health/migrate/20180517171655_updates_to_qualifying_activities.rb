@@ -1,4 +1,4 @@
-class UpdatesToQualifyingActivities < ActiveRecord::Migration
+class UpdatesToQualifyingActivities < ActiveRecord::Migration[4.2]
   def change
     remove_column :qualifying_activities, :note_id, :integer
     add_column :qualifying_activities, :source_type, :string

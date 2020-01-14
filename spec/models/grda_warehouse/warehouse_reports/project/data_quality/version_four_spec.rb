@@ -127,10 +127,13 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
       end
 
       it 'no service in the past month' do
-        source_with_service_count = enrolled_clients.joins(:services).
+        source_with_service_count = enrolled_clients.
+          joins(:services).
           merge(
             GrdaWarehouse::Hud::Service.where(DateProvided: (@range.end - 30.days..@range.end)),
-          ).count
+          ).
+          distinct.
+          count
         with_service_count = @report.enrollments.where(service_within_last_30_days: true).count
         expect(source_with_service_count).to eq with_service_count
       end
@@ -163,6 +166,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
   end
 
   def import_fixture
+    cleanup_fixture
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :s3)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
     @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_data_quality_v4'

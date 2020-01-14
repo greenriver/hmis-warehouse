@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -119,18 +119,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     homeless_scope = entry.
       ongoing(on_date: date).
-      homeless(chronic_types_only: chronic_types_only).
-      select(:id).to_sql
+      homeless(chronic_types_only: chronic_types_only)
 
     housed_scope = entry.ongoing(on_date: date).
       in_project_type(residential_project_types).
-      with_move_in_date_before(date).
-      select(:client_id).to_sql
+      with_move_in_date_before(date)
 
-    where(
-      she_t[:id].in(Arel.sql(homeless_scope)).
-      and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
-    )
+    where(id: homeless_scope).
+      where.not(client_id: housed_scope.select(:client_id))
   end
 
   scope :hud_currently_homeless, -> (date: Date.current, chronic_types_only: false) do
@@ -142,18 +138,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
     homeless_scope = entry.
       ongoing(on_date: date).
-      homeless(chronic_types_only: chronic_types_only).
-      select(:id).to_sql
+      homeless(chronic_types_only: chronic_types_only)
 
     housed_scope = entry.ongoing(on_date: date).
       hud_project_type(residential_project_types).
-      with_move_in_date_before(date).
-      select(:client_id).to_sql
+      with_move_in_date_before(date)
 
-    where(
-      she_t[:id].in(Arel.sql(homeless_scope)).
-      and(she_t[:client_id].not_in(Arel.sql(housed_scope)))
-    )
+    where(id: homeless_scope).
+      where.not(client_id: housed_scope.select(:client_id))
   end
 
   scope :service_within_date_range, -> (start_date: , end_date: ) do
@@ -245,12 +237,14 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    where(GrdaWarehouse::ServiceHistoryService.where(
-        shs_t[:service_history_enrollment_id].eq(arel_table[:id])
-      ).
-      where(date: (start_date..end_date)).
-      send(service_scope).
-      exists)
+    joins(:service_history_services).
+      merge(GrdaWarehouse::ServiceHistoryService.service_between(start_date: start_date, end_date: end_date, service_scope: service_scope))
+    # where(GrdaWarehouse::ServiceHistoryService.where(
+    #     shs_t[:service_history_enrollment_id].eq(arel_table[:id])
+    #   ).
+    #   where(date: start_date..end_date)).
+    #   send(service_scope).
+    #   exists)
   end
 
   scope :heads_of_households, -> do
@@ -343,6 +337,10 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       parenting_juvenile
     end
 
+    scope :unaccompanied_minors, -> do
+      where(unaccompanied_minor: true)
+    end
+
     scope :individual_adult, -> do
       individual.adult
     end
@@ -366,6 +364,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         :children_only,
         :parenting_juvenile,
         :parenting_children,
+        :unaccompanied_minors,
         :individual_adult,
         :individual_adults,
       ]

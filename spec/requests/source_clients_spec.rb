@@ -67,11 +67,13 @@ RSpec.describe SourceClientsController, type: :request do
 
     it 'allows update' do
       sign_in user
-      patch source_client_path(client), client: {
-        SSN: '123456789',
-        FirstName: 'First',
-        LastName: 'Last',
-        DOB: '2019-09-16',
+      patch source_client_path(client), params: {
+        client: {
+          SSN: '123456789',
+          FirstName: 'First',
+          LastName: 'Last',
+          DOB: '2019-09-16',
+        },
       }
       expect(response).to redirect_to(client_path(destination))
     end

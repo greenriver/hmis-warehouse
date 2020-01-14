@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -90,6 +90,12 @@ module Health
       if health_file.present? && health_file.invalid?
         errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
   end
 end

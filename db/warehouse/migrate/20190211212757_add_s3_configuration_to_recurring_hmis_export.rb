@@ -1,4 +1,4 @@
-class AddS3ConfigurationToRecurringHmisExport < ActiveRecord::Migration
+class AddS3ConfigurationToRecurringHmisExport < ActiveRecord::Migration[4.2]
   def change
     add_column :recurring_hmis_exports, :s3_region, :string
     add_column :recurring_hmis_exports, :s3_bucket, :string

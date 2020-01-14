@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -8,6 +8,7 @@
 # Risk: Describes an insurance eligibility response and contains PHI
 # Control: PHI attributes documented
 
+require "stupidedi"
 module Health
   class EligibilityResponse < HealthBase
     acts_as_paranoid
@@ -16,7 +17,7 @@ module Health
 
     mount_uploader :file, EligibilityResponseFileUploader
 
-    belongs_to :eligibility_inquiry, class_name: Health::EligibilityInquiry
+    belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user
 
     def subscriber_ids

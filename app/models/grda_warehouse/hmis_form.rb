@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -451,6 +451,13 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def value_for_rrh_cas_tag
     rrh_assessment_score
+  end
+
+  def encounter_report_details
+    {
+      source: 'ETO',
+      housing_status: housing_status,
+    }
   end
 
   # a display order we use on the client dashboard

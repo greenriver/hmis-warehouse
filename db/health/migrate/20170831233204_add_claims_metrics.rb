@@ -1,4 +1,4 @@
-class AddClaimsMetrics < ActiveRecord::Migration
+class AddClaimsMetrics < ActiveRecord::Migration[4.2]
   def change
     create_table :claims_claim_volume_location_month do |t|
       t.string :medicaid_id, index: true, null: false

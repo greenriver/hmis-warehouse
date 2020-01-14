@@ -17,30 +17,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "\n"
 
-msgid "\"CHA #{answer_key}\""
-msgstr ""
-
-msgid "\"CHA #{code}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{field.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_SUBTITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_TITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
-msgstr ""
-
 msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
@@ -75,6 +51,30 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "CHA #{answer_key}"
+msgstr ""
+
+msgid "CHA #{code}_HEADER"
+msgstr ""
+
+msgid "CHA #{field.upcase}"
+msgstr ""
+
+msgid "CHA #{section_code}_SUBTITLE"
+msgstr ""
+
+msgid "CHA #{section_code}_TITLE"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_HEADER"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_SUBHEADER"
 msgstr ""
 
 msgid "CHA A_Q1"
@@ -3525,9 +3525,6 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
-msgstr ""
-
-msgid "Health Report"
 msgstr ""
 
 msgid "Housing"

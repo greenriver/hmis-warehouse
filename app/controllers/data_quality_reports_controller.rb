@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -115,7 +115,7 @@ class DataQualityReportsController < ApplicationController
       @data = support[@key].with_indifferent_access
       respond_to do |format|
         format.xlsx do
-          render xlsx: :index, filename: "support-#{@key}.xlsx"
+          render xlsx: 'index', filename: "support-#{@key}.xlsx"
         end
         format.html do
           render layout: 'pjax_modal_content' if params[:layout].present? && params[:layout] == 'false'

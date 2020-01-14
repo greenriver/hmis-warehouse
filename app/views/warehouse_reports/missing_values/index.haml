@@ -41,13 +41,13 @@
         }
         $columns.trigger('change');
       }
-      $('#client-cols').click(function(){addField(#{@query.possible_client_columns.to_json});});
-      $('#enrollment-cols').click(function(){addField(#{@query.possible_enrollment_columns.to_json});});
-      $('#default-cols').click(function(){addField(#{@query.default_columns.to_json})});
+      $('#client-cols').click(function(){addField(#{@query.possible_client_columns.to_json.html_safe});});
+      $('#enrollment-cols').click(function(){addField(#{@query.possible_enrollment_columns.to_json.html_safe});});
+      $('#default-cols').click(function(){addField(#{@query.default_columns.to_json.html_safe})});
       $('#reset').click(function(){location.reload();});
 
       // chart stuff
-      var data = #{@query.counts.to_a.to_json};
+      var data = #{@query.counts.to_a.to_json.html_safe};
       var labels = data.map(function(a){ return a[0]; });
       var values = data.map(function(a){ return a[1].total; });
       var $chart = $('#counts');

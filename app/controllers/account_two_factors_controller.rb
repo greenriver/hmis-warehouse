@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -50,6 +50,10 @@ class AccountTwoFactorsController < ApplicationController
   end
 
   private def valid_otp_attempt?
-    @user.validate_and_consume_otp!(account_params[:otp_attempt])
+    @user.validate_and_consume_otp!(clean_code)
+  end
+
+  private def clean_code
+    account_params[:otp_attempt].gsub(/[^0-9.]/, '')
   end
 end

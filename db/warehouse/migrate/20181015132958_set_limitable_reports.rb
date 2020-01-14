@@ -1,4 +1,4 @@
-class SetLimitableReports < ActiveRecord::Migration
+class SetLimitableReports < ActiveRecord::Migration[4.2]
   def up
     unlimited_urls = [
       'warehouse_reports/cas/apr',

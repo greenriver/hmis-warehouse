@@ -1,4 +1,4 @@
-class AddCasReadinessFieldsToClient < ActiveRecord::Migration
+class AddCasReadinessFieldsToClient < ActiveRecord::Migration[4.2]
   def change
     add_column :Client, :rrh_assessment_score, :integer
     add_column :Client, :ssvf_eligible, :boolean, default: false, null: false

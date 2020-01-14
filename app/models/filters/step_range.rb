@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -27,7 +27,7 @@ module Filters
           pluck(:match_step, :decision_order).to_h
         steps = step_order.keys
         at = scope.arel_table
-        at2 = Arel::Table.new at.table_name
+        at2 = at.dup
         at2.table_alias = 'at2'
         followups = steps.map do |step|
           followups = scope.where(

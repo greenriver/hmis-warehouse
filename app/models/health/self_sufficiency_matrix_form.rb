@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -403,5 +403,11 @@ module Health
       completed_at && completed_at >= 1.years.ago
     end
 
+    def encounter_report_details
+      {
+        source: 'Warehouse',
+        housing_status: self.class::SECTIONS[:housing][self.housing_score],
+      }
+    end
   end
 end

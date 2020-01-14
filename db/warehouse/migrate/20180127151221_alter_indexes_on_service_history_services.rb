@@ -1,4 +1,4 @@
-class AlterIndexesOnServiceHistoryServices < ActiveRecord::Migration
+class AlterIndexesOnServiceHistoryServices < ActiveRecord::Migration[4.2]
   def up
     GrdaWarehouse::ServiceHistoryService.sub_tables.each do |year, name|
       remove_index name, name: "index_shs_#{year}_date_en_id"

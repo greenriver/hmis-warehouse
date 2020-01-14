@@ -1,5 +1,5 @@
 # tried to do this using reset_column_information in one migration, but that hung indefinitely
-class CorrectMungedPersonIdData < ActiveRecord::Migration
+class CorrectMungedPersonIdData < ActiveRecord::Migration[4.2]
   MUNGERS = [
     "Boston Department of Neighborhood Development",
     "Boston Public Health Commission",

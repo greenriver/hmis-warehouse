@@ -1,4 +1,4 @@
-class AddHudTableUniqueKeys < ActiveRecord::Migration
+class AddHudTableUniqueKeys < ActiveRecord::Migration[4.2]
   HUD_TABLES = [
       GrdaWarehouse::Hud::Affiliation,
       GrdaWarehouse::Hud::Client,

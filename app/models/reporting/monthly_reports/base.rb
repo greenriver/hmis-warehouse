@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -26,6 +26,7 @@ module Reporting::MonthlyReports
         youth: Reporting::MonthlyReports::Youth,
         parenting_youth: Reporting::MonthlyReports::ParentingYouth,
         parenting_children: Reporting::MonthlyReports::ParentingChildren,
+        unaccompanied_minors: Reporting::MonthlyReports::UnaccompaniedMinors,
         individual_adults: Reporting::MonthlyReports::IndividualAdults,
         non_veteran: Reporting::MonthlyReports::NonVeteran,
         family: Reporting::MonthlyReports::Family,
@@ -245,8 +246,8 @@ module Reporting::MonthlyReports
         pluck(
           :client_id,
           :project_type,
-          cast(datepart(shs_t.engine, 'month', shs_t[:date]), 'INTEGER').to_sql,
-          cast(datepart(shs_t.engine, 'year', shs_t[:date]), 'INTEGER').to_sql
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'month', shs_t[:date]), 'INTEGER').to_sql),
+          Arel.sql(cast(datepart(GrdaWarehouse::ServiceHistoryService, 'year', shs_t[:date]), 'INTEGER').to_sql),
         ).each do |id, project_type, month, year|
           acitives[id] ||= []
           acitives[id] << [year, month, project_type]
@@ -263,8 +264,8 @@ module Reporting::MonthlyReports
       @first_records ||= first_scope.distinct.
         pluck(
           :client_id,
-          p_t[:id].to_sql,
-          :first_date_in_program
+          Arel.sql(p_t[:id].to_sql),
+          :first_date_in_program,
         ).map do |client_id, p_id, date|
           [client_id, [p_id, date]]
         end.to_h

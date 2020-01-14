@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -159,6 +159,9 @@ module Reporting
       where(arel_table[:housing_exit].lteq(end_date))
     end
 
+    scope :heads_of_households, -> do
+      where(head_of_household: true)
+    end
 
     def self.available_subpopulations
       {
@@ -320,6 +323,7 @@ module Reporting
         age_at_search_end: nil,
         age_at_housed_date: nil,
         age_at_housing_exit: nil,
+        head_of_household: nil,
       }
     end
 
@@ -404,6 +408,7 @@ module Reporting
         children_only: she_t[:children_only].to_sql,
         individual_adult: she_t[:individual_adult].to_sql,
         project_id: p_t[:id].to_sql,
+        head_of_household: she_t[:head_of_household].to_sql,
       }
     end
 
@@ -438,18 +443,18 @@ module Reporting
 
     def two_project_service_columns
       @two_project_service_columns ||= {
-        service_project_id: p_t[:id].to_sql,
-        search_start: she_t[:first_date_in_program].to_sql,
-        search_end: she_t[:last_date_in_program].as('search_end').to_sql,
-        service_project: she_t[:project_name].as('service_project').to_sql,
-        client_id: she_t[:client_id].to_sql,
-        enrollment_id: she_t[:id].to_sql,
+        service_project_id: p_t[:id],
+        search_start: she_t[:first_date_in_program],
+        search_end: she_t[:last_date_in_program].as('search_end'),
+        service_project: she_t[:project_name].as('service_project'),
+        client_id: she_t[:client_id],
+        enrollment_id: she_t[:id],
       }
     end
 
     def affiliation_columns
       @affiliation_columns ||= {
-        p_id: p_t[:id].to_sql,
+        p_id: p_t[:id],
         res_id: :ResProjectID,
         ser_id: :ProjectID,
         data_source_id: :data_source_id,
@@ -526,19 +531,20 @@ module Reporting
 
     def one_project_columns
       @one_project_columns ||= {
-        search_start: she_t[:first_date_in_program].to_sql,
-        search_end: she_t[:move_in_date].as('search_end').to_sql,
-        housed_date: she_t[:move_in_date].as('housed_date').to_sql,
-        housing_exit: she_t[:last_date_in_program].to_sql,
-        project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column].to_sql,
-        destination: she_t[:destination].to_sql,
-        service_project: she_t[:project_name].as('service_project').to_sql,
-        residential_project: she_t[:project_name].as('residential_project').to_sql,
-        client_id: she_t[:client_id].to_sql,
-        presented_as_individual: she_t[:presented_as_individual].to_sql,
-        children_only: she_t[:children_only].to_sql,
-        individual_adult: she_t[:individual_adult].to_sql,
-        project_id: p_t[:id].to_sql,
+        search_start: she_t[:first_date_in_program],
+        search_end: she_t[:move_in_date].as('search_end'),
+        housed_date: she_t[:move_in_date].as('housed_date'),
+        housing_exit: she_t[:last_date_in_program],
+        project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column],
+        destination: she_t[:destination],
+        service_project: she_t[:project_name].as('service_project'),
+        residential_project: she_t[:project_name].as('residential_project'),
+        client_id: she_t[:client_id],
+        presented_as_individual: she_t[:presented_as_individual],
+        children_only: she_t[:children_only],
+        individual_adult: she_t[:individual_adult],
+        project_id: p_t[:id],
+        head_of_household: she_t[:head_of_household],
       }
     end
 

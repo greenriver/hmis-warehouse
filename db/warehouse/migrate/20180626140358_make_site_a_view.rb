@@ -1,4 +1,4 @@
-class MakeSiteAView < ActiveRecord::Migration
+class MakeSiteAView < ActiveRecord::Migration[4.2]
   def up
     rename_table :Site, :Geography
     rename_column :Geography, :SiteID, :GeographyID

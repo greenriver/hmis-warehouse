@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -15,7 +15,7 @@ module Health
     phi_attr :content, Phi::FreeText
     phi_attr :note, Phi::FreeText
 
-    belongs_to :user, required: true
+    belongs_to :user
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     mount_uploader :file, HealthFileUploader

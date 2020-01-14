@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -63,7 +63,7 @@ module WarehouseReports
       end
       report.client_count = @clients.size
       report.finished_at = DateTime.now
-      report.data = data.to_json
+      report.data = data
       report.save
 
       NotifyUser.chronic_report_finished(report_params[:current_user_id], report.id).deliver_later

@@ -1,4 +1,4 @@
-class CreateChronicallyHomeless < ActiveRecord::Migration
+class CreateChronicallyHomeless < ActiveRecord::Migration[4.2]
   def up
     if GrdaWarehouseBase.connection.adapter_name == 'SQLServer'
       # create_table is broken for mssql

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -101,6 +101,7 @@ module WarehouseReports
         youth: scope.unaccompanied_youth,
         parenting_youth: scope.parenting_youth,
         parenting_children: scope.parenting_juvenile,
+        unaccompanied_minors: scope.unaccompanied_minors,
         individual_adults: scope.individual_adult,
         non_veteran: scope.non_veteran,
         family: scope.family,

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -118,6 +118,17 @@ module Health
           or(hpr_t[:disenrollment_date].eq(nil))
         )
       ))
+    end
+
+    scope :active_between, -> (start_date, end_date) do
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = hpr_t[:enrollment_start_date]
+      d_2_end = hpr_t[:disenrollment_date]
+      joins(:patient_referral).
+        merge(Health::PatientReferral.where(
+          d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end))
+        ))
     end
 
     scope :unprocessed, -> { where client_id: nil}
@@ -616,13 +627,15 @@ module Health
     end
 
     def veteran_status
-      status = recent_cha&.answer(:r_q3)
-      if status == 'Yes'
-        'Veteran'
-      elsif status == 'No'
-        'Non-veteran'
-      else
-        nil
+      Rails.cache.fetch(['veteran_status', id], expires_in: 2.hours) do
+        status = recent_cha&.answer(:r_q3)
+        if status == 'Yes'
+          'Veteran'
+        elsif status == 'No'
+          'Non-veteran'
+        else
+          nil
+        end
       end
     end
 

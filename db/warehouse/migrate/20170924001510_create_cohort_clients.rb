@@ -1,4 +1,4 @@
-class CreateCohortClients < ActiveRecord::Migration
+class CreateCohortClients < ActiveRecord::Migration[4.2]
   def change
     create_table :cohort_clients do |t|
       t.references :cohort, index: true, null: false

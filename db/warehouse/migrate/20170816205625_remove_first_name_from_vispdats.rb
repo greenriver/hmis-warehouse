@@ -1,4 +1,4 @@
-class RemoveFirstNameFromVispdats < ActiveRecord::Migration
+class RemoveFirstNameFromVispdats < ActiveRecord::Migration[4.2]
   def change
     remove_column :vispdats, :first_name, :string
     remove_column :vispdats, :last_name, :string

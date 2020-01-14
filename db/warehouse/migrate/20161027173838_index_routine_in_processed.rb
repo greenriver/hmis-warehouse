@@ -1,4 +1,4 @@
-class IndexRoutineInProcessed < ActiveRecord::Migration
+class IndexRoutineInProcessed < ActiveRecord::Migration[4.2]
   def change
     add_index :warehouse_clients_processed, :routine
     add_index :Services, :DateDeleted

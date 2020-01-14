@@ -1,4 +1,4 @@
-class CreateAccessGroups < ActiveRecord::Migration
+class CreateAccessGroups < ActiveRecord::Migration[4.2]
   def change
     create_table :access_groups do |t|
       t.string :name

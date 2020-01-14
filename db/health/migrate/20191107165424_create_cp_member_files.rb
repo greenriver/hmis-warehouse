@@ -1,4 +1,4 @@
-class CreateCpMemberFiles < ActiveRecord::Migration
+class CreateCpMemberFiles < ActiveRecord::Migration[4.2]
   def change
     create_table :cp_member_files do |t|
       t.string :type

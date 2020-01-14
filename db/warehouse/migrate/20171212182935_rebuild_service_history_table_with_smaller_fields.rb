@@ -1,5 +1,5 @@
 
-class RebuildServiceHistoryTableWithSmallerFields < ActiveRecord::Migration
+class RebuildServiceHistoryTableWithSmallerFields < ActiveRecord::Migration[4.2]
   def up
     execute <<-SQL
       CREATE TYPE record_type as ENUM ('first', 'entry', 'exit', 'service', 'extrapolated')

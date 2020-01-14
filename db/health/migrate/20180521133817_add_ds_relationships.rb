@@ -1,4 +1,4 @@
-class AddDsRelationships < ActiveRecord::Migration
+class AddDsRelationships < ActiveRecord::Migration[4.2][4.2]
   def up
 
     ds = Health::DataSource.where(name: 'BHCHP EPIC').first_or_create

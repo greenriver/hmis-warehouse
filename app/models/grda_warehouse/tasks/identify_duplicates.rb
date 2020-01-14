@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -20,7 +20,7 @@ module GrdaWarehouse::Tasks
       #   create a new destination (based on the unprocessed client)
       #   add a associated record to WarehouseClient
       # If we do find a match:
-      #   create the assocaited WarehouseClient
+      #   create the associated WarehouseClient
 
       Rails.logger.info "Matching #{@unprocessed.size} unprocessed clients"
       matched = 0
@@ -147,7 +147,7 @@ module GrdaWarehouse::Tasks
 
     def all_source_clients
       @all_source_clients ||= GrdaWarehouse::Hud::Client.joins(:warehouse_client_source).source.
-        pluck(:FirstName, :LastName, :SSN, :DOB, wc_t[:destination_id].to_sql).
+        pluck(:FirstName, :LastName, :SSN, :DOB, Arel.sql(wc_t[:destination_id].to_sql)).
         map do |first_name, last_name, ssn, dob, id|
           clean_first_name = first_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''
           clean_last_name = last_name&.downcase&.strip&.gsub(/[^a-z0-9]/i, '') || ''

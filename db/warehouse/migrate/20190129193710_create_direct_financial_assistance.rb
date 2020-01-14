@@ -1,4 +1,4 @@
-class CreateDirectFinancialAssistance < ActiveRecord::Migration
+class CreateDirectFinancialAssistance < ActiveRecord::Migration[4.2]
   def change
     create_table :direct_financial_assistances do |t|
       t.references :client

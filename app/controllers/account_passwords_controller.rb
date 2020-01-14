@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -16,11 +16,11 @@ class AccountPasswordsController < ApplicationController
   def update
     if @user.update_with_password(account_params)
       flash[:notice] = 'Password was changed.'
+      bypass_sign_in(@user)
+      redirect_to edit_account_password_path
     else
-      flash[:error] = 'Password not changed.'
+      render action: :edit
     end
-    bypass_sign_in(@user)
-    redirect_to edit_account_password_path
   end
 
   private def account_params

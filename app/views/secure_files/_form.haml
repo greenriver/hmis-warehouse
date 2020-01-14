@@ -7,7 +7,7 @@
   .form-inputs
     = f.input :file, as: :file, label: false
     = f.input :name, label: "Briefly describe this file"
-    = f.input :recipient_id, collection: User.can_receive_secure_files?, label: "Who should have access to this file?"
+    = f.input :recipient_id, collection: User.can_receive_secure_files?, label: "Who should have access to this file?", input_html: {class: 'select2'}
     = f.hidden_field :file_cache
     = f.hidden_field :import_type, value: :hmis_611
   .form-actions

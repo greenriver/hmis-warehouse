@@ -1,4 +1,4 @@
-class AddColumnsToEnrollment < ActiveRecord::Migration
+class AddColumnsToEnrollment < ActiveRecord::Migration[4.2]
   def change
     change_table :Enrollment do |t|
       t.boolean :roi_permission

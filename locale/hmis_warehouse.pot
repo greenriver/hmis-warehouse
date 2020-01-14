@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-23 14:18-0500\n"
-"PO-Revision-Date: 2019-12-23 14:18-0500\n"
+"POT-Creation-Date: 2019-12-27 10:43-0500\n"
+"PO-Revision-Date: 2019-12-27 10:43-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,30 +17,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-
-msgid "\"CHA #{answer_key}\""
-msgstr ""
-
-msgid "\"CHA #{code}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{field.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_SUBTITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_code}_TITLE\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_HEADER\""
-msgstr ""
-
-msgid "\"CHA #{section_question.upcase}_SUBHEADER\""
-msgstr ""
 
 msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
@@ -76,6 +52,30 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
+msgstr ""
+
+msgid "CHA #{answer_key}"
+msgstr ""
+
+msgid "CHA #{code}_HEADER"
+msgstr ""
+
+msgid "CHA #{field.upcase}"
+msgstr ""
+
+msgid "CHA #{section_code}_SUBTITLE"
+msgstr ""
+
+msgid "CHA #{section_code}_TITLE"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_HEADER"
+msgstr ""
+
+msgid "CHA #{section_question.upcase}_SUBHEADER"
 msgstr ""
 
 msgid "CHA A_Q1"
@@ -3526,9 +3526,6 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
-msgstr ""
-
-msgid "Health Report"
 msgstr ""
 
 msgid "Housing"

@@ -1,4 +1,4 @@
-class CreateEpicTeamMembers < ActiveRecord::Migration
+class CreateEpicTeamMembers < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_team_members do |t|
       t.string :patient_id, null: false

@@ -1,4 +1,4 @@
-class CreateGlacierVaults < ActiveRecord::Migration
+class CreateGlacierVaults < ActiveRecord::Migration[4.2]
   def change
     create_table :glacier_vaults do |t|
       t.string :name, null: false

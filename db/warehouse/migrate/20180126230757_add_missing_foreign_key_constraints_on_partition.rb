@@ -1,4 +1,4 @@
-class AddMissingForeignKeyConstraintsOnPartition < ActiveRecord::Migration
+class AddMissingForeignKeyConstraintsOnPartition < ActiveRecord::Migration[4.2]
   def change
     # moved to an earlier migration to keep all of the logic together.
     # enrollment_table = GrdaWarehouse::ServiceHistoryEnrollment.table_name

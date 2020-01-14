@@ -1,4 +1,4 @@
-class CreateSecureFiles < ActiveRecord::Migration
+class CreateSecureFiles < ActiveRecord::Migration[4.2]
   def change
     create_table :secure_files do |t|
       t.string :name

@@ -1,4 +1,4 @@
-class CreateReleaseForms < ActiveRecord::Migration
+class CreateReleaseForms < ActiveRecord::Migration[4.2]
   def change
     create_table :release_forms do |t|
       t.belongs_to :patient, index: true

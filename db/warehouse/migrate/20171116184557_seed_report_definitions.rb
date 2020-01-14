@@ -1,4 +1,4 @@
-class SeedReportDefinitions < ActiveRecord::Migration
+class SeedReportDefinitions < ActiveRecord::Migration[4.2]
 
   REPORTS = {
     'Operational Reports' => [
@@ -57,7 +57,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/missing_projects',
         name: 'Missing Projects ',
-        description: "Shows Project IDs for enrollment records where the project isn't in the source data."
+        description: "Shows Project IDs for enrollment records where the project isn''t in the source data."
       },
       {
         url: 'warehouse_reports/future_enrollments',
@@ -77,7 +77,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/dob_entry_same',
         name: 'DOB = Entry date',
-        description: "List clients who's first entry date is on their birthdate."
+        description: "List clients who''s first entry date is on their birthdate."
       },
       {
         url: 'warehouse_reports/long_standing_clients',
@@ -97,7 +97,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/non_alpha_names',
         name: 'Client with odd characters in their names',
-        description: "List clients who's first or last name starts with a non-alphabetic character."
+        description: "List clients who''s first or last name starts with a non-alphabetic character."
       },
       {
         url: 'warehouse_reports/really_old_enrollments',
@@ -124,7 +124,7 @@ class SeedReportDefinitions < ActiveRecord::Migration
       {
         url: 'warehouse_reports/cas/chronic_reconciliation',
         name: 'Chronic Reconcilliation',
-        description: "See who is available in CAS but not on the chronic list, and who's not available in CAS, but is on the chronic list."
+        description: "See who is available in CAS but not on the chronic list, and who''s not available in CAS, but is on the chronic list."
       },
       {
         url: 'warehouse_reports/cas/decision_efficiency',
@@ -145,14 +145,15 @@ class SeedReportDefinitions < ActiveRecord::Migration
   }
 
   def clean value
-    GrdaWarehouse::WarehouseReports::ReportDefinition.sanitize(value)
+    val = GrdaWarehouse::WarehouseReports::ReportDefinition.sanitize_sql(value)
+    "'#{val}'"
   end
 
   def up
     REPORTS.each do |group, reports|
       reports.each do |report|
         execute (
-          "insert into report_definitions (report_group, url, name, description) VALUES 
+          "insert into report_definitions (report_group, url, name, description) VALUES
            (#{clean(group)}, #{clean(report[:url])}, #{clean(report[:name])}, #{clean(report[:description])})"
         )
       end

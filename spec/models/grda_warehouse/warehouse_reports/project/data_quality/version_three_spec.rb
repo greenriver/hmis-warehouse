@@ -67,16 +67,16 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           # A field is missing if the DQ is 99 or empty, even if the field itself contains data
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            NameDataQuality: [99, nil, ''],
+            NameDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, FirstName: [nil, ''],
+            id: client_ids, FirstName: [nil],
           ).
             where.not(NameDataQuality: 9).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, LastName: [nil, ''],
+            id: client_ids, LastName: [nil],
           ).
             where.not(NameDataQuality: 9).
             pluck(:id)
@@ -110,11 +110,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            DOBDataQuality: [99, nil, ''],
+            DOBDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, DOB: [nil, ''],
+            id: client_ids, DOB: [nil],
           ).
             where.not(DOBDataQuality: 9).
             pluck(:id)
@@ -148,11 +148,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            SSNDataQuality: [99, nil, ''],
+            SSNDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, SSN: [nil, ''],
+            id: client_ids, SSN: [nil],
           ).
             where.not(SSNDataQuality: 9).
             pluck(:id)
@@ -189,11 +189,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, AmIndAKNative: [0, 99, nil, ''],
-            Asian: [0, 99, nil, ''],
-            BlackAfAmerican: [0, 99, nil, ''],
-            NativeHIOtherPacific: [0, 99, nil, ''],
-            White: [0, 99, nil, '']
+            id: client_ids, AmIndAKNative: [0, 99, nil],
+            Asian: [0, 99, nil],
+            BlackAfAmerican: [0, 99, nil],
+            NativeHIOtherPacific: [0, 99, nil],
+            White: [0, 99, nil]
           ).
             where.not(RaceNone: 9).
             pluck(:id)
@@ -226,7 +226,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            Ethnicity: [99, nil, ''],
+            Ethnicity: [99, nil],
           ).
             pluck(:id)
 
@@ -258,7 +258,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            Gender: [99, nil, ''],
+            Gender: [99, nil],
           ).
             pluck(:id)
 
@@ -292,7 +292,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           c_t = GrdaWarehouse::Hud::Client.arel_table
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            VeteranStatus: [99, nil, ''],
+            VeteranStatus: [99, nil],
           ).
             where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
             pluck(:id)
@@ -337,7 +337,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             joins(enrollment: :client).
             where(
               client_id: client_ids,
-              Enrollment: { DisablingCondition: [99, nil, ''] },
+              Enrollment: { DisablingCondition: [99, nil] },
             ).
             pluck(:client_id)
 
@@ -373,7 +373,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             joins(enrollment: :client).
             where(
               client_id: client_ids,
-              Enrollment: { LivingSituation: [99, nil, ''] },
+              Enrollment: { LivingSituation: [99, nil] },
             ).
             pluck(:client_id)
 
@@ -506,7 +506,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::ServiceHistoryEnrollment.
             where(
               client_id: client_ids.uniq,
-              destination: [99, nil, ''],
+              destination: [99, nil],
             ).
             pluck(:client_id)
 
@@ -578,16 +578,16 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           # A field is missing if the DQ is 99 or empty, even if the field itself contains data
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            NameDataQuality: [99, nil, ''],
+            NameDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, FirstName: [nil, ''],
+            id: client_ids, FirstName: [nil],
           ).
             where.not(NameDataQuality: 9).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, LastName: [nil, ''],
+            id: client_ids, LastName: [nil],
           ).
             where.not(NameDataQuality: 9).
             pluck(:id)
@@ -621,11 +621,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            DOBDataQuality: [99, nil, ''],
+            DOBDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, DOB: [nil, ''],
+            id: client_ids, DOB: [nil],
           ).
             where.not(DOBDataQuality: 9).
             pluck(:id)
@@ -659,11 +659,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            SSNDataQuality: [99, nil, ''],
+            SSNDataQuality: [99, nil],
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, SSN: [nil, ''],
+            id: client_ids, SSN: [nil],
           ).
             where.not(SSNDataQuality: 9).
             pluck(:id)
@@ -700,11 +700,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           ).
             pluck(:id)
           missing += GrdaWarehouse::Hud::Client.where(
-            id: client_ids, AmIndAKNative: [0, 99, nil, ''],
-            Asian: [0, 99, nil, ''],
-            BlackAfAmerican: [0, 99, nil, ''],
-            NativeHIOtherPacific: [0, 99, nil, ''],
-            White: [0, 99, nil, '']
+            id: client_ids, AmIndAKNative: [0, 99, nil],
+            Asian: [0, 99, nil],
+            BlackAfAmerican: [0, 99, nil],
+            NativeHIOtherPacific: [0, 99, nil],
+            White: [0, 99, nil]
           ).
             where.not(RaceNone: 9).
             pluck(:id)
@@ -737,7 +737,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            Ethnicity: [99, nil, ''],
+            Ethnicity: [99, nil],
           ).
             pluck(:id)
 
@@ -769,7 +769,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           client_ids = report.clients.map { |client| client[:destination_id] }.uniq
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            Gender: [99, nil, ''],
+            Gender: [99, nil],
           ).
             pluck(:id)
 
@@ -803,7 +803,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           c_t = GrdaWarehouse::Hud::Client.arel_table
           missing = GrdaWarehouse::Hud::Client.where(
             id: client_ids,
-            VeteranStatus: [99, nil, ''],
+            VeteranStatus: [99, nil],
           ).
             where(c_t[:DOB].lteq(eighteen).or(c_t[:DOB].eq('')).or(c_t[:DOB].eq(nil))).
             pluck(:id)
@@ -848,7 +848,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             joins(enrollment: :client).
             where(
               client_id: client_ids,
-              Enrollment: { DisablingCondition: [99, nil, ''] },
+              Enrollment: { DisablingCondition: [99, nil] },
             ).
             pluck(:client_id)
 
@@ -884,7 +884,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
             joins(enrollment: :client).
             where(
               client_id: client_ids,
-              Enrollment: { LivingSituation: [99, nil, ''] },
+              Enrollment: { LivingSituation: [99, nil] },
             ).
             pluck(:client_id)
 
@@ -1018,7 +1018,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionThr
           missing = GrdaWarehouse::ServiceHistoryEnrollment.
             where(
               client_id: client_ids.uniq,
-              destination: [99, nil, ''],
+              destination: [99, nil],
             ).
             pluck(:client_id)
 

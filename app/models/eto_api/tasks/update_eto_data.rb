@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
-require 'newrelic_rpm'
+# require 'newrelic_rpm'
 module EtoApi::Tasks
   class UpdateEtoData
     include ActionView::Helpers::DateHelper

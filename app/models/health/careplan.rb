@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -234,6 +234,12 @@ module Health
 
     def completed?
       provider_signed_on && patient_signed_on
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
   end
 end

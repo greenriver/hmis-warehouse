@@ -1,4 +1,4 @@
-class AddTokenToProjectDataQualityReport < ActiveRecord::Migration
+class AddTokenToProjectDataQualityReport < ActiveRecord::Migration[4.2]
   def change
     create_table :report_tokens do |t|
       t.references :report, index: true, null: false

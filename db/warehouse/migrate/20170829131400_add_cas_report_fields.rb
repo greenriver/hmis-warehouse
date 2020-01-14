@@ -1,4 +1,4 @@
-class AddCasReportFields < ActiveRecord::Migration
+class AddCasReportFields < ActiveRecord::Migration[4.2]
   def change
     add_column :cas_reports, :shelter_agency_contacts, :json
     add_column :cas_reports, :hsa_contacts, :json

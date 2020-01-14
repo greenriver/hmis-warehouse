@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -29,7 +29,7 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment')
     belongs_to :direct_enrollment, **hud_enrollment_belongs
     has_one :enrollment, through: :assessment

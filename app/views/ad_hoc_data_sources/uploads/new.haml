@@ -1,0 +1,7 @@
+- content_for :title,  "Upload for #{@data_source.name}"
+= render 'breadcrumbs'
+.row
+  .col-sm-8
+    %h1= content_for :title
+
+= render 'form'

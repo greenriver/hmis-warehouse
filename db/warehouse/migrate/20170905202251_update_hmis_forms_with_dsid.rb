@@ -1,4 +1,4 @@
-class UpdateHmisFormsWithDsid < ActiveRecord::Migration
+class UpdateHmisFormsWithDsid < ActiveRecord::Migration[4.2]
   def up
     c_t = GrdaWarehouse::Hud::Client.arel_table
     [1,3].each do |ds_id|

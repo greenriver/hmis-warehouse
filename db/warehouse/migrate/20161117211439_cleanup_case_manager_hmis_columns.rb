@@ -1,4 +1,4 @@
-class CleanupCaseManagerHmisColumns < ActiveRecord::Migration
+class CleanupCaseManagerHmisColumns < ActiveRecord::Migration[4.2]
   def change
     remove_column :hmis_clients, :case_manager_entity_id, :integer
     remove_column :hmis_clients, :consent_form_updated_at, :datetime

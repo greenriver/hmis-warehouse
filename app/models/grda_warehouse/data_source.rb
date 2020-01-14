@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -92,7 +92,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(current_scope.select(:id)))
+        working_scope = current_scope || self.none
+        sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(working_scope.select(:id)))
         if user.can_view_or_search_clients_or_window?
           sql = sql.or(arel_table[:visible_in_window].eq(true))
         end
@@ -148,7 +149,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     }
   end
 
-  private_class_method def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
+  def self.has_access_to_data_source_through_viewable_entities(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -177,7 +178,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  private_class_method def self.has_access_to_data_source_through_organizations(user, q, qc)
+  def self.has_access_to_data_source_through_organizations(user, q, qc)
     data_source_table  = quoted_table_name
     viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     organization_table = GrdaWarehouse::Hud::Organization.quoted_table_name
@@ -213,7 +214,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     SQL
   end
 
-  private_class_method def self.has_access_to_data_source_through_projects(user, q, qc)
+  def self.has_access_to_data_source_through_projects(user, q, qc)
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
     project_table     = GrdaWarehouse::Hud::Project.quoted_table_name
@@ -275,17 +276,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map do |id| [id, {}] end.to_h
 
       GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
-        pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
           spans_by_id[ds][:start_date] = date
         end
 
       GrdaWarehouse::Hud::Service.group(:data_source_id).
-        pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
           spans_by_id[ds][:end_date] = date
         end
 
       GrdaWarehouse::Hud::Exit.group(:data_source_id).
-        pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]]).to_sql).each do |ds, date|
+        pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
           if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
             spans_by_id[ds][:end_date] = date
           end

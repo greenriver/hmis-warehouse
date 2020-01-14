@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -22,7 +22,7 @@ module Health
     phi_attr :completed_at, Phi::Date
     phi_attr :signable_document_id, Phi::OtherIdentifier
 
-    belongs_to :signable_document, required: false
+    belongs_to :signable_document, optional: true
     belongs_to :careplan
     has_one :team_member, required: false, class_name: Health::Team::Member.name, primary_key: [:patient_id, :to_email], foreign_key: [:patient_id, :email]
 

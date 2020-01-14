@@ -1,4 +1,4 @@
-class AddSendingSystemKeysToPatientTables < ActiveRecord::Migration
+class AddSendingSystemKeysToPatientTables < ActiveRecord::Migration[4.2]
   def change
     remove_column :appointments, :appointment_date, :date
     add_column :appointments, :appointment_time, :datetime

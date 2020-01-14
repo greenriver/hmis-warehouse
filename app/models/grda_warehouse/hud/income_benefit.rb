@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -338,11 +338,11 @@ module GrdaWarehouse::Hud
       end
     end
 
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits
     has_one :client, through: :enrollment, inverse_of: :income_benefits
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_income_benefits
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits
     has_one :project, through: :enrollment
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :income_benefits
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :income_benefits, optional: true
     belongs_to :data_source
 
     scope :any_benefits, -> {

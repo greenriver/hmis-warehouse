@@ -156,6 +156,15 @@ namespace :health do
       task :dump do
         Rake::Task["db:schema:dump"].invoke
       end
+
+      desc "Conditionally load the database schema"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if HealthBase.connection.tables.length == 0
+          Rake::Task['health:db:schema:load'].invoke
+        else
+          puts "Refusing to load the health database schema since there are tables present. This is not an error."
+        end
+      end
     end
 
     namespace :structure do

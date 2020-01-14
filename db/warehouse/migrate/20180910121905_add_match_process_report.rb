@@ -1,4 +1,4 @@
-class AddMatchProcessReport < ActiveRecord::Migration
+class AddMatchProcessReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'CAS' => [
       {

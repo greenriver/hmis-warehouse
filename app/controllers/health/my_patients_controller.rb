@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -40,7 +40,7 @@ module Health
           date = Date.current.strftime('%Y-%m-%d')
           @patients = @patients.joins(:patient_referral).preload(:patient_referral)
           @tracking_sheet = Health::TrackingSheet.new(@patients)
-          render xlsx: :index, filename: "Tracking Sheet #{date}.xlsx"
+          render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
       end
     end

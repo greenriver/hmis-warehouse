@@ -1,4 +1,4 @@
-class AddFamilyFieldsToVispdats < ActiveRecord::Migration
+class AddFamilyFieldsToVispdats < ActiveRecord::Migration[4.2]
   def change
     add_column :vispdats, :parent2_none,                :boolean, default: false
     add_column :vispdats, :parent2_first_name,          :string

@@ -1,4 +1,4 @@
-class UpdateHmisFormWithSiteId < ActiveRecord::Migration
+class UpdateHmisFormWithSiteId < ActiveRecord::Migration[4.2]
   def up
     a_t = GrdaWarehouse::HMIS::Assessment.arel_table
     GrdaWarehouse::HMIS::Assessment.all.each do |assessment|

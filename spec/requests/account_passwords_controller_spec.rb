@@ -33,14 +33,14 @@ RSpec.describe AccountPasswordsController, type: :request do
       end
 
       before(:each) do
-        patch account_password_path, user: changes
+        patch account_password_path, params: { user: changes }
       end
 
       it 'has an error' do
         expect(assigns(:user).errors.count).to eq 1
       end
       it 'redirects to edit' do
-        expect(response).to redirect_to edit_account_password_path
+        expect(response).to render_template(:edit)
       end
     end
 
@@ -54,7 +54,7 @@ RSpec.describe AccountPasswordsController, type: :request do
       end
 
       before(:each) do
-        patch account_password_path, user: changes
+        patch account_password_path, params: { user: changes }
       end
 
       it 'sends password confirmation email' do

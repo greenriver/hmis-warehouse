@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 # email message stowed in database
-class Message < ActiveRecord::Base
+class Message < ApplicationRecord
 
   SCHEDULES = %w(
     immediate
@@ -15,7 +15,7 @@ class Message < ActiveRecord::Base
   belongs_to :user
   scope :sent, -> (time=DateTime.current) { where arel_table[:sent_at].lteq time }
   scope :unsent, -> { where sent_at: nil }
-  scope :seen, -> (time=DateTime.current) { where arel_table[:seen_at].lteq time }  
+  scope :seen, -> (time=DateTime.current) { where arel_table[:seen_at].lteq time }
   scope :unseen, -> { where seen_at: nil }
   scope :before, -> (time) { where arel_table[:created_at].lt time }
 

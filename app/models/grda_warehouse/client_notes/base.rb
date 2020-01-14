@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -12,19 +12,19 @@ module GrdaWarehouse::ClientNotes
 
     attr_accessor :send_notification
 
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :user
 
     scope :window_notes, -> do
-      where(type: GrdaWarehouse::ClientNotes::WindowNote)
+      where(type: 'GrdaWarehouse::ClientNotes::WindowNote')
     end
 
     scope :chronic_justifications, -> do
-      where(type: GrdaWarehouse::ClientNotes::ChronicJustification)
+      where(type: 'GrdaWarehouse::ClientNotes::ChronicJustification')
     end
 
     scope :cohort_notes, -> do
-      where(type: GrdaWarehouse::ClientNotes::CohortNote)
+      where(type: 'GrdaWarehouse::ClientNotes::CohortNote')
     end
 
     scope :visible_by, -> (user, client) do

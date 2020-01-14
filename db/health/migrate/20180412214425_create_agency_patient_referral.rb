@@ -1,4 +1,4 @@
-class CreateAgencyPatientReferral < ActiveRecord::Migration
+class CreateAgencyPatientReferral < ActiveRecord::Migration[4.2]
   def change
     create_table :agency_patient_referrals do |t|
       t.integer :agency_id, null: false

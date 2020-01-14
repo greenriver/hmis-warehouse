@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -28,7 +28,11 @@ module GrdaWarehouse
       if user.can_edit_project_groups?
         current_scope
       else
-        current_scope.merge(user.project_groups)
+        if current_scope.present?
+          current_scope.merge(user.project_groups)
+        else
+          user.project_groups
+        end
       end
     end
     scope :editable_by, -> (user) do

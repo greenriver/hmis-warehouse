@@ -27,7 +27,7 @@
       $('.jProjectTypes, .jOrganizations').on('change', function(e){
         var project_types = $('.jProjectTypes').val();
         if(project_types == null) {
-          project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json}
+          project_types = #{GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.to_json.html_safe}
         }
         var organization_ids = $('.jOrganizations').val();
         var selected_project_ids = $('.jProjects').val();

@@ -1,4 +1,4 @@
-class AddProjectDescriptorOverridesForLsa < ActiveRecord::Migration
+class AddProjectDescriptorOverridesForLsa < ActiveRecord::Migration[4.2]
   def change
     add_column :Project, :housing_type_override, :integer
     add_column :Project, :uses_move_in_date, :boolean, null: false, default: false

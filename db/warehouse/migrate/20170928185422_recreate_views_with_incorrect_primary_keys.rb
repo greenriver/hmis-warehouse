@@ -1,8 +1,8 @@
-class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration
+class RecreateViewsWithIncorrectPrimaryKeys < ActiveRecord::Migration[4.2]
   def up
     # drop and create thing in the correct order
-    drop_order
-    create_order
+    # drop_order
+    # create_order
   end
 
   def down

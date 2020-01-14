@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -35,7 +35,7 @@ module Cohorts
             set_cohort_clients
             # Allow for individual refresh
             @cohort_clients = @cohort_clients.where(id: params[:cohort_client_id].to_i) if params[:cohort_client_id].present?
-            render text: JSON.fast_generate(data_for_table), type: :json
+            render plain: JSON.fast_generate(data_for_table), type: :json
             # The above is > 50% faster then
             # render json: data_for_table
           else
@@ -157,30 +157,31 @@ module Cohorts
           @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
         end
 
-        if @actives.key? :actives_population
-          populations = @actives[:actives_population]
-          populations.each do |population|
-            # Force service to fall within the correct age ranges for some populations
-            service_scope = if ['youth', 'children'].include? population.to_s
-              population
-            elsif population.to_s == 'parenting_children'
-              :children
-            elsif population.to_s == 'parenting_youth'
-              :youth
-            elsif population.to_s == 'individual_adult'
-              :adult
-            else
-              :current_scope
-            end
+        @actives[:actives_population] = [:all_clients] unless @actives.key? :actives_population
 
-            enrollment_scope = enrollment_scope.with_service_between(
-              start_date: @actives[:start],
-              end_date: @actives[:end],
-              service_scope: service_scope,
-            )
-
-            enrollment_scope = enrollment_scope.send(population)
+        populations = @actives[:actives_population]
+        populations.each do |population|
+          population = population.presence || :all_clients
+          # Force service to fall within the correct age ranges for some populations
+          service_scope = if ['youth', 'children'].include? population.to_s
+            population
+          elsif population.to_s == 'parenting_children'
+            :children
+          elsif population.to_s == 'parenting_youth'
+            :youth
+          elsif population.to_s == 'individual_adult'
+            :adult
+          else
+            :current_scope
           end
+
+          enrollment_scope = enrollment_scope.with_service_between(
+            start_date: @actives[:start],
+            end_date: @actives[:end],
+            service_scope: service_scope,
+          )
+
+          enrollment_scope = enrollment_scope.send(population)
         end
         # Active record seems to have trouble with the complicated nature of this scope
         @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")

@@ -1,4 +1,4 @@
-class CreateCohortClientChangesView < ActiveRecord::Migration
+class CreateCohortClientChangesView < ActiveRecord::Migration[4.2]
   def up
     sql = <<~SQL
       SELECT cc.id, cc.cohort_client_id, cc.cohort_id, cc.user_id, cc.change AS entry_action, cc.changed_at AS entry_date, cc_ex.change AS exit_action, cc_ex.changed_at AS exit_date, cc_ex.reason

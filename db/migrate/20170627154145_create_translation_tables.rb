@@ -1,4 +1,4 @@
-class CreateTranslationTables < ActiveRecord::Migration
+class CreateTranslationTables < ActiveRecord::Migration[4.2]
   def self.up
     create_table :translation_keys do |t|
       t.string :key, unique: true, null: false, default: ''

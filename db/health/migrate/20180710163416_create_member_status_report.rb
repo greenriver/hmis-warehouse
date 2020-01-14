@@ -1,4 +1,4 @@
-class CreateMemberStatusReport < ActiveRecord::Migration
+class CreateMemberStatusReport < ActiveRecord::Migration[4.2]
   def change
     create_table :member_status_reports do |t|
       t.references :user

@@ -1,4 +1,4 @@
-class MoveCachedColumnsToCohortClients < ActiveRecord::Migration
+class MoveCachedColumnsToCohortClients < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :calculated_days_homeless_on_effective_date, :integer
     add_column :cohort_clients, :days_homeless_last_three_years_on_effective_date, :integer

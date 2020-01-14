@@ -1,4 +1,4 @@
-class SetAllShsLiterallyHomelessFalse < ActiveRecord::Migration
+class SetAllShsLiterallyHomelessFalse < ActiveRecord::Migration[4.2]
   def up
     # DO this after deployment
     # years = (1900..2020).each do |year|

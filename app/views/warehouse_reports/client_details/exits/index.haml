@@ -11,7 +11,7 @@
 .row
   .col-sm-12.text-right
     - if can_view_clients?
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
 
 %h3 Summary

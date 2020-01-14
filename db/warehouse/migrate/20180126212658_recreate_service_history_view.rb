@@ -1,4 +1,4 @@
-class RecreateServiceHistoryView < ActiveRecord::Migration
+class RecreateServiceHistoryView < ActiveRecord::Migration[4.2]
   include ArelHelper
   def up
 

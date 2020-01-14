@@ -1,4 +1,4 @@
-class ConvertPatientIdsToStrings < ActiveRecord::Migration
+class ConvertPatientIdsToStrings < ActiveRecord::Migration[4.2]
   def change
     remove_column :appointments, :patient_id, :integer
     add_column :appointments, :patient_id, :string

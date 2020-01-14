@@ -1,4 +1,4 @@
-class AddDoubleEnrollmentReport < ActiveRecord::Migration
+class AddDoubleEnrollmentReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Data Quality' => [
       {

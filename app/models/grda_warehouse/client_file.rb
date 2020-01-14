@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -11,12 +11,15 @@ module GrdaWarehouse
     # TODO: This can be removed after merging https://github.com/greenriver/hmis-warehouse/pull/611
     attr_accessor :coc_code
 
+    # FIXME: temporary alias pending merge multi-coc code
+    alias_attribute :coc_code, :coc_codes
+
     acts_as_taggable
 
     include ArelHelper
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base'
+    belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     validates_presence_of :name
     validates_inclusion_of :visible_in_window, in: [true, false]
     validate :file_exists_and_not_too_large
@@ -216,8 +219,8 @@ module GrdaWarehouse
     end
 
     def note_changes_in_consent
-      @consent_form_signed_on_changed_recently = consent_form_signed_on_changed? || false
-      @consent_form_confirmed_changed_recently = consent_form_confirmed_changed? || false
+      @consent_form_signed_on_changed_recently = saved_change_to_consent_form_signed_on? || false
+      @consent_form_confirmed_changed_recently = saved_change_to_consent_form_confirmed? || false
     end
 
     def set_client_consent

@@ -27,4 +27,4 @@
   :javascript
     var support_link = '#{support_link}'
 
-    new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json}, '#{@report.sub_population_title}', support_link, #{chart_options.to_json});
+    new App.Dashboards.Clients.Exits('.jHoused', #{@report.housed_by_month.to_json.html_safe}, '#{@report.sub_population_title}', support_link, #{chart_options.to_json.html_safe});

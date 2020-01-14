@@ -1,4 +1,4 @@
-class PopulateAgenciesTable < ActiveRecord::Migration
+class PopulateAgenciesTable < ActiveRecord::Migration[4.2]
   def up
     User.all.find_each do |user|
       agency_name = if user.class.column_names.include?('agency')

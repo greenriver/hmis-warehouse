@@ -1,4 +1,4 @@
-class MoveHousingAssistanceNetworkReleaseToConsent < ActiveRecord::Migration
+class MoveHousingAssistanceNetworkReleaseToConsent < ActiveRecord::Migration[4.2]
   def up
     clients = GrdaWarehouse::Hud::Client.destination.
       where.not(housing_assistance_network_released_on: nil).

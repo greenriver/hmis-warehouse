@@ -27,7 +27,7 @@
                 = link_to clients, polymorphic_path([:warehouse_reports, :client_details, :entries], project_type: HUD.project_type_brief(project_type).downcase, range: {start: @start_date, end: @end_date, sub_population: sub_population_key})
 
     %h3= "Project Re-Entry in #{month_name}"
-    %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json}}
+    %canvas#entered-chart{style: 'width: 100%; height: 300px;', data: {labels: @labels.to_h.values.to_json, data: @data.to_json.html_safe}}
     %h3 Unduplicated Clients
     .summary
       .row

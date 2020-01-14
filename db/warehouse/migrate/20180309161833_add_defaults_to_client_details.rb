@@ -1,4 +1,4 @@
-class AddDefaultsToClientDetails < ActiveRecord::Migration
+class AddDefaultsToClientDetails < ActiveRecord::Migration[4.2]
   def up
     config = GrdaWarehouse::Config.first
     details = [

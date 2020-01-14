@@ -1,4 +1,4 @@
-class CreateServiceHistoryByYearTables < ActiveRecord::Migration
+class CreateServiceHistoryByYearTables < ActiveRecord::Migration[4.2]
   def up
     if GrdaWarehouseBase.connection.table_exists? GrdaWarehouse::ServiceHistoryService.parent_table
       drop_table GrdaWarehouse::ServiceHistoryService.parent_table, force: :cascade 

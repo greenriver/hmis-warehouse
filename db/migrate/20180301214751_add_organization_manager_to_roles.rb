@@ -1,4 +1,4 @@
-class AddOrganizationManagerToRoles < ActiveRecord::Migration
+class AddOrganizationManagerToRoles < ActiveRecord::Migration[4.2]
   def up
     Role.where(name: 'Organization Manager').first_or_create
     Role.ensure_permissions_exist

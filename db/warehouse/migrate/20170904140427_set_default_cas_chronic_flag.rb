@@ -1,4 +1,4 @@
-class SetDefaultCasChronicFlag < ActiveRecord::Migration
+class SetDefaultCasChronicFlag < ActiveRecord::Migration[4.2]
   def up
     # We're splitting these into two columns, set the default for those who were 
     # previously marked

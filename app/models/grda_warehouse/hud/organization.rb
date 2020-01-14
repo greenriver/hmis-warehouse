@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
     self.hud_key = :OrganizationID
     acts_as_paranoid column: :DateDeleted
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
     belongs_to :data_source, inverse_of: :organizations
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
@@ -86,7 +86,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    private_class_method def self.has_access_to_organization_through_viewable_entities(user, q, qc)
+    def self.has_access_to_organization_through_viewable_entities(user, q, qc)
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
       viewability_deleted_column_name = GrdaWarehouse::GroupViewableEntity.paranoia_column
@@ -116,7 +116,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_organization_through_data_source(user, q, qc)
+    def self.has_access_to_organization_through_data_source(user, q, qc)
       data_source_table  = GrdaWarehouse::DataSource.quoted_table_name
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       organization_table = quoted_table_name
@@ -150,7 +150,7 @@ module GrdaWarehouse::Hud
       SQL
     end
 
-    private_class_method def self.has_access_to_organization_through_projects(user, q, qc)
+    def self.has_access_to_organization_through_projects(user, q, qc)
       viewability_table  = GrdaWarehouse::GroupViewableEntity.quoted_table_name
       project_table      = GrdaWarehouse::Hud::Project.quoted_table_name
       organization_table = quoted_table_name

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -60,7 +60,11 @@ class BaseJob < ActiveJob::Base
     return unless File.exist?('config/exception_notifier.yml')
 
     setup_notifier('DelayedJobFailure')
-    msg = "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
+    msg = if Rails.env.development?
+      "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}``` ```#{exception.backtrace.inspect}```"
+    else
+      "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
+    end
     @notifier.ping(msg) if @send_notifications
     ExceptionNotifier.notify_exception(exception) if @send_notifications
   end

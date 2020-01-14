@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -74,15 +74,19 @@ module GrdaWarehouse::Report
 
 
     def self.source_client_table
-      @source_client_table ||= Arel::Table.new(
-        GrdaWarehouse::Hud::Client.table_name
-      ).tap{ |t| t.table_alias = 'source_clients' }
+      @source_client_table ||= begin
+        table = GrdaWarehouse::Hud::Client.arel_table.dup
+        table.table_alias = 'source_clients'
+        table
+      end
     end
 
     def self.destination_client_table
-      @destination_client_table ||= Arel::Table.new(
-        GrdaWarehouse::Hud::Client.table_name
-      ).tap{ |t| t.table_alias = 'destination_clients' }
+      @destination_client_table ||= begin
+        table = GrdaWarehouse::Hud::Client.arel_table.dup
+        table.table_alias = 'destination_clients'
+        table
+      end
     end
 
     def self.client_join_table
@@ -110,7 +114,7 @@ module GrdaWarehouse::Report
           destination_client_table[:id].eq(client_join_table[:destination_id]).
           and( destination_client_table[:DateDeleted].eq nil )
         ).project(
-          *e_t.engine.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
+          *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
           source_client_table[:id].as('demographic_id'),                                         # the source client id
           destination_client_table[:id].as('client_id')                                          # the destination client id
         ).where(

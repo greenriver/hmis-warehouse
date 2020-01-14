@@ -1,4 +1,4 @@
-class CreateYouthExports < ActiveRecord::Migration
+class CreateYouthExports < ActiveRecord::Migration[4.2]
   def change
     create_table :youth_exports do |t|
       t.references :user, index: true, null: false

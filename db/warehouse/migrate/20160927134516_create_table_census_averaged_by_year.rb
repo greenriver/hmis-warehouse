@@ -1,4 +1,4 @@
-class CreateTableCensusAveragedByYear < ActiveRecord::Migration
+class CreateTableCensusAveragedByYear < ActiveRecord::Migration[4.2]
   def change
     create_table :censuses_averaged_by_year do |t|
       t.integer :year, null: false

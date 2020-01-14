@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -14,7 +14,6 @@ module GrdaWarehouse::Hud
     include ApplicationHelper
     include HudSharedScopes
     include HudChronicDefinition
-    include Eto::TouchPoints
     include SiteChronic
 
     self.table_name = :Client
@@ -85,13 +84,16 @@ module GrdaWarehouse::Hud
     include ArelHelper
 
     belongs_to :data_source, inverse_of: :clients
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
 
     has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
     has_many :warehouse_client_destination, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
     has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
     has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
     has_many :window_source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
+
+    # Must be included after source_clients is defined...
+    include Eto::TouchPoints
 
     has_one :processed_service_history, -> { where(routine: 'service_history') }, class_name: 'GrdaWarehouse::WarehouseClientsProcessed'
     has_one :first_service_history, -> { where record_type: 'first' }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
@@ -137,7 +139,7 @@ module GrdaWarehouse::Hud
     has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
     # End cleanup relationships
 
-    has_many :organizations, -> { order(:OrganizationName).uniq }, through: :enrollments
+    has_many :organizations, -> { order(:OrganizationName).distinct }, through: :enrollments
     has_many :source_services, through: :source_clients, source: :services
     has_many :source_enrollments, through: :source_clients, source: :enrollments
     has_many :source_enrollment_cocs, through: :source_clients, source: :enrollment_cocs
@@ -312,31 +314,78 @@ module GrdaWarehouse::Hud
 
     scope :individual_adult, -> (start_date: Date.current, end_date: Date.current) do
       adult(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.individual_adult.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          individual_adult.
+          select(:client_id)
+      )
     end
 
     scope :unaccompanied_youth, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.unaccompanied_youth.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          unaccompanied_youth.
+          select(:client_id)
+      )
     end
 
     scope :children_only, -> (start_date: Date.current, end_date: Date.current) do
       child(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.children_only.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          children_only.
+          select(:client_id)
+      )
     end
 
     scope :parenting_youth, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_youth.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parenting_youth.
+          select(:client_id)
+      )
     end
 
     scope :parenting_juvenile, -> (start_date: Date.current, end_date: Date.current) do
       youth(on: start_date).
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.parenting_juvenile.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parenting_juvenile.
+          select(:client_id)
+      )
+    end
+
+    scope :unaccompanied_minors, -> (start_date: Date.current, end_date: Date.current) do
+      youth(on: start_date).
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          unaccompanied_minors.
+          select(:client_id)
+      )
     end
 
     scope :family, -> (start_date: Date.current, end_date: Date.current) do
-      where(id: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: start_date, end_date: end_date).distinct.family.select(:client_id))
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          family.
+          select(:client_id)
+      )
     end
 
     scope :veteran, -> do
@@ -400,11 +449,7 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    # scope :disabled, -> do
-    #   dt = Disability.arel_table
-    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    # end
-    #
+
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -647,11 +692,11 @@ module GrdaWarehouse::Hud
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       if coc_codes.present?
         consent_form_valid.where(
-          arel_table[:consented_coc_codes].eq('[]').
-          or(Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"))
+          Arel.sql("consented_coc_codes='[]'::jsonb OR " +
+          "#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]")
         )
       else
-        consent_form_valid.where(consented_coc_codes: '[]')
+        consent_form_valid.where("consented_coc_codes='[]'::jsonb")
       end
     end
 
@@ -840,10 +885,10 @@ module GrdaWarehouse::Hud
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_scope
       d_t1 = GrdaWarehouse::Hud::Disability.arel_table
-      d_t2 = Arel::Table.new(d_t1.table_name)
+      d_t2 = d_t1.dup
       d_t2.table_alias = 'disability2'
       c_t1 = GrdaWarehouse::Hud::Client.arel_table
-      c_t2 = Arel::Table.new(c_t1.table_name)
+      c_t2 = c_t1.dup
       c_t2.table_alias = 'source_clients'
       GrdaWarehouse::Hud::Client.destination.
         joins(:source_enrollment_disabilities).
@@ -880,6 +925,13 @@ module GrdaWarehouse::Hud
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_ids
       disabled_client_scope.pluck(:id)
+    end
+
+    scope :chronically_disabled, -> (end_date=Date.current) do
+      start_date = end_date - 3.years
+      joins(:source_enrollment_disabilities).
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
     end
 
     def deceased?
@@ -1269,7 +1321,7 @@ module GrdaWarehouse::Hud
             .joins(:client)
             .where(hh_where)
             .where.not(client_id: id )
-            .pluck(*columns.values).map do |row|
+            .pluck(*columns.values.map{|v| Arel.sql(v)}).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
           entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}
@@ -1784,7 +1836,7 @@ module GrdaWarehouse::Hud
 
     def last_projects_served_by(include_confidential_names: false)
       sh = service_history_services.joins(:service_history_enrollment).
-        pluck(:date, she_t[:project_name].to_sql, she_t[:data_source_id].to_sql, :project_id).
+        pluck(:date, Arel.sql(she_t[:project_name].to_sql), Arel.sql(she_t[:data_source_id].to_sql), :project_id).
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
@@ -1823,7 +1875,7 @@ module GrdaWarehouse::Hud
       sh  = GrdaWarehouse::WarehouseClientsProcessed
       sht = sh.arel_table
       where(
-        sh.where( sht[:client_id].eq arel_table[:id] ).exists.not
+        sh.where( sht[:client_id].eq arel_table[:id] ).arel.exists.not
       )
     end
 
@@ -2204,7 +2256,8 @@ module GrdaWarehouse::Hud
           self.update(current_cas_columns)
           self.save()
           prev_destination_client.force_full_service_history_rebuild
-          if prev_destination_client.source_clients(true).empty?
+          prev_destination_client.source_clients.reload
+          if prev_destination_client.source_clients.empty?
             # Create a client_merge_history record so we can keep links working
             GrdaWarehouse::ClientMergeHistory.create(merged_into: id, merged_from: prev_destination_client.id)
             prev_destination_client.delete

@@ -1,4 +1,4 @@
-class CreateHealthFiles < ActiveRecord::Migration
+class CreateHealthFiles < ActiveRecord::Migration[4.2]
   def change
     create_table :health_files do |t|
       t.string :type, null: false, index: true

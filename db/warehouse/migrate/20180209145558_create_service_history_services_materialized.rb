@@ -1,4 +1,4 @@
-class CreateServiceHistoryServicesMaterialized < ActiveRecord::Migration
+class CreateServiceHistoryServicesMaterialized < ActiveRecord::Migration[4.2]
   def up
     sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.view_sql
     execute(sql)

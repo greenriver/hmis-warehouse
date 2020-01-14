@@ -1,4 +1,4 @@
-class CreateHmisForms < ActiveRecord::Migration
+class CreateHmisForms < ActiveRecord::Migration[4.2]
   def change
     create_table :hmis_forms do |t|
       t.references :client

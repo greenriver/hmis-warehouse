@@ -1,4 +1,4 @@
-class CreateDataQualityReports < ActiveRecord::Migration
+class CreateDataQualityReports < ActiveRecord::Migration[4.2]
   def change
     create_table :warehouse_data_quality_report_enrollments do |t|
       t.integer :report_id

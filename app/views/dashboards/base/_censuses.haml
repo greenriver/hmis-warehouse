@@ -9,4 +9,4 @@
 
 = content_for :page_js do
   :javascript
-    new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json}, '#{@report.sub_population_title}', '', #{chart_options.to_json});
+    new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json.html_safe}, '#{@report.sub_population_title}', '', #{chart_options.to_json.html_safe});

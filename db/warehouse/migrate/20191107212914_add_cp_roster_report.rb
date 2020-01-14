@@ -1,4 +1,4 @@
-class AddCpRosterReport < ActiveRecord::Migration
+class AddCpRosterReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Health' => [
       {

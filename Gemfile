@@ -7,12 +7,13 @@ gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 8.0'
+gem 'composite_primary_keys', '~> 11'
 gem "pg"
-gem 'activerecord-sqlserver-adapter'
+gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~> 4.2.11.1'
+gem "rails", '5.2.3'
+gem "bootsnap"
 gem 'bcrypt'
 gem "haml-rails"
 gem "sass-rails"
@@ -27,21 +28,22 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave'
+gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
 gem 'ruby-filemagic'
 gem 'mini_magick'
-gem 'acts-as-taggable-on', '~> 4.0'
+gem 'acts-as-taggable-on', '~> 6.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
 gem 'hellosign-ruby-sdk'
 
 gem 'devise', '~> 4'
-gem 'devise_invitable'
+gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
 
@@ -71,6 +73,7 @@ gem "jquery-rails"
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
+gem 'sprockets', '~> 3'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
@@ -89,7 +92,6 @@ gem "gmail", require: false
 
 gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupidedi.git', branch: '820'
 
-# for de-duping clients
 gem 'redcarpet'
 
 # For exporting
@@ -97,7 +99,7 @@ gem 'redcarpet'
 # depended on nokogiri and rubyzip with active CVE's
 # we needed https://github.com/randym/axlsx/commit/776037c0fc799bb09da8c9ea47980bd3bf296874
 # and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
-gem 'axlsx', git: 'https://github.com/randym/axlsx.git'
+gem 'axlsx', '3.0.0.pre' # git: 'https://github.com/randym/axlsx.git'
 gem 'axlsx_rails'
 gem 'roo', require: false
 gem 'roo-xls', require: false
@@ -122,7 +124,7 @@ gem 'exception_notification'
 # Use Unicorn as the app server
 gem 'puma', '~> 3.12.2'
 
-gem 'newrelic_rpm', require: false
+# gem 'newrelic_rpm', require: false
 # gem "temping", require: false
 gem 'dotenv-rails'
 
@@ -166,7 +168,7 @@ end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  # gem 'spring'
+  gem 'spring'
   gem 'html2haml'
   gem 'capistrano-bundler'
   gem 'capistrano-rvm'
@@ -174,7 +176,7 @@ group :development do
   gem 'capistrano-rails'
   gem 'rails-erd'
   gem 'web-console'
-  gem 'quiet_assets'
+  # gem 'quiet_assets'
   gem 'letter_opener'
   gem 'list_matcher', require: false   # for the forms:desmush rake task
 
@@ -201,10 +203,11 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  gem 'test_after_commit'
+  # gem 'test_after_commit'
   gem 'after_commit_exception_notification'
   gem 'simplecov'
   gem 'simplecov-console'
+  gem 'rails-controller-testing'
 end
 
 group :development, :staging, :test do

@@ -114,6 +114,44 @@ set :linked_dirs, fetch(:linked_dirs, []).push(
 # set :keep_releases, 5
 
 namespace :deploy do
+
+  ##########################################################
+  # Bootstrap database structure the first time you deploy #
+  ##########################################################
+  if ENV['FIRST_DEPLOY']=='true'
+    before :migrating, :load_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_warehouse_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "warehouse:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_health_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "health:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+    before :migrating, :load_reporting_schema do
+      on roles(:db)  do
+        within release_path do
+          execute :rake, "reporting:db:schema:conditional_load RAILS_ENV=#{fetch(:rails_env)}"
+        end
+      end
+    end
+  end
+  ##############################################################
+  # END Bootstrap database structure the first time you deploy #
+  ##############################################################
+
   after :migrating, :warehouse_migrations do
     on roles(:db)  do
       within release_path do
@@ -139,6 +177,13 @@ namespace :deploy do
     on roles(:db)  do
       within release_path do
         execute :rake, "reports:seed RAILS_ENV=#{fetch(:rails_env)}"
+      end
+    end
+  end
+  after :report_seeds, :regular_seeds do
+    on roles(:db)  do
+      within release_path do
+        execute :rake, "db:seed RAILS_ENV=#{fetch(:rails_env)}"
       end
     end
   end
@@ -181,11 +226,25 @@ after 'git:wrapper', :echo_options
 task :trigger_job_restarts do
   on roles(:app) do
     within release_path do
+      # Major ruby version upgrades might need a full cache clear:
+      # execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.clear\""
+
       execute :bundle, :exec, :rails, :runner, '-e', fetch(:rails_env), "\"Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)\""
     end
   end
 end
 after 'deploy:symlink:release', :trigger_job_restarts
+
+if ENV['RELOAD_NGINX']=='true'
+  task :reload_nginx do
+    on roles(:web) do
+      within release_path do
+        sudo "#{fetch(:systemctl_path)}", "reload", 'nginx'
+      end
+    end
+  end
+  after 'passenger:restart', :reload_nginx
+end
 
 # set this variable on your first deployments to each environment.
 # remove these lines after all servers are deployed.

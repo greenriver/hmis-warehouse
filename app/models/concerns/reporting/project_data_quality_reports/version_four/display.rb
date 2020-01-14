@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -185,7 +185,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display # rubocop:disa
         served_percentages.map do |details|
           content_tag(:li) do
             concat(content_tag(:span, "#{details[:project_name]}: ")) if report_type == :project_group
-            details_text = (details[:label]).to_s
+            details_text = details[:label].to_s.dup # sometimes the results are frozen
             details_text << " (#{details[:percent]}%)" if details[:percent]
             details_text << " (#{details[:value].presence || 'blank'})" if details[:value]
             if support_path.present?

@@ -1,4 +1,4 @@
-class CreateActivityLogsTable < ActiveRecord::Migration
+class CreateActivityLogsTable < ActiveRecord::Migration[4.2]
   def change
     create_table :activity_logs, :force => true do |t|
       t.string :item_model, index: true

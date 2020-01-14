@@ -1,4 +1,4 @@
-class CreateDashboardExportReports < ActiveRecord::Migration
+class CreateDashboardExportReports < ActiveRecord::Migration[4.2]
   def change
     create_table :dashboard_export_reports do |t|
       t.references :file

@@ -1,4 +1,4 @@
-class AddMarijuanaAnswerToVispdats < ActiveRecord::Migration
+class AddMarijuanaAnswerToVispdats < ActiveRecord::Migration[4.2]
   def change
     add_column :vispdats, :marijuana_answer, :integer
     add_column :vispdats, :incarcerated_before_18_answer, :integer

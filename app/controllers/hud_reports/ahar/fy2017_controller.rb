@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module HudReports::Ahar
       label = params[:label]
       respond_to do |format|
         format.xlsx do
-          render xlsx: :support, filename: "support-#{category}-#{label}.xlsx"
+          render xlsx: 'support', filename: "support-#{category}-#{label}.xlsx"
         end
         format.html {}
       end

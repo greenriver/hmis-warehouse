@@ -1,10 +1,10 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-require 'newrelic_rpm'
+# require 'newrelic_rpm'
 module ReportGenerators::DataQuality::Fy2017
   class Base
     ADULT = 18
@@ -456,7 +456,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def log_with_memory text
-      Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
+      # Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
     end
 
   end

@@ -1,4 +1,4 @@
-class CreateEdIpVisists < ActiveRecord::Migration
+class CreateEdIpVisists < ActiveRecord::Migration[4.2]
   def change
     create_table :ed_ip_visit_files do |t|
       t.string :type

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -117,7 +117,7 @@ module Health
       merge(Health::AgencyPatientReferral.unclaimed)
     end, class_name: 'Health::AgencyPatientReferral'
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id
-    belongs_to :patient, required: false
+    belongs_to :patient, optional: true
     belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
 
     def client

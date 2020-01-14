@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -179,7 +179,7 @@ module GrdaWarehouse::Vispdat
     end
 
     def notify_users
-      return if changes.empty?
+      return if saved_changes.empty?
       notify_vispdat_completed
     end
 
@@ -190,8 +190,8 @@ module GrdaWarehouse::Vispdat
     end
 
     def vispdat_completed?
-      if changes.any?
-        before, after = changes[:submitted_at]
+      if saved_changes.any?
+        before, after = saved_changes[:submitted_at]
         return before.nil? && after.present?
       else
         return false

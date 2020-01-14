@@ -1,4 +1,4 @@
-class CreateEpicPatients < ActiveRecord::Migration
+class CreateEpicPatients < ActiveRecord::Migration[4.2]
   def change
     create_table :epic_patients, force: :cascade do |t|
       t.string   :id_in_source,                             null: false

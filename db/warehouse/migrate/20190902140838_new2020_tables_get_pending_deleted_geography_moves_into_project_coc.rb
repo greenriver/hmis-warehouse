@@ -1,4 +1,4 @@
-class New2020TablesGetPendingDeletedGeographyMovesIntoProjectCoC < ActiveRecord::Migration
+class New2020TablesGetPendingDeletedGeographyMovesIntoProjectCoC < ActiveRecord::Migration[4.2]
   def change
 
     add_column :ProjectCoC, :geography_type_override, :integer, limit: 4

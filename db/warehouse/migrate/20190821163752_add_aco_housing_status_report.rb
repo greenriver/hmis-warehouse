@@ -1,4 +1,4 @@
-class AddAcoHousingStatusReport < ActiveRecord::Migration
+class AddAcoHousingStatusReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Health' => [
       {

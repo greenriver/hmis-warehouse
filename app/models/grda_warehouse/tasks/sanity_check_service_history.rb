@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -119,7 +119,9 @@ module GrdaWarehouse::Tasks
 
     def load_personal_ids
       # This is brittle, if active record decides to change the name of the joined table, it won't work
-      source_client_table = Arel::Table.new 'source_clients_Client'
+      # source_client_table = Arel::Table.new 'source_clients_Client'
+      source_client_table = GrdaWarehouse::Hud::Client.arel_table
+      source_client_table.table_alias = 'source_clients_Client'
 
       client_source.joins(:source_clients).
         where(id: @destinations.keys).
@@ -137,7 +139,7 @@ module GrdaWarehouse::Tasks
       service_history_source.entry.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, Arel.sql(nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql)).
       each do |id, enrollment_count|
         @destinations[id][:service_history][:enrollments] = enrollment_count
       end
@@ -147,7 +149,7 @@ module GrdaWarehouse::Tasks
       service_history_source.exit.
         where(client_id: batch).
         group(:client_id).
-        pluck(:client_id, nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql).
+        pluck(:client_id, Arel.sql(nf( 'COUNT', [she_t[:enrollment_group_id]] ).to_sql)).
       each do |id, exit_count|
         @destinations[id][:service_history][:exits] = exit_count
       end
@@ -158,7 +160,7 @@ module GrdaWarehouse::Tasks
       client_source.joins(source_enrollments: :project).
         where(id: batch).
         group(:id).
-        pluck(:id, nf( 'COUNT', [nf('DISTINCT', [e_t[:EnrollmentID], e_t[:data_source_id]])] ).to_sql).
+        pluck(:id, Arel.sql(nf( 'COUNT', [nf('DISTINCT', [e_t[:EnrollmentID], e_t[:data_source_id]])] ).to_sql)).
       each do |id, source_enrollment_count|
         @destinations[id][:source][:enrollments] = source_enrollment_count
       end
@@ -173,7 +175,7 @@ module GrdaWarehouse::Tasks
         group(:id).
         pluck(
           :id,
-          nf('COUNT', [nf('DISTINCT', [ex_t[:EnrollmentID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql
+          Arel.sql(nf('COUNT', [nf('DISTINCT', [ex_t[:EnrollmentID], ex_t[:PersonalID], ex_t[:data_source_id]])]).to_sql),
         ).
       each do |id, source_exit_count|
         @destinations[id][:source][:exits] = source_exit_count

@@ -1,4 +1,4 @@
-class AddColumnsToFilesTable < ActiveRecord::Migration
+class AddColumnsToFilesTable < ActiveRecord::Migration[4.2]
   def change
     add_column :files, :note, :string
     add_column :files, :name, :string

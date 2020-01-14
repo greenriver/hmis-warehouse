@@ -15,7 +15,7 @@ describe Rack::Attack, type: :request do
     requests_sent = 0
     requests_to_send.times do |_|
       options[:params][:randomness] = SecureRandom.hex
-      send(method, path, options[:params])
+      send(method, path, params: options[:params])
       requests_sent += 1
       # puts "#{path} #{options} #{requests_sent}/#{requests_to_send} #{response.status}"
       break if response.status == throttled_status

@@ -1,4 +1,4 @@
-class AlterUniqueEnrollmentConstraint < ActiveRecord::Migration
+class AlterUniqueEnrollmentConstraint < ActiveRecord::Migration[4.2]
   def change
     return
 

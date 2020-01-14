@@ -1,4 +1,4 @@
-class DefaultActiveVispdat < ActiveRecord::Migration
+class DefaultActiveVispdat < ActiveRecord::Migration[4.2]
   def up
     vispdats = []
     GrdaWarehouse::Hud::Client.joins(:vispdats).

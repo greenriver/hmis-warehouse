@@ -1,4 +1,4 @@
-class CreateEpicGoals < ActiveRecord::Migration
+class CreateEpicGoals < ActiveRecord::Migration[4.2][4.2]
   def change
     create_table :epic_goals do |t|
       t.string :patient_id, null: false, index: true

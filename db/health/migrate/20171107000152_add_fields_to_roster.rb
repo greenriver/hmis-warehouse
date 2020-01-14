@@ -1,4 +1,4 @@
-class AddFieldsToRoster < ActiveRecord::Migration
+class AddFieldsToRoster < ActiveRecord::Migration[4.2]
   def change
     add_column :claims_roster, :member_months_baseline, :integer
     add_column :claims_roster, :member_months_implementation, :integer

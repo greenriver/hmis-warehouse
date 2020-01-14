@@ -1,4 +1,4 @@
-class AddIncomesReport < ActiveRecord::Migration
+class AddIncomesReport < ActiveRecord::Migration[4.2]
   REPORTS = {
       'Operational Reports' => [
           {

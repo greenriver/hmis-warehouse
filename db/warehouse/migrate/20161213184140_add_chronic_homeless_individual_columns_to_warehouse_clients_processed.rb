@@ -1,4 +1,4 @@
-class AddChronicHomelessIndividualColumnsToWarehouseClientsProcessed < ActiveRecord::Migration
+class AddChronicHomelessIndividualColumnsToWarehouseClientsProcessed < ActiveRecord::Migration[4.2]
   def change
     table_name = GrdaWarehouse::WarehouseClientsProcessed.table_name
     add_column table_name, :individual_days_homeless_last_three_years, :integer, default: 0, null: false

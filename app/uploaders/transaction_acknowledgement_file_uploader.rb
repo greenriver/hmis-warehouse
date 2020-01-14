@@ -1,16 +1,12 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 # encoding: utf-8
 
-require 'carrierwave/uploader/magic_mime_whitelist'
-
 class TransactionAcknowledgementFileUploader < CarrierWave::Uploader::Base
-  # more robust check of the bytes in the upload using libmagic
-  include CarrierWave::Uploader::MagicMimeWhitelist
   # we will use mini magics API to process attachments
   include CarrierWave::MiniMagick
 

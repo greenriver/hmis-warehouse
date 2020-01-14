@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -19,7 +19,7 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :tags, class_name: Cas::Tag.name
+    belongs_to :tags, class_name: Cas::Tag.name, optional: true
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
@@ -45,7 +45,11 @@ module GrdaWarehouse
       elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
-        current_scope.merge(user.cohorts)
+        if current_scope.present?
+          current_scope.merge(user.cohorts)
+        else
+          user.cohorts
+        end
       else
         none
       end
@@ -57,7 +61,11 @@ module GrdaWarehouse
       elsif user.can_edit_cohort_clients? || user.can_manage_cohorts?
         current_scope
       elsif user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts?
-        current_scope.merge(user.cohorts)
+        if current_scope.present?
+          current_scope.merge(user.cohorts)
+        else
+          user.cohorts
+        end
       else
         none
       end

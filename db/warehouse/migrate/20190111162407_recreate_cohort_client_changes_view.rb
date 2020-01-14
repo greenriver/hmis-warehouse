@@ -1,4 +1,4 @@
-class RecreateCohortClientChangesView < ActiveRecord::Migration
+class RecreateCohortClientChangesView < ActiveRecord::Migration[4.2]
   def up
     drop_view :combined_cohort_client_changes
     sql = <<~SQL

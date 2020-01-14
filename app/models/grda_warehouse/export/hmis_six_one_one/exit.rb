@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -61,7 +61,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
           ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
         ) as row_number
       SQL
-      ids = export_scope.pluck(:id, window).select{|_, row_number| row_number == 1}.map(&:first)
+      ids = export_scope.pluck(:id, Arel.sql(window)).select{|_, row_number| row_number == 1}.map(&:first)
     end
   end
 end

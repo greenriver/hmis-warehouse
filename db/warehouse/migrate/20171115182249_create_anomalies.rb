@@ -1,4 +1,4 @@
-class CreateAnomalies < ActiveRecord::Migration
+class CreateAnomalies < ActiveRecord::Migration[4.2]
   def change
     create_table :anomalies do |t|
       t.references :client, index: true

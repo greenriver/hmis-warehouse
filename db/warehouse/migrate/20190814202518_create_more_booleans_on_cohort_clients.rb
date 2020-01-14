@@ -1,4 +1,4 @@
-class CreateMoreBooleansOnCohortClients < ActiveRecord::Migration
+class CreateMoreBooleansOnCohortClients < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :user_boolean_5, :boolean
     add_column :cohort_clients, :user_boolean_6, :boolean

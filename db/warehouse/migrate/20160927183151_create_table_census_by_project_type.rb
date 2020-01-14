@@ -1,4 +1,4 @@
-class CreateTableCensusByProjectType < ActiveRecord::Migration
+class CreateTableCensusByProjectType < ActiveRecord::Migration[4.2]
   def change
     create_table :census_by_project_types do |t|
       t.integer :ProjectType, null: false

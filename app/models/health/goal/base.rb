@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -10,7 +10,7 @@
 module Health
   class Goal::Base < HealthBase
     self.table_name = 'health_goals'
-    has_paper_trail class_name: Health::HealthVersion.name
+    has_paper_trail versions: {class_name: Health::HealthVersion.name}
     acts_as_paranoid
 
     phi_patient :patient_id

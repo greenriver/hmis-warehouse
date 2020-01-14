@@ -1,5 +1,5 @@
 
-class CreateMembers < ActiveRecord::Migration
+class CreateMembers < ActiveRecord::Migration[4.2]
   def change
     create_table :team_members do |t|
       t.string :type, null: false, index: true

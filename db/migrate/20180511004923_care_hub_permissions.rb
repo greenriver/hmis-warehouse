@@ -1,4 +1,4 @@
-class CareHubPermissions < ActiveRecord::Migration
+class CareHubPermissions < ActiveRecord::Migration[4.2]
   def up
     # This only applies to Boston
     return

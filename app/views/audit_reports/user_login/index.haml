@@ -7,7 +7,7 @@
     All enabled accounts are shown below (non-disabled accounts with a valid password set).
     %br Highlighted rows haven't logged in since #{User.stale_account_threshold.to_date}.
   .ml-4
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary ml-auto'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
       Download Excel
 = paginate @users
 %table.table.table-hover

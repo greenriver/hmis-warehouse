@@ -1,4 +1,4 @@
-class CreateVispdatChildren < ActiveRecord::Migration
+class CreateVispdatChildren < ActiveRecord::Migration[4.2]
 
   def change
     create_table :children do |t|

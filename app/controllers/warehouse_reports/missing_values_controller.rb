@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -36,6 +36,7 @@ module WarehouseReports
 
     def index
       report_params = { user: current_user }
+      params.permit!
       report_params.merge!(params[:q]) if params[:q]
       @query = MissingValuesQuery.new(**report_params.symbolize_keys)
       @query.valid? # this initializes the object so simple form will render it correctly
@@ -69,11 +70,11 @@ module WarehouseReports
       end
 
       def client_column?(column)
-        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Client
+        GrdaWarehouse::Hud::Client.column_names.include?(column.to_s)
       end
 
       def enrollment_column?(column)
-        COLUMN_TO_AREL[column].relation.engine == GrdaWarehouse::Hud::Enrollment
+        GrdaWarehouse::Hud::Enrollment.column_names.include?(column.to_s)
       end
 
       def client_columns

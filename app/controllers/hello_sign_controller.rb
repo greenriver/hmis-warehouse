@@ -1,13 +1,14 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 class HelloSignController < ActionController::Base
+  skip_before_action :verify_authenticity_token
   def callback
+    params.permit!
     Rails.logger.info "HelloSign Callback data: params: #{params.ai(plain: true)}"
-
     response = CallbackResponse.new(params[:json])
 
     if response.valid? && response.has_careplan?
@@ -16,7 +17,7 @@ class HelloSignController < ActionController::Base
     end
 
     # HelloSign expects this. Do not change or remove:
-    render text: 'Hello API Event Received'
+    render plain: 'Hello API Event Received'
   end
 
   # rubocop:disable Lint/DuplicateMethods, Naming/PredicateName
@@ -36,7 +37,7 @@ class HelloSignController < ActionController::Base
     def signable_document
       return @signable_document unless @signable_document.nil?
 
-      signable_document_id = _signature_request.dig('metadata', 'signable_document_id')
+      signable_document_id = _signature_request.dig('metadata', 'data', 'signable_document_id')
 
       @signable_document = Health::SignableDocument.find(signable_document_id)
     end

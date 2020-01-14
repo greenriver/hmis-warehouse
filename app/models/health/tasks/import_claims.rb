@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -8,7 +8,7 @@ require 'roo'
 module Health::Tasks
   class ImportClaims
 
-    attr_accessor :claims_file_path, :claims_file 
+    attr_accessor :claims_file_path, :claims_file
     def initialize(claims_file_path: 'var/health/claims_metrics_sample.xlsx')
       @claims_file_path = claims_file_path
     end

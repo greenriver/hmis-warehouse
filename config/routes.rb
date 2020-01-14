@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
@@ -129,6 +130,7 @@ Rails.application.routes.draw do
       :non_veterans,
       :parenting_childrens,
       :parenting_youths,
+      :unaccompanied_minors,
       :veterans,
       :youths,
     ].freeze
@@ -358,6 +360,7 @@ Rails.application.routes.draw do
       resources :enrollments
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
+      resources :encounters, only: [:index, :show, :create, :destroy]
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
@@ -540,6 +543,12 @@ Rails.application.routes.draw do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
   end
+  resources :ad_hoc_data_sources do
+    resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
+      get :download, on: :member
+    end
+    get :download, on: :collection
+  end
 
   resources :organizations, only: [:index, :show] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
@@ -632,7 +641,12 @@ Rails.application.routes.draw do
       resource :edit_history, only: :show
       patch :reactivate, on: :member
       member do
+        post :unlock
         post :confirm
+        post :impersonate
+      end
+      collection do
+        post :stop_impersonating
       end
     end
     resources :inactive_users, except: [:show, :new, :create] do

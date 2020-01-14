@@ -30,7 +30,7 @@ RSpec.describe MessagesController, type: :request do
   describe 'POST seen' do
     it 'sets seen_at to expected date' do
       Timecop.freeze
-      post seen_messages_path, id: event.id
+      post seen_messages_path, params: { id: event.id }
 
       # the accessor gives us a ActiveSupport::TimeWithZone, which throws things off a bit
       seen_at = event.reload&.seen_at&.to_datetime

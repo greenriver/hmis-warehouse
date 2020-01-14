@@ -1,4 +1,4 @@
-class CreateYouthCaseManagement < ActiveRecord::Migration
+class CreateYouthCaseManagement < ActiveRecord::Migration[4.2]
   def change
     create_table :youth_case_managements do |t|
       t.references :client

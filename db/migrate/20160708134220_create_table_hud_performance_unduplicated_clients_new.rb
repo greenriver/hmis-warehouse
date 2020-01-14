@@ -1,4 +1,4 @@
-class CreateTableHudPerformanceUnduplicatedClientsNew < ActiveRecord::Migration
+class CreateTableHudPerformanceUnduplicatedClientsNew < ActiveRecord::Migration[4.2]
   def change
     create_table :client_service_history, id: false do |t|
       t.integer :unduplicated_client_id

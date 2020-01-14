@@ -56,7 +56,7 @@
           %li
             = link_to name, project_path(id)
     .download
-      = link_to({format: :xlsx}.merge(params),{class: 'btn btn-primary'}) do
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-primary'}) do
         Download Excel
 - content_for :page_js do
   :javascript

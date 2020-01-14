@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -43,7 +43,6 @@ module PjaxModalController
         redirect_to_without_xhr_redirect(*args)
       end
     end
-
     alias_method :redirect_to_without_xhr_redirect, :redirect_to
     alias_method :redirect_to, :redirect_to_with_xhr_redirect
     helper_method :pjax_request?

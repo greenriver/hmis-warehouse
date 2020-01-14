@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -27,7 +27,7 @@ class DataSourcesController < ApplicationController
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
       joins(:projects).
-      merge(p_t.engine.viewable_by(current_user)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
       includes(projects: [:project_cocs, :geographies, :inventories]).
       references(projects: [:project_cocs, :geographies, :inventories]).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)

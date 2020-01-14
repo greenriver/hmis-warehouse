@@ -1,4 +1,4 @@
-class CreateServiceHistoryEnrollmentsTable < ActiveRecord::Migration
+class CreateServiceHistoryEnrollmentsTable < ActiveRecord::Migration[4.2]
   def change
     create_table :service_history_enrollments do |t|
       t.integer "client_id",                       :null=>false

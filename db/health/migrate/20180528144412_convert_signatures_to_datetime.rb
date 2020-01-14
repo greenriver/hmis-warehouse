@@ -1,4 +1,4 @@
-class ConvertSignaturesToDatetime < ActiveRecord::Migration
+class ConvertSignaturesToDatetime < ActiveRecord::Migration[4.2][4.2]
   def up
     change_column :careplans, :patient_signed_on, :datetime
     change_column :careplans, :provider_signed_on, :datetime

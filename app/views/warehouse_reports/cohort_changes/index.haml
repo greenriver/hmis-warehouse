@@ -125,7 +125,7 @@
           %td= details[:cisgender]
 
   .mb-4.text-right
-    = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon-download2
       Download Excel
   = render 'pagination'

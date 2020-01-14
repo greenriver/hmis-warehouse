@@ -1,4 +1,4 @@
-class CreateHealthGoals < ActiveRecord::Migration
+class CreateHealthGoals < ActiveRecord::Migration[4.2]
   def change
 
     create_table :careplans do |t|

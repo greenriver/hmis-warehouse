@@ -1,4 +1,4 @@
-class CreateCPs < ActiveRecord::Migration
+class CreateCPs < ActiveRecord::Migration[4.2]
   def change
     create_table :cps do |t|
       t.string :pid

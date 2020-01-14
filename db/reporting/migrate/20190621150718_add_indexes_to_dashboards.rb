@@ -1,4 +1,4 @@
-class AddIndexesToDashboards < ActiveRecord::Migration
+class AddIndexesToDashboards < ActiveRecord::Migration[4.2]
   def change
     remove_index :warehouse_monthly_reports, column: [:type, :month, :year, :project_type], name: 'idx_monthly_rep_on_type_and_month_and_year_and_p_type'
     add_index :warehouse_monthly_reports, [:type, :destination_id, :enrolled], name: :idx_dest_type_enr

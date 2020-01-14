@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -325,7 +325,7 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           source_clients = dest.source_clients.
-            pluck(*client_columns.values).
+            pluck(*client_columns.values.map { |column| Arel.sql(column) }).
             map do |row|
               Hash[client_columns.keys.zip(row)]
             end

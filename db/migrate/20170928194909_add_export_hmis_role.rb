@@ -1,4 +1,4 @@
-class AddExportHmisRole < ActiveRecord::Migration
+class AddExportHmisRole < ActiveRecord::Migration[4.2]
   def up
     Role.ensure_permissions_exist
     Role.reset_column_information

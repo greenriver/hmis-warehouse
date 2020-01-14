@@ -1,4 +1,4 @@
-class CreateHmisStaffTable < ActiveRecord::Migration
+class CreateHmisStaffTable < ActiveRecord::Migration[4.2]
   def change
     table_name = GrdaWarehouse::HMIS::Staff.table_name
     create_table table_name do |t|

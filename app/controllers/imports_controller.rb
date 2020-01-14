@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -14,7 +14,7 @@ class ImportsController < ApplicationController
     @imports = import_scope
     # sort / paginate
     sort = "#{sort_column} #{sort_direction}"
-    @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at).
+    @imports = @imports.select(:id, :data_source_id, :completed_at, :created_at, :updated_at, :upload_id).
       order(sort).
       page(params[:page].to_i).per(20)
   end

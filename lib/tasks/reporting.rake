@@ -27,6 +27,10 @@ namespace :reporting do
     end
   end
 
+  desc "Run Ad-Hoc Upload processing"
+  task run_ad_hoc_processing: [:environment] do
+    GrdaWarehouse::AdHocBatch.process!
+  end
 
   # DB related, provides reporting:db:migrate etc.
   namespace :db do |ns|
@@ -78,6 +82,15 @@ namespace :reporting do
 
       task :dump do
         Rake::Task["db:schema:dump"].invoke
+      end
+
+      desc "Conditionally load the database schema"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if ReportingBase.connection.tables.length == 0
+          Rake::Task['reporting:db:schema:load'].invoke
+        else
+          puts "Refusing to load the reporting database schema since there are tables present. This is not an error."
+        end
       end
     end
 

@@ -1,4 +1,4 @@
-class CreateAvailableFileTags < ActiveRecord::Migration
+class CreateAvailableFileTags < ActiveRecord::Migration[4.2]
   def change
     create_table :available_file_tags do |t|
       t.string :name

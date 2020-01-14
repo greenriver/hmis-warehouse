@@ -10,8 +10,9 @@
     = f.input :org, collection: @filter.disambiguated_organizations, selected: @filter.org, prompt: 'Organization', include_blank: true, label: false, input_html: {class: :select2}
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Update View'
-    = link_to( params.merge( format: :xlsx ), { class: 'btn btn-secondary jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
+    = f.button :submit, value: 'Update View', class: :jSubmit, data: { disable_with: 'Update View' }
+    - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
+    = link_to( params.permit!.merge( format: :xlsx ), { class: 'btn btn-secondary jXls', data: { toggle: 'tooltip', title: 'download the data currently displayed' } } ) do
       Download Excel File
 
   = render 'warehouse_reports/filters', f:f

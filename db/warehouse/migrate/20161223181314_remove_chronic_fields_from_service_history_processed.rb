@@ -1,4 +1,4 @@
-class RemoveChronicFieldsFromServiceHistoryProcessed < ActiveRecord::Migration
+class RemoveChronicFieldsFromServiceHistoryProcessed < ActiveRecord::Migration[4.2]
   def change
     table_name = GrdaWarehouse::WarehouseClientsProcessed.table_name
     remove_column table_name, :individual_days_homeless_last_three_years, :integer, default: 0, null: false

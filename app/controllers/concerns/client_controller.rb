@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -180,19 +180,19 @@ module ClientController
     def validate_new_client_params(clean_params)
       valid = true
       unless [0, 9].include?(clean_params[:SSN].length)
-        @client.errors[:SSN] = 'SSN must contain 9 digits'
+        @client.errors.add(:SSN, :format, message: 'must contain 9 digits')
         valid = false
       end
       if clean_params[:FirstName].blank?
-        @client.errors[:FirstName] = 'First name is required'
+        @client.errors.add(:FirstName, :required, message: 'is required')
         valid = false
       end
       if clean_params[:LastName].blank?
-        @client.errors[:LastName] = 'Last name is required'
+        @client.errors.add(:LastName, :required, message: 'is required')
         valid = false
       end
       if clean_params[:DOB].blank?
-        @client.errors[:DOB] = 'Date of birth is required'
+        @client.errors.add(:DOB, :required, message: 'Date of birth is required')
         valid = false
       end
       valid
@@ -277,19 +277,22 @@ module ClientController
 
     protected def set_client
       # Do we have this client?
-      # If not, attempt to redirect to the most recent version
+      # If we don't, attempt to redirect to the most recent version
       # If there's not merge path, just force an active record not found
-      if client_scope.where(id: params[:id].to_i).exists?
-        @client = client_scope.find(params[:id].to_i)
-      else
-        client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination params[:id].to_i
-        if client_id
-          redirect_to controller: controller_name, action: action_name, id: client_id
-          # client_scope.find(client_id)
-        else
-          @client = client_scope.find(params[:id].to_i)
-        end
+      # This query is slow, even as an exists query, so just attempt to load the client
+      id = params[:id].to_i
+      @client = client_scope(id: id).find_by(id: id)
+      return if @client.present?
+
+      client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
+      if client_id
+        redirect_to controller: controller_name, action: action_name, id: client_id
+        return
       end
+
+      # Throw a 404 by looking for a non-existent client
+      # Using 0 here against the client model will be *much* faster than trying the search again
+      @client = client_source.find(0)
     end
 
     protected def set_client_start_date

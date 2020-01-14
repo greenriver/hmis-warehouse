@@ -1,4 +1,4 @@
-class CreateAccessGroupMembers < ActiveRecord::Migration
+class CreateAccessGroupMembers < ActiveRecord::Migration[4.2]
   def change
     create_table :access_group_members do |t|
       t.references :access_group

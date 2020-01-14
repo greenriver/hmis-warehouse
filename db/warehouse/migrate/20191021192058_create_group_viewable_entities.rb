@@ -1,4 +1,4 @@
-class CreateGroupViewableEntities < ActiveRecord::Migration
+class CreateGroupViewableEntities < ActiveRecord::Migration[4.2]
   def change
     create_table :group_viewable_entities do |t|
       t.references :access_group, null: false

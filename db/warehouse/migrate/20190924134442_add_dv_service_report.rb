@@ -1,4 +1,4 @@
-class AddDvServiceReport < ActiveRecord::Migration
+class AddDvServiceReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Operational Reports' => [
       {

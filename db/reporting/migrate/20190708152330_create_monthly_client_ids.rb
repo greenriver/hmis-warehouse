@@ -1,4 +1,4 @@
-class CreateMonthlyClientIds < ActiveRecord::Migration
+class CreateMonthlyClientIds < ActiveRecord::Migration[4.2]
   def change
     create_table :warehouse_monthly_client_ids do |t|
       t.string :report_type, null: false

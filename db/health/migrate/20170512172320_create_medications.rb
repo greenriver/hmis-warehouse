@@ -1,4 +1,4 @@
-class CreateMedications < ActiveRecord::Migration
+class CreateMedications < ActiveRecord::Migration[4.2]
   def change
     create_table :medications do |t|
       t.date :start_date

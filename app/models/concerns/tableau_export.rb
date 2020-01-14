@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -43,11 +43,11 @@ module TableauExport
     private_class_method :null
 
     def pathways_common(start_date: default_start, end_date: default_end, coc_code: nil)
-      model = she_t.engine
+      model = GrdaWarehouse::ServiceHistoryEnrollment
       spec = {
         client_uid: she_t[:client_id], # in use
         hh_config: she_t[:presented_as_individual],
-        prog: she_t[she_t.engine.project_type_column], # in use
+        prog: she_t[model.project_type_column], # in use
         entry: she_t[:first_date_in_program], # in use
         exit: she_t[:last_date_in_program], # in use
         destination: she_t[:destination], # in use

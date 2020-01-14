@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -9,9 +9,10 @@ module Admin
     include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
-    before_action :require_can_edit_users!
-    before_action :set_user, only: [:edit, :confirm, :update, :destroy]
-    after_action :log_user, only: [:show, :edit, :update, :destroy]
+    before_action :require_can_edit_users!, except: [:stop_impersonating]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate]
+    before_action :require_can_impersonate_users!, only: [:impersonate]
+    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -37,9 +38,25 @@ module Admin
       @user.set_initial_two_factor_secret!
     end
 
+    def unlock
+      @user.unlock_access!
+      redirect_to({ action: :index }, notice: 'User unlocked')
+    end
+
     def confirm
       @agencies = Agency.order(:name)
       update unless adding_admin?
+    end
+
+    def impersonate
+      become = User.find(params[:become_id].to_i)
+      impersonate_user(become)
+      redirect_to root_path
+    end
+
+    def stop_impersonating
+      stop_impersonating_user
+      redirect_to root_path
     end
 
     def update
@@ -129,6 +146,7 @@ module Admin
         :notify_on_client_added,
         :notify_on_anomaly_identified,
         :otp_required_for_login,
+        :expired_at,
         role_ids: [],
         access_group_ids: [],
         coc_codes: [],

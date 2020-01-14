@@ -1,4 +1,4 @@
-class AddHealthPermissions < ActiveRecord::Migration
+class AddHealthPermissions < ActiveRecord::Migration[4.2]
   def up
     add_column :roles, :health_role, :boolean, default: false, null: false
     Role.ensure_permissions_exist

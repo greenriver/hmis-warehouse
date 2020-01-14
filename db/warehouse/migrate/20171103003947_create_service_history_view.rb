@@ -1,4 +1,4 @@
-class CreateServiceHistoryView < ActiveRecord::Migration
+class CreateServiceHistoryView < ActiveRecord::Migration[4.2]
   def up
     # execute <<-SQL
     #   CREATE MATERIALIZED VIEW recent_service_history

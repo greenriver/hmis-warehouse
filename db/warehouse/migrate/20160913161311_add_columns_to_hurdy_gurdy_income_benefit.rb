@@ -1,4 +1,4 @@
-class AddColumnsToHurdyGurdyIncomeBenefit < ActiveRecord::Migration
+class AddColumnsToHurdyGurdyIncomeBenefit < ActiveRecord::Migration[4.2]
   def change
     table = GrdaWarehouse::Hud::IncomeBenefit.table_name
     add_column table, 'IndianHealthServices', :integer

@@ -1,4 +1,4 @@
-class AddDmhVaHuesHivHousingFlagsToClients < ActiveRecord::Migration
+class AddDmhVaHuesHivHousingFlagsToClients < ActiveRecord::Migration[4.2]
   def up
     add_column :Client, :dmh_eligible, :boolean, default: false, null: false, index: true
     add_column :Client, :va_eligible, :boolean, default: false, null: false, index: true

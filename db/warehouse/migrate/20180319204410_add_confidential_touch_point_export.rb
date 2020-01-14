@@ -1,4 +1,4 @@
-class AddConfidentialTouchPointExport < ActiveRecord::Migration
+class AddConfidentialTouchPointExport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Health' => [
       {

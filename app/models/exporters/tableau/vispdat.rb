@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -28,7 +28,7 @@ module Exporters::Tableau::Vispdat
         vispdat_fam_grand_total:  null,
       }
 
-      model = enx_t.engine
+      model = GrdaWarehouse::EnrollmentExtra
 
       scope = model.
         joins(
@@ -38,7 +38,7 @@ module Exporters::Tableau::Vispdat
             { project: :organization }
           ]
         ).
-        merge( she_t.engine.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
+        merge( GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(project_types).open_between start_date: start_date, end_date: end_date ).
         # for aesthetics
         order( e_t[:PersonalID].asc ).
         order( o_t[:OrganizationName] ).

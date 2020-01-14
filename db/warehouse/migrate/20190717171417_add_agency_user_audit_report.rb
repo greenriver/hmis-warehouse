@@ -1,4 +1,4 @@
-class AddAgencyUserAuditReport < ActiveRecord::Migration
+class AddAgencyUserAuditReport < ActiveRecord::Migration[4.2]
   REPORTS = {
     'Audit Reports' => [
       {

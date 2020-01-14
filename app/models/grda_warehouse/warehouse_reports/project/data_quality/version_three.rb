@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -2653,7 +2653,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           joins(:client, :project).
           where(Project: {id: projects.map(&:id)}).
           distinct.
-          pluck(*client_columns.values).
+          pluck(*client_columns.values.map { |column| Arel.sql(column) }).
           map do |row|
             Hash[client_columns.keys.zip(row)]
         end

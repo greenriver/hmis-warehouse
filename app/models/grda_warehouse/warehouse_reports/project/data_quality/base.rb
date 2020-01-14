@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -54,7 +54,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         Rails.logger.debug "Loading Clients"
         clients = client_scope.entry.select(*client_columns.values).
           distinct.
-          pluck(*client_columns.values).
+          pluck(*client_columns.values.map { |column| Arel.sql(column) }).
           map do |row|
             Hash[client_columns.keys.zip(row)]
           end
@@ -103,7 +103,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       client_scope.entry.where(Project: {id: project_id}).
         select(*client_columns.values).
         distinct.
-        pluck(*client_columns.values).
+        pluck(*client_columns.values.map { |column| Arel.sql(column) }).
         map do |row|
           Hash[client_columns.keys.zip(row)]
         end
@@ -113,7 +113,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def enrollments
       @enrollments ||= begin
         Rails.logger.debug "Loading Enrollments"
-        client_scope.entry.pluck(*enrollment_columns.values).
+        client_scope.entry.pluck(*enrollment_columns.values.map { |column| Arel.sql(column) }).
         map do |row|
           Hash[enrollment_columns.keys.zip(row)]
         end.
@@ -574,7 +574,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def all_incomes
       @all_incomes ||= service_history_enrollment_scope.
         joins(enrollment: :income_benefits).
-        pluck(*income_columns.values).map do |row|
+        pluck(*income_columns.values.map { |column| Arel.sql(column) }).map do |row|
           Hash[income_columns.keys.zip(row)]
         end
     end

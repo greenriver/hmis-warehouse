@@ -1,4 +1,4 @@
-class CreateClientAttributes < ActiveRecord::Migration
+class CreateClientAttributes < ActiveRecord::Migration[4.2]
   def change
     create_table :hmis_client_attributes_defined_text do |t|
       t.references :client, index: true

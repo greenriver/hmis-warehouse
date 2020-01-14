@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
 module GrdaWarehouse
   class HudChronic < GrdaWarehouseBase
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :hud_chronics, required: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :hud_chronics
 
     validates_presence_of :date
 

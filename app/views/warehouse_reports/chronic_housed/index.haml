@@ -16,7 +16,7 @@
       - if @clients.any?
         .row
           .col-sm-12.text-right
-            = link_to({format: :xlsx}.merge(params),{class: 'btn btn-secondary'}) do
+            = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
               Download Excel
         %p
           Found

@@ -1,4 +1,4 @@
-class AdditionalCohortClientFields < ActiveRecord::Migration
+class AdditionalCohortClientFields < ActiveRecord::Migration[4.2]
   def change
     add_column :cohort_clients, :vispdat_score_manual, :integer
     add_column :cohort_clients, :user_numeric_1, :integer

@@ -1,4 +1,4 @@
-class HealthPermissionAddCaseManagementNotes < ActiveRecord::Migration
+class HealthPermissionAddCaseManagementNotes < ActiveRecord::Migration[4.2][4.2]
   def up
     Role.ensure_permissions_exist
     Role.reset_column_information

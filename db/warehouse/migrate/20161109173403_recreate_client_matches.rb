@@ -1,4 +1,4 @@
-class RecreateClientMatches < ActiveRecord::Migration
+class RecreateClientMatches < ActiveRecord::Migration[4.2]
   def change
     drop_table :client_matches if table_exists? :client_matches
     create_table :client_matches do |t|

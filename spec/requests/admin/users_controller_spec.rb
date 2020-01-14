@@ -28,7 +28,7 @@ RSpec.describe Admin::UsersController, type: :request do
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
-        patch admin_user_path(updated_user), user: { notify_on_vispdat_completed: '1' }
+        patch admin_user_path(updated_user), params: { user: { notify_on_vispdat_completed: '1' } }
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_vispdat_completed).to be true
@@ -39,8 +39,9 @@ RSpec.describe Admin::UsersController, type: :request do
       let(:updated_user) { User.not_system.first }
 
       before(:each) do
-        patch admin_user_path(updated_user), user: { notify_on_client_added: '1' }
+        patch admin_user_path(updated_user), params: { user: { notify_on_client_added: '1' } }
       end
+
       it 'flips to true' do
         expect(updated_user.reload.notify_on_client_added).to be true
       end

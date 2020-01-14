@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -28,7 +28,8 @@ module WarehouseReports
     def show
       respond_to do |format|
         format.xlsx do
-          render xlsx: :show, filename: "Youth Export #{Time.current.to_s.delete(',')}.xlsx"
+          filename = "Youth Export #{Time.current.to_s.delete(',')}.xlsx"
+          render(xlsx: 'show', filename: filename)
         end
       end
     end

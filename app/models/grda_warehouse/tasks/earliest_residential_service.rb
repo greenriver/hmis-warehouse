@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -62,7 +62,7 @@ module GrdaWarehouse::Tasks
     end
 
     def earliest_dates
-      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, 'min(first_date_in_program)')
+      @earliest_dates ||= service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).group(:client_id).pluck(:client_id, Arel.sql('min(first_date_in_program)'))
     end
 
     # limit to enrollments with service

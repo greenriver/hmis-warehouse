@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -128,9 +128,9 @@ module Export::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
       columns = hud_csv_headers.map do |k|
         case k
         when self.class.hud_key.to_sym
-          self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql
+          Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql)
         else
-          self.class.arel_table[k].as("#{k}_".to_s).to_sql
+          Arel.sql(self.class.arel_table[k].as("#{k}_".to_s).to_sql)
         end
       end
       columns << :data_source_id
@@ -264,7 +264,7 @@ module Export::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
       @client_lookup ||= begin
         GrdaWarehouse::Hud::Client.source.
           joins(:warehouse_client_source).
-          pluck(:PersonalID, wc_t[:destination_id].to_sql, wc_t[:data_source_id].to_sql).
+          pluck(:PersonalID, Arel.sql(wc_t[:destination_id].to_sql), Arel.sql(wc_t[:data_source_id].to_sql)).
           map do |source_id, destination_id, ds_id|
             [[source_id.to_s, ds_id], destination_id.to_s]
           end.to_h
@@ -277,7 +277,7 @@ module Export::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
     project_scope.where(
       p_t[:ProjectID].eq(self.class.arel_table[:ProjectID]).
       and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id])),
-    ).exists
+    ).arel.exists
   end
 
   def enrollment_exists_for_model(enrollment_scope)
@@ -285,6 +285,6 @@ module Export::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
       e_t[:PersonalID].eq(self.class.arel_table[:PersonalID]).
       and(e_t[:EnrollmentID].eq(self.class.arel_table[:EnrollmentID])).
       and(e_t[:data_source_id].eq(self.class.arel_table[:data_source_id])),
-    ).exists
+    ).arel.exists
   end
 end

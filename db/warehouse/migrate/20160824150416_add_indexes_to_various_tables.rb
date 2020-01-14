@@ -1,4 +1,4 @@
-class AddIndexesToVariousTables < ActiveRecord::Migration
+class AddIndexesToVariousTables < ActiveRecord::Migration[4.2]
   def change
     add_index 'Disabilities', 'PersonalID'
     add_index 'EmploymentEducation', 'PersonalID'

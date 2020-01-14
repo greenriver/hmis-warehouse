@@ -1,4 +1,4 @@
-class AddHashedOnlyHmisExportsReport < ActiveRecord::Migration
+class AddHashedOnlyHmisExportsReport < ActiveRecord::Migration[4.2]
     REPORTS = {
       'Operational Reports' => [
         {

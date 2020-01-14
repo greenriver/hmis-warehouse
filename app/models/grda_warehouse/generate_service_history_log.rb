@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -17,7 +17,7 @@ class GrdaWarehouse::GenerateServiceHistoryLog < GrdaWarehouseBase
   end
 
   def clients_processed
-    generate_service_history_batch_logs.sum(:updated, :patched)
+    generate_service_history_batch_logs.sum(:updated) + generate_service_history_batch_logs.sum(:patched)
   end
 
   def total_clients

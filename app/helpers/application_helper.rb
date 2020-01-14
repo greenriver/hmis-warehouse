@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -115,20 +115,22 @@ module ApplicationHelper
   end
 
   # returns a link appropriate for re-sorting a table
-  def sort_link(link_text, column, directions)
+  def sort_link(link_text, column, directions, permitted_params = [])
     direction = directions[column]
     sort_direction = direction.nil? || direction == 'asc' ? 'desc' : 'asc'
     sort = { 'sort' => column, 'direction' => sort_direction }
-    params.merge!(sort)
-    link_to(link_text, params)
+    clean_params = params.permit(permitted_params + [:q])
+    clean_params.merge!(sort)
+    link_to(link_text, clean_params)
   end
 
   # returns a link appropriate for sorting a table as described
-  def sort_as_link(link_text, column, direction = 'asc')
+  def sort_as_link(link_text, column, direction = 'asc', permitted_params = [])
     sort_direction = direction.nil? || direction == 'asc' ? 'asc' : 'desc'
     sort = { 'sort' => column, 'direction' => sort_direction }
-    params.merge!(sort)
-    link_to(link_text, params)
+    clean_params = params.permit(permitted_params + [:q])
+    clean_params.merge!(sort)
+    link_to(link_text, clean_params)
   end
 
   def enable_responsive?
@@ -209,6 +211,10 @@ module ApplicationHelper
     content_tag :div, class: 'navbar-text' do
       content_tag :span, branch_name, class: 'label label-warning'
     end
+  end
+
+  def impersonating?
+    current_user != true_user
   end
 
   def modal_size

@@ -1,4 +1,4 @@
-class AddChronicallyDisabledColumnToWarehouseClientsProcessed < ActiveRecord::Migration
+class AddChronicallyDisabledColumnToWarehouseClientsProcessed < ActiveRecord::Migration[4.2]
   def up
     add_column table.table_name, :chronically_homeless, :boolean, null: false, default: false
   end

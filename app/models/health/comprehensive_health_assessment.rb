@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2019 Green River Data Analysis, LLC
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
@@ -1004,6 +1004,12 @@ module Health
 
     def qualifying_activities
       Health::QualifyingActivity.where(source: self, patient: patient)
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
 
     # allow keys, but some keys need to allow multiple checkbox selections (b_q2 & b_q4)
