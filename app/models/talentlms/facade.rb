@@ -18,7 +18,7 @@ module Talentlms
     def login(user)
       login = Login.find_by(user: user)
       if login.nil?
-        result = create_account(user) if login.nil?
+        result = create_account(user)
       else
         result = @api.post('userlogin', {login: login.login, password: password})
       end
@@ -27,10 +27,12 @@ module Talentlms
 
     # Create an account in TalentLMS for a user
     #
+    # ENV['DEV_OFFSET'] can be set to an integer to prevent username collisions between development environments
+    #
     # @param user [User] the user
     # @return [String] URL to redirect the user to to login
     def create_account(user)
-      login = "user_#{user.id}"
+      login = "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
       password = SecureRandom.hex(8)
       server_domain = ENV['HOSTNAME']
       account = {
