@@ -439,7 +439,7 @@ module Importers::HmisTwentyTwenty
           force_quotes: true
           )
       else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{csv.headers.to_s}; expected a subset of: #{klass.hud_csv_headers}"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers.to_s}; expected a subset of: #{klass.hud_csv_headers}"
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
