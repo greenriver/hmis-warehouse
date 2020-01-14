@@ -32,8 +32,28 @@ module Health
         where.not(medicaid_id: nil)
     end
 
+    def eligible_ids
+      return eligibility_response.eligible_ids if batch_id.blank?
+
+      ids = []
+      batch_responses.each do |response|
+        ids = ids + response.eligible_ids
+      end
+      return ids.uniq
+    end
+
+    def ineligible_ids
+      return eligibility_response.ineligible_ids if batch_id.blank?
+
+      ids = []
+      batch_responses.each do |response|
+        ids = ids + response.ineligible_ids
+      end
+      return ids.uniq
+    end
+
     def batch_responses
-      Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
+      @batch_responses ||= Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
     end
 
     def build_inquiry_file

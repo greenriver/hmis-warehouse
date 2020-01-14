@@ -10,9 +10,9 @@ module WarehouseReports::Health
     before_action :set_inquiry
 
     def show
-      @eligible = patient_scope.where(medicaid_id: @inquiry.eligibility_response.eligible_ids).
+      @eligible = patient_scope.where(medicaid_id: @inquiry.eligible_ids).
         preload(:health_agency, :care_coordinator)
-      @ineligible = patient_scope.where(medicaid_id: @inquiry.eligibility_response.ineligible_ids).
+      @ineligible = patient_scope.where(medicaid_id: @inquiry.ineligible_ids).
         preload(:health_agency, :care_coordinator)
     end
 
