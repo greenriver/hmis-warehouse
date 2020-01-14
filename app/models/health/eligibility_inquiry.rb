@@ -40,7 +40,7 @@ module Health
         batch_responses.each do |response|
           ids = ids + response.eligible_ids
         end
-        return ids.uniq
+        ids.uniq
       end
     end
 
@@ -52,7 +52,7 @@ module Health
         batch_responses.each do |response|
           ids = ids + response.ineligible_ids
         end
-        return ids.uniq
+        ids.uniq
       end
     end
 
@@ -64,7 +64,7 @@ module Health
         batch_responses.each do |response|
           ids = ids + response.managed_care_ids
         end
-        return ids.uniq
+        ids.uniq
       end
     end
 
@@ -140,7 +140,7 @@ module Health
         w = Stupidedi::Writer::Default.new(z.root, separators)
         file = w.write().upcase
       end
-      return file
+      file
     end
 
     # DMG03 is optional, but if it appears, it can only have the values M, F
