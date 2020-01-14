@@ -17,7 +17,7 @@ module WarehouseReports::Health
     end
 
     def has_managed_care(patient) # rubocop:disable Naming/PredicateName
-      @inquiry.eligibility_response.managed_care_ids.include? patient.medicaid_id
+      @inquiry.managed_care_ids.include? patient.medicaid_id
     end
     helper_method :has_managed_care
 
