@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_08_184052) do
+ActiveRecord::Schema.define(version: 2020_01_14_154449) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -3590,6 +3590,7 @@ ActiveRecord::Schema.define(version: 2020_01_08_184052) do
     t.string "login"
     t.string "encrypted_password"
     t.string "encrypted_password_iv"
+    t.integer "lms_user_id"
     t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
   end
 

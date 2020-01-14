@@ -42,9 +42,22 @@ module Talentlms
         restrict_email: 'on',
       }
       result = @api.post('usersignup', account)
-      Login.create(user: user, login: login, password: password)
+      Login.create(user: user, login: login, password: password, lms_user_id: result['id'])
 
       result['login_key']
+    end
+
+    # Get course completion status in TalentLMS
+    #
+    # @param user [User] the user
+    # @param course_id [Integer] the id of the course
+    # @return [Boolean] complete if the user has completed the course
+    def complete?(user, course_id)
+      login = Login.find_by(user: user)
+      return false if login.nil?
+
+      result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
+      result['completion_status'] == 'Completed'
     end
   end
 end
