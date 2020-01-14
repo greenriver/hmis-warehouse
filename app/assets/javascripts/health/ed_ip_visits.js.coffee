@@ -28,18 +28,21 @@ class App.Health.EdIpVisits
               type: 'timeseries'
               tick:
                 format: "%B"
+                culling: false
+                rotate: 60
             y:
               tick:
-                format: (x) ->
-                  if x % 1 == 0
-                    x
+                count: =>
+                  max_value = Math.max.apply(Math, json_data['Emergency'].concat(json_data['Inpatient']))
+                  if max_value % 2
+                    max_value + 1
                   else
-                    ''
+                    max_value + 2
+                format: (x) ->
+                  Math.round(x)
               label:
                 text: 'Encounters'
                 position: 'outer-middle'
-              culling: true
-
           size:
             height: 200
           bindto: selector
