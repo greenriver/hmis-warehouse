@@ -40,7 +40,8 @@ class App.Health.EdIpVisits
                 position: 'outer-middle'
           grid:
             y:
-              show: true
+              show: false
+          regions: @_y_regions(json_data)
           size:
             height: 200
           bindto: selector
@@ -51,6 +52,17 @@ class App.Health.EdIpVisits
 
   _ticks: (data) =>
     [1..@_max_value(data)]
+
+  _y_regions: (data) =>
+    @_ticks(data).map (d) ->
+      odd = if d % 2
+        'even'
+      else
+        'odd'
+      axis: 'y'
+      start: d-1
+      end: d
+      class: "bb-region-y-#{odd}"
 
 
   _colors: (c, d) =>
