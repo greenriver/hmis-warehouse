@@ -934,6 +934,10 @@ module GrdaWarehouse::Hud
         merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
     end
 
+    def chronically_disabled?
+      self.class.chronically_disabled.where(id: id).exists?
+    end
+
     def deceased?
       deceased_on.present?
     end

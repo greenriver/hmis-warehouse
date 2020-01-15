@@ -37,12 +37,13 @@
           %i.icon-info{data: {toggle: :tooltip, title: 'Days in ES, SO, SH, or TH with no overlapping PH after move-in date'}}
 
       %li
-        %h4 Veteran:
+        %h4 Veteran
         %span= yes_no @client.veteran?
 
       %li
-        %h4 Disabled:
+        %h4 Disabled
         %span= yes_no @client.currently_disabled?
+        %i.icon-info{data: {toggle: :tooltip, title: 'Yes indicates a DisabilityResponse of 1, 2, or 3, not followed by a 0.'}}
       - if @client.source_hmis_forms.triage.any?
         %li
           %h4 Preferred Language:

@@ -114,14 +114,14 @@ module HudChronicDefinition
         order(first_date_in_program: :desc).first
       return false unless entry
 
-      entry.head_of_household&.destination_client&.currently_disabled?
+      entry.head_of_household&.destination_client&.chronically_disabled?
     end
 
     # is the current client disabled?
     # as of 4/8/2019 we are standardizing all disabled calculations
     # on GrdaWarehouse::Hud::Client.disabled_client_scope
     def disabled?(on_date:) # rubocop:disable Lint/UnusedMethodArgument
-      currently_disabled?
+      chronically_disabled?
     end
   end
 
