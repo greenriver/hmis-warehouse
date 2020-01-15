@@ -20,6 +20,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
   describe 'measure one example' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       setup('spec/fixtures/files/system_performance/measure_one')
     end
 
