@@ -710,7 +710,7 @@ module ReportGenerators::SystemPerformance::Fy2019
             select(:client_id)
 
         child_candidates = add_filters(scope: child_candidates_scope).
-            pluck(:client_id, c_t[:DOB].to_sql, e_t[:EntryDate].to_sql, :age, :head_of_household_id)
+            pluck(:client_id, c_t[:DOB], e_t[:EntryDate], :age, :head_of_household_id)
 
 
         child_id_to_destination = {}

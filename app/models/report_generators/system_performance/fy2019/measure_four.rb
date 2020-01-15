@@ -171,18 +171,18 @@ module ReportGenerators::SystemPerformance::Fy2019
       # 3. The client must be an adult to be included in this measure.
 
       columns = {
-        she_t[:client_id].to_sql => :client_id,
-        she_t[:first_date_in_program].to_sql => :first_date_in_program,
-        she_t[:last_date_in_program].to_sql => :last_date_in_program,
-        she_t[:project_id].to_sql => :project_id,
-        she_t[:age].to_sql => :age,
-        c_t[:DOB].to_sql => :DOB,
-        she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
-        c_t[:PersonalID].to_sql => :PersonalID,
-        she_t[:data_source_id].to_sql => :data_source_id,
-        she_t[:project_tracking_method].to_sql => :project_tracking_method,
-        she_t[:project_name].to_sql => :project_name,
-        she_t[:id].to_sql => :enrollment_id,
+        she_t[:client_id] => :client_id,
+        she_t[:first_date_in_program] => :first_date_in_program,
+        she_t[:last_date_in_program] => :last_date_in_program,
+        she_t[:project_id] => :project_id,
+        she_t[:age] => :age,
+        c_t[:DOB] => :DOB,
+        she_t[:enrollment_group_id] => :enrollment_group_id,
+        c_t[:PersonalID] => :PersonalID,
+        she_t[:data_source_id] => :data_source_id,
+        she_t[:project_tracking_method] => :project_tracking_method,
+        she_t[:project_name] => :project_name,
+        she_t[:id] => :enrollment_id,
       }
 
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -243,17 +243,17 @@ module ReportGenerators::SystemPerformance::Fy2019
       # 2. The client must be an adult to be included.
 
       columns = {
-        she_t[:client_id].to_sql => :client_id,
-        she_t[:first_date_in_program].to_sql => :first_date_in_program,
-        she_t[:last_date_in_program].to_sql => :last_date_in_program,
-        she_t[:project_id].to_sql => :project_id,
-        she_t[:age].to_sql => :age,
-        c_t[:DOB].to_sql => :DOB,
-        she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
-        c_t[:PersonalID].to_sql => :PersonalID,
-        she_t[:data_source_id].to_sql => :data_source_id,
-        she_t[:project_tracking_method].to_sql => :project_tracking_method,
-        she_t[:project_name].to_sql => :project_name,
+        she_t[:client_id] => :client_id,
+        she_t[:first_date_in_program] => :first_date_in_program,
+        she_t[:last_date_in_program] => :last_date_in_program,
+        she_t[:project_id] => :project_id,
+        she_t[:age] => :age,
+        c_t[:DOB] => :DOB,
+        she_t[:enrollment_group_id] => :enrollment_group_id,
+        c_t[:PersonalID] => :PersonalID,
+        she_t[:data_source_id] => :data_source_id,
+        she_t[:project_tracking_method] => :project_tracking_method,
+        she_t[:project_name] => :project_name,
       }
 
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.

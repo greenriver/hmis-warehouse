@@ -250,14 +250,14 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     def calculate_days_homeless id, project_types, stop_project_types, include_pre_entry=false
       columns = {
-        enrollment_id: she_t[:id].to_sql,
-        date: shs_t[:date].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
-        MoveInDate: e_t[:MoveInDate].to_sql,
-        DOB: c_t[:DOB].to_sql,
+        enrollment_id: she_t[:id],
+        date: shs_t[:date],
+        project_type: she_t[:computed_project_type],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        DateToStreetESSH: e_t[:DateToStreetESSH],
+        MoveInDate: e_t[:MoveInDate],
+        DOB: c_t[:DOB],
       }
       #Rails.logger.info "Calculating Days Homeless for: #{id}"
       # Load all bed nights
@@ -501,8 +501,8 @@ module ReportGenerators::SystemPerformance::Fy2019
         child_candidates = add_filters(scope: child_candidates_scope).
           pluck(
             :client_id,
-            c_t[:DOB].to_sql,
-            e_t[:EntryDate].to_sql,
+            c_t[:DOB],
+            e_t[:EntryDate],
             :age,
             :head_of_household_id,
             :household_id,
