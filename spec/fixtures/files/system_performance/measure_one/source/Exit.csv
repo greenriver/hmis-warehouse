@@ -1,7 +1,7 @@
 ExitID,EnrollmentID,PersonalID,ExitDate,Destination,OtherDestination,AssessmentDisposition,OtherDisposition,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-1,1,2f4b963171644a8b9902bdfe79a4b403,2015-3-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-3-31,2015-3-31,user,,31a77b417911747e41ef9936f9a4b657
-2,2,2f4b963171644a8b9902bdfe79a4b403,2015-9-30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-9-30,2015-9-30,user,,31a77b417911747e41ef9936f9a4b657
-3,3,2f4b963171644a8b9902bdfe79a4b403,2015-7-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-7-31,2015-7-31,user,,31a77b417911747e41ef9936f9a4b657
-4,4,2f4b963171644a8b9902bdfe79a4b403,2016-4-30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-4-30,2016-4-30,user,,31a77b417911747e41ef9936f9a4b657
-5,5,2f4b963171644a8b9902bdfe79a4b403,2017-1-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2017-1-31,2017-1-31,user,,31a77b417911747e41ef9936f9a4b657
-6,6,2f4b963171644a8b9902bdfe79a4b403,2017-2-28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2017-2-28,2017-2-28,user,,31a77b417911747e41ef9936f9a4b657
+1,1,2f4b963171644a8b9902bdfe79a4b403,2015-4-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-3-31,2015-3-31,user,,31a77b417911747e41ef9936f9a4b657
+2,2,2f4b963171644a8b9902bdfe79a4b403,2015-10-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-9-30,2015-9-30,user,,31a77b417911747e41ef9936f9a4b657
+3,3,2f4b963171644a8b9902bdfe79a4b403,2015-8-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2015-7-31,2015-7-31,user,,31a77b417911747e41ef9936f9a4b657
+4,4,2f4b963171644a8b9902bdfe79a4b403,2016-5-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-4-30,2016-4-30,user,,31a77b417911747e41ef9936f9a4b657
+5,5,2f4b963171644a8b9902bdfe79a4b403,2017-2-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2017-1-31,2017-1-31,user,,31a77b417911747e41ef9936f9a4b657
+6,6,2f4b963171644a8b9902bdfe79a4b403,2017-3-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2017-2-28,2017-2-28,user,,31a77b417911747e41ef9936f9a4b657

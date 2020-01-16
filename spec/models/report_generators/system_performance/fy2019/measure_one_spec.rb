@@ -41,8 +41,8 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
     end
 
     it 'reports 5 months 1a days' do
-      days = (Date.parse('2016-4-30') - Date.parse('2016-2-1')).to_i +
-        (Date.parse('2016-10-31') - Date.parse('2016-9-1')).to_i
+      days = (Date.parse('2016-5-1') - Date.parse('2016-2-1')).to_i +
+        (Date.parse('2016-11-1') - Date.parse('2016-9-1')).to_i
       expect(report_result.results['onea_e2']['value']).to eq(days)
     end
 
@@ -51,8 +51,8 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
     end
 
     it 'reports 13 months 1b days' do
-      days = (Date.parse('2016-4-30') - Date.parse('2015-8-1')).to_i +
-        (Date.parse('2016-10-31') - Date.parse('2016-7-1')).to_i
+      days = (Date.parse('2016-5-1') - Date.parse('2015-8-1')).to_i +
+        (Date.parse('2016-11-1') - Date.parse('2016-7-1')).to_i
       expect(report_result.results['oneb_e2']['value']).to eq(days)
     end
   end

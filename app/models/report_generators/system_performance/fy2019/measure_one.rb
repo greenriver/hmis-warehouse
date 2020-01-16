@@ -19,7 +19,8 @@ module ReportGenerators::SystemPerformance::Fy2019
     # SO = [4]
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
-    def run!
+    def run!(debug=false)
+      @debug = debug
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
         calculate()
@@ -91,7 +92,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Line 1
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -450,28 +451,36 @@ module ReportGenerators::SystemPerformance::Fy2019
     def filter_days_for_homelessness dates, project_types, stop_project_types
       filtered_days = []
       # build a useful hash of arrays
-      days = dates.group_by{|d| d[:date]}
+      days = dates.sort_by{|d| d[:date]}.group_by{|d| d[:date]}
 
-      # puts "Processing #{dates.count} dates"
+      puts "Processing #{dates.count} dates" if @debug
       days.each do |k, bed_nights|
-        # puts "Looking at: #{v.inspect}"
+        puts "Looking at: #{bed_nights.count} bed nights on #{k}" if @debug
         # process current day
 
-        # If any entries in the current day have stop_project_types,
-        #   throw out the entire day
-        keep = true
+        # If any entries in the current day have stop_project_types, and move in date is before
+        # the current date, or all of the entries have stop_project_types, throw out the entire day
+        in_stop_project = false
+        has_countable_project = false
         bed_nights.each do |night|
-          if stop_project_types.include? night[:project_type]
-            keep = false
-          end
+          has_countable_project =  has_countable_project || has_countable_project_on?(night, stop_project_types)
+          in_stop_project =  in_stop_project || in_stop_project_on?(night, k, stop_project_types)
         end
-        # puts "removed stop projects: #{v.inspect}"
-        if keep
+        if  has_countable_project && (! in_stop_project)
           filtered_days << k
         end
       end
-      # puts "Found: #{filtered_days.count}"
-      return filtered_days
+      puts "Found: #{filtered_days.count}" if @debug
+      puts "#{filtered_days.map{|day| [ day.month, day.year] }.uniq}" if @debug
+      return filtered_days.sort
+    end
+
+    private def has_countable_project_on?(night, stop_project_types)
+      (! stop_project_types.include?(night[:project_type]))
+    end
+
+    private def in_stop_project_on?(night, date, stop_project_types)
+      (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
     end
 
     def median array
