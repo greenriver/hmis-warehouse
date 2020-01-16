@@ -48,7 +48,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::IdentifyDuplicatesLog,
       GrdaWarehouse::GenerateServiceHistoryLog,
       GrdaWarehouse::Hud::Client,
-      # GrdaWarehouse::DataSource,
+      GrdaWarehouse::DataSource,
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base,
       GrdaWarehouse::WarehouseReports::Base,
       GrdaWarehouse::Cohort,
