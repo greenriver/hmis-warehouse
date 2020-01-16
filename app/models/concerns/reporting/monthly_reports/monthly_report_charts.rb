@@ -49,7 +49,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     scope :housed, -> do
-      where(destination_id: HUD.permanent_destinations)
+      where(destination_id: ::HUD.permanent_destinations)
     end
 
     scope :for_organizations, ->(organization_ids) do
@@ -108,7 +108,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def enrolled_client_count
-      enrolled_clients.select(:client_id).distinct.count
+      @enrolled_client_count ||= enrolled_clients.select(:client_id).distinct.count
     end
 
     # NOTE: HMIS households (household_id) are different for every enrollment
@@ -117,7 +117,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     # Potentially this introduces errors since someone may actually be
     # The head of household in more than one household
     def enrolled_household_count
-      self.class.enrolled.in_months(months).
+      @enrolled_household_count ||= self.class.enrolled.in_months(months).
         where(household_id: enrolled_clients.select(:household_id)).
         heads_of_household.select(:client_id).distinct.count
     end
@@ -127,11 +127,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def active_client_count
-      active_clients.select(:client_id).distinct.count
+      @active_client_count ||= active_clients.select(:client_id).distinct.count
     end
 
     def active_household_count
-      self.class.enrolled.in_months(months).
+      @active_household_count ||= self.class.enrolled.in_months(months).
         where(household_id: active_clients.select(:household_id)).
         heads_of_household.select(:client_id).distinct.count
     end
@@ -141,11 +141,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def entered_client_count
-      entered_clients.select(:client_id).distinct.count
+      @entered_client_count ||= entered_clients.select(:client_id).distinct.count
     end
 
     def entered_household_count
-      self.class.enrolled.in_months(months).
+      @entered_household_count ||= self.class.enrolled.in_months(months).
         where(household_id: entered_clients.select(:household_id)).
         heads_of_household.select(:client_id).distinct.count
     end
@@ -155,11 +155,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def exited_client_count
-      exited_clients.select(:client_id).distinct.count
+      @exited_client_count ||= exited_clients.select(:client_id).distinct.count
     end
 
     def exited_household_count
-      self.class.enrolled.in_months(months).
+      @exited_household_count ||= self.class.enrolled.in_months(months).
         where(household_id: exited_clients.select(:household_id)).
         heads_of_household.select(:client_id).distinct.count
     end
@@ -169,7 +169,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def first_time_client_count
-      first_time_clients.select(:client_id).distinct.count
+      @first_time_client_count ||= first_time_clients.select(:client_id).distinct.count
     end
 
     def re_entry_clients
@@ -177,7 +177,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def re_entry_client_count
-      re_entry_clients.select(:client_id).distinct.count
+      @re_entry_client_count ||= re_entry_clients.select(:client_id).distinct.count
     end
 
     def homeless_project_type_ids
@@ -223,20 +223,22 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def entry_re_entry_data
-      data = { new: [:New], returning: [:Returning] }
-      new_entries = first_time_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      returning_entries = re_entry_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      months.reverse_each do |year, month|
-        new_count = (new_entries[[year, month]] || 0)
-        returning_count = (returning_entries[[year, month]] || 0)
-        data[:new] << new_count
-        data[:returning] << returning_count
+      @entry_re_entry_data ||= begin
+        data = { new: [:New], returning: [:Returning] }
+        new_entries = first_time_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        returning_entries = re_entry_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        months.reverse_each do |year, month|
+          new_count = (new_entries[[year, month]] || 0)
+          returning_count = (returning_entries[[year, month]] || 0)
+          data[:new] << new_count
+          data[:returning] << returning_count
+        end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     # def first_time_entry_locations
@@ -296,7 +298,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def all_housed_client_count
-      all_housed_clients.select(:client_id).distinct.count
+      @all_housed_client_count ||= all_housed_clients.select(:client_id).distinct.count
     end
 
     def housed_clients
@@ -304,7 +306,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def housed_client_count
-      housed_clients.select(:client_id).distinct.count
+      @housed_client_count ||= housed_clients.select(:client_id).distinct.count
     end
 
     def in_percentage(partial, total)
@@ -318,14 +320,16 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def housed_by_month
-      data = { housed: [:Housed] }
-      housed = housed_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      months.reverse_each do |year, month|
-        data[:housed] << (housed[[year, month]] || 0)
+      @housed_by_month ||= begin
+        data = { housed: [:Housed] }
+        housed = housed_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        months.reverse_each do |year, month|
+          data[:housed] << (housed[[year, month]] || 0)
+        end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
   end
 end
