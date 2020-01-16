@@ -62,6 +62,7 @@ module Reporting::MonthlyReports
 
     private def maintain_month_range_cache
       Rails.cache.delete([self.class.name, 'month-range'])
+      self.class.available_months
     end
 
     def self.available_months
