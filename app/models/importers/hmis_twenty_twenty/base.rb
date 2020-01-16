@@ -456,7 +456,7 @@ module Importers::HmisTwentyTwenty
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
             next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
-            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present?
+            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present?
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
