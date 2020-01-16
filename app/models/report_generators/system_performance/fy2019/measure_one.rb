@@ -338,7 +338,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
-        client_end_date = [homeless_days.last.to_date, @report_end].min
+        client_end_date = [homeless_days.last.to_date, @report_end + 1.day ].min
         #Rails.logger.info "Latest Homeless Bed Night: #{client_end_date}"
 
         # Determine the client's start date
@@ -362,7 +362,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
         # Remove any days outside of client_start_date and client_end_date
         #Rails.logger.info "Days homeless before limits #{homeless_days.count}"
-        homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
+        homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date >= client_end_date.to_date }
         #Rails.logger.info "Days homeless after limits #{homeless_days.count}"
       end
       homeless_days.uniq.count

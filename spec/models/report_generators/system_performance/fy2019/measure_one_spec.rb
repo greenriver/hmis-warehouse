@@ -42,7 +42,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
     it 'reports 5 months 1a days' do
       days = (Date.parse('2016-5-1') - Date.parse('2016-2-1')).to_i +
-        (Date.parse('2016-11-1') - Date.parse('2016-9-1')).to_i
+        (Date.parse('2016-10-31') - Date.parse('2016-9-1')).to_i
       expect(report_result.results['onea_e2']['value']).to eq(days)
     end
 
@@ -52,7 +52,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
     it 'reports 13 months 1b days' do
       days = (Date.parse('2016-5-1') - Date.parse('2015-8-1')).to_i +
-        (Date.parse('2016-11-1') - Date.parse('2016-7-1')).to_i
+        (Date.parse('2016-10-31') - Date.parse('2016-7-1')).to_i
       expect(report_result.results['oneb_e2']['value']).to eq(days)
     end
   end
@@ -101,7 +101,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
     it 'client 6 has no stays (1f)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '6')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }.first[1]).to eq(0)
+      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }).to be_empty
     end
   end
 
