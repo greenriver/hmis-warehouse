@@ -25,7 +25,7 @@ module Api
               :id,
               :ProjectName,
               :computed_project_type,
-              o_t[:OrganizationName].to_sql,
+              o_t[:OrganizationName],
             ).each do |id, p_name, type, o_name|
               @data[o_name] ||= []
               @data[o_name] << [

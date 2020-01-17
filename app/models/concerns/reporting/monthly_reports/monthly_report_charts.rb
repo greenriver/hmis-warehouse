@@ -96,7 +96,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def clients_for_report
-      self.class.in_months(months).
+      @clients_for_report ||= self.class.in_months(months).
         for_organizations(organization_ids).
         for_projects(project_ids).
         for_project_types(project_types).
