@@ -758,7 +758,14 @@ module Importers::HmisTwentyTwenty
     end
 
     def log(message)
-      @notifier.ping message if @notifier
+      # Slack really doesn't like it when you send too many message in a row
+      sleep(1)
+      begin
+        @notifier.ping message if @notifier
+      rescue Slack::Notifier::APIError => e
+        sleep(3)
+        logger.error "Failed to send slack"
+      end
       logger.info message if @debug
     end
 
