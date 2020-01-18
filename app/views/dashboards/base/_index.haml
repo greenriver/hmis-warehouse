@@ -7,9 +7,13 @@
   = render 'report_options'
 
 .rollup{data: {partial: :overview}}
+  %p.well.text-center.jRemoveWhenComplete Loading...
 .rollup{data: {partial: :censuses}}
+  %p.well.text-center.jRemoveWhenComplete Loading...
 .rollup{data: {partial: :entry}}
+  %p.well.text-center.jRemoveWhenComplete Loading...
 .rollup{data: {partial: :exit}}
+  %p.well.text-center.jRemoveWhenComplete Loading...
 
 = render 'download'
 = render 'computation_description'

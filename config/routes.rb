@@ -123,12 +123,15 @@ Rails.application.routes.draw do
 
   def sub_populations
     [
-      :childrens,
+      :all_clients,
       :clients,
+      :childrens,
+      :children,
       :families,
       :individual_adults,
       :non_veterans,
       :parenting_childrens,
+      :parenting_children,
       :parenting_youths,
       :unaccompanied_minors,
       :veterans,
