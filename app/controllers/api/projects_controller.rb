@@ -16,6 +16,7 @@ module Api
     before_action :set_project_types
 
     def index
+      params.permit!
       respond_to do |format|
         format.html do
           @data = {}
@@ -57,6 +58,7 @@ module Api
     end
 
     def set_data_sources
+      params.permit!
       @data_source_ids = begin
                            params[:data_source_ids].select(&:present?).map(&:to_i)
                          rescue StandardError
@@ -65,6 +67,7 @@ module Api
     end
 
     def set_organizations
+      params.permit!
       @organization_ids = begin
                             params[:organization_ids].select(&:present?).map(&:to_i)
                           rescue StandardError
@@ -73,6 +76,7 @@ module Api
     end
 
     def set_project_types
+      params.permit!
       @project_types = if params[:project_types].present? || params[:project_type_ids].present?
         []
       else
@@ -90,6 +94,7 @@ module Api
     end
 
     def project_scope
+      params.permit!
       @project_scope = if params[:limited]
         project_source.viewable_by(current_user)
       else

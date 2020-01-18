@@ -1,14 +1,14 @@
 #= require ./namespace
 
 class App.Sections.Loader
-  constructor: (@targets, @rollupPath) ->
+  constructor: (@targets, @rollupPath, @params) ->
     #Load rollups synchronously with a queue
     for p in @targets
       do (p) =>
         $e = $(p)
         $e.append('<div class="rollup-container"/>')
         $(document).queue "fx", =>
-          $.get @rollupPath + $e.data('partial'), (data) =>
+          $.get @rollupPath + $e.data('partial'), @params, (data) =>
             $e.find('.rollup-container').append data
             $e.find('.rollup-container').siblings('.jRemoveWhenComplete').remove()
             $(document).dequeue("fx")

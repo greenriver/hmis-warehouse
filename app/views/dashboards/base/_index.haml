@@ -18,7 +18,7 @@
 = content_for :page_js do
   :javascript
     var section_path = #{polymorphic_path(['section', 'dashboards', sub_population_key.to_s.pluralize], partial: '').to_json.html_safe};
-    var sections = new App.Sections.Loader($('.rollup'), section_path);
+    var sections = new App.Sections.Loader($('.rollup'), section_path, {choose_report: #{report_params.to_json.html_safe}});
 
 -# From exit.haml
 = content_for :page_js do
