@@ -6,11 +6,46 @@
 - else
   = render 'report_options'
 
-= render 'overview'
-= render 'censuses'
-= render 'entry'
+.rollup{data: {partial: :overview}}
+.rollup{data: {partial: :censuses}}
+.rollup{data: {partial: :entry}}
+.rollup{data: {partial: :exit}}
 
-= render 'exit'
 = render 'download'
-
 = render 'computation_description'
+
+-# load in all the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    var section_path = #{polymorphic_path(['section', 'dashboards', sub_population_key.to_s.pluralize], partial: '').to_json.html_safe};
+    var sections = new App.Sections.Loader($('.rollup'), section_path);
+
+-# From exit.haml
+= content_for :page_js do
+  - if can_see_client_details?
+    - support_link = "#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}"
+  :javascript
+    var support_link = '#{support_link}'
+
+    new App.Dashboards.Clients.Exits('.jHoused', '#{@report.sub_population_title}', support_link, {remote: true});
+
+-# From entry.haml
+= content_for :page_js do
+  - if can_see_client_details?
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types})}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_types: @report.project_types})}"
+  :javascript
+    var entry_support_link = '#{entry_support_link}'
+
+    new App.Dashboards.Clients.Entered('.jEntry', '#{@report.sub_population_title}', entry_support_link, {remote: true});
+
+    var re_entry_support_link = '#{re_entry_support_link}'
+
+    new App.Dashboards.Clients.EntryReEntry('.jEntryReEntry', '#{@report.sub_population_title}', entry_support_link, re_entry_support_link, {remote: true});
+
+    new App.Dashboards.Clients.Entered('.jReEntry', '#{@report.sub_population_title}', re_entry_support_link, {remote: true});
+
+-# From census.haml
+= content_for :page_js do
+  :javascript
+    new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{@report.sub_population_title}', '', {remote: true});

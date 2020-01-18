@@ -506,6 +506,7 @@ Rails.application.routes.draw do
           get :active
           get :housed
           get :entered
+          get 'section/:partial', to: "#{sub_population}#section", as: :section
         end
       end
     end

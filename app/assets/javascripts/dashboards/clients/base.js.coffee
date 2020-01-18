@@ -1,7 +1,7 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @sub_population, @support_url, options={}) ->
+  constructor: (@chart_selector, @sub_population, @support_url, options={}) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
@@ -11,8 +11,12 @@ class App.Dashboards.Clients.Base
         position: 'bottom'
       size:
         height: 200
+      remote: false
     }, options)
-    @_build_chart()
+    if @options.remote
+      @_observe()
+    else
+      @_build_chart()
 
   _colors: (c, d) =>
     key = d
@@ -35,3 +39,28 @@ class App.Dashboards.Clients.Base
       url = @support_url.replace('START_DATE', month.format('MMM DD, YYYY'))
       url = url.replace('END_DATE', month.endOf('month').format('MMM DD, YYYY'))
       window.open url
+
+  _observe: =>
+    @processed = []
+    MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+    if MutationObserver
+      (
+        new MutationObserver (mutations) =>
+          for mutation in mutations
+            if $(mutation.target).data('complete') == 'true' && @_selector_exists() && @_selector_unprocessed()
+              # console.log($(@chart_selector).data(), @chart_selector)
+              @_build_chart()
+              @processed.push @chart_selector
+      ).observe(
+        document.body
+        childList: false
+        subtree: true
+        attributes: true
+        attributeFilter: ['complete']
+      )
+
+  _selector_exists: =>
+    $(@chart_selector).length > 0
+
+  _selector_unprocessed: =>
+    @chart_selector not in @processed

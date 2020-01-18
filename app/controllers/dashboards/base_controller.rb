@@ -54,6 +54,34 @@ module Dashboards
       end
     end
 
+    def section
+      @report = active_report_class.new(
+        months: @report_months,
+        organization_ids: @organization_ids,
+        project_ids: @project_ids,
+        project_types: @project_type_codes,
+        filter: { vispdat: @limit_to_vispdat },
+      )
+      section = allowed_sections.detect do |m|
+        m == params.require(:partial).underscore
+      end
+
+      raise 'Rollup not in whitelist' unless section.present?
+
+      section = 'dashboards/base/' + section
+      render partial: section, layout: false if request.xhr?
+    end
+
+    private def allowed_sections
+      [
+        'overview',
+        'censuses',
+        'entry',
+        'exit',
+      ].freeze
+    end
+    helper_method :allowed_sections
+
     def pdf
       render_pdf!
     end

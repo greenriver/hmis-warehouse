@@ -2,6 +2,7 @@
 
 class App.Dashboards.Clients.Exits extends App.Dashboards.Clients.Base
   _build_chart: () =>
+    @data = $(@chart_selector).data('chart-data')
     data =
       x: 'x'
       onclick: @_follow_link

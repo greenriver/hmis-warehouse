@@ -259,7 +259,7 @@ module GrdaWarehouse::Hud
         viewable_by(user).
           joins(:data_source).
           order(ds_t[:name].asc, OrganizationName: :asc).
-          pluck(ds_t[:name].as('ds_name').to_sql, :OrganizationName, :id).each do |ds, org_name, id|
+          pluck(ds_t[:name].as('ds_name'), :OrganizationName, :id).each do |ds, org_name, id|
             options[ds] ||= []
             options[ds] << [org_name, id]
           end
