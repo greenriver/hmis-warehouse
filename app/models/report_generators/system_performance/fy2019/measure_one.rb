@@ -463,6 +463,9 @@ module ReportGenerators::SystemPerformance::Fy2019
         in_stop_project = false
         has_countable_project = false
         bed_nights.each do |night|
+          # Ignore nights in a project that are on the date of exit
+          next if is_on_exit(night, k)
+
           has_countable_project =  has_countable_project || has_countable_project_on?(night, stop_project_types)
           in_stop_project =  in_stop_project || in_stop_project_on?(night, k, stop_project_types)
         end
@@ -481,6 +484,10 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     private def in_stop_project_on?(night, date, stop_project_types)
       (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
+    end
+
+    private def is_on_exit(night, date)
+      night[:last_date_in_program] == date
     end
 
     def median array
