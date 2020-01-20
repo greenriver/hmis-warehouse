@@ -104,6 +104,18 @@ namespace :health do
     end
   end
 
+  desc "Queue Eligibility Determination"
+  task queue_eligibility_determination: [:environment, "log:info_to_stdout"] do
+    date = Date.current
+    user = User.setup_system_user
+    batch_owner = Health::EligibilityInquiry.create!(service_date: date, has_batch: true)
+    Health::CheckPatientEligibilityJob.perform_later(
+      eligibility_date: date.to_s,
+      owner_id: batch_owner.id,
+      user_id: user.id,
+    )
+  end
+
 
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
