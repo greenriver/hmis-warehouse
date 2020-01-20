@@ -1,4 +1,4 @@
-# Boston HMIS Warehouse [![Actions Status](https://github.com/greenriver/hmis-warehouse/workflows/rails/badge.svg)](https://github.com/greenriver/hmis-warehouse/actions)
+# Boston HMIS Warehouse [![Actions Status](https://github.com/greenriver/hmis-warehouse/workflows/Audit%20and%20Test/badge.svg)](https://github.com/greenriver/hmis-warehouse/actions)
 
 ## Introduction
 The HMIS Warehouse project was initiated by the City of Boston's Department of Neighborhood Development to gather data from across various HMIS installations, produce aggregated reports, and supply de-duplicated client information to the [Boston CAS](https://github.com/greenriver/boston-cas) system for Coordinated Access to housing.
