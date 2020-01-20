@@ -73,12 +73,11 @@ module EtoApi
 
     private def api_get_json(url, headers={})
       body = api_get_body(url, headers)
+      return nil if body.blank?
       if body.bytesize > 50.megabytes # If the body is bigger than 50 MB, we'll ignore it
         @notifier.ping "Found an API response that was too big: #{body.bytesize / 1.megabytes} MB; url: #{url}"
         return nil
       end
-
-      return nil if body.blank?
 
       JSON.parse(body)
     end
