@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_10_150204) do
+ActiveRecord::Schema.define(version: 2020_01_20_191326) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1597,6 +1597,7 @@ ActiveRecord::Schema.define(version: 2020_01_10_150204) do
     t.boolean "consent_visible_to_all", default: false
     t.boolean "verified_homeless_history_visible_to_all", default: false, null: false
     t.boolean "only_most_recent_import", default: false
+    t.boolean "expose_coc_code", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
