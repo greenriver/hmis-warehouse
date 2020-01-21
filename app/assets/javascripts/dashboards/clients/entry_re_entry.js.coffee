@@ -1,10 +1,11 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.EntryReEntry extends App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @sub_population, @entry_support_url, @re_entry_support_url, options) ->
-    super(@chart_selector, @data, @sub_population, @entry_support_url, options)
+  constructor: (@chart_selector, @sub_population, @entry_support_url, @re_entry_support_url, options) ->
+    super(@chart_selector, @sub_population, @entry_support_url, options)
 
   _build_chart: () =>
+    @data = $(@chart_selector).data('chart-data')
     data =
       x: 'x'
       onclick: @_follow_link

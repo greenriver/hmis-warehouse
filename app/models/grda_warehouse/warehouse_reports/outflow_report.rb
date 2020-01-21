@@ -151,7 +151,7 @@ module GrdaWarehouse::WarehouseReports
 
     def housed_scope
       housed = Reporting::Housed.
-        where(client_id: entries_scope.pluck(:client_id)).
+        where(client_id: entries_scope.residential.pluck(:client_id)).
         viewable_by(@user)
       if @filter.sub_population.to_s.starts_with?('youth')
         housed = housed.send(@filter.sub_population)
