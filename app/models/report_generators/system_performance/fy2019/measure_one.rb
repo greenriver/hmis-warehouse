@@ -335,7 +335,6 @@ module ReportGenerators::SystemPerformance::Fy2019
         all_nights.sort_by{|m| m[:date]}
       end
       homeless_days = filter_days_for_homelessness(all_nights, project_types, stop_project_types)
-
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
         client_end_date = [homeless_days.last.to_date, @report_end ].min

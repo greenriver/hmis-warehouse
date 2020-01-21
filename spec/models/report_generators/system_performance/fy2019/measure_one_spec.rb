@@ -76,32 +76,34 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureOne, type: :m
 
     it 'excludes client 1 (1a)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '1')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }).to be_empty
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }).to be_empty
     end
 
     it 'counts 27 days for client 2 (1b)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '2')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }.first[1]).to eq(27)
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[1]).to eq(27)
     end
 
     it 'counts 27 days for client 3 (1c)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '3')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }.first[1]).to eq(27)
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[1]).to eq(27)
     end
 
     it 'counts 1 days for client 4 (1d)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '4')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }.first[1]).to eq(1)
+      # Note 2016 is a leap year, so the client receives 2/28 and 2/29
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[1]).to eq(2)
     end
 
     it 'counts 28 days for client 5 (1e)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '5')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }.first[1]).to eq(28)
+      # Note 2016 is a leap year
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[1]).to eq(29)
     end
 
     it 'client 6 has no stays (1f)' do
       client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '6')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |c| c[0] == client.id }).to be_empty
+      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }).to be_empty
     end
   end
 
