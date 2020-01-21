@@ -121,8 +121,10 @@ module Reporting::MonthlyReports
 
           entered_in_month = entry_month == month && entry_year == year
           exited_in_month = exit_month.present? && exit_month == month && exit_year == year
+          mid_month = Date.new(year, month, 15)
 
           client_enrollment = self.class.new(
+            mid_month: mid_month,
             month: month,
             year: year,
             client_id: client_id,
