@@ -433,7 +433,7 @@ def report_list
       {
         url: 'warehouse_reports/health/eligibility',
         name: 'Eligibility Determination',
-        description: 'Generate and download eligibility determination files.',
+        description: 'Generate and download eligibility determination files. (270/271)',
         limitable: false,
       },
       {

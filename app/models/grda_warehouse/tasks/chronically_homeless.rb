@@ -356,7 +356,7 @@ module GrdaWarehouse::Tasks
     end
 
     def disabled?(client_id)
-      @disabled_clients ||= GrdaWarehouse::Hud::Client.where(id: @clients).chronically_disabled
+      @disabled_clients ||= GrdaWarehouse::Hud::Client.where(id: @clients).chronically_disabled.pluck(:id)
       @disabled_clients.include? client_id
     end
 

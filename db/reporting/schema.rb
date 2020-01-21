@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_06_195304) do
+ActiveRecord::Schema.define(version: 2020_01_21_131602) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -253,6 +253,7 @@ ActiveRecord::Schema.define(version: 2020_01_06_195304) do
     t.integer "prior_exit_destination_id"
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
+    t.date "mid_month"
     t.index ["active"], name: "index_warehouse_monthly_reports_on_active"
     t.index ["client_id"], name: "index_warehouse_monthly_reports_on_client_id"
     t.index ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled"

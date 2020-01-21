@@ -78,7 +78,8 @@ module Importing
 
         # This fixes any unused destination clients that can
         # bungle up the service history generation, among other things
-        GrdaWarehouse::Tasks::ClientCleanup.new.run!
+        cleanup_weeks = ENV.fetch('CLIENT_CLEANUP_WEEKS') { 2 }.to_i
+        GrdaWarehouse::Tasks::ClientCleanup.new(changed_client_date: cleanup_weeks.weeks.ago.to_date).run!
         @notifier.ping('Clients cleaned') if @send_notifications
 
         range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)

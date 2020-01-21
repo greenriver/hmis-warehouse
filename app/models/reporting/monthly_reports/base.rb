@@ -57,6 +57,23 @@ module Reporting::MonthlyReports
             self.class.import @enrollments_by_client.values.flatten
           end
         end
+      maintain_month_range_cache
+    end
+
+    private def maintain_month_range_cache
+      Rails.cache.delete([self.class.name, 'month-range'])
+      self.class.available_months
+    end
+
+    def self.available_months
+      Rails.cache.fetch([self.name, 'month-range'], expires_in: 24.hours) do
+        distinct.
+        order(year: :desc, month: :desc).
+        pluck(:year, :month).map do |year, month|
+          date = Date.new(year, month, 1)
+          [[year, month], date.strftime('%B %Y')]
+        end.to_h
+      end
     end
 
     def _clear! ids
@@ -104,8 +121,10 @@ module Reporting::MonthlyReports
 
           entered_in_month = entry_month == month && entry_year == year
           exited_in_month = exit_month.present? && exit_month == month && exit_year == year
+          mid_month = Date.new(year, month, 15)
 
           client_enrollment = self.class.new(
+            mid_month: mid_month,
             month: month,
             year: year,
             client_id: client_id,

@@ -45,7 +45,7 @@
         = simple_form_for @user, url: account_two_factor_path, remote: false do |f|
           = f.error_notification
           .form-inputs
-            = f.input :otp_attempt, label: "#{@user.confirmation_step} Code", input_html: { style: 'width: 8em', maxlength: 6, class: ['ml-auto', 'mr-auto'], autofocus: true }
+            = f.input :otp_attempt, label: "#{@user.confirmation_step} Code", input_html: { style: 'width: 8em', maxlength: 8, class: ['ml-auto', 'mr-auto'], autofocus: true }
           .form-actions
             - if @user.confirmed_2fa < 2
               %p Enter a code from your Two-Factor Authentication app above and press verify. You'll be returned here to enter your second code, you may need to wait a few seconds for a new code, using the same one twice won't work.  Once you've verified two, you'll be all set.  Each time you login, you'll need to enter a new code.

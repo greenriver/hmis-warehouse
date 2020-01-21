@@ -15,7 +15,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
 
     it 'the database will have three clients' do
-      expect(GrdaWarehouse::Hud::Client.count).to eq(3)
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
     end
     it 'the database will have four enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
@@ -88,7 +88,7 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
     end
 
     it 'the database will have two clients' do
-      expect(GrdaWarehouse::Hud::Client.count).to eq(2)
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
     end
     it 'the database will have two enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
