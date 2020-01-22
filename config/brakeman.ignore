@@ -88,6 +88,36 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
+      "line": 23,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "cohorts/show",
+          "line": 23,
+          "file": "app/views/cohorts/show.haml",
+          "rendered": {
+            "name": "cohorts/_text_size_options",
+            "file": "app/views/cohorts/_text_size_options.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "cohorts/_text_size_options"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "1d29b3e0a86174e13c547f4a4e5df639010b53d52527a2f592bfb6a4776db376",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/cohorts/_text_size_options.haml",
       "line": 29,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
@@ -119,36 +149,6 @@
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
       "line": 17,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "cohorts/show",
-          "line": 23,
-          "file": "app/views/cohorts/show.haml",
-          "rendered": {
-            "name": "cohorts/_text_size_options",
-            "file": "app/views/cohorts/_text_size_options.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "cohorts/_text_size_options"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "1d29b3e0a86174e13c547f4a4e5df639010b53d52527a2f592bfb6a4776db376",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/cohorts/_text_size_options.haml",
-      "line": 23,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -238,7 +238,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/_entering_exiting.haml",
-      "line": 43,
+      "line": 21,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -268,7 +268,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/_entering_exiting.haml",
-      "line": 21,
+      "line": 43,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -357,6 +357,26 @@
         "type": "method",
         "class": "Health::SdhCaseManagementNotesController",
         "method": "permitted_request_params"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "32420260017610cab6111939201eb9945d0b5cffb88c4170791d6345ce2edaf1",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 102,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "new"
       },
       "user_input": null,
       "confidence": "Medium",
@@ -470,6 +490,36 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/_enrolled.haml",
+      "line": 49,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "warehouse_reports/rrh/_overview",
+          "line": 4,
+          "file": "app/views/warehouse_reports/rrh/_overview.haml",
+          "rendered": {
+            "name": "warehouse_reports/rrh/_enrolled",
+            "file": "app/views/warehouse_reports/rrh/_enrolled.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/rrh/_enrolled"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "3fcf1c09ac33b672ed4e7ccdb3bbba8fc88df00489d5d658790bac5b4d2f312b",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/rrh/_enrolled.haml",
       "line": 9,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
@@ -501,36 +551,6 @@
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/_enrolled.haml",
       "line": 29,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/rrh/_overview",
-          "line": 4,
-          "file": "app/views/warehouse_reports/rrh/_overview.haml",
-          "rendered": {
-            "name": "warehouse_reports/rrh/_enrolled",
-            "file": "app/views/warehouse_reports/rrh/_enrolled.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/rrh/_enrolled"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "3fcf1c09ac33b672ed4e7ccdb3bbba8fc88df00489d5d658790bac5b4d2f312b",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/rrh/_enrolled.haml",
-      "line": 49,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -616,6 +636,26 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
+      "fingerprint": "4406d7c227140296019a5a061a5a336f1d34b8972d183ceb62412f2c9cb73432",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 442,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "touch_point_params"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
       "fingerprint": "4b333fdc1d1d04dec90233d6fa755896ee0d4c918bfcf5081cc3c68e1f63aedc",
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
@@ -651,6 +691,26 @@
       },
       "user_input": "key",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "5ac38b65adeb3c3fb7e4bd5df0d1db78861a87c24add4852f5493a7777e2d002",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 390,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "destroy"
+      },
+      "user_input": null,
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -700,6 +760,36 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/_enrolled.haml",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "template",
+          "name": "warehouse_reports/psh/_overview",
+          "line": 4,
+          "file": "app/views/warehouse_reports/psh/_overview.haml",
+          "rendered": {
+            "name": "warehouse_reports/psh/_enrolled",
+            "file": "app/views/warehouse_reports/psh/_enrolled.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/_enrolled"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "5f5c0f15bddc4dc2e20901f90b6fb2d6427fa242ed8d58f247452bd40593a169",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/_enrolled.haml",
       "line": 49,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
@@ -731,36 +821,6 @@
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/_enrolled.haml",
       "line": 9,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/psh/_overview",
-          "line": 4,
-          "file": "app/views/warehouse_reports/psh/_overview.haml",
-          "rendered": {
-            "name": "warehouse_reports/psh/_enrolled",
-            "file": "app/views/warehouse_reports/psh/_enrolled.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/_enrolled"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "5f5c0f15bddc4dc2e20901f90b6fb2d6427fa242ed8d58f247452bd40593a169",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/_enrolled.haml",
-      "line": 29,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1051,47 +1111,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 58,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 79,
-      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
-      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ClientsController",
-        "method": "sort_filter_index"
-      },
-      "user_input": "params[:population].to_sym",
-      "confidence": "High",
-      "note": ""
-    },
-    {
-      "warning_type": "Dangerous Send",
-      "warning_code": 23,
-      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
-      "check_name": "Send",
-      "message": "User controlled method execution",
-      "file": "app/controllers/clients_controller.rb",
-      "line": 83,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -1131,7 +1151,47 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 73,
+      "line": 58,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 83,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ClientsController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "8c81005c4d889728d108a471d6eea9eddbe310bf0fb9381ef5c542b52b4b0c69",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients_controller.rb",
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -1231,7 +1291,38 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 32,
+      "line": 21,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::RrhController",
+          "method": "index",
+          "line": 23,
+          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/rrh/index",
+            "file": "app/views/warehouse_reports/rrh/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/rrh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/rrh/index.haml",
+      "line": 20,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1293,100 +1384,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 34,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "WarehouseReports::RrhController",
-          "method": "index",
-          "line": 23,
-          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
-          "rendered": {
-            "name": "warehouse_reports/rrh/index",
-            "file": "app/views/warehouse_reports/rrh/index.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/rrh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 30,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "WarehouseReports::RrhController",
-          "method": "index",
-          "line": 23,
-          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
-          "rendered": {
-            "name": "warehouse_reports/rrh/index",
-            "file": "app/views/warehouse_reports/rrh/index.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/rrh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 28,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "WarehouseReports::RrhController",
-          "method": "index",
-          "line": 23,
-          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
-          "rendered": {
-            "name": "warehouse_reports/rrh/index",
-            "file": "app/views/warehouse_reports/rrh/index.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/rrh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 26,
+      "line": 22,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1448,7 +1446,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 22,
+      "line": 26,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1479,7 +1477,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 21,
+      "line": 28,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1510,7 +1508,69 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/index.haml",
-      "line": 20,
+      "line": 30,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::RrhController",
+          "method": "index",
+          "line": 23,
+          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/rrh/index",
+            "file": "app/views/warehouse_reports/rrh/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/rrh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/rrh/index.haml",
+      "line": 32,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::RrhController",
+          "method": "index",
+          "line": 23,
+          "file": "app/controllers/warehouse_reports/rrh_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/rrh/index",
+            "file": "app/views/warehouse_reports/rrh/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/rrh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "a015f5b89de50bbdf0f5b5160dfcde01397ee7943d03c3fb57f4c196a3409fb7",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/rrh/index.haml",
+      "line": 34,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1541,7 +1601,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 377,
+      "line": 380,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1569,6 +1629,26 @@
         "type": "method",
         "class": "HudChronic",
         "method": "load_hud_chronic_filter"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "aa0e1875e1f3093030d9b236d17dc88a3605c850c19fb2ad2f90983f84f34050",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 254,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "load_hud_filter"
       },
       "user_input": null,
       "confidence": "Medium",
@@ -1628,6 +1708,26 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
+      "fingerprint": "b14cc1a17c2b0b2f80b6b9dec65169853449738c73e9441f2f918a71bfe7c98a",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 355,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "bulk_destroy"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
       "fingerprint": "b58617a75033455c30716175938b880163b350a7b11402c9eaedf4f25572567b",
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
@@ -1652,7 +1752,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/hud_chronics/_sort.haml",
-      "line": 15,
+      "line": 18,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1682,7 +1782,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/hud_chronics/_sort.haml",
-      "line": 18,
+      "line": 15,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1728,11 +1828,31 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
+      "fingerprint": "bc16158d00d4df09edb97ec8cfea80e3883e8422939341b3e03ae80cc4b1e32f",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 428,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "actives_params"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
       "fingerprint": "bd919d0f40b9b7bd6d026a127c6b2617c22f496756318ab77d4c7a1eba709b47",
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/_entering_exiting.haml",
-      "line": 21,
+      "line": 10,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1762,7 +1882,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/_entering_exiting.haml",
-      "line": 10,
+      "line": 43,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1822,7 +1942,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/rrh/_entering_exiting.haml",
-      "line": 43,
+      "line": 21,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -1992,102 +2112,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 30,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 28,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/index.haml",
       "line": 26,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 24,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 22,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/psh/index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 20,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2144,6 +2169,44 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/index.haml",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/index.haml",
+      "line": 20,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/index.haml",
       "line": 21,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
@@ -2163,7 +2226,64 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/warehouse_reports/psh/index.haml",
-      "line": 19,
+      "line": 22,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/index.haml",
+      "line": 24,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/index.haml",
+      "line": 28,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/psh/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "d85b9a51c1a8881d77f5cf791d983db997d58e2731365b045d2ab364a306ba4e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/views/warehouse_reports/psh/index.haml",
+      "line": 30,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2240,6 +2360,26 @@
         "type": "method",
         "class": "Api::ProjectsController",
         "method": "set_organizations"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "e7a9132b54c3b7c5d0381ae4a3bbc7d87160a693a10a06ebfa73047074ce028e",
+      "check_name": "MassAssignment",
+      "message": "Parameters should be whitelisted for mass assignment",
+      "file": "app/controllers/cohorts/clients_controller.rb",
+      "line": 418,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Cohorts::ClientsController",
+        "method": "populations_params"
       },
       "user_input": null,
       "confidence": "Medium",
@@ -2435,6 +2575,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-01-18 14:10:05 -0500",
+  "updated": "2020-01-22 15:53:22 -0500",
   "brakeman_version": "4.7.2"
 }
