@@ -330,8 +330,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     end
 
     def project_exits_universe(scope: )
-      scope.order(client_id: :asc).
-        order(last_date_in_program: :asc).
+      scope.order(client_id: :asc, last_date_in_program: :asc).
         select(*columns.values).
         pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]

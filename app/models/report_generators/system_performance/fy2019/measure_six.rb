@@ -33,12 +33,12 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     private
 
-
     def calculate
       # NOTE: HousingStatusAtEntry & HousingStatusAtExit = 5 -- this is where we determine if someone is a Category 3 (value would be 5)
       # This shows up in ProgramParticipation.  No one has HousingStatusAtEntry = 5.  Only at exit
 
       # NOTE: Dependents do get flagged correctly as Category 3 if attached to a Head of Household
+      # Category 3 covers families with children and youth or youth under the age of 25 who are considered homeless under other federal statutes because of their living situation but who are not literally homeless. These federal statutes include the Runaway & Homeless Youth Act, Head Start Act, Violence Against Women Act, and the Department of Education section of the McKinney-Vento Homeless Assistance Act
       if start_report(Reports::SystemPerformance::Fy2019::MeasureSix.first)
         set_report_start_and_end()
         # Overview: Returns to homelessness after exit to PH of clients defined by Category 3 (similar to Measure 2 with a smaller sub-set of clients)
@@ -79,57 +79,35 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     def measure_6_a_and_b
       headers = [:client_id, :destination, :date, :first_date_in_program, :last_date_in_program, :project_type, :project_id, :data_source_id, :project_name]
-      columns = {
-        client_id: :client_id,
-        destination: :destination,
-        date: :date,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_type: :computed_project_type,
-        project_id: :project_id,
-        data_source_id: :data_source_id,
-        project_name: :project_name,
-        household_id: :household_id,
-      }
 
       project_types = TH + SH + PH
-      look_back_until = LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days) ? LOOKBACK_STOP_DATE : (@report_start - 730.days)
-      look_forward_until = @report_end - 730.days
 
       project_exits_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        hud_project_type(project_types).
         joins(:project).
-        ended_between(start_date: look_back_until,
-          end_date: look_forward_until.to_date + 1.days).
-        category_3.
-        hud_project_type(project_types)
+        where(last_date_in_program: look_back_until..look_forward_until).
+        category_3
 
-      if @report.options['coc_code'].present?
-        project_exits_scope = project_exits_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      end
+      # Limit to CoC funded projects
+      project_exits_scope = project_exits_scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
 
       project_exits_scope = add_filters(scope: project_exits_scope)
 
-      project_exits_universe = project_exits_scope.
-        order(client_id: :asc, last_date_in_program: :asc).
-        pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end
       project_exits_to_ph = {}
       project_exists_from = {so: [], es: [], th: [], sh: [], ph: []}
       # Loop over exits
       # If we find an exit with a destination in (3, 10, 11, 19, 20, 21, 22, 23, 26, 28)
       # log the earliest instance of each client (first exit to PH)
-      project_exits_universe.each do |p_exit|
+      project_exits_universe(scope: project_exit_scope).each do |p_exit|
+        next if project_exits_to_ph[p_exit[:client_id]].present?
+
         # inherit destination from HoH if age <= 17 and destination not collected
         destination = destination_for(project_types, p_exit[:client_id], p_exit[:household_id])
-        if destination.present?
-          p_exit[:destination] = destination
-        end
+        p_exit[:destination] = destination if destination.present?
 
-        if PERMANENT_DESTINATIONS.include?(p_exit[:destination])
-          project_exits_to_ph[p_exit[:client_id]] ||= p_exit
-        end
+        project_exits_to_ph[p_exit[:client_id]] = p_exit if permanent_destination?(p_exit[:destination])
       end
+
       project_exits_to_ph.each do |id, p_exit|
         case p_exit[:project_type].to_i
           when *SO
@@ -158,14 +136,8 @@ module ReportGenerators::SystemPerformance::Fy2019
       @support[:sixab_b5][:support] = support_for(answer: :sixab_b5, data: project_exists_from[:sh])
       @support[:sixab_b6][:support] = support_for(answer: :sixab_b6, data: project_exists_from[:ph])
 
+      update_report_progress(percent: 10)
 
-      # Find anyone who has returned to homelessness after 14+ days
-      # Find their first return to homelessness and calculate the days between the
-      # time they exited to PH and returned to homelessness
-      # NOTE: if the next entry is to a TH, the entry must be 14 days after the original
-      # exit to count
-      # NOTE: if the next entry is to a PH, it is only counted if it occurs more than 14
-      # days after the original exit, or more than 14 days after a TH
       project_exit_counts = {
         c_0_180_days: {
           so: {counts: [], support: []},
@@ -189,255 +161,61 @@ module ReportGenerators::SystemPerformance::Fy2019
           ph: {counts: [], support: []},
         }
       }
-      project_exits_to_ph.each do |id, p_exit|
-        client_entries = {}
-        client_entries_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          joins(:project).
-          started_between(start_date: p_exit[:last_date_in_program],
-            end_date: @report.options['report_end'].to_date + 1.day).
-          where(client_id: p_exit[:client_id])
 
-        if @report.options['coc_code'].present?
-          client_entries_scope = client_entries_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-        end
+      # Step 5
+      # Find the next entry date where the project type is ES, SO, SH, and sometimes TH
+      # See notes on 5.b and 5.c regarding TH & PH
+      return_enrollments = {}
+      project_exits_to_ph.each do |client_id, p_exit|
+        prior_project_type = project_type_slug(p_exit[:project_type])
+        prior_project_exit = p_exit[:last_date_in_program]
+        previous_exit_from_ph = p_exit[:last_date_in_program] # use the first exit date initially
+        all_entries_for_client(scope: client_scope(p_exit)).each do |entry|
+          # find the first instance where the entry is into ES, SO, or SH
+          # or, the entry is into TH more than 14 days after p_exit[:last_date_in_program]
+          # or, the entry is into PH more than 14 days after p_exit[:last_date_in_program]
+          # and more than 14 days after any prior PH exit
+          break if return_enrollments[client_id].present?
 
-        client_entries_scope = add_filters(scope: client_entries_scope)
+          project_type = project_type_slug(entry[:project_type])
+          entry_date = entry[:first_date_in_program]
+          days_since_initial_exit_to_permanent_destination = (entry_date - p_exit[:last_date_in_program]).to_i
+          days_since_previous_ph_exit = (entry_date - previous_exit_from_ph).to_i
 
-        client_entries_all = client_entries_scope.
-          order(date: :asc).
-          pluck(*columns.values).map do |row|
-            Hash[columns.keys.zip(row)]
+          if homeless_project?(project_type)
+            return_enrollments[client_id] = entry
+          elsif project_type == 'TH' && days_since_initial_exit_to_permanent_destination > 14
+            return_enrollments[client_id] = entry
+          elsif project_type == 'PH' && days_since_previous_ph_exit > 14
+            return_enrollments[client_id] = entry
           end
-        # Build a useful universe of entries
-        # Make note of project type each day, PH will take priority over TH which is > else
-        client_entries_all.each do |entry|
-
-          client_entries[entry[:first_date_in_program]] ||= []
-          client_entries[entry[:first_date_in_program]] << case entry[:project_type]
-            when *SO
-               'SO'
-            when *ES
-              'ES'
-            when *TH
-              'TH'
-            when *SH
-              'SH'
-            when *PH
-              'PH'
-          end
-        end
-        # Priority PH > TH > Other
-        # NOTE: we'll set a check-date for permanent housing.
-        # If you exit PH within 14 days of this, we don't count it, but update the date.
-        # If we ever have an exit from permanent housing longer than 14 days after the
-        # check date, we count it
-        ph_check_date = p_exit[:last_date_in_program].to_date
-        client_entries.each do |day, project_types|
-          day_count = (day.to_date - p_exit[:last_date_in_program].to_date).to_i
-          # If the entry doesn't contain PH or TH, count it and move on
-          if project_types.exclude?('PH') && project_types.exclude?('TH')
-            case day_count
-            when (0..180)
-              case p_exit[:project_type].to_i
-                when *SO
-                  project_exit_counts[:c_0_180_days][:so][:counts] << day_count
-                  project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
-                when *ES
-                  project_exit_counts[:c_0_180_days][:es][:counts] << day_count
-                  project_exit_counts[:c_0_180_days][:es][:support] << [p_exit[:client_id], day_count]
-                when *TH
-                  project_exit_counts[:c_0_180_days][:th][:counts] << day_count
-                  project_exit_counts[:c_0_180_days][:th][:support] << [p_exit[:client_id], day_count]
-                when *SH
-                  project_exit_counts[:c_0_180_days][:sh][:counts] << day_count
-                  project_exit_counts[:c_0_180_days][:sh][:support] << [p_exit[:client_id], day_count]
-                when *PH
-                  project_exit_counts[:c_0_180_days][:ph][:counts] << day_count
-                  project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
-              end
-            when (181..365)
-              case p_exit[:project_type].to_i
-                when *SO
-                  project_exit_counts[:e_181_365_days][:so][:counts] << day_count
-                  project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
-                when *ES
-                  project_exit_counts[:e_181_365_days][:es][:counts] << day_count
-                  project_exit_counts[:e_181_365_days][:es][:support] << [p_exit[:client_id], day_count]
-                when *TH
-                  project_exit_counts[:e_181_365_days][:th][:counts] << day_count
-                  project_exit_counts[:e_181_365_days][:th][:support] << [p_exit[:client_id], day_count]
-                when *SH
-                  project_exit_counts[:e_181_365_days][:sh][:counts] << day_count
-                  project_exit_counts[:e_181_365_days][:sh][:support] << [p_exit[:client_id], day_count]
-                when *PH
-                  project_exit_counts[:e_181_365_days][:ph][:counts] << day_count
-                  project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
-              end
-            when (367..730)
-              case p_exit[:project_type].to_i
-                when *SO
-                  project_exit_counts[:g_366_730_days][:so][:counts] << day_count
-                  project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]
-                when *ES
-                  project_exit_counts[:g_366_730_days][:es][:counts] << day_count
-                  project_exit_counts[:g_366_730_days][:es][:support] << [p_exit[:client_id], day_count]
-                when *TH
-                  project_exit_counts[:g_366_730_days][:th][:counts] << day_count
-                  project_exit_counts[:g_366_730_days][:th][:support] << [p_exit[:client_id], day_count]
-                when *SH
-                  project_exit_counts[:g_366_730_days][:sh][:counts] << day_count
-                  project_exit_counts[:g_366_730_days][:sh][:support] << [p_exit[:client_id], day_count]
-                when *PH
-                  project_exit_counts[:g_366_730_days][:ph][:counts] << day_count
-                  project_exit_counts[:g_366_730_days][:ph][:support] << [p_exit[:client_id], day_count]
-              end
-            end
-            break # stop counting for this client
-
-          elsif project_types.include?('PH')
-            if (day.to_date - ph_check_date).to_i < 14
-              next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-                where(
-                  first_date_in_program: day,
-                  client_id: p_exit[:client_id]
-                ).
-                hud_project_type(PH)
-
-              if @report.options['coc_code'].present?
-                next_end_date_scope = next_end_date_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-              end
-
-              next_end_date_scope = add_filters(scope: next_end_date_scope)
-
-              next_end_date = next_end_date_scope.maximum(:last_date_in_program)
-
-              if next_end_date.nil?
-                break
-              end
-              ph_check_date = next_end_date
-            else
-              case day_count
-              when (0..180)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:c_0_180_days][:so][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:c_0_180_days][:es][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:c_0_180_days][:th][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:c_0_180_days][:sh][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:c_0_180_days][:ph][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              when (181..365)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:e_181_365_days][:so][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:e_181_365_days][:es][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:e_181_365_days][:th][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:e_181_365_days][:sh][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:e_181_365_days][:ph][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              when (367..730)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:g_366_730_days][:so][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:g_366_730_days][:es][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:g_366_730_days][:th][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:g_366_730_days][:sh][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:g_366_730_days][:ph][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              end
-              break # stop counting for this client
-            end
-            # If the next destination is TH, it must be > 14 days since exit to count
-          elsif project_types.include?('TH')
-            if day_count > 14
-              case day_count
-              when (0..180)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:c_0_180_days][:so][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:c_0_180_days][:es][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:c_0_180_days][:th][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:c_0_180_days][:sh][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:c_0_180_days][:ph][:counts] << day_count
-                    project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              when (181..365)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:e_181_365_days][:so][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:e_181_365_days][:es][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:e_181_365_days][:th][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:e_181_365_days][:sh][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:e_181_365_days][:ph][:counts] << day_count
-                    project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              when (367..730)
-                case p_exit[:project_type].to_i
-                  when *SO
-                    project_exit_counts[:g_366_730_days][:so][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]
-                  when *ES
-                    project_exit_counts[:g_366_730_days][:es][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:es][:support] << [p_exit[:client_id], day_count]
-                  when *TH
-                    project_exit_counts[:g_366_730_days][:th][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:th][:support] << [p_exit[:client_id], day_count]
-                  when *SH
-                    project_exit_counts[:g_366_730_days][:sh][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:sh][:support] << [p_exit[:client_id], day_count]
-                  when *PH
-                    project_exit_counts[:g_366_730_days][:ph][:counts] << day_count
-                    project_exit_counts[:g_366_730_days][:ph][:support] << [p_exit[:client_id], day_count]
-                end
-              end
-              break # stop counting for this client
-            end
-          end
+          prior_project_type = project_type
+          prior_project_exit = entry[:last_date_in_program]
+          # Keep track of most-recent exit from PH
+          previous_exit_from_ph = entry[:last_date_in_program] if project_type.in?(['TH', 'PH'])
         end
       end
+
+      # Step 6
+      return_enrollments.each do |client_id, entry|
+        initial_exit = project_exits_to_ph[client_id]
+        day_count = (entry[:first_date_in_program] - initial_exit[:last_date_in_program]).to_i
+        # Ignore anyone who's return was over 2 years from leaving
+        next if day_count > 730
+
+        project_type = project_type_slug(initial_exit[:project_type]).downcase.to_sym
+        day_count_slug = case day_count
+          when (0..180)
+            :c_0_180_days
+          when (181..365)
+            :e_181_365_days
+          when (367..730)
+            :g_366_730_days
+          end
+        project_exit_counts[day_count_slug][project_type][:counts] << day_count
+        project_exit_counts[day_count_slug][project_type][:support] << [ initial_exit[:client_id], day_count ]
+      end
+
       @answers[:sixab_c2][:value] = project_exit_counts[:c_0_180_days][:so][:counts].size
       @answers[:sixab_c3][:value] = project_exit_counts[:c_0_180_days][:es][:counts].size
       @answers[:sixab_c4][:value] = project_exit_counts[:c_0_180_days][:th][:counts].size
@@ -510,6 +288,75 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixab_j6][:value] = ((@answers[:sixab_i6][:value].to_f / @answers[:sixab_b6][:value]) * 100).round(2)
       @answers[:sixab_j7][:value] = ((@answers[:sixab_i7][:value].to_f / @answers[:sixab_b7][:value]) * 100).round(2)
       return @answers
+    end
+
+    def permanent_destination?(dest)
+      PERMANENT_DESTINATIONS.include?(dest)
+    end
+
+    def look_back_until
+      if LOOKBACK_STOP_DATE.to_date >= (@report_start - 730.days)
+        LOOKBACK_STOP_DATE
+      else
+        (@report_start - 730.days).strftime('%Y-%m-%d')
+      end
+    end
+
+    def look_forward_until
+      (@report_end - 730.days).strftime('%Y-%m-%d')
+    end
+
+    def columns
+      @columns ||= {
+        client_id: :client_id,
+        destination: :destination,
+        date: :date,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_type: :computed_project_type,
+        project_id: :project_id,
+        data_source_id: :data_source_id,
+        project_name: :project_name,
+        household_id: :household_id,
+      }
+    end
+
+    def project_type_slug(project_type_id)
+      case project_type_id
+      when *SO
+          'SO'
+      when *ES
+        'ES'
+      when *TH
+        'TH'
+      when *SH
+        'SH'
+      when *PH
+        'PH'
+      end
+    end
+
+    def homeless_project?(project_type)
+      project_type.in?(['ES', 'SO', 'SH'])
+    end
+
+    def project_exits_universe(scope: )
+      scope.order(client_id: :asc, last_date_in_program: :asc).
+        select(*columns.values).
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end
+    end
+
+    def client_scope(enrollment)
+      # need to move this to get (exit_date > entry_date <= report_end)
+      start_date = enrollment[:last_date_in_program] + 1.day
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).
+        where(client_id: enrollment[:client_id]).
+        where(first_date_in_program: (start_date..@report_end))
+
+      add_filters(scope: scope)
     end
 
     def measure_6c_1
