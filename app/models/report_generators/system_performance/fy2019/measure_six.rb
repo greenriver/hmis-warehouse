@@ -36,6 +36,8 @@ module ReportGenerators::SystemPerformance::Fy2019
     def calculate
       # NOTE: HousingStatusAtEntry & HousingStatusAtExit = 5 -- this is where we determine if someone is a Category 3 (value would be 5)
       # This shows up in ProgramParticipation.  No one has HousingStatusAtEntry = 5.  Only at exit
+      # the 2020 spec removed HousingStatus from Enrollment.csv, so we're limited to
+      # Exit.HousingAssessment == 5
 
       # NOTE: Dependents do get flagged correctly as Category 3 if attached to a Head of Household
       # Category 3 covers families with children and youth or youth under the age of 25 who are considered homeless under other federal statutes because of their living situation but who are not literally homeless. These federal statutes include the Runaway & Homeless Youth Act, Head Start Act, Violence Against Women Act, and the Department of Education section of the McKinney-Vento Homeless Assistance Act
@@ -82,16 +84,16 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       project_types = TH + SH + PH
 
-      project_exits_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
+      project_exit_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
         hud_project_type(project_types).
         joins(:project).
         where(last_date_in_program: look_back_until..look_forward_until).
         category_3
 
       # Limit to CoC funded projects
-      project_exits_scope = project_exits_scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
+      project_exit_scope = project_exit_scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
 
-      project_exits_scope = add_filters(scope: project_exits_scope)
+      project_exit_scope = add_filters(scope: project_exit_scope)
 
       project_exits_to_ph = {}
       project_exists_from = {so: [], es: [], th: [], sh: [], ph: []}
@@ -343,6 +345,13 @@ module ReportGenerators::SystemPerformance::Fy2019
     def project_exits_universe(scope: )
       scope.order(client_id: :asc, last_date_in_program: :asc).
         select(*columns.values).
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end
+    end
+
+    def all_entries_for_client(scope:)
+      scope.order(first_date_in_program: :asc).
         pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end

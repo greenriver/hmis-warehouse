@@ -1,5 +1,7 @@
 require 'rails_helper'
 
+# NOTE 6 mirrors measure 2, but we've converted all ES to SH
+
 RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSix, type: :model do
   let!(:super_user_role) { create :can_edit_anything_super_user }
   let!(:user) { create :user, roles: [super_user_role] }
@@ -44,39 +46,35 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSix, type: :m
   end
 
   it 'counts 3 clients exiting to PH' do
-    expect(report_result.results['six_b7']['value']).to eq(3)
+    expect(report_result.results['sixab_b7']['value']).to eq(3)
   end
 
   it 'counts 0 clients returning to homelessness from PH' do
-    expect(report_result.results['six_g6']['value']).to eq(0)
+    expect(report_result.results['sixab_g6']['value']).to eq(0)
   end
 
   it 'counts 0 clients returning to homelessness from TH' do
-    expect(report_result.results['six_g4']['value']).to eq(0)
-  end
-
-  it 'counts 2 clients returning to homelessness from ES' do
-    expect(report_result.results['six_g3']['value']).to eq(2)
-  end
-
-  it 'counts 0 clients returning to homelessness from ES betwen 6 months and a year' do
-    expect(report_result.results['six_c3']['value']).to eq(0)
+    expect(report_result.results['sixab_g4']['value']).to eq(0)
   end
 
   it 'counts 2 clients returning to homelessness' do
-    expect(report_result.results['six_i7']['value']).to eq(2)
+    expect(report_result.results['sixab_i7']['value']).to eq(2)
+  end
+
+  it 'counts 2 clients returning to homelessness from SH' do
+    expect(report_result.results['sixab_i5']['value']).to eq(2)
   end
 
   it 'counts no clients returning to homelessness in less than 6 months' do
-    expect(report_result.results['six_c7']['value']).to eq(0)
+    expect(report_result.results['sixab_c7']['value']).to eq(0)
   end
 
   it 'counts no clients returning to homelessness in 6-12 months' do
-    expect(report_result.results['six_e7']['value']).to eq(0)
+    expect(report_result.results['sixab_e7']['value']).to eq(0)
   end
 
   it 'count 2 clients returning to homelessness in 13-24 months' do
-    expect(report_result.results['six_g7']['value']).to eq(2)
+    expect(report_result.results['sixab_g7']['value']).to eq(2)
   end
 
   def import(file_path, data_source)
