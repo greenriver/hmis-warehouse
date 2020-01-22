@@ -99,6 +99,7 @@ module Cohorts
 
     # rubocop:disable Metrics/AbcSize
     def new
+      params.permit!
       @hoh_only = false
       @clients = client_scope.none
       @filter = ::Filters::Chronic.new(params[:filter])
@@ -250,6 +251,7 @@ module Cohorts
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter
+      params.permit!
       @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
       filter_query = hc_t[:age].gt(@hud_filter.min_age)
       filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual)) if @hud_filter.individual
@@ -350,6 +352,7 @@ module Cohorts
     end
 
     def bulk_destroy
+      params.permit!
       @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
       @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
       removed = 0
@@ -384,6 +387,7 @@ module Cohorts
     end
 
     def destroy
+      params.permit!
       log_removal(@client.cohort_id, @client.id, params[:grda_warehouse_cohort_client].try(:[], :reason))
       if @client.destroy
         flash[:notice] = "Removed #{@client.name}"
@@ -411,6 +415,7 @@ module Cohorts
     end
 
     def populations_params
+      params.permit!
       return {} unless params[:populations].present?
 
       params.require(:populations).permit(
@@ -420,6 +425,7 @@ module Cohorts
     end
 
     def actives_params
+      params.permit!
       return false unless params[:actives].present?
 
       params.require(:actives).permit(
@@ -433,6 +439,7 @@ module Cohorts
     end
 
     def touch_point_params
+      params.permit!
       return false unless params[:touchpoints].present?
 
       params.require(:touchpoints).permit(
