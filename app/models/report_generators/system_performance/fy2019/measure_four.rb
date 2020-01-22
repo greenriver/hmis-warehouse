@@ -84,6 +84,8 @@ module ReportGenerators::SystemPerformance::Fy2019
         end
       }
       universe_of_stayers.each do |client|
+        next unless client[:latest_earned_income].present?
+
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four1_c3][:value] += 1
           @support[:four1_c3][:support] ||= {
@@ -135,6 +137,8 @@ module ReportGenerators::SystemPerformance::Fy2019
         end
       }
       universe_of_leavers.each do |client|
+        next unless client[:latest_earned_income].present?
+
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four4_c3][:value] += 1
           @support[:four4_c3][:support] ||= {
@@ -342,46 +346,28 @@ module ReportGenerators::SystemPerformance::Fy2019
           earliest_group = income_map[1].values.first.first
         end
         if latest_group.present?
-          universe_of_stayers[index][:latest_income] = 0
-          universe_of_stayers[index][:latest_earned_income] = 0
-          universe_of_stayers[index][:latest_non_earned_income] = 0
-          if latest_group[:TotalMonthlyIncome].present?
-            universe_of_stayers[index][:latest_income] = latest_group[:TotalMonthlyIncome]
+          if latest_group[:IncomeFromAnySource] == 1
+            universe_of_stayers[index][:latest_income] = latest_group[:TotalMonthlyIncome] || 0
             universe_of_stayers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
             universe_of_stayers[index][:latest_non_earned_income] = universe_of_stayers[index][:latest_income] - universe_of_stayers[index][:latest_earned_income]
-          elsif (amounts = latest_group.values_at(amount_columns).compact).any?
-            universe_of_stayers[index][:latest_income] = amounts.sum
-            universe_of_stayers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
-            universe_of_stayers[index][:latest_non_earned_income] = universe_of_stayers[index][:latest_income] - universe_of_stayers[index][:latest_earned_income]
-          elsif latest_group[:IncomeFromAnySource] == 99 || latest_group[:IncomeFromAnySource] = 8 || latest_group[:IncomeFromAnySource] = 9
-            universe_of_stayers[index][:latest_income] = nil
-            universe_of_stayers[index][:latest_earned_income] = nil
-            universe_of_stayers[index][:latest_non_earned_income] = nil
           end
         end
         if earliest_group.present?
-          universe_of_stayers[index][:earliest_income] = 0
-          universe_of_stayers[index][:earliest_earned_income] = 0
-          universe_of_stayers[index][:earliest_non_earned_income] = 0
-          if earliest_group[:TotalMonthlyIncome].present?
-            universe_of_stayers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
+          if earliest_group[:IncomeFromAnySource] == 1
+            universe_of_stayers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
             universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
             universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-          elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
-            universe_of_stayers[index][:earliest_income] = amounts.sum
-            universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-          elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
-            universe_of_stayers[index][:earliest_income] = nil
-            universe_of_stayers[index][:earliest_earned_income] = nil
-            universe_of_stayers[index][:earliest_non_earned_income] = nil
+          else
+            universe_of_stayers[index][:earliest_income] = 0
+            universe_of_stayers[index][:earliest_earned_income] = 0
+            universe_of_stayers[index][:earliest_non_earned_income] = 0
           end
         end
       end
-      universe_of_stayers.select{|m| m[:latest_income].present? && m[:earliest_income].present?}
+      universe_of_stayers.select{|m| m[:earliest_income].present?}
     end
 
-
+    # TODO DRY This up?
     def add_leaver_income universe_of_leavers
       # add columns to each row for the following:
       # latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
@@ -413,45 +399,26 @@ module ReportGenerators::SystemPerformance::Fy2019
         latest_group = income_map[3].values.last.first if income_map[3].present?
         earliest_group = income_map[1].values.first.first if income_map[1].present?
 
-
         if latest_group.present?
-          universe_of_leavers[index][:latest_income] = 0
-          universe_of_leavers[index][:latest_earned_income] = 0
-          universe_of_leavers[index][:latest_non_earned_income] = 0
-          if latest_group[:TotalMonthlyIncome].present?
-            universe_of_leavers[index][:latest_income] = latest_group[:TotalMonthlyIncome]
+          if latest_group[:IncomeFromAnySource] == 1
+            universe_of_leavers[index][:latest_income] = latest_group[:TotalMonthlyIncome] || 0
             universe_of_leavers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
             universe_of_leavers[index][:latest_non_earned_income] = universe_of_leavers[index][:latest_income] - universe_of_leavers[index][:latest_earned_income]
-          elsif (amounts = latest_group.values_at(amount_columns).compact).any?
-            universe_of_leavers[index][:latest_income] = amounts.sum
-            universe_of_leavers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
-            universe_of_leavers[index][:latest_non_earned_income] = universe_of_leavers[index][:latest_income] - universe_of_leavers[index][:latest_earned_income]
-          elsif latest_group[:IncomeFromAnySource] == 99
-            universe_of_leavers[index][:latest_income] = nil
-            universe_of_leavers[index][:latest_earned_income] = nil
-            universe_of_leavers[index][:latest_non_earned_income] = nil
           end
         end
         if earliest_group.present?
-          universe_of_leavers[index][:earliest_income] = 0
-          universe_of_leavers[index][:earliest_earned_income] = 0
-          universe_of_leavers[index][:earliest_non_earned_income] = 0
-          if earliest_group[:TotalMonthlyIncome].present?
-            universe_of_leavers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
+          if earliest_group[:IncomeFromAnySource] == 1
+            universe_of_leavers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
             universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
             universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
-          elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
-            universe_of_leavers[index][:earliest_income] = amounts.sum
-            universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
-          elsif earliest_group[:IncomeFromAnySource] == 99
-            universe_of_leavers[index][:earliest_income] = nil
-            universe_of_leavers[index][:earliest_earned_income] = nil
-            universe_of_leavers[index][:earliest_non_earned_income] = nil
+          else
+            universe_of_leavers[index][:earliest_income] = 0
+            universe_of_leavers[index][:earliest_earned_income] = 0
+            universe_of_leavers[index][:earliest_non_earned_income] = 0
           end
         end
       end
-      universe_of_leavers.select{|m| m[:latest_income].present? && m[:earliest_income].present?}
+      universe_of_leavers.select{|m| m[:earliest_income].present?}
     end
 
     def setup_questions
