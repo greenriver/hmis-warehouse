@@ -47,6 +47,22 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureTwo, type: :m
     expect(report_result.results['two_b7']['value']).to eq(3)
   end
 
+  it 'counts 0 clients returning to homelessness from PH' do
+    expect(report_result.results['two_g6']['value']).to eq(0)
+  end
+
+  it 'counts 0 clients returning to homelessness from TH' do
+    expect(report_result.results['two_g4']['value']).to eq(0)
+  end
+
+  it 'counts 2 clients returning to homelessness from ES' do
+    expect(report_result.results['two_g3']['value']).to eq(2)
+  end
+
+  it 'counts 0 clients returning to homelessness from ES betwen 6 months and a year' do
+    expect(report_result.results['two_c3']['value']).to eq(0)
+  end
+
   it 'counts 2 clients returning to homelessness' do
     expect(report_result.results['two_i7']['value']).to eq(2)
   end
