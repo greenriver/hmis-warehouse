@@ -1,0 +1,12 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,OtherDestination,AssessmentDisposition,OtherDisposition,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,1,1,2016-2-28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+2,2,1,2016-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-12-31,2016-12-31,user,,31a77b417911747e41ef9936f9a4b657
+3,3,2,2016-2-28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+4,4,2,2016-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+5,5,3,2016-3-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+6,6,3,2016-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+7,7,4,2016-2-28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+8,8,4,2016-3-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-3-1,2016-3-1,user,,31a77b417911747e41ef9936f9a4b657
+9,9,5,2016-2-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-2-28,2016-2-28,user,,31a77b417911747e41ef9936f9a4b657
+10,10,5,2016-3-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-3-1,2016-3-1,user,,31a77b417911747e41ef9936f9a4b657
+11,11,6,2016-2-1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2016-3-1,2016-3-1,user,,31a77b417911747e41ef9936f9a4b657
