@@ -18,4 +18,8 @@ FactoryBot.define do
   factory :spm_measure_five_fy2019, class: 'Reports::SystemPerformance::Fy2019::MeasureFive' do
     name { 'SPM Measure Five' }
   end
+
+  factory :spm_measure_six_fy2019, class: 'Reports::SystemPerformance::Fy2019::MeasureSix' do
+    name { 'SPM Measure Six' }
+  end
 end

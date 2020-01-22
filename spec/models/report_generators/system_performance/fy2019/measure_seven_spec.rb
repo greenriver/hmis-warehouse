@@ -1,9 +1,11 @@
 require 'rails_helper'
 
-RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureTwo, type: :model do
+# NOTE 6 mirrors measure 2, but we've converted all ES to SH
+
+RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSeven, type: :model do
   let!(:super_user_role) { create :can_edit_anything_super_user }
   let!(:user) { create :user, roles: [super_user_role] }
-  let!(:report) { create :spm_measure_two_fy2019 }
+  let!(:report) { create :spm_measure_seven_fy2019 }
   let!(:report_result) do
     create :report_result,
            report: report,
@@ -16,13 +18,13 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureTwo, type: :m
            }
   end
 
-  let(:measure) { ReportGenerators::SystemPerformance::Fy2019::MeasureTwo.new({}) }
+  let(:measure) { ReportGenerators::SystemPerformance::Fy2019::MeasureSeven.new({}) }
 
   before(:all) do
     @delete_later = []
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
-    file_path = 'spec/fixtures/files/system_performance/measure_two'
+    file_path = 'spec/fixtures/files/system_performance/measure_seven'
     import(file_path, @data_source)
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
@@ -43,40 +45,8 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureTwo, type: :m
     report_result.reload
   end
 
-  it 'counts 3 clients exiting to PH' do
-    expect(report_result.results['two_b7']['value']).to eq(3)
-  end
-
-  it 'counts 0 clients returning to homelessness from PH' do
-    expect(report_result.results['two_g6']['value']).to eq(0)
-  end
-
-  it 'counts 0 clients returning to homelessness from TH' do
-    expect(report_result.results['two_g4']['value']).to eq(0)
-  end
-
-  it 'counts 2 clients returning to homelessness from ES' do
-    expect(report_result.results['two_g3']['value']).to eq(2)
-  end
-
-  it 'counts 0 clients returning to homelessness from ES betwen 6 months and a year' do
-    expect(report_result.results['two_c3']['value']).to eq(0)
-  end
-
-  it 'counts 2 clients returning to homelessness' do
-    expect(report_result.results['two_i7']['value']).to eq(2)
-  end
-
-  it 'counts no clients returning to homelessness in less than 6 months' do
-    expect(report_result.results['two_c7']['value']).to eq(0)
-  end
-
-  it 'counts no clients returning to homelessness in 6-12 months' do
-    expect(report_result.results['two_e7']['value']).to eq(0)
-  end
-
-  it 'count 2 clients returning to homelessness in 13-24 months' do
-    expect(report_result.results['two_g7']['value']).to eq(2)
+  xit 'counts 3 clients exiting to PH' do
+    expect(report_result.results['sixab_b7']['value']).to eq(3)
   end
 
   def import(file_path, data_source)
