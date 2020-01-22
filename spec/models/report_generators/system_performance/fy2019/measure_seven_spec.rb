@@ -45,8 +45,32 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSeven, type: 
     report_result.reload
   end
 
-  xit 'counts 3 clients exiting to PH' do
-    expect(report_result.results['sixab_b7']['value']).to eq(3)
+  it 'counts 2 leavers from SO' do
+    expect(report_result.results['sevena1_c2']['value']).to eq(2)
+  end
+
+  it 'counts 1 leaver from SO destination permanent' do
+    expect(report_result.results['sevena1_c3']['value']).to eq(1)
+  end
+
+  it 'counts 1 leaver from SO destination temporary' do
+    expect(report_result.results['sevena1_c4']['value']).to eq(1)
+  end
+
+  it 'counts 2 clients exiting from ES, SH, TH, and PH-RRH who exited, plus persons in other PH (no move-in dates)' do
+    expect(report_result.results['sevenb1_c2']['value']).to eq(3)
+  end
+
+  it 'counts 1 client exiting to a permanent destination' do
+    expect(report_result.results['sevenb1_c3']['value']).to eq(1)
+  end
+
+  it 'counts 1 client in PH with move-in date' do
+    expect(report_result.results['sevenb2_c2']['value']).to eq(1)
+  end
+
+  it 'counts 1 client exiting to a permanent destination' do
+    expect(report_result.results['sevenb2_c3']['value']).to eq(1)
   end
 
   def import(file_path, data_source)

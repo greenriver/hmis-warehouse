@@ -190,6 +190,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report_end
         destinations[id] = exit_data[:destination]
       end
+
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sevenb1_c2][:value] = remaining_leavers.size
       @support[:sevenb1_c2][:support] = {
