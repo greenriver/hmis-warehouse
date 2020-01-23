@@ -6,6 +6,8 @@
 
 module HudChronicDefinition
   extend ActiveSupport::Concern
+  # TODO: Investigate if we need to integrate LivingSituation (3.917.1) into the chronic calculation
+  # per the updated 2020 Reporting Glossary
 
   # added as instance methods
   included do
