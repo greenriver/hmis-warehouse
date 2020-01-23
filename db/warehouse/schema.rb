@@ -3602,6 +3602,20 @@ ActiveRecord::Schema.define(version: 2020_01_20_191326) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "talentlms_configs", force: :cascade do |t|
+    t.string "subdomain"
+    t.string "encrypted_api_key"
+    t.string "encrypted_api_key_iv"
+  end
+
+  create_table "talentlms_logins", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "login"
+    t.string "encrypted_password"
+    t.string "encrypted_password_iv"
+    t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
+  end
+
   create_table "uploads", id: :serial, force: :cascade do |t|
     t.integer "data_source_id"
     t.integer "user_id"
