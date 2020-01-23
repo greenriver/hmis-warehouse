@@ -194,7 +194,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           prior_project_type = project_type
           prior_project_exit = entry[:last_date_in_program]
           # Keep track of most-recent exit from PH
-          previous_exit_from_ph = entry[:last_date_in_program] if project_type.in?(['TH', 'PH'])
+          previous_exit_from_ph = entry[:last_date_in_program] if project_type.in?(['TH', 'PH']) && entry[:last_date_in_program].present?
         end
       end
 
