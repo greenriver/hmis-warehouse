@@ -242,7 +242,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def previously_homeless? enrollment
-      [16,1,18,27].include?(enrollment[:LivingSituation])
+      [16,1,18].include?(enrollment[:LivingSituation])
     end
 
     def previously_institutionalized? enrollment
@@ -252,7 +252,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def briefly_housed? enrollment
-      [14,23,21,3,22,19,25,20,26,12,13,2,8,9,99,nil].include?(enrollment[:LivingSituation]) &&
+      [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9,nil].include?(enrollment[:LivingSituation]) &&
       [10,11].include?(enrollment[:LengthOfStay]) &&
       enrollment[:PreviousStreetESSH] == 1
     end
@@ -267,14 +267,14 @@ module ReportGenerators::DataQuality::Fy2017
     def issues_with_institution_time clients:
       clients.select do |_, enrollments|
         enrollment = enrollments.last
-        [15,6,7,24,4,5].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
+        [15,6,7,25,4,5].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 
     def issues_with_housing_time clients:
       clients.select do |_, enrollments|
         enrollment = enrollments.last
-        [14,23,21,3,22,19,25,20,26,12,13,2,8,9].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
+        [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, nil].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 

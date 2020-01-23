@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - name: Set up Ruby 2.5
+      - name: Set up Ruby 2.6
         uses: actions/setup-ruby@v1
         with:
-          ruby-version: 2.5.x
+          ruby-version: 2.6.x
       - name: Set up dependancies
         env:
           DATABASE_APP_DB_TEST: boston_hmis_test
