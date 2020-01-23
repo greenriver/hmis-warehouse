@@ -18,10 +18,15 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     scope :in_months, ->(months) do
       return none unless months.present?
 
-      ors = months.map do |year, month|
-        arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
-      end
-      where(ors.join(' OR '))
+      months.sort_by! { |y, m| Date.new(y, m, 15) }
+      start_date = Date.new(months.first[0], months.first[1], 1)
+      end_date = Date.new(months.last[0], months.last[1], -1)
+
+      where(mid_month: start_date..end_date)
+      # ors = months.map do |year, month|
+      #   arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
+      # end
+      # where(ors.join(' OR '))
     end
 
     scope :enrolled, -> do
