@@ -28,22 +28,42 @@ class App.Health.EdIpVisits
               type: 'timeseries'
               tick:
                 format: "%B"
+                culling: false
+                rotate: 60
             y:
               tick:
+                values: @_ticks(json_data)
                 format: (x) ->
-                  if x % 1 == 0
-                    x
-                  else
-                    ''
+                  Math.round(x)
               label:
                 text: 'Encounters'
                 position: 'outer-middle'
-              culling: true
-
+          grid:
+            y:
+              show: false
+          regions: @_y_regions(json_data)
           size:
             height: 200
           bindto: selector
         })
+
+  _max_value: (data) ->
+    Math.max.apply(Math, data['Emergency'].concat(data['Inpatient']))
+
+  _ticks: (data) =>
+    [1..@_max_value(data)]
+
+  _y_regions: (data) =>
+    @_ticks(data).map (d) ->
+      odd = if d % 2
+        'even'
+      else
+        'odd'
+      axis: 'y'
+      start: d-1
+      end: d
+      class: "bb-region-y-#{odd}"
+
 
   _colors: (c, d) =>
     key = d

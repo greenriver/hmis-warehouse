@@ -91,5 +91,11 @@ module Health
         errors.add :health_file, health_file.errors.messages.try(:[], :file)&.uniq&.join('; ')
       end
     end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
+    end
   end
 end

@@ -45,8 +45,8 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
         Faker::Date.between(from: 70.years.ago, to: 1.years.ago) if value.present?
       },
       PersonalID: -> (value) { Digest::MD5.hexdigest(value&.to_s) },
-      UserID: -> (value) { Faker::Internet.user_name(5..8) },
-      CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(3)}" },
+      UserID: -> (value) { Faker::Internet.user_name(specifier: 5..8) },
+      CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(digits: 3)}" },
       ProjectName: -> (value) { fake_location },
       ProjectCommonName: -> (value) { fake_location },
       OrganizationName: -> (value) { fake_location },
@@ -63,12 +63,12 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastPermanentCity: -> (value) { Faker::Address.city },
       LastPermanentState: -> (value) { Faker::Address.state_abbr },
       LastPermanentZIP: -> (value) { Faker::Address.zip },
-      OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(3) else nil end},
-      OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(2) else nil end},
-      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location + ' Health' else nil end},
-      OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
-      OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
-      OtherTypeProvided: -> (value) {if value.present? then Faker::TwinPeaks.location else nil end},
+      OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(word_count: 3) else nil end},
+      OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(word_count: 2) else nil end},
+      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location + ' Health' else nil end},
+      OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      OtherTypeProvided: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
     }
   end
 
@@ -102,7 +102,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       end
       v
     else
-      Faker::Number.number(9)
+      Faker::Number.number(digits: 9)
     end
   end
 end

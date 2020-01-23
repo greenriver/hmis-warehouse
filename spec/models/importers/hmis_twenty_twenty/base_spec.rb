@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
   describe 'When importing enrollments' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files'
@@ -13,8 +14,8 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
       GrdaWarehouse::Utility.clear!
       cleanup_files
     end
-    it 'the database will have three clients' do
-      expect(GrdaWarehouse::Hud::Client.count).to eq(3)
+    it 'the database will have three source clients' do
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
     end
 
     it 'the database will have four enrollments' do
@@ -107,7 +108,7 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     end
 
     it 'the database will have two clients' do
-      expect(GrdaWarehouse::Hud::Client.count).to eq(2)
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
     end
     it 'the database will have two enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)

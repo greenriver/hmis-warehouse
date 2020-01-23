@@ -449,11 +449,7 @@ module GrdaWarehouse::Hud
         as('sh_t')
       joins "INNER JOIN #{inner_table.to_sql} ON #{c_t[:id].eq(inner_table[:client_id]).to_sql}"
     end
-    # scope :disabled, -> do
-    #   dt = Disability.arel_table
-    #   where Disability.where( dt[:data_source_id].eq c_t[:data_source_id] ).where( dt[:PersonalID].eq c_t[:PersonalID] ).exists
-    # end
-    #
+
     # clients whose first residential service record is within the given date range
     scope :entered_in_range, -> (range) do
       s, e, exclude = range.first, range.last, range.exclude_end?   # the exclusion bit's a little pedantic...
@@ -929,6 +925,17 @@ module GrdaWarehouse::Hud
     # where they don't have a subsequent affirmative or negative
     def self.disabled_client_ids
       disabled_client_scope.pluck(:id)
+    end
+
+    scope :chronically_disabled, -> (end_date=Date.current) do
+      start_date = end_date - 3.years
+      joins(:source_enrollment_disabilities).
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
+    end
+
+    def chronically_disabled?
+      self.class.chronically_disabled.where(id: id).exists?
     end
 
     def deceased?
@@ -2680,7 +2687,7 @@ module GrdaWarehouse::Hud
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
         enrollments = en_scope.joins(:project).
-          includes(:service_history_services, :project, :organization, :source_client).
+          includes(:service_history_services, :project, :organization, :source_client, enrollment: :enrollment_cocs).
           order(first_date_in_program: :desc)
         enrollments.
         map do |entry|
@@ -2690,7 +2697,12 @@ module GrdaWarehouse::Hud
           project_name = if project.confidential? && ! include_confidential_names
              project.safe_project_name
           else
-            "#{entry.project_name} < #{organization.OrganizationName}"
+            cocs = ''
+            if GrdaWarehouse::Config.get(:expose_coc_code)
+              cocs = entry.enrollment.enrollment_cocs.map(&:CoCCode).uniq.join(', ')
+              cocs = " (#{cocs})" if cocs.present?
+            end
+            "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
           end
           dates_served = services.select{|m| service_types.include?(m.record_type)}.map(&:date).uniq
           count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)

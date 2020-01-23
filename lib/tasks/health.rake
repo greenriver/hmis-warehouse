@@ -104,6 +104,18 @@ namespace :health do
     end
   end
 
+  desc "Queue Eligibility Determination"
+  task queue_eligibility_determination: [:environment, "log:info_to_stdout"] do
+    date = Date.current
+    user = User.setup_system_user
+    batch_owner = Health::EligibilityInquiry.create!(service_date: date, has_batch: true)
+    Health::CheckPatientEligibilityJob.perform_later(
+      eligibility_date: date.to_s,
+      owner_id: batch_owner.id,
+      user_id: user.id,
+    )
+  end
+
 
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|
@@ -155,6 +167,15 @@ namespace :health do
 
       task :dump do
         Rake::Task["db:schema:dump"].invoke
+      end
+
+      desc "Conditionally load the database schema"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if HealthBase.connection.tables.length == 0
+          Rake::Task['health:db:schema:load'].invoke
+        else
+          puts "Refusing to load the health database schema since there are tables present. This is not an error."
+        end
       end
     end
 

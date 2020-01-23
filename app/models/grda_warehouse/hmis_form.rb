@@ -453,6 +453,13 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     rrh_assessment_score
   end
 
+  def encounter_report_details
+    {
+      source: 'ETO',
+      housing_status: housing_status,
+    }
+  end
+
   # a display order we use on the client dashboard
   def <=>(other)
     if triage? ^ other.triage?

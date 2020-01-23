@@ -62,6 +62,7 @@
 //= require_directory ./filter
 //= require_directory ./maps
 //= require_directory ./rollups
+//= require_directory ./sections
 //= require_directory ./health
 //= require_directory ./weather
 //= require_directory ./charts_scatter_by_date

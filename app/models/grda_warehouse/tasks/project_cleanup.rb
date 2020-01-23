@@ -153,7 +153,12 @@ module GrdaWarehouse::Tasks
     end
 
     def debug_log message
-      @notifier.ping message if @notifier
+      begin
+        @notifier.ping message if @notifier
+      rescue Slack::Notifier::APIError => e
+        sleep(3)
+        logger.error "Failed to send slack"
+      end
       logger.info message if @debug
     end
   end

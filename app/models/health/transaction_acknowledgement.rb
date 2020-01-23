@@ -7,6 +7,7 @@
 # ### HIPPA Risk Assessment
 # NOT ASSESSED
 
+require "stupidedi"
 module Health
   class TransactionAcknowledgement  < HealthBase
     acts_as_paranoid

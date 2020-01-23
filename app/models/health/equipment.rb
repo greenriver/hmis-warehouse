@@ -47,5 +47,11 @@ module Health
       ]
     end
 
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
+    end
+
   end
 end

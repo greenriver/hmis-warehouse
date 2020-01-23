@@ -123,12 +123,15 @@ Rails.application.routes.draw do
 
   def sub_populations
     [
-      :childrens,
+      :all_clients,
       :clients,
+      :childrens,
+      :children,
       :families,
       :individual_adults,
       :non_veterans,
       :parenting_childrens,
+      :parenting_children,
       :parenting_youths,
       :unaccompanied_minors,
       :veterans,
@@ -360,6 +363,7 @@ Rails.application.routes.draw do
       resources :enrollments
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
+      resources :encounters, only: [:index, :show, :create, :destroy]
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
@@ -505,6 +509,7 @@ Rails.application.routes.draw do
           get :active
           get :housed
           get :entered
+          get 'section/:partial', to: "#{sub_population}#section", as: :section
         end
       end
     end

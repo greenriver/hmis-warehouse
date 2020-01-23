@@ -2,6 +2,9 @@
 
 class App.Dashboards.Clients.Census extends App.Dashboards.Clients.Base
   _build_chart: () =>
+    @data = $(@chart_selector).data('chart-data')
+    @columns = $(@chart_selector).data('chart-columns')
+    return unless @data[1]?
     data =
       x: 'x'
       color: @_colors
@@ -38,7 +41,7 @@ class App.Dashboards.Clients.Census extends App.Dashboards.Clients.Base
   _toolip: (d, defaultTitleFormat, defaultValueFormat, color) =>
     # Somewhat reverse engineered from here:
     # https://github.com/naver/billboard.js/blob/aa91babc6d3173e58e56eef33aad7c7c051b747f/src/internals/tooltip.js#L110
-    console.log(d, defaultValueFormat(d[0].value), @data, @options)
+    # console.log(d, defaultValueFormat(d[0].value), @data, @options)
     tooltip_title = defaultTitleFormat(d[0].x)
     html = "<table class='bb-tooltip'>"
     html += "<thead>"
@@ -55,7 +58,7 @@ class App.Dashboards.Clients.Census extends App.Dashboards.Clients.Base
         html += box
         html += value
         html += "</tr>"
-    total_count = @options.totals[1][d[0].x + 1]
+    total_count = @columns[1][d[0].x + 1]
     html += "<tfoot>"
     html += "<tr><th>Total</th><th>#{total_count}</th></tr>"
     html += "</tfoot>"
