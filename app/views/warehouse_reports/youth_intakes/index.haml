@@ -8,8 +8,8 @@
 
 = render 'filter'
 
-.row
-  %h2 A. Core Services
+%h2 A. Core Services
+.well
   %table.table
     %tbody
       %tr
@@ -170,8 +170,9 @@
         %th Number of YYA served
         %td= @report.total_served.count
 
-.row
-  %h2 C. College Student Services
+
+%h2 C. College Student Services
+.well
   %table.table.table-sm
     %tbody
       %tr
@@ -197,8 +198,14 @@
         %th Number of YYA served
         %td= @report.total_college.count
 
-.row
-  %h2 F. Demographics
+.row.mt-4
+  .col-6
+    %h2 F. Demographics
+  .col-6.text-right
+    %h3
+      Open Cases During Range:
+      %strong= @report.all_open_intakes.count
+.well
   %table.table.table-sm
     %tbody
       %tr
@@ -290,8 +297,8 @@
       %th h. Number of YYA served who owned a Cell phone
       %td= @report.f_four_h.count
 
-.row
-  %h2 Follow Ups
+%h2 Follow Ups
+.well
   %table.table
     %tbody
       %tr

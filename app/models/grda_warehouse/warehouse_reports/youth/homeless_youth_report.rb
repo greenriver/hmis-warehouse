@@ -12,19 +12,31 @@ module GrdaWarehouse::WarehouseReports::Youth
       @end_date = filter.end
     end
 
+    def all_open_intakes
+      open_during_report_range
+    end
+
+    def open_during_report_range
+      GrdaWarehouse::YouthIntake::Base.
+        open_between(start_date: @start_date, end_date: @end_date)
+    end
+
+    def served_during_report_range
+      open_during_report_range.served
+    end
+
+    def started_after_report_start
+      served_during_report_range.opened_after(@start_date)
+    end
+
     # A. Core Services
 
     def new_enrollments_scope
-      GrdaWarehouse::YouthIntake::Base.
-        served.
-        open_between(start_date: @start_date, end_date: @end_date).
-        opened_after(@start_date)
+      started_after_report_start
     end
 
     def section_1_scope
-      GrdaWarehouse::YouthIntake::Base.
-        served.
-        open_between(start_date: @start_date, end_date: @end_date).
+      served_during_report_range.
         where(street_outreach_contact: "Yes")
     end
 
@@ -39,9 +51,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def section_2_scope
-      GrdaWarehouse::YouthIntake::Base.
-        served.
-        open_between(start_date: @start_date, end_date: @end_date).
+      started_after_report_start.
         where(street_outreach_contact: "No")
     end
 
@@ -67,8 +77,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def section_3_intake_scope
-      GrdaWarehouse::YouthIntake::Base.
-        open_between(start_date: @start_date, end_date: @end_date).
+      open_during_report_range.
         opened_after(@start_date).
         where(youth_experiencing_homelessness_at_start: "No")
     end
@@ -94,9 +103,8 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def section_4_intake_scope
-      GrdaWarehouse::YouthIntake::Base.
-          open_between(start_date: @start_date, end_date: @end_date).
-          where(youth_experiencing_homelessness_at_start: "Yes")
+      open_during_report_range.
+        where(youth_experiencing_homelessness_at_start: "Yes")
     end
 
     def four_a
@@ -136,9 +144,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def section_5_intake_scope
-      GrdaWarehouse::YouthIntake::Base.
-          served.
-          open_between(start_date: @start_date, end_date: @end_date)
+      served_during_report_range
     end
 
     def five_b
@@ -330,9 +336,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     # C. College Student Services
 
     def college_scope
-      GrdaWarehouse::YouthIntake::Base.
-        served.
-        open_between(start_date: @start_date, end_date: @end_date)
+      served_during_report_range
     end
 
     def c_one_college_pilot
