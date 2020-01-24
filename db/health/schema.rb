@@ -1227,6 +1227,17 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "visits", id: :serial, force: :cascade do |t|
+    t.date "visit_date"
+    t.string "department"
+    t.string "type"
+    t.string "provider"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "patient_id"
+    t.index ["patient_id"], name: "index_visits_on_patient_id"
+  end
+
   add_foreign_key "comprehensive_health_assessments", "health_files"
   add_foreign_key "comprehensive_health_assessments", "patients"
   add_foreign_key "health_goals", "patients"
