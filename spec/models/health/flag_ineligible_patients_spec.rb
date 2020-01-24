@@ -15,15 +15,21 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
 
   it 'processes the fixture' do
     Health::FlagIneligiblePatientsJob.new.perform(inquiry.id)
-    patient_01.reload
+    patient_02.reload
 
-    expect(patient_01.coverage_inquiry_date).to eq Date.current
+    expect(patient_02.coverage_inquiry_date).to eq Date.current
   end
 
   it 'does not process other patients' do
     patient_05.reload
 
     expect(patient_05.coverage_inquiry_date).to be nil
+  end
+
+  it 'does not process patients with errors' do
+    patient_01.reload
+
+    expect(patient_01.coverage_inquiry_date).to be nil
   end
 
   it 'flags ineligible patients' do
