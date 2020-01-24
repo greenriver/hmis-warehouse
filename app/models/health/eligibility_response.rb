@@ -24,6 +24,11 @@ module Health
       @error_ids ||= subscribers.select{|s| AAA(s)}.map{|s| TRN(s)}
     end
 
+    def invalid_subscriber_ids
+      # 72 = invalid SSN/MemberID
+      @invalids = subscribers.select{|s| ['72'].include?(AAA(s))}.map{|s| TRN(s)}
+    end
+
     def subscriber_ids
       @subs ||= subscribers.map{|s| TRN(s)} - subscriber_ids_with_errors
     end
