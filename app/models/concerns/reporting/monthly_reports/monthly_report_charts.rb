@@ -18,10 +18,15 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     scope :in_months, ->(months) do
       return none unless months.present?
 
-      ors = months.map do |year, month|
-        arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
-      end
-      where(ors.join(' OR '))
+      months.sort_by! { |y, m| Date.new(y, m, 15) }
+      start_date = Date.new(months.first[0], months.first[1], 1)
+      end_date = Date.new(months.last[0], months.last[1], -1)
+
+      where(mid_month: start_date..end_date)
+      # ors = months.map do |year, month|
+      #   arel_table[:year].eq(year).and(arel_table[:month].eq(month)).to_sql
+      # end
+      # where(ors.join(' OR '))
     end
 
     scope :enrolled, -> do
@@ -49,7 +54,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     scope :housed, -> do
-      where(destination_id: HUD.permanent_destinations)
+      where(destination_id: ::HUD.permanent_destinations)
     end
 
     scope :for_organizations, ->(organization_ids) do
@@ -91,12 +96,23 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
       return all
     end
 
+    private def cache_key_for_report
+      [
+        self.class.name,
+        organization_ids,
+        project_ids,
+        months,
+        project_types,
+        filter,
+      ]
+    end
+
     def months_in_dates
       @months_in_dates ||= months.map { |year, month| Date.new(year, month, 1) }
     end
 
     def clients_for_report
-      self.class.in_months(months).
+      @clients_for_report ||= self.class.in_months(months).
         for_organizations(organization_ids).
         for_projects(project_ids).
         for_project_types(project_types).
@@ -108,7 +124,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def enrolled_client_count
-      enrolled_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        enrolled_clients.select(:client_id).distinct.count
+      end
     end
 
     # NOTE: HMIS households (household_id) are different for every enrollment
@@ -117,9 +135,11 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     # Potentially this introduces errors since someone may actually be
     # The head of household in more than one household
     def enrolled_household_count
-      self.class.enrolled.in_months(months).
-        where(household_id: enrolled_clients.select(:household_id)).
-        heads_of_household.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        self.class.enrolled.in_months(months).
+          where(household_id: enrolled_clients.select(:household_id)).
+          heads_of_household.select(:client_id).distinct.count
+      end
     end
 
     def active_clients
@@ -127,13 +147,17 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def active_client_count
-      active_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        active_clients.select(:client_id).distinct.count
+      end
     end
 
     def active_household_count
-      self.class.enrolled.in_months(months).
-        where(household_id: active_clients.select(:household_id)).
-        heads_of_household.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        self.class.enrolled.in_months(months).
+          where(household_id: active_clients.select(:household_id)).
+          heads_of_household.select(:client_id).distinct.count
+      end
     end
 
     def entered_clients
@@ -141,13 +165,17 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def entered_client_count
-      entered_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        entered_clients.select(:client_id).distinct.count
+      end
     end
 
     def entered_household_count
-      self.class.enrolled.in_months(months).
-        where(household_id: entered_clients.select(:household_id)).
-        heads_of_household.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        self.class.enrolled.in_months(months).
+          where(household_id: entered_clients.select(:household_id)).
+          heads_of_household.select(:client_id).distinct.count
+      end
     end
 
     def exited_clients
@@ -155,13 +183,17 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def exited_client_count
-      exited_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        exited_clients.select(:client_id).distinct.count
+      end
     end
 
     def exited_household_count
-      self.class.enrolled.in_months(months).
-        where(household_id: exited_clients.select(:household_id)).
-        heads_of_household.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        self.class.enrolled.in_months(months).
+          where(household_id: exited_clients.select(:household_id)).
+          heads_of_household.select(:client_id).distinct.count
+      end
     end
 
     def first_time_clients
@@ -169,7 +201,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def first_time_client_count
-      first_time_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        first_time_clients.select(:client_id).distinct.count
+      end
     end
 
     def re_entry_clients
@@ -177,11 +211,13 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def re_entry_client_count
-      re_entry_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        re_entry_clients.select(:client_id).distinct.count
+      end
     end
 
     def homeless_project_type_ids
-      [1, 2, 4, 8]
+      [1, 2, 4, 8].freeze
     end
 
     def homeless_project_types
@@ -189,29 +225,33 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def census_by_project_type
-      data = Hash[homeless_project_type_ids.zip]
-      counts = active_clients.group(:year, :month, :project_type).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      homeless_project_type_ids.each do |project_type_id|
-        months.reverse_each do |year, month|
-          data[project_type_id] ||= [HUD.project_type(project_type_id)]
-          data[project_type_id] << counts[[year, month, project_type_id]]
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = Hash[homeless_project_type_ids.zip]
+        counts = active_clients.group(:year, :month, :project_type).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        homeless_project_type_ids.each do |project_type_id|
+          months.reverse_each do |year, month|
+            data[project_type_id] ||= [HUD.project_type(project_type_id)]
+            data[project_type_id] << counts[[year, month, project_type_id]]
+          end
         end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     def census_by_month
-      data = {}
-      totals = active_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      months.reverse_each do |year, month|
-        data['totals'] ||= ['Total']
-        data['totals'] << totals[[year, month]]
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = {}
+        totals = active_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        months.reverse_each do |year, month|
+          data['totals'] ||= ['Total']
+          data['totals'] << totals[[year, month]]
+        end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     def months_strings
@@ -223,20 +263,22 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def entry_re_entry_data
-      data = { new: [:New], returning: [:Returning] }
-      new_entries = first_time_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      returning_entries = re_entry_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      months.reverse_each do |year, month|
-        new_count = (new_entries[[year, month]] || 0)
-        returning_count = (returning_entries[[year, month]] || 0)
-        data[:new] << new_count
-        data[:returning] << returning_count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = { new: [:New], returning: [:Returning] }
+        new_entries = first_time_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        returning_entries = re_entry_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        months.reverse_each do |year, month|
+          new_count = (new_entries[[year, month]] || 0)
+          returning_count = (returning_entries[[year, month]] || 0)
+          data[:new] << new_count
+          data[:returning] << returning_count
+        end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     # def first_time_entry_locations
@@ -262,33 +304,38 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     # end
 
     def first_time_entry_locations
-      data = Hash[homeless_project_type_ids.zip]
-      total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
-      counts = first_time_clients.group(:year, :month, :project_type).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      homeless_project_type_ids.each do |project_type_id|
-        months.reverse_each do |year, month|
-          data[project_type_id] ||= [HUD.project_type(project_type_id)]
-          data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = Hash[homeless_project_type_ids.zip]
+        total_counts = first_time_clients.group(:year, :month).select(:client_id).distinct.count
+        counts = first_time_clients.group(:year, :month, :project_type).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        homeless_project_type_ids.each do |project_type_id|
+          months.reverse_each do |year, month|
+            data[project_type_id] ||= [HUD.project_type(project_type_id)]
+            data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
+          end
         end
+
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     def re_entry_locations
-      data = Hash[homeless_project_type_ids.zip]
-      total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
-      counts = re_entry_clients.group(:year, :month, :project_type).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      homeless_project_type_ids.each do |project_type_id|
-        months.reverse_each do |year, month|
-          data[project_type_id] ||= [HUD.project_type(project_type_id)]
-          data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = Hash[homeless_project_type_ids.zip]
+        total_counts = re_entry_clients.group(:year, :month).select(:client_id).distinct.count
+        counts = re_entry_clients.group(:year, :month, :project_type).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        homeless_project_type_ids.each do |project_type_id|
+          months.reverse_each do |year, month|
+            data[project_type_id] ||= [HUD.project_type(project_type_id)]
+            data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
+          end
         end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
 
     def all_housed_clients
@@ -296,7 +343,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def all_housed_client_count
-      all_housed_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        all_housed_clients.select(:client_id).distinct.count
+      end
     end
 
     def housed_clients
@@ -304,7 +353,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def housed_client_count
-      housed_clients.select(:client_id).distinct.count
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        housed_clients.select(:client_id).distinct.count
+      end
     end
 
     def in_percentage(partial, total)
@@ -318,14 +369,16 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     def housed_by_month
-      data = { housed: [:Housed] }
-      housed = housed_clients.group(:year, :month).
-        order(year: :asc, month: :asc).
-        select(:client_id).distinct.count
-      months.reverse_each do |year, month|
-        data[:housed] << (housed[[year, month]] || 0)
+      Rails.cache.fetch(cache_key_for_report + [__method__], expires_in: 4.hours) do
+        data = { housed: [:Housed] }
+        housed = housed_clients.group(:year, :month).
+          order(year: :asc, month: :asc).
+          select(:client_id).distinct.count
+        months.reverse_each do |year, month|
+          data[:housed] << (housed[[year, month]] || 0)
+        end
+        data.values.unshift(month_x_axis_labels)
       end
-      data.values.unshift(month_x_axis_labels)
     end
   end
 end

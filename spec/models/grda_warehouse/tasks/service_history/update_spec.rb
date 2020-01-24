@@ -3,6 +3,7 @@ require 'rails_helper'
 RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
   describe 'When processing service history using update' do
     before(:all) do
+      GrdaWarehouse::Utility.clear!
       GrdaWarehouse::ServiceHistoryService.delete_all
       GrdaWarehouse::ServiceHistoryEnrollment.delete_all
       @delete_later = []
@@ -40,7 +41,7 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Update, type: :model do
       it 'generate 23 service records' do
         expect(GrdaWarehouse::ServiceHistoryService.service.count).to eq(23)
       end
-      it 'generage 13 unique dates of service' do
+      it 'generate 13 unique dates of service' do
         expect(GrdaWarehouse::ServiceHistoryService.service.select(:date).distinct.count).to eq(13)
       end
     end

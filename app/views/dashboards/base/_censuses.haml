@@ -1,12 +1,13 @@
-- chart_options ||= { totals: @report.census_by_month }
+- chart_options ||= { remote: true }
 
 .ho-container.rrh
   .ho-container__header
     %h3 Census
   .o-chart
     %h4.o-chart__title Monthly Census by Project Type
-    .jMonthlyCensus
+    .jMonthlyCensus{ data: { chart: { data: @report.census_by_project_type.to_json.html_safe, columns: @report.census_by_month.to_json.html_safe}}}
 
-= content_for :page_js do
-  :javascript
-    new App.Dashboards.Clients.Census('.jMonthlyCensus', #{@report.census_by_project_type.to_json.html_safe}, '#{@report.sub_population_title}', '', #{chart_options.to_json.html_safe});
+- if @pdf
+  = content_for :page_js do
+    :javascript
+      new App.Dashboards.Clients.Census('.jMonthlyCensus', '#{@report.sub_population_title}', '', #{chart_options.to_json.html_safe});

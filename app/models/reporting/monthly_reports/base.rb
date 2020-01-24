@@ -12,7 +12,7 @@ module Reporting::MonthlyReports
     include ArelHelper
     include ::Reporting::MonthlyReports::MonthlyReportCharts
 
-    self.table_name = :warehouse_monthly_reports
+    self.table_name = :warehouse_partitioned_monthly_reports
 
     LOOKBACK_START = '2014-07-01'
 
@@ -45,20 +45,41 @@ module Reporting::MonthlyReports
     end
 
     def populate!
-      remove_unused_client_ids
       populate_used_client_ids
+      remove_unused_client_ids
       Reporting::MonthlyClientIds.where(report_type: self.class.name).
         distinct.
         pluck_in_batches(:client_id, batch_size: 5_000) do |batch|
-          set_enrollments_by_client batch.flatten
+          batch = batch.flatten
+          set_enrollments_by_client batch
           set_prior_enrollments
           self.class.transaction do
             _clear!(batch)
             self.class.import @enrollments_by_client.values.flatten
           end
         end
+      maintain_month_range_cache
     end
 
+    private def maintain_month_range_cache
+      Rails.cache.delete([self.class.name, 'month-range'])
+      self.class.available_months
+    end
+
+    def self.available_months
+      Rails.cache.fetch([self.name, 'month-range'], expires_in: 24.hours) do
+        distinct.
+        order(year: :desc, month: :desc).
+        pluck(:year, :month).map do |year, month|
+          date = Date.new(year, month, 1)
+          [[year, month], date.strftime('%B %Y')]
+        end.to_h
+      end
+    end
+
+    # NOTE: we can't truncate or clear all because we load the table in batches
+    # in transactions.  If we truncated we'd have a state where only some of the
+    # data was available
     def _clear! ids
       self.class.where(client_id: ids).delete_all
     end
@@ -104,8 +125,10 @@ module Reporting::MonthlyReports
 
           entered_in_month = entry_month == month && entry_year == year
           exited_in_month = exit_month.present? && exit_month == month && exit_year == year
+          mid_month = Date.new(year, month, 15)
 
           client_enrollment = self.class.new(
+            mid_month: mid_month,
             month: month,
             year: year,
             client_id: client_id,
@@ -157,9 +180,6 @@ module Reporting::MonthlyReports
     # and populate the days_since_last_exit and prior_exit_project_type as appropriate
     def set_prior_enrollments
       @enrollments_by_client.each do |client_id, enrollments|
-        # FIXME:  There's a bug here, see: https://boston-hmis.dev/clients/56331
-        # https://boston-hmis.dev/warehouse_reports/re_entry?range%5Bend%5D=Apr+30%2C+2019&range%5Bproject_types%5D%5B%5D=es&range%5Bproject_types%5D%5B%5D=sh&range%5Bproject_types%5D%5B%5D=so&range%5Bproject_types%5D%5B%5D=th&range%5Bstart%5D=Nov++1%2C+2018&range%5Bsub_population%5D=veteran
-
         # find the next enrollment where entered == true
         # If all other enrollments in the current month are exits and the max exit date is
         # before the entry date, make note.
@@ -297,6 +317,25 @@ module Reporting::MonthlyReports
 
     def enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment.homeless
+    end
+
+    def self.sub_tables
+      available_types.map do |name, klass|
+        [
+          name, {
+            table_name: "warehouse_partitioned_monthly_reports_#{name}",
+            type: klass.name,
+          },
+        ]
+      end.to_h
+    end
+
+    def self.parent_table
+      :warehouse_partitioned_monthly_reports
+    end
+
+    def self.remainder_table
+      :warehouse_partitioned_monthly_reports_unknown
     end
 
   end

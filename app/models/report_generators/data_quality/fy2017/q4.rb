@@ -223,7 +223,8 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q4_c5][:value] = ((poor_quality.size.to_f / adult_leavers_and_heads_of_household_leavers.count) * 100).round(2)
     end
 
-    # Column B Row 4 – count the number of adults and heads of household stayers active in the report date range in project stays of >= 365 days as of the [report end date] where any one of the following are true:
+    # Column B Row 4 – count the number of adults and heads of household stayers active in the report date
+    # range who are expected to have an annual assessment as described under Annual Assessment, AND where any one of the following are true:
     #   a. There is no record of [income and sources] with an [information date] within 30 days of the anniversary date and a [data collection stage] of annual assessment (5).
     #   b. [information date] is within 30 days of the anniversary date AND [data collection stage] for [income and sources] = 5 AND [income from any source] = 8, 9, or missing.
     #   c. [information date] is within 30 days of the anniversary date AND [data collection stage] for [income and sources] = 5 AND [income from any source] = 0 AND there are identified income sources.

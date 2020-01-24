@@ -1,11 +1,15 @@
 #= require ./namespace
 
 class App.Dashboards.Clients.Entered extends App.Dashboards.Clients.Base
-  constructor: (@chart_selector, @data, @columns, @sub_population, @support_url, options) ->
-    super(@chart_selector, @data, @sub_population, @support_url, options)
+  constructor: (@chart_selector, @sub_population, @support_url, options) ->
+    super(@chart_selector, @sub_population, @support_url, options)
 
 
   _build_chart: () =>
+    return unless $(@chart_selector).length > 0
+    @data = $(@chart_selector).data('chart-data')
+    @columns = $(@chart_selector).data('chart-columns')
+    return unless @columns[1]?
     data =
       x: 'x'
       type: 'bar',

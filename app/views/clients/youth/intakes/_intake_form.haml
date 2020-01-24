@@ -72,18 +72,18 @@
     });
     $('.jOtherStaffTrigger').trigger('change');
     $('.jLanguage').on('change', function(e){
-      if($('.jLanguage:checked').val().includes('Other')){
+      if($('.jLanguage').is(':checked') && $('.jLanguage:checked').val().includes('Other')){
         $('.jOtherLanguage').show();
       } else {
         $('.jOtherLanguage').hide();
       }
     });
-    $('.jLanguage:first()').trigger('change');
+    $('.jLanguage').trigger('change');
     $('.jHowHear').on('change', function(e){
-      if($('.jHowHear:checked').val().includes('Other')){
+      if($('.jHowHear').is(':checked') && $('.jHowHear:checked').val().includes('Other...')){
         $('.jOtherHowHear').show();
       } else {
         $('.jOtherHowHear').hide();
       }
     });
-    $('.jHowHear:first()').trigger('change');
+    $('.jHowHear').trigger('change');

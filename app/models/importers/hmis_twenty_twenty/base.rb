@@ -456,7 +456,7 @@ module Importers::HmisTwentyTwenty
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
             next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
-            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present?
+            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present?
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
@@ -758,7 +758,14 @@ module Importers::HmisTwentyTwenty
     end
 
     def log(message)
-      @notifier.ping message if @notifier
+      # Slack really doesn't like it when you send too many message in a row
+      sleep(1)
+      begin
+        @notifier.ping message if @notifier
+      rescue Slack::Notifier::APIError => e
+        sleep(3)
+        logger.error "Failed to send slack"
+      end
       logger.info message if @debug
     end
 

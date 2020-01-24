@@ -75,7 +75,8 @@ module ReportGenerators::DataQuality::Fy2017
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      @answers[:q2_e2][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
+      @answers[:q2_e2][:value] = counted.size
+      @answers[:q2_f2][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_ssn_answers
@@ -122,7 +123,8 @@ module ReportGenerators::DataQuality::Fy2017
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:SSN]]
         end
       )
-      @answers[:q2_e3][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
+      @answers[:q2_e3][:value] = counted.size
+      @answers[:q2_f3][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_dob_answers
@@ -171,7 +173,8 @@ module ReportGenerators::DataQuality::Fy2017
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:DOB]]
         end
       )
-      @answers[:q2_e4][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
+      @answers[:q2_e4][:value] = counted.size
+      @answers[:q2_f4][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_race_answers
@@ -210,7 +213,8 @@ module ReportGenerators::DataQuality::Fy2017
           ]
         end
       )
-      @answers[:q2_e5][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
+      @answers[:q2_e5][:value] = counted.size
+      @answers[:q2_f5][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_ethnicity_answers
@@ -249,8 +253,8 @@ module ReportGenerators::DataQuality::Fy2017
           ]
         end
       )
-      @answers[:q2_e6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
-
+      @answers[:q2_e6][:value] = counted.size
+      @answers[:q2_f6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_gender_answers
@@ -289,12 +293,13 @@ module ReportGenerators::DataQuality::Fy2017
           ]
         end
       )
-      @answers[:q2_e7][:value] = ((counted.size.to_f / all_client_count * 100)).round(2)
-
+      @answers[:q2_e7][:value] = counted.size
+      @answers[:q2_f7][:value] = ((counted.size.to_f / all_client_count * 100)).round(2)
     end
 
     def add_summary_info
-      @answers[:q2_e8][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
+      @answers[:q2_e8][:value] = @clients_with_issues.size
+      @answers[:q2_f8][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
     end
 
     def fetch_all_clients
@@ -356,6 +361,10 @@ module ReportGenerators::DataQuality::Fy2017
         },
         q2_e1: {
           title:  nil,
+          value: 'Total',
+        },
+        q2_f1: {
+          title:  nil,
           value: '% of Error Rate',
         },
         q2_a2: {
@@ -399,6 +408,10 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e2: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f2: {
           title:  'Name - % of Error Rate',
           value: 0,
         },
@@ -415,6 +428,10 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e3: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f3: {
           title:  'SSN - % of Error Rate',
           value: 0,
         },
@@ -431,6 +448,10 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e4: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f4: {
           title:  'DOB - % of Error Rate',
           value: 0,
         },
@@ -443,6 +464,10 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e5: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f5: {
           title:  'Race - % of Error Rate',
           value: 0,
         },
@@ -455,6 +480,10 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e6: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f6: {
           title:  'Ethnicity - % of Error Rate',
           value: 0,
         },
@@ -467,10 +496,18 @@ module ReportGenerators::DataQuality::Fy2017
           value: 0,
         },
         q2_e7: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f7: {
           title:  'Gender - % of Error Rate',
           value: 0,
         },
         q2_e8: {
+          title:  'Total',
+          value: 0,
+        },
+        q2_f8: {
           title:  'Overall Score - % of Error Rate',
           value: 0,
         },

@@ -99,10 +99,10 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
       expect(report.four_a.count).to eq 2
     end
 
-    it 'counts at risk new intakes' do
-      pending 'not clear what this should be'
-      expect(report.four_b.count).to eq 2
-    end
+    # it 'counts at risk new intakes' do
+    #   pending 'not clear what this should be'
+    #   expect(report.four_b.count).to eq 2
+    # end
 
     it 'counts continuing clients with case management' do
       expect(report.four_c.count).to eq 1

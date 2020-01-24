@@ -32,8 +32,44 @@ module Health
         where.not(medicaid_id: nil)
     end
 
+    def eligible_ids
+      return eligibility_response.eligible_ids unless has_batch
+
+      @eligible_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.eligible_ids
+        end
+        ids.uniq
+      end
+    end
+
+    def ineligible_ids
+      return eligibility_response.ineligible_ids unless has_batch
+
+      @ineligible_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.ineligible_ids
+        end
+        ids.uniq
+      end
+    end
+
+    def managed_care_ids
+      return eligibility_response.managed_care_ids unless has_batch
+
+      @managed_care_ids ||= begin
+        ids = []
+        batch_responses.each do |response|
+          ids = ids + response.managed_care_ids
+        end
+        ids.uniq
+      end
+    end
+
     def batch_responses
-      Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
+      @batch_responses ||= Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
     end
 
     def build_inquiry_file
@@ -104,7 +140,7 @@ module Health
         w = Stupidedi::Writer::Default.new(z.root, separators)
         file = w.write().upcase
       end
-      return file
+      file
     end
 
     # DMG03 is optional, but if it appears, it can only have the values M, F

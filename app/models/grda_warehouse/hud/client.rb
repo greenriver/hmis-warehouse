@@ -934,6 +934,10 @@ module GrdaWarehouse::Hud
         merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
     end
 
+    def chronically_disabled?
+      self.class.chronically_disabled.where(id: id).exists?
+    end
+
     def deceased?
       deceased_on.present?
     end
@@ -2683,7 +2687,7 @@ module GrdaWarehouse::Hud
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
         enrollments = en_scope.joins(:project).
-          includes(:service_history_services, :project, :organization, :source_client).
+          includes(:service_history_services, :project, :organization, :source_client, enrollment: :enrollment_cocs).
           order(first_date_in_program: :desc)
         enrollments.
         map do |entry|
@@ -2693,7 +2697,12 @@ module GrdaWarehouse::Hud
           project_name = if project.confidential? && ! include_confidential_names
              project.safe_project_name
           else
-            "#{entry.project_name} < #{organization.OrganizationName}"
+            cocs = ''
+            if GrdaWarehouse::Config.get(:expose_coc_code)
+              cocs = entry.enrollment.enrollment_cocs.map(&:CoCCode).uniq.join(', ')
+              cocs = " (#{cocs})" if cocs.present?
+            end
+            "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
           end
           dates_served = services.select{|m| service_types.include?(m.record_type)}.map(&:date).uniq
           count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
