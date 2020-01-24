@@ -168,5 +168,11 @@ module Health
         activity
       end
     end
+
+    def self.encounter_report_details
+      {
+        source: 'ETO',
+      }
+    end
   end
 end

@@ -94,7 +94,7 @@ module WarehouseReports::Project
         last_report = project.current_data_quality_report
         @report << last_report if last_report.present?
       end
-      render xlsx: :download, filename: "project_data_quality_report #{Date.current}.xlsx"
+      render xlsx: 'download', filename: "project_data_quality_report #{Date.current}.xlsx"
     end
 
     def generate_param

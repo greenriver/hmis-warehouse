@@ -10,6 +10,7 @@
 module Health
   class MemberStatusReport < HealthBase
     include ArelHelper
+    include Health::CareplanDates
 
     acts_as_paranoid
 
@@ -64,8 +65,8 @@ module Health
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
           cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
           cp_participation_form_date: patient&.participation_forms&.after_enrollment_date&.maximum(:signature_on),
-          cp_care_plan_sent_pcp_date: careplan_signature(patient),
-          cp_care_plan_returned_pcp_date: patient&.careplans&.after_enrollment_date&.maximum(:provider_signed_on),
+          cp_care_plan_sent_pcp_date: care_plan_sent_to_provider_date(patient&.id),
+          cp_care_plan_returned_pcp_date: care_plan_provider_signed_date(patient&.id),
           key_contact_name_first: sender_cp.key_contact_first_name,
           key_contact_name_last: sender_cp.key_contact_last_name,
           key_contact_phone: sender_cp.key_contact_phone&.gsub('-', '')&.truncate(10),
@@ -90,11 +91,6 @@ module Health
 
     private def patient_enrolled_during_report? enrollment_start_date
       enrollment_start_date.present? && enrollment_start_date <= report_range.end
-    end
-
-    # We will only know the date requested for hello-sign signatures, default to the signed date
-    private def careplan_signature patient
-      patient&.careplans&.after_enrollment_date&.maximum(:provider_signature_requested_at) || patient&.careplans&.after_enrollment_date&.maximum(:provider_signed_on)
     end
 
     def self.spreadsheet_columns
@@ -159,6 +155,10 @@ module Health
 
     def patient_referrals
       Health::PatientReferral.not_confirmed_rejected.includes(patient: :qualifying_activities).preload(patient: :qualifying_activities)
+    end
+
+    private def patient_ids
+      @patient_ids ||= patient_referrals.distinct.pluck(:patient_id).compact
     end
 
     def report_range

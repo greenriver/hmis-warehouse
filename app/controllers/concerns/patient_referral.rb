@@ -122,6 +122,7 @@ module PatientReferral
   end
 
   def tab_path_params
+    params.permit!
     { filters: params[:filters] }
   end
 

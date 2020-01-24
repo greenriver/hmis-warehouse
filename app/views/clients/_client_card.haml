@@ -43,10 +43,6 @@
         %br
         %strong Priority Score:
         = vispdat&.priority_score
-      - if client.consent_form_status.present?
-        .client__data-sharing-agreement
-          %strong Data sharing agreement:
-          = client.consent_form_status.presence
       .mt-4
         = render 'clients/chronic_flags', client: client
     .client__relationships

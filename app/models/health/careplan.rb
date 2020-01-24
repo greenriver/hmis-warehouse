@@ -235,5 +235,11 @@ module Health
     def completed?
       provider_signed_on && patient_signed_on
     end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
+    end
   end
 end

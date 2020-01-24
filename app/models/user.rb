@@ -170,7 +170,7 @@ class User < ApplicationRecord
 
   # ensure we have a secret
   def set_initial_two_factor_secret!
-    return if otp_secret
+    return if otp_secret.present?
     update(otp_secret: User.generate_otp_secret)
   end
 

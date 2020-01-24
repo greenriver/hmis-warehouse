@@ -14,7 +14,7 @@ module HudReports::Ahar
       label = params[:label]
       respond_to do |format|
         format.xlsx do
-          render xlsx: :support, filename: "support-#{category}-#{label}.xlsx"
+          render xlsx: 'support', filename: "support-#{category}-#{label}.xlsx"
         end
         format.html {}
       end

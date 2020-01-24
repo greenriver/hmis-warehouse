@@ -252,5 +252,11 @@ module Health
       end
     end
 
+    def encounter_report_details
+      {
+        source: 'Warehouse',
+        housing_status: housing_status,
+      }
+    end
   end
 end

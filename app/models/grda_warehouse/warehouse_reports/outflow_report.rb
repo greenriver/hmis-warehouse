@@ -171,9 +171,23 @@ module GrdaWarehouse::WarehouseReports
 
       scope = scope.where(p_t[:id].in @filter.project_ids) unless @filter.project_ids.empty?
       scope = scope.where(o_t[:id].in @filter.organization_ids) unless @filter.organization_ids.empty?
-      scope = scope.joins(client: :vispdats) if @filter.limit_to_vispdats
+      if @filter.limit_to_vispdats
+        scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
+      end
 
       return scope
+    end
+
+    private def warehouse_vispdat_client_ids
+      GrdaWarehouse::Hud::Client.destination.joins(:vispdats).merge(GrdaWarehouse::Vispdat::Base.completed).distinct.pluck(:id)
+    end
+
+    private def hmis_vispdat_client_ids
+      GrdaWarehouse::Hud::Client.destination.
+        joins(:source_hmis_forms).
+        merge(GrdaWarehouse::HmisForm.vispdat).
+        distinct.
+        pluck(:id)
     end
 
     def service_history_service_source

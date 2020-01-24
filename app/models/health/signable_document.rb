@@ -217,8 +217,8 @@ module Health
 
     def signed_on(email)
       timestamp = self.hs_last_response['signatures'].
-        find { |sig| sig['status_code'] == 'signed' && sig['signer_email_address'] == email }&.
-        dig('signed_at')
+        find { |sig| sig['data']['status_code'] == 'signed' && sig['data']['signer_email_address'] == email }&.
+        dig('data', 'signed_at')
 
       return nil unless timestamp.present?
 
@@ -240,8 +240,8 @@ module Health
 
       self.hs_last_response_at = Time.now
       self.hs_last_response = callback_payload
-      sig_hashes = self.hs_last_response['signatures'].select { |sig| sig['status_code'] == 'signed' }
-      new_signers = sig_hashes.map { |sig| sig['signer_email_address']  }
+      sig_hashes = self.hs_last_response['signatures'].select { |sig| sig['data']['status_code'] == 'signed' }
+      new_signers = sig_hashes.map { |sig| sig['data']['signer_email_address']  }
       self.signed_by = new_signers
       self.save!
     end

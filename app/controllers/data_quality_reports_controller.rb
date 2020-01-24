@@ -115,7 +115,7 @@ class DataQualityReportsController < ApplicationController
       @data = support[@key].with_indifferent_access
       respond_to do |format|
         format.xlsx do
-          render xlsx: :index, filename: "support-#{@key}.xlsx"
+          render xlsx: 'index', filename: "support-#{@key}.xlsx"
         end
         format.html do
           render layout: 'pjax_modal_content' if params[:layout].present? && params[:layout] == 'false'

@@ -8,6 +8,7 @@
 # Risk: Attached content contains EDI serialized PHI
 # Control: PHI attributes documented
 
+require "stupidedi"
 module Health
   class PremiumPayment < HealthBase
     acts_as_paranoid
