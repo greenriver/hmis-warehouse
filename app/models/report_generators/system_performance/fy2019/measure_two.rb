@@ -254,7 +254,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         @answers[:two_h7][:value] = ((@answers[:two_g7][:value].to_f / @answers[:two_b7][:value]) * 100).round(2)
 
         @answers[:two_i2][:value] = @answers[:two_c2][:value] + @answers[:two_e2][:value] + @answers[:two_g2][:value]
-        @answers[:two_i3][:value] = @answers[:two_c3][:value] + @answers[:two_e3][:value] + @answers[:two_g2][:value]
+        @answers[:two_i3][:value] = @answers[:two_c3][:value] + @answers[:two_e3][:value] + @answers[:two_g3][:value]
         @answers[:two_i4][:value] = @answers[:two_c4][:value] + @answers[:two_e4][:value] + @answers[:two_g4][:value]
         @answers[:two_i5][:value] = @answers[:two_c5][:value] + @answers[:two_e5][:value] + @answers[:two_g5][:value]
         @answers[:two_i6][:value] = @answers[:two_c6][:value] + @answers[:two_e6][:value] + @answers[:two_g6][:value]
