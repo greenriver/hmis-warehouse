@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_13_160822) do
+ActiveRecord::Schema.define(version: 2020_01_24_194225) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -364,37 +364,6 @@ ActiveRecord::Schema.define(version: 2020_01_13_160822) do
     t.integer "user_id"
     t.string "original_filename"
     t.datetime "deleted_at"
-  end
-
-  create_table "encounter_records", force: :cascade do |t|
-    t.bigint "encounter_report_id"
-    t.string "medicaid_id"
-    t.date "date"
-    t.string "provider_name"
-    t.boolean "contact_reached"
-    t.string "mode_of_contact"
-    t.date "dob"
-    t.string "gender"
-    t.string "race"
-    t.string "ethnicity"
-    t.string "veteran_status"
-    t.string "housing_status"
-    t.string "source"
-    t.string "encounter_type"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["encounter_report_id"], name: "index_encounter_records_on_encounter_report_id"
-  end
-
-  create_table "encounter_reports", force: :cascade do |t|
-    t.datetime "start_date"
-    t.datetime "end_date"
-    t.bigint "user_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "completed_at"
-    t.datetime "started_at"
-    t.index ["user_id"], name: "index_encounter_reports_on_user_id"
   end
 
   create_table "encounter_records", force: :cascade do |t|
@@ -914,6 +883,7 @@ ActiveRecord::Schema.define(version: 2020_01_13_160822) do
     t.datetime "eligibility_notification"
     t.string "aco_name"
     t.string "previous_aco_name"
+    t.boolean "invalid_id", default: false
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
   end
