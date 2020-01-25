@@ -214,6 +214,9 @@ module ReportGenerators::SystemPerformance::Fy2019
           when (367..730)
             :g_366_730_days
           end
+        next unless day_count_slug.present?
+        next unless project_exit_counts[day_count_slug][project_type].present?
+
         project_exit_counts[day_count_slug][project_type][:counts] << day_count
         project_exit_counts[day_count_slug][project_type][:support] << [ initial_exit[:client_id], day_count ]
       end
