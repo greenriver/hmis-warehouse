@@ -280,7 +280,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixab_h7][:value] = ((@answers[:sixab_g7][:value].to_f / @answers[:sixab_b7][:value]) * 100).round(2)
 
       # @answers[:sixab_i2][:value] = @answers[:sixab_c2][:value] + @answers[:sixab_e2][:value] + @answers[:sixab_g2][:value]
-      # @answers[:sixab_i3][:value] = @answers[:sixab_c3][:value] + @answers[:sixab_e3][:value] + @answers[:sixab_g2][:value]
+      # @answers[:sixab_i3][:value] = @answers[:sixab_c3][:value] + @answers[:sixab_e3][:value] + @answers[:sixab_g3][:value]
       @answers[:sixab_i4][:value] = @answers[:sixab_c4][:value] + @answers[:sixab_e4][:value] + @answers[:sixab_g4][:value]
       @answers[:sixab_i5][:value] = @answers[:sixab_c5][:value] + @answers[:sixab_e5][:value] + @answers[:sixab_g5][:value]
       @answers[:sixab_i6][:value] = @answers[:sixab_c6][:value] + @answers[:sixab_e6][:value] + @answers[:sixab_g6][:value]
