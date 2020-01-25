@@ -20,16 +20,25 @@ module Health
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user
 
+    def subscriber_ids_with_errors
+      @error_ids ||= subscribers.select{|s| AAA(s)}.map{|s| TRN(s)}
+    end
+
+    def invalid_subscriber_ids
+      # 72 = invalid SSN/MemberID
+      @invalids = subscribers.select{|s| ['72'].include?(AAA(s))}.map{|s| TRN(s)}
+    end
+
     def subscriber_ids
-      @subs ||= subscribers.map{|s| TRN(s)}
+      @subs ||= subscribers.map{|s| TRN(s)} - subscriber_ids_with_errors
     end
 
     def eligible_ids
-      @eligibles ||= subscribers.select{|s| eligible(s)}.map{|s| TRN(s)}
+      @eligibles ||= subscribers.select{|s| eligible(s)}.map{|s| TRN(s)} - subscriber_ids_with_errors
     end
 
     def managed_care_ids
-      @manageds ||= subscribers.select{|s| managed_care(s)}.map{|s| TRN(s)}
+      @manageds ||= subscribers.select{|s| managed_care(s)}.map{|s| TRN(s)} - subscriber_ids_with_errors
     end
 
     def aco_names
@@ -91,6 +100,21 @@ module Health
       managed_care = ebs.any?{ |eb| eb.first == 'MC' } || false
 
       managed_care
+    end
+
+    def AAA(subscriber)
+      # Reject reasons can also appear in 2100A (information source) or 2100B (information receiver) which we are ignoring
+      sub_name = subscriber["2000C SUBSCRIBER LEVEL"].
+        detect{|h| h.keys.include? "2100C SUBSCRIBER NAME"}["2100C SUBSCRIBER NAME"]
+      errs = sub_name.detect{|h| h.keys.include? :AAA}
+      if errs.present?
+        aaa = errs[:AAA]
+        valid = aaa.detect{|h| h.keys.include? :E1073}[:E1073][:value][:raw]
+        reason = aaa.detect{|h| h.keys.include? :E901}[:E901][:value][:raw]
+        return reason if valid == 'N'
+      else
+        return nil
+      end
     end
 
     def EB(subscriber)

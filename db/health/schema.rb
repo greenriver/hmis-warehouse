@@ -883,6 +883,7 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.datetime "eligibility_notification"
     t.string "aco_name"
     t.string "previous_aco_name"
+    t.boolean "invalid_id", default: false
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
   end

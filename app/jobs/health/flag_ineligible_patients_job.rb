@@ -13,9 +13,10 @@ module Health
       return unless response
 
       Health::Patient.transaction do
-        # Update the last check date
+        # Update the last check date, and since we got a response, we know the id is valid
         patient_scope(response.subscriber_ids).find_each do |patient|
-          patient.update!(coverage_inquiry_date: inquiry.service_date)
+          patient.update!(coverage_inquiry_date: inquiry.service_date,
+                          invalid_id: false)
         end
 
         # Clear the eligibility notification flag on managed patients, so that if they lose eligibility again,
@@ -43,6 +44,11 @@ module Health
         patient_scope(response.ineligible_ids).find_each do |patient|
           patient.update!(coverage_level: Health::Patient.coverage_level_none_value,
                           aco_name: nil)
+        end
+
+        # Mark patients with invalid ids
+        patient_scope(response.invalid_subscriber_ids).find_each do |patient|
+          patient.update!(invalid_id: true)
         end
       end
     end
