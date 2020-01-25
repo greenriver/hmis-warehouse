@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-# https://www.hudexchange.info/resources/documents/Notice-CPD-16-060-2017-HIC-PIT-Data-Collection-Notice.pdf
+# https://files.hudexchange.info/resources/documents/Notice-CPD-18-08-2019-HIC-PIT-Data-Collection-Notice.pdf
 #
-# https://www.hudexchange.info/resources/documents/2016-HIC-PIT-Combined-Data-Submission-Guidance.pdf
+# https://files.hudexchange.info/resources/documents/2019-HIC-and-PIT-Count-Data-Submission-Guidance.pdf
 #
 #
 # HIC Notes:
