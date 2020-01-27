@@ -5,8 +5,7 @@
     %i.icon-group.metric
     .metric
       - client_count = @report.enrolled_clients.count
-      - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.permit!.merge(metric: :enrolled_clients)), data: { loads_in_pjax_modal: true }
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(passed_params.merge(metric: :enrolled_clients)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
         were enrolled in the
@@ -25,8 +24,7 @@
     %i.icon-file-text.metric
     .metric
       - client_count = @report.pre_placement_clients.count
-      - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.permit!.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(passed_params.merge(metric: :enrolled_in_pre_placement)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
         were enrolled in the #{_('pre-placement')}
@@ -45,8 +43,7 @@
     %i.icon-house.metric
     .metric
       - client_count = @report.stabilization_clients.count
-      - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(params.permit!.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
+      = link_to_if current_user.can_access_some_version_of_clients?, pluralize(client_count, 'client'), clients_warehouse_reports_rrh_index_path(passed_params.merge(metric: :enrolled_in_stabilization)), data: { loads_in_pjax_modal: true }
     .description
       - if client_count != 1
         were enrolled in the #{_('stabilization')}
