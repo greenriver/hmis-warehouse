@@ -8,7 +8,11 @@ class Rack::Attack
   end
 
   def self.rapid_paths(request)
-    request.path.include?('rollup') || request.path.include?('cohort')
+    request.path.include?('rollup') || request.path.include?('cohort') || asset_paths(request)
+  end
+
+  def self.asset_paths(request)
+    request.path.include?('assets')
   end
 
   def self.history_pdf_path(request)
@@ -30,7 +34,7 @@ class Rack::Attack
 
   send(tracker, 'requests per unauthenticated user per ip', limit: 10, period: 1.seconds) do |request|
     if tracking_enabled?(request)
-      if !warden_user_present?(request) && !(sign_in_path(request) || history_pdf_path(request))
+      if !warden_user_present?(request) && !(sign_in_path(request) || history_pdf_path(request) || asset_paths(request))
         request.ip
       end
     end
@@ -38,6 +42,13 @@ class Rack::Attack
   send(tracker, 'requests per unauthenticated user to history pdf', limit: 25, period: 10.seconds) do |request|
     if tracking_enabled?(request)
       if !warden_user_present?(request) && history_pdf_path(request)
+        request.ip
+      end
+    end
+  end
+  send(tracker, 'requests per unauthenticated user to assets', limit: 200, period: 10.seconds) do |request|
+    if tracking_enabled?(request)
+      if !warden_user_present?(request) && asset_paths(request)
         request.ip
       end
     end

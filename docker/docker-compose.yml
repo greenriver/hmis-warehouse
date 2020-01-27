@@ -1,7 +1,7 @@
 version: '3.4'
 
 x-app: &app
-  image: hmis-warehouse:0.0.1
+  image: hmis-warehouse:0.0.2
   build:
     context: .
     args:
@@ -37,12 +37,6 @@ services:
     <<: *backend
     command: /bin/bash
 
-  ssh_runner:
-    <<: *backend
-    command: /bin/bash
-    secrets:
-      - host_ssh_key
-
   rails:
     <<: *backend
     stdin_open: true
@@ -56,15 +50,33 @@ services:
       <<: *env
       VIRTUAL_HOST: hmis-warehouse.dev.test
       VIRTUAL_PORT: 3000
+    depends_on:
+      - db
+      - redis
 
-secrets:
-  host_ssh_key:
-    file: ~/.ssh/id_rsa
+  db:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PSQL_HISTFILE: /root/log/.psql_history
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis:/data
+    ports:
+      - 6379
 
 volumes:
   bundle:
   node_modules:
   rails_cache:
+  dbdata:
+  redis:
 
 networks:
   default:
