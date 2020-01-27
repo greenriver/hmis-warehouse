@@ -19,7 +19,7 @@
               - if report.eligibility_response.present?
                 = link_to warehouse_reports_health_eligibility_result_url(report) do
                   %i.icon-checkmark
-                  = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients, #{client_errors} errors)"
+                  = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients, #{report.eligibility_response.client_errors} errors)"
             - else
               - responses = report.batch_responses
               - if responses.all?{ |r| r.response.present? }
