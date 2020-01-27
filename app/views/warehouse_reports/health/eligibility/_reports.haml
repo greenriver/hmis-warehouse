@@ -19,7 +19,7 @@
               - if report.eligibility_response.present?
                 = link_to warehouse_reports_health_eligibility_result_url(report) do
                   %i.icon-checkmark
-                  = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients)"
+                  = "(#{report.eligibility_response.eligible_clients} eligible/#{report.eligibility_response.ineligible_clients} ineligible clients, #{client_errors} errors)"
             - else
               - responses = report.batch_responses
               - if responses.all?{ |r| r.response.present? }
@@ -27,9 +27,10 @@
                 - if error.blank?
                   - eligible_clients = responses.map{ |r| r.eligible_clients }.sum
                   - ineligible_clients = responses.map{ |r| r.ineligible_clients }.sum
+                  - client_errors = responses.map{ |r| r.client_errors }.sum
                   = link_to warehouse_reports_health_eligibility_result_url(report) do
                     %i.icon-checkmark
-                    = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients)"
+                    = "(#{eligible_clients} eligible/#{ineligible_clients} ineligible clients, #{client_errors} errors)"
                 - else
                   %i.icon-warning
                   = error

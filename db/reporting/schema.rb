@@ -252,7 +252,7 @@ ActiveRecord::Schema.define(version: 2020_01_23_193204) do
     t.integer "prior_exit_project_type"
     t.integer "prior_exit_destination_id"
     t.datetime "calculated_at", null: false
-    t.integer "enrollment_id"
+    t.integer "enrollment_id", null: false
     t.date "mid_month"
     t.index ["active"], name: "index_warehouse_monthly_reports_on_active"
     t.index ["client_id"], name: "index_warehouse_monthly_reports_on_client_id"
@@ -684,7 +684,6 @@ ActiveRecord::Schema.define(version: 2020_01_23_193204) do
     t.date "start_date"
     t.date "end_date"
     t.integer "length_of_stay"
-    t.boolean "juvenile"
     t.index ["client_id"], name: "index_warehouse_returns_on_client_id"
     t.index ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program"
     t.index ["project_type"], name: "index_warehouse_returns_on_project_type"

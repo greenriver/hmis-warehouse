@@ -35,8 +35,8 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
   it 'flags ineligible patients' do
     Health::FlagIneligiblePatientsJob.new.perform(inquiry.id)
 
-    expect(Health::Patient.no_coverage).to include patient_01, patient_06
-    expect(Health::Patient.no_coverage).not_to include patient_02, patient_03, patient_04
+    expect(Health::Patient.no_coverage).to include patient_06
+    expect(Health::Patient.no_coverage).not_to include patient_01, patient_02, patient_03, patient_04, patient_05
   end
 
   it 'flags standard patients' do
@@ -53,7 +53,7 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
 
     expect(Health::Patient.program_ineligible).not_to include patient_03
     expect(Health::Patient.program_ineligible).to include patient_02, patient_06
-    expect(Health::Patient.program_ineligible).to include patient_01 # no coverage
+    expect(Health::Patient.program_ineligible).to_not include patient_01 # error
     expect(Health::Patient.program_ineligible).not_to include patient_04 # invalid id
   end
 
