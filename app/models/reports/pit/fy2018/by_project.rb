@@ -25,6 +25,8 @@ module Reports::Pit::Fy2018
     def value_for_options options
       p_id, ds_id = JSON.parse(options['project'])
       project = GrdaWarehouse::Hud::Project.includes(:data_source).where(ProjectID: p_id, data_source_id: ds_id).first
+      return unless project
+
       "#{project.ProjectName} - #{project.data_source.short_name}<br/> PIT: #{options['pit_date']}, Chronic: #{options['chronic_date']}".html_safe
     end
 

@@ -14,17 +14,17 @@
     - if params[:size].blank? || params[:size].to_sym == :md
       - button_class = 'btn-primary'
     - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-    = link_to(params.permit!.merge({size: :md}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :md}),{class: ['btn', 'btn-sm', 'ml-2', button_class]}) do
       Default
     - button_class = 'btn-secondary'
     - if params[:size].present? && params[:size].to_sym == :lg
       - button_class = 'btn-primary'
     - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-    = link_to(params.permit!.merge({size: :lg}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :lg}),{class: ['btn', 'btn-sm', 'ml-2', button_class]}) do
       Large
     - button_class = 'btn-secondary'
     - if params[:size].present? && params[:size].to_sym == :xl
       - button_class = 'btn-primary'
     - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-    = link_to(params.permit!.merge({size: :xl}),{class: ['btn', 'btn-sm', button_class]}) do
+    = link_to(params.permit!.merge({size: :xl}),{class: ['btn', 'btn-sm', 'ml-2', button_class]}) do
       XL

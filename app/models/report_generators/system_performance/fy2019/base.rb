@@ -55,6 +55,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         non_veteran: scope.non_veteran,
         family: scope.family,
         children: scope.children_only,
+        unaccompanied_minors: scope.unaccompanied_minors,
       }
       scope_hash[sub_population.to_sym]
     end
