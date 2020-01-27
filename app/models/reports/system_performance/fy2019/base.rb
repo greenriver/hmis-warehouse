@@ -68,6 +68,7 @@ module Reports::SystemPerformance::Fy2019
         ['Non Veteran', :non_veteran],
         ['Family', :family],
         ['Children', :children],
+        ['Unaccompanied Minors', :unaccompanied_minors],
       ]
     end
 
