@@ -54,7 +54,7 @@ module Health
     end
 
     def ineligible_ids
-      @ineligibles ||= subscribers.reject{|s| eligible(s)}.map{|s| TRN(s)}
+      @ineligibles ||= subscribers.reject{|s| eligible(s)}.map{|s| TRN(s)} - subscriber_ids_with_errors
     end
 
     def eligible_clients
@@ -71,6 +71,15 @@ module Health
       count ||= begin
         count = ineligible_ids.count
         update(num_ineligible: count)
+        count
+      end
+    end
+
+    def client_errors
+      count = num_errors
+      count ||= begin
+        count = subscriber_ids_with_errors.count
+        update(num_errors: count)
         count
       end
     end
