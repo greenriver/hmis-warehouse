@@ -14,7 +14,7 @@ class Object
     Date.parse(date).strftime('%d-%b-%Y')
   end
 end
-module EtoApi::Tasks
+module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookupViaSftp < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
@@ -23,9 +23,10 @@ module EtoApi::Tasks
     # new values
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)
+
       self.logger = Rails.logger
-      logger.info "Fetching client mappings from ETO"
-      @config = YAML::load(ERB.new(File.read(Rails.root.join("config","hmis_sftp.yml"))).result)[Rails.env]
+      logger.info 'Fetching client mappings from ETO'
+      @config = YAML.load(ERB.new(File.read(Rails.root.join('config', 'hmis_sftp.yml'))).result)[Rails.env] # rubocop:disable Security/YAMLLoad
       @data_sources = GrdaWarehouse::DataSource.importable_via_s3.where(short_name: @config.keys).select do |ds|
         @config[ds.short_name]['api_match_file'].present?
       end
@@ -47,15 +48,16 @@ module EtoApi::Tasks
       end
     end
 
-    protected def fetch_most_recent_mapping_file data_source
+    protected def fetch_most_recent_mapping_file(data_source)
       connection_info = @config[data_source.short_name]
       return unless connection_info['api_match_file'].present?
+
       sftp = Net::SFTP.start(
         connection_info['host'],
         connection_info['username'],
         password: connection_info['password'],
         # verbose: :debug,
-        auth_methods: ['publickey','password']
+        auth_methods: ['publickey', 'password'],
       )
       file_path = connection_info['api_match_file']
       sftp.download!(file_path)
