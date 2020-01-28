@@ -1214,8 +1214,6 @@ GEM
     kaminari-core (1.1.1)
     launchy (2.4.3)
       addressable (~> 2.3)
-    letter_opener (1.7.0)
-      launchy (~> 2.2)
     linefit (0.3.4)
     list_matcher (1.1.8)
     listen (3.2.1)
@@ -1623,7 +1621,6 @@ DEPENDENCIES
   json
   kaminari
   launchy
-  letter_opener
   linefit
   list_matcher
   lograge

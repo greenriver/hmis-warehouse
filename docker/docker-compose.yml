@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.7'
 
 x-app: &app
   image: hmis-warehouse:0.0.2
@@ -33,11 +33,22 @@ x-backend: &backend
     - rails_cache:/app/tmp/cache
 
 services:
-  runner:
+  shell:
     <<: *backend
     command: /bin/bash
+    entrypoint: ''
 
-  rails:
+  console:
+    <<: *backend
+    stdin_open: true
+    tty: true
+    command: bundle exec rails console
+    depends_on:
+      - db
+      - redis
+      - mailhog
+
+  web:
     <<: *backend
     stdin_open: true
     tty: true
@@ -53,6 +64,7 @@ services:
     depends_on:
       - db
       - redis
+      - mailhog
 
   db:
     image: postgres:12-alpine
@@ -71,12 +83,26 @@ services:
     ports:
       - 6379
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    environment:
+      VIRTUAL_HOST: mail.hmis-warehouse.dev.test
+      VIRTUAL_PORT: 8025
+    ports:
+      - 8025:8025
+      - 1025:1025
+    expose:
+      - 8025
+      - 1025
+
 volumes:
   bundle:
   node_modules:
   rails_cache:
   dbdata:
   redis:
+  local_gems:
 
 networks:
   default:

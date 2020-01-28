@@ -31,22 +31,31 @@ Rails.application.configure do
     config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 2.minutes, raise_errors: false, ssl: cache_ssl, namespace: :hmis }
   end
 
-  if ENV['SMTP_SERVER'] && ENV['SMTP_USERNAME'] && ENV['SMTP_PASSWORD']
+  if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'http'}
-    config.action_mailer.smtp_settings = {
-      address: ENV['SMTP_SERVER'],
-      port: 587,
-      user_name: ENV['SMTP_USERNAME'],
-      password: ENV['SMTP_PASSWORD'],
-      authentication: :login,
-      enable_starttls_auto: true,
-    }
+    smtp_port = ENV.fetch('SMTP_PORT'){ 587 }
+    config.action_mailer.perform_deliveries = true
+    if ENV['SMTP_USERNAME'] && ENV['SMTP_PASSWORD']
+      config.action_mailer.smtp_settings = {
+        address: ENV['SMTP_SERVER'],
+        port: smtp_port,
+        user_name: ENV['SMTP_USERNAME'],
+        password: ENV['SMTP_PASSWORD'],
+        authentication: :login,
+        enable_starttls_auto: true,
+      }
+    else
+      config.action_mailer.smtp_settings = {
+        address: ENV['SMTP_SERVER'],
+        port: smtp_port,
+      }
+    end
   else
     # Don't care if the mailer can't send.
     config.action_mailer.raise_delivery_errors = false
 
-    config.action_mailer.delivery_method = :letter_opener
+    config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :letter_opener }.to_sym
   end
 
   config.action_mailer.perform_caching = false
@@ -84,4 +93,11 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+  # Web console from outside of docker
+  config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16']
+
+  # In order to fix the problem, the following options must be set.
+  routes.default_url_options ||= {}
+  routes.default_url_options[:script_name]= ''
 end

@@ -203,29 +203,11 @@ namespace :health do
     end
   end
 
-  task :set_custom_config do
-    # save current vars
-    @original_config = {
-      env_schema: ENV['SCHEMA'],
-      config: Rails.application.config.dup
-    }
-
-    # set config variables for custom database
-    ENV['SCHEMA'] = "db/health/schema.rb"
-    Rails.application.config.paths['db'] = ["db/health"]
-    Rails.application.config.paths['db/migrate'] = ["db/health/migrate"]
-    Rails.application.config.paths['db/seeds'] = ["db/health/seeds.rb"]
-    Rails.application.config.paths['config/database'] = ["config/database_health.yml"]
-    db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
+  task set_custom_config: [:environment] do
+    HealthBase.setup_config
   end
 
-  task :revert_to_original_config do
-    # reset config variables to original values
-    db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
-
-    ENV['SCHEMA'] = @original_config[:env_schema]
-    Rails.application.config = @original_config[:config]
+  task revert_to_original_config: [:environment] do
+    ApplicationRecord.setup_config
   end
 end

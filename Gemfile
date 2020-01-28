@@ -177,7 +177,7 @@ group :development do
   gem 'rails-erd'
   gem 'web-console'
   # gem 'quiet_assets'
-  gem 'letter_opener'
+
   gem 'list_matcher', require: false   # for the forms:desmush rake task
 
   gem 'ruby-prof'
