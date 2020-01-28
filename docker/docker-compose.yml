@@ -53,8 +53,6 @@ services:
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
-    # ports:
-    #   - '3000:3000'
     expose:
       - 3000
     environment:
@@ -89,9 +87,6 @@ services:
     environment:
       VIRTUAL_HOST: mail.hmis-warehouse.dev.test
       VIRTUAL_PORT: 8025
-    ports:
-      - 8025:8025
-      - 1025:1025
     expose:
       - 8025
       - 1025
@@ -102,7 +97,6 @@ volumes:
   rails_cache:
   dbdata:
   redis:
-  local_gems:
 
 networks:
   default:
