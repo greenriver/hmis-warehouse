@@ -251,8 +251,7 @@ module Cohorts
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter
-      params.permit!
-      @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
+      @hud_filter = ::Filters::HudChronic.new(filter_params[:hud_filter])
       filter_query = hc_t[:age].gt(@hud_filter.min_age)
       filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual)) if @hud_filter.individual
       filter_query = filter_query.and(hc_t[:dmh].eq(@hud_filter.dmh)) if @hud_filter.dmh
@@ -262,6 +261,10 @@ module Cohorts
         where(filter_query).
         has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
       @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @hud_filter.name&.present?
+    end
+
+    def filter_params
+      params.permit(filter: Filters::HudChronic.attribute_set.map(&:name))
     end
 
     def load_cohort_names
