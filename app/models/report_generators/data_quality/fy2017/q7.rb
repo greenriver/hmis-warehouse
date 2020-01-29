@@ -49,7 +49,7 @@ module ReportGenerators::DataQuality::Fy2017
           where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
           order(date: :asc).
           distinct.
-          pluck(date)
+          pluck(:date)
 
         inactive_client = false
         service_dates.each_with_index do |date, index|
