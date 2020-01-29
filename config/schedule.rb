@@ -80,9 +80,9 @@ if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
   every 1.day, at: '11:00 am' do
     rake "health:daily"
   end
-  # every :monday, at: '6am' do
-  #   rake "health:queue_eligibility_determination"
-  # end
+  every :monday, at: '6am' do
+    rake "health:queue_eligibility_determination"
+  end
 end
 
 if ENV['GLACIER_NEEDS_BACKUP']=='true'
