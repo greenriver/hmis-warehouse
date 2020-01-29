@@ -20,7 +20,7 @@ module Api
       respond_to do |format|
         format.html do
           @data = {}
-          selected_project_ids = params[:selected_project_ids]&.map(&:to_i)&.compact || []
+          selected_project_ids = project_params[:selected_project_ids]&.map(&:to_i)&.compact || []
           project_scope.
             pluck(
               :id,
@@ -58,44 +58,51 @@ module Api
     end
 
     def set_data_sources
-      params.permit!
       @data_source_ids = begin
-                           params[:data_source_ids].select(&:present?).map(&:to_i)
+                           project_params[:data_source_ids].select(&:present?).map(&:to_i)
                          rescue StandardError
                            data_source_source.pluck(:id)
                          end
     end
 
     def set_organizations
-      params.permit!
       @organization_ids = begin
-                            params[:organization_ids].select(&:present?).map(&:to_i)
+                            project_params[:organization_ids].select(&:present?).map(&:to_i)
                           rescue StandardError
                             organization_source.pluck(:id)
                           end
     end
 
     def set_project_types
-      params.permit!
-      @project_types = if params[:project_types].present? || params[:project_type_ids].present?
+      @project_types = if project_params[:project_types].present? || project_params[:project_type_ids].present?
         []
       else
         HUD.project_types.keys
       end
       begin
-        params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
+        project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
           @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
         end
-        @project_types += params[:project_type_ids]&.select(&:present?)&.map(&:to_i) if params[:project_type_ids].present?
+        @project_types += project_params[:project_type_ids]&.select(&:present?)&.map(&:to_i) if project_params[:project_type_ids].present?
       rescue StandardError
         @project_types = HUD.project_types.keys
       end
       @project_types
     end
 
+    def project_params
+      params.permit(
+        :limited,
+        data_source_ids: [],
+        organization_ids: [],
+        project_types: [],
+        project_type_ids: [],
+        selected_project_ids: [],
+      )
+    end
+
     def project_scope
-      params.permit!
-      @project_scope = if params[:limited]
+      @project_scope = if project_params[:limited]
         project_source.viewable_by(current_user)
       else
         project_source
