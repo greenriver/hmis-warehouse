@@ -154,26 +154,6 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
-      "fingerprint": "281c90205ca34c545f50b38c15fe81d00c2e18eb6d8771b2699292f725ad381a",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/controllers/warehouse_reports/active_veterans_controller.rb",
-      "line": 17,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "WarehouseReports::ActiveVeteransController",
-        "method": "index"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
       "fingerprint": "291d350c9f8bffef25800498c117c219910598e47cda4dc64f2db801c77a7a3a",
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
@@ -1055,36 +1035,6 @@
       "note": ""
     },
     {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "cd705e6401be4d2693024137936b0920206ead64ba651ea347bac93789c989be",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/active_veterans/_sort.haml",
-      "line": 16,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/active_veterans/show",
-          "line": 10,
-          "file": "app/views/warehouse_reports/active_veterans/show.haml",
-          "rendered": {
-            "name": "warehouse_reports/active_veterans/_sort",
-            "file": "app/views/warehouse_reports/active_veterans/_sort.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/active_veterans/_sort"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Redirect",
       "warning_code": 18,
       "fingerprint": "cf9fa747c96c496625affc43ebc9ecdb01c696ca61f911e2de7da2f6188b251d",
@@ -1395,6 +1345,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-01-29 13:26:40 -0500",
+  "updated": "2020-01-29 13:38:00 -0500",
   "brakeman_version": "4.7.2"
 }
