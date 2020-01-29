@@ -16,7 +16,6 @@ module Api
     before_action :set_project_types
 
     def index
-      params.permit!
       respond_to do |format|
         format.html do
           @data = {}
