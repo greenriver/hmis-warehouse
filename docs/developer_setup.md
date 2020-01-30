@@ -27,20 +27,7 @@ docker-compose run --rm shell bin/setup
 docker-compose run --rm web
 ```
 
-## Anonymized Data
-1. In your production environment, export a batch of anonymized data
-```
-bin/rake grda_warehouse:dump_hud_csvs_for_dev[2500]
-```
+## Accessing the Site
 
-2. In your development environment, place the exported files in folders in `var/hmis/<data_source_name>`
+If everything worked as designed your site should now be available at [https://hmis-warehouse.dev.test](https://hmis-warehouse.dev.test).  Any mail that the site sends will be delivered to [MailHog](https://github.com/mailhog/MailHog) which is availble at [https://mail.hmis-warehouse.dev.test](https://mail.hmis-warehouse.dev.test)
 
-3. Import the batch
-```
-bin/rake grda_warehouse:import_dev_hud_csvs
-```
-
-4. Run through the daily imports, you may want to do this manually, though it can be done in a single pass with
-```
-bin/rake grda_warehouse:daily
-```
