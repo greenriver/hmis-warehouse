@@ -57,7 +57,7 @@ services:
       - 3000
     environment:
       <<: *env
-      VIRTUAL_HOST: hmis-warehouse.dev.test
+      VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 3000
     depends_on:
       - db
@@ -85,7 +85,7 @@ services:
     image: mailhog/mailhog:latest
     restart: always
     environment:
-      VIRTUAL_HOST: mail.hmis-warehouse.dev.test
+      VIRTUAL_HOST: mail.${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 8025
     expose:
       - 8025

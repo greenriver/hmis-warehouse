@@ -15,10 +15,7 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 
 3. Adjust the Docker Resources to allow up to 8GB of RAM.  See Docker -> Preferences -> Resources
 
-4. To make accessing the site easier, we use [nginx-proxy](https://github.com/jwilder/nginx-proxy). Setup of nginx-proxy is outside of the scope of this document. You don't need to use it, but to get the container to work, you'll need to add the network to docker by running:
-```
-docker network create nginx-proxy
-```
+4. If you have not previously setup [nginx-proxy](https://github.com/jwilder/nginx-proxy) to streamline local development. You should [follow the instructions here](developer-networking.md) before continuing.
 
 5. Run the setup script
 ```
