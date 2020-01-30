@@ -19,11 +19,10 @@ If you don't have [Homebrew](http://brew.sh/) installed yet, follow the [instruc
 ```
 brew install dnsmasq
 mkdir -pv $(brew --prefix)/etc
-sudo cp -v $(brew --prefix dnsmasq)/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons
-sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist
 sudo mkdir -pv /etc/resolver
 echo "address=/.test/127.0.0.1" | sudo tee -a $(brew --prefix)/etc/dnsmasq.conf
 echo "nameserver 127.0.0.1" | sudo tee /etc/resolver/dev.test
+sudo brew services start dnsmasq
 ```
 
 It can be very helpful to add the following lines to your `/etc/hosts` file to allow non-docker development to work in conjunction with dockerized workflows.
@@ -56,7 +55,7 @@ EOF
 openssl req \
   -new \
   -newkey rsa:2048 \
-  -sha1 \
+  -sha256 \
   -days 3650 \
   -nodes \
   -x509 \

@@ -2,7 +2,7 @@
 The warehouse application consists of three main parts:
 1. The Rails Application Code
 2. The Rails Application Database
-3. THe Warehouse Database
+3. The Warehouse Database
 
 ## Setup Your Development Environment
 The warehouse is configured for development using Docker.  There are a variety of choices to make when setting up the warehouse, this document will lead you down the most simple path.
