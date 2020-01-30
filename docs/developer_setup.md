@@ -25,13 +25,10 @@ docker network create nginx-proxy
 docker-compose run --rm shell bin/setup
 ```
 
-6. Run the setup file
+6. Run the rails server
 ```
-cd hmis-warehouse
-bin/setup
+docker-compose run --rm web
 ```
-
-
 
 ## Anonymized Data
 1. In your production environment, export a batch of anonymized data
