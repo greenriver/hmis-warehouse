@@ -155,7 +155,13 @@ module ReportGenerators::SystemPerformance::Fy2019
       # This should encompass all project types (same as 5.2)
       all_project_types = ES + SH + TH + PH
       @clients.each do |id, client|
-        look_back_until =  LOOKBACK_STOP_DATE.to_date >= (client[:start_date].to_date - 730.days) ? LOOKBACK_STOP_DATE : (client[:start_date].to_date - 730.days).strftime('%Y-%m-%d')
+        next if client[:start_date].blank?
+
+        look_back_until = if LOOKBACK_STOP_DATE.to_date >= (client[:start_date].to_date - 730.days)
+          LOOKBACK_STOP_DATE.to_date
+        else
+          (client[:start_date].to_date - 730.days).strftime('%Y-%m-%d')
+        end
         earlier_date = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           where(client_id: id).
           hud_project_type(all_project_types).
