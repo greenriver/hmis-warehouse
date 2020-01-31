@@ -11,7 +11,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @clients_with_issues = Set.new
-        @all_clients = fetch_all_clients()
+
         add_entry_time_answers()
 
         update_report_progress(percent: 50)
@@ -47,17 +47,18 @@ module ReportGenerators::DataQuality::Fy2017
         },
       }
 
-      @all_clients.each do |id, enrollments|
-        enrollment = enrollments.last
-        date_diff = (enrollment[:first_date_in_program].to_date - enrollment[:entry_created_at].to_date).abs
-        buckets.each do |k,bucket|
-          if bucket[:range].call(date_diff)
-            bucket[:clients][id] = enrollment
-            next
+      all_client_ids.each_slice(250) do |client_ids|
+        fetch_client_batch(client_ids).each do |id, enrollments|
+          enrollment = enrollments.last
+          date_diff = (enrollment[:first_date_in_program].to_date - enrollment[:entry_created_at].to_date).abs
+          buckets.each do |k,bucket|
+            if bucket[:range].call(date_diff)
+              bucket[:clients][id] = enrollment
+              next
+            end
           end
         end
       end
-
       buckets.each do |k,bucket|
         clients = bucket[:clients]
         @answers[k][:value] = clients.size
@@ -101,9 +102,12 @@ module ReportGenerators::DataQuality::Fy2017
         },
       }
 
-      leavers.keys.each do |id|
-        next unless @all_clients[id].present?
-        enrollment = @all_clients[id].last
+      client_ids = leavers.keys
+      leaver_enrollments = fetch_client_batch(client_ids)
+      client_ids.each do |id|
+        next unless leaver_enrollments[id].present?
+
+        enrollment = leaver_enrollments[id].last
         date_diff = (enrollment[:last_date_in_program].to_date - enrollment[:exit_created_at].to_date).abs
         buckets.each do |k,bucket|
           if bucket[:range].call(date_diff)
@@ -132,17 +136,17 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def fetch_all_clients
-      columns = {
-        client_id: :client_id,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_name: :project_name,
-        entry_created_at: e_t[:DateCreated].to_sql,
-        exit_created_at: ex_t[:DateCreated].to_sql,
-      }
+    def all_client_ids
+      @all_client_ids ||= active_client_scope.
+        joins(:enrollment).
+        includes(enrollment: :exit).
+        order(date: :asc).
+        pluck(:client_id)
+    end
 
+    def fetch_client_batch(client_ids)
       active_client_scope.
+        where(client_id: client_ids).
         joins(:enrollment).
         includes(enrollment: :exit).
         order(date: :asc).
@@ -152,6 +156,17 @@ module ReportGenerators::DataQuality::Fy2017
         end.group_by do |row|
           row[:client_id]
         end
+    end
+
+    def columns
+      @columns ||= {
+        client_id: :client_id,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_name: :project_name,
+        entry_created_at: e_t[:DateCreated].to_sql,
+        exit_created_at: ex_t[:DateCreated].to_sql,
+      }
     end
 
     def setup_questions
