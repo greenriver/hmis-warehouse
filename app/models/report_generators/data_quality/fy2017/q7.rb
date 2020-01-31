@@ -63,8 +63,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q7_c2][:value] = inactive.size
       @support[:q7_c2][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit'],
-        data: inactive.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: inactive.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -100,8 +99,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q7_c3][:value] = inactive.size
       @support[:q7_c3][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit'],
-        data: inactive.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: inactive.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
