@@ -288,26 +288,27 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def client_ids_for_project_types(project_types)
+    def client_batch_scope(project_types)
       active_client_scope.
+        distinct.
         hud_project_type(project_types).
         includes(:enrollment).
         joins(:project).
-        distinct.
+        distinct
+    end
+
+    def client_ids_for_project_types(project_types)
+      client_batch_scope(project_types).
         pluck(:client_id)
     end
 
     def fetch_clients(project_types, client_ids)
-      active_client_scope.
+      client_batch_scope(project_types).
         where(client_id: client_ids).
-        hud_project_type(project_types).
-        includes(:enrollment).
-        joins(:project).
-        order(date: :asc).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
-        end.map do |enrollment|
+          enrollment = Hash[columns.keys.zip(row)]
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment
         end.group_by do |row|

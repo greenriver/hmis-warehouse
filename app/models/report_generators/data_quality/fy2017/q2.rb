@@ -11,8 +11,8 @@ module ReportGenerators::DataQuality::Fy2017
       if start_report(Reports::DataQuality::Fy2017::Q2.first)
         @answers = setup_questions()
         @support = @answers.deep_dup
-        @all_clients = fetch_all_clients()
-        if @all_clients.any?
+        @all_client_ids = fetch_all_client_ids()
+        if @all_client_ids.any?
           update_report_progress(percent: 75)
           @clients_with_issues = Set.new
           add_name_answers()
@@ -32,46 +32,57 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_name_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:NameDataQuality].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:NameDataQuality].to_i)
+          missing_client = (
+            enrollment[:FirstName].blank? ||
+            enrollment[:LastName].blank? ||
+            enrollment[:NameDataQuality].to_i == 99
+          )
+          data_quality_client = enrollment[:NameDataQuality].to_i == 2
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          elsif data_quality_client
+            quality_issues[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+      counted += quality_issues.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_b2][:value] = poor_quality.size
       @support[:q2_b2][:support] = add_support(
         headers: ['Client ID', 'Name Data Quality'],
-        data: poor_quality.map do |id, enrollments|
-          [id, enrollments.last[:NameDataQuality]]
+        data: poor_quality.map do |id, enrollment|
+          [id, enrollment[:NameDataQuality]]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        (enrollment[:FirstName].blank? ||
-          enrollment[:LastName].blank? ||
-          enrollment[:NameDataQuality].to_i == 99
-        ) && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c2][:value] = missing.size
       @support[:q2_c2][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      quality_issues = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        enrollment[:NameDataQuality].to_i == 2 && ! counted.include?(id)
-      end
-      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_d2][:value] = quality_issues.size
       @support[:q2_d2][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
@@ -81,45 +92,55 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_ssn_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:SSNDataQuality].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:SSNDataQuality].to_i)
+          missing_client = enrollment[:SSN].blank? || enrollment[:SSNDataQuality].to_i == 99
+          collection_issues = enrollment[:SSNDataQuality].to_i == 2
+          valid = ::HUD.valid_social?(enrollment[:SSN])
+          data_quality_client = (! valid || collection_issues)
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          elsif data_quality_client
+            quality_issues[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+      counted += quality_issues.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_b3][:value] = poor_quality.size
       @support[:q2_b3][:support] = add_support(
         headers: ['Client ID', 'SSN Data Quality'],
-        data: poor_quality.map do |id, enrollments|
-          [id, enrollments.last[:SSNDataQuality]]
+        data: poor_quality.map do |id, enrollment|
+          [id, enrollment[:SSNDataQuality]]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        enrollment[:SSN].blank? || enrollment[:SSNDataQuality].to_i == 99 && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c3][:value] = missing.size
       @support[:q2_c3][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      quality_issues = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        collection_issues = enrollment[:SSNDataQuality].to_i == 2
-        valid = ::HUD.valid_social?(enrollment[:SSN])
-        (! valid || collection_issues) && ! counted.include?(id)
-      end
-      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_d3][:value] = quality_issues.size
       @support[:q2_d3][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name', 'SSN'],
-        data: quality_issues.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: quality_issues.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:SSN]]
         end
       )
@@ -129,47 +150,57 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_dob_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:DOBDataQuality].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:DOBDataQuality].to_i)
+          missing_client = enrollment[:DOB].blank? || enrollment[:DOBDataQuality].to_i == 99
+          approximate = enrollment[:DOBDataQuality].to_i == 2
+          too_old = enrollment[:DOB].present? && enrollment[:DOB] < '1915-01-01'.to_date
+          too_new = enrollment[:DOB].present? && enrollment[:DOB] > enrollment[:DateCreated]
+          too_late = enrollment[:DOB].present? && enrollment[:head_of_household] && enrollment[:DOB] >= enrollment[:first_date_in_program]
+          data_quality_client = approximate || too_old || too_new || too_late
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          elsif data_quality_client
+            quality_issues[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+      counted += quality_issues.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_b4][:value] = poor_quality.size
       @support[:q2_b4][:support] = add_support(
         headers: ['Client ID', 'DOB Data Quality'],
-        data: poor_quality.map do |id, enrollments|
-          [id, enrollments.last[:DOBDataQuality]]
+        data: poor_quality.map do |id, enrollment|
+          [id, enrollment[:DOBDataQuality]]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        enrollment[:DOB].blank? || enrollment[:DOBDataQuality].to_i == 99 && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c4][:value] = missing.size
       @support[:q2_c4][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName]]
         end
       )
-      quality_issues = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        approximate = enrollment[:DOBDataQuality].to_i == 2
-        too_old = enrollment[:DOB].present? && enrollment[:DOB] < '1915-01-01'.to_date
-        too_new = enrollment[:DOB].present? && enrollment[:DOB] > enrollment[:DateCreated]
-        too_late = enrollment[:DOB].present? && enrollment[:head_of_household] && enrollment[:DOB] >= enrollment[:first_date_in_program]
-        approximate || too_old || too_new || too_late
-      end
-      @clients_with_issues += quality_issues.keys
+
       @answers[:q2_d4][:value] = quality_issues.size
       @support[:q2_d4][:support] = add_support(
         headers: ['Client ID', 'First Name', 'Last Name', 'DOB'],
-        data: quality_issues.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: quality_issues.map do |id, enrollment|
           [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:DOB]]
         end
       )
@@ -179,34 +210,43 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_race_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:RaceNone].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:RaceNone].to_i)
+          missing_client = enrollment[:RaceNone].to_i == 99
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+
       @answers[:q2_b5][:value] = poor_quality.size
       @support[:q2_b5][:support] = add_support(
         headers: ['Client ID', 'RaceNone'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             HUD.race_none(enrollments.last[:RaceNone]),
           ]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        enrollment[:RaceNone].to_i == 99 && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c5][:value] = missing.size
       @support[:q2_c5][:support] = add_support(
         headers: ['Client ID', 'RaceNone'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [
             id,
             HUD.race_none(enrollment[:RaceNone]),
@@ -219,34 +259,43 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_ethnicity_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:Ethnicity].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:Ethnicity].to_i)
+          missing_client = (enrollment[:Ethnicity].blank? || enrollment[:Ethnicity].to_i == 99)
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+
       @answers[:q2_b6][:value] = poor_quality.size
       @support[:q2_b6][:support] = add_support(
         headers: ['Client ID', 'Ethnicity'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             HUD.ethnicity(enrollment[:Ethnicity]),
           ]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        (enrollment[:Ethnicity].blank? || enrollment[:Ethnicity].to_i == 99) && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c6][:value] = missing.size
       @support[:q2_c6][:support] = add_support(
         headers: ['Client ID', 'Ethnicity'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [
             id,
             HUD.ethnicity(enrollment[:Ethnicity]),
@@ -259,34 +308,43 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_gender_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        [8,9].include?(enrollment[:Gender].to_i)
+      poor_quality = {}
+      missing = {}
+      quality_issues = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          poor_quality_client = [8,9].include?(enrollment[:Gender].to_i)
+          missing_client = (enrollment[:Gender].blank? || enrollment[:Gender].to_i == 99)
+
+          if poor_quality_client
+            poor_quality[client_id] = enrollment
+          elsif missing_client
+            missing[client_id] = enrollment
+          end
+        end
       end
       counted += poor_quality.keys
+      counted += missing.keys
+
       @clients_with_issues += poor_quality.keys
+      @clients_with_issues += missing.keys
+
       @answers[:q2_b7][:value] = poor_quality.size
       @support[:q2_b7][:support] = add_support(
         headers: ['Client ID', 'Gender'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             HUD.gender(enrollment[:Gender])
           ]
         end
       )
-      missing = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        (enrollment[:Gender].blank? || enrollment[:Gender].to_i == 99) && ! counted.include?(id)
-      end
-      counted += missing.keys
-      @clients_with_issues += missing.keys
+
       @answers[:q2_c7][:value] = missing.size
       @support[:q2_c7][:support] = add_support(
         headers: ['Client ID', 'Gender'],
-        data: missing.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: missing.map do |id, enrollment|
           [
             id,
             HUD.gender(enrollment[:Gender])
@@ -302,38 +360,49 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q2_f8][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
     end
 
-    def fetch_all_clients
-      columns = {
-        client_id: she_t[:client_id].to_sql,
-        age: she_t[:age].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
-        VeteranStatus: c_t[:VeteranStatus].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        data_source_id: she_t[:data_source_id].to_sql,
-        NameDataQuality: c_t[:NameDataQuality].to_sql,
-        FirstName: c_t[:FirstName].to_sql,
-        LastName: c_t[:LastName].to_sql,
-        SSN: c_t[:SSN].to_sql,
-        SSNDataQuality: c_t[:SSNDataQuality].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        DOBDataQuality: c_t[:DOBDataQuality].to_sql,
-        DateCreated: e_t[:DateCreated].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        Ethnicity: c_t[:Ethnicity].to_sql,
-        Gender: c_t[:Gender].to_sql,
-        RaceNone: c_t[:RaceNone].to_sql,
-        head_of_household: she_t[:head_of_household].to_sql,
+    def columns
+      @columns ||= {
+        client_id: she_t[:client_id],
+        age: she_t[:age],
+        project_type: she_t[:computed_project_type],
+        VeteranStatus: c_t[:VeteranStatus],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        NameDataQuality: c_t[:NameDataQuality],
+        FirstName: c_t[:FirstName],
+        LastName: c_t[:LastName],
+        SSN: c_t[:SSN],
+        SSNDataQuality: c_t[:SSNDataQuality],
+        DOB: c_t[:DOB],
+        DOBDataQuality: c_t[:DOBDataQuality],
+        DateCreated: e_t[:DateCreated],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        Ethnicity: c_t[:Ethnicity],
+        Gender: c_t[:Gender],
+        RaceNone: c_t[:RaceNone],
+        head_of_household: she_t[:head_of_household],
       }
+    end
 
+    def fetch_all_client_ids
+      client_batch_scope.
+        distinct.
+        pluck(:client_id)
+    end
+
+    def client_batch_scope
       active_client_scope.
-        joins(:project, :enrollment).
-        order(date: :asc).
+        joins(:project, :enrollment)
+    end
+
+    def client_batch(client_ids)
+      client_batch_scope.
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
-        end.map do |enrollment|
+          enrollment = Hash[columns.keys.zip(row)]
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment
         end.group_by do |row|

@@ -12,11 +12,11 @@ module ReportGenerators::DataQuality::Fy2017
       if start_report(Reports::DataQuality::Fy2017::Q1.first)
         @answers = setup_questions()
         @support = @answers.deep_dup
-        @all_clients = fetch_all_clients()
-        if @all_clients.any?
+        @all_client_ids = fetch_all_client_ids()
+        if @all_client_ids.any?
           add_total_clients_served()
           update_report_progress(percent: 10)
-          setup_age_categories()
+          setup_age_categories(@all_client_ids)
           update_report_progress(percent: 25)
           add_age_answers()
           update_report_progress(percent: 30)
@@ -40,35 +40,24 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def fetch_all_clients
-      columns = {
-        she_t[:client_id].to_sql => :client_id,
-        she_t[:age].to_sql => :age,
-        c_t[:DOB].to_sql => :DOB,
-        she_t[:computed_project_type].to_sql => :project_type,
-        c_t[:VeteranStatus].to_sql => :VeteranStatus,
-        she_t[:enrollment_group_id].to_sql =>  :enrollment_group_id,
-        she_t[:project_id].to_sql => :project_id,
-        she_t[:project_name].to_sql => :project_name,
-        she_t[:data_source_id].to_sql => :data_source_id,
-        e_t[:RelationshipToHoH].to_sql => :RelationshipToHoH,
-        e_t[:DisablingCondition].to_sql => :DisablingCondition,
-        e_t[:LivingSituation].to_sql => :LivingSituation,
-        e_t[:PreviousStreetESSH].to_sql => :PreviousStreetESSH,
-        e_t[:DateToStreetESSH].to_sql => :DateToStreetESSH,
-        she_t[:first_date_in_program].to_sql => :first_date_in_program,
-        she_t[:last_date_in_program].to_sql => :last_date_in_program,
-        e_t[:TimesHomelessPastThreeYears].to_sql => :TimesHomelessPastThreeYears,
-        e_t[:MonthsHomelessPastThreeYears].to_sql => :MonthsHomelessPastThreeYears,
-      }
+    def fetch_all_client_ids
+      client_batch_scope.
+        pluck(:client_id)
+    end
 
+    def client_batch_scope
       active_client_scope.
         joins(:project, :enrollment).
-        order(date: :asc).
+        distinct
+    end
+
+    def client_batch(client_ids)
+      client_batch_scope.
+        where(client_id: client_ids).
+        order(first_date_in_program: :asc).
         pluck(*columns.keys).
         map do |row|
-          Hash[columns.values.zip(row)]
-        end.map do |enrollment|
+          enrollment = Hash[columns.values.zip(row)]
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment
         end.group_by do |row|
@@ -76,11 +65,40 @@ module ReportGenerators::DataQuality::Fy2017
         end
     end
 
+    def columns
+      @columns ||= {
+        she_t[:client_id] => :client_id,
+        she_t[:age] => :age,
+        c_t[:DOB] => :DOB,
+        she_t[:computed_project_type] => :project_type,
+        c_t[:VeteranStatus] => :VeteranStatus,
+        she_t[:enrollment_group_id] =>  :enrollment_group_id,
+        she_t[:project_id] => :project_id,
+        she_t[:project_name] => :project_name,
+        she_t[:data_source_id] => :data_source_id,
+        e_t[:RelationshipToHoH] => :RelationshipToHoH,
+        e_t[:DisablingCondition] => :DisablingCondition,
+        e_t[:LivingSituation] => :LivingSituation,
+        e_t[:PreviousStreetESSH] => :PreviousStreetESSH,
+        e_t[:DateToStreetESSH] => :DateToStreetESSH,
+        she_t[:first_date_in_program] => :first_date_in_program,
+        she_t[:last_date_in_program] => :last_date_in_program,
+        e_t[:TimesHomelessPastThreeYears] => :TimesHomelessPastThreeYears,
+        e_t[:MonthsHomelessPastThreeYears] => :MonthsHomelessPastThreeYears,
+      }
+    end
+
     def add_total_clients_served
-      @answers[:q1_b1][:value] = @all_clients.size
+      @answers[:q1_b1][:value] = @all_client_ids.size
+      support = []
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          support << [client_id, enrollments.count]
+        end
+      end
       @support[:q1_b1][:support] = add_support(
         headers: ['Client ID', 'Enrollments'],
-        data: @all_clients.map{|id, enrollments| [id, enrollments.size]},
+        data: support,
       )
     end
 
@@ -175,17 +193,21 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_veteran_answer
-      veterans = @all_clients.select do |_, enrollments|
-        enrollments.last[:VeteranStatus].to_i == 1
+      veterans = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          veterans[client_id] = enrollment if enrollment[:VeteranStatus].to_i == 1
+        end
       end
+
       @answers[:q1_b10][:value] = veterans.size
       headers = ['Client ID', 'Veteran Status', 'Age']
       @support[:q1_b10][:support] = add_support(
         headers: headers,
-        data: veterans.map do |_, enrollments|
-          enrollment = enrollments.last
+        data: veterans.map do |client_id, enrollment|
           [
-            enrollment[:client_id],
+            client_id,
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age],
           ]
@@ -198,15 +220,17 @@ module ReportGenerators::DataQuality::Fy2017
       living_situation_qualifies = Hash.new
       episodes_and_months_qualifies = Hash.new
 
-      @all_clients.each do |id, enrollments|
-        enrollment = enrollments.last
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          disabled_clients[client_id] = enrollment if client_disabled?(enrollment: enrollment)
 
-        disabled_clients[id] = enrollment if client_disabled?(enrollment: enrollment)
+          living_situation_qualifies[client_id] = enrollment if living_situation_is_homeless(enrollment: enrollment)
 
-        living_situation_qualifies[id] = enrollment if living_situation_is_homeless(enrollment: enrollment)
-
-        episodes_and_months_qualifies[id] = enrollment if four_or_more_episodes_and_12_months_or_365_days?(enrollment: enrollment)
+          episodes_and_months_qualifies[client_id] = enrollment if four_or_more_episodes_and_12_months_or_365_days?(enrollment: enrollment)
+        end
       end
+
       chronic_ids = disabled_clients.keys & living_situation_qualifies.keys & episodes_and_months_qualifies.keys
       chronic = disabled_clients.select{|k,_| chronic_ids.include?(k)}
       @answers[:q1_b11][:value] = chronic.size

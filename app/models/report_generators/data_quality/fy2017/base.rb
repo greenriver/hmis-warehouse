@@ -70,19 +70,19 @@ module ReportGenerators::DataQuality::Fy2017
         # 2. The client must be an adult to be included.
 
         columns = {
-          she_t[:client_id].to_sql => :client_id,
-          she_t[:first_date_in_program].to_sql => :first_date_in_program,
-          she_t[:last_date_in_program].to_sql => :last_date_in_program,
-          she_t[:project_id].to_sql => :project_id,
-          she_t[:age].to_sql => :age,
-          c_t[:DOB].to_sql => :DOB,
-          she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
-          she_t[:data_source_id].to_sql => :data_source_id,
-          she_t[:project_tracking_method].to_sql => :project_tracking_method,
-          she_t[:project_name].to_sql => :project_name,
-          e_t[:RelationshipToHoH].to_sql => :RelationshipToHoH,
-          she_t[:household_id].to_sql => :household_id,
-          she_t[:destination].to_sql => :destination,
+          she_t[:client_id] => :client_id,
+          she_t[:first_date_in_program] => :first_date_in_program,
+          she_t[:last_date_in_program] => :last_date_in_program,
+          she_t[:project_id] => :project_id,
+          she_t[:age] => :age,
+          c_t[:DOB] => :DOB,
+          she_t[:enrollment_group_id] => :enrollment_group_id,
+          she_t[:data_source_id] => :data_source_id,
+          she_t[:project_tracking_method] => :project_tracking_method,
+          she_t[:project_name] => :project_name,
+          e_t[:RelationshipToHoH] => :RelationshipToHoH,
+          she_t[:household_id] => :household_id,
+          she_t[:destination] => :destination,
 
         }
 
@@ -126,18 +126,18 @@ module ReportGenerators::DataQuality::Fy2017
         # 3. The client must be an adult to be included in this measure.
 
         columns = {
-          she_t[:client_id].to_sql => :client_id,
-          she_t[:first_date_in_program].to_sql => :first_date_in_program,
-          she_t[:last_date_in_program].to_sql => :last_date_in_program,
-          she_t[:project_id].to_sql => :project_id,
-          she_t[:age].to_sql => :age,
-          c_t[:DOB].to_sql => :DOB,
-          she_t[:enrollment_group_id].to_sql => :enrollment_group_id,
-          she_t[:data_source_id].to_sql => :data_source_id,
-          she_t[:project_tracking_method].to_sql => :project_tracking_method,
-          she_t[:project_name].to_sql => :project_name,
-          e_t[:RelationshipToHoH].to_sql => :RelationshipToHoH,
-          she_t[:household_id].to_sql => :household_id,
+          she_t[:client_id] => :client_id,
+          she_t[:first_date_in_program] => :first_date_in_program,
+          she_t[:last_date_in_program] => :last_date_in_program,
+          she_t[:project_id] => :project_id,
+          she_t[:age] => :age,
+          c_t[:DOB] => :DOB,
+          she_t[:enrollment_group_id] => :enrollment_group_id,
+          she_t[:data_source_id] => :data_source_id,
+          she_t[:project_tracking_method] => :project_tracking_method,
+          she_t[:project_name] => :project_name,
+          e_t[:RelationshipToHoH] => :RelationshipToHoH,
+          she_t[:household_id] => :household_id,
         }
 
         stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -240,22 +240,25 @@ module ReportGenerators::DataQuality::Fy2017
       )
     end
     def all_client_count
-      count ||= @all_clients.size
+      count ||= @all_client_ids.size
     end
 
-    def setup_age_categories
-      clients_with_ages = @all_clients.map do |id, enrollments|
-        enrollment = enrollments.last
-        [id, enrollment[:age]]
-      end.to_h
-      @adults = clients_with_ages.select do |_, age|
-        adult?(age)
-      end
-      @children = clients_with_ages.select do |_, age|
-        child?(age)
-      end
-      @unknown = clients_with_ages.select do |_, age|
-        age.blank?
+    def setup_age_categories(all_client_ids)
+      @adults = {}
+      @children = {}
+      @unknown = {}
+      all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          age = enrollment[:age]
+          if age.blank?
+            @unknown [client_id] = age
+          elsif adult?(age)
+            @adults[client_id] = age
+          elsif child?(age)
+            @children[client_id] = age
+          end
+        end
       end
     end
 
@@ -279,37 +282,81 @@ module ReportGenerators::DataQuality::Fy2017
     #     household: [enrollments]
     #   }
     # }]
+
+    def household_columns
+      @household_columns ||= {
+        client_id: she_t[:client_id],
+        DOB: c_t[:DOB],
+
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        household_id: she_t[:household_id],
+        RelationshipToHoH: e_t[:RelationshipToHoH],
+      }
+    end
+
+    # Each client only gets one household, it is the household with their most
+    # recent enrollment within the range
     def households
       @households ||= begin
-        counter = 0
         hh = {}
-        flat_clients = @all_clients.values.flatten(1).group_by do |enrollment|
-          [
-            enrollment[:data_source_id],
-            enrollment[:project_id],
-            enrollment[:household_id],
-            enrollment[:first_date_in_program],
-          ]
-        end
-        @all_clients.each do |id, enrollments|
-          enrollment = enrollments.last
-          key = [
-            enrollment[:data_source_id],
-            enrollment[:project_id],
-            enrollment[:household_id],
-            enrollment[:first_date_in_program],
-          ]
-          household = flat_clients[key]
 
-          counter += 1
-          if counter % 500 == 0
-            GC.start
-            log_with_memory("Building households #{counter} of #{@all_clients.size}")
+        # Individuals (no household id avaialble)
+        client_batch_scope.
+          where(household_id: [nil, '']).
+          order(first_date_in_program: :asc).
+          pluck(*household_columns.values).
+          each do |row|
+            enrollment = Hash[household_columns.keys.zip(row)]
+            enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+            key = [
+              enrollment[:data_source_id],
+              enrollment[:project_id],
+              enrollment[:household_id],
+              enrollment[:first_date_in_program],
+            ]
+            hh[enrollment[:client_id]] = {
+              key: key,
+              household: [enrollment],
+              first_date_in_program: enrollment[:first_date_in_program],
+            }
           end
-          hh[id] = {
-            key: key,
-            household: household,
-          }
+
+        # Households with potentially more than one client
+        with_hhid_ids = client_batch_scope.
+          where.not(household_id: [nil, '']).
+          distinct.
+          pluck(:household_id)
+
+        with_hhid_ids.each_slice(250) do |batch|
+          client_batch_scope.
+            where(household_id: batch).
+            order(first_date_in_program: :asc).
+            pluck(*household_columns.values).
+            map do |row|
+              enrollment = Hash[household_columns.keys.zip(row)]
+              enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
+              enrollment
+            end.group_by do |enrollment|
+              [
+                enrollment[:data_source_id],
+                enrollment[:project_id],
+                enrollment[:household_id],
+                enrollment[:first_date_in_program],
+              ]
+            end.each do |key, enrollments|
+              enrollments.each do |enrollment|
+                existing_hh = hh[enrollment[:client_id]]
+                next if existing_hh.present? && existing_hh[:first_date_in_program] > enrollment[:first_date_in_program]
+
+                hh[enrollment[:client_id]] = {
+                  key: key,
+                  household: enrollments,
+                  first_date_in_program: enrollment[:first_date_in_program],
+                }
+              end
+            end
         end
         hh
       end
@@ -339,7 +386,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def adult_leavers
-      @adult_leavers ||= @leavers.select do |_, enrollment|
+      @adult_leavers ||= leavers.select do |_, enrollment|
         adult?(enrollment[:age])
       end
     end
@@ -409,7 +456,7 @@ module ReportGenerators::DataQuality::Fy2017
         yes_responses = [1,2,3]
 
         disabled = {}
-        @all_clients.keys.each_slice(5000) do |ids|
+        @all_client_ids.each_slice(5000) do |ids|
           ors = ids.map do |id|
             c_t[:id].eq(id).
               and(d_t[:DisabilityType].in(disabilities)).

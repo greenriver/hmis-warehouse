@@ -136,20 +136,21 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def all_client_ids
-      @all_client_ids ||= active_client_scope.
+    def client_batch_scope
+      active_client_scope.
         joins(:enrollment).
         includes(enrollment: :exit).
-        distinct.
-        pluck(:client_id)
+        distinct
+    end
+
+    def all_client_ids
+      @all_client_ids ||= client_batch_scope.pluck(:client_id)
     end
 
     def fetch_client_batch(client_ids)
-      active_client_scope.
+     client_batch_scope.
         where(client_id: client_ids).
-        joins(:enrollment).
-        includes(enrollment: :exit).
-        order(date: :asc).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
