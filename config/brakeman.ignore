@@ -68,7 +68,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
-      "line": 17,
+      "line": 29,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -128,7 +128,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
-      "line": 29,
+      "line": 17,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -320,66 +320,6 @@
         "method": "GrdaWarehouse::Hud::Client.exists_with_inner_clients"
       },
       "user_input": "inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "40dc5c43294cb19e91b16538ce93b06665af916816260a0d5a65686ab44f42c0",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/chronic/_sort.haml",
-      "line": 15,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/chronic/show",
-          "line": 25,
-          "file": "app/views/warehouse_reports/chronic/show.haml",
-          "rendered": {
-            "name": "warehouse_reports/chronic/_sort",
-            "file": "app/views/warehouse_reports/chronic/_sort.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/chronic/_sort"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "40dc5c43294cb19e91b16538ce93b06665af916816260a0d5a65686ab44f42c0",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/chronic/_sort.haml",
-      "line": 18,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/chronic/show",
-          "line": 25,
-          "file": "app/views/warehouse_reports/chronic/show.haml",
-          "rendered": {
-            "name": "warehouse_reports/chronic/_sort",
-            "file": "app/views/warehouse_reports/chronic/_sort.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/chronic/_sort"
-      },
-      "user_input": null,
       "confidence": "Medium",
       "note": ""
     },
@@ -691,7 +631,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 73,
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -751,7 +691,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 79,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -890,66 +830,6 @@
         "type": "method",
         "class": "Cohorts::ClientsController",
         "method": "bulk_destroy"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "b8bd7ea7f14ad5db2207551cfe0dac538ef66669a14fa745fd6e24b3a51d8921",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/hud_chronics/_sort.haml",
-      "line": 18,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/hud_chronics/show",
-          "line": 23,
-          "file": "app/views/warehouse_reports/hud_chronics/show.haml",
-          "rendered": {
-            "name": "warehouse_reports/hud_chronics/_sort",
-            "file": "app/views/warehouse_reports/hud_chronics/_sort.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/hud_chronics/_sort"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "b8bd7ea7f14ad5db2207551cfe0dac538ef66669a14fa745fd6e24b3a51d8921",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/warehouse_reports/hud_chronics/_sort.haml",
-      "line": 15,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "template",
-          "name": "warehouse_reports/hud_chronics/show",
-          "line": 23,
-          "file": "app/views/warehouse_reports/hud_chronics/show.haml",
-          "rendered": {
-            "name": "warehouse_reports/hud_chronics/_sort",
-            "file": "app/views/warehouse_reports/hud_chronics/_sort.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/hud_chronics/_sort"
       },
       "user_input": null,
       "confidence": "Medium",
@@ -1325,6 +1205,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-01-29 16:33:27 -0500",
+  "updated": "2020-01-30 14:49:40 -0500",
   "brakeman_version": "4.7.2"
 }
