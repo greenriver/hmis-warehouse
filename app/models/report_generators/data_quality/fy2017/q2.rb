@@ -13,14 +13,20 @@ module ReportGenerators::DataQuality::Fy2017
         @support = @answers.deep_dup
         @all_client_ids = fetch_all_client_ids()
         if @all_client_ids.any?
-          update_report_progress(percent: 75)
+          update_report_progress(percent: 15)
           @clients_with_issues = Set.new
           add_name_answers()
+          update_report_progress(percent: 25)
           add_ssn_answers()
+          update_report_progress(percent: 45)
           add_dob_answers()
+          update_report_progress(percent: 55)
           add_race_answers()
+          update_report_progress(percent: 65)
           add_ethnicity_answers()
+          update_report_progress(percent: 75)
           add_gender_answers()
+          update_report_progress(percent: 85)
           add_summary_info()
         end
 
@@ -399,6 +405,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def client_batch(client_ids)
       client_batch_scope.
+        where(client_id: client_ids).
         order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
