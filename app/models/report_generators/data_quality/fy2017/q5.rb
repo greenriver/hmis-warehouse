@@ -46,12 +46,12 @@ module ReportGenerators::DataQuality::Fy2017
       adult_or_hoh_clients = {}
       project_types = ES + SH + SO
       @es_sh_so_client_ids = client_ids_for_project_types(project_types)
-      return unless es_sh_so_client_ids.any?
+      return unless @es_sh_so_client_ids.any?
 
       @es_sh_so_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
-          adult_or_hoh_clients << [client_id, enrollment] if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
       add_issues(field: :q5_b2, clients: adult_or_hoh_clients)
@@ -88,12 +88,12 @@ module ReportGenerators::DataQuality::Fy2017
       adult_or_hoh_clients = {}
       project_types = TH
       @th_client_ids = client_ids_for_project_types(project_types)
-      return unless th_client_ids.any?
+      return unless @th_client_ids.any?
 
       @th_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
-          adult_or_hoh_clients << [client_id, enrollment] if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
       add_issues(field: :q5_b3, clients: adult_or_hoh_clients)
@@ -139,12 +139,12 @@ module ReportGenerators::DataQuality::Fy2017
       adult_or_hoh_clients = {}
       project_types = PH
       @ph_client_ids = client_ids_for_project_types(project_types)
-      return unless ph_client_ids.any?
+      return unless @ph_client_ids.any?
 
       @ph_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
-          adult_or_hoh_clients << [client_id, enrollment] adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
       add_issues(field: :q5_b4, clients: adult_or_hoh_clients)
@@ -335,6 +335,7 @@ module ReportGenerators::DataQuality::Fy2017
         MonthsHomelessPastThreeYears: e_t[:MonthsHomelessPastThreeYears],
         PreviousStreetESSH: e_t[:PreviousStreetESSH],
       }
+    end
 
     def setup_questions
       {
