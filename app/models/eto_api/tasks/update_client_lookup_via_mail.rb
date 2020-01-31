@@ -14,7 +14,7 @@ class Object
     Date.parse(date).strftime('%d-%b-%Y')
   end
 end
-module EtoApi::Tasks
+module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookupViaMail < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
@@ -23,11 +23,12 @@ module EtoApi::Tasks
     # new values
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)
+
       self.logger = Rails.logger
-      logger.info "Fetching client mappings from ETO"
+      logger.info 'Fetching client mappings from ETO'
       @gmail = connect_to_gmail
       unless @gmail.logged_in?
-        logger.error "Could not connect to Gmail, giving up"
+        logger.error 'Could not connect to Gmail, giving up'
         return
       end
       @data_sources.each do |ds_id, subject|
@@ -48,17 +49,17 @@ module EtoApi::Tasks
     end
 
     protected def connect_to_gmail
-      credentials = YAML.load(ERB.new(File.read("#{Rails.root}/config/mail_account.yml")).result)[Rails.env]
+      credentials = YAML.load(ERB.new(File.read("#{Rails.root}/config/mail_account.yml")).result)[Rails.env] # rubocop:disable Security/YAMLLoad
       Gmail.connect(credentials['user'], credentials['pass'])
     end
 
-    protected def fetch_most_recent_mapping_file ds_id, subject
+    protected def fetch_most_recent_mapping_file(_ds_id, subject)
       messages = @gmail.inbox.emails(after: Date.yesterday, subject: subject)
       unless messages.present?
-        logger.warn "No recent updates found...giving up"
+        logger.warn 'No recent updates found...giving up'
         return nil
       end
-      message = messages.sort_by(&:uid).last
+      message = messages.max_by(&:uid)
       attachment = message.attachments.first
       # unless attachment.content_type.split(';').first == 'text/csv'
       #   logger.warn "Attachment is not a CSV #{attachment.inspect}"
@@ -66,8 +67,5 @@ module EtoApi::Tasks
       # end
       attachment
     end
-
-
-
   end
 end
