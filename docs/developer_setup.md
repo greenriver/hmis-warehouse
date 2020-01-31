@@ -1,77 +1,33 @@
 # Developer Setup
-The warehouse application consists of three parts:
+The warehouse application consists of three main parts:
 1. The Rails Application Code
 2. The Rails Application Database
-3. THe Warehouse Database
+3. The Warehouse Database
 
 ## Setup Your Development Environment
+The warehouse is configured for development using Docker.  There are a variety of choices to make when setting up the warehouse, this document will lead you down the most simple path.
 
 1. Clone the git repository
 ```
 git clone git@github.com:greenriver/hmis-warehouse.git
 ```
-2. GEM dependencies - you may need to install the following dependencies prior to running `bin/setup`.
-```shell
-brew install freetds
-brew install icu4c
-brew install openssl
-brew install libmagic
+2. Install Docker Desktop for your OS following the [instructions provided by Docker](https://www.docker.com/get-started).
+
+3. Adjust the Docker Resources to allow up to 8GB of RAM.  See Docker -> Preferences -> Resources
+
+4. If you have not previously setup [nginx-proxy](https://github.com/jwilder/nginx-proxy) to streamline local development. You should [follow the instructions here](developer-networking.md) before continuing.
+
+5. Run the setup script
 ```
-Sometimes icu4c and charlock_holmes give us issues.  Here's a relatively complete fix.
-```shell
-brew uninstall icu4c --force --ignore-dependencies
-brew reinstall node
-gem install charlock_holmes --version 0.7.6 -- --with-icu-dir=/usr/local/opt/icu4c --with-cxxflags=-std=c++11
-bundle
-```
-Install R and Rserve
-Download and install the latest package from here:
-https://cran.r-project.org/bin/macosx/
-Open an R terminal and install Rserve
-```shell
-r
-install.packages("Rserve")
-q()
-```
-Set Rserve to start when R starts
-Place the following in `~.Rprofile`
-```shell
-useDynLib(Rserve)
-export(Rserve, self.ctrlEval, self.ctrlSource, self.oobSend, self.oobMessage, run.Rserve)
+docker-compose run --rm shell bin/setup
 ```
 
-3. Create a `.env` file and add values for each of the variables in the `config/*.yml` files.
-
-4. You may experience issues with openssl, brew, postgres and rvm not playing nicely together.  The following should help with trouble shooting.  At the time of writing, we're looking for OpenSSL 1.1.x
-```shell
-ruby -ropenssl -e 'puts OpenSSL::OPENSSL_VERSION'
+6. Run the rails server
+```
+docker-compose run --rm web
 ```
 
-5. Run the setup file
-```
-cd hmis-warehouse
-bin/setup
-```
+## Accessing the Site
 
-6. Seed the data sources
-```shell
-bin/rake grda_warehouse:seed_data_sources
-```
+If everything worked as designed your site should now be available at [https://hmis-warehouse.dev.test](https://hmis-warehouse.dev.test).  Any mail that the site sends will be delivered to [MailHog](https://github.com/mailhog/MailHog) which is availble at [https://mail.hmis-warehouse.dev.test](https://mail.hmis-warehouse.dev.test)
 
-## Anonymized Data
-1. In your production environment, export a batch of anonymized data
-```
-bin/rake grda_warehouse:dump_hud_csvs_for_dev[2500]
-```
-
-2. In your development environment, place the exported files in folders in `var/hmis/<data_source_name>`
-
-3. Import the batch
-```
-bin/rake grda_warehouse:import_dev_hud_csvs
-```
-
-4. Run through the daily imports, you may want to do this manually, though it can be done in a single pass with
-```
-bin/rake grda_warehouse:daily
-```

@@ -78,3 +78,6 @@ app/views/root/_homepage_content.haml
 
 # CHA translations
 config/cha_translations.yml
+
+# Ignore docker certificates
+docker/nginx-proxy/certs

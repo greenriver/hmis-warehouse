@@ -109,11 +109,11 @@ module ReportGenerators::DataQuality::Fy2017
             Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
-          end.map do |id,enrollments|
+          end.map do |client_id, enrollments|
             # We only care about the last enrollment
             enrollment = enrollments.last
             enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
-            [id, enrollment]
+            [client_id, enrollment]
           end.to_h
       end
     end

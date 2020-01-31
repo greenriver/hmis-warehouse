@@ -23,21 +23,17 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @clients_with_issues = Set.new
-        @es_sh_so_clients = fetch_clients(ES + SH + SO)
-        if @es_sh_so_clients.any?
 
-          add_es_sh_so_answers()
-        end
+        add_es_sh_so_answers()
+
         update_report_progress(percent: 25)
-        @th_clients = fetch_clients(TH)
-        if @th_clients.any?
-          add_th_answers()
-        end
+
+        add_th_answers()
+
         update_report_progress(percent: 50)
-        @ph_clients = fetch_clients(PH)
-        if @ph_clients.any?
-          add_ph_answers()
-        end
+
+        add_ph_answers()
+
         update_report_progress(percent: 75)
         add_totals()
         finish_report()
@@ -47,9 +43,16 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_es_sh_so_answers
-      adult_or_hoh_clients = @es_sh_so_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+      adult_or_hoh_clients = {}
+      project_types = ES + SH + SO
+      @es_sh_so_client_ids = client_ids_for_project_types(project_types)
+      return unless @es_sh_so_client_ids.any?
+
+      @es_sh_so_client_ids.each_slice(250) do |client_ids|
+        fetch_clients(project_types, client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+        end
       end
       add_issues(field: :q5_b2, clients: adult_or_hoh_clients)
 
@@ -82,16 +85,23 @@ module ReportGenerators::DataQuality::Fy2017
 
 
     def add_th_answers
-      adult_or_hoh_clients = @th_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+      adult_or_hoh_clients = {}
+      project_types = TH
+      @th_client_ids = client_ids_for_project_types(project_types)
+      return unless @th_client_ids.any?
+
+      @th_client_ids.each_slice(250) do |client_ids|
+        fetch_clients(project_types, client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+        end
       end
       add_issues(field: :q5_b3, clients: adult_or_hoh_clients)
 
-      institution_time_issues = issues_with_institution_time(clients: @th_clients)
+      institution_time_issues = issues_with_institution_time(clients: adult_or_hoh_clients)
       add_issues(field: :q5_c3, clients: institution_time_issues)
 
-      housing_time_issues = issues_with_housing_time(clients: @th_clients)
+      housing_time_issues = issues_with_housing_time(clients: adult_or_hoh_clients)
       add_issues(field: :q5_d3, clients: housing_time_issues)
 
       approximate_start_date_issues = date_missing(
@@ -126,16 +136,23 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_ph_answers
-      adult_or_hoh_clients = @ph_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+      adult_or_hoh_clients = {}
+      project_types = PH
+      @ph_client_ids = client_ids_for_project_types(project_types)
+      return unless @ph_client_ids.any?
+
+      @ph_client_ids.each_slice(250) do |client_ids|
+        fetch_clients(project_types, client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
+        end
       end
       add_issues(field: :q5_b4, clients: adult_or_hoh_clients)
 
-      institution_time_issues = issues_with_institution_time(clients: @th_clients)
+      institution_time_issues = issues_with_institution_time(clients: adult_or_hoh_clients)
       add_issues(field: :q5_c4, clients: institution_time_issues)
 
-      housing_time_issues = issues_with_housing_time(clients: @th_clients)
+      housing_time_issues = issues_with_housing_time(clients: adult_or_hoh_clients)
       add_issues(field: :q5_d4, clients: housing_time_issues)
 
       approximate_start_date_issues = date_missing(
@@ -170,7 +187,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_totals
-      all_client_count = @es_sh_so_clients.size + @th_clients.size + @ph_clients.size
+      all_client_count = @es_sh_so_client_ids.size + @th_client_ids.size + @ph_client_ids.size
       @answers[:q5_b5][:value] = all_client_count
       @answers[:q5_h5][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
     end
@@ -179,8 +196,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit'],
-        data: clients.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: clients.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -195,8 +211,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Times Homeless Past Three Years'],
-        data: clients.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: clients.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -212,8 +227,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Months Homeless Past Three Years'],
-        data: clients.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: clients.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -226,8 +240,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def item_missing item:, clients:, extra_restrictions: false
-      clients.select do |id, enrollments|
-        enrollment = enrollments.last
+      clients.select do |id, enrollment|
         should_exist = false
         if extra_restrictions
           should_exist = previously_homeless?(enrollment) ||
@@ -258,49 +271,35 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def date_missing item:, clients:
-      clients.select do |id, enrollments|
-        enrollment = enrollments.last
+      clients.select do |id, enrollment|
         enrollment[item].blank?
       end
     end
 
     def issues_with_institution_time clients:
-      clients.select do |_, enrollments|
-        enrollment = enrollments.last
+      clients.select do |_, enrollment|
         [15,6,7,25,4,5].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 
     def issues_with_housing_time clients:
-      clients.select do |_, enrollments|
-        enrollment = enrollments.last
+      clients.select do |_, enrollment|
         [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, nil].include?(enrollment[:LivingSituation]) && [8,9,99,nil].include?(enrollment[:LengthOfStay])
       end
     end
 
-
-    def fetch_clients(project_types)
-      columns = {
-        client_id: she_t[:client_id].to_sql,
-        age: she_t[:age].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        data_source_id: she_t[:data_source_id].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        destination: she_t[:destination].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        LivingSituation: e_t[:LivingSituation].to_sql,
-        LengthOfStay: e_t[:LengthOfStay].to_sql,
-        DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,
-        TimesHomelessPastThreeYears: e_t[:TimesHomelessPastThreeYears].to_sql,
-        MonthsHomelessPastThreeYears: e_t[:MonthsHomelessPastThreeYears].to_sql,
-        PreviousStreetESSH: e_t[:PreviousStreetESSH].to_sql,
-      }
-
+    def client_ids_for_project_types(project_types)
       active_client_scope.
+        hud_project_type(project_types).
+        includes(:enrollment).
+        joins(:project).
+        distinct.
+        pluck(:client_id)
+    end
+
+    def fetch_clients(project_types, client_ids)
+      active_client_scope.
+        where(client_id: client_ids).
         hud_project_type(project_types).
         includes(:enrollment).
         joins(:project).
@@ -314,6 +313,28 @@ module ReportGenerators::DataQuality::Fy2017
         end.group_by do |row|
           row[:client_id]
         end
+    end
+
+    def columns
+      @columns ||= {
+        client_id: she_t[:client_id],
+        age: she_t[:age],
+        DOB: c_t[:DOB],
+        project_type: she_t[:computed_project_type],
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_name: she_t[:project_name],
+        destination: she_t[:destination],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        LivingSituation: e_t[:LivingSituation],
+        LengthOfStay: e_t[:LengthOfStay],
+        DateToStreetESSH: e_t[:DateToStreetESSH],
+        TimesHomelessPastThreeYears: e_t[:TimesHomelessPastThreeYears],
+        MonthsHomelessPastThreeYears: e_t[:MonthsHomelessPastThreeYears],
+        PreviousStreetESSH: e_t[:PreviousStreetESSH],
+      }
     end
 
     def setup_questions
