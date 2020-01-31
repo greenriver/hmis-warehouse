@@ -140,7 +140,7 @@ module ReportGenerators::DataQuality::Fy2017
       @all_client_ids ||= active_client_scope.
         joins(:enrollment).
         includes(enrollment: :exit).
-        order(date: :asc).
+        distinct.
         pluck(:client_id)
     end
 
@@ -164,8 +164,8 @@ module ReportGenerators::DataQuality::Fy2017
         first_date_in_program: :first_date_in_program,
         last_date_in_program: :last_date_in_program,
         project_name: :project_name,
-        entry_created_at: e_t[:DateCreated].to_sql,
-        exit_created_at: ex_t[:DateCreated].to_sql,
+        entry_created_at: e_t[:DateCreated],
+        exit_created_at: ex_t[:DateCreated],
       }
     end
 
