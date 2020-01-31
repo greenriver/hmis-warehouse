@@ -455,26 +455,6 @@
       "note": ""
     },
     {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
-      "fingerprint": "6fb9d06864d3eb63220173a89a945d90207c438ca1a430a41660ae93f0e4e521",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/controllers/hello_sign_controller.rb",
-      "line": 10,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HelloSignController",
-        "method": "callback"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
@@ -1185,6 +1165,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-01-31 11:11:45 -0500",
+  "updated": "2020-01-31 14:25:54 -0500",
   "brakeman_version": "4.7.2"
 }
