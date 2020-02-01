@@ -48,7 +48,7 @@ module ReportGenerators::DataQuality::Fy2017
       }
 
       all_client_ids.each_slice(250) do |client_ids|
-        fetch_client_batch(client_ids).each do |id, enrollments|
+        client_batch(client_ids).each do |id, enrollments|
           enrollment = enrollments.last
           date_diff = (enrollment[:first_date_in_program].to_date - enrollment[:entry_created_at].to_date).abs
           buckets.each do |k,bucket|
@@ -103,7 +103,7 @@ module ReportGenerators::DataQuality::Fy2017
       }
 
       client_ids = leavers.keys
-      leaver_enrollments = fetch_client_batch(client_ids)
+      leaver_enrollments = client_batch(client_ids)
       client_ids.each do |id|
         next unless leaver_enrollments[id].present?
 
@@ -136,20 +136,21 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def all_client_ids
-      @all_client_ids ||= active_client_scope.
+    def client_batch_scope
+      active_client_scope.
         joins(:enrollment).
         includes(enrollment: :exit).
-        distinct.
-        pluck(:client_id)
+        distinct
     end
 
-    def fetch_client_batch(client_ids)
-      active_client_scope.
+    def all_client_ids
+      @all_client_ids ||= client_batch_scope.pluck(:client_id)
+    end
+
+    def client_batch(client_ids)
+     client_batch_scope.
         where(client_id: client_ids).
-        joins(:enrollment).
-        includes(enrollment: :exit).
-        order(date: :asc).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]

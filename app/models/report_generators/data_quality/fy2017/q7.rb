@@ -120,24 +120,24 @@ module ReportGenerators::DataQuality::Fy2017
       entry_date < (@report.options['report_start'].to_date - 90.days)
     end
 
-    def client_ids_for_project_type(project_types)
+    def client_batch_scope(project_types)
       active_client_scope.
         hud_project_type(project_types).
         bed_night.
         includes(:enrollment).
         joins(:project).
-        distinct.
+        distinct
+    end
+
+    def client_ids_for_project_type(project_types)
+      client_batch_scope(project_types).
         pluck(:client_id)
     end
 
     def fetch_night_by_night_clients(project_types, client_ids)
-      active_client_scope.
+      client_batch_scope(project_types).
         where(client_id: client_ids).
-        hud_project_type(project_types).
-        bed_night.
-        includes(:enrollment).
-        joins(:project).
-        order(date: :asc).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
