@@ -244,7 +244,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: poor_quality.map do |id, enrollment|
           [
             id,
-            HUD.race_none(enrollments.last[:RaceNone]),
+            HUD.race_none(enrollment[:RaceNone]),
           ]
         end
       )
