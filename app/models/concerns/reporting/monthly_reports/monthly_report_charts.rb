@@ -231,7 +231,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
-          months.reverse_each do |year, month|
+          months.each do |year, month|
             data[project_type_id] ||= [HUD.project_type(project_type_id)]
             data[project_type_id] << counts[[year, month, project_type_id]]
           end
@@ -246,7 +246,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
         totals = active_clients.group(:year, :month).
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
-        months.reverse_each do |year, month|
+        months.each do |year, month|
           data['totals'] ||= ['Total']
           data['totals'] << totals[[year, month]]
         end
@@ -271,7 +271,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
         returning_entries = re_entry_clients.group(:year, :month).
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
-        months.reverse_each do |year, month|
+        months.each do |year, month|
           new_count = (new_entries[[year, month]] || 0)
           returning_count = (returning_entries[[year, month]] || 0)
           data[:new] << new_count
@@ -291,7 +291,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     #     row = {
     #       label: HUD.project_type(project_type_id),
     #     }
-    #     months.reverse.each_with_index do |(year, month), i|
+    #     months.each_with_index do |(year, month), i|
     #       row[months_strings[i]] = in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
     #       row["#{months_strings[i]}_count"] = (counts[[year, month, project_type_id]] || 0)
 
@@ -311,7 +311,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
-          months.reverse_each do |year, month|
+          months.each do |year, month|
             data[project_type_id] ||= [HUD.project_type(project_type_id)]
             data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
           end
@@ -329,7 +329,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
         homeless_project_type_ids.each do |project_type_id|
-          months.reverse_each do |year, month|
+          months.each do |year, month|
             data[project_type_id] ||= [HUD.project_type(project_type_id)]
             data[project_type_id] << in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
           end
@@ -374,7 +374,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
         housed = housed_clients.group(:year, :month).
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
-        months.reverse_each do |year, month|
+        months.each do |year, month|
           data[:housed] << (housed[[year, month]] || 0)
         end
         data.values.unshift(month_x_axis_labels)
