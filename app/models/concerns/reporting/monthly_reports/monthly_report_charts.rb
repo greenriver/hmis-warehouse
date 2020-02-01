@@ -247,15 +247,17 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
           order(year: :asc, month: :asc).
           select(:client_id).distinct.count
         months.each do |year, month|
-          data['totals'] ||= ['Total']
+          # data['totals'] ||= ['Total']
+          data['totals'] ||= []
           data['totals'] << totals[[year, month]]
         end
+        data['totals'].unshift('Total')
         data.values.unshift(month_x_axis_labels)
       end
     end
 
     def months_strings
-      months_in_dates.map { |m| m.strftime('%b %Y') }.reverse
+      months_in_dates.map { |m| m.strftime('%b %Y') }
     end
 
     def month_x_axis_labels
@@ -291,7 +293,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     #     row = {
     #       label: HUD.project_type(project_type_id),
     #     }
-    #     months.each_with_index do |(year, month), i|
+    #     months.reverse_each_with_index do |(year, month), i|
     #       row[months_strings[i]] = in_percentage(counts[[year, month, project_type_id]], total_counts[[year, month]])
     #       row["#{months_strings[i]}_count"] = (counts[[year, month, project_type_id]] || 0)
 
