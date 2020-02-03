@@ -37,6 +37,9 @@ services:
     <<: *backend
     command: /bin/bash
     entrypoint: ''
+    depends_on:
+      - db
+      - redis
 
   console:
     <<: *backend

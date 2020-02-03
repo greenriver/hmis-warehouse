@@ -29,14 +29,14 @@ module EtoApi
       }
       begin
         api_config = self.class.api_configs
-      rescue
-        return false
+      rescue StandardError
+        return false # rubocop:disable Lint/ReturnInVoidContext
       end
       @credentials = {
         security: {
           'Email': api_config[api_connection]['email'],
-          'Password': api_config[api_connection]['password']
-        }
+          'Password': api_config[api_connection]['password'],
+        },
       }
       @enterprise = api_config[api_connection]['enterprise']
       @failures = 0
@@ -44,7 +44,7 @@ module EtoApi
     end
 
     def self.api_configs
-      YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]&.select{ |k, conf| conf['data_source_id'].present? && conf['data_source_id'] != 'unknown' }
+      YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]&.select { |_k, conf| conf['data_source_id'].present? && conf['data_source_id'] != 'unknown' } # rubocop:disable Security/YAMLLoad
     end
 
     def endpoint(service)
@@ -53,14 +53,14 @@ module EtoApi
 
     def connect
       sso = _api_post_json(
-        "#{@endpoints[:security]}/SSOAuthenticate/", @credentials, :content_type => :json, :accept => :json
+        "#{@endpoints[:security]}/SSOAuthenticate/", @credentials, content_type: :json, accept: :json
       )
-      sso_result = sso['SSOAuthenticateResult'] or raise 'cant sso'
+      (sso_result = sso['SSOAuthenticateResult']) || raise('cant sso')
       @auth_token = sso_result['SSOAuthToken']
       @tz_offset = sso_result['TimeZoneOffset'].to_i.to_s # null => 0
       enterprises = api_get_json "#{@endpoints[:security]}/GetSSOEnterprises/#{@auth_token}"
       @site_creds = nil
-      @enterprise_guid = enterprises.detect{|e| e['Value'] == @enterprise}.try{ |e| e['Key'] } or raise "Cant find enterprise: #{@enterprise}"
+      (@enterprise_guid = enterprises.detect { |e| e['Value'] == @enterprise }.try { |e| e['Key'] }) || raise("Cant find enterprise: #{@enterprise}")
     end
 
     def connected?
@@ -68,12 +68,13 @@ module EtoApi
     end
 
     private def debug_log(msg)
-      puts msg&.gsub(@credentials[:security][:Password], '') if self.trace && Rails.env.development?
+      puts msg&.gsub(@credentials[:security][:Password], '') if trace && Rails.env.development?
     end
 
-    private def api_get_json(url, headers={})
+    private def api_get_json(url, headers = {})
       body = api_get_body(url, headers)
       return nil if body.blank?
+
       if body.bytesize > 50.megabytes # If the body is bigger than 50 MB, we'll ignore it
         @notifier.ping "Found an API response that was too big: #{body.bytesize / 1.megabytes} MB; url: #{url}"
         return nil
@@ -82,7 +83,7 @@ module EtoApi
       JSON.parse(body)
     end
 
-    private def api_get_body(url, headers={})
+    private def api_get_body(url, headers = {})
       connect unless connected?
       debug_log "=> GET #{url}"
       begin
@@ -108,12 +109,12 @@ module EtoApi
       body
     end
 
-    private def api_post_json(url, body, headers={})
+    private def api_post_json(url, body, headers = {})
       connect unless connected?
       _api_post_json url, body, headers
     end
 
-    private def _api_post_json(url, body, headers={})
+    private def _api_post_json(url, body, headers = {})
       body_text = body.to_json
       debug_log "=> POST #{url}"
       debug_log "   #{body_text}"
@@ -127,16 +128,20 @@ module EtoApi
       JSON.parse(r.body)
     end
 
-    private def api_post_urlencode(url, body, headers={})
+    private def api_post_urlencode(url, body, headers = {})
       body_text = body.to_param
       debug_log "=> POST #{url}"
       debug_log "   #{body_text}"
-      r = RestClient.post(url, body_text, headers.merge('Content-type' => 'application/x-www-form-urlencoded')) rescue '[]'
+      r = begin
+            RestClient.post(url, body_text, headers.merge('Content-type' => 'application/x-www-form-urlencoded'))
+          rescue StandardError
+            '[]'
+          end
       debug_log "<= #{r.body}"
       JSON.parse(r.body)
     end
 
-    def sites(refresh:false)
+    def sites(refresh: false)
       @sites = nil if refresh
       @sites ||= begin
         data = api_get_json "#{@endpoints[:security]}/GetSSOSites/#{@auth_token}/#{@enterprise_guid}"
@@ -149,81 +154,82 @@ module EtoApi
 
     def get_site_creds(site_id)
       return if site_id.nil?
+
       connect unless connected?
       @site_creds ||= {}
       token = api_get_body(
-          "#{@endpoints[:security]}/SSOSiteLogin/#{site_id}/#{@enterprise_guid}/#{@auth_token}/#{@tz_offset}"
-        ).gsub('"','') # token is quoted guid for no reason
+        "#{@endpoints[:security]}/SSOSiteLogin/#{site_id}/#{@enterprise_guid}/#{@auth_token}/#{@tz_offset}",
+      ).gsub('"', '') # token is quoted guid for no reason
       @site_creds[site_id] = {
         enterpriseGuid: @enterprise_guid,
-        securityToken: token
+        securityToken: token,
       }
     end
     memoize :get_site_creds
 
-    def set_program site_id:, program_id:
+    def set_program(site_id:, program_id:)
       creds = get_site_creds(site_id)
-      api_post_json "#{@endpoints[:security]}/UpdateCurrentProgram/", {ProgramID: program_id}, creds
+      api_post_json "#{@endpoints[:security]}/UpdateCurrentProgram/", { ProgramID: program_id }, creds
     end
     memoize :set_program
 
-    def client_demographic client_id:, site_id:
+    def client_demographic(client_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:actor]}/participant/#{client_id}", creds
     end
     memoize :client_demographic
 
     # return client image data or raise an exception
-    def client_image client_id:, site_id:
+    def client_image(client_id:, site_id:)
       creds = get_site_creds(site_id)
       connect unless connected?
       response = RestClient.get "#{@endpoints[:actor]}/participant/#{client_id}/image", creds
       response.body
     end
 
-    def enrollments client_id:, site_id:
+    def enrollments(client_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:actor]}/participant/enrollment/#{client_id}", creds
     end
     memoize :enrollments
 
-    def site_demographics program_id: nil, site_id:
+    def site_demographics(program_id: nil, site_id:)
       creds = get_site_creds(site_id)
       program_ids = if program_id
         [program_id]
       else
         programs(site_id: site_id).keys
       end
-      program_ids.flat_map do |program_id|
-        api_get_json("#{@endpoints[:forms]}/Forms/Sites/GetSiteDemographics/#{program_id.to_i}", creds).each do |r|
-          r['ProgramID'] = program_id
+      program_ids.flat_map do |p_id|
+        api_get_json("#{@endpoints[:forms]}/Forms/Sites/GetSiteDemographics/#{p_id.to_i}", creds).each do |r|
+          r['ProgramID'] = p_id
         end
       end
     end
     memoize :site_demographics
 
-    def list_point_of_services program_id: nil, site_id:
+    def list_point_of_services(program_id: nil, site_id:)
       creds = get_site_creds(site_id)
       program_ids = if program_id
         [program_id]
       else
         programs(site_id: site_id).keys
       end
-      program_ids.flat_map do |program_id|
-        api_get_json("#{@endpoints[:forms]}/Forms/POSList/#{program_id.to_i}", creds).each do |r|
-          r['ProgramID'] = program_id
+      program_ids.flat_map do |p_id|
+        api_get_json("#{@endpoints[:forms]}/Forms/POSList/#{p_id.to_i}", creds).each do |r|
+          r['ProgramID'] = p_id
         end
       end
     end
     memoize :list_point_of_services
 
     # pos_id is a string
-    def get_point_of_service pos_id:, site_id:
+    def get_point_of_service(pos_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/POS/#{pos_id}", creds
     end
 
-    def get_point_of_service_info pos_id:, site_id:
+    def get_point_of_service_info(pos_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/POS/GetPosInfo/#{pos_id}", creds
     end
@@ -240,24 +246,24 @@ module EtoApi
     #   end
     # end
 
-    def get_client_efforts staff_id:, program_id:, client_id:, site_id:
+    def get_client_efforts(staff_id:, program_id:, client_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/Effort/#{staff_id}/#{program_id}/#{client_id}", creds
     end
 
-    def activities program_id:nil, site_id:, all_activities: nil
+    def activities(program_id: nil, site_id:, all_activities: nil) # rubocop:disable Lint/UnusedMethodArgument
       creds = get_site_creds(site_id)
       program_ids = if program_id
         [program_id]
       else
         programs(site_id: site_id).keys
       end
-      program_ids.flat_map do |program_id|
-        api_get_json"#{@endpoints[:activity]}/Activities/GetActivities?ProgramId#{program_id.to_i}&GetAllActivitySettings=1", creds
+      program_ids.flat_map do |p_id|
+        api_get_json "#{@endpoints[:activity]}/Activities/GetActivities?ProgramId#{p_id.to_i}&GetAllActivitySettings=1", creds
       end
     end
 
-    def demographic_defined_values cdid:, site_id:
+    def demographic_defined_values(cdid:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/Sites/GetDemographicsDefinedTextValues/#{cdid.to_i}", creds
     end
@@ -275,9 +281,9 @@ module EtoApi
     end
     memoize :entity_sub_types
 
-    def entities_by_entity_type_id(entity_type_id:, entity_subtype_id:, programId:, site_id:)
+    def entities_by_entity_type_id(entity_type_id:, entity_subtype_id:, programId:, site_id:) # rubocop:disable Naming/MethodParameterName, Naming/VariableName
       creds = get_site_creds(site_id)
-      api_get_json "#{@endpoints[:forms]}/Forms/Entity/GetEntitiesByEntityTypeID/#{entity_type_id}/#{entity_subtype_id}/#{programId}", creds
+      api_get_json("#{@endpoints[:forms]}/Forms/Entity/GetEntitiesByEntityTypeID/#{entity_type_id}/#{entity_subtype_id}/#{programId}", creds) # rubocop:disable Naming/VariableName
     end
     memoize :entities_by_entity_type_id
 
@@ -293,14 +299,14 @@ module EtoApi
     end
     memoize :entity_contacts
 
-    def entities(entity_type_id:, entity_subtype_id:, program_id: nil, site_id: )
+    def entities(entity_type_id:, entity_subtype_id:, program_id: nil, site_id:)
       program_ids = if program_id
         [program_id]
       else
         programs(site_id).keys
       end
-      Hash[program_ids.flat_map do |program_id|
-        entitiesByEntityTypeID(entity_type_id,entity_subtype_id,program_id,site_id).map do |e|
+      Hash[program_ids.flat_map do |p_id|
+        entitiesByEntityTypeID(entity_type_id, entity_subtype_id, p_id, site_id).map do |e|
           [e['EntityID'], e['EntityName']]
         end
       end]
@@ -330,39 +336,39 @@ module EtoApi
         7 => 'Money',
         8 => 'Number',
         9 => 'Boolean',
-        10 => 'Date'
+        10 => 'Date',
       }
     end
+
     def survey_element_types_by_id
       charactersitic_types_by_id
     end
 
-    def get_entity_by_subject subject_id:, site_id:
+    def get_entity_by_subject(subject_id:, site_id:)
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/EntityBySubject/#{subject_id}", creds
     end
     memoize :get_entity_by_subject
 
     # Not sure what this returns, but it works
-    def getAllEntityAttributesDefinedTextValues cdid:, site_id:
+    def getAllEntityAttributesDefinedTextValues(cdid:, site_id:) # rubocop:disable Naming/MethodName
       creds = get_site_creds(site_id)
       api_get_json "#{@endpoints[:forms]}/Forms/Entity/GetAllEntityAttributesDefinedTextValues/#{cdid.to_i}", creds
     end
 
-
     def assessments(client_id:, site_id:)
       creds = get_site_creds(site_id)
-      api_post_json "#{@endpoints[:forms]}/Forms/Assessments/GetAllAssessements/", {surveyResponderType: 0, CLID: client_id.to_s}, creds
+      api_post_json "#{@endpoints[:forms]}/Forms/Assessments/GetAllAssessements/", { surveyResponderType: 0, CLID: client_id.to_s }, creds
     end
     memoize :assessments
 
     def thrive_assessments(client_id:, site_id:)
       creds = get_site_creds(site_id)
-      api_post_json "#{@endpoints[:forms]}/Forms/Assessments/GetAllAssessmentsThrive/", {surveyResponderType: 0, CLID: client_id.to_s}, creds
+      api_post_json "#{@endpoints[:forms]}/Forms/Assessments/GetAllAssessmentsThrive/", { surveyResponderType: 0, CLID: client_id.to_s }, creds
     end
     memoize :thrive_assessments
 
-    def programs(site_id:, refresh:false)
+    def programs(site_id:, refresh: false)
       creds = get_site_creds(site_id)
       @programs_by_site ||= {}
       @programs_by_site[site_id] = nil if refresh
@@ -375,35 +381,35 @@ module EtoApi
     end
     memoize :programs
 
-    def program(site_id:, id: )
-      self.programs(site_id: site_id)[id] if id
+    def program(site_id:, id:)
+      programs(site_id: site_id)[id] if id
     end
 
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75, it doesn't show up in the lists
     # by site
-    def touch_points(site_id:, program_id: nil)
+    def touch_points(site_id:, program_id: nil) # rubocop:disable Lint/UnusedMethodArgument
       api_get_json "#{@endpoints[:touch_point]}/ListTouchPoint", get_site_creds(site_id)
     end
     memoize :touch_points
 
     # "HUD Assessment (Entry/Update/Annual/Exit)" is TouchPointID: 75
-    def touch_point(site_id:, id: )
-      api_get_json "#{@endpoints[:touch_point]}/GetTouchPoint?#{{TouchPointID: id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+    def touch_point(site_id:, id:)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPoint?#{{ TouchPointID: id }.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point
 
     def touch_point_response(site_id:, response_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponse?#{{TouchPointID: touch_point_id, TouchPointResponseID: response_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponse?#{{ TouchPointID: touch_point_id, TouchPointResponseID: response_id }.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point_response
 
     def touch_point_response_by_response_set_id(site_id:, response_set_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponsesByID?#{{TouchPointID: touch_point_id, ResponseSetID: response_set_id}.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/GetTouchPointResponsesByID?#{{ TouchPointID: touch_point_id, ResponseSetID: response_set_id }.to_param}&PopulateElementCollection=true", get_site_creds(site_id)
     end
     memoize :touch_point_response_by_response_set_id
 
     def list_touch_point_responses(site_id:, subject_id:, touch_point_id:)
-      api_get_json "#{@endpoints[:touch_point]}/ListTouchPointResponses?#{{SubjectID: subject_id,TouchPointID: touch_point_id}.to_param}", get_site_creds(site_id)
+      api_get_json "#{@endpoints[:touch_point]}/ListTouchPointResponses?#{{ SubjectID: subject_id, TouchPointID: touch_point_id }.to_param}", get_site_creds(site_id)
     end
     memoize :list_touch_point_responses
 
@@ -455,11 +461,11 @@ module EtoApi
     end
 
     def self.parse_date(str)
-      if md = %r|\A\/Date\((?<ms>-?[\d]+)(?<h>[-+]\d\d)(?<m>\d\d)\)\/\z|.match(str)
+      if md = %r{\A\/Date\((?<ms>-?[\d]+)(?<h>[-+]\d\d)(?<m>\d\d)\)\/\z}.match(str) # rubocop:disable Style/GuardClause, Lint/AssignmentInCondition
         tz = ActiveSupport::TimeZone.all.detect do |z|
-          z.utc_offset == (md[:h].to_i*60*60)+(md[:m].to_i*60)
+          z.utc_offset == (md[:h].to_i * 60 * 60) + (md[:m].to_i * 60)
         end
-        tz.at(md[:ms].to_f/1000)
+        tz.at(md[:ms].to_f / 1000)
       end
     end
 

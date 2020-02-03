@@ -6,12 +6,12 @@
 
 require 'csv'
 
-module EtoApi::Tasks
+module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookupViaLocal < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
 
-    def initialize ds_id:, file_path:
+    def initialize(ds_id:, file_path:)
       @ds_id = ds_id
       @file_path = file_path
       super()
@@ -21,9 +21,10 @@ module EtoApi::Tasks
     # new values
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)
-      return unless File.exists?(@file_path)
+      return unless File.exist?(@file_path)
+
       self.logger = Rails.logger
-      logger.info "Fetching client mappings from ETO"
+      logger.info 'Fetching client mappings from ETO'
       ds = GrdaWarehouse::DataSource.importable_via_s3.find(@ds_id.to_i)
       @attachment = nil
       logger.info "Fetching client mapping for data source: #{ds.short_name}, ..."
@@ -38,7 +39,6 @@ module EtoApi::Tasks
         logger.info "Removed #{cleaned_forms} hmis forms attached to clients no longer referenced ..."
       end
       logger.info "...client mapping for Data Source ID: #{ds.short_name} complete"
-
     end
   end
 end
