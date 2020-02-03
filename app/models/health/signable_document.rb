@@ -216,9 +216,10 @@ module Health
     end
 
     def signed_on(email)
-      timestamp = self.hs_last_response['signatures'].
-        find { |sig| sig['data']['status_code'] == 'signed' && sig['data']['signer_email_address'] == email }&.
-        dig('data', 'signed_at')
+      signature = self.hs_last_response['signatures'].
+        find { |sig| opt_data(sig)['status_code'] == 'signed' && opt_data(sig)['signer_email_address'] == email }
+
+      timestamp = opt_data(signature)['signed_at'] if signature.present?
 
       return nil unless timestamp.present?
 
@@ -240,8 +241,8 @@ module Health
 
       self.hs_last_response_at = Time.now
       self.hs_last_response = callback_payload
-      sig_hashes = self.hs_last_response['signatures'].select { |sig| sig['data']['status_code'] == 'signed' }
-      new_signers = sig_hashes.map { |sig| sig['data']['signer_email_address']  }
+      sig_hashes = self.hs_last_response['signatures'].select { |sig| opt_data(sig)['status_code'] == 'signed' }
+      new_signers = sig_hashes.map { |sig| opt_data(sig)['signer_email_address']  }
       self.signed_by = new_signers
       self.save!
     end
@@ -265,9 +266,8 @@ module Health
     def _signature_id_for(email)
       return nil if self.hs_initial_response.nil?
 
-      res = Array.wrap(self.hs_initial_response['signatures']).find do |r|
-        r.dig('data', 'signer_email_address') == email
-      end['data']
+      sig = Array.wrap(self.hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address') == email }
+      res = opt_data(sig)
 
       res.present? ? res['signature_id'] : 'error'
     end
@@ -289,6 +289,11 @@ module Health
       return if signed_by.length <= signers.length
 
       errors[:signed_by] << "Cannot be longer than potential number of signers"
+    end
+
+    private
+    def opt_data(json)
+      json.dig('data') || json
     end
 
   end
