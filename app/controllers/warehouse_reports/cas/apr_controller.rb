@@ -22,7 +22,7 @@ module WarehouseReports::Cas
     end
 
     def set_range
-      date_range_options = params.permit(range: [:start, :end])[:range]
+      date_range_options = range_params[:range]
       unless date_range_options.present?
         date_range_options = {
           start: default_start_date,
@@ -31,6 +31,11 @@ module WarehouseReports::Cas
       end
       @range = ::Filters::DateRange.new(date_range_options)
     end
+
+    def range_params
+      params.permit(range: [:start, :end])
+    end
+    helper_method :range_params
 
     def default_start_date
       default_end_date - 1.years + 1.days
