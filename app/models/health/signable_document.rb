@@ -291,7 +291,6 @@ module Health
       errors[:signed_by] << "Cannot be longer than potential number of signers"
     end
 
-    private
     def opt_data(json)
       json.dig('data') || json
     end
