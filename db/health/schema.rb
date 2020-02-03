@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_27_151840) do
+ActiveRecord::Schema.define(version: 2020_02_03_185425) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,6 +58,20 @@ ActiveRecord::Schema.define(version: 2020_01_27_151840) do
     t.integer "data_source_id", default: 6, null: false
   end
 
+  create_table "backup_plans", force: :cascade do |t|
+    t.bigint "patient_id_id"
+    t.string "description"
+    t.string "backup_plan"
+    t.string "person"
+    t.string "phone"
+    t.text "address"
+    t.date "plan_created_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["patient_id_id"], name: "index_backup_plans_on_patient_id_id"
+  end
+
   create_table "careplan_equipment", id: :serial, force: :cascade do |t|
     t.integer "careplan_id"
     t.integer "equipment_id"
@@ -102,6 +116,7 @@ ActiveRecord::Schema.define(version: 2020_01_27_151840) do
     t.datetime "patient_signature_requested_at"
     t.datetime "provider_signature_requested_at"
     t.integer "health_file_id"
+    t.text "issues"
     t.index ["patient_id"], name: "index_careplans_on_patient_id"
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end
@@ -691,6 +706,7 @@ ActiveRecord::Schema.define(version: 2020_01_27_151840) do
     t.string "status"
     t.integer "responsible_team_member_id"
     t.integer "patient_id"
+    t.text "timeframe"
     t.index ["patient_id"], name: "index_health_goals_on_patient_id"
     t.index ["user_id"], name: "index_health_goals_on_user_id"
   end

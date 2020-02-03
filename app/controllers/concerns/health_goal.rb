@@ -62,6 +62,7 @@ module HealthGoal
       :start_date,
       :goal_details,
       :intervention,
+      :timeframe,
       :status,
       :responsible_team_member_id,
     )

@@ -13,44 +13,50 @@
             .health-careplan__goal-action.health-careplan__goal-delete
               = link_to delete_goal_path(goal), method: :delete, data: {confirm: "Please confirm you intend to delete this goal."}, remote: true do
                 %span.icon-cross
+      .row
+        .col-12
+          %label
+            Goal Description
+            (including any specific barrier to achieving goal not previously mentioned)
+          .health-careplan__goal-details
+            = simple_format goal.goal_details
       .row.mb-2
-        .col-sm-4
-          %label Responsible Care Team Member
-          .health-careplan__goal-responsible
-            = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
         .col-sm-4
           %label Start Date
           .health-careplan__goal-start-date
             = goal.start_date
-        .col-sm-4
-          %label Status
-          .health-careplan__goal-status
-            = goal.status
-      .mb-2
-        %label Problem
-        .health-careplan__goal-problem
-          = simple_format goal.problem
-      .mb-2
-        %label Goal Description
-        .health-careplan__goal-details
-          = simple_format goal.goal_details
-      .mb-2
-        %label Intervention
-        .health-careplan__goal-intervention
-          = simple_format goal.intervention
+      .row
+        .col-sm-6.mb-2
+          %label Recommended Action Steps and any needed accommodations
+        .col-sm-6.mb-2
+          %label Timeframe
+      .row
+        .col-sm-6.mb-2
+          .health-careplan__goal-intervention
+            = simple_format goal.intervention
+        .col-sm-6.mb-2
+          .health-careplan__goal-timeframe
+            = simple_format goal.timeframe
+      .row
+        .col-sm-12
+          %label Responsible Care Team Member
+          .health-careplan__goal-responsible
+            = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
+
 - else
   = simple_form_for(goal, as: :goal, url: goal_form_path, remote: request.xhr?, class: :jGoal) do |f|
     - sized_input_html = {class: 'sized'}
+    - default_with_counts = "1. \n\n2. \n\n3. \n\n"
     = f.error_notification
-    = f.input :problem, as: :text, input_html: sized_input_html
+    =# f.input :problem, as: :text, input_html: sized_input_html
+    = f.input :goal_details, label: 'Goal', as: :text, hint: '(including any specific barrier to achieving goal not previously mentioned)', input_html: sized_input_html
     .row
       .col-sm-6
         = f.input :start_date, as: :date_picker
-    = f.input :goal_details, label: 'Goal Description', as: :text, input_html: sized_input_html
-    = f.input :intervention, as: :text, input_html: sized_input_html
+    = f.input :intervention, as: :text, label: 'Recommended Action Steps and any needed accommodations', input_html: sized_input_html.merge(value: f.object.intervention.strip.presence || default_with_counts)
+    = f.input :timeframe, as: :text, label: 'Timeframe', input_html: sized_input_html.merge(value: f.object.timeframe || default_with_counts)
     .row
       .col-sm-6
-        = f.input :status, collection: goal.class.available_stati, input_html: { class: :select2 }
         = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
     .d-flex
       .c-btn-group.ml-auto

@@ -176,6 +176,7 @@ module Health
           :patient_strengths,
           :patient_goals,
           :patient_barriers,
+          :issues,
           health_file_attributes: [
             :id,
             :file,

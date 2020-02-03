@@ -1,3 +1,4 @@
+- sub_title ||= ''
 %section.health-care-plan__goals.row
   %div{class: fullscreen ? 'col-sm-12' : 'col-sm-10 col-lg-8'}
     .c-card
@@ -7,6 +8,10 @@
           = link_to new_goal_path, class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
             %i.icon-plus
             Add Goal
+      - if sub_title.present?
+        .c-card__header.c-card__header--external
+          %p
+            %em= sub_title
       .c-card__content.health-care-plan__goal-list
         - if @patient.hpc_goals.any?
           - @patient.hpc_goals.each_with_index do |goal, index|
