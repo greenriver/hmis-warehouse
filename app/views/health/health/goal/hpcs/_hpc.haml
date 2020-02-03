@@ -53,8 +53,8 @@
     .row
       .col-sm-6
         = f.input :start_date, as: :date_picker
-    = f.input :intervention, as: :text, label: 'Recommended Action Steps and any needed accommodations', input_html: sized_input_html.merge(value: f.object.intervention.strip.presence || default_with_counts)
-    = f.input :timeframe, as: :text, label: 'Timeframe', input_html: sized_input_html.merge(value: f.object.timeframe || default_with_counts)
+    = f.input :intervention, as: :text, label: 'Recommended Action Steps and any needed accommodations', input_html: sized_input_html.merge(value: f.object.intervention.presence || default_with_counts)
+    = f.input :timeframe, as: :text, label: 'Timeframe', input_html: sized_input_html.merge(value: f.object.timeframe.presence || default_with_counts)
     .row
       .col-sm-6
         = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }

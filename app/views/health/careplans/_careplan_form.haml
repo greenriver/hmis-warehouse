@@ -1,5 +1,7 @@
 = simple_form_for @careplan, url: form_url, html: {multipart: true} do |f|
   = f.error_notification
+  - sized_input_html = {class: 'sized'}
+  - default_with_counts = "1. \n\n2. \n\n3. \n\n"
   %section.row
     .col-sm-6.col-lg-4
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.current }, disabled: @careplan.locked?
@@ -8,6 +10,9 @@
   = render 'health/careplans/team', f: f
   = render 'health/careplans/about_me', f: f
   = render 'health/careplans/goals', f: f
+  %section.row
+    .col-sm-12
+      = f.input :issues, label: 'Issue(s) to consider later', input_html: sized_input_html.merge({value: f.object.issues.presence || default_with_counts})
 
   %section.health-care-plan__services
     = render 'health/careplans/service_list'
