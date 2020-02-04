@@ -140,40 +140,39 @@ module Health
 
     private def permitted_request_params
       # FIXME: this needs to use strong params in a more appropriate way
-      params.permit!
-      # params.require(:health_sdh_case_management_note).permit(
-      #   :title,
-      #   :total_time_spent_in_minutes,
-      #   :date_of_contact,
-      #   :place_of_contact,
-      #   :place_of_contact_other,
-      #   :housing_status,
-      #   :housing_status_other,
-      #   :housing_placement_date,
-      #   :client_action_medication_reconciliation_clinician,
-      #   :notes_from_encounter,
-      #   :client_phone_number,
-      #   :completed_on,
-      #   client_action: [],
-      #   topics: [],
-      #   activities_attributes: [
-      #     :id,
-      #     :mode_of_contact,
-      #     :mode_of_contact_other,
-      #     :reached_client,
-      #     :reached_client_collateral_contact,
-      #     :activity,
-      #     :date_of_activity,
-      #     :follow_up,
-      #     :_destroy,
-      #   ],
-      #   health_file_attributes: [
-      #     :id,
-      #     :file,
-      #     :file_cache,
-      #     :note,
-      #   ],
-      # )
+      params.require(:health_sdh_case_management_note).permit(
+        :title,
+        :total_time_spent_in_minutes,
+        :date_of_contact,
+        :place_of_contact,
+        :place_of_contact_other,
+        :housing_status,
+        :housing_status_other,
+        :housing_placement_date,
+        :client_action_medication_reconciliation_clinician,
+        :notes_from_encounter,
+        :client_phone_number,
+        :completed_on,
+        client_action: [],
+        topics: [],
+        activities_attributes: [
+          :id,
+          :mode_of_contact,
+          :mode_of_contact_other,
+          :reached_client,
+          :reached_client_collateral_contact,
+          :activity,
+          :date_of_activity,
+          :follow_up,
+          :_destroy,
+        ],
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache,
+          :note,
+        ],
+      )
     end
 
     private def note_params
