@@ -2,29 +2,25 @@
   .c-card__header.c-card__header--external
     %h3 Backup Plan
   .c-card__content.c-card__content--flush
-    - if @careplan.service_archive.any?
+    - if @careplan.backup_plan_archive.any?
       %table.table.health-care-plan__services-list
         %thead
           %tr
-            %th Type
-            %th Provider
-            %th Hours
-            %th Days
-            %th Requested On
-            %th Effective Date
-            %th End Date
-            %th Status
+            %th Description of Need
+            %th Backup Plan
+            %th Person/Service/Support
+            %th Phone Number
+            %th Address
+            %th Created On
         %tbody
-          - @careplan.service_archive.each do |service|
-            - service = service.with_indifferent_access
+          - @careplan.backup_plan_archive.each do |backup_plan|
+            - backup_plan = backup_plan.with_indifferent_access
             %tr
-              %td= service[:service_type]
-              %td= service[:provider]
-              %td= service[:hours]
-              %td= service[:days]
-              %td= service[:date_requested]
-              %td= service[:effective_date]
-              %td= service[:end_date]
-              %td= service[:status]
+              %td= backup_plan[:description]
+              %td= backup_plan[:backup_plan]
+              %td= backup_plan[:person]
+              %td= backup_plan[:phone]
+              %td= backup_plan[:address]
+              %td= backup_plan[:plan_created_on]
     - else
-      %p.no-data Currently no services
+      %p.no-data Currently no backup plan
