@@ -23,6 +23,9 @@ msgstr ""
 msgid "A claim was submitted for this SSM; it is no longer editable."
 msgstr ""
 
+msgid "Ad-Hoc Data Sources"
+msgstr ""
+
 msgid "Alerts"
 msgstr ""
 
@@ -3510,6 +3513,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Data Sources"
 msgstr ""
 
 msgid "HMIS Data Warehouse"

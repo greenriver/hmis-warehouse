@@ -9,6 +9,7 @@ end
 if database_exists? && ActiveRecord::Base.connection.table_exists?('translation_keys')
   require 'gettext_i18n_rails'
   require 'fast_gettext'
+  require 'gettext'
   require "fast_gettext/translation_repository/db"
   FastGettext::TranslationRepository::Db.require_models #load and include default models
 
