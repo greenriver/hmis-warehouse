@@ -18,6 +18,7 @@ AllCops:
     - 'app/models/censuses/**/*.rb'
     - 'app/models/cohort_columns/**/*.rb'
     - 'app/models/concerns/**/*.rb'
+    - 'app/models/eto_api/**/*.rb'
 
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'

@@ -24,7 +24,7 @@ namespace :db do
   task :setup_test do
     raise 'MUST be run in the test environment' unless Rails.env.test?
     [
-      'APP_DATABASE_DB_TEST',
+      'DATABASE_APP_DB_TEST',
       'WAREHOUSE_DATABASE_DB_TEST',
       'HEALTH_DATABASE_DB_TEST',
       'REPORTING_DATABASE_DB_TEST',

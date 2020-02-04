@@ -8,6 +8,7 @@
 module ReportGenerators::DataQuality::Fy2017
   class Base
     ADULT = 18
+    BATCH_SIZE = 250
     include ArelHelper
     include ApplicationHelper
     attr_reader :all_clients

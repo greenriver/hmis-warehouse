@@ -34,7 +34,7 @@ module Importing
           sleep(60 * 5) # wait 5 minutes if we're importing, don't wait more than 20
           lock_checks -= 1
         end
-        start_time = Time.now
+        @start_time = Time.now
 
         # expire client consent form if past 1 year
         GrdaWarehouse::Hud::Client.revoke_expired_consent
@@ -45,23 +45,8 @@ module Importing
           @notifier.ping('Set client consent if appropriate') if @send_notifications
         end
 
-        if GrdaWarehouse::HmisForm.vispdat.exists?
-          GrdaWarehouse::HmisForm.set_missing_vispdat_scores
-          @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
-          GrdaWarehouse::HmisForm.set_missing_vispdat_pregnancies
-          @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints') if @send_notifications
-          GrdaWarehouse::HmisForm.set_part_of_a_family
-          @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
-        end
-
-        # Disable CAS for anyone who's been housed in CAS
-        GrdaWarehouse::CasHoused.inactivate_clients
-
-        # Maintain ETO based CAS flags
-        GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
-
-        GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
-        @notifier.ping('Pushed Clients to CAS') if @send_notifications
+        update_from_hmis_forms
+        sync_with_cas
 
         # Importers::Samba.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
@@ -121,7 +106,7 @@ module Importing
 
         # Only run the chronic calculator on the 1st and 15th
         # but run it for the past 2 of each
-        if start_time.to_date.day.in?([1, 15])
+        if @start_time.to_date.day.in?([1, 15])
           months_to_build = 6
           dates = []
           months_to_build.times do |i|
@@ -157,38 +142,20 @@ module Importing
         Rails.cache.clear
         warm_cache
 
-        # take snapshots of client enrollments
-        GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
-
-        # Generate some duplicates if we need to, but not too many
-        opts = {
-          threshold: -1.45,
-          batch_size: 10_000,
-          run_length: 10,
-        }
-        SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
-        @notifier.ping('New matches generated') if @send_notifications
-
         update_reporting_db
 
         @notifier.ping('Rebuilding reporting tables...') if @send_notifications
         GrdaWarehouse::Report::Base.update_fake_materialized_views
         @notifier.ping('...done rebuilding reporting tables') if @send_notifications
 
-        @notifier.ping('Potentially queuing confidence generation') if @send_notifications
-        GrdaWarehouse::Confidence::DaysHomeless.queue_batch
-        GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
-        GrdaWarehouse::Confidence::SourceExits.queue_batch
-
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
         Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
 
-        seconds = ((Time.now - start_time) / 1.minute).round * 60
-        run_time = distance_of_time_in_words(seconds)
-        msg = "RunDailyImportsJob completed in #{run_time}"
-        Rails.logger.info msg
-        @notifier.ping(msg) if @send_notifications
+        create_statistical_matches
+        generate_logging_info
+
+        finish_processing
       end
     end
 
@@ -213,6 +180,57 @@ module Importing
       # re-set cache key for delayed job
       Rails.cache.write('deploy-dir', Delayed::Worker::Deployment.deployed_to)
       GrdaWarehouse::DataSource.data_spans_by_id
+    end
+
+    def generate_logging_info
+      # take snapshots of client enrollments
+      GrdaWarehouse::EnrollmentChangeHistory.generate_for_date!
+
+      @notifier.ping('Potentially queuing confidence generation') if @send_notifications
+      GrdaWarehouse::Confidence::DaysHomeless.queue_batch
+      GrdaWarehouse::Confidence::SourceEnrollments.queue_batch
+      GrdaWarehouse::Confidence::SourceExits.queue_batch
+    end
+
+    def create_statistical_matches
+      # Generate some duplicates if we need to, but not too many
+      opts = {
+        threshold: -1.45,
+        batch_size: 10_000,
+        run_length: 10,
+      }
+      SimilarityMetric::Tasks::GenerateCandidates.new(batch_size: opts[:batch_size], threshold: opts[:threshold], run_length: opts[:run_length]).run!
+      @notifier.ping('New matches generated') if @send_notifications
+    end
+
+    def finish_processing
+      seconds = ((Time.now - @start_time) / 1.minute).round * 60
+      run_time = distance_of_time_in_words(seconds)
+      msg = "RunDailyImportsJob completed in #{run_time}"
+      Rails.logger.info msg
+      @notifier.ping(msg) if @send_notifications
+    end
+
+    def update_from_hmis_forms
+      if GrdaWarehouse::HmisForm.vispdat.exists?
+        GrdaWarehouse::HmisForm.set_missing_vispdat_scores
+        @notifier.ping('Set VI-SPDAT Scores from ETO TouchPoints') if @send_notifications
+        GrdaWarehouse::HmisForm.set_missing_vispdat_pregnancies
+        @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints') if @send_notifications
+        GrdaWarehouse::HmisForm.set_part_of_a_family
+        @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
+      end
+
+      # Maintain ETO based CAS flags
+      GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
+    end
+
+    def sync_with_cas
+      # Disable CAS for anyone who's been housed in CAS
+      GrdaWarehouse::CasHoused.inactivate_clients
+
+      GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
+      @notifier.ping('Pushed Clients to CAS') if @send_notifications
     end
   end
 end
