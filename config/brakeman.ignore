@@ -23,52 +23,11 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
-      "fingerprint": "184e8a2529a6085f8e0d28a2f047b51fed8fe334c5ccf561b4cd2c5fd6155e13",
-      "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
-      "file": "app/views/admin/health/patient_referrals/_header.haml",
-      "line": 22,
-      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "code": "params.permit!",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Admin::Health::AgencyPatientReferralsController",
-          "method": "build_relationship",
-          "line": 120,
-          "file": "app/controllers/admin/health/agency_patient_referrals_controller.rb",
-          "rendered": {
-            "name": "admin/health/agency_patient_referrals/index",
-            "file": "app/views/admin/health/agency_patient_referrals/index.haml"
-          }
-        },
-        {
-          "type": "template",
-          "name": "admin/health/agency_patient_referrals/index",
-          "line": 4,
-          "file": "app/views/admin/health/agency_patient_referrals/index.haml",
-          "rendered": {
-            "name": "admin/health/patient_referrals/_header",
-            "file": "app/views/admin/health/patient_referrals/_header.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "admin/health/patient_referrals/_header"
-      },
-      "user_input": null,
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Mass Assignment",
-      "warning_code": 70,
       "fingerprint": "1d29b3e0a86174e13c547f4a4e5df639010b53d52527a2f592bfb6a4776db376",
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
-      "line": 17,
+      "line": 29,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -98,7 +57,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/views/cohorts/_text_size_options.haml",
-      "line": 29,
+      "line": 17,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": [
@@ -522,7 +481,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 79,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -542,7 +501,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 73,
+      "line": 53,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -582,7 +541,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 53,
+      "line": 79,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -1015,6 +974,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-02-04 10:15:32 -0500",
+  "updated": "2020-02-04 10:28:04 -0500",
   "brakeman_version": "4.7.2"
 }
