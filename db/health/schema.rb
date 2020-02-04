@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_03_185425) do
+ActiveRecord::Schema.define(version: 2020_02_03_203607) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -117,6 +117,8 @@ ActiveRecord::Schema.define(version: 2020_02_03_185425) do
     t.datetime "provider_signature_requested_at"
     t.integer "health_file_id"
     t.text "issues"
+    t.boolean "member_understands_contingency"
+    t.boolean "member_verbalizes_understanding"
     t.index ["patient_id"], name: "index_careplans_on_patient_id"
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end

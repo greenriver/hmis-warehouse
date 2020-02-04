@@ -177,6 +177,8 @@ module Health
           :patient_goals,
           :patient_barriers,
           :issues,
+          :member_understands_contingency,
+          :member_verbalizes_understanding,
           health_file_attributes: [
             :id,
             :file,
