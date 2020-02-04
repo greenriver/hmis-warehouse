@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-27 10:43-0500\n"
-"PO-Revision-Date: 2019-12-27 10:43-0500\n"
+"POT-Creation-Date: 2020-02-04 09:37-0500\n"
+"PO-Revision-Date: 2020-02-04 09:37-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -22,6 +22,9 @@ msgid "A claim was submitted for this CHA; it is no longer editable."
 msgstr ""
 
 msgid "A claim was submitted for this SSM; it is no longer editable."
+msgstr ""
+
+msgid "Ad-Hoc Data Sources"
 msgstr ""
 
 msgid "Alerts"
@@ -3511,6 +3514,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Data Sources"
 msgstr ""
 
 msgid "HMIS Data Warehouse"

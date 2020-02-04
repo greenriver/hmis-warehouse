@@ -3,4 +3,6 @@
 
 require File.expand_path('config/application', __dir__)
 
+Bundler.require(:rake)
+
 Rails.application.load_tasks
