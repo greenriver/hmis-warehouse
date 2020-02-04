@@ -23,20 +23,21 @@
   = render 'health/careplans/team_members_table'
 
   %article.health-care-plan__about-me.l-print__section--page
-    %h1 About Me
+    %h1 Strengths and Barriers
     .l-print__item
       %h4 My Health Problems
       = simple_format @careplan.patient_health_problems
     .l-print__item
-      %h4 My Strengths
+      %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
       = simple_format @careplan.patient_strengths
-    .l-print__item
-      %h4 My Goals
-      = simple_format @careplan.patient_goals
     .l-print__item
       %h4 My Barriers
       = simple_format @careplan.patient_barriers
   = render 'health/careplans/goals_table'
+
+  %article.health-care-plan__issues
+    %h4 Issue(s) to consider later
+    = simple_format @careplan.issues
 
   %article.health-care-plan__services.l-print__section--page
     = render 'health/careplans/service_list'
