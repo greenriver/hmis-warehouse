@@ -44,6 +44,15 @@
   %article.health-care-plan__equipments.l-print__section--page
     = render 'health/careplans/equipment_list'
 
+  %section.health-care-plan__backup_plans
+    %strong
+      -if  @careplan.member_understands_contingency
+        _X_
+      - else
+        ___
+    Member understands contingency plan described below if care coordinator is needed but not available
+    = render 'health/careplans/backup_plan_list'
+
   %article.health-care-plan__ssm.l-print__section--page.no-break
     %h1 Self-Sufficiency Matrix
     - if @form.is_a? GrdaWarehouse::HmisForm
@@ -78,3 +87,9 @@
       %dd.l-print__signature &nbsp;
       %dt.inline Signed On:
       %dd.inline= @careplan.provider_signed_on&.to_date
+    %strong
+      -if  @careplan.member_verbalizes_understanding
+        _X_
+      - else
+        ___
+    Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)

@@ -1,7 +1,7 @@
 version: '3.7'
 
 x-app: &app
-  image: hmis-warehouse:0.0.2
+  image: hmis-warehouse:0.0.3
   build:
     context: .
     args:
@@ -10,7 +10,7 @@ x-app: &app
       NODE_MAJOR: '12'
       YARN_VERSION: '1.17.3'
       BUNDLER_VERSION: '1.17.3'
-      ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev
+      ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf
   environment: &env
     NODE_ENV: ${NODE_ENV:-development}
     RAILS_ENV: ${RAILS_ENV:-development}

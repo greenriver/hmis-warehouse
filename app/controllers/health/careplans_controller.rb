@@ -70,6 +70,7 @@ module Health
 
       @careplan.archive_services
       @careplan.archive_equipment
+      @careplan.archive_backup_plans
       @careplan.save
     end
 

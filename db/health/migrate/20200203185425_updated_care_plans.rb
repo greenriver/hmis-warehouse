@@ -4,7 +4,7 @@ class UpdatedCarePlans < ActiveRecord::Migration[5.2]
     add_column :careplans, :issues, :text
 
      create_table :backup_plans do |t|
-      t.references :patient_id
+      t.references :patient
 
       t.string :description
       t.string :backup_plan
