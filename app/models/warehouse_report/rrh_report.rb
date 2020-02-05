@@ -699,7 +699,7 @@ class WarehouseReport::RrhReport
 
   # average length of stay for clients who exited pre-placement in a given month
   def pre_placement_average_stay_by_month client_scope
-    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
+    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date, :client_id]
     clients = client_scope.pluck(*columns).map do |row|
       Hash[columns.zip(row)]
     end.group_by do |row|
@@ -718,10 +718,11 @@ class WarehouseReport::RrhReport
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
+        # No enrollments in this project for this month
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
-          month_data[month_year]['All']['data'] << nil
-          month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          # month_data[month_year]['All']['data'] << nil
+          # month_data[month_year][project_name]['data'] << nil if @project_ids != :all
         else
           # only include clients who exited this month
           clients[project_name].each do |row|
@@ -730,9 +731,10 @@ class WarehouseReport::RrhReport
             next if row[:search_end] < beginning_of_month || row[:search_end] > end_of_month
             next if row[:search_end].present? && row[:search_start] > row[:search_end]
             use_end_date = row[:search_end]
-            month_data[month_year]['All']['data'] << (use_end_date - row[:search_start]).to_i
+            days_in_project = (use_end_date - row[:search_start]).to_i
+            month_data[month_year]['All']['data'] << days_in_project
             if @project_ids != :all
-              month_data[month_year][project_name]['data'] << (use_end_date - row[:search_start]).to_i
+              month_data[month_year][project_name]['data'] << days_in_project
             end
           end
         end
@@ -754,7 +756,7 @@ class WarehouseReport::RrhReport
   end
 
   def stabilization_average_stay_by_month client_scope
-    columns = [:housed_date, :housing_exit, :residential_project, :project_id]
+    columns = [:housed_date, :housing_exit, :residential_project, :project_id, :client_id]
     clients = client_scope.pluck(*columns).map do |row|
       Hash[columns.zip(row)]
     end.group_by do |row|
