@@ -103,7 +103,7 @@ class WarehouseReport::RrhReport
 
   def days_in_stabilization
     @days_in_stabilization ||= housed_scope.
-      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      exiting_stabilization(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:housed_date, :housing_exit, :project_id, :client_id)
   end
@@ -928,7 +928,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_no_stabilization.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_any_exit
       if params[:selected_project] == 'All'
