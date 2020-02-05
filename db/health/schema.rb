@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_04_175352) do
+ActiveRecord::Schema.define(version: 2020_02_05_144804) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,10 +116,20 @@ ActiveRecord::Schema.define(version: 2020_02_04_175352) do
     t.datetime "patient_signature_requested_at"
     t.datetime "provider_signature_requested_at"
     t.integer "health_file_id"
-    t.text "issues"
     t.boolean "member_understands_contingency"
     t.boolean "member_verbalizes_understanding"
     t.text "backup_plan_archive"
+    t.string "future_issues_0"
+    t.string "future_issues_1"
+    t.string "future_issues_2"
+    t.string "future_issues_3"
+    t.string "future_issues_4"
+    t.string "future_issues_5"
+    t.string "future_issues_6"
+    t.string "future_issues_7"
+    t.string "future_issues_8"
+    t.string "future_issues_9"
+    t.string "future_issues_10"
     t.index ["patient_id"], name: "index_careplans_on_patient_id"
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end

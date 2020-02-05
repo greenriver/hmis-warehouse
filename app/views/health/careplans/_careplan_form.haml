@@ -10,9 +10,7 @@
   = render 'health/careplans/team', f: f
   = render 'health/careplans/about_me', f: f
   = render 'health/careplans/goals', f: f
-  %section.row
-    .col-sm-12
-      = f.input :issues, label: 'Issue(s) to consider later', input_html: sized_input_html.merge({value: f.object.issues.presence || default_with_counts}), disabled: @careplan.locked?
+  = render 'health/careplans/future_issues', f: f
 
   %section.health-care-plan__services
     = render 'health/careplans/service_list'

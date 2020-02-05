@@ -243,6 +243,17 @@ module Health
       provider_signed_on && patient_signed_on
     end
 
+    def compact_future_issues
+      issues = []
+      (0..10).each do |i|
+        issues << self["future_issues_#{i}"].presence
+        self["future_issues_#{i}"] = nil
+      end
+      issues.compact.each_with_index do |issue, i|
+        self["future_issues_#{i}"] = issue
+      end
+    end
+
     def self.encounter_report_details
       {
         source: 'Warehouse',
