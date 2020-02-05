@@ -23,26 +23,35 @@
   = render 'health/careplans/team_members_table'
 
   %article.health-care-plan__about-me.l-print__section--page
-    %h1 About Me
+    %h1 Strengths and Barriers
     .l-print__item
       %h4 My Health Problems
       = simple_format @careplan.patient_health_problems
     .l-print__item
-      %h4 My Strengths
+      %h4 My Strengths (including interests, preferences, and cultural considerations and available informal, caregiver, or social supports, peer supports)
       = simple_format @careplan.patient_strengths
-    .l-print__item
-      %h4 My Goals
-      = simple_format @careplan.patient_goals
     .l-print__item
       %h4 My Barriers
       = simple_format @careplan.patient_barriers
   = render 'health/careplans/goals_table'
+
+  %article.health-care-plan__issues.l-print__section--page
+    = render 'health/careplans/future_issues'
 
   %article.health-care-plan__services.l-print__section--page
     = render 'health/careplans/service_list'
 
   %article.health-care-plan__equipments.l-print__section--page
     = render 'health/careplans/equipment_list'
+
+  %section.health-care-plan__backup_plans
+    %strong
+      -if  @careplan.member_understands_contingency
+        _X_
+      - else
+        ___
+    Member understands contingency plan described below if care coordinator is needed but not available
+    = render 'health/careplans/backup_plan_list'
 
   %article.health-care-plan__ssm.l-print__section--page.no-break
     %h1 Self-Sufficiency Matrix
@@ -78,3 +87,9 @@
       %dd.l-print__signature &nbsp;
       %dt.inline Signed On:
       %dd.inline= @careplan.provider_signed_on&.to_date
+    %strong
+      -if  @careplan.member_verbalizes_understanding
+        _X_
+      - else
+        ___
+    Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)

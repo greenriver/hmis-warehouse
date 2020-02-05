@@ -44,6 +44,9 @@ msgstr ""
 msgid "BH CP Request for Care Plan Signature"
 msgstr ""
 
+msgid "Backup Plan Emergency Note"
+msgstr ""
+
 msgid "Bed Utilization Percentages"
 msgstr ""
 

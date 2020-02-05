@@ -1,30 +1,39 @@
+- enabled = @careplan.editable?
 .c-card
   .c-card__header.c-card__header--external
     %h3 Services
+    - if enabled
+      = link_to polymorphic_path([:new] + health_path_generator + [:service]), class: 'btn btn-secondary btn-sm ml-auto', data: { loads_in_pjax_modal: true } do
+        %i.icon-plus
+        Add Service
   .c-card__content.c-card__content--flush
-    - if @careplan.service_archive.any?
-      %table.table.health-care-plan__services-list
-        %thead
-          %tr
-            %th Type
-            %th Provider
-            %th Hours
-            %th Days
-            %th Requested On
-            %th Effective Date
-            %th End Date
-            %th Status
-        %tbody
-          - @careplan.service_archive.each do |service|
-            - service = service.with_indifferent_access
-            %tr
-              %td= service[:service_type]
-              %td= service[:provider]
-              %td= service[:hours]
-              %td= service[:days]
-              %td= service[:date_requested]
-              %td= service[:effective_date]
-              %td= service[:end_date]
-              %td= service[:status]
+    - if enabled
+      = render 'health/services/service_list'
     - else
-      %p.no-data Currently no services
+      - if @careplan.service_archive.any?
+        %table.table.health-care-plan__services-list
+          %thead
+            %tr
+              %th Type
+              %th Provider
+              %th Hours
+              %th Days
+              %th Requested On
+              %th Effective Date
+              %th End Date
+              %th Status
+          %tbody
+            - @careplan.service_archive.each do |service|
+              - service = service.with_indifferent_access
+              %tr
+                %td= service[:service_type]
+                %td= service[:provider]
+                %td= service[:hours]
+                %td= service[:days]
+                %td= service[:date_requested]
+                %td= service[:effective_date]
+                %td= service[:end_date]
+                %td= service[:status]
+      - else
+        %p.no-data Currently no services
+

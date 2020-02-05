@@ -1,13 +1,16 @@
 = simple_form_for @careplan, url: form_url, html: {multipart: true} do |f|
   = f.error_notification
+  - sized_input_html = {class: 'sized'}
+  - default_with_counts = "1. \n\n2. \n\n3. \n\n"
   %section.row
     .col-sm-6.col-lg-4
       = f.input :initial_date, as: :date_picker, input_html: { class: :jInitialDate, value: f.object.initial_date&.to_date || Date.current }, disabled: @careplan.locked?
     .col-md-6.col-lg-4
-      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 6 months from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 6.months) || Date.current + 6.months }, wrapper_html: {class: 'form-group--hanging-label'}, disabled: @careplan.locked?
+      = f.input :review_date, as: :date_picker, label: 'Review Date (defaults to 1 year from initial Date)', input_html: { class: :jReviewDate, value: f.object.review_date&.to_date || f.object.initial_date&.to_date.try(:+, 12.months) || Date.current + 12.months }, wrapper_html: {class: 'form-group--hanging-label'}, disabled: @careplan.locked?
   = render 'health/careplans/team', f: f
   = render 'health/careplans/about_me', f: f
   = render 'health/careplans/goals', f: f
+  = render 'health/careplans/future_issues', f: f
 
   %section.health-care-plan__services
     = render 'health/careplans/service_list'
@@ -15,13 +18,17 @@
   %section.health-care-plan__equipments
     = render 'health/careplans/equipment_list'
 
+  %section.health-care-plan__backup_plans
+    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?
+    = render 'health/careplans/backup_plan_list'
+
   %section.c-card
     .c-card__header.c-card__header--external
       %h3 Responsible Parties Signatures
     .c-card__content
       .row.careplan-signatures
         = render 'careplan_form_signatures', f: f
-
+      = f.input :member_verbalizes_understanding, label: 'Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)', disabled: @careplan.locked?
   .well.form__upload.j-file-upload#upload_file
     = render 'upload', f: f
 

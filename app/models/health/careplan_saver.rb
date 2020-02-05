@@ -26,7 +26,7 @@ module Health
     def update
       success = true
       should_really_create_qa = @careplan.just_signed? && @create_qa
-
+      @careplan.compact_future_issues
       begin
         @careplan.class.transaction do
           if should_really_create_qa

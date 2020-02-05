@@ -78,6 +78,10 @@
        title: 'Services',
        permission: show_health_hpc,
       },
+      polymorphic_path(health_path_generator + [:backup_plans], client_id: @client) => {
+        title: 'Backup Plans',
+        permission: show_health_hpc,
+      },
       polymorphic_path(goals_path_generator, client_id: @client) => {
         title: 'Goals',
         permission: show_health_hpc,
