@@ -915,7 +915,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_to_stabilization.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_no_stabilization_exit
       if params[:selected_project] == 'All'
@@ -937,7 +937,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :time_in_stabilization
       if params[:selected_project] == 'All'
