@@ -1,10 +1,10 @@
-
+- f ||= ''
 - sized_input_html = {class: 'sized'}
 .c-card
   .c-card__header.c-card__header--external
     %h3 Issue(s) to consider later
   .c-card__content.c-card__content--flush.mb-4
-    - if @careplan.editable?
+    - if @careplan.editable? && f.present?
       - (0..10).each do |i|
         .row.m-4.jIssueRow
           .col-1.text-right.pt-2

@@ -35,9 +35,8 @@
       = simple_format @careplan.patient_barriers
   = render 'health/careplans/goals_table'
 
-  %article.health-care-plan__issues
-    %h4 Issue(s) to consider later
-    = simple_format @careplan.issues
+  %article.health-care-plan__issues.l-print__section--page
+    = render 'health/careplans/future_issues'
 
   %article.health-care-plan__services.l-print__section--page
     = render 'health/careplans/service_list'
