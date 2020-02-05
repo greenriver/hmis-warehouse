@@ -89,11 +89,11 @@ class WarehouseReport::RrhReport
     @days_in_pre_placement ||= housed_scope.
       enrolled_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start, :search_end)
+      pluck(:search_start, :search_end, :project_id, :client_id)
   end
 
   def average_days_in_pre_placement
-    days = days_in_pre_placement.map do |entry_date, exit_date|
+    days = days_in_pre_placement.map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
@@ -105,11 +105,11 @@ class WarehouseReport::RrhReport
     @days_in_stabilization ||= housed_scope.
       enrolled_stabilization(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:housed_date, :housing_exit)
+      pluck(:housed_date, :housing_exit, :project_id, :client_id)
   end
 
   def average_days_in_stabilization
-    days = days_in_stabilization.map do |entry_date, exit_date|
+    days = days_in_stabilization.map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
