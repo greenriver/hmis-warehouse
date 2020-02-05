@@ -32,7 +32,7 @@ module Health
         begin
           Health::DmeSaver.new(equipment: @equipment, user: current_user).update
         rescue ActiveRecord::RecordInvalid
-          j render 'create'
+          render 'create'
         end
       else
         Health::DmeSaver.new(equipment: @equipment, user: current_user).update
@@ -48,7 +48,7 @@ module Health
         begin
           Health::DmeSaver.new(equipment: @equipment, user: current_user).create
         rescue ActiveRecord::RecordInvalid
-          j render 'create'
+          render 'create'
         end
       else
         Health::DmeSaver.new(equipment: @equipment, user: current_user).create

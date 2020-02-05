@@ -12,7 +12,7 @@
   = render 'health/careplans/goals', f: f
   %section.row
     .col-sm-12
-      = f.input :issues, label: 'Issue(s) to consider later', input_html: sized_input_html.merge({value: f.object.issues.presence || default_with_counts})
+      = f.input :issues, label: 'Issue(s) to consider later', input_html: sized_input_html.merge({value: f.object.issues.presence || default_with_counts}), disabled: @careplan.locked?
 
   %section.health-care-plan__services
     = render 'health/careplans/service_list'
@@ -21,7 +21,7 @@
     = render 'health/careplans/equipment_list'
 
   %section.health-care-plan__backup_plans
-    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available'
+    = f.input :member_understands_contingency, label: 'Member understands contingency plan described below if care coordinator is needed but not available', disabled: @careplan.locked?
     = render 'health/careplans/backup_plan_list'
 
   %section.c-card
@@ -30,7 +30,7 @@
     .c-card__content
       .row.careplan-signatures
         = render 'careplan_form_signatures', f: f
-      = f.input :member_verbalizes_understanding, label: 'Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)'
+      = f.input :member_verbalizes_understanding, label: 'Member verbalizes understanding and accepts care plan. (Note: signature needed within 3 mos. of verbal approval.)', disabled: @careplan.locked?
   .well.form__upload.j-file-upload#upload_file
     = render 'upload', f: f
 

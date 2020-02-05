@@ -41,7 +41,7 @@ module Health
         begin
           Health::ServiceSaver.new(service: @service, user: current_user).update
         rescue ActiveRecord::RecordInvalid
-          j render 'create'
+          render 'create'
         end
       else
         Health::ServiceSaver.new(service: @service, user: current_user).update
@@ -57,7 +57,7 @@ module Health
         begin
           Health::ServiceSaver.new(service: @service, user: current_user).update
         rescue ActiveRecord::RecordInvalid
-          j render 'create'
+          render 'create'
         end
       else
         Health::ServiceSaver.new(service: @service, user: current_user).update

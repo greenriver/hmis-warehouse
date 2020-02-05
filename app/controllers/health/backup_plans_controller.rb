@@ -38,7 +38,7 @@ module Health
         begin
           Health::BackupPlanSaver.new(backup_plan: @backup_plan, user: current_user).update
         rescue ActiveRecord::RecordInvalid
-          j render 'create'
+          render 'create'
         end
       else
         Health::BackupPlanSaver.new(backup_plan: @backup_plan, user: current_user).update
@@ -51,10 +51,10 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:backup_plans], client_id: @client.id)
       @backup_plan = @patient.backup_plans.build(backup_plan_params)
       if request.xhr?
-        begin
+        if @backup_plan.valid?
           Health::BackupPlanSaver.new(backup_plan: @backup_plan, user: current_user).update
-        rescue ActiveRecord::RecordInvalid
-          j render 'create'
+        else
+          render 'create'
         end
       else
         Health::BackupPlanSaver.new(backup_plan: @backup_plan, user: current_user).update

@@ -31,6 +31,7 @@ x-backend: &backend
   volumes:
     - .:/app:cached
     - rails_cache:/app/tmp/cache
+    - bundle:/bundle
 
 services:
   shell:

@@ -64,6 +64,7 @@ module Health
       @form_button = 'Save Care Plan'
       @services = @patient.services
       @equipments = @patient.equipments
+      @disable_goal_actions = ! @careplan.editable?
       # make sure we have the most recent-services and DME if
       # the plan is editable
       return unless @careplan.editable?
