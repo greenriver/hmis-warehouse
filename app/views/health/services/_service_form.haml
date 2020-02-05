@@ -1,5 +1,5 @@
 = simple_form_for @service, url: @form_url, remote: request.xhr? do |f|
-  .jBackupPlansForm
+  .jServicesForm
     .row
       .col-sm-8
         = f.input :service_type, collection: @service.class.available_types, input_html: {class: :select2, style: 'width: 100%;'}

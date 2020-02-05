@@ -38,9 +38,9 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:service], client_id: @client.id)
       @service.assign_attributes(service_params)
       if request.xhr?
-        begin
+        if @service.valid?
           Health::ServiceSaver.new(service: @service, user: current_user).update
-        rescue ActiveRecord::RecordInvalid
+        else
           render 'create'
         end
       else
@@ -54,9 +54,9 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:services], client_id: @client.id)
       @service = @patient.services.build(service_params)
       if request.xhr?
-        begin
+        if @service.valid?
           Health::ServiceSaver.new(service: @service, user: current_user).update
-        rescue ActiveRecord::RecordInvalid
+        else
           render 'create'
         end
       else

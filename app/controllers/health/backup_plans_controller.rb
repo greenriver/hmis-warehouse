@@ -35,9 +35,9 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:backup_plan], client_id: @client.id)
       @backup_plan.assign_attributes(backup_plan_params)
       if request.xhr?
-        begin
+        if @backup_plan.valid?
           Health::BackupPlanSaver.new(backup_plan: @backup_plan, user: current_user).update
-        rescue ActiveRecord::RecordInvalid
+        else
           render 'create'
         end
       else
