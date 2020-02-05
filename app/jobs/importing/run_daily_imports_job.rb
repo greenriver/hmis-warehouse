@@ -219,6 +219,8 @@ module Importing
         @notifier.ping('Set VI-SPDAT Pregnancies from ETO TouchPoints') if @send_notifications
         GrdaWarehouse::HmisForm.set_part_of_a_family
         @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
+        GrdaWarehouse::HmisForm.set_missing_housing_status
+        @notifier.ping('Set Housing Status based on ETO TouchPoints') if @send_notifications
       end
 
       # Maintain ETO based CAS flags
