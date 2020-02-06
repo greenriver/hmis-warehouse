@@ -108,12 +108,12 @@ module Health
     end
 
     private def clean_note_params!(permitted_params)
-      # NOTE: Remove -1 from activities_attributes -- if this is present in params we get unpermitted params
+      # NOTE: Remove -999 from activities_attributes -- if this is present in params we get unpermitted params
       # Let me know if there is a better solution @meborn
-      # -1 is used to add activities via js see health/sdh_case_management_note/form_js addActivity
+      # -999 is used to add activities via js see health/sdh_case_management_note/form_js addActivity
       #
-      # '-1' used to be 'COPY', but Rails 5 discards the map if it contains a string key
-      (permitted_params[:activities_attributes] || {}).reject! { |k, _v| k == '-1' }
+      # '-999' used to be 'COPY', but Rails 5 discards the map if it contains a string key
+      (permitted_params[:activities_attributes] || {}).reject! { |k, _v| k == '-999' }
       # remove :_destroy on ajax
       # remove health_file on ajax
       permitted_params.delete(:health_file_attributes) if params[:commit] != 'Save Case Note'

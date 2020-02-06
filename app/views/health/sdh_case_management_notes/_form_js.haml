@@ -54,7 +54,7 @@
       var none = $(behaviorSelector("no activities"));
       var activities = $(behaviorSelector("activity"));
       var template = $(behaviorSelector("activity to copy"))[0];
-      var html = $(template).html().replace(/-1/gi, activities.length);
+      var html = $(template).html().replace(/-999/gi, activities.length);
       
       var newActivityContainer = $("<div class='sdh-note__activity' data-behavior='activity'></div>").appendTo(container);
       var newHeader = $("<h5 class='uppercase gray-light'>Qualifying Activity #"+(activities.length+1)+"</h5>").appendTo(newActivityContainer);
