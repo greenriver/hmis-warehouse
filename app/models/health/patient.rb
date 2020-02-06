@@ -95,6 +95,7 @@ module Health
 
     has_many :services
     has_many :equipments
+    has_many :backup_plans
 
     has_one :patient_referral, required: false
     has_one :health_agency, through: :patient_referral, source: :assigned_agency

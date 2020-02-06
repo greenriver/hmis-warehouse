@@ -171,7 +171,7 @@ module Health
 
     def self.encounter_report_details
       {
-        source: 'ETO',
+        source: 'EPIC',
       }
     end
   end

@@ -137,11 +137,28 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         next unless hmis_form.destination_client.present?
 
         hmis_form.vispdat_pregnant = hmis_form.vispdat_pregnancy_status
-        hmis_form.vispdat_score_updated_at = Time.now
+        hmis_form.vispdat_pregnant_updated_at = Time.now
 
         if hmis_form.changed?
           hmis_form.save
         end
+      end
+    end
+  end
+
+  def self.set_missing_housing_status
+    ids = case_management_notes.where(
+      arel_table[:housing_status].eq(nil).
+        or(arel_table[:collected_at].gt(arel_table[:housing_status_updated_at]))
+      ).pluck(:id)
+    ids.each_slice(100) do |batch|
+      case_management_notes.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.housing_status = hmis_form.housing_status_answer
+        hmis_form.housing_status_updated_at = Time.current
+
+        hmis_form.save if hmis_form.changed?
       end
     end
   end
@@ -347,6 +364,18 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def vispdat_days_homeless
     return 0 unless vispdat_months_homeless.present?
     vispdat_months_homeless * 30
+  end
+
+  def housing_status_answer
+    relevant_section = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('first page') && section[:questions].present?
+    end&.first
+    return nil unless relevant_section.present?
+
+    relevant_question = relevant_section[:questions].select do |question|
+      question[:question].downcase.starts_with?('housing status')
+    end&.first.try(:[], :answer)
+    relevant_question
   end
 
   def qualifying_activities
