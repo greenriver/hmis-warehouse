@@ -1971,7 +1971,7 @@ module GrdaWarehouse::Hud
         last_name.present?,
         ssn.present?,
         dob.present?,
-      ].count(true) > 2
+      ].count(true) >= 3
       return none unless sufficient_criteria
 
       first_name_ids = []

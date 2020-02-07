@@ -158,11 +158,11 @@ class Role < ApplicationRecord
         administrative: true,
       },
       can_use_strict_search: {
-        description: 'Access to the client search screen that requires more exact matching. Assiging "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
+        description: 'Access to the client search screen that requires more exact matching. Assigning "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
         administrative: false,
       },
       can_search_window: {
-        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assiging "Can View Clients" will take precedence and grant additional access',
+        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
         administrative: false,
       },
       can_view_client_window: {

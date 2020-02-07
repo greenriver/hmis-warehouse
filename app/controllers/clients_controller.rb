@@ -33,7 +33,7 @@ class ClientsController < ApplicationController
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
     @clients = client_scope.none
-    if current_user.can_access_window_search? && params[:q].present?
+    if (current_user.can_access_window_search? || current_user.can_access_client_search?) && params[:q].present?
       @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
     elsif current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
@@ -41,7 +41,7 @@ class ClientsController < ApplicationController
     @clients = @clients.
       preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
       page(params[:page]).per(20)
-    if current_user.can_access_window_search?
+    if current_user.can_access_window_search? || current_user.can_access_client_search?
       sort_filter_index
     elsif current_user.can_use_strict_search?
       @client = client_source.new(strict_search_params)
