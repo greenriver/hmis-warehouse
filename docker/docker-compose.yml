@@ -1,7 +1,7 @@
-version: '3.4'
+version: '3.7'
 
 x-app: &app
-  image: hmis-warehouse:0.0.1
+  image: hmis-warehouse:0.0.3
   build:
     context: .
     args:
@@ -10,7 +10,7 @@ x-app: &app
       NODE_MAJOR: '12'
       YARN_VERSION: '1.17.3'
       BUNDLER_VERSION: '1.17.3'
-      ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev
+      ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf
   environment: &env
     NODE_ENV: ${NODE_ENV:-development}
     RAILS_ENV: ${RAILS_ENV:-development}
@@ -31,40 +31,76 @@ x-backend: &backend
   volumes:
     - .:/app:cached
     - rails_cache:/app/tmp/cache
+    - bundle:/bundle
 
 services:
-  runner:
+  shell:
     <<: *backend
     command: /bin/bash
+    entrypoint: ''
+    depends_on:
+      - db
+      - redis
 
-  ssh_runner:
+  console:
     <<: *backend
-    command: /bin/bash
-    secrets:
-      - host_ssh_key
+    stdin_open: true
+    tty: true
+    command: bundle exec rails console
+    depends_on:
+      - db
+      - redis
+      - mailhog
 
-  rails:
+  web:
     <<: *backend
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
-    # ports:
-    #   - '3000:3000'
     expose:
       - 3000
     environment:
       <<: *env
-      VIRTUAL_HOST: hmis-warehouse.dev.test
+      VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 3000
+    depends_on:
+      - db
+      - redis
+      - mailhog
 
-secrets:
-  host_ssh_key:
-    file: ~/.ssh/id_rsa
+  db:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PSQL_HISTFILE: /root/log/.psql_history
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis:/data
+    ports:
+      - 6379
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    environment:
+      VIRTUAL_HOST: mail.${FQDN:-hmis-warehouse.dev.test}
+      VIRTUAL_PORT: 8025
+    expose:
+      - 8025
+      - 1025
 
 volumes:
   bundle:
   node_modules:
   rails_cache:
+  dbdata:
+  redis:
 
 networks:
   default:

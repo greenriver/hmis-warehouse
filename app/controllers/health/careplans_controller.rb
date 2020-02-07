@@ -64,12 +64,14 @@ module Health
       @form_button = 'Save Care Plan'
       @services = @patient.services
       @equipments = @patient.equipments
+      @disable_goal_actions = @careplan.locked?
       # make sure we have the most recent-services and DME if
       # the plan is editable
       return unless @careplan.editable?
 
       @careplan.archive_services
       @careplan.archive_equipment
+      @careplan.archive_backup_plans
       @careplan.save
     end
 
@@ -176,6 +178,19 @@ module Health
           :patient_strengths,
           :patient_goals,
           :patient_barriers,
+          :future_issues_0,
+          :future_issues_1,
+          :future_issues_2,
+          :future_issues_3,
+          :future_issues_4,
+          :future_issues_5,
+          :future_issues_6,
+          :future_issues_7,
+          :future_issues_8,
+          :future_issues_9,
+          :future_issues_10,
+          :member_understands_contingency,
+          :member_verbalizes_understanding,
           health_file_attributes: [
             :id,
             :file,

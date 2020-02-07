@@ -12,11 +12,11 @@ module ReportGenerators::DataQuality::Fy2017
       if start_report(Reports::DataQuality::Fy2017::Q4.first)
         @answers = setup_questions()
         @support = @answers.deep_dup
-        @all_clients = fetch_all_clients()
-        if @all_clients.any?
-          setup_age_categories()
-          update_report_progress(percent: 25)
+        @all_client_ids = fetch_all_client_ids()
+        if @all_client_ids.any?
           @clients_with_issues = Set.new
+          setup_age_categories(@all_client_ids)
+          update_report_progress(percent: 25)
           add_destination_answers()
           add_income_at_entry_answers()
           update_report_progress(percent: 50)
@@ -30,34 +30,46 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def fetch_all_clients
-      columns = {
-        client_id: she_t[:client_id].to_sql,
-        age: she_t[:age].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        data_source_id: she_t[:data_source_id].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        destination: she_t[:destination].to_sql,
-      }
+    def fetch_all_client_ids
+      client_batch_scope.
+        pluck(:client_id)
+    end
 
+    def client_batch_scope
       active_client_scope.
+        distinct.
         includes(:enrollment).
-        joins(:project).
-        order(date: :asc).
+        joins(:project)
+    end
+
+    def client_batch(client_ids)
+      client_batch_scope.
+        where(client_id: client_ids).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
-        end.map do |enrollment|
+          enrollment = Hash[columns.keys.zip(row)]
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment
         end.group_by do |row|
           row[:client_id]
         end
+    end
+
+    def columns
+      @columns ||= {
+        client_id: she_t[:client_id],
+        age: she_t[:age],
+        DOB: c_t[:DOB],
+        project_type: she_t[:computed_project_type],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_name: she_t[:project_name],
+        destination: she_t[:destination],
+      }
     end
 
     def add_destination_answers
@@ -97,41 +109,43 @@ module ReportGenerators::DataQuality::Fy2017
 
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment
-      incomes = incomes_by_enrollment(client_ids: client_ids, stage: :entry)
       poor_quality = Hash.new
-      client_ids.each do |id|
-        enrollment = @all_clients[id].last
-        if incomes[[
-          enrollment[:client_id],
-          enrollment[:enrollment_group_id],
-          enrollment[:project_id],
-          enrollment[:data_source_id],
-        ]].blank?
-          enrollment[:reason] = 'Missing income assessment'
-          poor_quality[id] = enrollment
-        else
-          income = incomes[[
+      client_ids.each_slice(BATCH_SIZE) do |ids|
+        incomes = incomes_by_enrollment(client_ids: ids, stage: :entry)
+        client_batch(ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          if incomes[[
             enrollment[:client_id],
             enrollment[:enrollment_group_id],
             enrollment[:project_id],
-            enrollment[:data_source_id]
-          ]].last
-          if enrollment[:first_date_in_program] != income[:first_date_in_program]
-            enrollment[:reason] = 'Missing income assessment on entry date'
-            poor_quality[id] = enrollment
-          elsif [8,9,nil].include?(income[:IncomeFromAnySource])
-            enrollment[:reason] = 'Income from any source refused or missing'
-            poor_quality[id] = enrollment
+            enrollment[:data_source_id],
+          ]].blank?
+            enrollment[:reason] = 'Missing income assessment'
+            poor_quality[client_id] = enrollment
           else
-            if income[:IncomeFromAnySource] == 0
-              if income.values_at(*income_sources).compact.uniq != [nil]
-                enrollment[:reason] = 'Indicated no sources, yet sources exits'
-                poor_quality[id] = enrollment
-              end
-            elsif income[:IncomeFromAnySource] == 1
-              if income.values_at(*income_sources).compact.uniq == [nil]
-                enrollment[:reason] = 'Indicated sources, yet no sources exits'
-                poor_quality[id] = enrollment
+            income = incomes[[
+              enrollment[:client_id],
+              enrollment[:enrollment_group_id],
+              enrollment[:project_id],
+              enrollment[:data_source_id]
+            ]].last
+            if enrollment[:first_date_in_program] != income[:first_date_in_program]
+              enrollment[:reason] = 'Missing income assessment on entry date'
+              poor_quality[client_id] = enrollment
+            elsif [8,9,nil].include?(income[:IncomeFromAnySource])
+              enrollment[:reason] = 'Income from any source refused or missing'
+              poor_quality[client_id] = enrollment
+            else
+              if income[:IncomeFromAnySource] == 0
+                if income.values_at(*income_sources).compact.uniq != [nil]
+                  enrollment[:reason] = 'Indicated no sources, yet sources exits'
+                  poor_quality[client_id] = enrollment
+                end
+              elsif income[:IncomeFromAnySource] == 1
+                if income.values_at(*income_sources).compact.uniq == [nil]
+                  enrollment[:reason] = 'Indicated sources, yet no sources exits'
+                  poor_quality[client_id] = enrollment
+                end
               end
             end
           end
@@ -165,41 +179,43 @@ module ReportGenerators::DataQuality::Fy2017
 
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment
-      incomes = incomes_by_enrollment(client_ids: client_ids, stage: :exit)
       poor_quality = Hash.new
-      client_ids.each do |id|
-        enrollment = leavers[id]
-        if incomes[[
-          enrollment[:client_id],
-          enrollment[:enrollment_group_id],
-          enrollment[:project_id],
-          enrollment[:data_source_id],
-        ]].blank?
-          enrollment[:reason] = 'Missing income assessment'
-          poor_quality[id] = enrollment
-        else
-          income = incomes[[
+      client_ids.each_slice(BATCH_SIZE) do |ids|
+        incomes = incomes_by_enrollment(client_ids: ids, stage: :exit)
+        ids.each do |id|
+          enrollment = leavers[id]
+          if incomes[[
             enrollment[:client_id],
             enrollment[:enrollment_group_id],
             enrollment[:project_id],
-            enrollment[:data_source_id]
-          ]].last
-          if enrollment[:last_date_in_program] != income[:last_date_in_program]
-            enrollment[:reason] = 'Missing income assessment on exit date'
-            poor_quality[id] = enrollment
-          elsif [8,9,nil].include?(income[:IncomeFromAnySource])
-            enrollment[:reason] = 'Income from any source refused or missing'
+            enrollment[:data_source_id],
+          ]].blank?
+            enrollment[:reason] = 'Missing income assessment'
             poor_quality[id] = enrollment
           else
-            if income[:IncomeFromAnySource] == 0
-              if income.values_at(*income_sources).compact.uniq != [nil]
-                enrollment[:reason] = 'Indicated no sources, yet sources exits'
-                poor_quality[id] = enrollment
-              end
-            elsif income[:IncomeFromAnySource] == 1
-              if income.values_at(*income_sources).compact.uniq == [nil]
-                enrollment[:reason] = 'Indicated sources, yet no sources exits'
-                poor_quality[id] = enrollment
+            income = incomes[[
+              enrollment[:client_id],
+              enrollment[:enrollment_group_id],
+              enrollment[:project_id],
+              enrollment[:data_source_id]
+            ]].last
+            if enrollment[:last_date_in_program] != income[:last_date_in_program]
+              enrollment[:reason] = 'Missing income assessment on exit date'
+              poor_quality[id] = enrollment
+            elsif [8,9,nil].include?(income[:IncomeFromAnySource])
+              enrollment[:reason] = 'Income from any source refused or missing'
+              poor_quality[id] = enrollment
+            else
+              if income[:IncomeFromAnySource] == 0
+                if income.values_at(*income_sources).compact.uniq != [nil]
+                  enrollment[:reason] = 'Indicated no sources, yet sources exits'
+                  poor_quality[id] = enrollment
+                end
+              elsif income[:IncomeFromAnySource] == 1
+                if income.values_at(*income_sources).compact.uniq == [nil]
+                  enrollment[:reason] = 'Indicated sources, yet no sources exits'
+                  poor_quality[id] = enrollment
+                end
               end
             end
           end
@@ -237,46 +253,48 @@ module ReportGenerators::DataQuality::Fy2017
         enrollment[:stay_length] >= 365
       end
 
-      incomes = incomes_by_enrollment(client_ids: clients_with_enrollments.keys, stage: :annual)
-
       poor_quality = Hash.new
-      clients_with_enrollments.each do |id, enrollment|
-        if incomes[[
-          enrollment[:client_id],
-          enrollment[:enrollment_group_id],
-          enrollment[:project_id],
-          enrollment[:data_source_id],
-        ]].blank?
-          enrollment[:reason] = 'Missing income assessment'
-          poor_quality[id] = enrollment
-        else
-          anniversary = anniversary_date(enrollment[:first_date_in_program])
-          anniversary_incomes = incomes[[
+      clients_with_enrollments.keys.each_slice(BATCH_SIZE) do |client_ids|
+        incomes = incomes_by_enrollment(client_ids: client_ids, stage: :annual)
+        client_batch = clients_with_enrollments.select{ |k,_| client_ids.include?(k) }
+        client_batch.each do |id, enrollment|
+          if incomes[[
             enrollment[:client_id],
             enrollment[:enrollment_group_id],
             enrollment[:project_id],
-            enrollment[:data_source_id]
-          ]].select do |income|
-            (income[:InformationDate] - anniversary).abs > 30
-          end
-          if anniversary_incomes.empty?
-            enrollment[:reason] = 'Missing income assessment on or near anniversary date'
+            enrollment[:data_source_id],
+          ]].blank?
+            enrollment[:reason] = 'Missing income assessment'
             poor_quality[id] = enrollment
           else
-            income = anniversary_incomes.last
-            if [8,9,nil].include?(income[:IncomeFromAnySource])
-              enrollment[:reason] = 'Income from any source refused or missing'
+            anniversary = anniversary_date(enrollment[:first_date_in_program])
+            anniversary_incomes = incomes[[
+              enrollment[:client_id],
+              enrollment[:enrollment_group_id],
+              enrollment[:project_id],
+              enrollment[:data_source_id]
+            ]].select do |income|
+              (income[:InformationDate] - anniversary).abs > 30
+            end
+            if anniversary_incomes.empty?
+              enrollment[:reason] = 'Missing income assessment on or near anniversary date'
               poor_quality[id] = enrollment
             else
-              if income[:IncomeFromAnySource] == 0
-                if income.values_at(*income_sources).compact.uniq != [nil]
-                  enrollment[:reason] = 'Indicated no sources, yet sources exits'
-                  poor_quality[id] = enrollment
-                end
-              elsif income[:IncomeFromAnySource] == 1
-                if income.values_at(*income_sources).compact.uniq == [nil]
-                  enrollment[:reason] = 'Indicated sources, yet no sources exits'
-                  poor_quality[id] = enrollment
+              income = anniversary_incomes.last
+              if [8,9,nil].include?(income[:IncomeFromAnySource])
+                enrollment[:reason] = 'Income from any source refused or missing'
+                poor_quality[id] = enrollment
+              else
+                if income[:IncomeFromAnySource] == 0
+                  if income.values_at(*income_sources).compact.uniq != [nil]
+                    enrollment[:reason] = 'Indicated no sources, yet sources exits'
+                    poor_quality[id] = enrollment
+                  end
+                elsif income[:IncomeFromAnySource] == 1
+                  if income.values_at(*income_sources).compact.uniq == [nil]
+                    enrollment[:reason] = 'Indicated sources, yet no sources exits'
+                    poor_quality[id] = enrollment
+                  end
                 end
               end
             end
@@ -307,7 +325,6 @@ module ReportGenerators::DataQuality::Fy2017
         annual: :income_benefits_annual_update,
         exit: :income_benefits_at_exit,
       }
-      columns = income_columns
       [].tap do |m|
         client_ids.each_slice(5000) do |ids|
           m.concat(
@@ -315,8 +332,8 @@ module ReportGenerators::DataQuality::Fy2017
               joins(enrollment: stages[stage]).
               where(client_id: ids).
               merge(GrdaWarehouse::Hud::IncomeBenefit.order(InformationDate: :asc)).
-              pluck(*columns.values).map do |row|
-                Hash[columns.keys.zip(row)]
+              pluck(*income_columns.values).map do |row|
+                Hash[income_columns.keys.zip(row)]
               end
           )
         end
@@ -331,21 +348,21 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def income_columns
-      @columns ||= begin
-        income_source_columns = Hash[income_sources.map{|v| [v, ib_t[v].as(v.to_s).to_sql]}]
+      @income_columns ||= begin
+        income_source_columns = Hash[income_sources.map{|v| [v, ib_t[v].as(v.to_s)]}]
         {
-          client_id: she_t[:client_id].to_sql,
-          project_id: she_t[:project_id].to_sql,
-          data_source_id: she_t[:data_source_id].to_sql,
-          first_date_in_program: she_t[:first_date_in_program].to_sql,
-          last_date_in_program: she_t[:last_date_in_program].to_sql,
-          project_name: she_t[:project_name].to_sql,
-          InformationDate: ib_t[:InformationDate].to_sql,
-          enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-          IncomeFromAnySource: ib_t[:IncomeFromAnySource].to_sql,
+          client_id: she_t[:client_id],
+          project_id: she_t[:project_id],
+          data_source_id: she_t[:data_source_id],
+          first_date_in_program: she_t[:first_date_in_program],
+          last_date_in_program: she_t[:last_date_in_program],
+          project_name: she_t[:project_name],
+          InformationDate: ib_t[:InformationDate],
+          enrollment_group_id: she_t[:enrollment_group_id],
+          IncomeFromAnySource: ib_t[:IncomeFromAnySource],
         }.merge(income_source_columns)
       end
-      @columns
+      @income_columns
     end
 
     def income_sources

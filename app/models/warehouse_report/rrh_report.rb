@@ -89,11 +89,11 @@ class WarehouseReport::RrhReport
     @days_in_pre_placement ||= housed_scope.
       enrolled_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start, :search_end)
+      pluck(:search_start, :search_end, :project_id, :client_id)
   end
 
   def average_days_in_pre_placement
-    days = days_in_pre_placement.map do |entry_date, exit_date|
+    days = days_in_pre_placement.map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
@@ -103,13 +103,13 @@ class WarehouseReport::RrhReport
 
   def days_in_stabilization
     @days_in_stabilization ||= housed_scope.
-      enrolled_stabilization(start_date: start_date, end_date: end_date).
+      exiting_stabilization(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:housed_date, :housing_exit)
+      pluck(:housed_date, :housing_exit, :project_id, :client_id)
   end
 
   def average_days_in_stabilization
-    days = days_in_stabilization.map do |entry_date, exit_date|
+    days = days_in_stabilization.map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
@@ -130,7 +130,7 @@ class WarehouseReport::RrhReport
   end
 
   def average_days_leavers_pre_placement_exit_to_stabilization
-    days = leavers_pre_placement_exit_to_stabilization.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+    days = leavers_pre_placement_exit_to_stabilization.pluck(:search_start, :search_end, :project_id, :client_id).map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
@@ -145,7 +145,7 @@ class WarehouseReport::RrhReport
   end
 
   def average_days_leavers_pre_placement_exit_no_stabilization
-    days = leavers_pre_placement_exit_no_stabilization.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+    days = leavers_pre_placement_exit_no_stabilization.pluck(:search_start, :search_end, :project_id, :client_id).map do |entry_date, exit_date, _, _|
       exit_date ||= end_date
       (exit_date.to_date - entry_date).to_i
     end.sum
@@ -154,7 +154,7 @@ class WarehouseReport::RrhReport
   end
 
   def leavers_average_pre_placement
-    days = leavers_pre_placement.pluck(:search_start, :search_end).map do |entry_date, exit_date|
+    days = leavers_pre_placement.pluck(:search_start, :search_end, :project_id, :client_id).map do |entry_date, exit_date, _, _|
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -165,7 +165,7 @@ class WarehouseReport::RrhReport
     @stayers_days_in_pre_placement ||= housed_scope.
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date|
+      pluck(:search_start, :project_id, :client_id).compact.map do |entry_date, _, _|
         [entry_date, end_date]
       end
   end
@@ -182,11 +182,11 @@ class WarehouseReport::RrhReport
     @leavers_days_in_stabilization ||= housed_scope.
       leavers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:housed_date, :housing_exit)
+      pluck(:housed_date, :housing_exit, :project_id, :client_id)
   end
 
   def leavers_average_days_in_stabilization
-    days = leavers_days_in_stabilization.map do |entry_date, exit_date|
+    days = leavers_days_in_stabilization.map do |entry_date, exit_date, _, _|
       (exit_date.to_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -198,7 +198,7 @@ class WarehouseReport::RrhReport
       stayers_stabilization(start_date: start_date, end_date: end_date).
       distinct.
       where.not(housed_date: nil).
-      pluck(:housed_date).compact.map do |entry_date|
+      pluck(:housed_date, :project_id, :client_id).compact.map do |entry_date, _, _|
         [entry_date, end_date]
       end
   end
@@ -221,11 +221,11 @@ class WarehouseReport::RrhReport
     @leavers_days ||= housed_scope.
       leavers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start, :housing_exit)
+      pluck(:search_start, :housing_exit, :project_id, :client_id)
   end
 
   def leavers_average_days
-    days = leavers_days.map do |entry_date, exit_date|
+    days = leavers_days.map do |entry_date, exit_date, _, _|
       (exit_date - entry_date).to_i
     end.sum
     return days if days == 0
@@ -236,7 +236,7 @@ class WarehouseReport::RrhReport
     @stayers_days ||= housed_scope.
       stayers(start_date: start_date, end_date: end_date).
       distinct.
-      pluck(:search_start).compact.map do |entry_date|
+      pluck(:search_start, :project_id, :client_id).compact.map do |entry_date, _, _|
         [entry_date, end_date]
       end
   end
@@ -699,7 +699,7 @@ class WarehouseReport::RrhReport
 
   # average length of stay for clients who exited pre-placement in a given month
   def pre_placement_average_stay_by_month client_scope
-    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date]
+    columns = [:search_start, :search_end, :service_project, :project_id, :housed_date, :client_id]
     clients = client_scope.pluck(*columns).map do |row|
       Hash[columns.zip(row)]
     end.group_by do |row|
@@ -718,10 +718,11 @@ class WarehouseReport::RrhReport
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
+        # No enrollments in this project for this month
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
-          month_data[month_year]['All']['data'] << nil
-          month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          # month_data[month_year]['All']['data'] << nil
+          # month_data[month_year][project_name]['data'] << nil if @project_ids != :all
         else
           # only include clients who exited this month
           clients[project_name].each do |row|
@@ -730,9 +731,10 @@ class WarehouseReport::RrhReport
             next if row[:search_end] < beginning_of_month || row[:search_end] > end_of_month
             next if row[:search_end].present? && row[:search_start] > row[:search_end]
             use_end_date = row[:search_end]
-            month_data[month_year]['All']['data'] << (use_end_date - row[:search_start]).to_i
+            days_in_project = (use_end_date - row[:search_start]).to_i
+            month_data[month_year]['All']['data'] << days_in_project
             if @project_ids != :all
-              month_data[month_year][project_name]['data'] << (use_end_date - row[:search_start]).to_i
+              month_data[month_year][project_name]['data'] << days_in_project
             end
           end
         end
@@ -754,7 +756,7 @@ class WarehouseReport::RrhReport
   end
 
   def stabilization_average_stay_by_month client_scope
-    columns = [:housed_date, :housing_exit, :residential_project, :project_id]
+    columns = [:housed_date, :housing_exit, :residential_project, :project_id, :client_id]
     clients = client_scope.pluck(*columns).map do |row|
       Hash[columns.zip(row)]
     end.group_by do |row|
@@ -915,7 +917,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_to_stabilization.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_no_stabilization_exit
       if params[:selected_project] == 'All'
@@ -926,7 +928,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement_exit_no_stabilization.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :pre_placement_any_exit
       if params[:selected_project] == 'All'
@@ -937,7 +939,7 @@ class WarehouseReport::RrhReport
       start_date = "#{params[:month]} 01".to_date
       end_date = start_date.end_of_month
       rows = leavers_pre_placement.where(service_project: project_name).
-        enrolled_pre_placement(start_date: start_date, end_date: end_date).
+        exiting_pre_placement(start_date: start_date, end_date: end_date).
         pluck(*([:client_id] + columns.keys))
     when :time_in_stabilization
       if params[:selected_project] == 'All'

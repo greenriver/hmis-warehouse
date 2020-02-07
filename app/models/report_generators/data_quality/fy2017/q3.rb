@@ -12,9 +12,9 @@ module ReportGenerators::DataQuality::Fy2017
       if start_report(Reports::DataQuality::Fy2017::Q3.first)
         @answers = setup_questions()
         @support = @answers.deep_dup
-        @all_clients = fetch_all_clients()
-        if @all_clients.any?
-          setup_age_categories()
+        @all_client_ids = fetch_all_client_ids()
+        if @all_client_ids.any?
+          setup_age_categories(@all_client_ids)
           update_report_progress(percent: 5)
           log_with_memory("5 percent")
           @clients_with_issues = Set.new
@@ -38,32 +38,43 @@ module ReportGenerators::DataQuality::Fy2017
       end
     end
 
-    def fetch_all_clients
-      columns = {
-        client_id: she_t[:client_id].to_sql,
-        age: she_t[:age].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
-        VeteranStatus: c_t[:VeteranStatus].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        data_source_id: she_t[:data_source_id].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        RelationshipToHoH: e_t[:RelationshipToHoH].to_sql,
-        household_id: she_t[:household_id].to_sql,
-        CoCCode: ec_t[:CoCCode].to_sql,
-        DisablingCondition: e_t[:DisablingCondition].to_sql,
+    def columns
+      @columns ||= {
+        client_id: she_t[:client_id],
+        project_type: she_t[:computed_project_type],
+        VeteranStatus: c_t[:VeteranStatus],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_name: she_t[:project_name],
+        RelationshipToHoH: e_t[:RelationshipToHoH],
+        household_id: she_t[:household_id],
+        CoCCode: ec_t[:CoCCode],
+        DisablingCondition: e_t[:DisablingCondition],
       }
+    end
 
+    def fetch_all_client_ids
+      client_batch_scope.
+        pluck(:client_id)
+    end
+
+    def client_batch_scope
       active_client_scope.
+        distinct.
         includes(enrollment: :enrollment_coc_at_entry).
-        joins(:project).
-        order(date: :asc).
+        joins(:project)
+    end
+
+    def client_batch(client_ids)
+      client_batch_scope.
+        where(client_id: client_ids).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
-          Hash[columns.keys.zip(row)]
-        end.map do |enrollment|
+          enrollment = Hash[columns.keys.zip(row)]
           enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
           enrollment
         end.group_by do |row|
@@ -73,19 +84,23 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_veteran_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        age = enrollment[:age]
-        veteran_status = enrollment[:VeteranStatus]
-        [8,9,nil].include?(veteran_status) || (veteran_status == 1 && age.present? && age < ADULT)
+      poor_quality = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          age = enrollment[:age]
+          veteran_status = enrollment[:VeteranStatus]
+          include_client = [8,9,nil].include?(veteran_status) || (veteran_status == 1 && age.present? && age < ADULT)
+
+          poor_quality[client_id] = enrollments.last if include_client
+        end
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b2][:value] = poor_quality.size
       @support[:q3_b2][:support] = add_support(
         headers: ['Client ID', 'Vetetan Status', 'Age'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
@@ -98,24 +113,31 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_entry_date_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        # Find any overlapping enrollments within the same project
-        overlap = false
-        enrollments.group_by do |enrollment|
-          [enrollment[:project_id], enrollment[:data_source_id]]
-        end.select{|_,v| v.size > 1}.values.flatten(1).
-        combination(2) do |en_1, en_2|
-          overlap = enrollments_overlap?(en_1, en_2)
+      poor_quality = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          # Find any overlapping enrollments within the same project
+          overlap = false
+          more_than_one_at_project = enrollments.group_by do |enrollment|
+            [enrollment[:project_id], enrollment[:data_source_id]]
+          end.select {|_,v| v.size > 1}
+
+          more_than_one_at_project.
+            values.
+            flatten(1).
+            combination(2) do |en_1, en_2|
+              overlap = enrollments_overlap?(en_1, en_2)
+              break if overlap
+            end
+          poor_quality[client_id] = enrollments.last if overlap
         end
-        overlap
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b3][:value] = poor_quality.size
       @support[:q3_b3][:support] = add_support(
         headers: ['Client ID', 'Most Recent Project', 'Entry Date', 'Exit Date'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             enrollment[:project_name].to_sym,
@@ -129,42 +151,39 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_head_of_household_answers
       log_with_memory("Starting Household Answers")
-      log_with_memory("All Client's size: #{@all_clients.size}")
+      log_with_memory("All Client's size: #{@all_client_ids.size}")
       counted = Set.new # Only count each client once
-      counter = 0
-      poor_quality = @all_clients.select do |id, enrollments|
-        log_with_memory("Selecting any with poor quality #{counter}")
-        flag = false
-        enrollment = enrollments.last
-        if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
-          log_with_memory("non-usable relationship")
-          # we have a missing, or non-usable relationship
-          flag = true
-        else
-          log_with_memory("gathering household members")
-          household = household_members(enrollment)
-          relationships = household.map do |enrollment|
-            enrollment[:RelationshipToHoH]
-          end
-          hoh_count = relationships.count(1)
-          if hoh_count == 0
-            # No one is marked as the head of household
-            log_with_memory("no HOH")
+      poor_quality = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          flag = false
+          enrollment = enrollments.last
+          if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
+            log_with_memory("non-usable relationship")
+            # we have a missing, or non-usable relationship
             flag = true
-          elsif hoh_count > 1
-            # Too many heads of household
-            log_with_memory("too many HOH")
-            flag = true
+          else
+            log_with_memory("gathering household members")
+            household = household_members(enrollment)
+            # if we had two enrollments on the same day, this may not find us
+            next unless household.present?
+
+            relationships = household.map do |enrollment|
+              enrollment[:RelationshipToHoH]
+            end
+            hoh_count = relationships.count(1)
+            if hoh_count == 0
+              # No one is marked as the head of household
+              log_with_memory("no HOH")
+              flag = true
+            elsif hoh_count > 1
+              # Too many heads of household
+              log_with_memory("too many HOH")
+              flag = true
+            end
           end
+          poor_quality[client_id] = enrollment if flag
         end
-        counter += 1
-        if counter % 500 == 0
-          GC.start
-          if debug
-            log_with_memory("processed #{counter}")
-          end
-        end
-        flag
       end
       log_with_memory("Found all poor quality (#{poor_quality.size})")
       counted += poor_quality.keys
@@ -172,8 +191,7 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q3_b4][:value] = poor_quality.size
       @support[:q3_b4][:support] = add_support(
         headers: ['Client ID', 'Relationship to HoH', 'Project', 'Entry Date', 'Exit Date'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             enrollment[:RelationshipToHoH],
@@ -188,24 +206,26 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_location_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        flag = false
-        enrollment = enrollments.last
-        if ! head_of_household?(enrollment[:RelationshipToHoH])
+      poor_quality = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
           flag = false
-        else
-          # if the CoCCode doesn't match the approved pattern (including missing), flag it
-          flag = enrollment[:CoCCode].blank? || ! valid_coc_code?(enrollment[:CoCCode])
+          enrollment = enrollments.last
+          if ! head_of_household?(enrollment[:RelationshipToHoH])
+            flag = false
+          else
+            # if the CoCCode doesn't match the approved pattern (including missing), flag it
+            flag = enrollment[:CoCCode].blank? || ! valid_coc_code?(enrollment[:CoCCode])
+          end
+          poor_quality[client_id] = enrollment if flag
         end
-
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b5][:value] = poor_quality.size
       @support[:q3_b5][:support] = add_support(
         headers: ['Client ID', 'CoC Code', 'Project'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             enrollment[:CoCCode],
@@ -219,23 +239,25 @@ module ReportGenerators::DataQuality::Fy2017
 
     def add_disabling_condition_answers
       counted = Set.new # Only count each client once
-      poor_quality = @all_clients.select do |id, enrollments|
-        enrollment = enrollments.last
-        flag = false
-        if [8,9,nil].include?(enrollment[:DisablingCondition])
-          flag = true
-        elsif enrollment[:DisablingCondition] == 0
-          flag = client_disabled?(enrollment: enrollment)
+      poor_quality = {}
+      @all_client_ids.each_slice(250) do |client_ids|
+        client_batch(client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          flag = false
+          if [8,9,nil].include?(enrollment[:DisablingCondition])
+            flag = true
+          elsif enrollment[:DisablingCondition] == 0
+            flag = client_disabled?(enrollment: enrollment)
+          end
+          poor_quality[client_id] = enrollment if flag
         end
-        flag
       end
       counted += poor_quality.keys
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b6][:value] = poor_quality.size
       @support[:q3_b6][:support] = add_support(
         headers: ['Client ID', 'Disabling Condition'],
-        data: poor_quality.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: poor_quality.map do |id, enrollment|
           [
             id,
             HUD.disability_type(enrollment[:DisablingCondition]),
@@ -257,25 +279,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def household_members(enrollment)
-      @all_households ||= begin
-        counter = 0
-        all = {}
-        households.values.each do |m|
-          enrollment = m[:household].first
-          all[
-            [
-              enrollment[:data_source_id],
-              enrollment[:project_id],
-              enrollment[:household_id],
-              enrollment[:first_date_in_program],
-            ]
-          ] = m[:household]
-          counter += 1
-          log_with_memory("#{counter} households processed")
-        end
-        all
-      end
-      @all_households[
+      all_households[
         [
           enrollment[:data_source_id],
           enrollment[:project_id],
@@ -293,6 +297,27 @@ module ReportGenerators::DataQuality::Fy2017
       #     enrollment[:first_date_in_program]
       #   ]
       #   end.first[:household]
+    end
+
+    def all_households
+      @all_households ||= begin
+        counter = 0
+        all = {}
+        households.values.each do |m|
+          en = m[:household].first
+          all[
+            [
+              en[:data_source_id],
+              en[:project_id],
+              en[:household_id],
+              en[:first_date_in_program],
+            ]
+          ] = m[:household]
+          counter += 1
+          log_with_memory("#{counter} households processed")
+        end
+        all
+      end
     end
 
     def setup_questions

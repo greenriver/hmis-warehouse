@@ -50,6 +50,7 @@ config/letsencrypt_plugin.yml
 app/mail_interceptors/sandbox_email_interceptor.rb
 node_modules
 *.swp
+TAGS
 
 # Environment normalization:
 /vendor/bundle
@@ -78,3 +79,7 @@ app/views/root/_homepage_content.haml
 
 # CHA translations
 config/cha_translations.yml
+
+# Ignore docker certificates
+docker/nginx-proxy/certs/*
+!docker/nginx-proxy/certs/.keep

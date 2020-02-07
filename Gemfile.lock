@@ -34,7 +34,7 @@ GEM
       activemodel (= 5.2.3)
       activesupport (= 5.2.3)
       arel (>= 9.0)
-    activerecord-import (1.0.3)
+    activerecord-import (1.0.4)
       activerecord (>= 3.2)
     activerecord-session_store (1.1.3)
       actionpack (>= 4.0)
@@ -1214,8 +1214,6 @@ GEM
     kaminari-core (1.1.1)
     launchy (2.4.3)
       addressable (~> 2.3)
-    letter_opener (1.7.0)
-      launchy (~> 2.2)
     linefit (0.3.4)
     list_matcher (1.1.8)
     listen (3.2.1)
@@ -1545,7 +1543,7 @@ GEM
       activesupport
     with_advisory_lock (4.6.0)
       activerecord (>= 4.2)
-    wkhtmltopdf-binary (0.12.5)
+    wkhtmltopdf-binary (0.12.5.1)
     xpath (3.2.0)
       nokogiri (~> 1.8)
 
@@ -1623,7 +1621,6 @@ DEPENDENCIES
   json
   kaminari
   launchy
-  letter_opener
   linefit
   list_matcher
   lograge

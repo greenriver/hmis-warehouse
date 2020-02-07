@@ -6,13 +6,13 @@
 
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
 # require 'newrelic_rpm'
-module EtoApi::Tasks
+module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateEtoData
     include ActionView::Helpers::DateHelper
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
 
-    def initialize batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false
+    def initialize(batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false)
       @trace = trace
       @batch_time = batch_time
       @restart = Time.now + @batch_time
@@ -25,6 +25,7 @@ module EtoApi::Tasks
 
     def run!
       return unless GrdaWarehouse::Config.get(:eto_api_available)
+
       update_demographics!
       update_touch_points!
     end
@@ -59,18 +60,18 @@ module EtoApi::Tasks
         eto_client_lookups.each do |row|
           existing_updated = existing_hmis_clients[[row[:client_id], row[:subject_id]]]
           # timezones seem to get very confused, just check the date.
-          if existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
-            to_fetch << {
-              client_id: row[:client_id],
-              participant_site_identifier: row[:participant_site_identifier],
-              site_id: row[:site_id],
-              subject_id: row[:subject_id],
-              data_source_id: row[:data_source_id],
-            }
-          end
+          next unless existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
+
+          to_fetch << {
+            client_id: row[:client_id],
+            participant_site_identifier: row[:participant_site_identifier],
+            site_id: row[:site_id],
+            subject_id: row[:subject_id],
+            data_source_id: row[:data_source_id],
+          }
         end
 
-        new_count = (to_fetch.map{|m| [m[:client_id], m[:subject_id]]}.uniq - existing_hmis_clients.keys.uniq).count
+        new_count = (to_fetch.map { |m| [m[:client_id], m[:subject_id]] }.uniq - existing_hmis_clients.keys.uniq).count
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         @notifier.ping msg
@@ -94,7 +95,7 @@ module EtoApi::Tasks
         @notifier.ping msg
       end
       # prevent returning the config
-      return true
+      true
     end
 
     private def eto_client_lookup_columns
@@ -123,7 +124,7 @@ module EtoApi::Tasks
             :subject_id,
             :response_id,
             :eto_last_updated,
-          ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated|
+          ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
             [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
           end.to_h
 
@@ -141,16 +142,16 @@ module EtoApi::Tasks
           key = [row[:client_id], row[:site_id], row[:assessment_id], row[:subject_id], row[:response_id]]
           existing_updated = existing_touch_points[key]
           # timezones seem to get very confused, just check the date.
-          if existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
-            to_fetch << {
-              client_id: row[:client_id],
-              site_id: row[:site_id],
-              assessment_id: row[:assessment_id],
-              subject_id: row[:subject_id],
-              response_id: row[:response_id],
-              data_source_id: row[:data_source_id],
-            }
-          end
+          next unless existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
+
+          to_fetch << {
+            client_id: row[:client_id],
+            site_id: row[:site_id],
+            assessment_id: row[:assessment_id],
+            subject_id: row[:subject_id],
+            response_id: row[:response_id],
+            data_source_id: row[:data_source_id],
+          }
         end
         # Rails.logger.info "Post-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         new_count = (to_fetch.map(&:values).uniq - existing_touch_points.keys.uniq).count
@@ -178,7 +179,7 @@ module EtoApi::Tasks
         @notifier.ping msg
       end
       # prevent returning the config
-      return true
+      true
     end
 
     private def eto_touch_point_lookup_columns
@@ -193,7 +194,7 @@ module EtoApi::Tasks
       ]
     end
 
-    def save_demographics api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:
+    def save_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
       hmis_client = fetch_demographics(
         api: api,
         client_id: client_id,
@@ -202,15 +203,19 @@ module EtoApi::Tasks
         subject_id: subject_id,
         data_source_id: data_source_id,
       )
-      hmis_client.save if hmis_client
+      hmis_client&.save
     end
 
-    def fetch_demographics api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:
+    def fetch_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
 
       hmis_client = nil
       # puts "requesting client #{client_id} (#{participant_site_identifier}), from #{site_id}"
-      api_response = api.client_demographic(client_id: participant_site_identifier, site_id: site_id) rescue nil
+      api_response = begin
+                       api.client_demographic(client_id: participant_site_identifier, site_id: site_id)
+                     rescue StandardError
+                       nil
+                     end
       # puts api_response.present?
       if api_response
         hmis_client = GrdaWarehouse::HmisClient.where(client_id: client_id, subject_id: subject_id).first_or_initialize
@@ -223,30 +228,30 @@ module EtoApi::Tasks
         hud_last_permanent_zip_quality = nil
 
         if @custom_config.present?
-          @custom_config.demographic_fields.each do |key,label|
+          @custom_config.demographic_fields.each do |key, label|
             hmis_client[key] = defined_value(api: api, site_id: site_id, response: api_response, label: label)
           end
 
-          @custom_config.demographic_fields_with_attributes.each do |key,details|
+          @custom_config.demographic_fields_with_attributes.each do |key, details|
             data = entity(api: api, site_id: site_id, response: api_response, entity_label: details['entity_label'])
             if data.present?
               hmis_client[key] = data.try(:[], 'EntityName')
-              hmis_client[details['attributes']] = data if hmis_client[key].present?
+              hmis_client[details['attributes']] = data if hmis_client[key].present? # rubocop:disable Metrics/BlockNesting
             end
           end
 
           # Special cases for fields that don't exist on hmis_client
-          @custom_config.additional_fields.each do |key,cdid|
+          @custom_config.additional_fields.each do |key, cdid|
             case key
             when 'hud_last_permanent_zip'
-              hud_last_permanent_zip = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+              hud_last_permanent_zip = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
             when 'hud_last_permanent_zip_quality'
-              hud_last_permanent_zip_quality = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
-              when 'sexual_orientation'
-                value = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
-                sexual_orientation = defined_demographic_value(api: api, value: value, cdid: cdid, site_id: site_id)
-              else
-              hmis_client[key] = api_response["CustomDemoData"].select{|m| m['CDID'] == cdid}&.first&.try(:[], 'value')
+              hud_last_permanent_zip_quality = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+            when 'sexual_orientation'
+              value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+              defined_demographic_value(api: api, value: value, cdid: cdid, site_id: site_id)
+            else
+              hmis_client[key] = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
             end
           end
         end
@@ -271,14 +276,14 @@ module EtoApi::Tasks
       hmis_client
     end
 
-    private def defined_demographic_value api:, value:, cdid:, site_id:
+    private def defined_demographic_value(api:, value:, cdid:, site_id:)
       options = api.demographic_defined_values(cdid: cdid, site_id: site_id).map do |m|
         [m['ID'], m['Text']]
       end.to_h
       options[value]
     end
 
-    def fetch_touch_point api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:
+    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
@@ -287,21 +292,22 @@ module EtoApi::Tasks
         touch_point_id: touch_point_id,
       )
       return nil unless api_response.present?
+
       # Fetch assessment structure
       assessment = api.touch_point(site_id: site_id, id: touch_point_id)
       assessment_name = assessment['TouchPointName']
 
       # Rails.logger.info "Loading TP: #{assessment_name}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
 
-      response_id = api_response["TouchPointResponseID"]
-      program_id = api_response["ProgramID"]
+      response_id = api_response['TouchPointResponseID']
+      program_id = api_response['ProgramID']
       hmis_form = GrdaWarehouse::HmisForm.where(
         client_id: client_id,
         subject_id: subject_id,
         response_id: response_id,
         assessment_id: touch_point_id,
         data_source_id: @data_source_id,
-        site_id: site_id
+        site_id: site_id,
       ).first_or_initialize
       #   { assessment_title: 'Title',
       #     assessment_identifier: 'Project Name',
@@ -335,13 +341,13 @@ module EtoApi::Tasks
         element_type = display_as_form_element(element_type: element['ElementType'])
         if element_type == 'Section header'
           answers[:sections] << section if section.present? # save off the previous section
-          section = {section_title: element['Stimulus'], questions: []}
+          section = { section_title: element['Stimulus'], questions: [] }
         elsif element['GridOrTable'].present?
           element['GridOrTable']['Elements'].each do |sub_element|
             sub_element_type = display_as_form_element(element_type: sub_element['ElementType'])
             if sub_element_type == 'Section header'
               sub_sections << sub_section if sub_section.present? # save off the previous sub-section
-              sub_section = {section_title: sub_element['Stimulus'], questions: []}
+              sub_section = { section_title: sub_element['Stimulus'], questions: [] }
             else
               value = response_element(element_id: sub_element['ElementID'], response: api_response).try(:[], 'Value')
               sub_section[:questions] << {
@@ -371,9 +377,7 @@ module EtoApi::Tasks
             #    hmis_form.assessment_type = value
             # end
             @custom_config.touchpoint_fields.each do |key, stimulus|
-              if element['Stimulus'] == stimulus
-                hmis_form[key] = value
-              end
+              hmis_form[key] = value if element['Stimulus'] == stimulus
             end
           end
         end
@@ -382,10 +386,9 @@ module EtoApi::Tasks
       sub_sections << sub_section if sub_section.present?
       # Save off the last section
       answers[:sections] << section if section.present?
-      sub_sections.each do |section|
-        answers[:sections] << section
+      sub_sections.each do |s_section|
+        answers[:sections] << s_section
       end
-
 
       staff = api.staff(site_id: site_id, id: api_response['AuditStaffID'])
       hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
@@ -402,7 +405,7 @@ module EtoApi::Tasks
       hmis_form
     end
 
-    def save_touch_point api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:
+    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
       hmis_form = fetch_touch_point(
         api: api,
         site_id: site_id,
@@ -413,14 +416,15 @@ module EtoApi::Tasks
         data_source_id: data_source_id,
       )
       return unless hmis_form
+
       begin
         hmis_form.save
         hmis_form.create_qualifying_activity!
-        return true
-      rescue Exception => e
+        true
+      rescue Exception
         # msg = "Failed to save, probably dirty: #{e.message}"
         # notifier.ping msg if send_notifications
-        return false
+        false
       end
     end
 
@@ -447,7 +451,7 @@ module EtoApi::Tasks
     end
 
     private def response_element(element_id:, response:)
-      response['ResponseElements'].select{|m| m['ElementID'] == element_id}.first
+      response['ResponseElements'].select { |m| m['ElementID'] == element_id }.first
     end
 
     private def address_from_response(element_id:, response:)
@@ -468,18 +472,19 @@ module EtoApi::Tasks
       address.join(";\n")
     end
 
-    private def entity api:, site_id:, response:, entity_label:
+    private def entity(api:, site_id:, response:, entity_label:)
       item_cdid = api.attribute_id(attribute_name: entity_label, site_id: site_id)
-      item_entity_id = response['CustomDemoData'].detect{|m| m['CDID'].to_i == item_cdid}.try(:[], 'value')
+      item_entity_id = response['CustomDemoData'].detect { |m| m['CDID'].to_i == item_cdid }.try(:[], 'value')
       api.entity_by_id(entity_id: item_entity_id.to_i, site_id: site_id)
     end
 
-    private def defined_value api:, site_id:, response:, label:
+    private def defined_value(api:, site_id:, response:, label:)
       item_cdid = api.attribute_id(attribute_name: label, site_id: site_id)
-      item_value = response['CustomDemoData'].detect do
-        |m| m['CDID'].to_i == item_cdid
+      item_value = response['CustomDemoData'].detect do |m|
+        m['CDID'].to_i == item_cdid
       end.try(:[], 'value')
       return nil unless item_value.present?
+
       defined_demographic_value(api: api, value: item_value.to_i, cdid: item_cdid, site_id: site_id)
     end
   end

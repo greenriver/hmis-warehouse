@@ -29,10 +29,10 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:durable_equipment], client_id: @client.id)
       @equipment.assign_attributes(equipment_params)
       if request.xhr?
-        begin
+        if @equipment.valid?
           Health::DmeSaver.new(equipment: @equipment, user: current_user).update
-        rescue ActiveRecord::RecordInvalid
-          j render 'create'
+        else
+          render 'create'
         end
       else
         Health::DmeSaver.new(equipment: @equipment, user: current_user).update
@@ -45,10 +45,10 @@ module Health
       @form_url = polymorphic_path(health_path_generator + [:durable_equipments], client_id: @client.id)
       @equipment = @patient.equipments.build(equipment_params)
       if request.xhr?
-        begin
+        if @equipment.valid?
           Health::DmeSaver.new(equipment: @equipment, user: current_user).create
-        rescue ActiveRecord::RecordInvalid
-          j render 'create'
+        else
+          render 'create'
         end
       else
         Health::DmeSaver.new(equipment: @equipment, user: current_user).create

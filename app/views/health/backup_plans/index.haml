@@ -1,0 +1,10 @@
+= render 'clients/breadcrumbs'
+
+= content_for(:title, "Backup Plans for #{@patient.name}")
+%h1= content_for(:title)
+
+= render 'clients/tab_navigation', current: polymorphic_path(health_path_generator + [:backup_plans], client_id: @client)
+= render 'health/patient_release_status'
+= render 'health/patient_form_status'
+= render 'index'
+

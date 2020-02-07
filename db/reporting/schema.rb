@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_23_193204) do
+ActiveRecord::Schema.define(version: 2020_01_28_142909) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -228,53 +228,6 @@ ActiveRecord::Schema.define(version: 2020_01_23_193204) do
     t.string "report_type", null: false
     t.integer "client_id", null: false
     t.index ["report_type", "client_id"], name: "index_warehouse_monthly_client_ids_on_report_type_and_client_id"
-  end
-
-  create_table "warehouse_monthly_reports", id: :serial, force: :cascade do |t|
-    t.integer "month", null: false
-    t.integer "year", null: false
-    t.string "type"
-    t.integer "client_id", null: false
-    t.integer "head_of_household", default: 0, null: false
-    t.string "household_id"
-    t.integer "project_id", null: false
-    t.integer "organization_id", null: false
-    t.integer "destination_id"
-    t.boolean "first_enrollment", default: false, null: false
-    t.boolean "enrolled", default: false, null: false
-    t.boolean "active", default: false, null: false
-    t.boolean "entered", default: false, null: false
-    t.boolean "exited", default: false, null: false
-    t.integer "project_type", null: false
-    t.date "entry_date"
-    t.date "exit_date"
-    t.integer "days_since_last_exit"
-    t.integer "prior_exit_project_type"
-    t.integer "prior_exit_destination_id"
-    t.datetime "calculated_at", null: false
-    t.integer "enrollment_id"
-    t.date "mid_month"
-    t.index ["active"], name: "index_warehouse_monthly_reports_on_active"
-    t.index ["client_id"], name: "index_warehouse_monthly_reports_on_client_id"
-    t.index ["enrolled"], name: "index_warehouse_monthly_reports_on_enrolled"
-    t.index ["entered"], name: "index_warehouse_monthly_reports_on_entered"
-    t.index ["exited"], name: "index_warehouse_monthly_reports_on_exited"
-    t.index ["head_of_household"], name: "index_warehouse_monthly_reports_on_head_of_household"
-    t.index ["household_id"], name: "index_warehouse_monthly_reports_on_household_id"
-    t.index ["month"], name: "index_warehouse_monthly_reports_on_month"
-    t.index ["organization_id"], name: "index_warehouse_monthly_reports_on_organization_id"
-    t.index ["project_id"], name: "index_warehouse_monthly_reports_on_project_id"
-    t.index ["type", "destination_id", "enrolled"], name: "idx_dest_type_enr"
-    t.index ["type", "month", "year", "active", "entered", "head_of_household"], name: "idx_year_month_type_act_ent"
-    t.index ["type", "month", "year", "active", "exited", "head_of_household"], name: "idx_year_month_type_act_ext"
-    t.index ["type", "month", "year", "enrolled"], name: "idx_year_month_type_enr"
-    t.index ["type", "month", "year", "head_of_household"], name: "idx_year_month_type_head"
-    t.index ["type", "month", "year", "project_type", "active", "entered", "head_of_household"], name: "idx_year_month_type_proj_act_ent"
-    t.index ["type", "month", "year", "project_type", "active", "exited", "head_of_household"], name: "idx_year_month_type_proj_act_ext"
-    t.index ["type", "month", "year", "project_type", "enrolled"], name: "idx_year_month_type_proj_enr"
-    t.index ["type", "month", "year", "project_type", "head_of_household"], name: "idx_year_month_type_proj_head"
-    t.index ["type"], name: "index_warehouse_monthly_reports_on_type"
-    t.index ["year"], name: "index_warehouse_monthly_reports_on_year"
   end
 
   create_table "warehouse_partitioned_monthly_reports", force: :cascade do |t|

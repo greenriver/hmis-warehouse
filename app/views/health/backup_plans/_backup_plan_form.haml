@@ -1,0 +1,27 @@
+= simple_form_for @backup_plan, url: @form_url, remote: request.xhr? do |f|
+  .jBackupPlansForm
+    .row
+      .col-sm-6
+        = f.input :description, label: 'Description of Need'
+        = f.input :backup_plan, label: 'Backup Plan'
+        = f.input :person, label: 'Person/Service/Support'
+        = f.input :phone, label: 'Phone Number'
+        = f.input :address
+        = f.input :plan_created_on, as: :date_picker, label: 'Created On', input_html: {value: f.object.plan_created_on || Date.current}
+    .form__actions
+      - if @backup_plan.persisted?
+        .c-btn_group
+          = link_to polymorphic_path(health_path_generator + [:backup_plan], id: @backup_plan.id), method: :delete, remote: true, data: {confirm: "Please confirm you intend to delete this backup plan."}, class: 'btn btn-danger btn-icon-left' do
+            %i.icon-cross
+            Delete
+      .c-btn-group.ml-auto
+        %a.btn.btn-secondary.jClose{'pjax-modal-close' => '', href: ''} Cancel
+        = f.button :submit, class: 'btn-primary', value: @button_label
+
+
+= content_for :page_js do
+  :javascript
+    $('select').select2();
+    $('body').on('click', '.jClose', function(e) {
+      e.preventDefault();
+    });
