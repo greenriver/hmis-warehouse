@@ -35,7 +35,7 @@ module WarehouseReports::Health
       @encounters = Health::EncounterRecord.where(encounter_report: @report)
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=\"encounters-#{@start_date} to #{@end_date}.xlsx\""
+          headers['Content-Disposition'] = "attachment; filename=\"encounters-#{@report.start_date.to_date.strftime('%F')} to #{@report.end_date.to_date.strftime('%F')}.xlsx\""
         end
       end
     end

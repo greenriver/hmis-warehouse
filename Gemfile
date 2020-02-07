@@ -140,8 +140,8 @@ gem 'awesome_print'
 gem 'auto-session-timeout'
 
 #Translations
-gem 'gettext_i18n_rails'
-gem 'fast_gettext'
+gem 'gettext_i18n_rails', require: false
+gem 'fast_gettext', require: false
 gem 'gettext', '>=3.0.2', require: false
 gem 'ruby_parser', require: false
 gem 'grosser-pomo'
@@ -177,7 +177,7 @@ group :development do
   gem 'rails-erd'
   gem 'web-console'
   # gem 'quiet_assets'
-  gem 'letter_opener'
+
   gem 'list_matcher', require: false   # for the forms:desmush rake task
 
   gem 'ruby-prof'
@@ -219,4 +219,10 @@ end
 # This is really unhappy on travis
 group :production, :development, :staging do
   gem 'tiny_tds'
+end
+
+group :rake do
+  gem 'gettext_i18n_rails'
+  gem 'fast_gettext'
+  gem 'gettext', '>=3.0.2'
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_24_194225) do
+ActiveRecord::Schema.define(version: 2020_02_05_144804) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,6 +58,20 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.integer "data_source_id", default: 6, null: false
   end
 
+  create_table "backup_plans", force: :cascade do |t|
+    t.bigint "patient_id"
+    t.string "description"
+    t.string "backup_plan"
+    t.string "person"
+    t.string "phone"
+    t.text "address"
+    t.date "plan_created_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["patient_id"], name: "index_backup_plans_on_patient_id"
+  end
+
   create_table "careplan_equipment", id: :serial, force: :cascade do |t|
     t.integer "careplan_id"
     t.integer "equipment_id"
@@ -102,6 +116,20 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.datetime "patient_signature_requested_at"
     t.datetime "provider_signature_requested_at"
     t.integer "health_file_id"
+    t.boolean "member_understands_contingency"
+    t.boolean "member_verbalizes_understanding"
+    t.text "backup_plan_archive"
+    t.string "future_issues_0"
+    t.string "future_issues_1"
+    t.string "future_issues_2"
+    t.string "future_issues_3"
+    t.string "future_issues_4"
+    t.string "future_issues_5"
+    t.string "future_issues_6"
+    t.string "future_issues_7"
+    t.string "future_issues_8"
+    t.string "future_issues_9"
+    t.string "future_issues_10"
     t.index ["patient_id"], name: "index_careplans_on_patient_id"
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end
@@ -364,6 +392,7 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.integer "user_id"
     t.string "original_filename"
     t.datetime "deleted_at"
+    t.integer "num_errors"
   end
 
   create_table "encounter_records", force: :cascade do |t|
@@ -690,6 +719,7 @@ ActiveRecord::Schema.define(version: 2020_01_24_194225) do
     t.string "status"
     t.integer "responsible_team_member_id"
     t.integer "patient_id"
+    t.text "timeframe"
     t.index ["patient_id"], name: "index_health_goals_on_patient_id"
     t.index ["user_id"], name: "index_health_goals_on_user_id"
   end

@@ -1,0 +1,45 @@
+- f ||= ''
+- sized_input_html = {class: 'sized'}
+.c-card
+  .c-card__header.c-card__header--external
+    %h3 Issue(s) to consider later
+  .c-card__content.c-card__content--flush.mb-4
+    - if @careplan.editable? && f.present?
+      - (0..10).each do |i|
+        .row.m-4.jIssueRow
+          .col-1.text-right.pt-2
+            #{i + 1}.
+          .col-9
+            = f.input "future_issues_#{i}", label: false, input_html: { class: 'jIssue' }
+          .col-2
+            = link_to '#add-issue', class: 'jAddIssue btn btn-secondary btn-sm ml-auto' do
+              %i.icon-plus
+              Add Issue
+    - else
+      %ol.m-4
+        - (0..10).each do |i|
+          - issue = @careplan["future_issues_#{i}"]
+          - if issue.present?
+            %li.mb-2= issue
+
+= content_for :page_js do
+  :javascript
+    $('.jAddIssue, .jIssueRow').addClass('hide');
+    $('.jIssueRow:first').removeClass('hide');
+    $('.jAddIssue').each(function(i){
+      var row = $(this).closest('.jIssueRow');
+      var input = row.find('.jIssue');
+      if(input.val().length > 0) {
+        row.removeClass('hide');
+      }
+    });
+
+    $('.jIssueRow:visible:last').next().removeClass('hide');
+    $('.jIssueRow:visible:last').find('.jAddIssue').removeClass('hide');
+
+    $('body').on('click', '.jAddIssue', function(e) {
+      e.preventDefault();
+      $('.jIssueRow:visible:last').next().removeClass('hide');
+      $('.jIssueRow:visible:last').find('.jAddIssue').removeClass('hide');
+      $(this).addClass('hide');
+    });

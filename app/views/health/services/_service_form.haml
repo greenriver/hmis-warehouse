@@ -1,4 +1,4 @@
-= simple_form_for @service, url: @form_url, remote: true do |f|
+= simple_form_for @service, url: @form_url, remote: request.xhr? do |f|
   .jServicesForm
     .row
       .col-sm-8
@@ -37,7 +37,7 @@
 
 = content_for :page_js do
   :javascript
-    $('.select2').select2();
+    $('select').select2();
     $('body').on('click', '.jClose', function(e) {
       e.preventDefault();
     });

@@ -26,7 +26,7 @@ Dir.chdir APP_ROOT do
   end
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"
-    FileUtils.cp '.env.sample', '.env.local'
+    FileUtils.cp 'sample.env', '.env.local'
   end
 
   puts "\n== Preparing Database =="
@@ -68,7 +68,7 @@ Dir.chdir APP_ROOT do
   FileUtils.touch variables unless File.exist?(variables)
 
   puts "\n== Creating System User =="
-  User.setup_system_user
+  system "bundle exec rails runner 'User.setup_system_user'"
 
   puts "\n== Restarting application server =="
   FileUtils.mkdir 'tmp' unless File.exist? 'tmp'

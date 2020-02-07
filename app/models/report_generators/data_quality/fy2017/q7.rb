@@ -16,11 +16,8 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @clients_with_issues = Set.new
-        @es_so_night_by_night_clients = fetch_night_by_night_clients(ES + SO)
         add_es_so_answers()
-
         update_report_progress(percent: 50)
-        @es_night_by_night_clients = fetch_night_by_night_clients(ES)
         add_es_answers()
 
         finish_report()
@@ -30,42 +27,43 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def add_es_so_answers
-      adult_or_hoh_clients = @es_so_night_by_night_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        entry_date = enrollment[:first_date_in_program]
-        exit_date = enrollment[:last_date_in_program]
-        (adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])) &&
-        started_less_than_90_days_before_report(entry_date) &&
-        ended_after_report(exit_date)
+      adult_or_hoh_client_ids = Set.new
+      inactive = []
+      project_types = ES + SO
+      client_ids_for_project_type(project_types).each_slice(250) do |client_ids|
+        fetch_night_by_night_clients(project_types, client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          entry_date = enrollment[:first_date_in_program]
+          exit_date = enrollment[:last_date_in_program]
+          if (adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])) &&
+            started_less_than_90_days_before_report(entry_date) &&
+            ended_after_report(exit_date)
+            adult_or_hoh_client_ids << client_id
 
-      end
-      @answers[:q7_b2][:value] = adult_or_hoh_clients.size
+            service_dates = [enrollment[:first_date_in_program]]
+            service_dates += GrdaWarehouse::ServiceHistoryService.
+              where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
+              order(date: :asc).
+              distinct.
+              pluck(:date)
+            inactive_client = false
+            service_dates.each_with_index do |date, index|
+              next_date = service_dates[index + 1]
+              if next_date.present? && (next_date - date).abs > 90
+                inactive_client = true
+                next
+              end
+            end
+            inactive << [client_id, enrollment] if inactive_client
 
-      inactive = adult_or_hoh_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        service_dates = [enrollment[:first_date_in_program]]
-
-        service_dates += GrdaWarehouse::ServiceHistoryService.
-          where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
-          order(date: :asc).
-          distinct.
-          pluck(date)
-
-        inactive_client = false
-        service_dates.each_with_index do |date, index|
-          next_date = service_dates[index + 1]
-          if next_date.present? && (next_date - date).abs > 90
-            inactive_client = true
-            next
           end
         end
-        inactive_client
       end
+      @answers[:q7_b2][:value] = adult_or_hoh_client_ids.size
       @answers[:q7_c2][:value] = inactive.size
       @support[:q7_c2][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit'],
-        data: inactive.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: inactive.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -74,34 +72,35 @@ module ReportGenerators::DataQuality::Fy2017
           ]
         end
       )
-      @answers[:q7_d2][:value] = ((inactive.size.to_f / adult_or_hoh_clients.count) * 100).round(2)
+      @answers[:q7_d2][:value] = ((inactive.size.to_f / adult_or_hoh_client_ids.count) * 100).round(2)
     end
 
     def add_es_answers
-      clients = @es_so_night_by_night_clients.select do |_, enrollments|
-        enrollment = enrollments.last
-        entry_date = enrollment[:first_date_in_program]
-        exit_date = enrollment[:last_date_in_program]
-        started_less_than_90_days_before_report(entry_date) &&
-        ended_after_report(exit_date)
+      clients = Set.new
+      inactive = []
+      project_types = ES
+      client_ids_for_project_type(project_types).each_slice(250) do |client_ids|
+        fetch_night_by_night_clients(project_types, client_ids).each do |client_id, enrollments|
+          enrollment = enrollments.last
+          entry_date = enrollment[:first_date_in_program]
+          exit_date = enrollment[:last_date_in_program]
+          if started_less_than_90_days_before_report(entry_date) && ended_after_report(exit_date)
+            clients << client_id
+            latest_service_date = GrdaWarehouse::ServiceHistoryService.
+              where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
+              order(date: :asc).
+              maximum(:date)
+
+            inactive_client = latest_service_date.blank? || (latest_service_date - @report.options['report_end'].to_date).abs > 90
+            inactive << [client_id, enrollment] if inactive_client
+          end
+        end
       end
       @answers[:q7_b3][:value] = clients.size
-
-      inactive = clients.select do |_, enrollments|
-        enrollment = enrollments.last
-
-        latest_service_date = GrdaWarehouse::ServiceHistoryService.
-          where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
-          order(date: :asc).
-          maximum(:date)
-
-        latest_service_date.blank? || (latest_service_date - @report.options['report_end'].to_date).abs > 90
-      end
       @answers[:q7_c3][:value] = inactive.size
       @support[:q7_c3][:support] = add_support(
         headers: ['Client ID', 'Project', 'Entry', 'Exit'],
-        data: inactive.map do |id, enrollments|
-          enrollment = enrollments.last
+        data: inactive.map do |id, enrollment|
           [
             id,
             enrollment[:project_name],
@@ -121,27 +120,24 @@ module ReportGenerators::DataQuality::Fy2017
       entry_date < (@report.options['report_start'].to_date - 90.days)
     end
 
-    def fetch_night_by_night_clients(project_types)
-      columns = {
-        client_id: she_t[:client_id].to_sql,
-        age: she_t[:age].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        RelationshipToHoH: e_t[:RelationshipToHoH].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        data_source_id: she_t[:data_source_id].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        service_history_enrollment_id: she_t[:id].to_sql,
-      }
-
+    def client_batch_scope(project_types)
       active_client_scope.
         hud_project_type(project_types).
         bed_night.
         includes(:enrollment).
         joins(:project).
-        order(date: :asc).
+        distinct
+    end
+
+    def client_ids_for_project_type(project_types)
+      client_batch_scope(project_types).
+        pluck(:client_id)
+    end
+
+    def fetch_night_by_night_clients(project_types, client_ids)
+      client_batch_scope(project_types).
+        where(client_id: client_ids).
+        order(first_date_in_program: :asc).
         pluck(*columns.values).
         map do |row|
           Hash[columns.keys.zip(row)]
@@ -151,6 +147,22 @@ module ReportGenerators::DataQuality::Fy2017
         end.group_by do |row|
           row[:client_id]
         end
+    end
+
+    def columns
+      @columns ||= {
+        client_id: she_t[:client_id],
+        age: she_t[:age],
+        DOB: c_t[:DOB],
+        RelationshipToHoH: e_t[:RelationshipToHoH],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_name: she_t[:project_name],
+        project_id: she_t[:project_id],
+        data_source_id: she_t[:data_source_id],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        service_history_enrollment_id: she_t[:id],
+      }
     end
 
     def setup_questions

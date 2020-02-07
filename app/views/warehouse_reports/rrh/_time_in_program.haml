@@ -33,7 +33,7 @@
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.leavers_average_pre_placement, 'day')
-          %p.description For clients exiting to anywhere destination.
+          %p.description For clients exiting to any destination.
     = render 'common/panel_collapse', id: 'jTimeInPrePlacementChart', title: "Time in #{_('Pre-Placement')} with an Exit to Any Destination", default_open: 'yes'
 
     - content_for :panel_collapse_content, flush: true do
@@ -46,4 +46,5 @@
           %i.icon-calendar.metric
           .metric
             = pluralize(@report.average_days_in_stabilization, 'day')
+          %p.description For clients exiting to any destination.
     = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: "Time in #{_('Stabilization')} with an Exit to any Destination", default_open: 'yes'
