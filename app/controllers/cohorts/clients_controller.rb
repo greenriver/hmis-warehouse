@@ -103,6 +103,7 @@ module Cohorts
       @clients = client_scope.none
       @filter = ::Filters::Chronic.new(filter_params[:filter])
       @hud_filter = ::Filters::HudChronic.new(hud_filter_params[:hud_filter])
+
       # whitelist for scope
       @populations = begin
         populations = populations_params[:population]&.map(&:to_sym)
@@ -156,7 +157,6 @@ module Cohorts
         else
           @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
         end
-
         @actives[:actives_population] = [:all_clients] unless @actives.key? :actives_population
 
         populations = @actives[:actives_population]
