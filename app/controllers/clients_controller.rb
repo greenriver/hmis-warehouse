@@ -38,8 +38,15 @@ class ClientsController < ApplicationController
     elsif current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
-    @clients = @clients.preload(:processed_service_history)
-    sort_filter_index
+    @clients = @clients.
+      preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
+      page(params[:page]).per(20)
+    if current_user.can_access_window_search?
+      sort_filter_index
+    elsif current_user.can_use_strict_search?
+      @client = client_source.new(strict_search_params)
+      render 'strict_search'
+    end
   end
 
   def show
