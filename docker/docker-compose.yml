@@ -13,7 +13,6 @@ x-app: &app
       ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf
   environment: &env
     NODE_ENV: ${NODE_ENV:-development}
-    RAILS_ENV: ${RAILS_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
     WEBPACKER_DEV_SERVER_HOST: webpacker
     WEB_CONCURRENCY: 1
@@ -21,6 +20,7 @@ x-app: &app
     PSQL_HISTFILE: /app/log/.psql_history
     EDITOR: vi
     CHROMEDRIVER_VERSION: 79.0.3945.36
+  env_file: .env.local
   tmpfs:
     - /tmp
 
@@ -41,6 +41,17 @@ services:
     depends_on:
       - db
       - redis
+
+  spec:
+    <<: *backend
+    command: /bin/bash
+    entrypoint: ''
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env.local
+      - .env.test
 
   console:
     <<: *backend

@@ -51,6 +51,7 @@ app/mail_interceptors/sandbox_email_interceptor.rb
 node_modules
 *.swp
 TAGS
+yarn.lock
 
 # Environment normalization:
 /vendor/bundle
