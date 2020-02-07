@@ -144,10 +144,8 @@ class ApplicationController < ActionController::Base
     last_url = session['user_return_to']
     if last_url.present?
       last_url
-    elsif can_view_clients?
+    elsif can_view_clients? || can_search_window? || can_use_strict_search?
       clients_path
-    elsif can_search_window?
-      window_clients_path
     else
       root_path
     end

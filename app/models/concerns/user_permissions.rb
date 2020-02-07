@@ -20,6 +20,7 @@ module UserPermissions
         :can_assign_or_view_users_to_clients,
         :can_view_clients_or_window,
         :can_view_or_search_clients_or_window,
+        :can_access_some_client_search,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -83,7 +84,11 @@ module UserPermissions
     end
 
     def can_access_window_search
-      can_view_client_window? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc? || can_create_clients?
+      (can_view_client_window? || can_see_clients_in_window_for_assigned_data_sources? || can_view_clients_with_roi_in_own_coc? || can_create_clients?) && ! can_use_strict_search?
+    end
+
+    def can_access_some_client_search
+      can_access_window_search? || can_access_client_search? || can_use_strict_search?
     end
 
     def window_file_access

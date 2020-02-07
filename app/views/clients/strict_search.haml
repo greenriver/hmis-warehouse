@@ -1,0 +1,39 @@
+- content_for :title,  t('.title')
+- sort_options = GrdaWarehouse::Hud::Client.sort_options
+.o-page
+  .o-page__header
+    %h1= content_for :title
+    - @prompt = t '.search_prompt'
+
+  .o-page__controls
+    .row
+      .col-sm-8
+    .o-page__search
+      = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+    .o-page__sort
+      = render 'filter'
+      = render 'sort', sort_options: sort_options
+
+    - if can_edit_clients?
+      = link_to client_matches_path, class: 'btn btn-secondary ml-auto' do
+        %span.icon-shrink2
+        = _('Process Duplicates')
+
+  .table-utilities
+    - if params[:q].present?
+      %p.mr-5= page_entries_info @clients, entry_name: _('client')
+      .client__current-sort-filter
+        Currently sorted by:
+        %strong= sort_options.select{|m| m[:column] == @column && m[:direction] == @direction}.first[:title]
+
+  = paginate @clients, params: {sort: @column, direction: @direction}
+
+  .o-page__main-content.mt-3
+    .clients__list
+      = render 'new_client'
+      - @clients.preload(:source_clients).each do |client|
+        = render 'client_card', client: client
+
+    %p= paginate @clients, params: {sort: @column, direction: @direction}
+
+    = render 'application/js_link', base_path: 'clients/'

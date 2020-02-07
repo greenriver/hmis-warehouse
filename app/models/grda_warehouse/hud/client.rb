@@ -1955,6 +1955,22 @@ module GrdaWarehouse::Hud
       where(id: client_ids)
     end
 
+    def self.strict_search(criteria, client_scope: none)
+      first_name = criteria[:first_name]
+      last_name = criteria[:last_name]
+      dob = criteria[:dob]
+      ssn = criteria[:ssn]
+      sufficient_criteria = [
+        first_name.present?,
+        last_name.present?,
+        ssn.present?,
+        dob.present?,
+      ].count(true) > 2
+      return none unless sufficient_criteria
+
+      client_scope
+    end
+
     def gender
       ::HUD.gender(self.Gender)
     end
