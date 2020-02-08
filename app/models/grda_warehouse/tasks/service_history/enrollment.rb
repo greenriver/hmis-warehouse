@@ -244,12 +244,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def remove_existing_service_history_for_enrollment
       return unless destination_client.present?
+
       service_history_enrollment_source.where(
         client_id: destination_client.id,
         enrollment_group_id: self.EnrollmentID,
         data_source_id: data_source_id,
         project_id: self.ProjectID,
-        record_type: [:entry, :exit],
+        record_type: [:entry, :exit, :first],
       ).delete_all
       reset_instance_variables()
     end
@@ -506,12 +507,16 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    def part_of_a_family?
-      @families ||= Rails.cache.fetch('family-households', expires_in: 8.hours) do
-        self.class.where.not(HouseholdID: nil).
+    def self.family_households
+      Rails.cache.fetch('family-households', expires_in: 2.hours) do
+        where.not(HouseholdID: nil).
           group(:HouseholdID, :ProjectID, :data_source_id).
           having('COUNT(DISTINCT("PersonalID")) > 1').count
       end
+    end
+
+    def part_of_a_family?
+      @families ||= self.class.family_households
       @families.key? [self.HouseholdID, self.ProjectID, self.data_source_id]
     end
 
