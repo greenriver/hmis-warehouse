@@ -1,0 +1,20 @@
+- title = "Patient Housing Status Changes"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+= render 'form'
+
+.text-right.mb-4
+  - if  can_view_clients?
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      Download Excel
+
+= render 'table'
+.well
+  %p
+    %em Transitional Housing
+    includes "Transitional Housing / Residential Treatment Program or Transitional Housing" or "Residential Treatment Program or Motel."
+    %br
+    %em Permanent Housing
+    includes "Assisted Living / Nursing Home / Rest Home," "Assisted Living Facility, Nursing Home, Rest Home," "Supportive Housing," "Housing with No Supports," "Housing with no Support Services," and "Housing with no Supportive Services."
