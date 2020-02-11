@@ -338,5 +338,55 @@ module Reporting::MonthlyReports
       :warehouse_partitioned_monthly_reports_unknown
     end
 
+    # schema.rb doesn't include tiggers or functions
+    # these need to be active for SHS to work correctly
+    def self.ensure_triggers
+      return if trigger_exists?
+
+      connection.execute(trigger_sql)
+    end
+
+    def self.trigger_sql
+      trigger_ifs = []
+      sub_tables.each do |name, details|
+        table_name = details[:table_name]
+        type = details[:type]
+
+        constraint = "NEW.type = '#{type}'"
+        trigger_ifs << " ( #{constraint} ) THEN
+              INSERT INTO #{table_name} VALUES (NEW.*);
+          "
+      end
+
+      trigger = "
+        CREATE OR REPLACE FUNCTION #{trigger_name}()
+        RETURNS TRIGGER AS $$
+        BEGIN
+        IF "
+      trigger += trigger_ifs.join(' ELSIF ');
+      trigger += "
+        ELSE
+          INSERT INTO #{remainder_table} VALUES (NEW.*);
+          END IF;
+          RETURN NULL;
+      END;
+      $$
+      LANGUAGE plpgsql;
+      CREATE TRIGGER #{trigger_name}
+      BEFORE INSERT ON #{parent_table}
+      FOR EACH ROW EXECUTE PROCEDURE #{trigger_name}();
+      "
+    end
+
+    def self.trigger_name
+      'monthly_reports_insert_trigger'
+    end
+
+    def self.trigger_exists?
+      query = "select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'"
+      result = connection.execute(query).first
+      return result['count'].positive?
+    end
+
   end
 end
