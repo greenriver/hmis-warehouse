@@ -33,6 +33,38 @@ module GrdaWarehouse::HMIS
       where(health: true)
     end
 
+    scope :rrh_assessment, -> do
+      where(rrh_assessment: true)
+    end
+
+    scope :triage_assessment, -> do
+      where(triage_assessment: true)
+    end
+
+    scope :vispdat, -> do
+      where(vispdat: true)
+    end
+
+    scope :ssm, -> do
+      where(ssm: true)
+    end
+
+    scope :health_case_note, -> do
+      where(health_case_note: true)
+    end
+
+    scope :health_has_qualifying_activities, -> do
+      where(health_has_qualifying_activities: true)
+    end
+
+    scope :hud_assessment, -> do
+      where(hud_assessment: true)
+    end
+
+    scope :pathways, -> do
+      where(pathways: true)
+    end
+
     scope :health_for_user, -> (user) do
       if user.can_administer_health?
         joins(:hmis_forms).merge(GrdaWarehouse::HmisForm.health_touch_points)

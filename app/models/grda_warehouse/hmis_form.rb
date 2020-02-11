@@ -14,17 +14,30 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
-  scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
-  scope :triage, -> { where name: 'Triage Assessment'}
-  scope :vispdat, -> do
-    where(name: 'VI-SPDAT v2')
+  scope :hud_assessment, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.hud_assessment)
   end
+
+  scope :triage, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.triage)
+  end
+
+  scope :vispdat, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.vispdat)
+  end
+
+  scope :pathways, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
+  end
+
   scope :confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
   end
+
   scope :non_confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
   end
+
   scope :window, -> do
     joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
   end
@@ -32,12 +45,13 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :health, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health)
   end
+
   scope :window_with_details, -> do
     window.merge(GrdaWarehouse::HMIS::Assessment.window)
   end
 
   scope :self_sufficiency, -> do
-    where(name: 'Self-Sufficiency Matrix')
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.ssm)
   end
 
   scope :collected, -> do
@@ -45,11 +59,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :case_management_notes, -> do
-    where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_case_note)
   end
 
   scope :has_qualifying_activities, -> do
-    where(name: ['Case Management Daily Note'])
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_has_qualifying_activities)
   end
 
   scope :has_unprocessed_quailifying_activities, -> do
@@ -501,6 +515,5 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def self.rrh_assessment_name
     hmis_assessment.class.rrh_assessment&.first&.name
-    # 'Boston CoC Coordinated Entry Assessment'
   end
 end
