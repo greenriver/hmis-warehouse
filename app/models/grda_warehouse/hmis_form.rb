@@ -47,7 +47,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :window_with_details, -> do
-    window.merge(GrdaWarehouse::HMIS::Assessment.window)
+    window.merge(GrdaWarehouse::HMIS::Assessment.window_with_details)
   end
 
   scope :self_sufficiency, -> do
