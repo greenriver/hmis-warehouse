@@ -1085,6 +1085,19 @@ class WarehouseReport::RrhReport
     Reporting::Housed.rrh
   end
 
+  def project_types
+    [13]
+  end
+
+  # Not all of the data for determining if someone is in a family is available in the
+  # Housed table, so we'll defer that off to ServiceHistoryEnrollment
+  def service_history_enrollment_scope
+    GrdaWarehouse::ServiceHistoryEnrollment.
+      in_project_type(project_types).
+      send(@household_type).
+      open_between(start_date: @start_date, end_date: @end_date)
+  end
+
   def housed_scope
     scope = if ! all_projects
       housed_source.where(project_id: @project_ids)
@@ -1092,6 +1105,7 @@ class WarehouseReport::RrhReport
       housed_source.all
     end
     scope = scope.
+      where(client_id: service_history_enrollment_scope.distinct.pluck(:client_id)).
       send(@subpopulation).
       send(@household_type)
 

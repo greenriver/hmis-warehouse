@@ -2797,6 +2797,9 @@ module GrdaWarehouse::Hud
             new_episode: new_episode,
             enrollment_id: entry.enrollment.EnrollmentID,
             data_source_id: entry.enrollment.data_source_id,
+            created_at: entry.enrollment.DateCreated,
+            updated_at: entry.enrollment.DateUpdated,
+            hmis_id: entry.enrollment.id,
             # support: dates_served,
           }
         end
