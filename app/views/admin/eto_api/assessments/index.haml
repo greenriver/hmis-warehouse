@@ -2,37 +2,58 @@
 - content_for :title, title
 %h1= content_for(:title)
 = render :partial => 'menus/admin_tabs'
-%table.table.table-sm
-  %thead
-    %tr
-      %th Site
-      %th Touch Point
-      %th Touch Point ID
-      %th Active in ETO
-      %th Fetch into Warehouse
-      %th Display as confidential
-      %th Exclude from Window
-      %th Details visible in the window with release
-      %th Health
-  %tbody
-    - @assessments.each do |assessment|
+.overflow-x-scroll{style: "height: 800px"}
+  %table.table.table-fixed.table-striped
+    %thead
       %tr
-        %td
-          = assessment.site_name
-        %td
-          = link_to edit_admin_eto_api_assessment_path(assessment) do
-            = assessment.name    
-        %td
-          = assessment.assessment_id
-        %td
-          = checkmark(assessment.active)
-        %td
-          = checkmark(assessment.fetch)
-        %td
-          = checkmark(assessment.confidential)
-        %td
-          = checkmark(assessment.exclude_from_window)
-        %td
-          = checkmark(assessment.details_in_window_with_release)
-        %td
-          = checkmark(assessment.health)
+        %th Touch Point / Site
+        %th Active in ETO
+        %th Fetch into Warehouse
+        %th Display as confidential
+        %th Exclude from Window
+        %th Details visible in the window with release
+        %th HUD Entry/Exit/Update
+        %th VI-SPDAT
+        %th Pathways
+        %th Triage Assessment
+        %th RRH Assessment
+        %th Health
+        %th SSM (Health)
+        %th Health Case Note
+        %th Contains Qualifying Activities (Health)
+    %tbody
+      - @assessments.each do |assessment|
+        %tr
+          %td
+            = link_to edit_admin_eto_api_assessment_path(assessment) do
+              #{assessment.name} (#{assessment.assessment_id})
+            %br
+            = assessment.site_name
+          %td
+            = checkmark(assessment.active)
+          %td
+            = checkmark(assessment.fetch)
+          %td
+            = checkmark(assessment.confidential)
+          %td
+            = checkmark(assessment.exclude_from_window)
+          %td
+            = checkmark(assessment.details_in_window_with_release)
+          %td
+            = checkmark(assessment.hud_assessment)
+          %td
+            = checkmark(assessment.vispdat)
+          %td
+            = checkmark(assessment.pathways)
+          %td
+            = checkmark(assessment.triage_assessment)
+          %td
+            = checkmark(assessment.rrh_assessment)
+          %td
+            = checkmark(assessment.health)
+          %td
+            = checkmark(assessment.ssm)
+          %td
+            = checkmark(assessment.health_case_note)
+          %td
+            = checkmark(assessment.health_has_qualifying_activities)

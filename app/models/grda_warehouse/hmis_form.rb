@@ -500,6 +500,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def self.rrh_assessment_name
-    'Boston CoC Coordinated Entry Assessment'
+    hmis_assessment.class.rrh_assessment&.first&.name
+    # 'Boston CoC Coordinated Entry Assessment'
   end
 end
