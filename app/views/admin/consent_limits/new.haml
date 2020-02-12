@@ -1,0 +1,6 @@
+%h1 New CoC for Consent
+
+= simple_form_for(@consent_limit, url: admin_consent_limits_path, as: :consent_limit) do |f|
+  = render 'form', f: f
+  .form_actions
+    = f.button :submit, value: 'Create CoC'

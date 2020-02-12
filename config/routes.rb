@@ -429,6 +429,7 @@ Rails.application.routes.draw do
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
+    resources :releases, controller: 'clients/releases'
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -704,6 +705,7 @@ Rails.application.routes.draw do
       patch :update, on: :collection
     end
     resources :data_quality_grades, only: [:index]
+    resources :consent_limits, except: [:show]
     resources :missing_grades, only: [:create, :update, :destroy]
     resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do

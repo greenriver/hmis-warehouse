@@ -5,7 +5,10 @@
 ###
 
 class Agency < ApplicationRecord
+  has_paper_trail
   has_many :users, dependent: :nullify
+  has_many :agencies_consent_limits
+  has_many :consent_limits, through: :agencies_consent_limits
 
   scope :text_search, -> (text) do
     return none unless text.present?

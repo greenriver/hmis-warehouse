@@ -29,6 +29,8 @@
             %tr
               %th Name
               %th Assigned Users
+              %th CoC Codes
+              %th Available Publically
               %th
           %tbody
             - @agencies.each do |agency|
@@ -38,6 +40,8 @@
                   = link_to agency.name, edit_admin_agency_path(agency)
                 %td
                   = users
+                %td= agency.consent_limits.pluck(:name).join("; ")
+                %td= checkmark(agency.expose_publically)
                 %td
                   - unless users > 0
                     = link_to admin_agency_path(agency),  method: :delete, data: {confirm: "Would you really like to delete the agency #{agency.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do

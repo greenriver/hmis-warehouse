@@ -11,7 +11,7 @@
             = tag
     .col-4.text-right
       - if file.editable_by?(current_user)
-        - if consent
+        - if consent && ! can_use_separated_consent?
           - anchor = 'consent'
         - else
           - anchor = 'other'
@@ -59,10 +59,10 @@
         - if (can_manage_client_files? || can_confirm_housing_release?) && @consent_editable
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
             = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
-          - if can_confirm_housing_release?
+          - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
             = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
               .mt-2
-                = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }
+                = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: _('Consent form confirmed')
           = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
             = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
         - else

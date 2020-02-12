@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_05_010344) do
+ActiveRecord::Schema.define(version: 2020_02_12_140919) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1598,6 +1598,7 @@ ActiveRecord::Schema.define(version: 2020_02_05_010344) do
     t.boolean "verified_homeless_history_visible_to_all", default: false, null: false
     t.boolean "only_most_recent_import", default: false
     t.boolean "expose_coc_code", default: false, null: false
+    t.boolean "auto_confirm_consent", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1869,6 +1870,14 @@ ActiveRecord::Schema.define(version: 2020_02_05_010344) do
     t.boolean "exclude_from_window", default: false, null: false
     t.boolean "details_in_window_with_release", default: false, null: false
     t.boolean "health", default: false, null: false
+    t.boolean "vispdat", default: false
+    t.boolean "pathways", default: false
+    t.boolean "ssm", default: false
+    t.boolean "health_case_note", default: false
+    t.boolean "health_has_qualifying_activities", default: false
+    t.boolean "hud_assessment", default: false
+    t.boolean "triage_assessment", default: false
+    t.boolean "rrh_assessment", default: false
     t.index ["assessment_id"], name: "index_hmis_assessments_on_assessment_id"
     t.index ["data_source_id"], name: "index_hmis_assessments_on_data_source_id"
     t.index ["site_id"], name: "index_hmis_assessments_on_site_id"
