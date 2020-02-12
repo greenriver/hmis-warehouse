@@ -997,6 +997,8 @@ module GrdaWarehouse::Hud
 
     alias_attribute :last_name, :LastName
     alias_attribute :first_name, :FirstName
+    alias_attribute :dob, :DOB
+    alias_attribute :ssn, :SSN
 
     def window_link_for? user
       return false if user.blank?
@@ -1953,6 +1955,65 @@ module GrdaWarehouse::Hud
 
       client_ids << text if numeric && self.destination.where(id: text).exists?
       where(id: client_ids)
+    end
+
+    # Must match 3 of four First Name, Last Name, SSN, DOB
+    # SSN can be full 9 or last 4
+    # Names can potentially be switched.
+    def self.strict_search(criteria, client_scope: none)
+      first_name = criteria[:first_name]&.strip&.gsub(/[^a-z0-9]/i, '')
+      last_name = criteria[:last_name]&.strip&.gsub(/[^a-z0-9]/i, '')
+      dob = criteria[:dob]&.to_date
+      ssn = criteria[:ssn]&.gsub(/[^0-9]/i, '')
+      ssn = nil if ssn.present? && ssn.length < 4
+      sufficient_criteria = [
+        first_name.present?,
+        last_name.present?,
+        ssn.present?,
+        dob.present?,
+      ].count(true) >= 3
+      return none unless sufficient_criteria
+
+      first_name_ids = []
+      last_name_ids = []
+      dob_ids = []
+      ssn_ids = []
+
+      first_name_ids = source.where(
+        nf('LOWER', [arel_table[:FirstName]]).eq(first_name.downcase)
+      ).pluck(:id) if first_name.present?
+
+      last_name_ids = source.where(
+        nf('LOWER', [arel_table[:LastName]]).eq(last_name.downcase)
+      ).pluck(:id) if last_name.present?
+
+      dob_ids = source.where(
+        arel_table[:DOB].eq(dob)
+      ).pluck(:id) if dob.present?
+
+      if ssn.length == 9
+        ssn_ids = source.where(
+          arel_table[:SSN].eq(ssn)
+        ).pluck(:id)
+      elsif ssn.length == 4
+        ssn_ids = source.where(
+          arel_table[:SSN].matches("%#{ssn}")
+        ).pluck(:id)
+      end
+
+      all_ids = first_name_ids + last_name_ids + dob_ids + ssn_ids
+      matching_ids = all_ids.each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.select{|_, counts| counts >= 3}&.keys
+
+      begin
+        ids = client_scope.
+          joins(:warehouse_client_source).searchable.
+          where(id: matching_ids).
+          preload(:destination_client).
+          map{|m| m.destination_client.id}
+        where(id: ids)
+      rescue RangeError => e
+        return none
+      end
     end
 
     def gender

@@ -13,7 +13,7 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_view_or_search_clients_or_window!, only: [:index]
+  before_action :require_can_access_some_client_search!, only: [:index]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
 
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
@@ -32,13 +32,21 @@ class ClientsController < ApplicationController
   def index
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
-    @clients = if params[:q].present?
-      client_source.text_search(params[:q], client_scope: client_search_scope)
-    else
-      client_scope.none
+    @clients = client_scope.none
+    if (current_user.can_access_window_search? || current_user.can_access_client_search?) && params[:q].present?
+      @clients = client_source.text_search(params[:q], client_scope: client_search_scope)
+    elsif current_user.can_use_strict_search?
+      @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
-    @clients = @clients.preload(:processed_service_history)
-    sort_filter_index
+    @clients = @clients.
+      preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
+      page(params[:page]).per(20)
+    if current_user.can_access_window_search? || current_user.can_access_client_search?
+      sort_filter_index
+    elsif current_user.can_use_strict_search?
+      @client = client_source.new(strict_search_params)
+      render 'strict_search'
+    end
   end
 
   def show
@@ -264,6 +272,18 @@ class ClientsController < ApplicationController
         :health_receiver,
         merge: [],
         unmerge: [],
+      )
+  end
+
+  private def strict_search_params
+    return {} unless params[:client].present?
+
+    params.require(:client).
+      permit(
+        :first_name,
+        :last_name,
+        :dob,
+        :ssn,
       )
   end
 
