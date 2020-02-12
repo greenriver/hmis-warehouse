@@ -11,11 +11,6 @@ module HudChronic
 
   included do
     def load_hud_chronic_filter
-      filter_params = if params.is_a?(ActiveSupport::HashWithIndifferentAccess)
-        params
-      else
-        params.permit!
-      end
       @filter = ::Filters::HudChronic.new(filter_params[:filter])
       filter_query = hc_t[:age].gt(@filter.min_age)
       filter_query = filter_query.and(hc_t[:individual].eq(@filter.individual)) if @filter.individual
@@ -50,6 +45,10 @@ module HudChronic
       @order = table[@column].send(@direction)
     end
     alias_method :set_sort, :set_hud_chronic_sort
+
+    def filter_params
+      params.permit(filter: Filters::HudChronic.attribute_set.map(&:name))
+    end
 
     def hud_chronic_source
       GrdaWarehouse::HudChronic

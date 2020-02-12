@@ -12,5 +12,4 @@
         - else
           - title = "<span class='icon-checkbox-unchecked'></span> #{details[:title]} #{opt[:direction]}".html_safe
         %li
-          - # FIXME replace permit! with a whitelist and remove from brakeman.ignore
-          = link_to title, params.permit!.merge!(direction: opt[:direction], column: opt[:column])
+          = link_to title, params: {direction: opt[:direction], column: opt[:column]}
