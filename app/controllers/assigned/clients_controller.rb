@@ -8,18 +8,14 @@ module Assigned
   class ClientsController < ApplicationController
     include ClientPathGenerator
 
-    before_action :require_can_search_window!
+    before_action :require_can_view_clients_or_window!
     before_action :set_user
 
     def index
       @user_clients = @user.user_clients.
         joins(:client).
         merge(GrdaWarehouse::UserClient.active)
-      if can_view_clients?
-        @client_path = :client_path
-      elsif can_search_window?
-        @client_path = :window_client_path
-      end
+      @client_path = :client_path
     end
 
     def set_user

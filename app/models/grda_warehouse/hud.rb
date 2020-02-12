@@ -38,7 +38,6 @@ module GrdaWarehouse::Hud
       'AssessmentResult.csv' => GrdaWarehouse::Hud::AssessmentResult,
       'Event.csv' => GrdaWarehouse::Hud::Event,
       'User.csv' => GrdaWarehouse::Hud::User,
-      'Export.csv' => GrdaWarehouse::Hud::Export,
     }.freeze
   end
 

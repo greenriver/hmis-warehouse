@@ -532,6 +532,14 @@ def maintain_data_sources
   end
 end
 
+# These tables are partitioned and need to have triggers and functions that
+# schema loading doesn't include.  This will ensure that they exist on each deploy
+def ensure_db_triggers_and_functions
+  GrdaWarehouse::ServiceHistoryService.ensure_triggers
+  Reporting::MonthlyReports::Base.ensure_triggers
+end
+
+ensure_db_triggers_and_functions()
 setup_fake_user()
 maintain_data_sources()
 maintain_report_definitions()

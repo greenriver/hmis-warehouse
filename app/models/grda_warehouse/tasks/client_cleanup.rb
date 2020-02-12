@@ -64,39 +64,100 @@ module GrdaWarehouse::Tasks
     end
 
     def invalidate_incorrect_family_enrollments
+      debug_log "Checking for enrollments flagged as individual where they should be family"
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-        debug_log "NOT Checking for enrollments flagged as individual where they should be family and vice versa, using household id to determine families"
+        invalidate_incorrect_family_when_infer_from_household_id
       else
-        debug_log "Checking for enrollments flagged as individual where they should be family"
-        query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-          merge(
-            GrdaWarehouse::ServiceHistoryEnrollment.entry.
-              joins(:project).merge(
-                GrdaWarehouse::Hud::Project.family
-              ).where(presented_as_individual: true)
-          )
-        count = query.count
-        debug_log "Found #{count}"
+        invalidate_incorrect_family_when_infer_from_project
+      end
+    end
 
-        if count > 0
-          @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
-          query.invalidate_processing!
-        end
-        debug_log "Checking for enrollments flagged as family where they should be individual"
-        query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-          merge(
-            GrdaWarehouse::ServiceHistoryEnrollment.entry.
-              joins(:project).merge(
-                GrdaWarehouse::Hud::Project.serves_individuals_only
-              ).where(presented_as_individual: false)
-          )
-        count = query.count
-        debug_log "Found #{count}"
-        if count > 0
-          @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+    private def invalidate_incorrect_family_when_infer_from_project
+      debug_log "Checking for enrollments flagged as individual where they should be family"
+      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:project).merge(
+              GrdaWarehouse::Hud::Project.family
+            ).where(presented_as_individual: true)
+        )
+      count = query.count
+      debug_log "Found #{count}"
+
+      if count.positive?
+        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
+        query.invalidate_processing! unless @dry_run
+      end
+      debug_log "Checking for enrollments flagged as family where they should be individual"
+      query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:project).merge(
+              GrdaWarehouse::Hud::Project.serves_individuals_only
+            ).where(presented_as_individual: false)
+        )
+      count = query.count
+      debug_log "Found #{count}"
+      if count.positive?
+        @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+        query.invalidate_processing! unless @dry_run
+      end
+    end
+
+    private def invalidate_incorrect_family_when_infer_from_household_id
+      # Use a fresh pull of IDS
+      Rails.cache.delete('family-households')
+      hmis_non_individuals = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.family_households.keys
+      service_history_non_individuals = GrdaWarehouse::ServiceHistoryEnrollment.entry.where(presented_as_individual: false).distinct.pluck(:household_id, :project_id, :data_source_id)
+      missing_non_individuals = service_history_non_individuals - hmis_non_individuals
+      incorrectly_non_individuals = hmis_non_individuals - service_history_non_individuals
+
+      count = missing_non_individuals.count
+      @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if count.positive? && @send_notifications
+      count = incorrectly_non_individuals.count
+      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if count.positive? && @send_notifications
+      notes = ''
+
+      # These are incorrect on the service history side
+      missing_non_individuals.group_by do |household_id, project_id, data_source_id|
+        [project_id, data_source_id]
+      end.each do |(project_id, data_source_id), batch|
+        household_ids = batch.map(&:first)
+        # This is a bit convoluted, but the usual joins weren't working
+        service_history_query = GrdaWarehouse::ServiceHistoryEnrollment.
+          entry.
+          joins(:enrollment).
+          where(data_source_id: data_source_id, project_id: project_id, household_id: household_ids)
+        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(
+          EnrollmentID: service_history_query.
+            select(:enrollment_group_id),
+          data_source_id: data_source_id,
+          ProjectID: project_id,
+        )
+
+        if @dry_run
+          notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}\n"
+        else
           query.invalidate_processing!
         end
       end
+
+      # these are incorrect on the enrollment size
+      incorrectly_non_individuals.group_by do |household_id, project_id, data_source_id|
+        [project_id, data_source_id]
+      end.each do |(project_id, data_source_id), batch|
+        household_ids = batch.map(&:first)
+        query = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.
+          where(data_source_id: data_source_id, ProjectID: project_id, HouseholdID: household_ids)
+        if @dry_run
+          notes << "Invalidating #{query.count} in ds_id: #{data_source_id} project_id: #{project_id}\n\t#{household_ids.inspect}"
+        else
+          query.invalidate_processing!
+        end
+      end
+
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+      @notifier.ping notes if @dry_run && @send_notifications
     end
 
     def remove_clients_without_enrollments!
@@ -492,7 +553,7 @@ module GrdaWarehouse::Tasks
         invalidate_clients << id if age.present? && age != client_age
       end
       msg =  "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
-      msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size > 0
+      msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size.positive?
       logger.info msg
       @notifier.ping msg if @send_notifications
       # Only invalidate clients if the age is wrong, if it's less than zero but hasn't changed, this is just wasted effort
