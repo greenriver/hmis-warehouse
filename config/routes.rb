@@ -435,6 +435,7 @@ Rails.application.routes.draw do
       get :has_thumb, on: :member
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
+      get :pre_populated, on: :collection
     end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'

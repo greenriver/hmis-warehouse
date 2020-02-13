@@ -10,10 +10,7 @@ module Clients
     include PjaxModalController
     include ClientDependentControllers
 
-    before_action :require_window_file_access!
-    before_action :set_client
-    before_action :set_files, only: [:index]
-    before_action :set_file, only: [:show, :update]
+    before_action :require_can_use_separated_consent!
 
     after_action :log_client
 
@@ -54,11 +51,8 @@ module Clients
         )
     end
 
-    def consent_params
-      params.require(:grda_warehouse_client_file).
-        permit(
-          :consent_form_confirmed,
-        )
+    def pre_populated
+      @coc_map_url = GrdaWarehouse::PublicFile.url_for_location('client/releases/coc_map')
     end
 
     def file_source
@@ -66,7 +60,7 @@ module Clients
     end
 
     protected def title_for_show
-      "#{@client.name} - Files"
+      "#{@client.name} - Release of Information"
     end
 
     def window_visible?(_visibility)
@@ -114,5 +108,20 @@ module Clients
       scope = scope.window unless can_manage_client_files?
       scope
     end
+
+    def selected_coc_codes
+      params.permit(coc_codes: [])[:coc_codes]&.map(&:presence)&.compact || []
+    end
+    helper_method :selected_coc_codes
+
+    def selected_effective_date
+      params.permit(:effective_date)[:effective_date]
+    end
+    helper_method :selected_effective_date
+
+    def selected_expiration_date
+      params.permit(:expiration_date)[:expiration_date]
+    end
+    helper_method :selected_expiration_date
   end
 end

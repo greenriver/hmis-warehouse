@@ -22,4 +22,13 @@ class ConsentLimit < ActiveRecord::Base
       ]
     end
   end
+
+  def self.available_coc_codes
+    all.map do |c|
+      [
+        "#{c.description} (#{c.name})",
+        c.name, # name is the CoC Code
+      ]
+    end
+  end
 end

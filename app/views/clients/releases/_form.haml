@@ -1,17 +1,18 @@
-.well.row
-  .col-4
-    %dl
-      %dt Name:
-      %dd= @client.name
-  .col-4
-    %dl
-      %dt Date of Birth:
-      %dd= @client.DOB
-  .col-4
-    %dl
-      %dt SSN:
-      %dd= ssn(@client.SSN)
-= simple_form_for @file, url: polymorphic_path(files_path_generator, client_id: @client) do |f|
+.well
+  .row
+    .col-4
+      %dl
+        %dt Name:
+        %dd= @client.name
+    .col-4
+      %dl
+        %dt Date of Birth:
+        %dd= @client.DOB
+    .col-4
+      %dl
+        %dt SSN:
+        %dd= ssn(@client.SSN)
+= simple_form_for @file, url: client_releases_path(client_id: @client) do |f|
   - if @file.errors.any?
     .alert.alert-danger
       %p Failed to upload file. Please review the errors below
@@ -19,7 +20,24 @@
         - @file.errors.messages.values.uniq.each do |msg|
           %li= msg.first
   .form-inputs
-    - if @consent_file_types.count > 1
+    - if @consent_file_types.count == 1
+      - # we need to include a hidden field for the javascript to work
+      - item = @consent_file_types.first
+      - options = {class: 'jFileTag'}
+      - data = {}
+      - if item.consent_form
+        - data.merge!({consent: true})
+      - if item.coc_available
+        - data.merge!({coc_code: true})
+      - if item.requires_effective_date
+        - data.merge!({requires_effective_date: true})
+        - @requires_effective_date = true
+      - if item.requires_expiration_date
+        - data.merge!({requires_expiration_date: true})
+        - @requires_expiration_date = true
+      - options.merge!({data: data})
+      = render 'clients/files/hidden_tag', item: item, f: f, options: options
+    - else
       %h3 What Does This File Contain?
       .c-card.c-card--flush.client-file.mb-6
         .c-card__content.clearfix.row
@@ -58,7 +76,11 @@
     .row.jEffectiveDate
       .col-sm-4
         = f.input :effective_date, as: :date_picker, label: 'Effective date or date signed'
-    - if can_confirm_housing_release?
+      .col-8.text-right
+        = link_to pre_populated_client_releases_path(), class: 'btn btn-secondary jPrePopulated' do
+          %i.icon-printer
+          Print Release Form
+    - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
       .consent-form-fields.hidden
         = f.input :consent_form_confirmed, as: :boolean
     .row.jConsentFormCoC
@@ -67,11 +89,6 @@
     .row.jExpirationDate
       .col-sm-4
         = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
-    .row
-      .col-sm-6
-        = f.input :note, as: :text, hint: '(Optional except if other is chosen above.) Give a reason for including this file.'
-    - if can_manage_client_files?
-      = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
     = f.input :file, as: :file, required: true
   .d-flex
     = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-secondary ml-auto' do
@@ -79,3 +96,25 @@
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2
       Upload File
+
+= content_for :page_js do
+  :javascript
+    $('.jConsentFormCoC select').on('change', function(e){
+
+    });
+    $('.jExpirationDate input').on('change', function(e){
+
+    });
+    $('.jEffectiveDate input').on('change', function(e){
+
+    });
+    $('.jPrePopulated').on('click', function(e){
+      // Grab the values we need
+      params = {
+        coc_codes: $('.jConsentFormCoC select').val(),
+        expiration_date: $('.jExpirationDate input').val(),
+        effective_date: $('.jEffectiveDate input').val()
+      }
+      url = $(this).attr('href');
+      $(this).attr('href', url + '?' + $.param(params));
+    });

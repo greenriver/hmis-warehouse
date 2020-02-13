@@ -38,3 +38,7 @@
     border-#{$name}: 1px solid $gray-015;
   }
 }
+
+.overflow-x-scroll {
+  overflow-x: scroll;
+}
