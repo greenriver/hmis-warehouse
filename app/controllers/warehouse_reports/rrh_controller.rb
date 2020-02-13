@@ -133,6 +133,22 @@ module WarehouseReports
       )
     end
 
+    private def passed_params
+      params.permit(filter:
+        [
+          :start_date,
+          :end_date,
+          :subpopulation,
+          :household_type,
+          :race,
+          :ethnicity,
+          :gender,
+          :veteran_status,
+          project_ids: [],
+        ])
+    end
+    helper_method :passed_params
+
     private def project_ids(project_ids)
       return :all unless project_ids.present?
 

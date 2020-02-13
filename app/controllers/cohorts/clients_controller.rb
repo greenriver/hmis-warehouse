@@ -99,11 +99,11 @@ module Cohorts
 
     # rubocop:disable Metrics/AbcSize
     def new
-      params.permit!
       @hoh_only = false
       @clients = client_scope.none
-      @filter = ::Filters::Chronic.new(params[:filter])
-      @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
+      @filter = ::Filters::Chronic.new(filter_params[:filter])
+      @hud_filter = ::Filters::HudChronic.new(hud_filter_params[:hud_filter])
+
       # whitelist for scope
       @populations = begin
         populations = populations_params[:population]&.map(&:to_sym)
@@ -117,7 +117,7 @@ module Cohorts
       end
       @actives = actives_params
       @touchpoints = touch_point_params
-      @client_ids = params[:batch].try(:[], :client_ids)
+      @client_ids = params.dig(:batch, :client_ids)
 
       @q = client_scope.none.ransack(params[:q])
       if params[:filter].present?
@@ -157,7 +157,6 @@ module Cohorts
         else
           @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
         end
-
         @actives[:actives_population] = [:all_clients] unless @actives.key? :actives_population
 
         populations = @actives[:actives_population]
@@ -216,7 +215,7 @@ module Cohorts
       elsif @client_ids.present?
         @client_ids = @client_ids.strip.split(/\s+/).map { |m| m[/\d+/].to_i }
         @clients = client_scope.where(id: @client_ids)
-      elsif params[:q].try(:[], :full_text_search).present?
+      elsif params.dig(:q, :full_text_search).present?
         @q = client_source.ransack(params[:q])
         @clients = @q.result(distinct: true).merge(client_scope)
       elsif @touchpoints
@@ -251,8 +250,7 @@ module Cohorts
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter
-      params.permit!
-      @hud_filter = ::Filters::HudChronic.new(params[:hud_filter])
+      @hud_filter = ::Filters::HudChronic.new(hud_filter_params[:hud_filter])
       filter_query = hc_t[:age].gt(@hud_filter.min_age)
       filter_query = filter_query.and(hc_t[:individual].eq(@hud_filter.individual)) if @hud_filter.individual
       filter_query = filter_query.and(hc_t[:dmh].eq(@hud_filter.dmh)) if @hud_filter.dmh
@@ -262,6 +260,14 @@ module Cohorts
         where(filter_query).
         has_homeless_service_between_dates(start_date: (@hud_filter.date - @hud_filter.last_service_after.days), end_date: @hud_filter.date)
       @clients = @clients.text_search(@hud_filter.name, client_scope: GrdaWarehouse::Hud::Client.source) if @hud_filter.name&.present?
+    end
+
+    def filter_params
+      params.permit(filter: ::Filters::Chronic.attribute_set.map(&:name))
+    end
+
+    def hud_filter_params
+      params.permit(filter: ::Filters::HudChronic.attribute_set.map(&:name))
     end
 
     def load_cohort_names
@@ -352,12 +358,11 @@ module Cohorts
     end
 
     def bulk_destroy
-      params.permit!
       @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
       @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
       removed = 0
       @cohort_clients.each do |client|
-        log_removal(client.cohort_id, client.id, params[:cc].try(:[], :reason))
+        log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
         removed += 1 if client.destroy
       end
       flash[:notice] = "Removed #{removed} #{'client'.pluralize(removed)}"
@@ -387,8 +392,7 @@ module Cohorts
     end
 
     def destroy
-      params.permit!
-      log_removal(@client.cohort_id, @client.id, params[:grda_warehouse_cohort_client].try(:[], :reason))
+      log_removal(@client.cohort_id, @client.id, params.dig(:grda_warehouse_cohort_client, :reason))
       if @client.destroy
         flash[:notice] = "Removed #{@client.name}"
         redirect_to cohort_path(@cohort)
@@ -415,7 +419,6 @@ module Cohorts
     end
 
     def populations_params
-      params.permit!
       return {} unless params[:populations].present?
 
       params.require(:populations).permit(
@@ -425,7 +428,6 @@ module Cohorts
     end
 
     def actives_params
-      params.permit!
       return false unless params[:actives].present?
 
       params.require(:actives).permit(
@@ -439,7 +441,6 @@ module Cohorts
     end
 
     def touch_point_params
-      params.permit!
       return false unless params[:touchpoints].present?
 
       params.require(:touchpoints).permit(

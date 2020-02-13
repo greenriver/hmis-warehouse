@@ -15,7 +15,7 @@ module WarehouseReports
     def index
       if params[:commit].present?
         # Comment to prevent rubocop trailing if
-        WarehouseReports::RunChronicJob.perform_later(params.permit!.merge(current_user_id: current_user.id))
+        WarehouseReports::RunChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
       @jobs = Delayed::Job.where(queue: 'chronic_report').order(run_at: :desc)
       @reports = report_source.ordered.

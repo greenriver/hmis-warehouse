@@ -81,17 +81,26 @@ module WarehouseReports
 
     def set_filter
       options = {}
-      params.permit!
-      if params[:mo].present?
-        start_date = Date.parse "#{params[:mo][:year]}-#{params[:mo][:month]}-1"
+      if filter_params[:mo].present?
+        start_date = Date.parse "#{filter_params[:mo][:year]}-#{filter_params[:mo][:month]}-1"
         # NOTE: we need to pro-rate the current month
         end_date = [start_date.end_of_month, Date.yesterday].min
-        options = params[:mo]
+        options = filter_params[:mo]
         options[:start] = start_date
         options[:end] = end_date
       end
       @mo = ::Filters::MonthAndOrganization.new options
       @mo.user = current_user
+    end
+
+    def filter_params
+      params.permit(
+        mo: [
+          :year,
+          :month,
+          :org,
+        ],
+      )
     end
 
     def organization_scope
