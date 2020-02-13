@@ -429,7 +429,13 @@ Rails.application.routes.draw do
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
-    resources :releases, controller: 'clients/releases'
+    resources :releases, controller: 'clients/releases', except: [:edit] do
+      get :preview, on: :member
+      get :thumb, on: :member
+      get :has_thumb, on: :member
+      get :show_delete_modal, on: :member
+      post :batch_download, on: :collection
+    end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
