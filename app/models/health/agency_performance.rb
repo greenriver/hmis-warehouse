@@ -103,7 +103,10 @@ module Health
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
         where(hpr_t[:enrollment_start_date].lt(@range.last)).
-        pluck(:patient_id, :agency_id, hpr_t[:enrollment_start_date]).reduce({}) { |hash, array| hash.update(array.first => array[1..]) }
+        pluck(:patient_id, :agency_id, hpr_t[:enrollment_start_date]).
+        reduce({}) do |hash, (patient_id, agency_id, enrollment_start_date)|
+          hash.update(patient_id => [agency_id, enrollment_start_date])
+        end
     end
 
     # def rejected_patient_referrals

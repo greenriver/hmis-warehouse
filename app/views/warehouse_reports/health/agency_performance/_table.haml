@@ -24,7 +24,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -35,7 +35,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -46,7 +46,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.text-right
@@ -57,7 +57,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -68,7 +68,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.text-right
@@ -79,7 +79,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
 
@@ -91,7 +91,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -103,7 +103,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             "#{percentage}%"
         %td.agency-performance__without.text-right
@@ -114,7 +114,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.agency-performance__date-effected.text-right
@@ -125,7 +125,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
   - if @agencies.size > 1
@@ -142,3 +142,10 @@
         %td.text-right= @totals.with_careplans_in_122_days.size
         %td.agency-performance__without.text-right= @totals.without_signed_careplans.size
         %td.agency-performance__date-effected.agency-performance__without.text-right= @totals.without_qualifying_activities_within_range.size
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.btn').each(function(i){
+        $(this).removeAttr('data-disable-with');
+      });
+    });
