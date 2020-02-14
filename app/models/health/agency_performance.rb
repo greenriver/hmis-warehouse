@@ -16,7 +16,10 @@ module Health
 
     def agency_counts
       @agency_counts ||= agencies.map do |id, name|
-        patient_ids = patient_referrals.select{ |_, agency_id| agency_id == id }.keys
+        patient_ids = patient_referrals.select do |_, referral|
+          agency_id, _ = referral;
+          agency_id == id
+        end.keys
 
         consented_patients = consent_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
         unconsented_patients = patient_ids - consented_patients
@@ -29,6 +32,12 @@ module Health
 
         with_signed_careplans = careplan_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
         without_signed_careplans = patient_ids - with_signed_careplans
+
+        with_careplans_in_122_days = patient_ids.select do |p_id|
+          careplan_date = careplan_dates[p_id]&.to_date
+          enrollment_date = patient_referrals[p_id][1]
+          careplan_date.present? && (careplan_date - enrollment_date).to_i <= 122
+        end
 
         with_qualifying_activities_within_range = qualifying_activity_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
         without_qualifying_activities_within_range = patient_ids - with_qualifying_activities_within_range
@@ -46,6 +55,7 @@ module Health
             without_chas: without_chas,
             with_signed_careplans: with_signed_careplans,
             without_signed_careplans: without_signed_careplans,
+            with_careplans_in_122_days: with_careplans_in_122_days,
             with_qualifying_activities_within_range: with_qualifying_activities_within_range,
             without_qualifying_activities_within_range: without_qualifying_activities_within_range,
           }
@@ -67,6 +77,7 @@ module Health
           without_chas: agency_counts.map(&:without_chas).reduce(&:+),
           with_signed_careplans: agency_counts.map(&:with_signed_careplans).reduce(&:+),
           without_signed_careplans: agency_counts.map(&:without_signed_careplans).reduce(&:+),
+          with_careplans_in_122_days: agency_counts.map(&:with_careplans_in_122_days).reduce(&:+),
           with_qualifying_activities_within_range: agency_counts.map(&:with_qualifying_activities_within_range).reduce(&:+),
           without_qualifying_activities_within_range: agency_counts.map(&:without_qualifying_activities_within_range).reduce(&:+),
         }
@@ -93,7 +104,7 @@ module Health
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
         where(hpr_t[:enrollment_start_date].lt(@range.last)).
-        pluck(:patient_id, :agency_id).to_h
+        pluck(:patient_id, :agency_id, hpr_t[:enrollment_start_date]).reduce({}) { |hash, array| hash.update(array.first => array[1..]) }
     end
 
     # def rejected_patient_referrals
