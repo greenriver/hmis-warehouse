@@ -43,4 +43,8 @@ class WarehouseReport::PshReport < WarehouseReport::RrhReport
   def housed_source
     Reporting::Housed.psh
   end
+
+  def project_types
+    [3, 9, 10]
+  end
 end

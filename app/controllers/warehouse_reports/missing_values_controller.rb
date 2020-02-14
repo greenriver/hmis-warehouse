@@ -36,12 +36,24 @@ module WarehouseReports
 
     def index
       report_params = { user: current_user }
-      params.permit!
-      report_params.merge!(params[:q]) if params[:q]
+      report_params.merge!(query_params[:q]) if params[:q]
       @query = MissingValuesQuery.new(**report_params.symbolize_keys)
       @query.valid? # this initializes the object so simple form will render it correctly
       respond_to :html, :xlsx
     end
+
+    def query_params
+      params.permit(
+        q: [
+          :source,
+          :data_source,
+          :organization,
+          :project,
+          columns: [],
+        ],
+      )
+    end
+    helper_method :query_params
 
     # all the rather involved query logic lives in this class
     class MissingValuesQuery < ModelForm
