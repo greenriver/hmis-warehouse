@@ -16,8 +16,7 @@ module Health
 
     def agency_counts
       @agency_counts ||= agencies.map do |id, name|
-        patient_ids = patient_referrals.select do |_, referral|
-          agency_id, _ = referral;
+        patient_ids = patient_referrals.select do |_, (agency_id, _)|
           agency_id == id
         end.keys
 
