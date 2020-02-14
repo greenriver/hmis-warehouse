@@ -321,9 +321,11 @@ module ReportGenerators::SystemPerformance::Fy2019
 
         income_table = GrdaWarehouse::Hud::IncomeBenefit.arel_table
 
-        assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
-          where(PersonalID: row[:PersonalID]).
+        assessments = GrdaWarehouse::Hud::IncomeBenefit.
+          joins(enrollment: :service_history_enrollment).
+          where(she_t[:client_id].eq(row[:client_id])).
           where(EnrollmentID: row[:enrollment_group_id]).
+          where(data_source_id: row[:data_source_id]).
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [5, 1]).
           order(InformationDate: :asc).
@@ -382,8 +384,10 @@ module ReportGenerators::SystemPerformance::Fy2019
         income_table = GrdaWarehouse::Hud::IncomeBenefit.arel_table
 
         assessments = GrdaWarehouse::Hud::IncomeBenefit.where(data_source_id: row[:data_source_id]).
-          where(PersonalID: row[:PersonalID]).
+          joins(enrollment: :service_history_enrollment).
+          where(she_t[:client_id].eq(row[:client_id])).
           where(EnrollmentID: row[:enrollment_group_id]).
+          where(data_source_id: row[:data_source_id]).
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [3, 1]).
           order(InformationDate: :asc).
