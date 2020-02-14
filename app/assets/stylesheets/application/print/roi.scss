@@ -2,11 +2,11 @@
 
 
 .portrait {
-  border: 1px solid gold
+  page-break-after: always;
 }
 
 .landscape {
-  border: 1px solid green;
+
 }
 .shared {
   font-size: 1.4em;
@@ -21,7 +21,25 @@
   height: 2em;
 }
 .coc-map {
-  width: 400px;
-  height: 200px;
-  border: 3px solid blue;
+  width: 100%;
+}
+.coc-map img {
+  width: 100%;
+}
+
+.coc-roi {
+  h1 {
+    font-size: .45in;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: .35in;
+    border: 0;
+    color: #457687;
+  }
+  p {
+    font-size: .18in;
+  }
 }

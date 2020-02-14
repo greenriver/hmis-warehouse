@@ -731,6 +731,7 @@ Rails.application.routes.draw do
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
+  resources :public_agencies, only: [:index]
 
   post 'hello-sign' => 'hello_sign#callback'
 

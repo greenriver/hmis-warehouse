@@ -31,4 +31,8 @@ class ConsentLimit < ActiveRecord::Base
       ]
     end
   end
+
+  def description_and_coc_code
+     "#{description} (#{name})"
+  end
 end

@@ -16,4 +16,15 @@ class Agency < ApplicationRecord
     where(arel_table[:name].lower.matches("%#{text.downcase}%"))
   end
 
+  scope :publically_available, -> do
+    where(expose_publically: true)
+  end
+
+  def description_and_coc_code
+    text = name
+    if consent_limits.exists?
+      text += " in " + consent_limits.map(&:description_and_coc_code).to_sentence
+    end
+    text
+  end
 end

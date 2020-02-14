@@ -52,7 +52,7 @@ module Clients
     end
 
     def pre_populated
-      @coc_map_path = "#{root_url}#{GrdaWarehouse::PublicFile.url_for_location('client/releases/coc_map')}.png"
+      @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.content
       respond_to do |format|
         format.html do
           render layout: false
@@ -78,18 +78,18 @@ module Clients
         timeout: 50_000,
         format: 'Letter',
         emulate_media: 'print',
-        printBackground: true,
         margin: {
           top: '.5in',
           bottom: '.5in',
           left: '.4in',
           right: '.4in',
         },
-        wait_until: 'domcontentloaded',
-        debug: {
-          # headless: false,
-          # devtools: true
-        },
+        wait_until: 'networkidle0',
+        # launch_args: ['--allow-file-access-from-files', '--enable-local-file-accesses'],
+        # debug: {
+        #   headless: false,
+        #   devtools: true
+        # },
       }
 
       html = render_to_string('clients/releases/pre_populated')
