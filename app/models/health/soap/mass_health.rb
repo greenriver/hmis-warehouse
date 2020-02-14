@@ -10,6 +10,9 @@ module Health::Soap
   class MassHealth
     RequestFailed = Class.new(StandardError)
 
+    ENROLLMENT_RESPONSE_PAYLOAD_TYPE = 'X12_834_Response_005010X220A1'
+    ELIGIBILITY_RESPONSE_PAYLOAD_TYPE = 'X12_005010_Request_Batch_Results_271'
+
     def initialize(test: false)
       @config = Config.where(name: 'masshealth').first_or_initialize
       if test
@@ -32,12 +35,10 @@ module Health::Soap
       return parse_result(result)
     end
 
-    def get_files
+    def file_list
       result = generic_results_retrieval_request(payload_type: 'FILELIST', payload_id: 'FILELIST')
-      return Hash.from_xml(result.response)&.dig('FileList', 'File')
+      return FileList.new(Hash.from_xml(result.response)&.dig('FileList', 'File').uniq, self)
     end
-
-    ELIGIBILITY_RESPONSE_PAYLOAD_TYPE = 'X12_005010_Request_Batch_Results_271'
 
     def generic_results_retrieval_request(payload_type:, payload_id:)
       result = request(action: 'GenericBatchRetrievalTransaction',
@@ -47,7 +48,8 @@ module Health::Soap
 
     def success?(result)
       result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchSubmissionResponse', 'ErrorCode') == 'Success' ||
-        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorCode') == 'Success'
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeRealTimeResponse', 'ErrorCode') == 'Success' ||
+        result.first.dig('Envelope', 'Body', 'COREEnvelopeBatchResultsRetrievalResponse', 'ErrorCode') == 'Success'
     end
 
     def response(result)
