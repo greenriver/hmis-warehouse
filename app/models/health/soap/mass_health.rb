@@ -37,7 +37,8 @@ module Health::Soap
 
     def file_list
       result = generic_results_retrieval_request(payload_type: 'FILELIST', payload_id: 'FILELIST')
-      return FileList.new(Hash.from_xml(result.response)&.dig('FileList', 'File').uniq, self)
+      file_list = Hash.from_xml(result.response)&.dig('FileList', 'File')&.uniq || []
+      return FileList.new(file_list, self)
     end
 
     def generic_results_retrieval_request(payload_type:, payload_id:)
