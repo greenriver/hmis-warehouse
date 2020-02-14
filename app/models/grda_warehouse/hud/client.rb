@@ -639,7 +639,7 @@ module GrdaWarehouse::Hud
 
         if user.can_view_clients_with_roi_in_own_coc?
           # At a high level if you can see clients with ROI in your COC, you need to be able
-            # to see everyone for searching purposes.
+            # to see everyone for searching contact_info_for_rrh_assessmentrposes.
             # limits will be imposed on accessing the actual client dashboard pages
             # current_scope
 

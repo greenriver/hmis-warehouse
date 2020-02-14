@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_11_154527) do
+ActiveRecord::Schema.define(version: 2020_02_14_200455) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1598,6 +1598,7 @@ ActiveRecord::Schema.define(version: 2020_02_11_154527) do
     t.boolean "verified_homeless_history_visible_to_all", default: false, null: false
     t.boolean "only_most_recent_import", default: false
     t.boolean "expose_coc_code", default: false, null: false
+    t.boolean "auto_confirm_consent", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1943,6 +1944,31 @@ ActiveRecord::Schema.define(version: 2020_02_11_154527) do
     t.string "vispdat_pregnant"
     t.date "vispdat_pregnant_updated_at"
     t.datetime "housing_status_updated_at"
+    t.datetime "pathways_updated_at"
+    t.date "assessment_completed_on"
+    t.integer "assessment_score"
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.boolean "adult_rrh_desired", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_annual"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "domestic_violence", default: false, null: false
+    t.boolean "interested_in_set_asides", default: false, null: false
+    t.integer "required_number_of_bedrooms"
+    t.integer "required_minimum_occupancy"
+    t.boolean "requires_wheelchair_accessibility", default: false, null: false
+    t.boolean "requires_elevator_access", default: false, null: false
+    t.string "youth_rrh_aggregate"
+    t.string "dv_rrh_aggregate"
+    t.boolean "veteran_rrh_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "other_accessibility", default: false, null: false
+    t.boolean "disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.jsonb "neighborhood_interests", default: []
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"

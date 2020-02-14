@@ -19,7 +19,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :triage, -> do
-    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.triage)
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.triage_assessment)
   end
 
   scope :vispdat, -> do
@@ -210,6 +210,48 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
           client.update(family_member: true) unless client.family_member
         end
       end
+  end
+
+  def self.set_pathways_results
+    # find anyone who's never been processed or who has been updated since we last made
+    # note of changes
+    ids = pathways.where(
+      arel_table[:pathways_updated_at].eq(nil).
+        or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at]))
+      ).pluck(:id)
+    ids.each_slice(100) do |batch|
+      pathways.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.assessment_completed_on = hmis_form.assessment_completed_on_answer
+        hmis_form.assessment_score = hmis_form.assessment_score_answer
+        hmis_form.rrh_desired = hmis_form.rrh_desired_answer
+        hmis_form.youth_rrh_desired = hmis_form.youth_rrh_desired_answer
+        hmis_form.rrh_assessment_contact_info = hmis_form.rrh_assessment_contact_info_answer
+        hmis_form.income_maximization_assistance_requested = hmis_form.income_maximization_assistance_requested_answer
+        hmis_form.income_total_annual = hmis_form.income_total_annual_answer
+        hmis_form.pending_subsidized_housing_placement = hmis_form.pending_subsidized_housing_placement_answer
+        hmis_form.domestic_violence = hmis_form.domestic_violence_answer
+        hmis_form.interested_in_set_asides = hmis_form.interested_in_set_asides_answer
+        hmis_form.required_number_of_bedrooms = hmis_form.required_number_of_bedrooms_answer
+        hmis_form.required_minimum_occupancy = hmis_form.required_minimum_occupancy_answer
+        hmis_form.requires_wheelchair_accessibility = hmis_form.requires_wheelchair_accessibility_answer
+        hmis_form.requires_elevator_access = hmis_form.requires_elevator_access_answer
+        hmis_form.youth_rrh_aggregate = hmis_form.youth_rrh_aggregate_answer
+        hmis_form.dv_rrh_aggregate = hmis_form.dv_rrh_aggregate_answer
+        hmis_form.rrh_th_desired = hmis_form.rrh_th_desired_answer
+        # hmis_form.veteran_rrh_desired = hmis_form.veteran_rrh_desired_answer
+        hmis_form.sro_ok = hmis_form.sro_ok_answer
+        hmis_form.other_accessibility = hmis_form.other_accessibility_answer
+        hmis_form.disabled_housing = hmis_form.disabled_housing_answer
+        hmis_form.evicted = hmis_form.evicted_answer
+        hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
+
+        hmis_form.pathways_updated_at = Time.current
+
+        hmis_form.save if hmis_form.changed?
+      end
+    end
   end
 
   def primary_language
