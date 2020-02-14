@@ -52,7 +52,48 @@ module Clients
     end
 
     def pre_populated
-      @coc_map_url = GrdaWarehouse::PublicFile.url_for_location('client/releases/coc_map')
+      @coc_map_path = "#{root_url}#{GrdaWarehouse::PublicFile.url_for_location('client/releases/coc_map')}.png"
+      respond_to do |format|
+        format.html do
+          render layout: false
+        end
+        format.pdf do
+          render_pdf!
+        end
+      end
+    end
+
+    private def render_pdf!
+      @pdf = true
+      file_name = "Release of Information for #{@client.name}"
+      send_data roi_pdf(file_name), filename: "#{file_name}.pdf", type: 'application/pdf'
+    end
+
+    private def roi_pdf(_file_name)
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        printBackground: true,
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        wait_until: 'domcontentloaded',
+        debug: {
+          # headless: false,
+          # devtools: true
+        },
+      }
+
+      html = render_to_string('clients/releases/pre_populated')
+      Grover.new(html, grover_options).to_pdf
     end
 
     def file_source
@@ -109,18 +150,27 @@ module Clients
       scope
     end
 
+    private def permitted_params
+      params.permit(
+        :client_id,
+        :effective_date,
+        :selected_expiration_date,
+        coc_codes: [],
+      )
+    end
+
     def selected_coc_codes
-      params.permit(coc_codes: [])[:coc_codes]&.map(&:presence)&.compact || []
+      permitted_params[:coc_codes]&.map(&:presence)&.compact || []
     end
     helper_method :selected_coc_codes
 
     def selected_effective_date
-      params.permit(:effective_date)[:effective_date]
+      permitted_params[:effective_date]
     end
     helper_method :selected_effective_date
 
     def selected_expiration_date
-      params.permit(:expiration_date)[:expiration_date]
+      permitted_params[:expiration_date]
     end
     helper_method :selected_expiration_date
   end

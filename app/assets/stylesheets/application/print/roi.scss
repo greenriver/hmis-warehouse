@@ -1,0 +1,27 @@
+@import '../helpers';
+
+
+.portrait {
+  border: 1px solid gold
+}
+
+.landscape {
+  border: 1px solid green;
+}
+.shared {
+  font-size: 1.4em;
+  color: $brand-success;
+}
+.excluded {
+  font-size: 1.4em;
+  color: $brand-danger;
+}
+.color-box {
+  color: transparent;
+  height: 2em;
+}
+.coc-map {
+  width: 400px;
+  height: 200px;
+  border: 3px solid blue;
+}

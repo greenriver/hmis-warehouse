@@ -77,7 +77,7 @@
       .col-sm-4
         = f.input :effective_date, as: :date_picker, label: 'Effective date or date signed'
       .col-8.text-right
-        = link_to pre_populated_client_releases_path(), class: 'btn btn-secondary jPrePopulated' do
+        = link_to pre_populated_client_releases_path(), class: 'btn btn-secondary jPrePopulated', target: '_blank', data: { href: pre_populated_client_releases_path() } do
           %i.icon-printer
           Print Release Form
     - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
@@ -99,15 +99,6 @@
 
 = content_for :page_js do
   :javascript
-    $('.jConsentFormCoC select').on('change', function(e){
-
-    });
-    $('.jExpirationDate input').on('change', function(e){
-
-    });
-    $('.jEffectiveDate input').on('change', function(e){
-
-    });
     $('.jPrePopulated').on('click', function(e){
       // Grab the values we need
       params = {
@@ -115,6 +106,6 @@
         expiration_date: $('.jExpirationDate input').val(),
         effective_date: $('.jEffectiveDate input').val()
       }
-      url = $(this).attr('href');
-      $(this).attr('href', url + '?' + $.param(params));
+      url = $(this).data('href');
+      $(this).attr('href', url + '.pdf?' + $.param(params));
     });
