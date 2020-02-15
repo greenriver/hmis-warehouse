@@ -1,7 +1,11 @@
+- title = 'CoCs for Consent'
+- content_for :title, title
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
 .row
-  .col-8
-    %h1 CoCs for Consent
-  .col-4.text-right
+  .col-12.text-right
     = link_to new_admin_consent_limit_path, class: 'btn btn-primary mb-4' do
       %i.icon-plus
       New CoC for Consent

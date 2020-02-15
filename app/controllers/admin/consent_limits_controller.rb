@@ -10,10 +10,6 @@ module Admin
       respond_with(@consent_limits)
     end
 
-    def show
-      respond_with(@consent_limit)
-    end
-
     def new
       @consent_limit = ConsentLimit.new
       respond_with(@consent_limit)
@@ -23,8 +19,7 @@ module Admin
     end
 
     def create
-      @consent_limit = ConsentLimit.new(consent_limit_params)
-      @consent_limit.save
+      @consent_limit = ConsentLimit.create(consent_limit_params)
       respond_with(@consent_limit, location: admin_consent_limits_path)
     end
 

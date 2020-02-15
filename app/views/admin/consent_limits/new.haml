@@ -1,4 +1,10 @@
-%h1 New CoC for Consent
+= render partial: 'breadcrumbs'
+
+- title = 'New CoC for Consent'
+- content_for :title, title
+.o-page
+  .o-page__title
+    %h1= content_for :title
 
 = simple_form_for(@consent_limit, url: admin_consent_limits_path, as: :consent_limit) do |f|
   = render 'form', f: f
