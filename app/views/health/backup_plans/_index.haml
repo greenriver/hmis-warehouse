@@ -1,0 +1,9 @@
+%section.c-card.c-card--block
+  .c-card__header.c-card__header--external
+    %h2 Backup Plans
+    = link_to polymorphic_path([:new] + health_path_generator + [:backup_plan]), class: 'btn btn-secondary btn-icon-left', data: { loads_in_pjax_modal: true } do
+      %i.icon-plus
+      Add Backup Plan
+
+  .c-card__content.c-card__content--flush.pb-0.pt-0
+    = render 'backup_plan_list'

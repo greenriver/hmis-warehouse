@@ -32,6 +32,12 @@ module GrdaWarehouse::Hud
       'ProjectCoC.csv' => GrdaWarehouse::Hud::ProjectCoc,
       'Services.csv' => GrdaWarehouse::Hud::Service,
       'Geography.csv' => GrdaWarehouse::Hud::Geography,
+      'Assessment.csv' => GrdaWarehouse::Hud::Assessment,
+      'CurrentLivingSituation.csv' => GrdaWarehouse::Hud::CurrentLivingSituation,
+      'AssessmentQuestion.csv' => GrdaWarehouse::Hud::AssessmentQuestion,
+      'AssessmentResult.csv' => GrdaWarehouse::Hud::AssessmentResult,
+      'Event.csv' => GrdaWarehouse::Hud::Event,
+      'User.csv' => GrdaWarehouse::Hud::User,
     }.freeze
   end
 

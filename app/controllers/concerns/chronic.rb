@@ -8,11 +8,6 @@ module Chronic
   extend ActiveSupport::Concern
   included do
     def load_chronic_filter
-      filter_params = if params.is_a?(ActiveSupport::HashWithIndifferentAccess)
-        params
-      else
-        params.permit!
-      end
       @filter = ::Filters::Chronic.new(filter_params[:filter])
       ct = chronic_source.arel_table
       client_table = client_source.arel_table
@@ -52,6 +47,10 @@ module Chronic
       @order = table[@column].send(@direction)
     end
     alias_method :set_sort, :set_chronic_sort
+
+    def filter_params
+      params.permit(filter: Filters::Chronic.attribute_set.map(&:name))
+    end
 
     def potentially_chronic_source
       GrdaWarehouse::Chronic

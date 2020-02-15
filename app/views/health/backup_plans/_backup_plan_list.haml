@@ -1,0 +1,25 @@
+.jBackupPlansList.overflow-scroll
+  %table.table.backup_plan__list.mb-0
+    %thead
+      %tr
+        %th Description of Need
+        %th Backup Plan
+        %th Person/Service/Support
+        %th Phone Number
+        %th Address
+        %th Created On
+        %th
+
+    %tbody
+      - if @backup_plans.blank?
+        %tr.jEmpty
+          %td{colspan: 8}
+            %p.no-data
+              No backup plans listed.
+              = link_to polymorphic_path([:new] + health_path_generator + [:backup_plan]), data: { loads_in_pjax_modal: true }, class: 'btn btn-secondary ml-2' do
+                %i.icon-plus
+                Add Backup Plan
+
+      - else
+        - @backup_plans.each do |backup_plan|
+          = render 'health/backup_plans/backup_plan_row', backup_plan: backup_plan

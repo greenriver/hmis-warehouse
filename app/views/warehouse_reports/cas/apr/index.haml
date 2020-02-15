@@ -63,7 +63,7 @@
     %p= @report.unable_to_refer
   .col-sm-6.mt-6
     %p The following file contains dates that can be useful in calculating average lengths of time between match initiation and completion.
-    = link_to({action: :index, params: params&.permit!&.to_h, format: :xlsx}, {class: 'btn btn-primary'}) do
+    = link_to({action: :index, params: range_params, format: :xlsx}, {class: 'btn btn-primary'}) do
       %i.icon-download2
       Download Match Dates
 

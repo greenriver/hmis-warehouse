@@ -35,7 +35,7 @@ module WarehouseReports
           open_between(start_date: @filter.start, end_date: @filter.end).
           where(project_id: projects.keys, data_source_id: projects.values.first.data_source_id)
 
-        lengths = Rails.cache.fetch(['length_of_stay_controller', params[:mo].to_s], expires_in: 10.minutes) do
+        lengths = Rails.cache.fetch(['length_of_stay_controller', filter_params.to_s], expires_in: 10.minutes) do
           service_history_service_source.where(service_history_enrollment_id: enrollments.select(:id)).
             where(date: (@filter.start - 3.years..@filter.end)).
             distinct.
@@ -94,11 +94,25 @@ module WarehouseReports
         'average',
       ]
       @filter = if params[:mo].present?
-        ::Filters::MonthAndOrganization.new params.require(:mo).permit!.merge(user: current_user)
+        ::Filters::MonthAndOrganization.new filter_params.merge(user: current_user)
       else
         ::Filters::MonthAndOrganization.new(user: current_user)
       end
     end
+
+    def filter_params
+      if params[:mo].present?
+        params.require(:mo).
+          permit(
+            :month,
+            :year,
+            :org,
+          )
+      else
+        {}
+      end
+    end
+    helper_method :filter_params
 
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment

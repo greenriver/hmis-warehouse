@@ -84,16 +84,26 @@ module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/Cl
     end
 
     scope :filtered, ->(filter) do
-      return all if filter.nil?
+      return current_scope if filter.nil?
 
-      client_ids = GrdaWarehouse::Vispdat::Base.completed.distinct.pluck(:client_id)
-      client_ids += GrdaWarehouse::Hud::Client.joins(:source_hmis_forms).merge(
-        GrdaWarehouse::HmisForm.vispdat.where.not(vispdat_total_score: nil),
-      ).distinct.pluck(:id)
+      client_ids = warehouse_vispdat_client_ids
+      client_ids += hmis_vispdat_client_ids
       return where.not(client_id: client_ids) if filter[:vispdat].presence == :without_vispdat
       return where(client_id: client_ids) if filter[:vispdat].presence == :with_vispdat
 
-      return all
+      return current_scope
+    end
+
+    def self.warehouse_vispdat_client_ids
+      GrdaWarehouse::Hud::Client.destination.joins(:vispdats).merge(GrdaWarehouse::Vispdat::Base.completed).distinct.pluck(:id)
+    end
+
+    def self.hmis_vispdat_client_ids
+      GrdaWarehouse::Hud::Client.destination.
+        joins(:source_hmis_forms).
+        merge(GrdaWarehouse::HmisForm.vispdat).
+        distinct.
+        pluck(:id)
     end
 
     private def cache_key_for_report
