@@ -15,21 +15,21 @@
                 %span.icon-cross
       .row
         .col-12
-          %label
+          %label.text-bold
             Goal Description
             (including any specific barrier to achieving goal not previously mentioned)
           .health-careplan__goal-details
             = simple_format goal.goal_details
       .row.mb-2
         .col-sm-4
-          %label Start Date
+          %label.text-bold Start Date
           .health-careplan__goal-start-date
             = goal.start_date
       .row
         .col-sm-6.mb-2
-          %label Recommended Action Steps and any needed accommodations
+          %label.text-bold Recommended Action Steps and any needed accommodations
         .col-sm-6.mb-2
-          %label Timeframe
+          %label.text-bold Timeframe
       - (0..9).each do |i|
         - action_step = goal["action_step_#{i}"]
         - timeframe = goal["timeframe_#{i}"]
@@ -45,7 +45,7 @@
                 = simple_format "#{i+1}. #{timeframe}"
       .row
         .col-sm-12
-          %label Responsible Care Team Member
+          %label.text-bold Responsible Care Team Member
           .health-careplan__goal-responsible
             = @patient.available_team_members.to_h.invert[goal.responsible_team_member_id]
 
