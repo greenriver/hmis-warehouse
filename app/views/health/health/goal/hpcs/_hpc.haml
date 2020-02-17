@@ -30,13 +30,19 @@
           %label Recommended Action Steps and any needed accommodations
         .col-sm-6.mb-2
           %label Timeframe
-      .row
-        .col-sm-6.mb-2
-          .health-careplan__goal-intervention
-            = simple_format goal.intervention
-        .col-sm-6.mb-2
-          .health-careplan__goal-timeframe
-            = simple_format goal.timeframe
+      - (0..9).each do |i|
+        - action_step = goal["action_step_#{i}"]
+        - timeframe = goal["timeframe_#{i}"]
+        - next unless action_step || timeframe
+        .row
+          .col-sm-6.mb-2
+            .health-careplan__goal-intervention
+              - if action_step&.strip&.present?
+                = simple_format "#{i+1}. #{action_step}"
+          .col-sm-6.mb-2
+            .health-careplan__goal-timeframe
+              - if timeframe&.strip&.present?
+                = simple_format "#{i+1}. #{timeframe}"
       .row
         .col-sm-12
           %label Responsible Care Team Member
@@ -53,11 +59,49 @@
     .row
       .col-sm-6
         = f.input :start_date, as: :date_picker
-    = f.input :intervention, as: :text, label: 'Recommended Action Steps and any needed accommodations', input_html: sized_input_html.merge(value: f.object.intervention.presence || default_with_counts)
-    = f.input :timeframe, as: :text, label: 'Timeframe', input_html: sized_input_html.merge(value: f.object.timeframe.presence || default_with_counts)
+    .row
+      .col-12
+        %h4 Recommended Action Steps and any needed accommodations
+      .col-6 Action Step
+      .col-6 Timeframe
+    - (0..9).each do |i|
+      .row.m-4.jActionRow
+        .col-1.text-right.pt-2
+          #{i + 1}.
+        .col-5.jAction
+          = f.input "action_step_#{i}", label: false
+        .col-5
+          = f.input "timeframe_#{i}", label: false
+        .col-1
+          = link_to '#add-action', class: 'jAddAction btn btn-secondary btn-sm ml-auto' do
+            %i.icon-plus
+            Add
     .row
       .col-sm-6
         = f.input :responsible_team_member_id, collection: @patient.available_team_members, label: 'Responsible Care Team Member', input_html: { class: :select2 }
     .d-flex
       .c-btn-group.ml-auto
         = f.submit value: 'Save Goal', class: 'btn btn-primary', data: { disable_with: 'Saving ...' }
+
+  = content_for :page_js do
+    :javascript
+      $('.jAddAction, .jActionRow').addClass('hide');
+      $('.jActionRow:first').removeClass('hide');
+      $('.jAddAction').each(function(i){
+        var row = $(this).closest('.jActionRow');
+        var input = row.find('.jAction input');
+        if(input.val().length > 0) {
+          row.removeClass('hide');
+        }
+      });
+
+      $('.jActionRow:visible:last').next().removeClass('hide');
+      $('.jActionRow:visible:last').find('.jAddAction').removeClass('hide');
+
+      $('.jAddAction').on('click', function(e) {
+        e.preventDefault();
+        var row = $('.jActionRow:visible:last').next('.jActionRow');
+        row.removeClass('hide');
+        row.find('.jAddAction').removeClass('hide');
+        $(this).addClass('hide');
+      });
