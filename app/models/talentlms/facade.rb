@@ -20,7 +20,7 @@ module Talentlms
       if login.nil?
         result = create_account(user)
       else
-        result = @api.post('userlogin', {login: login.login, password: password})
+        result = @api.post('userlogin', {login: login.login, password: login.password})
       end
       result['login_key']
     end
@@ -49,6 +49,19 @@ module Talentlms
       result['login_key']
     end
 
+    # Enroll a user in a course in TalentLMS
+    #
+    # @param user [User] the user
+    # @param course_id [Integer] the id of the course
+    def enroll(user, course_id)
+      login = Login.find_by(user: user)
+      return false if login.nil?
+
+      @api.post('addusertocourse', {course_id: course_id, user_id: login.lms_user_id})
+    rescue RuntimeError => e
+      raise e unless e.message == 'The requested user is already enrolled in this course'
+    end
+
     # Get course completion status in TalentLMS
     #
     # @param user [User] the user
@@ -60,6 +73,30 @@ module Talentlms
 
       result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
       result['completion_status'] == 'Completed'
+    end
+
+    # Get the URL to send the user to for a course
+    #
+    # @param user [User] the user
+    # @param course_id [Integer] the id of the course
+    # @param redirect_url [String] where to send the user after course completion
+    # @param logout_url [String] where to send the user after logout
+    # @return [String] URL to redirect user to
+    def course_url(user, course_id, redirect_url, logout_url)
+      login = Login.find_by(user: user)
+      return false if login.nil?
+
+      encoded_redirect_url = Base64.strict_encode64(redirect_url)
+      encoded_logout_url = Base64.strict_encode64(logout_url)
+      result = @api.get('gotocourse',
+        {
+          course_id: course_id,
+          user_id: login.lms_user_id,
+          course_completed_redirect: encoded_redirect_url,
+          logout_redirect: encoded_logout_url,
+        },
+      )
+      result['goto_url']
     end
   end
 end
