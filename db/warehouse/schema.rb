@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_14_200455) do
+ActiveRecord::Schema.define(version: 2020_02_17_152806) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -190,6 +190,15 @@ ActiveRecord::Schema.define(version: 2020_02_14_200455) do
     t.date "cas_match_override"
     t.boolean "vash_eligible", default: false
     t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"

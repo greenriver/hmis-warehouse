@@ -6,6 +6,7 @@
 
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
+  include Eto::PathwaysAnswers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
@@ -246,6 +247,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.disabled_housing = hmis_form.disabled_housing_answer
         hmis_form.evicted = hmis_form.evicted_answer
         hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
+        # hmis_form.pathways_dv_score_answer
+        # hmis_form.pathways_length_of_time_homeless_score_answer
 
         hmis_form.pathways_updated_at = Time.current
 
@@ -556,6 +559,29 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def self.rrh_assessment_name
-    hmis_assessment.class.rrh_assessment&.first&.name
+    GrdaWarehouse::HMIS::Assessment.rrh_assessment&.first&.name
   end
+
+  def section_starts_with(string)
+      relevant_section = answers[:sections].select do |section|
+        section[:section_title].downcase.starts_with?(string.downcase)
+      end&.first
+      return false unless relevant_section.present?
+
+      relevant_section
+    end
+
+    #
+    # Finds the first relevant answer where the question includes the string.
+    #
+    # @param [Hash] section part of the HmisForm answers column
+    # @param [string>] question_string used to identify a relevant question
+    #
+    # @return [string] the answer provided
+    #
+    def answer_from_section(section, question_string)
+      section[:questions].select do |question|
+        question[:question].downcase.include?(question_string.downcase)
+      end&.first.try(:[], :answer)
+    end
 end

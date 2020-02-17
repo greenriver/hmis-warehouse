@@ -1108,14 +1108,12 @@ module GrdaWarehouse::Hud
       processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
-    # if we are pulling RRH assessments from ETO, use that
-    # Otherwise, use highest assessment score from any cohort clients
+    # Pathways and RRH assessment scores get stored in rrh_assessment_score
+    # If we don't have that, use highest assessment score from any cohort clients
     def assessment_score_for_cas
-      if GrdaWarehouse::HmisForm.rrh_assessment.exists?
-        score_for_rrh_assessment
-      else
-        assessment_score_from_cohort_clients
-      end
+      return rrh_assessment_score if rrh_assessment_score.present? && rrh_assessment_score.positive?
+
+      assessment_score_from_cohort_clients
     end
 
     def assessment_score_from_cohort_clients
@@ -1278,7 +1276,10 @@ module GrdaWarehouse::Hud
       ].include?('Yes')
     end
 
+    # Use the Pathways answer if available, otherwise, HMIS
     def domestic_violence?
+      return pathways_domestic_violence if pathways_domestic_violence
+
       source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
     end
 
@@ -2693,9 +2694,12 @@ module GrdaWarehouse::Hud
       days.compact.max
     end
 
-    # Pull the maximum total monthly income from any open enrollments, looking
+    # Use the Pathways value if it is present and non-zero
+    # Otherwise, pull the maximum total monthly income from any open enrollments, looking
     # only at the most recent assessment per enrollment
     def max_current_total_monthly_income
+      return income_total_monthly if income_total_monthly.present? && income_total_monthly.positive?
+
       source_enrollments.open_on_date(Date.current).map do |enrollment|
         enrollment.income_benefits.limit(1).
           order(InformationDate: :desc).
