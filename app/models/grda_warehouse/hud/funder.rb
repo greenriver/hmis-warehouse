@@ -92,5 +92,20 @@ module GrdaWarehouse::Hud
     def self.related_item_keys
       [:ProjectID]
     end
+
+    # when we export, we always need to replace FunderID with the value of id
+    def self.to_csv(scope:)
+      attributes = self.hud_csv_headers.dup
+      headers = attributes.clone
+      attributes[attributes.index(:FunderID)] = :id
+
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+
+        scope.each do |i|
+          csv << attributes.map{ |attr| i.send(attr) }
+        end
+      end
+    end
   end
 end
