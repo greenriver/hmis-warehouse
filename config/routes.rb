@@ -159,6 +159,8 @@ Rails.application.routes.draw do
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
+      resource :geography, only: [:show]
+      resource :funder, only: [:show]
     end
   end
   namespace :hud_reports do
