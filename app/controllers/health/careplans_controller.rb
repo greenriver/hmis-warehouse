@@ -60,6 +60,7 @@ module Health
     end
 
     def edit
+      @modal_size = :xl
       @form_url = polymorphic_path(careplan_path_generator)
       @form_button = 'Save Care Plan'
       @services = @patient.services
