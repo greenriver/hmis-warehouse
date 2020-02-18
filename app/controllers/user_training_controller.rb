@@ -7,7 +7,7 @@
 class UserTrainingController < ApplicationController
   def index
     config = Talentlms::Config.first
-    if current_user.training_completed? || !current_user.training_required? || config.nil?
+    if config.nil? || !current_user.training_required? || current_user.training_completed?
       redirect_to after_sign_in_path_for(current_user)
     else
       lms = Talentlms::Facade.new
@@ -19,9 +19,12 @@ class UserTrainingController < ApplicationController
         redirect_to after_sign_in_path_for(current_user)
       else
         # Construct TalentLMS Course URL
-        logout_url = request.base_url + '/logout_talentlms'
-        redirect_url = request.base_url + after_sign_in_path_for(current_user)
-        course_url = lms.course_url(current_user, config.courseid, redirect_url, logout_url)
+        redirect_url = if can_view_clients? || can_search_window? || can_use_strict_search?
+          clients_url
+        else
+          root_url
+        end
+        course_url = lms.course_url(current_user, config.courseid, redirect_url, logout_talentlms_url)
 
         redirect_to course_url
       end

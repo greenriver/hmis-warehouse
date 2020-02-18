@@ -59,7 +59,7 @@ module Talentlms
 
       @api.post('addusertocourse', {course_id: course_id, user_id: login.lms_user_id})
     rescue RuntimeError => e
-      raise e unless e.message == 'The requested user is already enrolled in this course'
+      raise e unless e.message.includes?('already enrolled')
     end
 
     # Get course completion status in TalentLMS
