@@ -19,7 +19,7 @@ class UserTrainingController < ApplicationController
         redirect_to after_sign_in_path_for(current_user)
       else
         # Construct TalentLMS Course URL
-        redirect_url = if can_access_some_client_search?
+        redirect_url = if current_user.can_access_some_client_search?
           clients_url
         else
           root_url
