@@ -375,6 +375,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
+    organizations.update_all(DateDeleted: Time.current)
   end
 
   class << self
