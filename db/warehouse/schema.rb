@@ -3651,6 +3651,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_175547) do
     t.string "subdomain"
     t.string "encrypted_api_key"
     t.string "encrypted_api_key_iv"
+    t.integer "courseid"
   end
 
   create_table "talentlms_logins", force: :cascade do |t|

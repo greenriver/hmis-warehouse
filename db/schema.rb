@@ -405,6 +405,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_145902) do
     t.boolean "can_use_separated_consent", default: false
     t.boolean "can_delete_projects", default: false
     t.boolean "can_delete_data_sources", default: false
+    t.boolean "training_required", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -557,6 +558,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_145902) do
     t.integer "confirmed_2fa", default: 0, null: false
     t.string "otp_backup_codes", array: true
     t.datetime "password_changed_at"
+    t.boolean "training_completed", default: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true

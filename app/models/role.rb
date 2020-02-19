@@ -101,6 +101,10 @@ class Role < ApplicationRecord
         description: 'Users with this permission will be unable to login until Two-factor authentication has been enabled',
         administrative: false,
       },
+      training_required: {
+        description: 'Users with this permission will be unable to login until they have completed user training.',
+        administrative: false,
+      },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
         administrative: true,

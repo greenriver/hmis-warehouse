@@ -6,6 +6,7 @@
         %th Upload Date
         %th
         %th New Enrollments
+        %th Updated Patients
         %th Returning Enrollments
         %th Disenrollments
     %tbody
@@ -18,5 +19,6 @@
             - else
               = checkmark_or_x(file.status == 'complete')
           %td= link_to (file.new_patients || 'processing...'), review_admin_health_patient_referrals_path
+          %td= file.updated_patients
           %td= file.returning_patients
           %td= link_to (file.disenrolled_patients || 'processing...'), disenrolled_admin_health_patient_referrals_path
