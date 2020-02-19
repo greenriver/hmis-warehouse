@@ -406,6 +406,14 @@ class Role < ApplicationRecord
         description: 'Can become any other user.  Anyone with this permission can impersonate any other user and see whatever they would see.',
         administrative: true,
       },
+      can_delete_projects: {
+        description: 'Deleting projects will delete all associated inventory and enrollment information.',
+        administrative: true,
+      },
+      can_delete_data_sources: {
+        description: 'Can delete data sources, organizations or projects. Deleting any of these will delete all associated inventory and enrollment information.',
+        administrative: true,
+      },
     }
   end
 

@@ -762,5 +762,50 @@ module GrdaWarehouse::Hud
         options
       end
     end
+
+    def destroy_dependents!
+      # Find all PersonalIDs for this project, we'll use these later to clean up clients
+      enrollment_ids = enrollments.distinct.pluck(:PersonalID)
+
+      deleted_timestamp = Time.current
+      # Inventory related
+      project_cocs.update_all(DateDeleted: deleted_timestamp)
+      geographies.update_all(DateDeleted: deleted_timestamp)
+      inventories.update_all(DateDeleted: deleted_timestamp)
+      funders.update_all(DateDeleted: deleted_timestamp)
+      affiliations.update_all(DateDeleted: deleted_timestamp)
+      residential_affiliations.update_all(DateDeleted: deleted_timestamp)
+
+      # Client enrollment related
+      income_benefits.update_all(DateDeleted: deleted_timestamp)
+      disabilities.update_all(DateDeleted: deleted_timestamp)
+      employment_educations.update_all(DateDeleted: deleted_timestamp)
+      health_and_dvs.update_all(DateDeleted: deleted_timestamp)
+      services.update_all(DateDeleted: deleted_timestamp)
+      exits.update_all(DateDeleted: deleted_timestamp)
+      enrollment_cocs.update_all(DateDeleted: deleted_timestamp)
+      enrollments.update_all(DateDeleted: deleted_timestamp)
+
+      # Remove any clients who no longer have any enrollments
+      all_clients = []
+      with_enrollments = []
+      enrollment_ids.each_slice(1000) do |ids|
+        all_clients += GrdaWarehouse::Hud::Client.
+          where(data_source_id: data_source_id, PersonalID: ids).pluck(id)
+        with_enrollments += GrdaWarehouse::Hud::Client.
+          joins(:enrollments).
+          where(data_source_id: data_source_id, PersonalID: ids).pluck(id)
+      end
+      no_enrollments = all_clients - with_enrollments
+      GrdaWarehouse::Hud::Client.where(id: no_enrollments).update_all(DateDeleted: deleted_timestamp) if no_enrollments.present?
+
+      destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: all_clients).pluck(:destination_id)
+      # Force reloads of client views
+      GrdaWarehouse::Tasks::ServiceHistory::Update.new(client_ids: destination_ids).run!
+      destination_ids.each do |id|
+        GrdaWarehouse::Hud::Client.clear_view_cache(id)
+      end
+
+    end
   end
 end

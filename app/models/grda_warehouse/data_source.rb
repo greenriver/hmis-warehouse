@@ -7,6 +7,7 @@
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   require 'memoist'
   include ArelHelper
+  acts_as_paranoid
   validates :name, presence: true
   validates :short_name, presence: true
 
@@ -370,6 +371,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def project_names
     projects.order(ProjectName: :asc).pluck(:ProjectName)
+  end
+
+  def destroy_dependents!
+    organizations.map(&:destroy_dependents!)
+    organizations.update_all(DateDeleted: Time.current)
   end
 
   class << self
