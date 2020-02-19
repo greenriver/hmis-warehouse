@@ -14,10 +14,10 @@ module Health
         new_patients = 0
         returning_patients = 0
         disenrolled_patients = 0
+        updated_patients = 0
 
         enrollment.enrollments.each do |transaction|
-          medicaid_id = Health::Enrollment.subscriber_id(transaction)
-          referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+          referral = referral(transaction)
           if referral.present?
             if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
               re_enroll_patient(transaction, referral)
@@ -31,11 +31,18 @@ module Health
         end
 
         enrollment.disenrollments.each do |transaction|
-          medicaid_id = Health::Enrollment.subscriber_id(transaction)
-          referral = Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+          referral = referral(transaction)
           if referral.present?
             disenroll_patient(transaction, referral)
             disenrolled_patients += 1
+          end
+        end
+
+        enrollment.changes.each do |transaction|
+          referral = referral(transaction)
+          if referral.present?
+            update_patient(transaction, referral)
+            updated_patients += 1
           end
         end
 
@@ -43,11 +50,17 @@ module Health
           new_patients: new_patients,
           returning_patients: returning_patients,
           disenrolled_patients: disenrolled_patients,
+          updated_patients: updated_patients,
           status: 'complete',
         )
       rescue e
         enrollment.update(status: e)
       end
+    end
+
+    def referral(transaction)
+      medicaid_id = Health::Enrollment.subscriber_id(transaction)
+      Health::PatientReferral.find_by(medicaid_id: medicaid_id)
     end
 
     def enroll_patient(transaction)

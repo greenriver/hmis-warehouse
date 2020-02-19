@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_12_140919) do
+ActiveRecord::Schema.define(version: 2020_02_19_175547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -190,6 +190,15 @@ ActiveRecord::Schema.define(version: 2020_02_12_140919) do
     t.date "cas_match_override"
     t.boolean "vash_eligible", default: false
     t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1657,6 +1666,7 @@ ActiveRecord::Schema.define(version: 2020_02_12_140919) do
     t.boolean "import_paused", default: false, null: false
     t.string "authoritative_type"
     t.string "source_id"
+    t.datetime "deleted_at"
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -1944,6 +1954,31 @@ ActiveRecord::Schema.define(version: 2020_02_12_140919) do
     t.string "vispdat_pregnant"
     t.date "vispdat_pregnant_updated_at"
     t.datetime "housing_status_updated_at"
+    t.datetime "pathways_updated_at"
+    t.date "assessment_completed_on"
+    t.integer "assessment_score"
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.boolean "adult_rrh_desired", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_annual"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "domestic_violence", default: false, null: false
+    t.boolean "interested_in_set_asides", default: false, null: false
+    t.integer "required_number_of_bedrooms"
+    t.integer "required_minimum_occupancy"
+    t.boolean "requires_wheelchair_accessibility", default: false, null: false
+    t.boolean "requires_elevator_access", default: false, null: false
+    t.string "youth_rrh_aggregate"
+    t.string "dv_rrh_aggregate"
+    t.boolean "veteran_rrh_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "other_accessibility", default: false, null: false
+    t.boolean "disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.jsonb "neighborhood_interests", default: []
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
@@ -3616,6 +3651,7 @@ ActiveRecord::Schema.define(version: 2020_02_12_140919) do
     t.string "subdomain"
     t.string "encrypted_api_key"
     t.string "encrypted_api_key_iv"
+    t.integer "courseid"
   end
 
   create_table "talentlms_logins", force: :cascade do |t|
