@@ -372,6 +372,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.order(ProjectName: :asc).pluck(:ProjectName)
   end
 
+  def destroy_dependents!
+    organizations.map(&:destroy_dependents!)
+  end
+
   class << self
     extend Memoist
     def health_authoritative_id

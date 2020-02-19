@@ -174,24 +174,25 @@ module GrdaWarehouse::Tasks
         debug_log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
         if ! @dry_run
           GrdaWarehouse::WarehouseClient.where(source_id: un_enrolled_clients).update_all(deleted_at: deleted_at)
-          GrdaWarehouse::Hud::Exit.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
-          GrdaWarehouse::Hud::EnrollmentCoc.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
-          GrdaWarehouse::Hud::Disability.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
-          GrdaWarehouse::Hud::HealthAndDv.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
-          GrdaWarehouse::Hud::IncomeBenefit.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
-          GrdaWarehouse::Hud::EmploymentEducation.joins(:direct_client).
-            where(Client: {id: un_enrolled_clients}).
-            update_all(DateDeleted: deleted_at)
+          hud_classes = [
+            GrdaWarehouse::Hud::Exit,
+            GrdaWarehouse::Hud::EnrollmentCoc,
+            GrdaWarehouse::Hud::Disability,
+            GrdaWarehouse::Hud::HealthAndDv,
+            GrdaWarehouse::Hud::IncomeBenefit,
+            GrdaWarehouse::Hud::EmploymentEducation,
+            GrdaWarehouse::Hud::Assessment,
+            GrdaWarehouse::Hud::CurrentLivingSituation,
+            GrdaWarehouse::Hud::AssessmentQuestion,
+            GrdaWarehouse::Hud::AssessmentResult,
+            GrdaWarehouse::Hud::Event,
+          ]
+          hud_classes.each do |klass|
+            klass.joins(:direct_client).
+              where(Client: {id: un_enrolled_clients}).
+              update_all(DateDeleted: deleted_at)
+          end
+
           GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at)
         end
       end

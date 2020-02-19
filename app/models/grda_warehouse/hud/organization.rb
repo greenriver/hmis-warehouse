@@ -266,5 +266,9 @@ module GrdaWarehouse::Hud
         options
       end
     end
+
+    def destroy_dependents!
+      projects.map(&:destroy_dependents!)
+    end
   end
 end

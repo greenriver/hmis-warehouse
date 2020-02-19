@@ -557,10 +557,10 @@ Rails.application.routes.draw do
     get :download, on: :collection
   end
 
-  resources :organizations, only: [:index, :show] do
+  resources :organizations, only: [:index, :show, :destroy] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
-  resources :projects, only: [:index, :edit, :show, :update] do
+  resources :projects, only: [:index, :edit, :show, :update, :destroy] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
