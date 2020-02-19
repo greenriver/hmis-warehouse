@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_05_144804) do
+ActiveRecord::Schema.define(version: 2020_02_18_160012) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -476,6 +476,7 @@ ActiveRecord::Schema.define(version: 2020_02_05_144804) do
     t.integer "disenrolled_patients"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer "updated_patients"
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -528,7 +529,6 @@ ActiveRecord::Schema.define(version: 2020_02_05_144804) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -572,7 +572,6 @@ ActiveRecord::Schema.define(version: 2020_02_05_144804) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_patients", id: :serial, force: :cascade do |t|
@@ -720,6 +719,26 @@ ActiveRecord::Schema.define(version: 2020_02_05_144804) do
     t.integer "responsible_team_member_id"
     t.integer "patient_id"
     t.text "timeframe"
+    t.string "action_step_0"
+    t.string "timeframe_0"
+    t.string "action_step_1"
+    t.string "timeframe_1"
+    t.string "action_step_2"
+    t.string "timeframe_2"
+    t.string "action_step_3"
+    t.string "timeframe_3"
+    t.string "action_step_4"
+    t.string "timeframe_4"
+    t.string "action_step_5"
+    t.string "timeframe_5"
+    t.string "action_step_6"
+    t.string "timeframe_6"
+    t.string "action_step_7"
+    t.string "timeframe_7"
+    t.string "action_step_8"
+    t.string "timeframe_8"
+    t.string "action_step_9"
+    t.string "timeframe_9"
     t.index ["patient_id"], name: "index_health_goals_on_patient_id"
     t.index ["user_id"], name: "index_health_goals_on_user_id"
   end
