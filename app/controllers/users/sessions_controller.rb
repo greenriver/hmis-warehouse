@@ -51,6 +51,10 @@ class Users::SessionsController < Devise::SessionsController
     find_user&.two_factor_enabled?
   end
 
+  def training_complete?
+    find_user&.training_complete?
+  end
+
   def valid_otp_attempt?(user)
     user.validate_and_consume_otp!(clean_code)
   end

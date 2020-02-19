@@ -47,6 +47,7 @@ module UserPermissions
         :can_access_some_cohorts,
         :can_access_client_search,
         :can_access_window_search,
+        :can_delete_projects_or_data_sources,
       ].freeze
     end
 
@@ -181,6 +182,10 @@ module UserPermissions
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicateName
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
+    end
+
+    def can_delete_projects_or_data_sources
+      can_delete_projects? || can_delete_data_sources?
     end
 
     def can_access_some_cohorts

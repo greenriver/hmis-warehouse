@@ -1,0 +1,21 @@
+- title = "Release of Information"
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: client_releases_path(@client)
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right
+    = render 'file_upload'
+
+- if @consent_files.any?
+  %section
+    %header.o-section-card__header
+      %div.o-section-card__header-actions
+        = render 'clients/files/batch_download'
+  = render 'clients/files/file_list', files: @consent_files, paginate: false, consent: true
+- else
+  = _('No releases on file')

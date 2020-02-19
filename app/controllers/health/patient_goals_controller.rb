@@ -14,6 +14,7 @@ module Health
     before_action :set_hpc_patient
 
     def index
+      @modal_size = :xl
       @goals = @patient.hpc_goals
     end
 

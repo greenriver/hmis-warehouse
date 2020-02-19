@@ -43,6 +43,10 @@
         title: 'Youth Intakes',
         permission: GrdaWarehouse::YouthIntake::Base.any_visible_by?(current_user)
       },
+      client_releases_path(client_id: @client) => {
+        title: _('Releases of Information'),
+        permission: can_use_separated_consent?,
+      },
       polymorphic_path(files_path_generator, client_id: @client) => {
         title: 'Files', #'File Uploads'
         permission: GrdaWarehouse::ClientFile.any_visible_by?(current_user),
