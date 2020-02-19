@@ -27,15 +27,20 @@
   width: 100%;
 }
 
+.signature_line {
+  width: 4in;
+  border-bottom: 1px solid black;
+}
+
 .coc-roi {
   h1 {
-    font-size: .45in;
+    font-size: .35in;
     text-transform: uppercase;
     margin: 0;
   }
 
   h2 {
-    font-size: .35in;
+    font-size: .3in;
     border: 0;
     color: #457687;
   }

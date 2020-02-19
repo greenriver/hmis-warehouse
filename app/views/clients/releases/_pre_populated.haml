@@ -7,37 +7,39 @@
     = stylesheet_link_tag 'roi_pdf', media: 'all'
   %body
     %section.coc-roi.portrait.page-break-after
+      %h1= _('Authorization for Use/Disclosure of Personal Information')
+      %h2.mb-4= _('Open Path ROI')
+
+
       .d-flex.align-items-start
         .mr-4
-          %h1= _('Authorization for Use/Disclosure of Personal Information')
-          %h2.mb-4= _('Open Path ROI')
+          %table.table{style: 'width: 6in;'}
+            %tbody
+              %tr
+                %th Name:
+                %td= @client.FirstName
+                %td= @client.MiddleName
+                %td= @client.LastName
+              %tr
+                %td
+                %td
+                  %em First
+                %td
+                  %em Middle
+                %td
+                  %em Last
+              %tr
+                %th Date of Birth:
+                %td
+                  - if @client.DOB
+                    = @client.DOB.strftime('%m / %d / %Y')
+                  - else
+                    __ / __ / ____
+                %th SSN:
+                %td= masked_ssn(@client.SSN)
         .ml-auto
           - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
           = image_tag(logo, width: 250) if logo.present?
-      %table.table{style: 'max-width: 50%;'}
-        %tbody
-          %tr
-            %th Name:
-            %td= @client.FirstName
-            %td= @client.MiddleName
-            %td= @client.LastName
-          %tr
-            %td
-            %td
-              %em First
-            %td
-              %em Middle
-            %td
-              %em Last
-          %tr
-            %th Date of Birth:
-            %td
-              - if @client.DOB
-                = @client.DOB.strftime('%m / %d / %Y')
-              - else
-                __ / __ / ____
-            %th Last 4 digits of SSN:
-            %td= @client.SSN[-4..-1]
 
       = simple_format(_('Open Path ROI content'))
 
@@ -45,23 +47,23 @@
         %tbody
           %tr
             %th.text-right Participant Signature
-            %td{style: 'width: 5in; border-bottom: 1px solid black;'}
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
             %th.text-right Date/Time
             %td= Time.current.strftime('%m / %d / %Y %l:%M %P')
           %tr
             %th.text-right Print Name
-            %td{style: 'width: 5in; border-bottom: 1px solid black;'}
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
           %tr
             %th.text-right Witness
-            %td{style: 'width: 5in; border-bottom: 1px solid black;'}
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
             %th.text-right Date/Time
             %td= Time.current.strftime('%m / %d / %Y %l:%M %P')
           %tr
             %th.text-right= _('Homeless Service Provider Organization Name')
-            %td{style: 'width: 5in; border-bottom: 1px solid black;'}
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
           %tr
             %th.text-right= _('Name of Staff Assisting with Form Completion')
-            %td{style: 'width: 5in; border-bottom: 1px solid black;'}
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
     .landscape
       .d-flex
         .ml-auto.mb-4

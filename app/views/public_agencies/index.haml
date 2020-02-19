@@ -2,11 +2,10 @@
 .row
   .col-sm-8
     %h1= content_for :title
-
-- if @coc_map.present?
-  .coc-map
-    %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
 .agency-list
   %ul
   - @agencies.each do |agency|
     %li= agency.description_and_coc_code
+- if @coc_map.present?
+  .coc-map
+    %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
