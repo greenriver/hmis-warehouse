@@ -12,6 +12,9 @@
     - if can_edit_users?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_agencies_path))}
         = link_to 'Agencies', admin_agencies_path, class: 'nav-link'
+    - if can_edit_users?
+      %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_consent_limits_path))}
+        = link_to 'CoCs for Consent', admin_consent_limits_path, class: 'nav-link'
     - if can_manage_config?
       %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_configs_path))}
         = link_to 'Site Config', admin_configs_path, class: 'nav-link'

@@ -266,5 +266,10 @@ module GrdaWarehouse::Hud
         options
       end
     end
+
+    def destroy_dependents!
+      projects.map(&:destroy_dependents!)
+      projects.update_all(DateDeleted: Time.current)
+    end
   end
 end
