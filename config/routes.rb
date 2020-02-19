@@ -557,7 +557,7 @@ Rails.application.routes.draw do
     get :download, on: :collection
   end
 
-  resources :organizations, only: [:index, :show, :destroy] do
+  resources :organizations, only: [:destroy] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
   resources :projects, only: [:index, :edit, :show, :update, :destroy] do

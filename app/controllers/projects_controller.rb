@@ -50,8 +50,10 @@ class ProjectsController < ApplicationController
   end
 
   def destroy
+    name = @project.ProjectName
     @project.destroy_dependents!
     @project.destroy
+    flash[:notice] = "Project: #{name} was successfully removed."
     respond_with @project, location: data_source_path(@project.data_source)
   end
 

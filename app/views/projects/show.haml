@@ -10,7 +10,7 @@
         Edit Project
     - if can_delete_projects?
       .mt-4
-        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: 'Deleting this project will delete ALL associated data.  Do you want to proceed?'} do
+        = link_to project_path(@project), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{@project.ProjectName} will delete ALL associated data.  Do you want to proceed?"} do
           %i.icon-cross
           Delete Project
 .row

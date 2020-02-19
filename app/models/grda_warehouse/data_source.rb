@@ -7,6 +7,7 @@
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   require 'memoist'
   include ArelHelper
+  acts_as_paranoid
   validates :name, presence: true
   validates :short_name, presence: true
 

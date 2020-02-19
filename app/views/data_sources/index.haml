@@ -52,6 +52,5 @@
               %td
                 = checkmark(data_source.authoritative)
               %td
-                - unless data_source.has_data?
-                  = link_to data_source_path(data_source), method: :delete, data: {confirm: "Are you sure you want to delete the #{data_source.name} Data Source?"} do
-                    %span.icon-cross
+                = link_to data_source_path(data_source), method: :delete, data: {confirm: "Deleting the #{data_source.name} Data Source will delete ALL associated data. Do you want to proceed?"}, class: 'btn btn-sm btn-danger btn-icon-only' do
+                  %span.icon-cross

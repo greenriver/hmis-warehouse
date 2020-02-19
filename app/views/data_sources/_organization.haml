@@ -11,6 +11,11 @@
       - if can_edit_organizations?
         = link_to organization_contacts_path(organization_id: org.id) do
           View/Edit Organization Contacts
+      - if can_delete_data_sources?
+        .mt-4.mb-4
+          = link_to organization_path(org), method: :delete, class: ['btn', 'btn-sm', 'btn-danger'], data: { confirm: "Deleting #{org.OrganizationName} will delete ALL associated data.  Do you want to proceed?"} do
+            %i.icon-cross
+            Delete Organization
   %table.table.table-sm
     %thead
       %tr
