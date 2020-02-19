@@ -169,5 +169,10 @@ module AuditReports
       scope.
         preload(:agency)
     end
+
+    private def report_params
+      params.permit(report: [:agency])
+    end
+    helper_method :report_params
   end
 end

@@ -30,6 +30,7 @@ class ApplicationController < ActionController::Base
   helper_method :locale
   before_action :set_gettext_locale
   before_action :enforce_2fa!
+  before_action :require_training!
 
   # Don't start in development if you have pending migrations
   prepend_before_action :check_all_db_migrations
@@ -144,13 +145,24 @@ class ApplicationController < ActionController::Base
     last_url = session['user_return_to']
     if last_url.present?
       last_url
-    elsif can_view_clients?
+    elsif current_user.can_access_some_client_search?
       clients_path
-    elsif can_search_window?
-      window_clients_path
     else
       root_path
     end
+  end
+
+  def allowed_setup_controllers
+    controller_path.in?(
+      [
+        'users/sessions',
+        'accounts',
+        'account_two_factors',
+        'account_emails',
+        'account_passwords',
+        'user_training',
+      ],
+    ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
   end
 
   # If a user must have Two-factor authentication turned on, only let them go
@@ -159,19 +171,19 @@ class ApplicationController < ActionController::Base
     return unless current_user
     return unless current_user.enforced_2fa?
     return if current_user.two_factor_enabled?
-    return if controller_path.in?(
-      [
-        'users/sessions',
-        'accounts',
-        'account_two_factors',
-        'account_emails',
-        'account_passwords',
-      ],
-    )
-    return if controller_path == 'admin/users' && action_name == 'stop_impersonating'
+    return if allowed_setup_controllers
 
     flash[:alert] = 'Two factor authentication must be enabled for this account.'
     redirect_to edit_account_two_factor_path
+  end
+
+  def require_training!
+    return unless current_user
+    return unless current_user.training_required?
+    return if current_user.training_completed?
+    return if allowed_setup_controllers
+
+    redirect_to user_training_path
   end
 
   def check_all_db_migrations

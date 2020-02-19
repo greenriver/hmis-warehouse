@@ -71,13 +71,11 @@ class DataSourcesController < ApplicationController
   end
 
   def destroy
-    ds_name = @data_source.name
-    if @data_source.has_data?
-      flash[:error] = "Unable to delete #{ds_name}, there is data associated with it."
-    else
-      @data_source.destroy
-      flash[:notice] = "Data Source: #{ds_name} was successfully removed."
-    end
+    name = @data_source.name
+    @data_source.destroy_dependents!
+    @data_source.destroy
+    flash[:notice] = "Data Source: #{name} was successfully removed."
+
     redirect_to action: :index
   end
 

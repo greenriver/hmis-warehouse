@@ -101,3 +101,12 @@ $table-border-color-secondary: #F0F0F0;
 .c-table__icon-key span {
   font-style: italic;
 }
+
+table.table-fixed {
+  position: relative;
+}
+.table-fixed th {
+  position: sticky;
+  top: 0;
+  background-color: $white;
+}

@@ -101,6 +101,10 @@ class Role < ApplicationRecord
         description: 'Users with this permission will be unable to login until Two-factor authentication has been enabled',
         administrative: false,
       },
+      training_required: {
+        description: 'Users with this permission will be unable to login until they have completed user training.',
+        administrative: false,
+      },
       can_edit_roles: {
         description: 'Ability to add and remove roles and assign permissions to all roles',
         administrative: true,
@@ -157,8 +161,12 @@ class Role < ApplicationRecord
         description: 'Add or Edit data sources, including specifying if it is visible in the window',
         administrative: true,
       },
+      can_use_strict_search: {
+        description: 'Access to the client search screen that requires more exact matching. Assigning "Can Search Window" or "Can View Clients" will take precedence and grant additional access',
+        administrative: false,
+      },
       can_search_window: {
-        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data',
+        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
         administrative: false,
       },
       can_view_client_window: {
@@ -187,6 +195,10 @@ class Role < ApplicationRecord
       },
       can_see_own_file_uploads: {
         description: 'Access to files this user has uploaded, no access to others.  Usually used for community members who might be collecting files, but shouldn\'t see files provided by others',
+        administrative: false,
+      },
+      can_use_separated_consent: {
+        description: 'If granted, the user will see a top level consent option for clients.  If unchecked, consent will fall under the files tab',
         administrative: false,
       },
       can_manage_config: {
@@ -392,6 +404,14 @@ class Role < ApplicationRecord
       },
       can_impersonate_users: {
         description: 'Can become any other user.  Anyone with this permission can impersonate any other user and see whatever they would see.',
+        administrative: true,
+      },
+      can_delete_projects: {
+        description: 'Deleting projects will delete all associated inventory and enrollment information.',
+        administrative: true,
+      },
+      can_delete_data_sources: {
+        description: 'Can delete data sources, organizations or projects. Deleting any of these will delete all associated inventory and enrollment information.',
         administrative: true,
       },
     }

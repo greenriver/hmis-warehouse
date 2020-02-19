@@ -108,10 +108,12 @@ module Health
     end
 
     private def clean_note_params!(permitted_params)
-      # NOTE: Remove COPY from activities_attributes -- if this is present in params we get unpermitted params
+      # NOTE: Remove -999 from activities_attributes -- if this is present in params we get unpermitted params
       # Let me know if there is a better solution @meborn
-      # COPY is used to add activities via js see health/sdh_case_management_note/form_js addActivity
-      (permitted_params[:activities_attributes] || {}).reject! { |k, _v| k == 'COPY' }
+      # -999 is used to add activities via js see health/sdh_case_management_note/form_js addActivity
+      #
+      # '-999' used to be 'COPY', but Rails 5 discards the map if it contains a string key
+      (permitted_params[:activities_attributes] || {}).reject! { |k, _v| k == '-999' }
       # remove :_destroy on ajax
       # remove health_file on ajax
       permitted_params.delete(:health_file_attributes) if params[:commit] != 'Save Case Note'
@@ -139,45 +141,43 @@ module Health
     end
 
     private def permitted_request_params
-      # FIXME: this needs to use strong params in a more appropriate way
-      params.permit!
-      # params.require(:health_sdh_case_management_note).permit(
-      #   :title,
-      #   :total_time_spent_in_minutes,
-      #   :date_of_contact,
-      #   :place_of_contact,
-      #   :place_of_contact_other,
-      #   :housing_status,
-      #   :housing_status_other,
-      #   :housing_placement_date,
-      #   :client_action_medication_reconciliation_clinician,
-      #   :notes_from_encounter,
-      #   :client_phone_number,
-      #   :completed_on,
-      #   client_action: [],
-      #   topics: [],
-      #   activities_attributes: [
-      #     :id,
-      #     :mode_of_contact,
-      #     :mode_of_contact_other,
-      #     :reached_client,
-      #     :reached_client_collateral_contact,
-      #     :activity,
-      #     :date_of_activity,
-      #     :follow_up,
-      #     :_destroy,
-      #   ],
-      #   health_file_attributes: [
-      #     :id,
-      #     :file,
-      #     :file_cache,
-      #     :note,
-      #   ],
-      # )
+      params.require(:health_sdh_case_management_note).permit(
+        :title,
+        :total_time_spent_in_minutes,
+        :date_of_contact,
+        :place_of_contact,
+        :place_of_contact_other,
+        :housing_status,
+        :housing_status_other,
+        :housing_placement_date,
+        :client_action_medication_reconciliation_clinician,
+        :notes_from_encounter,
+        :client_phone_number,
+        :completed_on,
+        client_action: [],
+        topics: [],
+        activities_attributes: [
+          :id,
+          :mode_of_contact,
+          :mode_of_contact_other,
+          :reached_client,
+          :reached_client_collateral_contact,
+          :activity,
+          :date_of_activity,
+          :follow_up,
+          :_destroy,
+        ],
+        health_file_attributes: [
+          :id,
+          :file,
+          :file_cache,
+          :note,
+        ],
+      )
     end
 
     private def note_params
-      permitted_params = clean_note_params!(permitted_request_params[:health_sdh_case_management_note])
+      permitted_params = clean_note_params!(permitted_request_params)
       add_calculated_params_to_activities!(permitted_params)
     end
 

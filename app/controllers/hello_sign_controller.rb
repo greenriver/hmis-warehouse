@@ -7,9 +7,8 @@
 class HelloSignController < ActionController::Base
   skip_before_action :verify_authenticity_token
   def callback
-    params.permit!
-    Rails.logger.info "HelloSign Callback data: params: #{params.ai(plain: true)}"
-    response = CallbackResponse.new(params[:json])
+    Rails.logger.info "HelloSign Callback data: params: #{params.inspect}"
+    response = CallbackResponse.new(hello_sign_params[:json])
 
     if response.valid? && response.has_careplan?
       response.process!
@@ -18,6 +17,10 @@ class HelloSignController < ActionController::Base
 
     # HelloSign expects this. Do not change or remove:
     render plain: 'Hello API Event Received'
+  end
+
+  def hello_sign_params
+    params.permit(:json)
   end
 
   # rubocop:disable Lint/DuplicateMethods, Naming/PredicateName
@@ -37,7 +40,7 @@ class HelloSignController < ActionController::Base
     def signable_document
       return @signable_document unless @signable_document.nil?
 
-      signable_document_id = _signature_request.dig('metadata', 'data', 'signable_document_id')
+      signable_document_id = _signature_request.dig('metadata', 'data', 'signable_document_id') || _signature_request.dig('metadata', 'signable_document_id')
 
       @signable_document = Health::SignableDocument.find(signable_document_id)
     end

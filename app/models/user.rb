@@ -351,7 +351,7 @@ class User < ApplicationRecord
 
   def coc_codes_for_consent
     # return coc_codes if coc_codes.present?
-    GrdaWarehouse::Hud::ProjectCoc.available_coc_codes
+    ConsentLimit.available_coc_codes
   end
 
   # def health_agency

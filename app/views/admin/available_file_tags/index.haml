@@ -9,35 +9,37 @@
       %i.icon-plus
       New File Tag
 
-%table.table.table-sm
-  %thead
-    %tr
-      %th Name
-      %th Group
-      %th Includes
-      %th Weight
-      %th Triggers Notifications?
-      %th Required for Document Ready?
-      %th Required for
-      %th Constitutes a Consent Form?
-      %th Requires Effective or Signed-on Date?
-      %th Requires Expiration date?
-
-  %tbody
-    - @available_file_tags.each do |available_file_tag|
+.overflow-x-scroll{style: "height: 800px"}
+  %table.table.table-fixed.table-striped
+    %thead
       %tr
-        %td= link_to available_file_tag.name, edit_admin_available_file_tag_path(available_file_tag)
-        %td= available_file_tag.group
-        %td= available_file_tag.included_info
-        %td= available_file_tag.weight
-        %td= checkmark available_file_tag.notification_trigger
-        %td= checkmark available_file_tag.document_ready
-        %td= GrdaWarehouse::AvailableFileTag.available_required_for_options.key(available_file_tag.required_for)
-        %td= checkmark available_file_tag.consent_form
-        %td= checkmark available_file_tag.requires_effective_date
-        %td= checkmark available_file_tag.requires_expiration_date
-        %td
-          = link_to admin_available_file_tag_path(available_file_tag), class: 'btn btn-sm btn-danger btn-icon-only', method: :delete, data: { confirm: "Really delete #{available_file_tag.name}?" } do
-            %i.icon-cross
+        %th Name
+        %th Group
+        %th Includes
+        %th Weight
+        %th Triggers Notifications?
+        %th Required for Document Ready?
+        %th Required for
+        %th Constitutes a Consent Form?
+        %th Requires Effective or Signed-on Date?
+        %th Requires Expiration date?
+        %th
+
+    %tbody
+      - @available_file_tags.each do |available_file_tag|
+        %tr
+          %td= link_to available_file_tag.name, edit_admin_available_file_tag_path(available_file_tag)
+          %td= available_file_tag.group
+          %td= available_file_tag.included_info
+          %td= available_file_tag.weight
+          %td= checkmark available_file_tag.notification_trigger
+          %td= checkmark available_file_tag.document_ready
+          %td= GrdaWarehouse::AvailableFileTag.available_required_for_options.key(available_file_tag.required_for)
+          %td= checkmark available_file_tag.consent_form
+          %td= checkmark available_file_tag.requires_effective_date
+          %td= checkmark available_file_tag.requires_expiration_date
+          %td
+            = link_to admin_available_file_tag_path(available_file_tag), class: 'btn btn-sm btn-danger btn-icon-only', method: :delete, data: { confirm: "Really delete #{available_file_tag.name}?" } do
+              %i.icon-cross
 
 

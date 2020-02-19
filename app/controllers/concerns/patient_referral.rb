@@ -122,8 +122,19 @@ module PatientReferral
   end
 
   def tab_path_params
-    params.permit!
-    { filters: params[:filters] }
+    params.permit(
+      filters:
+        [
+          :search,
+          :added_before,
+          :relationship,
+          :agency_id,
+          :assigned_agency_id,
+          :acknowledged_by_mass_health,
+          :sort_by,
+          :created_at,
+        ],
+    )
   end
 
   def load_new_patient_referral

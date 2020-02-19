@@ -6,8 +6,9 @@
 
 class ProjectsController < ApplicationController
   before_action :require_can_view_projects!
+  before_action :require_can_delete_projects_or_data_sources!, only: [:destroy]
   before_action :require_can_edit_projects!, only: [:edit, :update]
-  before_action :set_project, only: [:show, :update, :edit]
+  before_action :set_project, only: [:show, :update, :edit, :destroy]
 
   include ArelHelper
 
@@ -46,6 +47,14 @@ class ProjectsController < ApplicationController
   def update
     @project.update(project_params)
     respond_with @project, location: project_path(@project)
+  end
+
+  def destroy
+    name = @project.ProjectName
+    @project.destroy_dependents!
+    @project.destroy
+    flash[:notice] = "Project: #{name} was successfully removed."
+    respond_with @project, location: data_source_path(@project.data_source)
   end
 
   private def project_params

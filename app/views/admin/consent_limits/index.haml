@@ -1,0 +1,33 @@
+- title = 'CoCs for Consent'
+- content_for :title, title
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render partial: 'menus/admin_tabs'
+.row
+  .col-12.text-right
+    = link_to new_admin_consent_limit_path, class: 'btn btn-primary mb-4' do
+      %i.icon-plus
+      New CoC for Consent
+
+
+%table.table.table-striped
+  %thead
+    %tr
+      %th CoC Code
+      %th Description
+      %th Agencies
+      %th
+
+  %tbody
+    - @consent_limits.each do |consent_limit|
+      %tr
+        %td{style: "border-left: 8px solid #{consent_limit.color};"}
+          = link_to consent_limit.name, edit_admin_consent_limit_path(consent_limit)
+        %td= consent_limit.description
+        %td= consent_limit.agencies.pluck(:name).join(', ')
+        %td
+          = link_to admin_consent_limit_path(consent_limit), method: :delete, data: { confirm: "Are you sure you want to delete #{consent_limit.name}?" }, class: 'btn btn-sm btn-icon-only btn-danger' do
+            %i.icon-cross
+
+

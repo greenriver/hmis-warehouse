@@ -26,6 +26,9 @@ msgstr ""
 msgid "Ad-Hoc Data Sources"
 msgstr ""
 
+msgid "Add a Release"
+msgstr ""
+
 msgid "Alerts"
 msgstr ""
 
@@ -36,6 +39,9 @@ msgid "Appropriate for sober supportive housing"
 msgstr ""
 
 msgid "Asylee, Refugee"
+msgstr ""
+
+msgid "Authorization for Use/Disclosure of Personal Information"
 msgstr ""
 
 msgid "Available for matching in CAS"
@@ -3470,6 +3476,9 @@ msgstr ""
 msgid "Cohorts"
 msgstr ""
 
+msgid "Consent form confirmed"
+msgstr ""
+
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
@@ -3534,6 +3543,9 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
+msgstr ""
+
+msgid "Homeless Service Provider Organization Name"
 msgstr ""
 
 msgid "Housing"
@@ -3641,6 +3653,18 @@ msgstr ""
 msgid "My Patients"
 msgstr ""
 
+msgid "Name of Staff Assisting with Form Completion"
+msgstr ""
+
+msgid "No releases on file"
+msgstr ""
+
+msgid "Open Path ROI"
+msgstr ""
+
+msgid "Open Path ROI content"
+msgstr ""
+
 msgid "OpenPath HMIS Warehouse"
 msgstr ""
 
@@ -3672,6 +3696,9 @@ msgid "Project Groups"
 msgstr ""
 
 msgid "Projects"
+msgstr ""
+
+msgid "Releases of Information"
 msgstr ""
 
 msgid "Report failed to queue."

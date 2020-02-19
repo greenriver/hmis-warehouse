@@ -1,0 +1,7 @@
+= render partial: 'breadcrumbs'
+%h1 Editing #{@consent_limit.name}
+
+= simple_form_for(@consent_limit, url: admin_consent_limit_path, as: :consent_limit) do |f|
+  = render 'form', f: f
+  .form_actions
+    = f.button :submit, value: 'Save CoC'

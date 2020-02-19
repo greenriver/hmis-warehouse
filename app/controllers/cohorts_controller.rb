@@ -138,6 +138,11 @@ class CohortsController < ApplicationController
     )
   end
 
+  private def table_params
+    params.permit(:population)
+  end
+  helper_method :table_params
+
   def cohort_id
     params[:id].to_i
   end

@@ -12,6 +12,7 @@ module Admin::Health
     before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :disenrolled, :new]
 
     include PatientReferral
+    helper_method :tab_path_params
     include PjaxModalController
 
     def new

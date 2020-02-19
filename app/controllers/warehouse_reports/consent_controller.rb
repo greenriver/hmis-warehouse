@@ -29,9 +29,9 @@ module WarehouseReports
     end
 
     def update_clients
-      to_confirm = params.permit![:clients].try(:[], :confirm_consent)&.to_h&.select { |_, value| value.to_i == 1 }&.map { |id, _| id.to_i }
-      to_activate_in_cas = params.permit![:clients].try(:[], :active_in_cas)&.to_h&.select { |_, value| value.to_i == 1 }&.map { |id, _| id.to_i }
-      to_confirm_disability = params.permit![:clients].try(:[], :disability_verified_on)&.to_h&.select { |_, value| value.to_i == 1 }&.map { |id, _| id.to_i }
+      to_confirm = clients_params[:confirm_consent].to_h.select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
+      to_activate_in_cas = clients_params[:active_in_cas].to_h.select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
+      to_confirm_disability = clients_params[:disability_verified_on].to_h.select { |_, value| value.to_i == 1 }.map { |id, _| id.to_i }
 
       if to_confirm&.any?
         to_confirm.each do |file_id|
@@ -50,6 +50,15 @@ module WarehouseReports
 
       flash[:notice] = 'Clients updated'
       redirect_to warehouse_reports_consent_index_path
+    end
+
+    def clients_params
+      params.require(:clients).
+        permit(
+          confirm_consent: {},
+          active_in_cas: {},
+          disability_verified_on: {},
+        )
     end
 
     def client_source
