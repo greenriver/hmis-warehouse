@@ -21,7 +21,7 @@ module Health::CareplanDates # rubocop:disable Style/ClassAndModuleChildren
           maximum(:provider_signature_requested_at)
 
         signature_request_dates.each do |id, date|
-          signature_request_dates[id] = care_plan_provider_signed_date(patient_id) if date.blank?
+          signature_request_dates[id] = care_plan_provider_signed_date(id) if date.blank?
         end
         signature_request_dates
       end
