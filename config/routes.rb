@@ -434,6 +434,14 @@ Rails.application.routes.draw do
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
+    resources :releases, controller: 'clients/releases', except: [:edit] do
+      get :preview, on: :member
+      get :thumb, on: :member
+      get :has_thumb, on: :member
+      get :show_delete_modal, on: :member
+      post :batch_download, on: :collection
+      get :pre_populated, on: :collection
+    end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -709,6 +717,7 @@ Rails.application.routes.draw do
       patch :update, on: :collection
     end
     resources :data_quality_grades, only: [:index]
+    resources :consent_limits, except: [:show]
     resources :missing_grades, only: [:create, :update, :destroy]
     resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do
@@ -727,6 +736,7 @@ Rails.application.routes.draw do
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
+  resources :public_agencies, only: [:index]
 
   post 'hello-sign' => 'hello_sign#callback'
 

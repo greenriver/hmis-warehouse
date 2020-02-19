@@ -20,6 +20,7 @@ x-app: &app
     PSQL_HISTFILE: /app/log/.psql_history
     EDITOR: vi
     CHROMEDRIVER_VERSION: 79.0.3945.36
+    GROVER_NO_SANDBOX: 'true'
   env_file: .env.local
   tmpfs:
     - /tmp
