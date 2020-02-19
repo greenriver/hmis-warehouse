@@ -14,6 +14,7 @@ Rails.application.config.assets.paths << Rails.root.join('node_modules')
 # Rails.application.config.assets.precompile += %w( admin.js admin.css )
 Rails.application.config.assets.precompile += %w( print.css )
 Rails.application.config.assets.precompile += %w( dashboard_pdf.css )
+Rails.application.config.assets.precompile += %w( roi_pdf.css )
 Rails.application.config.assets.precompile += %w( chart.js )
 Rails.application.config.assets.precompile += %w( pdf.js )
 Rails.application.config.assets.precompile += ['theme/styles/*.css']

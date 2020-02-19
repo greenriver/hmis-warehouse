@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
     match 'users/invitations/confirm', via: :post
+    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
   end
 
   namespace :users do
@@ -27,6 +28,8 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  get '/user_training', to: 'user_training#index'
 
   def healthcare_routes(window:)
     namespace :health do
@@ -159,6 +162,8 @@ Rails.application.routes.draw do
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
+      resource :geography, only: [:show]
+      resource :funder, only: [:show]
     end
   end
   namespace :hud_reports do
@@ -429,6 +434,14 @@ Rails.application.routes.draw do
       get :show_delete_modal, on: :member
       post :batch_download, on: :collection
     end
+    resources :releases, controller: 'clients/releases', except: [:edit] do
+      get :preview, on: :member
+      get :thumb, on: :member
+      get :has_thumb, on: :member
+      get :show_delete_modal, on: :member
+      post :batch_download, on: :collection
+      get :pre_populated, on: :collection
+    end
     resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
@@ -555,10 +568,10 @@ Rails.application.routes.draw do
     get :download, on: :collection
   end
 
-  resources :organizations, only: [:index, :show] do
+  resources :organizations, only: [:destroy] do
     resources :contacts, except: [:show], controller: 'organizations/contacts'
   end
-  resources :projects, only: [:index, :edit, :show, :update] do
+  resources :projects, only: [:index, :edit, :show, :update, :destroy] do
     resources :contacts, except: [:show], controller: 'projects/contacts'
     resources :data_quality_reports, only: [:index, :show] do
       get :support, on: :member
@@ -704,6 +717,7 @@ Rails.application.routes.draw do
       patch :update, on: :collection
     end
     resources :data_quality_grades, only: [:index]
+    resources :consent_limits, except: [:show]
     resources :missing_grades, only: [:create, :update, :destroy]
     resources :utilization_grades, only: [:create, :update, :destroy]
     namespace :eto_api do
@@ -722,6 +736,7 @@ Rails.application.routes.draw do
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
   resources :public_files, only: [:show]
+  resources :public_agencies, only: [:index]
 
   post 'hello-sign' => 'hello_sign#callback'
 

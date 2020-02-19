@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_17_152806) do
+ActiveRecord::Schema.define(version: 2020_02_19_175547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1666,6 +1666,7 @@ ActiveRecord::Schema.define(version: 2020_02_17_152806) do
     t.boolean "import_paused", default: false, null: false
     t.string "authoritative_type"
     t.string "source_id"
+    t.datetime "deleted_at"
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -3650,6 +3651,7 @@ ActiveRecord::Schema.define(version: 2020_02_17_152806) do
     t.string "subdomain"
     t.string "encrypted_api_key"
     t.string "encrypted_api_key_iv"
+    t.integer "courseid"
   end
 
   create_table "talentlms_logins", force: :cascade do |t|

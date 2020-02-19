@@ -13,12 +13,16 @@
 
 - if @client.client_files.any? || @deleted_files.any?
   %ul.files-nav.nav.nav-tabs
-    %li.nav-item
-      %a.nav-link.active{href: '#consent', role: "presentation", data: {toggle: :tab}}
-        Consent Forms
+    - unless can_use_separated_consent?
+      %li.nav-item
+        %a.nav-link.active{href: '#consent', role: "presentation", data: {toggle: :tab}}
+          Consent Forms
     %li.nav-item
       %a.nav-link{href: '#other', role: "presentation", data: {toggle: :tab}}
-        Other Files
+        - if can_use_separated_consent?
+          Files
+        - else
+          Other Files
     - if can_manage_client_files?
       %li.nav-item
         %a.nav-link{href: '#deleted', role: "presentation", data: {toggle: :tab}}

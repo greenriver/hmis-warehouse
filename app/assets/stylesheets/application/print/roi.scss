@@ -1,0 +1,50 @@
+@import '../helpers';
+
+
+.portrait {
+  page-break-after: always;
+}
+
+.landscape {
+
+}
+.shared {
+  font-size: 1.4em;
+  color: $brand-success;
+}
+.excluded {
+  font-size: 1.4em;
+  color: $brand-danger;
+}
+.color-box {
+  color: transparent;
+  height: 2em;
+}
+.coc-map {
+  width: 100%;
+}
+.coc-map img {
+  width: 100%;
+}
+
+.signature_line {
+  width: 4in;
+  border-bottom: 1px solid black;
+}
+
+.coc-roi {
+  h1 {
+    font-size: .35in;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: .3in;
+    border: 0;
+    color: #457687;
+  }
+  p {
+    font-size: .18in;
+  }
+}

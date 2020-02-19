@@ -1,0 +1,29 @@
+// Use 'require' here to cut down on css reloading time.
+// Individual module files should @import 'helpers' at the top of the file
+
+//////////////////////
+// Vendored Libraries
+// Or any other static (that we don't change) CSS
+/////////////////////
+// Vendor
+//= require billboard/billboard.min
+//= require ./application/vendor/icons
+//= require ./application/vendor/bootstrap/index
+
+//////////////////////////////////////////
+// Base Application Styles
+// In order to use variables/mixins/functions in individual files
+// import the 'helpers' file (app/assets/stylesheets/application/helpers.scss)
+/////////////////////////////////////////
+//= require_tree ./application/elements
+//= require_tree ./application/layouts
+//= require_tree ./application/objects
+//= require_tree ./application/components
+//= require_tree ./application/base
+//= require_tree ./application/modules
+//= require_tree ./application/overrides
+//= require_tree ./application/utilities
+
+//= require ./application/print/base
+//= require ./application/print/dashboard
+//= require ./application/print/roi
