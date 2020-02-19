@@ -197,6 +197,10 @@ class Role < ApplicationRecord
         description: 'Access to files this user has uploaded, no access to others.  Usually used for community members who might be collecting files, but shouldn\'t see files provided by others',
         administrative: false,
       },
+      can_use_separated_consent: {
+        description: 'If granted, the user will see a top level consent option for clients.  If unchecked, consent will fall under the files tab',
+        administrative: false,
+      },
       can_manage_config: {
         description: 'Administrative ability to fundamentally change the way various items are calculated and to disable/enable modules',
         administrative: true,
