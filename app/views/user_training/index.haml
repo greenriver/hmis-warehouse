@@ -1,0 +1,11 @@
+%h1
+  We're Sorry...
+%p
+  This account cannot log in at the moment.
+%p
+  There was a problem talking to TalentLMS:
+  %i
+    = "\"#{@message}\"."
+
+.btn.btn-outline-primary
+  = link_to 'Sign Out', destroy_user_session_path, method: :delete

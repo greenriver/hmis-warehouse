@@ -18,6 +18,7 @@ Rails.application.routes.draw do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
     match 'users/invitations/confirm', via: :post
+    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
   end
 
   namespace :users do
@@ -27,6 +28,8 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  get '/user_training', to: 'user_training#index'
 
   def healthcare_routes(window:)
     namespace :health do
