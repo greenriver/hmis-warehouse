@@ -55,7 +55,11 @@ module Admin
     end
 
     def agency_params
-      params.require(:agency).permit(:name)
+      params.require(:agency).permit(
+        :name,
+        :expose_publically,
+        consent_limit_ids: [],
+      )
     end
 
     def agency_scope

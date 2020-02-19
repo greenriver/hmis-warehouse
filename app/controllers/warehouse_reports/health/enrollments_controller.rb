@@ -14,16 +14,41 @@ module WarehouseReports::Health
     end
 
     def create
-      begin
-        @file = Health::Enrollment.create(
-          user_id: current_user.id,
-          content: enrollment_params[:content].read,
-          original_filename: enrollment_params[:content].original_filename,
-          status: 'processing',
-        )
-        Health::ProcessEnrollmentChangesJob.perform_later(@file.id)
-      rescue Exception => e
-        flash[:error] = "Error processing uploaded file #{e}"
+      if params[:commit] == 'Retrieve Enrollments Via API'
+        api = Health::Soap::MassHealth.new(test: !Rails.env.production?)
+        file_list = api.file_list
+        enrollment_payloads = file_list.payloads(Health::Soap::MassHealth::ENROLLMENT_RESPONSE_PAYLOAD_TYPE)
+        if enrollment_payloads.present?
+          enrollment_payloads.each do |payload|
+            errors = []
+            response = payload.response
+            if response.success?
+              file = Health::Enrollment.create(
+                user_id: current_user.id,
+                content: response.response,
+                status: 'processing',
+              )
+              Health::ProcessEnrollmentChangesJob.perform_later(file.id)
+            else
+              errors << response.error_message
+            end
+            flash[:error] = errors.join(', ') if errors.present?
+          end
+        else
+          flash[:error] = 'No 834s found'
+        end
+      else
+        begin
+          @file = Health::Enrollment.create(
+            user_id: current_user.id,
+            content: enrollment_params[:content].read,
+            original_filename: enrollment_params[:content].original_filename,
+            status: 'processing',
+          )
+          Health::ProcessEnrollmentChangesJob.perform_later(@file.id)
+        rescue Exception => e
+          flash[:error] = "Error processing uploaded file #{e}"
+        end
       end
       redirect_to action: :index
     end

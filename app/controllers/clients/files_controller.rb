@@ -66,7 +66,7 @@ module Clients
           visible_in_window: window_visible?(allowed_params[:visible_in_window]),
           effective_date: allowed_params[:effective_date],
           expiration_date: allowed_params[:expiration_date],
-          consent_form_confirmed: allowed_params[:consent_form_confirmed],
+          consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
           coc_codes: allowed_params[:coc_codes].reject(&:blank?),
         }
 
@@ -106,7 +106,10 @@ module Clients
       end
       @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
 
-      attrs[:effective_date] = attrs[:consent_form_signed_on] if attrs.key?(:consent_form_signed_on)
+      if attrs.key?(:consent_form_signed_on)
+        attrs[:effective_date] = attrs[:consent_form_signed_on]
+        attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+      end
       @file.update(attrs)
     end
 

@@ -1,0 +1,11 @@
+- title = "Create a Release"
+- content_for :title, title
+
+= render 'crumbs'
+
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: client_releases_path(@client)
+%h1= title
+= render 'form'
+

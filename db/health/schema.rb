@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_17_200518) do
+ActiveRecord::Schema.define(version: 2020_02_18_160012) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -476,6 +476,7 @@ ActiveRecord::Schema.define(version: 2020_02_17_200518) do
     t.integer "disenrolled_patients"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer "updated_patients"
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|

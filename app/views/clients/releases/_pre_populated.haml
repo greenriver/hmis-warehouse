@@ -1,0 +1,97 @@
+!!!
+%html
+  %head
+    = wicked_pdf_stylesheet_link_tag 'roi_pdf', media: 'all'
+    = wicked_pdf_javascript_include_tag 'pdf'
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
+    = stylesheet_link_tag 'roi_pdf', media: 'all'
+  %body
+    %section.coc-roi.portrait.page-break-after
+      %h1= _('Authorization for Use/Disclosure of Personal Information')
+      %h2.mb-4= _('Open Path ROI')
+
+
+      .d-flex.align-items-start
+        .mr-4
+          %table.table{style: 'width: 6in;'}
+            %tbody
+              %tr
+                %th Name:
+                %td= @client.FirstName
+                %td= @client.MiddleName
+                %td= @client.LastName
+              %tr
+                %td
+                %td
+                  %em First
+                %td
+                  %em Middle
+                %td
+                  %em Last
+              %tr
+                %th Date of Birth:
+                %td
+                  - if @client.DOB
+                    = @client.DOB.strftime('%m / %d / %Y')
+                  - else
+                    __ / __ / ____
+                %th SSN:
+                %td= masked_ssn(@client.SSN)
+        .ml-auto
+          - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+          = image_tag(logo, width: 250) if logo.present?
+
+      = simple_format(_('Open Path ROI content'))
+
+      %table.table.table-borderless
+        %tbody
+          %tr
+            %th.text-right Participant Signature
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %th.text-right Date/Time
+            %td= Time.current.strftime('%m / %d / %Y %l:%M %P')
+          %tr
+            %th.text-right Print Name
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+          %tr
+            %th.text-right Witness
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+            %th.text-right Date/Time
+            %td= Time.current.strftime('%m / %d / %Y %l:%M %P')
+          %tr
+            %th.text-right= _('Homeless Service Provider Organization Name')
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+          %tr
+            %th.text-right= _('Name of Staff Assisting with Form Completion')
+            %td.signature_line{style: 'width: 4in; border-bottom: 1px solid black;'}
+    .landscape
+      .d-flex
+        .ml-auto.mb-4
+          - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+          = image_tag(logo, width: 250) if logo.present?
+      .row
+        .col-12
+          .coc-map
+            - if @coc_map.present?
+              %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
+            -# = image_tag(@coc_map_path)
+            -# img = wicked_pdf_asset_base64(@coc_map_path) rescue nil
+            =# image_tag(img) if img.present?
+        .col-6
+          %h3 Continuum of Care
+          %table.table
+            %tbody
+              - ConsentLimit.find_each do |coc|
+                - included = coc.name.in?(selected_coc_codes) || selected_coc_codes.empty?
+                %tr
+                  %td{style: 'width: 6em;'}
+                    - if included
+                      .shared Shared
+                    - else
+                      .excluded Excluded
+                  %td{style: 'width: 3em;'}
+                    .color-box{style: "border-left: 2em solid #{coc.color};"}
+                      O
+                  %td= coc.description_and_coc_code
+
+

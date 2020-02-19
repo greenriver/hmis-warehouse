@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_07_133048) do
+ActiveRecord::Schema.define(version: 2020_02_19_145902) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -59,6 +59,14 @@ ActiveRecord::Schema.define(version: 2020_02_07_133048) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "expose_publically", default: false, null: false
+  end
+
+  create_table "agencies_consent_limits", id: false, force: :cascade do |t|
+    t.bigint "consent_limit_id", null: false
+    t.bigint "agency_id", null: false
+    t.index ["agency_id"], name: "index_agencies_consent_limits_on_agency_id"
+    t.index ["consent_limit_id"], name: "index_agencies_consent_limits_on_consent_limit_id"
   end
 
   create_table "cas_reports", id: :serial, force: :cascade do |t|
@@ -112,6 +120,16 @@ ActiveRecord::Schema.define(version: 2020_02_07_133048) do
     t.integer "unduplicated_client_id", null: false
     t.integer "dc_id"
     t.index ["unduplicated_client_id"], name: "unduplicated_clients_unduplicated_client_id"
+  end
+
+  create_table "consent_limits", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "color"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_consent_limits_on_name"
   end
 
   create_table "delayed_jobs", id: :serial, force: :cascade do |t|
@@ -384,6 +402,10 @@ ActiveRecord::Schema.define(version: 2020_02_07_133048) do
     t.boolean "can_view_client_ad_hoc_data_sources", default: false
     t.boolean "can_impersonate_users", default: false
     t.boolean "can_use_strict_search", default: false
+    t.boolean "can_use_separated_consent", default: false
+    t.boolean "can_delete_projects", default: false
+    t.boolean "can_delete_data_sources", default: false
+    t.boolean "training_required", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -536,6 +558,7 @@ ActiveRecord::Schema.define(version: 2020_02_07_133048) do
     t.integer "confirmed_2fa", default: 0, null: false
     t.string "otp_backup_codes", array: true
     t.datetime "password_changed_at"
+    t.boolean "training_completed", default: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
