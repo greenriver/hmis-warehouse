@@ -37,7 +37,7 @@ module WarehouseReports::Cas
         filter: [
           :days_homeless,
           :no_assessment_in,
-          :eto_project_name,
+          :project_id,
           :sub_population,
         ],
       )

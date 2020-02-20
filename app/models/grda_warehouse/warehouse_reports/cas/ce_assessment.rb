@@ -14,9 +14,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @filter.sub_population = available_sub_populations.values.detect do |m|
       m == @filter.sub_population&.to_sym
     end || :individual_adults
-    @filter.eto_project_name = available_projects.detect do |m|
-      m == @filter.eto_project_name
-    end
+    @filter.project_id = @filter.project_id.to_i if @filter.project_id.present?
 
     super
   end
@@ -134,10 +132,10 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   private def filter_for_eto_project scope
-    return scope unless @filter.eto_project_name.present?
+    return scope unless @filter.project_id.present?
 
     scope.joins(source_enrollments: :project).
-      merge(GrdaWarehouse::Hud::Project.where(ProjectName: @filter.eto_project_name))
+      merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_id))
   end
 
   def available_sub_populations
@@ -164,12 +162,6 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   def available_projects
-    @available_projects ||= begin
-      projects = GrdaWarehouse::Hud::Project.distinct.pluck(:ProjectName)
-      projects += GrdaWarehouse::HmisForm.pathways.
-        distinct.
-        pluck(:collection_location)
-      projects.uniq
-    end
+    @available_projects ||= GrdaWarehouse::Hud::Project.options_for_select(user: @filter.user)
   end
 end

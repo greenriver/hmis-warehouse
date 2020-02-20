@@ -8,6 +8,7 @@
   = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
     Download Excel
 .well
+  %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.
   .row.mb-4
     .col-sm-8
       = paginate @clients
