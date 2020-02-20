@@ -11,6 +11,10 @@ class ApplicationController < ActionController::Base
   respond_to :html, :js, :json, :csv
   impersonates :user
 
+  # Don't start in development if you have pending migrations
+  # moved to top for dockerization
+  prepend_before_action :check_all_db_migrations
+
   include ControllerAuthorization
   include ActivityLogger
   # Prevent CSRF attacks by raising an exception.
@@ -32,8 +36,6 @@ class ApplicationController < ActionController::Base
   before_action :enforce_2fa!
   before_action :require_training!
 
-  # Don't start in development if you have pending migrations
-  prepend_before_action :check_all_db_migrations
   prepend_before_action :skip_timeout
 
   def cache_grda_warehouse_base_queries

@@ -26,7 +26,7 @@ module ViewableEntities
       collection = model.
         order(:name).
         joins(:data_source).
-        group_by { |o| o.data_source.name }
+        group_by { |o| o.data_source&.name }
       {
         as: :grouped_select,
         group_method: :last,
