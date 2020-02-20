@@ -1,0 +1,37 @@
+- title = 'Coordinated Entry Assessment Status'
+- content_for :title, title
+
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
+= render 'filter'
+.text-right.mb-4
+  = link_to({format: :xlsx}.merge(filter_params),{class: 'btn btn-secondary'}) do
+    Download Excel
+.well
+  .row.mb-4
+    .col-sm-8
+      = paginate @clients
+    .col-sm-4.text-right.pt-2
+      = page_entries_info @clients, entry_name: _('clients')
+  %table.table.table-striped
+    %thead
+      %tr
+        %th First Name
+        %th Last Name
+        %th Days Homeless in the Last 3 Years
+        %th Date of Pathways Assessment
+        %th Most Recent Residential Enrollment
+    %tbody
+      - @clients.each do |client|
+        - enrollment = @report.max_enrollment_for(@clients, client.id)
+        %tr
+          %td= link_to client.FirstName, client_path(client)
+          %td= link_to client.LastName, client_path(client)
+          %th= client.processed_service_history.days_homeless_last_three_years
+          %td= @report.max_pathways_date(@clients, client.id)
+          %td
+            - if enrollment.present?
+              #{enrollment.project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
+              %br
+              #{enrollment.first_date_in_program} - #{enrollment.last_date_in_program}
+

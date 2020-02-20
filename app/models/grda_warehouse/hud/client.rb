@@ -863,10 +863,10 @@ module GrdaWarehouse::Hud
       client_scope = source_clients.searchable_by(user)
       names = client_scope.includes(:data_source).map do |m|
         {
-          ds: m.data_source.short_name,
-          ds_id: m.data_source.id,
+          ds: m.data_source&.short_name,
+          ds_id: m.data_source&.id,
           name: m.full_name,
-          health: m.data_source.authoritative_type == 'health'
+          health: m.data_source&.authoritative_type == 'health'
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
@@ -2037,7 +2037,7 @@ module GrdaWarehouse::Hud
     alias_method :age_on, :age
 
     def uuid
-      @uuid ||= if data_source.munged_personal_id
+      @uuid ||= if data_source&.munged_personal_id
         self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
       else
         self.PersonalID
