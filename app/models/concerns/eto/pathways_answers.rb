@@ -109,6 +109,7 @@ module Eto
 
       def required_minimum_occupancy_answer
         # 2/17/2020
+        # FIXME: this may be unnecessary
       end
 
       def requires_wheelchair_accessibility_answer
@@ -136,7 +137,7 @@ module Eto
 
         relevant_section = section_starts_with('Why do people take RRH instead of waiting for a subsidized housing unit like a Section 8 voucher?')
         answer = answer_from_section(relevant_section, '9c.')
-        return nil unless answer
+        return nil if answer.blank?
 
         case answer.downcase
         when answer.starts_with?('Youth-Specific Only')
@@ -218,10 +219,12 @@ module Eto
 
       # def pathways_dv_score_answer
       #   # Dv priority score
+      #   # FIXME: this may be unecessary
       # end
 
       # def pathways_length_of_time_homeless_score_answer
       #   # Length of time homeless in 3 years score
+      #   # FIXME: this may be unecessary
       # end
     end
   end

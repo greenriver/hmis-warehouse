@@ -574,10 +574,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     #
     # Finds the first relevant answer where the question includes the string.
     #
-    # @param [Hash] section part of the HmisForm answers column
-    # @param [string>] question_string used to identify a relevant question
+    # @param section [Hash] section part of the HmisForm answers column
+    # @param question_string [String] question_string used to identify a relevant question
     #
-    # @return [string] the answer provided
+    # @return [String] the answer provided
     #
     def answer_from_section(section, question_string)
       section[:questions].select do |question|
