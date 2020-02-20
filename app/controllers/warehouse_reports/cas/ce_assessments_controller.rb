@@ -27,7 +27,7 @@ module WarehouseReports::Cas
     end
 
     def set_filter
-      options = filter_params[:filter]
+      options = filter_params[:filter] || {}
       options[:user] = current_user
       @filter = OpenStruct.new(options)
     end
