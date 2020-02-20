@@ -33,7 +33,7 @@ module Admin
       pass = Devise.friendly_token(50)
       @user.update(
         active: true,
-        last_activity_at: Time.now,
+        last_activity_at: Time.current,
         expired_at: nil,
         password: pass,
         password_confirmation: pass,
