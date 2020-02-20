@@ -9,7 +9,7 @@
       - sn = name[:ds]
       - full_name = name[:name]
       %li.client__client-name
-        %span{class: "ds-#{sn.downcase}"}
+        %span{class: "ds-#{sn&.downcase}"}
           = sn
         %span.client__client-name-title
           = full_name
