@@ -285,7 +285,7 @@ module GrdaWarehouse::Hud
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
     scope :source, -> do
-      where(data_source: GrdaWarehouse::DataSource.importable)
+      where(data_source: GrdaWarehouse::DataSource.source)
     end
 
     scope :searchable, -> do
