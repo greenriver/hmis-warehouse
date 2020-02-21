@@ -9,6 +9,7 @@
     Download Excel
 .well
   %p All clients have at least one ongoing enrollment, at least #{@filter.days_homeless} days homeless in the past three years, and have not been assessed in the previous #{@filter.no_assessment_in} days.
+  %p If a project is chosen, clients will be limited to those with an ongoing enrollment at that project.
   .row.mb-4
     .col-sm-8
       = paginate @clients
