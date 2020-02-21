@@ -250,6 +250,7 @@ module Health
     def qa_signature_dates
       @qa_signatures ||= Health::QualifyingActivity.submittable.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
+        where(date_of_activity: @range).
         where(activity: :pctp_signed).
         group(:patient_id).maximum(:date_of_activity)
     end
