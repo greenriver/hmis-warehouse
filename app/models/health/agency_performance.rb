@@ -33,7 +33,7 @@ module Health
         without_signed_careplans = patient_ids - with_signed_careplans
 
         with_careplans_in_122_days = patient_ids.select do |p_id|
-          careplan_date = careplan_dates[p_id]&.to_date
+          careplan_date = qa_signature_dates[p_id]&.to_date
           enrollment_date = patient_referrals[p_id][1]
           careplan_date.present? && (careplan_date - enrollment_date).to_i <= 122
         end
@@ -242,6 +242,16 @@ module Health
         not_valid_unpayable.
         distinct.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
+        where(date_of_activity: @range).
+        order(date_of_activity: :asc).
+        pluck(:patient_id, :date_of_activity).to_h
+    end
+
+    def qa_signature_dates
+      @qa_signatures ||= Health::QualifyingActivity.submittable.
+        distinct.
+        where(patient_id: patient_referrals.keys). # limit to patients in scope
+        where(activity: :pctp_signed).
         where(date_of_activity: @range).
         order(date_of_activity: :asc).
         pluck(:patient_id, :date_of_activity).to_h
