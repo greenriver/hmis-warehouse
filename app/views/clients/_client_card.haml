@@ -4,7 +4,7 @@
   .c-card__content
     .client__details.client__details--identity
       - if ( akas = client_aliases(client)).empty?
-        - main_client_name = client.source_clients.searchable_by(current_user).first.data_source.short_name
+        - main_client_name = client.source_clients.searchable_by(current_user).first.data_source&.short_name
       - else
         - main_client_name = akas.shift
       .clients__client-additional-names

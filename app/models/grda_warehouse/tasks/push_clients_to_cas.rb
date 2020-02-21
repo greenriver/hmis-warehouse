@@ -32,7 +32,8 @@ module GrdaWarehouse::Tasks
         @client_ids = client_source.pluck(:id)
         updated_clients = Cas::ProjectClient.transaction do
           Cas::ProjectClient.update_all(sync_with_cas: false)
-          client_source.where(id: @client_ids).each do |client|
+          client_source.preload(:vispdats, :processed_service_history, cohort_clients: :cohort).
+            where(id: @client_ids).each do |client|
             project_client = Cas::ProjectClient.
               where(data_source_id: data_source.id, id_in_data_source: client.id).
               first_or_initialize
@@ -167,7 +168,14 @@ module GrdaWarehouse::Tasks
         default_shelter_agency_contacts: :default_shelter_agency_contacts,
         tags: :cas_tags,
         vash_eligible: :vash_eligible,
-        pregnancy_status: :cas_pregnancy_status
+        pregnancy_status: :cas_pregnancy_status,
+        income_maximization_assistance_requested: :income_maximization_assistance_requested,
+        pending_subsidized_housing_placement: :pending_subsidized_housing_placement,
+        rrh_th_desired: :rrh_th_desired,
+        sro_ok: :sro_ok,
+        # pathways_other_accessibility: :pathways_other_accessibility, # FIXME: uknown what this should match in CAS
+        # pathways_disabled_housing: :pathways_disabled_housing, # FIXME: uknown what this should match in CAS
+        evicted: :evicted,
       }
     end
   end
