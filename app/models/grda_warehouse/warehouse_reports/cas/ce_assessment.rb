@@ -24,7 +24,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @clients = filter_for_access(@clients)
     @clients = filter_for_ongoing_enrollments(@clients)
     @clients = filter_for_sub_population(@clients)
-    @clients = filter_for_last_assessment(@clients) # FIXME: this is really slow
+    @clients = filter_for_last_assessment(@clients)
 
     @clients.distinct.
       preload(:processed_service_history)
@@ -59,28 +59,34 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   private def filter_for_ongoing_enrollments scope
-    return scope unless @filter.project_id.present?
-
-    scope.joins(:service_history_enrollments).
-      merge(
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
-        joins(:project).
-        merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_id))
-      )
+    if @filter.project_id.present?
+      # We are looking at a single project, ensure we have an open enrollment in that project
+      scope.joins(:service_history_enrollments).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+          joins(:project).
+          merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_id))
+        )
+      else
+        # Ensure we have an ongoing enrollment
+        scope.joins(:service_history_enrollments).
+          merge(
+            GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing
+          )
+    end
   end
 
-  private def source_client_ids_with_recent_assessments
+  private def source_clients_with_recent_assessments
     GrdaWarehouse::HmisForm.pathways.
       where(collected_at: (@filter.no_assessment_in.days.ago.to_date..Date.tomorrow)).
-      distinct.
-      select(:client_id)
+      distinct
   end
 
   private def homeless_destination_clients
     GrdaWarehouse::Hud::Client.joins(:processed_service_history).
       merge(
         GrdaWarehouse::WarehouseClientsProcessed.
-          where(last_date_served: [Date.yesterday..Date.tomorrow], literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY)
+          where(literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY)
       )
     end
 
@@ -98,12 +104,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   private def filter_for_last_assessment scope
     scope.joins(:warehouse_client_destination).
       merge(
-        GrdaWarehouse::WarehouseClient.where(
-          source_id: source_client_ids.
-            where.not(
-              id: source_client_ids_with_recent_assessments.select(:client_id)
-            ).
-            select(:id)
+        GrdaWarehouse::WarehouseClient.where.not(
+          source_id:  source_clients_with_recent_assessments.select(:client_id)
         )
       )
   end
@@ -163,11 +165,13 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   def available_days_since_last_assessment
-    [
+    options = [
       180,
       270,
       365,
-    ].freeze
+    ]
+    options << 0 if Rails.env.development?
+    options.freeze
   end
 
   def available_projects

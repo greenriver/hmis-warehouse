@@ -376,7 +376,7 @@ def report_list
         url: 'warehouse_reports/cas/ce_assessments',
         name: 'Coordinated-Entry Assessment Status',
         description: _('Find clients who need a Coordinated Entry re-assessment.'),
-        limitable: false,
+        limitable: true,
       },
     ],
     'Audit Reports' => [
