@@ -324,6 +324,7 @@ Rails.application.routes.draw do
       resources :process, only: [:index]
       resources :apr, only: [:index]
       resources :vacancies, only: [:index]
+      resources :ce_assessments, only: [:index]
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update

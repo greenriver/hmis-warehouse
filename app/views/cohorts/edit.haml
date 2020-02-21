@@ -21,7 +21,7 @@
   = f.input :user_ids, collection: @groups, as: :grouped_select, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, class: :select2, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: 'The member of specified the special users or group members who also have "can edit assigned cohorts" or "can view assigned cohorts" will have access this cohort.  Any user with "can manage cohorts" or "can edit cohort clients" access can always access all cohorts.'
   .row
     .col-sm-6
-      = link_to cohort_path(@cohort), method: :delete, class: 'btn btn-danger' do
+      = link_to cohort_path(@cohort), method: :delete, data: {confirm: "Are you sure you want to delete cohort \"#{@cohort.name}\"?"}, class: 'btn btn-danger' do
         %i.icon-cross
         Delete Cohort
     .col-sm-6.text-right

@@ -639,9 +639,9 @@ module GrdaWarehouse::Hud
 
         if user.can_view_clients_with_roi_in_own_coc?
           # At a high level if you can see clients with ROI in your COC, you need to be able
-            # to see everyone for searching purposes.
-            # limits will be imposed on accessing the actual client dashboard pages
-            # current_scope
+          # to see everyone for searching purposes.
+          # limits will be imposed on accessing the actual client dashboard pages
+          # current_scope
 
           # If the user has coc-codes specified, this will limit to users
           # with a valid consent form in the coc or with no-coc specified
@@ -863,10 +863,10 @@ module GrdaWarehouse::Hud
       client_scope = source_clients.searchable_by(user)
       names = client_scope.includes(:data_source).map do |m|
         {
-          ds: m.data_source.short_name,
-          ds_id: m.data_source.id,
+          ds: m.data_source&.short_name,
+          ds_id: m.data_source&.id,
           name: m.full_name,
-          health: m.data_source.authoritative_type == 'health'
+          health: m.data_source&.authoritative_type == 'health'
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
@@ -1108,14 +1108,12 @@ module GrdaWarehouse::Hud
       processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
-    # if we are pulling RRH assessments from ETO, use that
-    # Otherwise, use highest assessment score from any cohort clients
+    # Pathways and RRH assessment scores get stored in rrh_assessment_score
+    # If we don't have that, use highest assessment score from any cohort clients
     def assessment_score_for_cas
-      if GrdaWarehouse::HmisForm.rrh_assessment.exists?
-        score_for_rrh_assessment
-      else
-        assessment_score_from_cohort_clients
-      end
+      return rrh_assessment_score if rrh_assessment_score.present? && rrh_assessment_score.positive?
+
+      assessment_score_from_cohort_clients
     end
 
     def assessment_score_from_cohort_clients
@@ -1278,7 +1276,10 @@ module GrdaWarehouse::Hud
       ].include?('Yes')
     end
 
+    # Use the Pathways answer if available, otherwise, HMIS
     def domestic_violence?
+      return pathways_domestic_violence if pathways_domestic_violence
+
       source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
     end
 
@@ -2036,7 +2037,7 @@ module GrdaWarehouse::Hud
     alias_method :age_on, :age
 
     def uuid
-      @uuid ||= if data_source.munged_personal_id
+      @uuid ||= if data_source&.munged_personal_id
         self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
       else
         self.PersonalID
@@ -2693,9 +2694,12 @@ module GrdaWarehouse::Hud
       days.compact.max
     end
 
-    # Pull the maximum total monthly income from any open enrollments, looking
+    # Use the Pathways value if it is present and non-zero
+    # Otherwise, pull the maximum total monthly income from any open enrollments, looking
     # only at the most recent assessment per enrollment
     def max_current_total_monthly_income
+      return income_total_monthly if income_total_monthly.present? && income_total_monthly.positive?
+
       source_enrollments.open_on_date(Date.current).map do |enrollment|
         enrollment.income_benefits.limit(1).
           order(InformationDate: :desc).

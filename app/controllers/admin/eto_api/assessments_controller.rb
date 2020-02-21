@@ -9,15 +9,19 @@ module Admin::EtoApi
     before_action :require_can_manage_assessments!
 
     def index
-      @assessments = assessment_scope.order(site_name: :asc, name: :asc)
+      @assessments = assessment_scope.order(
+        name: :asc,
+        assessment_id: :asc,
+        site_name: :asc,
+      )
     end
 
     def edit
-      @assessment = assessment_scope.find params[:id]
+      @assessment = assessment_scope.find(params[:id])
     end
 
     def update
-      @assessment = assessment_scope.find params[:id]
+      @assessment = assessment_scope.find(params[:id])
       if @assessment.update(assessment_params)
         redirect_to action: :index
         flash[:notice] = "Touch Point: #{@assessment.name} was successfully updated."
@@ -43,6 +47,14 @@ module Admin::EtoApi
           :confidential,
           :exclude_from_window,
           :health,
+          :vispdat,
+          :pathways,
+          :ssm,
+          :health_case_note,
+          :health_has_qualifying_activities,
+          :hud_assessment,
+          :triage_assessment,
+          :rrh_assessment,
         )
     end
   end

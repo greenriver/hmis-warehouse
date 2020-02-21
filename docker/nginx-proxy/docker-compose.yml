@@ -7,6 +7,7 @@ services:
       - "443:443"
     volumes:
       - ./certs:/etc/nginx/certs
+      - ./config/hmis_proxy.conf:/etc/nginx/conf.d/hmis_proxy.conf:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
     restart: unless-stopped
 networks:

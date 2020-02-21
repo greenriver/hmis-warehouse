@@ -6,6 +6,7 @@
 
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
+  include Eto::PathwaysAnswers
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
@@ -14,17 +15,30 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
-  scope :hud_assessment, -> { where name: 'HUD Assessment (Entry/Update/Annual/Exit)' }
-  scope :triage, -> { where name: 'Triage Assessment'}
-  scope :vispdat, -> do
-    where(name: 'VI-SPDAT v2')
+  scope :hud_assessment, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.hud_assessment)
   end
+
+  scope :triage, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.triage_assessment)
+  end
+
+  scope :vispdat, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.vispdat)
+  end
+
+  scope :pathways, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
+  end
+
   scope :confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
   end
+
   scope :non_confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.non_confidential)
   end
+
   scope :window, -> do
     joins(:hmis_assessment, :client).merge(GrdaWarehouse::HMIS::Assessment.window)
   end
@@ -32,12 +46,13 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   scope :health, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health)
   end
+
   scope :window_with_details, -> do
-    window.merge(GrdaWarehouse::HMIS::Assessment.window)
+    window.merge(GrdaWarehouse::HMIS::Assessment.window_with_details)
   end
 
   scope :self_sufficiency, -> do
-    where(name: 'Self-Sufficiency Matrix')
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.ssm)
   end
 
   scope :collected, -> do
@@ -45,11 +60,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   scope :case_management_notes, -> do
-    where(name: ['SDH Case Management Note', 'Case Management Daily Note'])
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_case_note)
   end
 
   scope :has_qualifying_activities, -> do
-    where(name: ['Case Management Daily Note'])
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.health_has_qualifying_activities)
   end
 
   scope :has_unprocessed_quailifying_activities, -> do
@@ -196,6 +211,50 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
           client.update(family_member: true) unless client.family_member
         end
       end
+  end
+
+  def self.set_pathways_results
+    # find anyone who's never been processed or who has been updated since we last made
+    # note of changes
+    ids = pathways.where(
+      arel_table[:pathways_updated_at].eq(nil).
+        or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at]))
+      ).pluck(:id)
+    ids.each_slice(100) do |batch|
+      pathways.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.assessment_completed_on = hmis_form.assessment_completed_on_answer
+        hmis_form.assessment_score = hmis_form.assessment_score_answer
+        hmis_form.rrh_desired = hmis_form.rrh_desired_answer
+        hmis_form.youth_rrh_desired = hmis_form.youth_rrh_desired_answer
+        hmis_form.rrh_assessment_contact_info = hmis_form.rrh_assessment_contact_info_answer
+        hmis_form.income_maximization_assistance_requested = hmis_form.income_maximization_assistance_requested_answer
+        hmis_form.income_total_annual = hmis_form.income_total_annual_answer
+        hmis_form.pending_subsidized_housing_placement = hmis_form.pending_subsidized_housing_placement_answer
+        hmis_form.domestic_violence = hmis_form.domestic_violence_answer
+        hmis_form.interested_in_set_asides = hmis_form.interested_in_set_asides_answer
+        hmis_form.required_number_of_bedrooms = hmis_form.required_number_of_bedrooms_answer
+        hmis_form.required_minimum_occupancy = hmis_form.required_minimum_occupancy_answer
+        hmis_form.requires_wheelchair_accessibility = hmis_form.requires_wheelchair_accessibility_answer
+        hmis_form.requires_elevator_access = hmis_form.requires_elevator_access_answer
+        hmis_form.youth_rrh_aggregate = hmis_form.youth_rrh_aggregate_answer
+        hmis_form.dv_rrh_aggregate = hmis_form.dv_rrh_aggregate_answer
+        hmis_form.rrh_th_desired = hmis_form.rrh_th_desired_answer
+        # hmis_form.veteran_rrh_desired = hmis_form.veteran_rrh_desired_answer
+        hmis_form.sro_ok = hmis_form.sro_ok_answer
+        hmis_form.other_accessibility = hmis_form.other_accessibility_answer
+        hmis_form.disabled_housing = hmis_form.disabled_housing_answer
+        hmis_form.evicted = hmis_form.evicted_answer
+        hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
+        # hmis_form.pathways_dv_score_answer
+        # hmis_form.pathways_length_of_time_homeless_score_answer
+
+        hmis_form.pathways_updated_at = Time.current
+
+        hmis_form.save if hmis_form.changed?
+      end
+    end
   end
 
   def primary_language
@@ -500,6 +559,29 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def self.rrh_assessment_name
-    'Boston CoC Coordinated Entry Assessment'
+    GrdaWarehouse::HMIS::Assessment.rrh_assessment&.first&.name
   end
+
+  def section_starts_with(string)
+      relevant_section = answers[:sections].select do |section|
+        section[:section_title].downcase.starts_with?(string.downcase)
+      end&.first
+      return false unless relevant_section.present?
+
+      relevant_section
+    end
+
+    #
+    # Finds the first relevant answer where the question includes the string.
+    #
+    # @param section [Hash] section part of the HmisForm answers column
+    # @param question_string [String] question_string used to identify a relevant question
+    #
+    # @return [String] the answer provided
+    #
+    def answer_from_section(section, question_string)
+      section[:questions].select do |question|
+        question[:question].downcase.include?(question_string.downcase)
+      end&.first.try(:[], :answer)
+    end
 end

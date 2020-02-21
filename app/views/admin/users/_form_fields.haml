@@ -38,6 +38,7 @@
       %h3 Account Life-cycle
       .well
         = f.input :expired_at, as: :date_picker, label: 'Account Expiration Date', hint: 'If an expiration date is present, the user will not be able to login after that date.  Active accounts should be blank.'
-        = f.input :training_completed, hint: 'If a user has a role requiring training, and training is not marked as completed, they will be required to complete training before accessing client data.'
+        - if current_user.training_required?
+          = f.input :training_completed, hint: "Training is required before #{@user.name} can  access client data. Checking this box will override that requirement."
 
 = render '/users/user_viewable_entities', f: f, roles: Role.editable

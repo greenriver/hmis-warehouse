@@ -25,8 +25,8 @@ module ViewableEntities
       model = GrdaWarehouse::Hud::Organization.viewable_by(current_user)
       collection = model.
         order(:name).
-        preload(:data_source).
-        group_by { |o| o.data_source.name }
+        joins(:data_source).
+        group_by { |o| o.data_source&.name }
       {
         as: :grouped_select,
         group_method: :last,
@@ -46,7 +46,7 @@ module ViewableEntities
       model = GrdaWarehouse::Hud::Project.viewable_by(current_user)
       collection = model.
         order(:name).
-        preload(:organization, :data_source).
+        joins(:organization, :data_source).
         group_by { |p| "#{p.data_source&.name} / #{p.organization&.name}" }
       {
         as: :grouped_select,
