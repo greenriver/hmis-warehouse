@@ -146,7 +146,7 @@ namespace :youth do
         financials: [],
         case_managements: [],
       }
-      if row[:youth_case_management] == 'Yes'
+      if row[:youth_case_management] == 'Yes' || row[:case_management_housing_status].present?
         clients[row[:PersonalID]][:case_managements] << {
           engaged_on: row[:engagement_date],
           housing_status: row[:case_management_housing_status],
@@ -155,7 +155,7 @@ namespace :youth do
           imported: true,
         }
       end
-      if row[:referrals] == 'Yes'
+      if row[:referrals] == 'Yes' || row[:referred_to_shelter].present?
         clients[row[:PersonalID]][:referrals] << {
           referred_on: row[:engagement_date],
           referred_to: row[:referred_to_shelter],
@@ -163,7 +163,7 @@ namespace :youth do
           imported: true,
         }
       end
-      if row[:financial_assistance_provided] == 'Yes'
+      if row[:financial_assistance_provided] == 'Yes' || row[:financial_assistance_type_provided].present?
         clients[row[:PersonalID]][:financials] << {
           provided_on: row[:engagement_date],
           type_provided: row[:financial_assistance_type_provided],
@@ -250,18 +250,21 @@ namespace :youth do
       intake[:disabilities] ||= []
       intake[:client_race] ||= []
 
+      # The following fields are required at the DB level
+      intake[:housing_status] ||= intake[:case_management_housing_status] || ''
+
       # But use the first engagement_date
       intake[:engagement_date] = data[:intakes].first[:engagement_date]
       intake[:client_id] = destination_client_id
 
       entry = GrdaWarehouse::YouthIntake::Entry.new(intake)
       if entry.valid?
-        entry.save
         intakes_created += 1
       else
         intakes_failed += 1
-        puts "Unable to save #{intake.inspect} #{entry.errors.full_messages.inspect}"
+        puts "Invalid record #{intake.inspect} #{entry.errors.full_messages.inspect}"
       end
+      entry.save(validate: false)
 
       data[:referrals].each do |ref|
         ref[:client_id] = destination_client_id
@@ -278,6 +281,6 @@ namespace :youth do
         GrdaWarehouse::Youth::DirectFinancialAssistance.create!(ref)
       end
     end
-    puts "saved: #{intakes_created} intakes; failed to save: #{intakes_failed} intakes"
+    puts "Valid: #{intakes_created} intakes; Invalid: #{intakes_failed} intakes"
   end
 end
