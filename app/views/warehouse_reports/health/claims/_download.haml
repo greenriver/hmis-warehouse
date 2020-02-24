@@ -10,6 +10,10 @@
   = link_to "#{warehouse_reports_health_claim_url(@report)}.txt", class: 'btn btn-secondary btn-sm', target: '_blank' do
     %i.icon-download2
     Download Claims File
+  - if test_file
+    = link_to accept_warehouse_reports_health_claim_path(@report)
+      %i.icon-checkmark
+      Accept Test File
 - unless @report.test_file
   .well.mt-4
     %p After uploading the claims file to #{@sender.receiver_name}, return here and upload the resulting Transaction Confirmation file (999).
