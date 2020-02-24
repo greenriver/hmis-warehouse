@@ -144,6 +144,7 @@ module WarehouseReports::Health
             report_id: @report.id,
             current_user_id: current_user.id,
             max_date: @report.max_date,
+            test_file: @report.test_file,
           ),
           queue: :low_priority,
         )
@@ -206,6 +207,7 @@ module WarehouseReports::Health
           report_id: @report.id,
           current_user_id: current_user.id,
           max_date: @report.max_date,
+          test_file: @report.test_file,
         ),
         queue: :low_priority,
       )
@@ -272,6 +274,7 @@ module WarehouseReports::Health
     def report_params
       params.require(:report).permit(
         :max_date,
+        :test_file,
       )
     end
 
