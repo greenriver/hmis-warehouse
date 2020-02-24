@@ -75,7 +75,7 @@ module Health
       start_report
       build_claims_file
       self.claims_file = convert_claims_to_text
-      mark_qualifying_activites_as_submitted
+      mark_qualifying_activites_as_submitted unless test_file
       complete_report
     end
 
@@ -261,7 +261,9 @@ module Health
     end
 
     def interchange_usage_indicator
+      return 'T' if test_file
       return 'P' if Rails.env.production?
+
       'T'
     end
 

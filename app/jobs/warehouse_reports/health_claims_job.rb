@@ -8,12 +8,13 @@ module WarehouseReports
   class HealthClaimsJob < BaseJob
     queue_as :high_priority
 
-    attr_accessor :params, :max_date, :report_id, :current_user_id
+    attr_accessor :params, :max_date, :report_id, :current_user_id, :test_file
 
     def initialize(params)
       @max_date = params[:max_date]
       @report_id = params[:report_id]
       @current_user_id = params[:current_user_id]
+      @test_file = params[:test_file]
     end
 
     def perform
