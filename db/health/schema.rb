@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_18_160012) do
+ActiveRecord::Schema.define(version: 2020_02_24_162701) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -152,6 +152,7 @@ ActiveRecord::Schema.define(version: 2020_02_18_160012) do
     t.datetime "precalculated_at"
     t.string "result"
     t.integer "transaction_acknowledgement_id"
+    t.boolean "test_file", default: false
     t.index ["deleted_at"], name: "index_claims_on_deleted_at"
   end
 
@@ -529,7 +530,6 @@ ActiveRecord::Schema.define(version: 2020_02_18_160012) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -573,7 +573,6 @@ ActiveRecord::Schema.define(version: 2020_02_18_160012) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_patients", id: :serial, force: :cascade do |t|
