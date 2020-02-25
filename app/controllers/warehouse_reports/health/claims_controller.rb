@@ -232,7 +232,7 @@ module WarehouseReports::Health
     # end
 
     def accept
-      @report.update(completed_at: Time.now, result: 'Test')
+      @report.update(completed_at: Time.now, result: 'Test', submitted_at: Time.now)
       redirect_to action: :index
     end
 
