@@ -106,7 +106,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           build_for_dates.each do |date, type_provided|
             days << service_record(date, type_provided)
           end
-          if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month)
+          if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
             type_provided = build_for_dates.values.last
             days += add_extrapolated_days(build_for_dates.keys, type_provided)
           end
@@ -606,27 +606,32 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def street_outreach_acts_as_bednight?
-      @street_outreach_acts_as_bednight ||= if project.so?
-          project.services.where(
-          Services: {RecordType: 12},
-        ).exists?
-        else
-          false
-        end
+      @street_outreach_acts_as_bednight ||= project.so? && project.
+        joins(enrollments: :current_living_situations).exists?
+    end
+
+    def project_extrapolates_contacts?
+      project.extraplolate_contacts
     end
 
     def build_for_dates
-      @build_for_dates ||= begin
-        if entry_exit_tracking?
-          (self.EntryDate..build_until).map do |date|
-            [date, service_type_from_project_type(project.computed_project_type)]
-          end.to_h
-        else
-          # Fetch all services provided between the start of the enrollment and the end of the build period
-          services.where(DateProvided: (self.EntryDate..build_until)).
-            order(DateProvided: :asc).
-            pluck(:DateProvided, :TypeProvided).to_h
+      @build_for_dates ||= if entry_exit_tracking?
+        (self.EntryDate..build_until).map do |date|
+          [date, service_type_from_project_type(project.computed_project_type)]
+        end.to_h
+      else
+        # Fetch all services provided between the start of the enrollment and the end of the build period
+        service_records = services.where(DateProvided: (self.EntryDate..build_until)).
+          order(DateProvided: :asc).
+          pluck(:DateProvided, :TypeProvided).to_h
+        if project.so?
+          # Find all contacts for SO.  Pretend like they are bed-nights
+          living_situations = current_living_situations.where(InformationDate: (self.EntryDate..build_until)).
+            order(InformationDate: :asc).
+            pluck(:InformationDate).map{ |d| [d, 200] }.to_h
+          service_records.merge!(living_situations)
         end
+        service_records
       end
     end
 
