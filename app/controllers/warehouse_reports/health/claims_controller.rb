@@ -11,7 +11,7 @@ module WarehouseReports::Health
     include WarehouseReportAuthorization
     include PjaxModalController
     before_action :require_can_administer_health!
-    before_action :set_report, only: [:show, :destroy, :revise, :acknowledge, :details, :generate_claims_file]
+    before_action :set_report, only: [:show, :destroy, :revise, :accept, :acknowledge, :details, :generate_claims_file]
     before_action :set_sender
 
     def index
@@ -230,6 +230,11 @@ module WarehouseReports::Health
     #   end
     #   redirect_to action: :index
     # end
+
+    def accept
+      @report.update(completed_at: Time.now, result: 'Test', submitted_at: Time.now)
+      redirect_to action: :index
+    end
 
     def acknowledge
       ta = Health::TransactionAcknowledgement.create(
