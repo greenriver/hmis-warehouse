@@ -611,7 +611,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def project_extrapolates_contacts?
-      project.extraplolate_contacts
+      project.extrapolate_contacts
     end
 
     def build_for_dates

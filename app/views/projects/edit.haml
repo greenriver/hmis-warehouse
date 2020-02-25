@@ -7,7 +7,7 @@
       = f.input :act_as_project_type, collection: ::HUD.project_types.invert, include_blank: "Use Actual Project Type: #{HUD.project_type(@project.ProjectType)} (#{@project.ProjectType})", input_html: {class: :select2}
       = f.input :active_homeless_status_override, label: 'Consider enrolled clients as actively homeless for CAS and Cohorts?', hint: 'Active state does not require this to have a homeless project type'
       = f.input :include_in_days_homeless_override, label: 'Include in verified additional days calculations?'
-      = f.input :extraplolate_contacts, label: 'Should service records for this project be extrapolated to cover the month of contact?'
+      = f.input :extrapolate_contacts, label: 'Should service records for this project be extrapolated to cover the month of contact?'
       = f.input :operating_start_date_override, as: :date_picker, label: "Override the operating start date, currently: #{@project.OperatingStartDate&.to_date || 'unset'}"
       = f.input :confidential, label: 'Confidential?', hint: @project.confidential_hint
       = f.input :uses_move_in_date, label: 'Uses move-in-date?'
