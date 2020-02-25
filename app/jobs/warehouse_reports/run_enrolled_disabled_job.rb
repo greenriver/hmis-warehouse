@@ -44,16 +44,16 @@ module WarehouseReports
           merge(enrollment_scope).
           distinct.
           includes(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          order(LastName: :asc, FirstName: :asc)
+          select(*client_columns)
       end
-
-      data = clients.map do |client|
+      data = []
+      clients.find_each do |client|
         disabilities = client.source_disabilities.map(&:disability_type_text).uniq
-        attrs = client.attributes.merge(disabilities: disabilities)
+        attrs = client.attributes.slice(*client_columns).merge(disabilities: disabilities)
 
         enrollments = client.source_enrollments.map(&:service_history_enrollment).compact
         enrollment = enrollments.map { |r| r.attributes.compact }.reduce(&:merge)
-        attrs.merge(enrollment: enrollment)
+        data << attrs.merge(enrollment: enrollment)
       end
 
       report.client_count = clients.size
@@ -74,6 +74,18 @@ module WarehouseReports
 
     def service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
+    end
+
+    def client_columns
+      @client_columns ||= [
+        'id',
+        'PersonalID',
+        'data_source_id',
+        'FirstName',
+        'LastName',
+        'DOB',
+        'VeteranStatus',
+      ]
     end
   end
 end
