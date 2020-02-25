@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_21_194355) do
+ActiveRecord::Schema.define(version: 2020_02_25_181450) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4045,6 +4045,9 @@ ActiveRecord::Schema.define(version: 2020_02_21_194355) do
     t.string "college_pilot", default: "No", null: false
     t.string "graduating_college", default: "No", null: false
     t.boolean "imported", default: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "ssn"
     t.index ["created_at"], name: "index_youth_intakes_on_created_at"
     t.index ["deleted_at"], name: "index_youth_intakes_on_deleted_at"
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"

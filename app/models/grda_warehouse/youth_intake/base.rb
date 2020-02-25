@@ -206,8 +206,7 @@ module GrdaWarehouse::YouthIntake
       authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
       return unless authoritative_clients.exists?
 
-      authoritative_clients.update_all(
-        DOB: client_dob,
+      data = {
         DOBDataQuality: 1,
         Gender: client_gender,
         Ethnicity: client_ethnicity,
@@ -217,11 +216,14 @@ module GrdaWarehouse::YouthIntake
         NativeHIOtherPacific: client_race.include?('NativeHIOtherPacific') ? 1 : 0,
         White: client_race.include?('White') ? 1 : 0,
         RaceNone: compute_race_none,
-
-        # Education, Health, and Disability information are also collected, but not processed
-
         DateUpdated: Time.now,
-      )
+      }
+      data[:FirstName] = first_name if first_name.present?
+      data[:LastName] = last_name if last_name.present?
+      data[:SSN] = ssn.gsub('-', '') if ssn.present?
+      data[:DOB] = client_dob if client_dob.present?
+
+      authoritative_clients.update_all(data)
     end
 
     def compute_race_none
@@ -229,5 +231,6 @@ module GrdaWarehouse::YouthIntake
       return 99 if client_race.select { |race| ! race&.empty? }&.empty?
       return nil
     end
+
   end
 end

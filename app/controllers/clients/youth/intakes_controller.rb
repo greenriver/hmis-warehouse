@@ -132,6 +132,9 @@ module Clients::Youth
 
     private def intake_params
       params.require(:grda_warehouse_youth_intake_entry).permit(
+        :first_name,
+        :last_name,
+        :ssn,
         :other_staff_completed_intake,
         :client_dob,
         :staff_name,
