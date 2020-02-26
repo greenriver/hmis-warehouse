@@ -24,6 +24,7 @@
     .row
       .col-sm-6
         = f.input :max_date, as: :date_picker, input_html: { value: default_date}, label: 'Include qualifying activities within the month specified on or before'
+        = f.input :test_file, as: :boolean, label: 'Generate as a test file'
 
   - content_for :filter_actions do
     = f.submit 'Calculate Payability', class: "btn btn-primary"

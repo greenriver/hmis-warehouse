@@ -415,7 +415,7 @@ def report_list
       {
         url: 'warehouse_reports/health/claims',
         name: 'Claim Generation',
-        description: 'Generate and download claims files.',
+        description: 'Generate and download claims files. (837P)',
         limitable: false,
       },
       {

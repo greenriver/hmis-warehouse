@@ -118,8 +118,8 @@ module GrdaWarehouse::Hud
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs, inverse_of: :client
     has_many :income_benefits, through: :enrollments, source: :income_benefits, inverse_of: :client
     has_many :employment_educations, through: :enrollments, source: :employment_educations, inverse_of: :client
-    has_many :events, through: :enrollments, source: :events, inverse_of: :client
-    has_many :events, through: :enrollments, inverse_of: :enrollment
+    has_many :current_living_situations, through: :enrollments
+    has_many :events, through: :enrollments
     has_many :assessments, through: :enrollments, source: :assessments, inverse_of: :client
     has_many :assessment_questions, through: :assessments, source: :assessment_questions
     has_many :assessment_results, through: :assessments, source: :assessment_results
@@ -134,6 +134,7 @@ module GrdaWarehouse::Hud
     has_many :direct_income_benefits, **hud_assoc(:PersonalID, 'IncomeBenefit'), inverse_of: :direct_client
     has_many :direct_employment_educations, **hud_assoc(:PersonalID, 'EmploymentEducation'), inverse_of: :direct_client
     has_many :direct_events, **hud_assoc(:PersonalID, 'Event'), inverse_of: :direct_client
+    has_many :direct_current_living_situations, **hud_assoc(:PersonalID, 'CurrentLivingSituation'), inverse_of: :direct_client
     has_many :direct_assessments, **hud_assoc(:PersonalID, 'Assessment'), inverse_of: :direct_client
     has_many :direct_assessment_questions, **hud_assoc(:PersonalID, 'AssessmentQuestion'), inverse_of: :enrollment
     has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
@@ -285,7 +286,7 @@ module GrdaWarehouse::Hud
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
     scope :source, -> do
-      where(data_source: GrdaWarehouse::DataSource.importable)
+      where(data_source: GrdaWarehouse::DataSource.source)
     end
 
     scope :searchable, -> do
@@ -1517,7 +1518,7 @@ module GrdaWarehouse::Hud
 
     def fake_client_image_data
       gender = if self[:Gender].in?([1,3]) then 'male' else 'female' end
-      age_group = if age > 18 then 'adults' else 'children' end
+      age_group = if age.blank? || age > 18 then 'adults' else 'children' end
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count

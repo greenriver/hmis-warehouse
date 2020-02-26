@@ -14,7 +14,6 @@ module GrdaWarehouse::YouthIntake
       :street_outreach_contact,
       :housing_status,
       :other_agency_involvement,
-      :owns_cell_phone,
       :secondary_education,
       :attending_college,
       :health_insurance,

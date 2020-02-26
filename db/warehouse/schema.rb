@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_19_175547) do
+ActiveRecord::Schema.define(version: 2020_02_25_181450) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1671,6 +1671,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_175547) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.boolean "imported", default: false
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
   end
 
@@ -3950,6 +3951,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_175547) do
     t.datetime "deleted_at"
     t.string "housing_status"
     t.string "other_housing_status"
+    t.boolean "imported", default: false
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
   end
 
@@ -4020,6 +4022,10 @@ ActiveRecord::Schema.define(version: 2020_02_19_175547) do
     t.boolean "turned_away", default: false, null: false
     t.string "college_pilot", default: "No", null: false
     t.string "graduating_college", default: "No", null: false
+    t.boolean "imported", default: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "ssn"
     t.index ["created_at"], name: "index_youth_intakes_on_created_at"
     t.index ["deleted_at"], name: "index_youth_intakes_on_deleted_at"
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"
@@ -4033,6 +4039,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_175547) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.boolean "imported", default: false
     t.index ["deleted_at"], name: "index_youth_referrals_on_deleted_at"
   end
 
