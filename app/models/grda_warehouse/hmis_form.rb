@@ -213,13 +213,17 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       end
   end
 
-  def self.set_pathways_results
+  def self.set_pathways_results(force_all: false)
     # find anyone who's never been processed or who has been updated since we last made
     # note of changes
-    ids = pathways.where(
-      arel_table[:pathways_updated_at].eq(nil).
-        or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at]))
-      ).pluck(:id)
+    ids = if force_all
+      pathways.pluck(:id)
+    else
+      pathways.where(
+        arel_table[:pathways_updated_at].eq(nil).
+          or(arel_table[:collected_at].gt(arel_table[:pathways_updated_at]))
+        ).pluck(:id)
+    end
     ids.each_slice(100) do |batch|
       pathways.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
         next unless hmis_form.destination_client.present?
@@ -228,7 +232,6 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.assessment_score = hmis_form.assessment_score_answer
         hmis_form.rrh_desired = hmis_form.rrh_desired_answer
         hmis_form.youth_rrh_desired = hmis_form.youth_rrh_desired_answer
-        hmis_form.rrh_assessment_contact_info = hmis_form.rrh_assessment_contact_info_answer
         hmis_form.income_maximization_assistance_requested = hmis_form.income_maximization_assistance_requested_answer
         hmis_form.income_total_annual = hmis_form.income_total_annual_answer
         hmis_form.pending_subsidized_housing_placement = hmis_form.pending_subsidized_housing_placement_answer
@@ -247,6 +250,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.disabled_housing = hmis_form.disabled_housing_answer
         hmis_form.evicted = hmis_form.evicted_answer
         hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
+        hmis_form.staff_email = hmis_form.staff_email_answer
         # hmis_form.pathways_dv_score_answer
         # hmis_form.pathways_length_of_time_homeless_score_answer
 
@@ -580,6 +584,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     # @return [String] the answer provided
     #
     def answer_from_section(section, question_string)
+      return unless section
       section[:questions].select do |question|
         question[:question].downcase.include?(question_string.downcase)
       end&.first.try(:[], :answer)
