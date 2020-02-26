@@ -155,7 +155,7 @@ namespace :youth do
           imported: true,
         }
       end
-      if row[:referrals] == 'Yes' || row[:referred_to_shelter].present?
+      if row[:referrals] == 'Yes' || row[:referred_to_shelter].present? || row[:referred_to_shelter] != 'No'
         clients[row[:PersonalID]][:referrals] << {
           referred_on: row[:engagement_date],
           referred_to: row[:referred_to_shelter],
@@ -282,5 +282,6 @@ namespace :youth do
       end
     end
     puts "Valid: #{intakes_created} intakes; Invalid: #{intakes_failed} intakes"
+    puts "Note, that you'll probably need to update the user_id on all imported items to match an existing user"
   end
 end

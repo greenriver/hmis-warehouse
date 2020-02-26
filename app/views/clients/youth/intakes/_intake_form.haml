@@ -9,11 +9,13 @@
       = f.input :engagement_date, as: :date_picker, label: 'Date of engagement', hint: 'When did you first start working with the youth?'
 
     .youth-intake__client-demographics
+      = f.input :first_name
+      = f.input :last_name
+      = f.input :ssn, label: 'Social Security Number', input_html: { maxlength: 11 }
       = f.input :unaccompanied, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth unaccompanied?', hint: 'An individual who is not in the physical custody or care of a parent / legal guardian'
       = f.input :street_outreach_contact, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth a street outreach contact',  hint: 'An outreach contact is made by EOHHS-funded staff who go off-site and create a first point of contact.'
       = f.input :housing_status, as: :radio_buttons, collection: @intake.available_housing_stati.invert
       = f.input :other_agency_involvement, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth involved with any other state agencies?'
-      = f.input :owns_cell_phone, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Does this youth own a cell phone?'
       = f.input :secondary_education, as: :radio_buttons, collection: @intake.available_secondary_education
       = f.input :attending_college, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth attending college?'
       = f.input :college_pilot, as: :radio_buttons, collection: @intake.yes_no_unknown, label: 'Is this youth part of the College Pilot Program?'
