@@ -9,6 +9,7 @@
       %th With SSM
       %th.agency-performance__without Without SSM
       %th With Signed Care Plan
+      %th With Care Plan Signed Within 122 Days
       %th.agency-performance__without Without Signed Care Plan
       %th.agency-performance__without.agency-performance__date-effected With No Valid Qualifying Activities Between #{@report.range.first} and #{@report.range.last}
   %tbody
@@ -23,7 +24,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -34,7 +35,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -45,7 +46,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.text-right
@@ -56,7 +57,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.text-right
@@ -67,7 +68,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.text-right
@@ -78,7 +79,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
 
@@ -90,9 +91,21 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
+        %td.text-right
+          - scope = agency.with_careplans_in_122_days
+          - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed Within 122 Days"
+          -# percentage = ((scope.count / agency.patient_referrals.size.to_f) * 100).round
+          - if permission
+            = simple_form_for :agency, method: :post, url: detail_path, data: { submits_to_pjax_modal: true } do |f|
+              = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
+              = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
+              = f.input :section, as: :hidden, input_html: {value: title}
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
+          - else
+            "#{percentage}%"
         %td.agency-performance__without.text-right
           - scope = agency.without_signed_careplans
           - title = "#{pluralize(scope.size, 'Patient')} without Signed Care Plans"
@@ -101,7 +114,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
         %td.agency-performance__without.agency-performance__date-effected.text-right
@@ -112,7 +125,7 @@
               = f.input :agency_id, as: :hidden, input_html: {value: agency.id}
               = f.input :patient_ids, as: :hidden, input_html: {value: scope.join(',')}
               = f.input :section, as: :hidden, input_html: {value: title}
-              = f.submit scope.size, class: 'btn btn-secondary btn-sm'
+              = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
           - else
             scope.size
   - if @agencies.size > 1
@@ -126,5 +139,13 @@
         %td.text-right= @totals.with_ssms.size
         %td.agency-performance__without.text-right= @totals.without_ssms.size
         %td.text-right= @totals.with_signed_careplans.size
+        %td.text-right= @totals.with_careplans_in_122_days.size
         %td.agency-performance__without.text-right= @totals.without_signed_careplans.size
         %td.agency-performance__date-effected.agency-performance__without.text-right= @totals.without_qualifying_activities_within_range.size
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.btn').each(function(i){
+        $(this).removeAttr('data-disable-with');
+      });
+    });

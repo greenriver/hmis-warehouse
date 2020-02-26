@@ -244,7 +244,7 @@ module GrdaWarehouse::Hud
     end
 
     def default_shelter_agency_contacts
-      source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
+      (source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email) + source_hmis_forms.pathways.pluck(:staff_email)).compact
     end
 
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
