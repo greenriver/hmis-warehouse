@@ -606,8 +606,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def street_outreach_acts_as_bednight?
-      @street_outreach_acts_as_bednight ||= project.so? && project.
-        joins(enrollments: :current_living_situations).exists?
+      @street_outreach_acts_as_bednight ||= project.so? && project.enrollments.joins(:current_living_situations).exists?
     end
 
     def project_extrapolates_contacts?
