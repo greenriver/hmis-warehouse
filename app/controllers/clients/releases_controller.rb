@@ -32,7 +32,7 @@ module Clients
     def new
       @file = file_source.new
       @group_name = 'Release of Information'
-      @consent_file_types = @file.class.available_tags[@group_name]
+      @consent_file_types = file_source.available_tags[@group_name]
     end
 
     def file_params

@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::WarehouseReports::Youth
   class HomelessYouthReport
+    include ArelHelper
 
     def initialize(filter)
       @start_date = filter.start
@@ -42,12 +43,16 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def one_a
       @one_a ||= get_client_ids(section_1_scope.
-        where(housing_status: homeless_statuses))
+        where(
+          yib_t[:housing_status].lower.in(homeless_statuses.map(&:downcase))
+        )
+      )
     end
 
     def one_b
       @one_b ||= get_client_ids(section_1_scope.
-        where(housing_status: 'At risk of homelessness'))
+        where(yib_t[:housing_status].lower.eq('at risk of homelessness'))
+      )
     end
 
     def section_2_scope
@@ -57,12 +62,14 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def two_a
       @two_a ||= get_client_ids(section_2_scope.
-        where(housing_status: homeless_statuses))
+        where(yib_t[:housing_status].lower.in(homeless_statuses.map(&:downcase)))
+      )
     end
 
     def two_b
       @two_b ||= get_client_ids(section_2_scope.
-        where(housing_status: 'At risk of homelessness'))
+        where(yib_t[:housing_status].lower.eq('at risk of homelessness'))
+      )
     end
 
     def two_c
@@ -85,7 +92,8 @@ module GrdaWarehouse::WarehouseReports::Youth
     def three_a
       @three_a ||= get_client_ids(section_3_intake_scope.
         served.
-        where(housing_status: 'At risk of homelessness'))
+        where(yib_t[:housing_status].lower.eq('at risk of homelessness'))
+      )
     end
 
     def section_3_management_scope
@@ -99,7 +107,9 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def three_c
       @three_c ||= get_client_ids(section_3_intake_scope.
-          where(housing_status: 'At risk of homelessness', turned_away: true))
+        where(turned_away: true).
+        where(yib_t[:housing_status].lower.eq('at risk of homelessness'))
+      )
     end
 
     def section_4_intake_scope
@@ -116,7 +126,8 @@ module GrdaWarehouse::WarehouseReports::Youth
     def four_b
       @four_b ||= get_client_ids(section_4_intake_scope.
         served.
-        where(housing_status: 'At risk of homelessness'))
+        where(yib_t[:housing_status].lower.eq('at risk of homelessness'))
+      )
     end
 
     def section_4_management_scope
@@ -439,17 +450,20 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_three_a
       @f_three_a ||= get_client_ids(demographics_scope.
-          where(' disabilities ?| array[:disability]', disability: 'Mental / Emotional disability'))
+        where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'mental / emotional disability')
+      )
     end
 
     def f_three_b
       @f_three_b ||= get_client_ids(demographics_scope.
-          where(' disabilities ?| array[:disability]', disability: 'Medical / Physical disability'))
+        where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'medical / physical disability')
+      )
     end
 
     def f_three_c
       @f_three_c ||= get_client_ids(demographics_scope.
-          where(' disabilities ?| array[:disability]', disability: 'Developmental disability'))
+        where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'developmental disability')
+      )
     end
 
     def f_four_a

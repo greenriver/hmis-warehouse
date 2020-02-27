@@ -169,7 +169,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
     cleanup_fixture
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :s3)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'Warehouse', source_type: nil)
-    @file_path = 'spec/fixtures/files/importers/hmis_six_on_one/project_data_quality_v4'
+    @file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/project_data_quality_v4'
     @source_file_path = File.join(@file_path, 'source')
     @import_path = File.join(@file_path, @data_source.id.to_s)
     # duplicate the fixture file as it gets manipulated

@@ -21,6 +21,13 @@ module Eto
         answer_from_section(relevant_section, 'pathways assessment score')&.to_i
       end
 
+      def staff_email_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('elements needed for assessor')
+        answer_from_section(relevant_section, 'assessor email')
+      end
+
       def rrh_desired_answer
         # 2/17/2020
         # 9A
@@ -46,11 +53,6 @@ module Eto
 
         relevant_section = section_starts_with('Why do people take RRH')
         answer_from_section(relevant_section, '9F.')&.downcase == 'yes'
-      end
-
-      def rrh_assessment_contact_info_answer
-        # 2/17/2020
-        nil # FIXME: this does not appear to come through the API at this time.
       end
 
       def income_maximization_assistance_requested_answer
