@@ -112,7 +112,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   # match name, case insensitive, ignoring all whitespace
   private def name_matches(client)
     return [] unless client.first_name && client.last_name
-    key = [client.first_name.downcase.gsub(/\s+/, ""), client.last_name.downcase.gsub(/\s+/, "")]
+    key = [client.first_name&.downcase&.gsub(/\s+/, ""), client.last_name&.downcase&.gsub(/\s+/, "")]
     clients_by_name[key]&.map{ |c| c[:destination_id]} || []
   end
 
@@ -137,7 +137,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   private def clients_by_name
-    @clients_by_name ||= all_clients.group_by{ |row| [row[:first_name].downcase.gsub(/\s+/, ""), row[:last_name].downcase.gsub(/\s+/, "")] }
+    @clients_by_name ||= all_clients.group_by{ |row| [row[:first_name]&.downcase&.gsub(/\s+/, ""), row[:last_name]&.downcase&.gsub(/\s+/, "")] }
   end
 
   private def clients_by_ssn
