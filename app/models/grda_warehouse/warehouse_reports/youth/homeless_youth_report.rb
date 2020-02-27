@@ -445,7 +445,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_two_i
       @f_two_i ||= get_client_ids(demographics_scope.
-          where.not(client_primary_language: ['English', 'Spanish']))
+          where.not(client_primary_language: ['English', 'Spanish', 'Unknown']))
     end
 
     def f_three_a
@@ -478,7 +478,8 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_four_c
       @f_four_c ||= get_client_ids(demographics_scope.
-          where(secondary_education: ['Completed High School', 'Completed GED/HiSET']))
+        where(secondary_education: ['Completed High School', 'Completed GED/HiSET'])
+      )
     end
 
     def f_four_d
@@ -559,6 +560,92 @@ module GrdaWarehouse::WarehouseReports::Youth
         end
         result
       end
+    end
+
+    def report_whitelist
+      @report_whitelist ||= [
+        :one_a,
+        :one_b,
+        :two_a,
+        :two_b,
+        :two_c,
+        :three_a,
+        :three_b,
+        :three_c,
+        :four_a,
+        :four_b,
+        :four_c,
+        :four_d,
+        :five_a,
+        :five_b,
+        :five_c,
+        :five_d,
+        :five_e,
+        :five_f,
+        :five_g,
+        :five_h,
+        :five_i,
+        :five_j,
+        :five_k,
+        :five_l,
+        :five_m,
+        :five_n,
+        :five_o,
+        :six_a,
+        :six_b,
+        :six_c,
+        :six_d,
+        :six_e,
+        :six_f,
+        :six_g,
+        :six_h,
+        :six_i,
+        :six_j,
+        :six_k,
+        :six_l,
+        :six_m,
+        :six_n,
+        :six_o,
+        :six_p,
+        :six_q,
+        :total_served,
+        :c_one_college_pilot,
+        :c_two_graduating_college_pilot,
+        :c_three_college_non_pilot,
+        :total_college,
+        :all_open_intakes,
+        :f_one_a,
+        :f_one_b,
+        :f_one_c,
+        :f_one_d,
+        :f_one_e,
+        :f_two_a,
+        :f_two_b,
+        :f_two_c,
+        :f_two_d,
+        :f_two_e,
+        :f_two_f,
+        :f_two_g,
+        :f_two_h,
+        :f_two_i,
+        :f_three_a,
+        :f_three_b,
+        :f_three_c,
+        :f_four_a,
+        :f_four_b,
+        :f_four_c,
+        :f_four_d,
+        :f_four_e,
+        :f_four_f,
+        :f_four_g,
+        :f_four_h,
+        :follow_up_one_a,
+        :follow_up_one_b,
+        :follow_up_two_a,
+        :follow_up_two_b,
+        :follow_up_two_c,
+        :follow_up_two_d,
+      ]
     end
 
     private def get_client_ids(scope)

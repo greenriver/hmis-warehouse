@@ -880,7 +880,7 @@ ActiveRecord::Schema.define(version: 2020_02_25_190151) do
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
-    t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
+    t.index "(COALESCE(act_as_project_type, \"ProjectType\"))", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_date_updated"
