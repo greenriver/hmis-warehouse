@@ -18,6 +18,8 @@ module WarehouseReports
       raise 'Key required' if params[:key].blank?
 
       @key = @report.report_whitelist.detect { |key| key.to_s == params[:key] }
+      raise 'Key required' unless @key
+
       client_ids = @report.send(@key)
       @clients = GrdaWarehouse::Hud::Client.
         destination.
