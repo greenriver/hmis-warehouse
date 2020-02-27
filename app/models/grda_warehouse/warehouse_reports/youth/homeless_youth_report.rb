@@ -445,7 +445,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_two_i
       @f_two_i ||= get_client_ids(demographics_scope.
-          where.not(client_primary_language: ['English', 'Spanish']))
+          where.not(client_primary_language: ['English', 'Spanish', 'Unknown']))
     end
 
     def f_three_a
@@ -478,7 +478,8 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_four_c
       @f_four_c ||= get_client_ids(demographics_scope.
-          where(secondary_education: ['Completed High School', 'Completed GED/HiSET']))
+        where(secondary_education: ['Completed High School', 'Completed GED/HiSET'])
+      )
     end
 
     def f_four_d
