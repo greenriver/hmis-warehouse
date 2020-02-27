@@ -91,7 +91,7 @@
         = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
     = f.input :file, as: :file, required: true
   .d-flex
-    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-secondary ml-auto' do
+    = link_to client_releases_path(client_id: @client), class: 'btn btn-secondary ml-auto' do
       Cancel &amp; Return to File List
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2
