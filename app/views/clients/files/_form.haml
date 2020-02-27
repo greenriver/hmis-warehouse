@@ -1,5 +1,6 @@
 = render 'clients/files/instructions'
-= simple_form_for @file, url: client_files_path(@client) do |f|
+
+= simple_form_for @file, url: appropriate_file_path(@client) do |f|
   - if @file.errors.any?
     .alert.alert-danger
       %p Failed to upload file. Please review the errors below
@@ -65,7 +66,7 @@
       = f.input :visible_in_window, as: :boolean, label: "Visible in the Window?", :input_html => { :checked => true }
     = f.input :file, as: :file, required: true
   .d-flex
-    = link_to client_files_path(@client), class: 'btn btn-secondary ml-auto' do
+    = link_to appropriate_file_path(@client), class: 'btn btn-secondary ml-auto' do
       Cancel &amp; Return to File List
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2

@@ -44,7 +44,7 @@ module GrdaWarehouse
         current_scope
       # If all you can see are window files:
       #   show those with full releases and those you uploaded
-      elsif user.can_manage_window_client_files?
+      elsif user.can_manage_window_client_files? || user.can_use_separated_consent?
         sql = arel_table[:client_id].in(
           Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)
         ).
@@ -58,7 +58,7 @@ module GrdaWarehouse
         end
         window.where(sql)
       # You can only see files you uploaded
-      elsif user.can_see_own_file_uploads?
+      elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
         sql = arel_table[:user_id].eq(user.id)
         if GrdaWarehouse::Config.get(:consent_visible_to_all)
           sql = sql.or(arel_table[:id].in(Arel.sql(consent_forms.select(:id).to_sql)))
@@ -163,7 +163,7 @@ module GrdaWarehouse
     # Access
     ####################
     def self.any_visible_by?(user)
-      user.can_manage_window_client_files? || user.can_see_own_file_uploads?
+      user.can_manage_window_client_files? || user.can_see_own_file_uploads? || user.can_use_separated_consent?
     end
 
     def editable_by?(user)

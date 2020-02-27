@@ -15,18 +15,19 @@
       %tr
         %th{rowspan: 2} 1.Street Outreach/Collaboration
         %th a. Unduplicated number of outreach contacts with YYA experiencing homelessness
-        %td= @report.one_a.count
+        -# %td= link_to @report.one_a.count, details_warehouse_reports_youth_intakes_path(filter: {start: @filter.start, end: @filter.end}, key: :one_a), data: {loads_in_pjax_modal: true}
+        %td= data_link(:one_a)
       %tr
         %th b. Unduplicated number of outreach contacts with YYA considered “at-risk” of homelessness
-        %td= @report.one_b.count
+        %td= data_link(:one_b)
 
       %tr
         %th{rowspan: 3} 2. Referrals Received
         %th a. Number of initial contacts: YYA experiencing homelessness
-        %td= @report.two_a.count
+        %td= data_link(:two_a)
       %tr
         %th b. Number of initial contacts: YYA considered “at-risk” of homelessness
-        %td= @report.two_b.count
+        %td= data_link(:two_b)
       %tr
         %th c. Referral sources (number of YYA, if available)
         %td
@@ -37,71 +38,73 @@
       %tr
         %th{rowspan: 3} 3. Assessment/ Case Management/ Case Coordination - Prevention
         %th a. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
-        %td= @report.three_a.count
+        %td= data_link(:three_a)
       %tr
         %th b. Number of YYA continuing in case management
-        %td= @report.three_b.count
+        %td= data_link(:three_b)
       %tr
         %th c. Number of YYA turned away
-        %td= @report.three_c.count
+        %td= data_link(:three_c)
 
       %tr
         %th{rowspan: 4} 4. Assessment/ Case Management/ Case Coordination - Rehousing
         %th a. Number of YYA completing new intake: YYA experiencing homelessness
-        %td= @report.four_a.count
+        %td= data_link(:four_a)
       %tr
         %th b. Number of YYA completing new intake: YYA considered “at-risk” of homelessness
-        %td= @report.four_b.count
+        %td= data_link(:four_b)
       %tr
-        %th c. Number of YYA continuing in case management
-        %td= @report.four_c.count
+        %th
+          %i.icon-info{data: {toggle: :tooltip, title: 'Youth with at least one case management note during the reporting period who\'s intake was started before the reporting period.'}}
+          c. Number of YYA continuing in case management
+        %td= data_link(:four_c)
       %tr
         %th d. Number of YYA turned away
-        %td= @report.four_d.count
+        %td= data_link(:four_d)
 
       %tr
         %th{rowspan: 15} 5. Direct Financial Assistance (Flex Funds)
         %th a. Total number of YYA who received direct financial assistance/ flex funds
-        %td= @report.five_a.count
+        %td= data_link(:five_a)
       %tr
         %th b. Number of YYA who did not receive assistance
-        %td= @report.five_b.count
+        %td= data_link(:five_b)
       %tr
         %th c. Number of YYA who received assistance with Move-in costs
-        %td= @report.five_c.count
+        %td= data_link(:five_c)
       %tr
         %th d. Number of YYA who received assistance with Rent
-        %td= @report.five_d.count
+        %td= data_link(:five_d)
       %tr
         %th e. Number of YYA who received assistance with Rent arrears
-        %td= @report.five_e.count
+        %td= data_link(:five_e)
       %tr
         %th f. Number of YYA who received assistance with Utilities
-        %td= @report.five_f.count
+        %td= data_link(:five_f)
       %tr
         %th g. Number of YYA who received assistance with Transportation-related costs
-        %td= @report.five_g.count
+        %td= data_link(:five_g)
       %tr
         %th h. Number of YYA who received assistance with Education-related costs
-        %td= @report.five_h.count
+        %td= data_link(:five_h)
       %tr
         %th i. Number of YYA who received assistance with Legal costs
-        %td= @report.five_h.count
+        %td= data_link(:five_i)
       %tr
         %th j. Number of YYA who received assistance with Child care
-        %td= @report.five_j.count
+        %td= data_link(:five_j)
       %tr
         %th k. Number of YYA who received assistance with Work-related costs
-        %td= @report.five_k.count
+        %td= data_link(:five_k)
       %tr
         %th l. Number of YYA who received assistance with Medical costs
-        %td= @report.five_l.count
+        %td= data_link(:five_l)
       %tr
         %th m. Number of YYA who received assistance with Cell phone costs
-        %td= @report.five_m.count
+        %td= data_link(:five_m)
       %tr
         %th n. Number of YYA who received assistance with Food/groceries
-        %td= @report.five_n.count
+        %td= data_link(:five_n)
       %tr
         %th o. Number of YYA who received assistance with Other costs
         %td
@@ -112,52 +115,52 @@
       %tr
         %th{rowspan: 17} 6. Referrals to Other Providers
         %th a. Total number of YYA who received referrals out
-        %td= @report.six_a.count
+        %td= data_link(:six_a)
       %tr
         %th b. Number of YYA who were referred to Health services (excluding mental health)
-        %td= @report.six_b.count
+        %td= data_link(:six_b)
       %tr
         %th c. Number of YYA who were referred to Mental health services
-        %td= @report.six_c.count
+        %td= data_link(:six_c)
       %tr
         %th d. Number of YYA who were referred to substance use services
-        %td= @report.six_d.count
+        %td= data_link(:six_d)
       %tr
         %th e. Number of YYA who were referred to Employment & job training services
-        %td= @report.six_e.count
+        %td= data_link(:six_e)
       %tr
         %th f. Number of YYA who were referred to Education services
-        %td= @report.six_f.count
+        %td= data_link(:six_f)
       %tr
         %th g. Number of YYA who were referred to Parenting resources
-        %td= @report.six_g.count
+        %td= data_link(:six_g)
       %tr
         %th h. Number of YYA who were referred to Domestic violence-related services
-        %td= @report.six_h.count
+        %td= data_link(:six_h)
       %tr
         %th i. Number of YYA who were referred to Life skills/ financial literacy services
-        %td= @report.six_i.count
+        %td= data_link(:six_i)
       %tr
         %th j. Number of YYA who were referred to Legal services
-        %td= @report.six_j.count
+        %td= data_link(:six_j)
       %tr
         %th k. Number of YYA who were referred to Language-related resources
-        %td= @report.six_k.count
+        %td= data_link(:six_k)
       %tr
         %th l. Number of YYA who were referred to Housing supports
-        %td= @report.six_l.count
+        %td= data_link(:six_l)
       %tr
         %th m. Number of YYA who were referred to Benefits (excluding health insurance)
-        %td= @report.six_m.count
+        %td= data_link(:six_m)
       %tr
         %th n. Number of YYA who were referred to health insurance providers
-        %td= @report.six_n.count
+        %td= data_link(:six_n)
       %tr
         %th o. Number of YYA who were referred to other state agencies
-        %td= @report.six_o.count
+        %td= data_link(:six_o)
       %tr
         %th p. Number of YYA who were referred to Cultural/ recreation activities
-        %td= @report.six_p.count
+        %td= data_link(:six_p)
       %tr
         %th q. Number of YYA who were referred to Other services or activities
         %td
@@ -168,7 +171,7 @@
       %tr
         %th TOTAL YYA SERVED
         %th Number of YYA served
-        %td= @report.total_served.count
+        %td= data_link(:total_served)
 
 
 %h2 C. College Student Services
@@ -180,23 +183,23 @@
           1. Transitional Housing & Case Management (enrolled students)
         %th
           Number of Pilot Program  students receiving Transitional Housing & Case Management services
-        %td= @report.c_one_college_pilot.count
+        %td= data_link(:c_one_college_pilot)
       %tr
         %th
           2. Transitional Housing & Case Management (graduating students)
         %th
           Number of Pilot Program students graduating students receiving Transitional Housing & Case Management services
-        %td= @report.c_two_graduating_college_pilot.count
+        %td= data_link(:c_two_graduating_college_pilot)
       %tr
         %th
           3. Number College students
         %th
           Number of College students not officially enrolled in the campus pilot program that are receiving services
-        %td= @report.c_three_college_non_pilot.count
+        %td= data_link(:c_three_college_non_pilot)
       %tr
         %th TOTAL COLLEGE STUDENTS SERVED
         %th Number of YYA served
-        %td= @report.total_college.count
+        %td= data_link(:total_college)
 
 .row.mt-4
   .col-6
@@ -204,7 +207,7 @@
   .col-6.text-right
     %h3
       Open Cases During Range:
-      %strong= @report.all_open_intakes.count
+      %strong= data_link(:all_open_intakes)
 .well
   %table.table.table-sm
     %tbody
@@ -214,88 +217,88 @@
           a. Number of YYA served who were Under 18
           %br
           %i at start of reporting period
-        %td= @report.f_one_a.count
+        %td= data_link(:f_one_a)
       %tr
         %th b. Number of YYA  served who identified as Male
-        %td= @report.f_one_b.count
+        %td= data_link(:f_one_b)
       %tr
         %th c. Number of YYA  served who identified as Female
-        %td= @report.f_one_c.count
+        %td= data_link(:f_one_c)
       %tr
         %th d. Number of YYA  served who identified as Transgender
-        %td= @report.f_one_d.count
+        %td= data_link(:f_one_d)
       %tr
         %th
           e. Number of YYA  served who identified as Other
           %br
           %i does not include refused or not collected
-        %td= @report.f_one_e.count
+        %td= data_link(:f_one_e)
 
     %tr
       %th{rowspan: 9} 2. Race, Ethnicity and Language
       %th a. Number of YYA  served who identified as White (race)
-      %td= @report.f_two_a.count
+      %td= data_link(:f_two_a)
     %tr
       %th b. Number of YYA  served who identified as African American (race)
-      %td= @report.f_two_b.count
+      %td= data_link(:f_two_b)
     %tr
       %th c. Number of YYA  served who identified as Asian (race)
-      %td= @report.f_two_c.count
+      %td= data_link(:f_two_c)
     %tr
       %th d. Number of YYA  served who identified as American Indian/Alaska Native (race)
-      %td= @report.f_two_d.count
+      %td= data_link(:f_two_d)
     %tr
       %th e. Number of YYA  served who identified as Other (race)
-      %td= @report.f_two_e.count
+      %td= data_link(:f_two_e)
     %tr
       %th f. Number of YYA  served who identified as Hispanic (ethnicity)
-      %td= @report.f_two_f.count
+      %td= data_link(:f_two_f)
     %tr
       %th g. Number of YYA  served whose primary language was English (language)
-      %td= @report.f_two_g.count
+      %td= data_link(:f_two_g)
     %tr
       %th h. Number of YYA  served whose primary language was Spanish (language)
-      %td= @report.f_two_h.count
+      %td= data_link(:f_two_h)
     %tr
       %th i. Number of YYA  served whose primary language was Other (language)
-      %td= @report.f_two_i.count
+      %td= data_link(:f_two_i)
 
     %tr
       %th{rowspan: 3} 3. Disability
       %th a. Number of YYA served who reported having a Mental/Emotional Disability (disability)
-      %td= @report.f_three_a.count
+      %td= data_link(:f_three_a)
     %tr
       %th b. Number of YYA served who reported having a Medical/Physical Disability (disability)
-      %td= @report.f_three_b.count
+      %td= data_link(:f_three_b)
     %tr
       %th c. Number of YYA served who reported having a Developmental Disability (disability)
-      %td= @report.f_three_c.count
+      %td= data_link(:f_three_c)
 
     %tr
       %th{rowspan: 8} 4. Other
       %th a. Number of YYA served who were Pregnant or Parenting
-      %td= @report.f_four_a.count
+      %td= data_link(:f_four_a)
     %tr
       %th b. Number of YYA served who were LGBTQ+
-      %td= @report.f_four_b.count
+      %td= data_link(:f_four_b)
     %tr
       %th c. Number of YYA served who had Completed high school or GED/HiSET
-      %td= @report.f_four_c.count
+      %td= data_link(:f_four_c)
     %tr
       %th d. Number of YYA served who were Enrolled in school during the reporting period
-      %td= @report.f_four_d.count
+      %td= data_link(:f_four_d)
     %tr
       %th e. Number of YYA served who were Enrolled in college during the reporting period
-      %td= @report.f_four_e.count
+      %td= data_link(:f_four_e)
     %tr
       %th f. Number of YYA  served who were involved with Other State Agencies
-      %td= @report.f_four_f.count
+      %td= data_link(:f_four_f)
     %tr
       %th g. Number of YYA served who had Health insurance
-      %td= @report.f_four_g.count
+      %td= data_link(:f_four_g)
     %tr
       %th h. Number of YYA served who owned a Cell phone
-      %td= @report.f_four_h.count
+      %td= data_link(:f_four_h)
 
 %h2 Follow Ups
 .well
@@ -304,17 +307,17 @@
       %tr
         %th{rowspan: 2} 1. Prevention Outcomes (Follow up)
         %th a. Number of YYA contacted for follow up 3 mos. after receiving prevention services
-        %td= @report.follow_up_one_a.count
+        %td= data_link(:follow_up_one_a)
       %tr
         %th b. Number of YYA who remain housed 3 mos. after receiving prevention services
-        %td= @report.follow_up_one_a.count
+        %td= data_link(:follow_up_one_b)
       %tr
         %th{rowspan: 4} 2. Rehousing Outcomes
         %th a. Number of YYA contacted for follow up 3 mos. after receiving rehousing services
-        %td= @report.follow_up_two_a.count
+        %td= data_link(:follow_up_two_a)
       %tr
         %th b. Number of YYA who are in housing 3 mos. after receiving rehousing services
-        %td= @report.follow_up_two_b.count
+        %td= data_link(:follow_up_two_b)
       %tr
         %th c. Zip codes of stabilized housing (please list)
         %td
