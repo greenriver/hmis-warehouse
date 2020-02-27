@@ -143,7 +143,7 @@ module Clients
       rescue Exception
         flash[:error] = 'File could not be deleted.'
       end
-      redirect_to polymorphic_path(files_path_generator, client_id: @client.id)
+      redirect_to action: :index
     end
 
     def delete_reasons
@@ -316,5 +316,15 @@ module Clients
       scope = scope.window unless can_manage_client_files?
       scope
     end
+
+    def appropriate_file_path(options)
+      client_file_path(options)
+    end
+    helper_method :appropriate_file_path
+
+    def appropriate_delete_modal_path(options)
+      show_delete_modal_client_file_path(options)
+    end
+    helper_method :appropriate_delete_modal_path
   end
 end

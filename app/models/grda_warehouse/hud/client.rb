@@ -1009,7 +1009,11 @@ module GrdaWarehouse::Hud
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
         client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
-        client_files_path(self)
+        if user.can_use_separated_consent?
+          client_releases_path(self)
+        else
+          client_files_path(self)
+        end
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
         client_youth_intakes_path(self)
       elsif GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(user)
@@ -1963,8 +1967,8 @@ module GrdaWarehouse::Hud
     # SSN can be full 9 or last 4
     # Names can potentially be switched.
     def self.strict_search(criteria, client_scope: none)
-      first_name = criteria[:first_name]&.strip&.gsub(/[^a-z0-9]/i, '')
-      last_name = criteria[:last_name]&.strip&.gsub(/[^a-z0-9]/i, '')
+      first_name = criteria[:first_name]&.strip
+      last_name = criteria[:last_name]&.strip
       dob = criteria[:dob]&.to_date
       ssn = criteria[:ssn]&.gsub(/[^0-9]/i, '')
       ssn = nil if ssn.present? && ssn.length < 4
