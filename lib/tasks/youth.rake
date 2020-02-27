@@ -2,8 +2,8 @@ require 'roo'
 require 'faker'
 
 namespace :youth do
-  desc "Import youth data (client specific)"
-  task :import, [:file_path] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Import youth data (client specific)'
+  task :import, [:file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
     file_path = args.file_path || 'var/youth.xlsx'
     puts "Importing #{file_path}"
 
@@ -89,7 +89,7 @@ namespace :youth do
     def financial_assistances
       {
         'Move-in Costs' => 'Move-in costs',
-        "Rent" => 'Rent',
+        'Rent' => 'Rent',
         'Rent arrears' => 'Rent arrears',
         'Utilities' => 'Utilities',
         'Transportation-related Costs' => 'Transportation-related costs',
@@ -113,76 +113,76 @@ namespace :youth do
 
     def case_management_housing_situations
       {
-        'This youth is currently in stable housing' => "This youth is currently in stable housing",
-        'This youth is at risk of homelessness (within the next 14 days)' => "This youth is currently in stable housing",
-        'This youth is at risk of homelessness (within the next four months)' => "This youth is currently in stable housing",
-        'Allowed to come back home today' => "This youth is currently in stable housing",
-        "This youth is not currently in stable housing" => "This youth is not currently in stable housing",
-        'Wells Street Shelter' => "This youth is not currently in stable housing",
-        'youth is exiting housing 10/31/19 and is 25' => "This youth is not currently in stable housing",
-        'staying at The Warming Center Greenfield, MA' => "This youth is not currently in stable housing",
-        "Kicked out today" => "This youth is not currently in stable housing",
-        'Northern Hope until 11/25/19' => "This youth is not currently in stable housing",
-        "Couch surfing" => "This youth is not currently in stable housing",
-        "DMH Respite Bed  " => "This youth is not currently in stable housing",
-        "In Shelter" => "This youth is not currently in stable housing",
-        'Unknown' => "Unknown",
-        'Other' => "Other:",
+        'This youth is currently in stable housing' => 'This youth is currently in stable housing',
+        'This youth is at risk of homelessness (within the next 14 days)' => 'This youth is currently in stable housing',
+        'This youth is at risk of homelessness (within the next four months)' => 'This youth is currently in stable housing',
+        'Allowed to come back home today' => 'This youth is currently in stable housing',
+        'This youth is not currently in stable housing' => 'This youth is not currently in stable housing',
+        'Wells Street Shelter' => 'This youth is not currently in stable housing',
+        'youth is exiting housing 10/31/19 and is 25' => 'This youth is not currently in stable housing',
+        'staying at The Warming Center Greenfield, MA' => 'This youth is not currently in stable housing',
+        'Kicked out today' => 'This youth is not currently in stable housing',
+        'Northern Hope until 11/25/19' => 'This youth is not currently in stable housing',
+        'Couch surfing' => 'This youth is not currently in stable housing',
+        'DMH Respite Bed  ' => 'This youth is not currently in stable housing',
+        'In Shelter' => 'This youth is not currently in stable housing',
+        'Unknown' => 'Unknown',
+        'Other' => 'Other:',
       }
     end
 
     def available_referrals
       {
-        "Referred for housing supports (Include housing supports provided with non-EOHHS funding including housing search, subsidies, RAFT, FUP, direct financial support, etc.)" => 'Referred for housing supports (include housing supports provided with no-EOHHS funding including housing search)',
-        "Referred for health services" => 'Referred for health services',
-        "Referred for mental health services" => 'Referred for mental health services',
-        "Referred for employment & job training services" => 'Referred for employment & job training services',
-        "Referred to Benefits providers (SNAP, SSI, WIC etc)" => 'Referred to Benefits providers (SNAP, SSI, WIC, etc.)',
-        "Referred to other state agencies (DMH, DDS, etc)" => 'Referred to other state agencies (DMH, DDS, etc.)',
-        "Referred for substance use services" => 'Referred for substance use services',
-        "Referred to other services / activities not listed above" => 'Referred to other services / activities not listed above',
-        "Referred for lifeskills / financial literacy services" => 'Referred for lifeskills / financial literacy services',
-        "Referred for education services" => 'Referred for education services',
-        "Referred for parenting services" => 'Referred for parenting services',
-        "Referred for domestic violence-related services" => 'Referred for domestic violence-related services',
-        "Referred to health insurance providers" => 'Referred to health insurance providers',
-        "Referred for legal services" => 'Referred for legal services',
-        "Referred to cultural / recreational activities" => 'Referred to cultural / recreational activities',
+        'Referred for housing supports (Include housing supports provided with non-EOHHS funding including housing search, subsidies, RAFT, FUP, direct financial support, etc.)' => 'Referred for housing supports (include housing supports provided with no-EOHHS funding including housing search)',
+        'Referred for health services' => 'Referred for health services',
+        'Referred for mental health services' => 'Referred for mental health services',
+        'Referred for employment & job training services' => 'Referred for employment & job training services',
+        'Referred to Benefits providers (SNAP, SSI, WIC etc)' => 'Referred to Benefits providers (SNAP, SSI, WIC, etc.)',
+        'Referred to other state agencies (DMH, DDS, etc)' => 'Referred to other state agencies (DMH, DDS, etc.)',
+        'Referred for substance use services' => 'Referred for substance use services',
+        'Referred to other services / activities not listed above' => 'Referred to other services / activities not listed above',
+        'Referred for lifeskills / financial literacy services' => 'Referred for lifeskills / financial literacy services',
+        'Referred for education services' => 'Referred for education services',
+        'Referred for parenting services' => 'Referred for parenting services',
+        'Referred for domestic violence-related services' => 'Referred for domestic violence-related services',
+        'Referred to health insurance providers' => 'Referred to health insurance providers',
+        'Referred for legal services' => 'Referred for legal services',
+        'Referred to cultural / recreational activities' => 'Referred to cultural / recreational activities',
       }
     end
 
     def available_disabilities
       {
-        "Mental / Emotional Disability" => 'Mental / Emotional disability',
-        "Medical / Physical Disability" => 'Medical / Physical disability',
-        "Developmental Disability" => 'Developmental disability',
-        "No Disabilities" => 'No disabilities',
-        "Unknown" => 'Unknown',
+        'Mental / Emotional Disability' => 'Mental / Emotional disability',
+        'Medical / Physical Disability' => 'Medical / Physical disability',
+        'Developmental Disability' => 'Developmental disability',
+        'No Disabilities' => 'No disabilities',
+        'Unknown' => 'Unknown',
       }
     end
 
     def housing_situations
       {
-        "Unknown" => 'Unknown',
-        "Stably housed" => 'Stably housed',
-        "Experiencing Homelessness: Couch Surfing" => 'Experiencing homelessness: couch surfing',
-        "Unstably housed" => 'Unstably housed',
-        "Experiencing Homelessness: Street" => 'Experiencing homelessness: street',
-        "Experiencing Homelessness: In shelter" => 'Experiencing homelessness: in shelter',
+        'Unknown' => 'Unknown',
+        'Stably housed' => 'Stably housed',
+        'Experiencing Homelessness: Couch Surfing' => 'Experiencing homelessness: couch surfing',
+        'Unstably housed' => 'Unstably housed',
+        'Experiencing Homelessness: Street' => 'Experiencing homelessness: street',
+        'Experiencing Homelessness: In shelter' => 'Experiencing homelessness: in shelter',
         'At risk of homelessness' => 'At risk of homelessness',
         'This youth is currently in stable housing' => 'Stably housed',
         'This youth is at risk of homelessness (within the next 14 days)' => 'At risk of homelessness',
         'This youth is at risk of homelessness (within the next four months)' => 'At risk of homelessness',
         'Allowed to come back home today' => 'Stably housed',
-        "This youth is not currently in stable housing" => 'Experiencing homelessness: street',
+        'This youth is not currently in stable housing' => 'Experiencing homelessness: street',
         'Wells Street Shelter' => 'Experiencing homelessness: in shelter',
         'youth is exiting housing 10/31/19 and is 25' => 'Experiencing homelessness: in shelter',
         'staying at The Warming Center Greenfield, MA' => 'Experiencing homelessness: in shelter',
-        "Kicked out today" => 'Experiencing homelessness: street',
+        'Kicked out today' => 'Experiencing homelessness: street',
         'Northern Hope until 11/25/19' => 'Experiencing homelessness: in shelter',
-        "Couch surfing" => 'Experiencing homelessness: couch surfing',
-        "DMH Respite Bed  " => 'Experiencing homelessness: in shelter',
-        "In Shelter" => 'Experiencing homelessness: in shelter',
+        'Couch surfing' => 'Experiencing homelessness: couch surfing',
+        'DMH Respite Bed  ' => 'Experiencing homelessness: in shelter',
+        'In Shelter' => 'Experiencing homelessness: in shelter',
       }
     end
 
@@ -195,9 +195,7 @@ namespace :youth do
     GrdaWarehouse::Youth::DirectFinancialAssistance.where(imported: true).destroy_all
     GrdaWarehouse::YouthIntake::Base.where(imported: true).destroy_all
     # Faker leaves a mess behind, so we'll clean this up for development runs
-    if Rails.env.development?
-      GrdaWarehouse::Hud::Client.where(data_source_id: data_source.id).destroy_all
-    end
+    GrdaWarehouse::Hud::Client.where(data_source_id: data_source.id).destroy_all if Rails.env.development?
 
     xlsx = Roo::Spreadsheet.open(file_path)
     sheet = xlsx.sheet(0)
@@ -264,7 +262,7 @@ namespace :youth do
       if row[:referred_to].present?
         # this is ugly, but some of the referrals have commas in them
         referrals = row[:referred_to].split(', Re')
-        referrals = referrals.map{|r| r = "Re#{r}" unless r.starts_with?('Re')}
+        referrals = referrals.map { |r| r = "Re#{r}" unless r.starts_with?('Re') }
         referrals.compact.each do |referred_to|
           clean_referred_to = available_referrals[referred_to]
           raise "Missing referral type: #{referred_to.inspect}" unless clean_referred_to.present?
@@ -293,10 +291,10 @@ namespace :youth do
         end
       end
 
-      races = row[:client_race]&.split(',')&.map{|r| race(r&.strip)}
+      races = row[:client_race]&.split(',')&.map { |r| race(r&.strip) }
       ethnicity = ethnicity(row[:client_ethnicity]&.strip)
       h_status = housing_situations[row[:housing_status]] || housing_situations[row[:case_management_housing_status]]
-      disabilities = row[:disabilities]&.split(', ')&.map{|d| available_disabilities[d]}&.compact
+      disabilities = row[:disabilities]&.split(', ')&.map { |d| available_disabilities[d] }&.compact
 
       intake = {
         user_id: user_id,
@@ -331,22 +329,20 @@ namespace :youth do
       intake[:requesting_financial_assistance] = row[:requesting_financial_assistance] if row[:requesting_financial_assistance].present?
 
       clients[row[:PersonalID]][:intakes] << intake
-
     end
 
-
     GrdaWarehouse::Hud::Client.transaction do
-      clients.each do |personal_id, data|
+      clients.each do |_personal_id, data|
         client = data[:client]
         client[:data_source_id] = data_source.id
-        source_client = GrdaWarehouse::Hud::Client.where(client.except(:source_client)).first_or_create()
+        source_client = GrdaWarehouse::Hud::Client.where(client.except(:source_client)).first_or_create
         client[:source_client] = source_client
       end
 
       GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
 
       # NOTE: this process assumes intakes are in chronological order for each client
-      clients.each do |personal_id, data|
+      clients.each do |_personal_id, data|
         destination_client_id = data[:client][:source_client].destination_client.id
         # Make a single intake with the most recent data
         intake = {}
