@@ -36,7 +36,7 @@
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "glacier")}
         = link_to 'Backups', admin_glacier_index_path, class: 'nav-link'
     - if can_add_administrative_event?
-      %li.nav-item{role: "presentation", class: ('active' if controller_name == "glacier")}
+      %li.nav-item{role: "presentation", class: ('active' if controller_name == "delayed_jobs")}
         = link_to 'Delayed Jobs', admin_delayed_jobs_path, class: 'nav-link'
     - if can_manage_assessments? && GrdaWarehouse::Config.get(:eto_api_available)
       %li.nav-item{role: "presentation", class: ('active' if controller_name == "assessments")}
