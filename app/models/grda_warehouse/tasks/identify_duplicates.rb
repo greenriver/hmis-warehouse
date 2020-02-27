@@ -7,6 +7,12 @@
 module GrdaWarehouse::Tasks
   class IdentifyDuplicates
     include ArelHelper
+    include NotifierConfig
+
+    def initialize
+      setup_notifier('IdentifyDuplicates')
+      super
+    end
 
     def run!
       Rails.logger.info 'Loading unprocessed clients'
@@ -89,8 +95,12 @@ module GrdaWarehouse::Tasks
 
         destination = client_destinations.find(destination_id)
         source = client_destinations.find(source_id)
-
-        destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+        begin
+          destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current)
+        rescue Exception => e
+          @notifier.ping("Unable to merge #{source.id} with #{destination.id}") if @send_notifications
+          Rails.logger.error(e.to_s)
+        end
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end
       Importing::RunAddServiceHistoryJob.perform_later
