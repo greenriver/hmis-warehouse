@@ -61,7 +61,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       self.import_errors = "CSV headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{csv.headers.join(',')}"
     end
     self.completed_at = Time.current
-    save
+    save(validate: false)
   end
 
   private def csv
