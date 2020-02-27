@@ -12,7 +12,7 @@
       %dl
         %dt SSN:
         %dd= ssn(@client.SSN)
-= simple_form_for @file, url: client_releases_path(client_id: @client) do |f|
+= simple_form_for @file, url: client_releases_path(@client) do |f|
   - if @file.errors.any?
     .alert.alert-danger
       %p Failed to upload file. Please review the errors below
@@ -91,7 +91,7 @@
         = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
     = f.input :file, as: :file, required: true
   .d-flex
-    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-secondary ml-auto' do
+    = link_to client_releases_path(@client), class: 'btn btn-secondary ml-auto' do
       Cancel &amp; Return to File List
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2
