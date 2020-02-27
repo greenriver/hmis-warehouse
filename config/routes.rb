@@ -188,7 +188,11 @@ Rails.application.routes.draw do
   namespace :warehouse_reports do
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
-    resources :youth_intakes, only: [:index]
+    resources :youth_intakes, only: [:index] do
+      collection do
+        get :details
+      end
+    end
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :incomes, only: [:index]
