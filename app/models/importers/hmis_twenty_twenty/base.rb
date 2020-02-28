@@ -152,7 +152,6 @@ module Importers::HmisTwentyTwenty
     end
 
     def remove_import_files
-      return
       import_file_path = "#{@file_path}/#{@data_source.id}"
       Rails.logger.info "Removing #{import_file_path}"
       FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
