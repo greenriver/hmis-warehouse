@@ -20,6 +20,8 @@
       %tr
         %th First Name
         %th Last Name
+        %th SSN
+        %th Year of Birth
         %th Days Homeless in the Last 3 Years
         %th Date of Pathways Assessment
         %th Most Recent Residential Enrollment
@@ -29,6 +31,8 @@
         %tr
           %td= link_to client.FirstName, client_path(client)
           %td= link_to client.LastName, client_path(client)
+          %td= ssn(client.SSN)
+          %td= client.DOB&.year
           %th= client.processed_service_history.days_homeless_last_three_years
           %td= @report.max_pathways_date(@clients, client.id)
           %td
