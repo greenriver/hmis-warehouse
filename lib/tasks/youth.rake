@@ -257,7 +257,7 @@ namespace :youth do
         case_managements: [],
       }
 
-      if row[:youth_case_management] == 'Yes' && row[:case_management_housing_status]&.strip.present?
+      if row[:activity] == 'Update Case Management meetings, engagement and housing status' && row[:case_management_housing_status]&.strip.present?
         clean_case_management_status = case_management_housing_situations[row[:case_management_housing_status]]
         raise "Missing Case Management status #{row[:case_management_housing_status].inspect}" unless clean_case_management_status.present?
 
