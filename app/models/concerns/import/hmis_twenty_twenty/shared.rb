@@ -170,6 +170,7 @@ module Import::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
           )
 
           csv_rows.each do |row|
+            stats[:lines_processed] += 1
             export_id ||= row[:ExportID]
             row[:source_hash] = calculate_source_hash(row.except(:ExportID).values)
             existing = existing_items[row[hud_key]]
@@ -184,6 +185,8 @@ module Import::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleCh
               stats[:lines_restored] += 1 if existing.pending_date_deleted.present? && row[:DateDeleted].blank?
             elsif should_restore?(row: row, existing: existing, soft_delete_time: soft_delete_time)
               to_restore << existing.id
+            else
+              stats[:lines_skipped] += 1
             end
           end
           # Process the batch
