@@ -14,7 +14,10 @@ module WarehouseReports
     attr_accessor :params
 
     def perform(report_params)
+      # load_filter expects params from the controller, so we store them in an attribute, and add permit to it
+      report_params.define_singleton_method(:permit) { |*args| slice(*args) }
       self.params = report_params
+
       load_filter
       report = GrdaWarehouse::WarehouseReports::ChronicReport.new
       report.started_at = DateTime.now
