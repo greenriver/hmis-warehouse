@@ -30,6 +30,10 @@ module Health
       transactions.select{ |transaction| self.class.maintenance_type(transaction) == '001'}
     end
 
+    def audits
+      transactions.select{ |transaction| self.class.maintenance_type(transaction) == '030'}
+    end
+
     def self.subscriber_id(transaction)
       transaction.select{|h| h.keys.include? :REF}.
         map{|h| h[:REF]}.each do |ref|
@@ -113,6 +117,14 @@ module Health
         detect{|h| h.keys.include? "2 - Detail"}['2 - Detail'].
         select{|h| h.keys.include? "2000 - MEMBER LEVEL DETAIL"}.
         map{|h| h["2000 - MEMBER LEVEL DETAIL"]}
+    end
+
+    def file_date
+      return nil unless as_json.present?
+
+      Date.parse(as_json[:interchanges].
+        detect{|h| h.keys.include? :ISA}[:ISA].
+        detect{|h| h.keys.include? :I08}[:I08][:value][:raw])
     end
 
     def as_json
