@@ -232,7 +232,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def extrapolated_dates_from_service_history_for_enrollment
-      return [] unless destination_client.present?
+      return [] unless destination_client.present?  && service_history_enrollment.present?
 
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(

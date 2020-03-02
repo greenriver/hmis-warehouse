@@ -39,6 +39,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       c_t[:id],
       c_t[:FirstName],
       c_t[:LastName],
+      c_t[:SSN],
+      c_t[:DOB],
       wcp_t[:days_homeless_last_three_years],
     ]
   end

@@ -7,6 +7,17 @@ namespace :youth do
     file_path = args.file_path || 'var/youth.xlsx'
     puts "Importing #{file_path}"
 
+    # Some notes:
+    # After running you'll want to cleanup any duplicate clients and ensure users are
+    # in the correct agency
+    # uniq_clients = GrdaWarehouse::Hud::Client.where(data_source_id: 10).pluck(:PersonalID, :id).to_h
+    # GrdaWarehouse::Hud::Client.where(id: uniq_clients.values).update_all(DateDeleted: Time.now)
+    # user_id =
+    # GrdaWarehouse::YouthIntake::Entry.where(user_id: 1).update_all(user_id: user_id)
+    # GrdaWarehouse::Youth::YouthReferral.where(user_id: 1).update_all(user_id: user_id)
+    # GrdaWarehouse::Youth::YouthCaseManagement.where(user_id: 1).update_all(user_id: user_id)
+    # GrdaWarehouse::Youth::DirectFinancialAssistance.where(user_id: 1).update_all(user_id: user_id)
+
     def headers
       {
         updated_at: 'Timestamp',
@@ -246,7 +257,7 @@ namespace :youth do
         case_managements: [],
       }
 
-      if row[:youth_case_management] == 'Yes' && row[:case_management_housing_status]&.strip.present?
+      if row[:activity] == 'Update Case Management meetings, engagement and housing status' && row[:case_management_housing_status]&.strip.present?
         clean_case_management_status = case_management_housing_situations[row[:case_management_housing_status]]
         raise "Missing Case Management status #{row[:case_management_housing_status].inspect}" unless clean_case_management_status.present?
 
