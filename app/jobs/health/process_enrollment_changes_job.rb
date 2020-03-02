@@ -53,11 +53,11 @@ module Health
           disenrollment_date = Health::Enrollment.disenrollment_date(transaction)
 
           audit_date = enrollment.file_date
-          is_disenrollment = disenrollment_date.month == audit_date.month
+          is_disenrollment = disenrollment_date.beginning_of_month == audit_date.beginning_of_month
 
           if referral.present?
             if is_disenrollment
-              unless referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
+              if referral.disenrollment_date.blank? && referral.pending_disenrollment_date.blank?
                 disenroll_patient(transaction, referral)
                 disenrolled_patients += 1
               end
