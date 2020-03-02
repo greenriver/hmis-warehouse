@@ -22,6 +22,8 @@ module Health
             if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
               re_enroll_patient(transaction, referral)
               returning_patients += 1
+            else
+              updated_patients += 1
             end
             update_patient(transaction, referral)
           else
@@ -46,6 +48,36 @@ module Health
           end
         end
 
+        enrollment.audits.each do |transaction|
+          referral = referral(transaction)
+          disenrollment_date = Health::Enrollment.disenrollment_date(transaction)
+
+          audit_date = enrollment.file_date
+          is_disenrollment = disenrollment_date.month == audit_date.month
+
+          if referral.present?
+            if is_disenrollment
+              unless referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
+                disenroll_patient(transaction, referral)
+                disenrolled_patients += 1
+              end
+            else
+              if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
+                re_enroll_patient(transaction, referral)
+                returning_patients += 1
+              else
+                updated_patients += 1
+              end
+              update_patient(transaction, referral)
+            end
+          else
+            unless is_disenrollment
+              enroll_patient(transaction)
+              new_patients += 1
+            end
+          end
+        end
+
         enrollment.update(
           new_patients: new_patients,
           returning_patients: returning_patients,
@@ -53,7 +85,7 @@ module Health
           updated_patients: updated_patients,
           status: 'complete',
         )
-      rescue e
+      rescue Exception => e
         enrollment.update(status: e)
       end
     end
