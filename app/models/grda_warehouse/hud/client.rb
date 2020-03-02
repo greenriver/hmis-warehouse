@@ -247,6 +247,40 @@ module GrdaWarehouse::Hud
       (source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email) + source_hmis_forms.pathways.pluck(:staff_email)).compact
     end
 
+    def pathways_assessments
+      source_hmis_forms.pathways
+    end
+
+    def most_recent_pathways_assessment
+      pathways_assessments.newest_first.first
+    end
+
+    def most_recent_pathways_assessment_collected_on
+      most_recent_pathways_assessment&.collected_at
+    end
+
+    # Do we have any declines that make us ineligible
+    # that occurred more recently than our most-recent pathways
+    # assessment?
+    def pathways_ineligible?
+      most_recent_pathways_ineligible_cas_response.present?
+    end
+
+    def most_recent_pathways_ineligible_cas_response
+      @most_recent_pathways_ineligible_cas_response ||= cas_reports.ineligible_in_warehouse.
+        declined.
+        match_closed.
+        match_failed.
+        where(updated_at: most_recent_pathways_assessment_collected_on..Time.current).
+        order(updated_at: :desc)&.first
+    end
+
+    def pathways_ineligible_on
+      return false unless pathways_ineligible?
+
+      most_recent_pathways_ineligible_cas_response.updated_at&.to_date
+    end
+
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
     # client dashboard
     def cohorts_for_dashboard

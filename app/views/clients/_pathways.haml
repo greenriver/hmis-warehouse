@@ -1,0 +1,23 @@
+- if @client.pathways_assessments.exists?
+  - collected_on = @client.most_recent_pathways_assessment_collected_on
+  - warehouse_ineligible = @client.pathways_ineligible?
+  - if collected_on.present? || warehouse_ineligible
+    %h3.mt-0= _('Pathways')
+    - if collected_on.present?
+      .c-tag.c-tag--info.client-flag
+        .c-tag__wrapper
+          .c-tag__icon
+            .icon-file-text
+          .c-tag__content
+            %span #{_('Pathways')} Assessment #{collected_on.to_date}
+    - if warehouse_ineligible
+      - decision = @client.most_recent_pathways_ineligible_cas_response
+      .c-tag.c-tag--warning.client-flag
+        .c-tag__wrapper
+          .c-tag__icon
+            .icon-bell
+          .c-tag__content
+            %span
+              = link_to GrdaWarehouse::Config.get(:cas_url) + "/matches/#{decision.match_id}", target: '_blank' do
+                Marked Ineligible on a CAS Match
+              #{@client.pathways_ineligible_on}
