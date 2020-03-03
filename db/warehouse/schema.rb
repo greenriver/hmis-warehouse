@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_03_174258) do
+ActiveRecord::Schema.define(version: 2020_03_03_183252) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4027,7 +4027,7 @@ ActiveRecord::Schema.define(version: 2020_03_03_174258) do
     t.string "street_outreach_contact", null: false
     t.string "housing_status", null: false
     t.string "other_agency_involvement", null: false
-    t.string "owns_cell_phone", null: false
+    t.string "owns_cell_phone"
     t.string "secondary_education", null: false
     t.string "attending_college", null: false
     t.string "health_insurance", null: false
