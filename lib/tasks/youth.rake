@@ -8,10 +8,7 @@ namespace :youth do
     puts "Importing #{file_path}"
 
     # Some notes:
-    # After running you'll want to cleanup any duplicate clients and ensure users are
-    # in the correct agency
-    # uniq_clients = GrdaWarehouse::Hud::Client.where(data_source_id: 10).pluck(:PersonalID, :id).to_h
-    # GrdaWarehouse::Hud::Client.where(id: uniq_clients.values).update_all(DateDeleted: Time.now)
+    # After running you'll want to ensure users are in the correct agency
     # user_id =
     # GrdaWarehouse::YouthIntake::Entry.where(user_id: 1).update_all(user_id: user_id)
     # GrdaWarehouse::Youth::YouthReferral.where(user_id: 1).update_all(user_id: user_id)
@@ -348,10 +345,10 @@ namespace :youth do
         client[:data_source_id] = data_source.id
         source_client = GrdaWarehouse::Hud::Client.where(
           data_source_id: client[:data_source_id],
-          PersonalID: client['PersonalID'],
-        ).first_or_create do |c|
-          c.update(client.except(:source_client))
-        end
+          PersonalID: client[:PersonalID],
+        ).first_or_initialize
+        source_client.update(client.except(:source_client))
+
         client[:source_client] = source_client
       end
 
@@ -409,7 +406,7 @@ namespace :youth do
           intakes_created += 1
         else
           intakes_failed += 1
-          puts "Invalid record #{intake.inspect} #{entry.errors.full_messages.inspect}"
+          # puts "Invalid record #{intake.inspect} #{entry.errors.full_messages.inspect}"
         end
         entry.save(validate: false)
 
