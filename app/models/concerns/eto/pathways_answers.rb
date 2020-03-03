@@ -28,6 +28,48 @@ module Eto
         answer_from_section(relevant_section, 'assessor email')
       end
 
+      def client_phones_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-1. 4A.')
+      end
+
+      def client_emails_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-2.')
+      end
+
+      def client_shelters_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-3. 4C.')
+      end
+
+      def client_case_managers_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-4. 4D.')
+      end
+
+      def client_day_shelters_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-6. 4F.')
+      end
+
+      def client_night_shelters_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('section s: key points to share with the participant regarding contact information')
+        answer_from_section(relevant_section, 'S-7. 4G.')
+      end
+
       def rrh_desired_answer
         # 2/17/2020
         # 9A

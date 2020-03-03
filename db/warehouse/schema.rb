@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_02_164716) do
+ActiveRecord::Schema.define(version: 2020_03_03_174258) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1982,6 +1982,12 @@ ActiveRecord::Schema.define(version: 2020_03_02_164716) do
     t.boolean "disabled_housing", default: false, null: false
     t.boolean "evicted", default: false, null: false
     t.jsonb "neighborhood_interests", default: []
+    t.string "client_phones"
+    t.string "client_emails"
+    t.string "client_shelters"
+    t.string "client_case_managers"
+    t.string "client_day_shelters"
+    t.string "client_night_shelters"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
