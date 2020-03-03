@@ -251,6 +251,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.evicted = hmis_form.evicted_answer
         hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
         hmis_form.staff_email = hmis_form.staff_email_answer
+        hmis_form.client_phones = hmis_form.client_phones_answer
+        hmis_form.client_emails = hmis_form.client_emails_answer
+        hmis_form.client_shelters = hmis_form.client_shelters_answer
+        hmis_form.client_case_managers = hmis_form.client_case_managers_answer
+        hmis_form.client_day_shelters = hmis_form.client_day_shelters_answer
+        hmis_form.client_night_shelters = hmis_form.client_night_shelters_answer
         # hmis_form.pathways_dv_score_answer
         # hmis_form.pathways_length_of_time_homeless_score_answer
 
@@ -539,6 +545,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     else
       activity
     end
+  end
+
+  def contains_contact_info?
+    client_phones.present? || client_emails.present?
   end
 
   def value_for_rrh_cas_tag
