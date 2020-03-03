@@ -39,6 +39,7 @@ class ClientsController < ApplicationController
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
     @clients = @clients.
+      distinct.
       preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
       page(params[:page]).per(20)
     if current_user.can_access_window_search? || current_user.can_access_client_search?
