@@ -346,7 +346,12 @@ namespace :youth do
       clients.each do |_personal_id, data|
         client = data[:client]
         client[:data_source_id] = data_source.id
-        source_client = GrdaWarehouse::Hud::Client.where(client.except(:source_client)).first_or_create
+        source_client = GrdaWarehouse::Hud::Client.where(
+          data_source_id: client[:data_source_id],
+          PersonalID: client['PersonalID'],
+        ).first_or_create do |c|
+          c.update(client.except(:source_client))
+        end
         client[:source_client] = source_client
       end
 
@@ -385,13 +390,16 @@ namespace :youth do
         intake[:client_primary_language] ||= 'Unknown'
         intake[:disabilities] ||= []
         intake[:client_race] ||= []
+        intake[:first_name] = data[:client][:FirstName]
+        intake[:last_name] = data[:client][:LastName]
+        intake[:ssn] = data[:client][:SSN]
 
         # The following fields are required at the DB level
         intake[:housing_status] ||= intake[:case_management_housing_status] || ''
 
         # But use the first engagement_date
         first_intake = data[:intakes].first
-        next unless first_intake
+        next unless first_intake.present?
 
         intake[:engagement_date] = first_intake.try(:[], :engagement_date)
         intake[:client_id] = destination_client_id
