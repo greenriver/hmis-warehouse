@@ -99,8 +99,8 @@ gem 'redcarpet'
 # depended on nokogiri and rubyzip with active CVE's
 # we needed https://github.com/randym/axlsx/commit/776037c0fc799bb09da8c9ea47980bd3bf296874
 # and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
-gem 'axlsx', '3.0.0.pre' # git: 'https://github.com/randym/axlsx.git'
-gem 'axlsx_rails'
+gem 'caxlsx'
+gem 'caxlsx_rails'
 gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false

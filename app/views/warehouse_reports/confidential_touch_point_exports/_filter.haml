@@ -1,4 +1,4 @@
-= simple_form_for @filter, as: :filter, url: download_warehouse_reports_confidential_touch_point_exports_path(format: :xlsx), html: { method: :get } do |f|
+= simple_form_for @filter, as: :filter, url: warehouse_reports_confidential_touch_point_exports_path(), html: { class: 'jFilter' } do |f|
   - content_for :filters_col_l do
     .row
       .col-sm-6
