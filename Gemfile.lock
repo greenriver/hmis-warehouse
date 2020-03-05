@@ -1225,6 +1225,7 @@ GEM
       activesupport (>= 4)
       railties (>= 4)
       request_store (~> 1.0)
+    logstop (0.2.5)
     loofah (2.4.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -1624,6 +1625,7 @@ DEPENDENCIES
   linefit
   list_matcher
   lograge
+  logstop
   maxminddb
   memoist
   memory_profiler
