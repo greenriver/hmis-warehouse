@@ -39,7 +39,8 @@ module GrdaWarehouse::WarehouseReports
         end
         clean << ['Selected Range:', start_date, end_date] + section_columns.flatten
         clean << ["Client ID", "Client Name", "Collected On", "Location", "Staff"] + all_questions(dirty)
-        responses.find_each do |response|
+        # NOTE: this is still a second query, but should not bring back the big answers blob a second time
+        limited_responses.find_each do |response|
           row = []
           client_id = response.client.destination_client.id
           client_name = response.client.destination_client.name
@@ -59,6 +60,10 @@ module GrdaWarehouse::WarehouseReports
       end
     end
 
+    def limited_responses
+      responses.select(:id, :client_id, :collected_at, :data_source_id, :assessment_id, :site_id, :staff)
+    end
+
     def sections(dirty)
       @sections ||= dirty[:sections].map{|section_title, questions| [section_title, questions.keys]}.to_h
     end
@@ -66,32 +71,16 @@ module GrdaWarehouse::WarehouseReports
     def all_questions(dirty)
       @all_questions ||= sections(dirty).values.flatten
     end
-    # def compute_data
-    #   section_columns = @sections.map do |section, questions|
-    #     column_count = questions.size - 1
-    #     column_count = 0 if column_count < 0
-    #     [section] + [nil]*(column_count)
-    #   end
-    #   sheet.add_row ['Selected Range:', @start_date, @end_date] + section_columns.flatten
-    #   sheet.add_row ["Client ID", "Client Name", "Collected On", "Location", "Staff"] + @sections.values.flatten
 
-    #   @responses.each do |response|
-    #     row = []
-    #     client_id = response.client.destination_client.id
-    #     client_name = response.client.destination_client.name
-    #     row << client_id
-    #     row << client_name
-    #     row << response.collected_at
-    #     row << response.hmis_assessment.site_name
-    #     row << response.staff
-    #     @sections.each do |title, questions|
-    #       questions.each do |question|
-    #         row << @data.dig(:sections, title, question, client_id, response.id)
-    #       end
-    #     end
-    #     sheet.add_row row
-    #   end
-    # end
+    def client_ids
+      @client_ids ||= begin
+        ids = Set.new
+        limited_responses.find_each do |response|
+          response.client.destination_client.id
+        end
+        ids
+      end
+    end
 
     def start_date
       parameters['start']

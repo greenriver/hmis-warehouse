@@ -60,18 +60,6 @@ module WarehouseReports
       'TouchPoints'
     end
 
-    # def set_filter_options
-    #   @name = filter_params[:name]
-    #   @start_date = filter_params[:start]
-    #   @end_date = filter_params[:end]
-
-    #   return unless @name.blank? || @start_date.blank? || @end_date.blank?
-
-    #   flash[:notice] = 'Please select a name, start, and end date'
-    #   redirect_to(action: :index)
-    #   nil
-    # end
-
     def report_scope
       GrdaWarehouse::WarehouseReports::TouchPoint.for_user(current_user)
     end

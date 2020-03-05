@@ -10,6 +10,6 @@
     = f.input :name, collection: @filter.touch_points_for_user(current_user), input_html: { class: :select2, data: { placeholder: 'Name' } }, label: 'Touch Point'
 
   - content_for :filter_actions do
-    = f.submit 'Download'
+    = f.submit 'Generate Export'
 
   = render 'warehouse_reports/filters', f:f
