@@ -58,6 +58,7 @@ gem "email_check"
 gem 'text'
 
 gem "lograge"
+gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
 gem 'delayed_job_active_record'
