@@ -10,10 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_28_142909) do
+ActiveRecord::Schema.define(version: 2020_03_06_174448) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "hud_apr_clients", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "hud_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "question"
+    t.string "cell_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
+  end
+
+  create_table "hud_report_instances", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.index ["report_cell_id"], name: "index_hud_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
+  end
 
   create_table "warehouse_data_quality_report_enrollments", id: :serial, force: :cascade do |t|
     t.integer "report_id"
