@@ -21,8 +21,12 @@ module GrdaWarehouse::WarehouseReports
 
     def run_and_save!
       update(started_at: Time.current)
+      data = clean_data(computed_data)
+      row_count = data.count - 2 # ignore the headers
+      row_count = 0 if row_count < 1
       update(
-        data: clean_data(computed_data),
+        data: data,
+        client_count: row_count,
         finished_at: Time.current,
       )
     end

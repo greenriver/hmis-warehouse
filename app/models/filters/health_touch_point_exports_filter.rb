@@ -10,7 +10,7 @@ module Filters
     attribute :search_scope
 
     def touch_points_for_user user
-      return search_scope.none unless search_scope.present?
+      return [] unless search_scope.present?
       @names ||= search_scope.health_for_user(user).active.
         distinct.
         where(name: GrdaWarehouse::HmisForm.distinct.select(:name)).
