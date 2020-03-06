@@ -19,14 +19,18 @@ module GrdaWarehouse::WarehouseReports
     # for easier storage and Excel export
     def clean_data(dirty)
       @cleaned_data ||= begin
-        clean = []
+        clean = {
+          summary: [],
+          headers: [],
+          data: [],
+        }
         section_columns = sections(dirty).map do |title, questions|
           column_count = questions.size - 1
           column_count = 0 if column_count < 0
           [title] + [nil]*(column_count)
         end
-        clean << ['Selected Range:', start_date, end_date] + section_columns.flatten
-        clean << ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + all_questions(dirty)
+        clean[:summary] = ['Selected Range:', start_date, end_date] + section_columns.flatten
+        clean[:headers] = ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + all_questions(dirty)
         # NOTE: this is still a second query, but should not bring back the big answers blob a second time
         limited_responses.find_each do |response|
           row = []
@@ -47,7 +51,7 @@ module GrdaWarehouse::WarehouseReports
               row << dirty.dig(:sections, title, question, client_id, response.id)
             end
           end
-          clean << row
+          clean[:data] << row
         end
         clean
       end

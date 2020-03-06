@@ -23,10 +23,10 @@
             %td= report.client_count
             %td
               - if report.completed?
-                = link_to warehouse_reports_touch_point_export_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+                = link_to report_location(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
                   Download
             %td
-              = link_to warehouse_reports_touch_point_export_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this export?"} do
+              = link_to report_location(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this export?"} do
                 %i.icon-cross
 - else
   %p Access to the ETO API is required for this report.

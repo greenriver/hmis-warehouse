@@ -1,7 +1,11 @@
 wb = xlsx_package.workbook
 wb.styles do |style|
   wb.add_worksheet(name: "Touch Point") do |sheet|
-    @report.data.each do |row|
+    row = @report.data['summary']
+    sheet.add_row(row, widths: ([40] * row.count))
+    row = @report.data['headers']
+    sheet.add_row(row, widths: ([40] * row.count))
+    @report.data['data'].each do |row|
       sheet.add_row(row, widths: ([40] * row.count))
     end
   end

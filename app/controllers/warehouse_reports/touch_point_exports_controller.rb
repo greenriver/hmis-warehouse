@@ -84,6 +84,11 @@ module WarehouseReports
       warehouse_reports_touch_point_exports_path
     end
 
+    def report_location(report, args = nil)
+      warehouse_reports_touch_point_export_path(report, args)
+    end
+    helper_method :report_location
+
     def flash_interpolation_options
       { resource_name: 'Export' }
     end

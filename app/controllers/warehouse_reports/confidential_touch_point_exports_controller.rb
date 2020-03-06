@@ -35,6 +35,11 @@ module WarehouseReports
       'ConfidentialTouchPoints'
     end
 
+    def report_location(report, args = nil)
+      warehouse_reports_confidential_touch_point_export_path(report, args)
+    end
+    helper_method :report_location
+
     def reports_location
       warehouse_reports_confidential_touch_point_exports_path
     end
