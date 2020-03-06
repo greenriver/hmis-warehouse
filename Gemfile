@@ -32,6 +32,7 @@ gem 'encryptor'
 # File processing
 gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
+gem 'carrierwave-aws'
 gem 'ruby-filemagic'
 gem 'mini_magick'
 gem 'acts-as-taggable-on', '~> 6.0'

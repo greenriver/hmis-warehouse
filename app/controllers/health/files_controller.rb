@@ -21,10 +21,11 @@ module Health
 
     def show
       @file = @patient.health_files.find(params[:id].to_i)
+      filename = @file.file&.file&.filename&.to_s || 'health_file'
       send_data(
         @file.content,
         type: @file.content_type,
-        filename: File.basename(@file.file.to_s),
+        filename: filename,
       )
     end
 

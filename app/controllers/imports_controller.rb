@@ -30,7 +30,8 @@ class ImportsController < ApplicationController
   def download
     return unless (@upload = @import.upload)
 
-    send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s)) if @upload.content.present?
+    filename = @upload.file&.file&.filename&.to_s || 'import'
+    send_data(@upload.content, type: @upload.content_type, filename: filename) if @upload.content.present?
   end
 
   # POST /imports

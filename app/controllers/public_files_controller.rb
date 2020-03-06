@@ -8,7 +8,8 @@ class PublicFilesController < ApplicationController
   before_action :load_file
 
   def show
-    send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
+    filename = @file.file&.file&.filename&.to_s || 'file'
+    send_data(@file.content, type: @file.content_type, filename: filename)
   end
 
   def load_file

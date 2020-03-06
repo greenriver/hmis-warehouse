@@ -1028,6 +1028,9 @@ GEM
       activemodel (>= 4.0.0)
       activesupport (>= 4.0.0)
       mime-types (>= 1.16)
+    carrierwave-aws (1.4.0)
+      aws-sdk-s3 (~> 1.0)
+      carrierwave (>= 0.7, < 2.1)
     carrierwave-i18n (0.2.0)
     caxlsx (3.0.1)
       htmlentities (~> 4.3, >= 4.3.4)
@@ -1583,6 +1586,7 @@ DEPENDENCIES
   capistrano-rvm
   capybara
   carrierwave (~> 1)
+  carrierwave-aws
   carrierwave-i18n
   caxlsx
   caxlsx_rails
