@@ -33,6 +33,8 @@ module WarehouseReports
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
         'Health::EncounterReport' => ::Health::EncounterReport,
+        'GrdaWarehouse::WarehouseReports::TouchPoint' => ::GrdaWarehouse::WarehouseReports::TouchPoint,
+        'GrdaWarehouse::WarehouseReports::ConfidentialTouchPoint' => GrdaWarehouse::WarehouseReports::ConfidentialTouchPoint,
       }
     end
   end

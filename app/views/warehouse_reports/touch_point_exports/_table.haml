@@ -1,0 +1,32 @@
+- if GrdaWarehouse::Config.get(:eto_api_available)
+  .row
+    .col-sm-12
+      = render 'filter'
+  - if @reports.exists?
+    .row
+      .col-8
+        %p= page_entries_info @reports, entry_name: _('report')
+    %table.table.table-sm.table-hover
+      %thead
+        %tr
+          %th Status
+          %th Options
+          %th Touch Point Count
+          %th Download
+          %th
+      %tbody.report-listing.warehouse-reports__completed
+        - @reports.each do |report|
+          %tr
+            %td= report.status&.capitalize
+            %th
+              = render 'parameters', options: report.parameters
+            %td= report.client_count
+            %td
+              - if report.completed?
+                = link_to report_location(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+                  Download
+            %td
+              = link_to report_location(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this export?"} do
+                %i.icon-cross
+- else
+  %p Access to the ETO API is required for this report.
