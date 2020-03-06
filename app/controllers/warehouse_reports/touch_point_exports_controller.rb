@@ -7,64 +7,65 @@
 module WarehouseReports
   class TouchPointExportsController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :set_filter_options, only: [:download]
-    before_action :load_responses, only: [:download]
+
+    before_action :load_report, only: [:show, :destroy]
 
     def index
       options = { search_scope: touch_point_scope }
       options.merge!(filter_params) if filter_params.present?
       @filter = ::Filters::TouchPointExportsFilter.new(options)
+      @reports = report_scope.for_list.
+        order(created_at: :desc).
+        page(params[:page]).
+        per(25)
     end
 
-    def download
+    def create
+      options = { search_scope: touch_point_scope }
+      options.merge!(filter_params) if filter_params.present?
+      @filter = ::Filters::TouchPointExportsFilter.new(options)
+      # whitelist for touchpoint name
+      @filter.name = @filter.touch_points_for_user(current_user).detect { |m| m == @filter.name }
+      if @filter.name.present?
+        @report = report_scope.create(
+          parameters: @filter.to_h.except(:search_scope),
+          user: current_user,
+        )
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: current_user.id,
+          report_class: @report.class.name,
+          report_id: @report.id,
+        )
+      end
+      respond_with(@report, location: reports_location)
+    end
+
+    def show
       respond_to do |format|
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=TouchPoints-#{@name} #{@start_date&.to_date&.strftime('%F')} to #{@end_date&.to_date&.strftime('%F')}.xlsx"
+          name = @report.parameters['name']
+          start_date = @report.parameters['start']
+          end_date = @report.parameters['end']
+          headers['Content-Disposition'] = "attachment; filename=#{file_name}-#{name} #{start_date&.to_date&.strftime('%F')} to #{end_date&.to_date&.strftime('%F')}.xlsx"
         end
       end
     end
 
-    def set_filter_options
-      @name = filter_params[:name]
-      @start_date = filter_params[:start]
-      @end_date = filter_params[:end]
-
-      return unless @name.blank? || @start_date.blank? || @end_date.blank?
-
-      flash[:notice] = 'Please select a name, start, and end date'
-      redirect_to(action: :index)
-      nil
+    def destroy
+      @report.destroy
+      respond_with(@report, location: reports_location)
     end
 
-    def load_responses
-      @responses = report_source.select(:id, :client_id, :answers, :collected_at, :data_source_id, :assessment_id, :site_id, :staff).
-        joins(:hmis_assessment, client: :destination_client).
-        where(name: @name).
-        where(collected_at: (@start_date..@end_date)).
-        order(:client_id, :collected_at)
-      @data = { sections: {} }
-      @sections = {}
-      @client_ids = Set.new
-      @responses.each do |response|
-        answers = response.answers
-        # client_name = response.client.name
-        client_id = response.client.destination_client.id
-        @client_ids << client_id
-        # date = response.collected_at
-        response_id = response.id
-        answers[:sections].each do |section|
-          title = section[:section_title]
-          @sections[title] ||= []
-          @data[:sections][title] ||= {}
-          section[:questions].each do |question|
-            question_text = question[:question]
-            @sections[title] |= [question_text] # Union version of += (add if not there) for array
-            @data[:sections][title][question_text] ||= {}
-            @data[:sections][title][question_text][client_id] ||= {}
-            @data[:sections][title][question_text][client_id][response_id] = question[:answer]
-          end
-        end
-      end
+    def file_name
+      'TouchPoints'
+    end
+
+    def report_scope
+      GrdaWarehouse::WarehouseReports::TouchPoint.for_user(current_user)
+    end
+
+    def load_report
+      @report = report_scope.find(params[:id].to_i)
     end
 
     def filter_params
@@ -77,6 +78,19 @@ module WarehouseReports
 
     def touch_point_scope
       GrdaWarehouse::HMIS::Assessment.non_confidential
+    end
+
+    def reports_location
+      warehouse_reports_touch_point_exports_path
+    end
+
+    def report_location(report, args = nil)
+      warehouse_reports_touch_point_export_path(report, args)
+    end
+    helper_method :report_location
+
+    def flash_interpolation_options
+      { resource_name: 'Export' }
     end
   end
 end

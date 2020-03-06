@@ -5,9 +5,4 @@
 
 = render '/warehouse_reports/breadcrumbs'
 
-- if GrdaWarehouse::Config.get(:eto_api_available)
-  .row
-    .col-sm-12
-      = render 'filter'
-- else
-  %p Access to the ETO API is required for this report.
+= render '/warehouse_reports/touch_point_exports/table'

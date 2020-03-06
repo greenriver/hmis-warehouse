@@ -15,6 +15,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   delegate :details_in_window_with_release?, to: :hmis_assessment
 
+  scope :viewable_by, -> (user) do
+    # FIXME: we need a site_id to ProjectID lookup table
+    none
+  end
+
   scope :hud_assessment, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.hud_assessment)
   end

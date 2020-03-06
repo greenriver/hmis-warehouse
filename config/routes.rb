@@ -221,16 +221,8 @@ Rails.application.routes.draw do
       post :update_clients, on: :collection
     end
     resources :anomalies, only: [:index]
-    resources :touch_point_exports, only: [:index] do
-      collection do
-        get :download
-      end
-    end
-    resources :confidential_touch_point_exports, only: [:index] do
-      collection do
-        get :download
-      end
-    end
+    resources :touch_point_exports, only: [:index, :create, :show, :destroy]
+    resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
