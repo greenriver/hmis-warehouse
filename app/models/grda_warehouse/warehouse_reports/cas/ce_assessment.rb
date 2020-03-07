@@ -20,14 +20,17 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   def clients
-    @clients = homeless_destination_clients()
-    @clients = filter_for_access(@clients)
-    @clients = filter_for_ongoing_enrollments(@clients)
-    @clients = filter_for_sub_population(@clients)
-    @clients = filter_for_last_assessment(@clients)
-
-    @clients.distinct.
-      preload(:processed_service_history)
+    @clients ||= begin
+      client_ids = filter_homeless_clients_for_access()
+      client_ids = filter_for_ongoing_enrollments(client_ids)
+      client_ids = filter_for_sub_population(client_ids)
+      client_ids = filter_for_last_assessment(client_ids)
+      # This is a bit awkward but reduces the query time by about 3x
+      # in certain permission situations
+      GrdaWarehouse::Hud::Client.where(
+        id: client_ids.distinct.select(:id)
+      ).preload(:processed_service_history)
+    end
   end
 
   def order
@@ -84,17 +87,13 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       distinct
   end
 
-  private def homeless_destination_clients
-    GrdaWarehouse::Hud::Client.joins(:processed_service_history).
+  private def filter_homeless_clients_for_access
+    GrdaWarehouse::Hud::Client.destination.where(id: viewable_source_clients.
+      joins(destination_client: :processed_service_history).
       merge(
         GrdaWarehouse::WarehouseClientsProcessed.
           where(literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY)
-      )
-    end
-
-  private def filter_for_access scope
-    scope.where(id: viewable_source_clients.
-      joins(:warehouse_client_source).
+      ).
       select(wc_t[:destination_id]))
   end
 

@@ -27,14 +27,14 @@
         %th Most Recent Residential Enrollment
     %tbody
       - @clients.each do |client|
-        - enrollment = @report.max_enrollment_for(@report.clients, client.id)
+        - enrollment = @report.max_enrollment_for(@client_page, client.id)
         %tr
           %td= link_to client.FirstName, client_path(client)
           %td= link_to client.LastName, client_path(client)
           %td= ssn(client.SSN)
           %td= client.DOB&.year
           %th= client.processed_service_history.days_homeless_last_three_years
-          %td= @report.max_pathways_date(@report.clients, client.id)
+          %td= @report.max_pathways_date(@client_page, client.id)
           %td
             - if enrollment.present?
               #{enrollment.project_name} (#{HUD.project_type_brief(enrollment.computed_project_type)})
