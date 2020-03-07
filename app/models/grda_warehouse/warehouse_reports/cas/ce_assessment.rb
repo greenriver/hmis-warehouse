@@ -29,7 +29,8 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       # in certain permission situations
       GrdaWarehouse::Hud::Client.where(
         id: client_ids.distinct.select(:id)
-      ).joins(:processed_service_history)
+      ).joins(:processed_service_history).
+      preload(:processed_service_history)
     end
   end
 
