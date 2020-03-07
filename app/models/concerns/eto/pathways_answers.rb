@@ -212,9 +212,14 @@ module Eto
         end
       end
 
-      # def veteran_rrh_desired_answer
+      def ssvf_eligible_answer
+        # 3/7/2020
+        # V.1
+        return false unless hmis_assessment.pathways?
 
-      # end
+        relevant_section = section_starts_with('PAGE #9')
+        answer_from_section(relevant_section, 'Z-6. V.1 Would')&.downcase&.starts_with?('yes') || false
+      end
 
       def sro_ok_answer
         # 2/17/2020

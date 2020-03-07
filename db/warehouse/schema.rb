@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_04_153159) do
+ActiveRecord::Schema.define(version: 2020_03_07_210926) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1988,6 +1988,7 @@ ActiveRecord::Schema.define(version: 2020_03_04_153159) do
     t.string "client_case_managers"
     t.string "client_day_shelters"
     t.string "client_night_shelters"
+    t.boolean "ssvf_eligible", default: false
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
