@@ -76,7 +76,7 @@ module Eto
       def staff_email_answer
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('elements needed for assessor')
+        relevant_section = section_starts_with('Section PP: Elements needed for Assessor Info')
         answer_from_section(relevant_section, 'assessor email')
       end
 
@@ -127,7 +127,7 @@ module Eto
         # 9A
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Why do people take RRH')
+        relevant_section = section_starts_with('Section LL: Why do people take RRH')
         answer_from_section(relevant_section, '9A.')&.downcase == 'yes'
       end
 
@@ -136,7 +136,7 @@ module Eto
         # 9C
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Why do people take RRH')
+        relevant_section = section_starts_with('Section LL: Why do people take RRH')
         answer_from_section(relevant_section, '9C.')&.downcase == 'yes'
       end
 
@@ -145,7 +145,7 @@ module Eto
         # 9F
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Why do people take RRH')
+        relevant_section = section_starts_with('Section LL: Why do people take RRH')
         answer_from_section(relevant_section, '9F.')&.downcase == 'yes'
       end
 
@@ -154,7 +154,7 @@ module Eto
         # 10C
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Household History')
+        relevant_section = section_starts_with('Section MM: Key Points to Share with the Participant Regarding Household History')
         answer_from_section(relevant_section, '10C.')&.downcase == 'yes'
       end
 
@@ -163,7 +163,7 @@ module Eto
         # 6A
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6A.')&.to_i
       end
 
@@ -172,7 +172,7 @@ module Eto
         # 5D
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Section 5 - Household Composition')
+        relevant_section = section_starts_with('PAGE #7. Section 5 - Household Composition/Pending Housing')
         answer_from_section(relevant_section, '5D.')&.downcase == 'yes'
       end
 
@@ -181,7 +181,7 @@ module Eto
         # 2B
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant regarding Safety & Urgent Health Conditions')
+        relevant_section = section_starts_with('Section L: Key Points to Share with the Participant regarding Safety & Urgent Health Conditions')
         answer_from_section(relevant_section, '2b.')&.downcase == 'yes'
       end
 
@@ -190,7 +190,7 @@ module Eto
         # 6I
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('6I.')
+        relevant_section = section_starts_with('Section Z: 6I. Confirm Interest in Signing Up for Homeless Set-Aside Units')
         answer_from_section(relevant_section, 'I confirm my interest in signing up for the homeless set aside units')&.downcase == 'yes'
       end
 
@@ -199,7 +199,7 @@ module Eto
         # 6C
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6c.')&.to_i
       end
 
@@ -213,7 +213,7 @@ module Eto
         # 6D
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6d.')&.downcase&.include?('wheelchair') || false
       end
 
@@ -222,7 +222,7 @@ module Eto
         # 6D
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6D.')&.downcase&.include?('elevator') || false
       end
 
@@ -231,7 +231,7 @@ module Eto
         # 9C
         return nil unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Why do people take RRH instead of waiting for a subsidized housing unit like a Section 8 voucher?')
+        relevant_section = section_starts_with('Section LL: Why do people take RRH instead of waiting for a subsidized housing unit like a Section 8 voucher?')
         answer = answer_from_section(relevant_section, '9c.')
         return nil if answer.blank?
 
@@ -250,7 +250,7 @@ module Eto
         # 9D
         return nil unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Why do people take RRH instead of waiting for a subsidized housing unit like a Section 8 voucher?')
+        relevant_section = section_starts_with('Section LL: Why do people take RRH instead of waiting for a subsidized housing unit like a Section 8 voucher?')
         answer = answer_from_section(relevant_section, '9d.')
         return nil unless answer
 
@@ -278,7 +278,7 @@ module Eto
         # 6B
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6b.')&.downcase == 'yes'
       end
 
@@ -287,7 +287,7 @@ module Eto
         # 6D
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6d.')&.downcase&.include?('other accessibility') || false
       end
 
@@ -296,7 +296,7 @@ module Eto
         # 6G
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6g.')&.downcase == 'yes'
       end
 
@@ -305,7 +305,7 @@ module Eto
         # 10B
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Household History')
+        relevant_section = section_starts_with('Section MM: Key Points to Share with the Participant Regarding Household History')
         answer_from_section(relevant_section, '10B.')&.downcase == 'yes'
       end
 
@@ -314,7 +314,7 @@ module Eto
         # 6H
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('Key Points to Share with the Participant Regarding Unit Preferences')
+        relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6h.')&.split('|')&.map(&:presence)&.compact
       end
 
