@@ -15,10 +15,62 @@ module Eto
       def assessment_score_answer
         # 2/17/2020
         # Total boston pathways assessment score
+        return nil unless hmis_assessment.pathways?
+
+        # relevant_section = section_starts_with('scoring - only')
+        # answer_from_section(relevant_section, 'pathways assessment score')&.to_i
+
+        return 0 if ssvf_eligible_answer
+        return 0 if !domestic_violence_answer && (days_homeless_in_the_last_three_years_answer.blank? || days_homeless_in_the_last_three_years_answer < 30)
+        return 65 if pending_subsidized_housing_placement_answer
+
+        score = 0
+        score += 25 if client.DOB.present? && client.age <= 24
+        score += if domestic_violence_answer
+          15
+        else
+          case days_homeless_in_the_last_three_years_answer
+          when (30..60)
+            1
+          when (61..90)
+            2
+          when (91..120)
+            3
+          when (121..150)
+            4
+          when (151..180)
+            5
+          when (181..210)
+            6
+          when (211..240)
+            7
+          when (241..269)
+            8
+          when (270..Float::INFINITY)
+            15
+          else
+            0
+          end
+        end
+        score += 5 if documented_disability_answer
+        score += 1 if evicted_answer
+        score += 1 if income_maximization_assistance_requested_answer
+
+        score = 1 if score.zero?
+        score
+      end
+
+      def documented_disability_answer
         return false unless hmis_assessment.pathways?
 
-        relevant_section = section_starts_with('scoring - only')
-        answer_from_section(relevant_section, 'pathways assessment score')&.to_i
+        client.destination_client.disability_verified_on.present?
+      end
+
+      def days_homeless_in_the_last_three_years_answer
+        return false unless hmis_assessment.pathways?
+
+        relevant_section = section_starts_with('Section M: Key Point')
+        answer_from_section(relevant_section, 'R-6. 3C.')&.to_i
       end
 
       def staff_email_answer
