@@ -7,6 +7,7 @@
 module GrdaWarehouse::WarehouseReports
   class Base < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
+    acts_as_paranoid
     self.table_name = :warehouse_reports
     belongs_to :user, optional: true
     scope :ordered, -> { order(created_at: :desc) }
@@ -15,14 +16,30 @@ module GrdaWarehouse::WarehouseReports
       select(column_names - ['data', 'support'])
     end
 
+    scope :for_user, -> (user) do
+      where(user_id: user.id)
+    end
 
     def completed_in
-      if finished_at && started_at
+      if completed?
         seconds = ((finished_at - started_at)/1.minute).round * 60
         distance_of_time_in_words(seconds)
       else
         'incomplete'
       end
     end
+
+    def status
+      if started_at
+        completed_in
+      else
+        'queued'
+      end
+    end
+
+    def completed?
+      finished_at && started_at
+    end
+
   end
 end

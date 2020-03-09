@@ -4,7 +4,7 @@
 - work_phones = @client.source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
 - assessment = @client.most_recent_pathways_assessment
 - # Show contacts from Pathways assessment only if full release on file
-- if (home_phones + cell_phones + emails + work_phones).present? || (assessment.contains_contact_info? && @client.consent_confirmed?)
+- if (home_phones + cell_phones + emails + work_phones).present? || (assessment&.contains_contact_info? && @client.consent_confirmed?)
   %table.table
     %tbody
       %tr
@@ -28,7 +28,7 @@
             Work Phone:
             %strong
               = work_phones.join(', ')
-    - if assessment.contains_contact_info? && @client.consent_confirmed?
+    - if assessment&.contains_contact_info? && @client.consent_confirmed?
       .p-4
         %h4 Contacts from Assessments
         %dl

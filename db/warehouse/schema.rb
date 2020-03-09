@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_03_183252) do
+ActiveRecord::Schema.define(version: 2020_03_04_153159) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -3954,6 +3954,7 @@ ActiveRecord::Schema.define(version: 2020_03_03_183252) do
     t.json "support"
     t.string "token"
     t.integer "user_id"
+    t.datetime "deleted_at"
   end
 
   create_table "weather", id: :serial, force: :cascade do |t|
