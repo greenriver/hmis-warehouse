@@ -20,6 +20,7 @@ class CreateHudReportFramework < ActiveRecord::Migration[5.2]
       t.string :question, null: false
       t.string :cell_name
       t.boolean :universe, default: false
+      t.json :metadata
 
       t.timestamps
     end
