@@ -64,6 +64,7 @@ module Clients
           expiration_date: allowed_params[:expiration_date],
           consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
           coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+          consent_revoked_at: allowed_params[:consent_revoked_at],
         }
 
         @file.assign_attributes(attrs)
@@ -234,6 +235,8 @@ module Clients
     end
 
     def selected_coc_codes
+      return ['None'] if params[:refused].present?
+
       permitted_params[:coc_codes]&.map(&:presence)&.compact || []
     end
     helper_method :selected_coc_codes
