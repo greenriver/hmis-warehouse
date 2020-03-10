@@ -53,6 +53,7 @@ module ViewableEntities
         group_method: :last,
         selected: @user.projects.map(&:id),
         collection: collection,
+        label_method: :name_and_type,
         placeholder: 'Project',
         multiple: true,
         input_html: {
