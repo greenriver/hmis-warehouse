@@ -19,7 +19,13 @@ module HudReports
     def universe(question)
       report_cells.
         where(question: question, universe: true).
-        first_or_create
+          first_or_create
+    end
+
+    def cell(question, cell_name)
+      report_cells.
+        where(question: question, cell_name: cell_name).
+          first_or_create
     end
   end
 end
