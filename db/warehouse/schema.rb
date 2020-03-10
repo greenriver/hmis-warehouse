@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_07_210926) do
+ActiveRecord::Schema.define(version: 2020_03_10_141315) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -199,6 +199,7 @@ ActiveRecord::Schema.define(version: 2020_03_07_210926) do
     t.boolean "pathways_other_accessibility", default: false, null: false
     t.boolean "pathways_disabled_housing", default: false, null: false
     t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"

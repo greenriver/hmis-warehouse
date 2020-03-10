@@ -115,7 +115,6 @@ module GrdaWarehouse::Tasks
         mental_health_problem: :mental_response?,
         developmental_disability: :developmental_response?,
         physical_disability: :physical_response?,
-        # calculated_chronic_homelessness: :chronic?, # using sync_with_cas as a manual proxy
         calculated_chronic_homelessness: :chronically_homeless_for_cas,
         calculated_first_homeless_night: :date_of_first_service,
         calculated_last_homeless_night: :date_of_last_homeless_service,
@@ -135,7 +134,6 @@ module GrdaWarehouse::Tasks
         meth_production_conviction: :meth_production_conviction,
         family_member: :family_member,
         child_in_household: :child_in_household,
-        # days_homeless: :days_homeless,
         days_homeless_in_last_three_years: :days_homeless_in_last_three_years,
         days_literally_homeless_in_last_three_years: :literally_homeless_last_three_years,
         vispdat_score: :most_recent_vispdat_score,
@@ -173,9 +171,8 @@ module GrdaWarehouse::Tasks
         pending_subsidized_housing_placement: :pending_subsidized_housing_placement,
         rrh_th_desired: :rrh_th_desired,
         sro_ok: :sro_ok,
-        # pathways_other_accessibility: :pathways_other_accessibility, # FIXME: uknown what this should match in CAS
-        # pathways_disabled_housing: :pathways_disabled_housing, # FIXME: uknown what this should match in CAS
         evicted: :evicted,
+        dv_rrh_desired: :dv_rrh_desired,
       }
     end
   end
