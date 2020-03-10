@@ -41,10 +41,10 @@
               (#{assessment.staff_email})
 
           - if assessment.client_emails.present?
-            %dt Email
+            %dt Client Provided Email
             %dd= simple_format(assessment.client_emails)
           - if assessment.client_phones.present?
-            %dt Phone
+            %dt Client Provided Phone
             %dd= simple_format(assessment.client_phones)
 
 

@@ -101,12 +101,8 @@ module Api
     end
 
     def project_scope
-      @project_scope = if project_params[:limited]
-        project_source.viewable_by(current_user)
-      else
-        project_source
-      end
-      @project_scope.joins(:data_source, :organization).
+      @project_scope = project_source.viewable_by(current_user).
+        joins(:data_source, :organization).
         where(computed_project_type: @project_types).
         merge(data_source_source.where(id: @data_source_ids)).
         merge(organization_source.where(id: @organization_ids))
