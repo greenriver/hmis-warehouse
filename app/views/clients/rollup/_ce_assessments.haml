@@ -1,0 +1,40 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ct = GrdaWarehouse::Hud::Client.arel_table
+  a_t = GrdaWarehouse::Hud::Assessment.arel_table
+  assessments = @client.
+    source_assessments.
+    preload( enrollment: :client ).
+    select( ct[:id], et[:EntryDate], a_t[:data_source_id], et[:EnrollmentID], a_t[:PersonalID], a_t[:AssessmentDate], a_t[:AssessmentType], a_t[:AssessmentLevel], a_t[:PrioritizationStatus]).
+    order(et[:EntryDate].desc, a_t[:AssessmentDate].desc).
+    distinct
+- if assessments.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col
+      %col
+      %col
+    %thead
+      %tr
+        %th
+        %th Entry Date
+        %th Assessment Date
+        %th Assessment Level
+        %th Assessment Type
+        %th Prioritization Status
+    %tbody
+      - assessments.each do |assessment|
+        %tr
+          %td.id-sqr{ 'data-id' => assessment.enrollment.client.id }
+          %td.date-cell= l assessment.enrollment.EntryDate
+          %td= assessment.AssessmentDate
+          %td= HUD.assessment_type assessment.AssessmentType
+          %td= HUD.assessment_level assessment.AssessmentLevel
+          %td= HUD.prioritization_status assessment.PrioritizationStatus
+- else
+  .no-data
+    No Coordinated Entry Assessments on file

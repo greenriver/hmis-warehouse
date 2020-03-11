@@ -399,6 +399,14 @@ $client-image-height: 200px;
   @include tag-pill;
   color: white;
 }
+.rollup-container:empty
+{
+  padding: 1rem;
+  text-align: center;
+}
+.rollup-container:empty:after {
+  content: 'loading...';
+}
 
 .destination-data-source-tag
 {

@@ -2,13 +2,13 @@
   et = GrdaWarehouse::Hud::Enrollment.arel_table
   ct = GrdaWarehouse::Hud::Client.arel_table
   ht = GrdaWarehouse::Hud::HealthAndDv.arel_table
-  spesh = @client.
+  special_populations = @client.
     source_enrollment_health_and_dvs.
     preload( enrollment: :client ).
     select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:EnrollmentID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID], ht[:CurrentlyFleeing] ).
     order(et[:EntryDate].desc).
     distinct
-- if spesh.any?
+- if special_populations.any?
   %table.table
     %colgroup
       %col(style="width:0")
@@ -21,7 +21,7 @@
     %thead
       %tr
         %th
-        %th Program Entry Date
+        %th Entry Date
         %th Veteran Status
         %th Disabling Condition
         %th Domestic Violence
@@ -29,7 +29,7 @@
         %th Pregnancy Status
         %th Due Date
     %tbody
-      - spesh.each do |h|
+      - special_populations.each do |h|
         %tr
           %td.id-sqr{ 'data-id' => h.enrollment.client.id }
           %td.date-cell= l h.enrollment.EntryDate
