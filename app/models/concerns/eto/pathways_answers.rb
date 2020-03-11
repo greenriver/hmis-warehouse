@@ -63,7 +63,8 @@ module Eto
       def documented_disability_answer
         return false unless hmis_assessment.pathways?
 
-        client.destination_client.disability_verified_on.present?
+        relevant_section = section_starts_with('Section MM: Key Points')
+        answer_from_section(relevant_section, '10A.')&.downcase == 'yes'
       end
 
       def days_homeless_in_the_last_three_years_answer
