@@ -32,12 +32,6 @@ module Health
         with_signed_careplans = careplan_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
         without_signed_careplans = patient_ids - with_signed_careplans
 
-        with_careplans_in_122_days = patient_ids.select do |p_id|
-          careplan_date = qa_signature_dates[p_id]&.to_date
-          enrollment_date = patient_referrals[p_id][1]
-          careplan_date.present? && (careplan_date - enrollment_date).to_i <= 122
-        end
-
         with_qualifying_activities_within_range = qualifying_activity_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
         without_qualifying_activities_within_range = patient_ids - with_qualifying_activities_within_range
 
@@ -54,7 +48,8 @@ module Health
             without_chas: without_chas,
             with_signed_careplans: with_signed_careplans,
             without_signed_careplans: without_signed_careplans,
-            with_careplans_in_122_days: with_careplans_in_122_days,
+            with_careplans_in_122_days: with_careplans_in_122_days(patient_ids),
+            with_careplans_signed_within_range: with_careplans_signed_within_range(patient_ids),
             with_qualifying_activities_within_range: with_qualifying_activities_within_range,
             without_qualifying_activities_within_range: without_qualifying_activities_within_range,
           }
@@ -77,6 +72,7 @@ module Health
           with_signed_careplans: agency_counts.map(&:with_signed_careplans).reduce(&:+),
           without_signed_careplans: agency_counts.map(&:without_signed_careplans).reduce(&:+),
           with_careplans_in_122_days: agency_counts.map(&:with_careplans_in_122_days).reduce(&:+),
+          with_careplans_signed_within_range: agency_counts.map(&:with_careplans_signed_within_range).reduce(&:+),
           with_qualifying_activities_within_range: agency_counts.map(&:with_qualifying_activities_within_range).reduce(&:+),
           without_qualifying_activities_within_range: agency_counts.map(&:without_qualifying_activities_within_range).reduce(&:+),
         }
@@ -253,6 +249,21 @@ module Health
         where(date_of_activity: @range).
         where(activity: :pctp_signed).
         group(:patient_id).maximum(:date_of_activity)
+    end
+
+    private def with_careplans_in_122_days(patient_ids)
+      patient_ids.select do |p_id|
+        careplan_date = qa_signature_dates[p_id]&.to_date
+        enrollment_date = patient_referrals[p_id][1]
+        careplan_date.present? && careplan_date.between?(@range.first, @range.last) && (careplan_date - enrollment_date).to_i <= 122
+      end
+    end
+
+    private def with_careplans_signed_within_range(patient_ids)
+      patient_ids.select do |p_id|
+        careplan_date = qa_signature_dates[p_id]&.to_date
+        careplan_date.present? && careplan_date.between?(@range.first, @range.last)
+      end
     end
 
   end

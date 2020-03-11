@@ -317,16 +317,6 @@ module Eto
         relevant_section = section_starts_with('Section Y: Key Points to Share with the Participant Regarding Unit Preferences')
         answer_from_section(relevant_section, '6h.')&.split('|')&.map(&:presence)&.compact
       end
-
-      # def pathways_dv_score_answer
-      #   # Dv priority score
-      #   # FIXME: this may be unecessary
-      # end
-
-      # def pathways_length_of_time_homeless_score_answer
-      #   # Length of time homeless in 3 years score
-      #   # FIXME: this may be unecessary
-      # end
     end
   end
 end

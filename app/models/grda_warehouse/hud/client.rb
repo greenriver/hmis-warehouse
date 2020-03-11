@@ -2850,7 +2850,7 @@ module GrdaWarehouse::Hud
     end
 
     def ongoing_enrolled_project_ids
-      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
     end
 
     def ongoing_enrolled_project_types
