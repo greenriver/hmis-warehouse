@@ -1,0 +1,46 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ct = GrdaWarehouse::Hud::Client.arel_table
+  ee_t = GrdaWarehouse::Hud::EmploymentEducation.arel_table
+  events = @client.
+    source_employment_educations.
+    preload( enrollment: :client ).
+    select( ct[:id], et[:EntryDate], ee_t[:data_source_id], et[:EnrollmentID], ee_t[:PersonalID], ee_t[:InformationDate], ee_t[:LastGradeCompleted], ee_t[:SchoolStatus], ee_t[:Employed], ee_t[:EmploymentType], ee_t[:NotEmployedReason], ee_t[:DataCollectionStage]).
+    order(et[:EntryDate].desc, ee_t[:InformationDate].desc).
+    distinct
+- if events.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col
+      %col
+      %col
+    %thead
+      %tr
+        %th
+        %th Entry Date
+        %th Information Date
+        %th Last Grade Completed
+        %th School Status
+        %th Employed
+        %th Employment Type
+        %th Not Employed Reason
+        %th Data Collection Stage
+    %tbody
+      - events.each do |event|
+        %tr
+          %td.id-sqr{ 'data-id' => event.enrollment.client.id }
+          %td.date-cell= l event.enrollment.EntryDate
+          %td= event.InformationDate
+          %td= HUD.last_grade_completed event.LastGradeCompleted
+          %td= HUD.school_status event.SchoolStatus
+          %td= hud_1_8 event.Employed
+          %td= HUD.employment_type event.EmploymentType
+          %td= HUD.not_employed_reason event.NotEmployedReason
+          %td= HUD.data_collection_stage event.DataCollectionStage
+- else
+  .no-data
+    No Events on file
