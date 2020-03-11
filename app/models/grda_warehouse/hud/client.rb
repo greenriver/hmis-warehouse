@@ -737,13 +737,7 @@ module GrdaWarehouse::Hud
 
     scope :consent_form_valid, -> do
       case(release_duration)
-      when 'One Year'
-        where(
-          arel_table[:housing_release_status].matches("%#{full_release_string}").
-          and(
-            arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)
-          ))
-      when 'Two Years'
+      when 'One Year', 'Two Years'
         where(
           arel_table[:housing_release_status].matches("%#{full_release_string}").
           and(
