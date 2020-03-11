@@ -59,6 +59,7 @@ namespace :eto do
         Bo::ClientIdLookup.new(api_site_identifier: identifier, start_time: start_date).update_all!
       end
       EtoApi::Tasks::UpdateEtoData.new.run!
+      GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
     end
   end
 end
