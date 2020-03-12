@@ -110,7 +110,7 @@ module Bo
       start_time = @start_time
       weeks = []
       while start_time < Date.current
-        end_time = [start_time + 1.week, Time.now].min
+        end_time = [start_time + 1.months, Time.now].min
         weeks << [start_time, end_time]
         start_time = end_time
       end
