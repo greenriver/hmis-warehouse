@@ -235,7 +235,6 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
         hmis_form.assessment_completed_on = hmis_form.assessment_completed_on_answer
         hmis_form.assessment_score = hmis_form.assessment_score_answer
-        hmis_form.rrh_assessment_score = hmis_form.assessment_score_answer
         hmis_form.rrh_desired = hmis_form.rrh_desired_answer
         hmis_form.youth_rrh_desired = hmis_form.youth_rrh_desired_answer
         hmis_form.income_maximization_assistance_requested = hmis_form.income_maximization_assistance_requested_answer
