@@ -1,0 +1,36 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ct = GrdaWarehouse::Hud::Client.arel_table
+  clst = GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
+  current_living_situations = @client.
+    source_current_living_situations.
+    preload( enrollment: :client ).
+    select( ct[:id], et[:EntryDate], clst[:data_source_id], clst[:PersonalID], et[:EnrollmentID], clst[:InformationDate], clst[:CurrentLivingSituation]).
+    order(et[:EntryDate].desc, clst[:InformationDate].desc).
+    distinct
+- if current_living_situations.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col
+      %col
+      %col
+    %thead
+      %tr
+        %th
+        %th Entry Date
+        %th Information Date
+        %th Current Living Situation
+    %tbody
+      - current_living_situations.each do |situation|
+        %tr
+          %td.id-sqr{ 'data-id' => situation.enrollment.client.id }
+          %td.date-cell= l situation.enrollment.EntryDate
+          %td= situation.InformationDate
+          %td= HUD.living_situation situation.CurrentLivingSituation
+- else
+  .no-data
+    No Current Living Situations on file

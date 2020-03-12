@@ -128,6 +128,7 @@ module HUD
     when '4.16.A1' then :p_a_t_h_referral_outcome
     when '4.18.1' then :housing_assessment_disposition
     when '4.19.1', 'W5.1' then :housing_assessment_at_exit
+    when '4.19.3' then :assessment_type
     when '4.19.4' then :assessment_level
     when '4.19.7' then :prioritization_status
     when '4.19.A', 'W5.A' then :subsidy_information
@@ -1274,6 +1275,17 @@ module HUD
       9 => 'Client refused',
       10 => 'Client died',
       99 => 'Data not collected',
+    }
+
+    _translate map, id, reverse
+  end
+
+  # 4.19.3
+  def assessment_type(id, reverse = false)
+    map = {
+      1 => 'Phone',
+      2 => 'Virtual',
+      3 => 'In Person',
     }
 
     _translate map, id, reverse

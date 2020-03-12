@@ -403,6 +403,7 @@ Rails.application.routes.draw do
       patch :unmerge
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
+      get :enrollment_details
     end
     resource :history, only: [:show], controller: 'clients/history' do
       get :pdf, on: :collection
