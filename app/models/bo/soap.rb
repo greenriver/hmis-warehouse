@@ -56,10 +56,8 @@ module Bo
 
         table['row'].map do |row|
           row.map do |k, v|
-            next unless k.present?
-
             [k.downcase.underscore.to_sym, v]
-          end.compact.to_h
+          end.to_h
         end
       rescue StandardError
         raise RequestFailed, "Failed to parse response #{url}; #{response.response_code} http code"

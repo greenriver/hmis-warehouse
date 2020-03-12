@@ -147,11 +147,19 @@ module Bo
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
           Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
-          response = fetch_touch_point_modification_dates(
-            start_time: start_time,
-            end_time: end_time,
-            tp_id: tp_id,
-          )
+          begin
+            response = fetch_touch_point_modification_dates(
+              start_time: start_time,
+              end_time: end_time,
+              tp_id: tp_id,
+            )
+          rescue Bo::Soap::RequestFailed => e
+            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message}"
+            Rails.logger.info msg
+            @notifier.ping msg if send_notifications && msg.present?
+
+            response = nil
+          end
           rows += response if response.present?
         end
       end
