@@ -124,7 +124,7 @@
           - scope = agency.with_careplans_in_122_days
           - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed During Period"
           - numerator = scope.size
-          - denominator = agency.without_signed_careplans.size
+          - denominator = agency.with_careplans_signed_within_range.size
           - percentage = 0
           - percentage = ((numerator/denominator.to_f) * 100).round if denominator.positive? && numerator.positive?
           - link_text = "#{numerator}  (#{percentage}%)"
