@@ -27,7 +27,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
 
     @clients ||= begin
       client_ids = GrdaWarehouse::Hud::Client.destination.distinct.select(:id)
-      client_ids = filter_for_ongoing_enrollments(client_ids)
+      client_ids = filter_for_homeless_clients_with_ongoing_enrollments(client_ids)
       client_ids = filter_length_of_time_homeless(client_ids)
       client_ids = filter_for_sub_population(client_ids)
       client_ids = filter_for_last_assessment(client_ids)
@@ -72,10 +72,12 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       viewable_by(@filter.user).distinct.select(:id)
   end
 
-  private def filter_for_ongoing_enrollments scope
+  private def filter_for_homeless_clients_with_ongoing_enrollments scope
     scope.joins(:service_history_enrollments).
       merge(
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        ongoing.
+        currently_homeless.
         joins(:project).
         merge(
           GrdaWarehouse::Hud::Project.where(id: @filter.project_id).
