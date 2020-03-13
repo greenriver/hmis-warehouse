@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_24_162701) do
+ActiveRecord::Schema.define(version: 2020_03_13_143927) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -530,6 +530,7 @@ ActiveRecord::Schema.define(version: 2020_02_24_162701) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -573,6 +574,17 @@ ActiveRecord::Schema.define(version: 2020_02_24_162701) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
+  end
+
+  create_table "epic_housing_statuses", force: :cascade do |t|
+    t.string "patient_id", null: false
+    t.date "collected_on", null: false
+    t.string "status", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collected_on"], name: "index_epic_housing_statuses_on_collected_on"
+    t.index ["patient_id"], name: "index_epic_housing_statuses_on_patient_id"
   end
 
   create_table "epic_patients", id: :serial, force: :cascade do |t|
