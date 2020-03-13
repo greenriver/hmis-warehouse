@@ -14,15 +14,21 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @filter.sub_population = available_sub_populations.values.detect do |m|
       m == @filter.sub_population&.to_sym
     end || :individual_adults
-    @filter.project_id = @filter.project_id.to_i if @filter.project_id.present?
-
+    if project_id_missing?
+      @filter.project_id = default_project_id
+    else
+      @filter.project_id = @filter.project_id.to_i
+    end
     super
   end
 
   def clients
+    return GrdaWarehouse::Hud::Client.none if project_id_missing?
+
     @clients ||= begin
-      client_ids = filter_homeless_clients_for_access()
-      client_ids = filter_for_ongoing_enrollments(client_ids)
+      client_ids = GrdaWarehouse::Hud::Client.destination.distinct.select(:id)
+      client_ids = filter_for_homeless_clients_with_ongoing_enrollments(client_ids)
+      client_ids = filter_length_of_time_homeless(client_ids)
       client_ids = filter_for_sub_population(client_ids)
       client_ids = filter_for_last_assessment(client_ids)
       # This is a bit awkward but reduces the query time by about 3x
@@ -32,6 +38,18 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       ).joins(:processed_service_history).
       preload(:processed_service_history)
     end
+  end
+
+  def project_id_missing?
+    @filter.project_id.blank?
+  end
+
+  private def default_project_id
+    available_projects.values.flatten(1).first.last
+  end
+
+  def project_name
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user).find_by(id: @filter.project_id)&.ProjectName
   end
 
   def order
@@ -49,37 +67,23 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     ]
   end
 
-  private def client_source
-    # Client#vieable_by returns source clients
-    GrdaWarehouse::Hud::Client.destination.
-      joins(:warehouse_client_destination).
+  private def vieable_project_ids
+    @viewable_project_ids ||= GrdaWarehouse::Hud::Project.
+      viewable_by(@filter.user).distinct.select(:id)
+  end
+
+  private def filter_for_homeless_clients_with_ongoing_enrollments scope
+    scope.joins(:service_history_enrollments).
       merge(
-        GrdaWarehouse::WarehouseClient.where(
-          source_id: source_client_ids
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        ongoing.
+        currently_homeless.
+        joins(:project).
+        merge(
+          GrdaWarehouse::Hud::Project.where(id: @filter.project_id).
+           where(id: vieable_project_ids) # Ensure we are only including visible projects
         )
       )
-  end
-
-  private def source_client_ids
-    @source_client_ids ||= viewable_source_clients.select(:id)
-  end
-
-  private def filter_for_ongoing_enrollments scope
-    if @filter.project_id.present?
-      # We are looking at a single project, ensure we have an open enrollment in that project
-      scope.joins(:service_history_enrollments).
-        merge(
-          GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
-          joins(:project).
-          merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_id))
-        )
-      else
-        # Ensure we have an ongoing enrollment
-        scope.joins(:service_history_enrollments).
-          merge(
-            GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing
-          )
-    end
   end
 
   private def source_clients_with_recent_assessments
@@ -88,19 +92,12 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       distinct
   end
 
-  private def filter_homeless_clients_for_access
-    GrdaWarehouse::Hud::Client.destination.where(id: viewable_source_clients.
-      joins(destination_client: :processed_service_history).
+  private def filter_length_of_time_homeless scope
+    scope.joins(:processed_service_history).
       merge(
         GrdaWarehouse::WarehouseClientsProcessed.
           where(literally_homeless_last_three_years: @filter.days_homeless..Float::INFINITY)
-      ).
-      select(wc_t[:destination_id]))
-  end
-
-  private def viewable_source_clients
-    GrdaWarehouse::Hud::Client.
-      viewable_by(@filter.user)
+      )
   end
 
   private def filter_for_last_assessment scope

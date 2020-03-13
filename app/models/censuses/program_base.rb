@@ -80,8 +80,8 @@ module Censuses
       return if project_type.blank?
 
       dimension_scope = census_data_scope(user: user).by_project_id(project_id)
-      organization_id = project.organization.id
-      dimension_label = "#{project.name} (#{project_type}) < #{project.organization.name} < #{project.data_source.short_name}"
+      organization_id = project.organization&.id
+      dimension_label = "#{project.name} (#{project_type}) < #{project.organization&.name} < #{project.data_source&.short_name}"
       compute_dimension(start_date, end_date, data_source_id, organization_id, project_id, dimension_label, dimension_scope)
     end
 

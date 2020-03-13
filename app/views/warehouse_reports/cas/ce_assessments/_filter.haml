@@ -6,7 +6,7 @@
       .col-3
         = f.input :no_assessment_in, label: 'Minimum Days Since Last Assessment', collection: @report.available_days_since_last_assessment(), include_blank: false, input_html: {class: 'select2'}
       .col-3
-        = f.input :project_id, collection: @report.available_projects(), as: :grouped_select, group_method: :last, label: 'Project', include_blank: 'All', input_html: {class: 'select2'}
+        = f.input :project_id, collection: @report.available_projects(), as: :grouped_select, group_method: :last, label: 'Project', include_blank: false, input_html: {class: 'select2'}
       .col-3
         = f.input :sub_population, collection: @report.available_sub_populations, include_blank: false, input_html: {class: 'select2'}
 
