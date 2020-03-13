@@ -26,6 +26,10 @@ module Health
       transactions.select{ |transaction| self.class.maintenance_type(transaction) == '024'}
     end
 
+    def changes
+      transactions.select{ |transaction| self.class.maintenance_type(transaction) == '001'}
+    end
+
     def self.subscriber_id(transaction)
       transaction.select{|h| h.keys.include? :REF}.
         map{|h| h[:REF]}.each do |ref|

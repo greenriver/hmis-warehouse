@@ -28,7 +28,8 @@ module GrdaWarehouse
         'patient/ssm' => 'SSM Form', # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
         'patient/cha' => 'CHA Form', # app/controllers/health/comprehensive_health_assessments_controller.rb
         'patient/care_plan' => 'Care Plan Form', # app/controllers/health/careplans_controller.rb
-        'patient/case_management_note' => 'Case Management Note Form', # app/controllers/health/sdh_case_management_note.rb
+        'patient/case_management_note' => 'Case Management Note Form', # app/controllers/health/sdh_case_management_note.rb,
+        'client/releases/coc_map' => 'CoC Map (png)', # app/controllers/clients/releases_controller.rb
       }
     end
 

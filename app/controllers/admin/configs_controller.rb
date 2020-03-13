@@ -53,6 +53,7 @@ module Admin
         :verified_homeless_history_visible_to_all,
         :only_most_recent_import,
         :expose_coc_code,
+        :auto_confirm_consent,
         client_details: [],
       )
     end
