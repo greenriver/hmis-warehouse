@@ -16,16 +16,23 @@
           %dt Start Date
           %dd= goal.start_date
 
-          %dt Recommended Action Steps and any needed accommodations
-          %dd= simple_format goal.intervention
-
-          %dt Timeframe
-          %dd= simple_format goal.timeframe
-
           %dt Responsible Care Team Member
           - responsible_team_member = @patient.available_team_members.to_h.invert[goal[:responsible_team_member_id]] || 'No responsible team member'
           %dd{class: ('minor-text' unless responsible_team_member)}= responsible_team_member
-
-
-
-
+        %table.table.table-sm.datatable-goal
+          %thead
+            %tr
+              %th Recommended Action Steps and any needed accommodations
+              %th Timeframe
+          %tbody
+            - (0..9).each do |i|
+              - action_step = goal["action_step_#{i}"]
+              - timeframe = goal["timeframe_#{i}"]
+              - next unless action_step&.strip&.present? || timeframe&.strip&.present?
+              %tr
+                %td
+                  - if action_step&.strip&.present?
+                    = simple_format "#{i+1}. #{action_step}"
+                %td
+                  - if timeframe&.strip&.present?
+                    = simple_format "#{i+1}. #{timeframe}"

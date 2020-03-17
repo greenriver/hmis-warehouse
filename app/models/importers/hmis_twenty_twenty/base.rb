@@ -456,7 +456,7 @@ module Importers::HmisTwentyTwenty
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
             next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
-            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present?
+            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present? && row['EnrollmentID'].present?
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
@@ -546,9 +546,11 @@ module Importers::HmisTwentyTwenty
     def setup_summary(file)
       @import.summary[file] ||= {
         total_lines: -1,
+        lines_processed: 0,
         lines_added: 0,
         lines_updated: 0,
         lines_restored: 0,
+        lines_skipped: 0,
         total_errors: 0,
       }
     end

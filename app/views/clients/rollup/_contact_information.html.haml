@@ -2,7 +2,9 @@
 - cell_phones = @client.source_clients.map(&:cell_phone).reject(&:blank?).compact.uniq
 - emails = @client.source_clients.map(&:email).compact.reject(&:blank?).uniq
 - work_phones = @client.source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
-- if (home_phones + cell_phones + emails + work_phones).present?
+- assessment = @client.most_recent_pathways_assessment
+- # Show contacts from Pathways assessment only if full release on file
+- if (home_phones + cell_phones + emails + work_phones).present? || (assessment&.contains_contact_info? && @client.consent_confirmed?)
   %table.table
     %tbody
       %tr
@@ -26,6 +28,26 @@
             Work Phone:
             %strong
               = work_phones.join(', ')
+    - if assessment&.contains_contact_info? && @client.consent_confirmed?
+      .p-4
+        %h4 Contacts from Assessments
+        %dl
+          %dt Collected On
+          %dd= assessment.collected_at.to_date
+          %dt Collected By
+          %dd
+            = assessment.staff
+            - if assessment.staff_email
+              (#{assessment.staff_email})
+
+          - if assessment.client_emails.present?
+            %dt Client Provided Email
+            %dd= simple_format(assessment.client_emails)
+          - if assessment.client_phones.present?
+            %dt Client Provided Phone
+            %dd= simple_format(assessment.client_phones)
+
+
 - else
   .no-data
     No contact information on file

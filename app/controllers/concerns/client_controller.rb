@@ -262,6 +262,10 @@ module ClientController
         '/clients/rollup/client_notes',
         '/clients/rollup/chronic_notes',
         '/clients/rollup/cohorts',
+        '/clients/rollup/ce_assessments',
+        '/clients/rollup/current_living_situations',
+        '/clients/rollup/ce_events',
+        '/clients/rollup/employment_education',
       ]
       rollup = allowed_rollups.detect do |m|
         m == '/clients/rollup/' + params.require(:partial).underscore

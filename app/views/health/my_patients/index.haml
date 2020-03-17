@@ -6,10 +6,11 @@
     = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
   .o-page__filter
     = render 'filter'
-  .o-page__link.ml-auto
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
-      %i.icon-download2
-      Tracking Sheet
+  - if @patients.present?
+    .o-page__link.ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto disab'}) do
+        %i.icon-download2
+        Tracking Sheet
 %p.mr-5= page_entries_info @patients, entry_name: _('patient')
 = paginate @patients
 

@@ -364,13 +364,19 @@ def report_list
         url: 'warehouse_reports/cas/vacancies',
         name: 'CAS Vacancies',
         description: 'CAS vacancies for a given date range',
-        limitable: false,
+        limitable: true,
       },
       {
         url: 'warehouse_reports/cas/rrh_desired',
         name: 'Clients Interested in RRH',
         description: 'Who has indicated interest in RRH but does not yet have any consent on file',
         limitable: false,
+      },
+      {
+        url: 'warehouse_reports/cas/ce_assessments',
+        name: 'Coordinated-Entry Assessment Status',
+        description: _('Find clients who need a Coordinated Entry re-assessment.'),
+        limitable: true,
       },
     ],
     'Audit Reports' => [
@@ -409,7 +415,7 @@ def report_list
       {
         url: 'warehouse_reports/health/claims',
         name: 'Claim Generation',
-        description: 'Generate and download claims files.',
+        description: 'Generate and download claims files. (837P)',
         limitable: false,
       },
       {

@@ -13,6 +13,7 @@ module Admin::Health
     before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
+    helper_method :tab_path_params
     include ArelHelper
 
     def review

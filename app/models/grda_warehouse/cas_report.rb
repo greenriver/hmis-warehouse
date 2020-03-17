@@ -28,6 +28,14 @@ module GrdaWarehouse
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
+    scope :match_closed, -> do
+      where(active_match: false)
+    end
+
+    scope :match_failed, -> do
+      where.not(terminal_status: ['In Progress', 'Success', 'New'])
+    end
+
     scope :canceled, -> do
       where.not(administrative_cancel_reason: nil)
     end
@@ -42,6 +50,10 @@ module GrdaWarehouse
 
     scope :on_route, -> (route_name) do
       where(match_route: route_name)
+    end
+
+    scope :ineligible_in_warehouse, -> do
+      where(ineligible_in_warehouse: true)
     end
 
     def self.match_routes

@@ -12,13 +12,13 @@
       %dl
         %dt SSN:
         %dd= ssn(@client.SSN)
-= simple_form_for @file, url: client_releases_path(client_id: @client) do |f|
+= simple_form_for @file, url: client_releases_path(@client) do |f|
   - if @file.errors.any?
-    .alert.alert-danger
+    .alert.alert-danger{style: 'display: block;'}
       %p Failed to upload file. Please review the errors below
       %ul.error_list
-        - @file.errors.messages.values.uniq.each do |msg|
-          %li= msg.first
+        - @file.errors.full_messages.uniq.each do |msg|
+          %li= msg
   .form-inputs
     - if @consent_file_types.count == 1
       - # we need to include a hidden field for the javascript to work
@@ -73,25 +73,41 @@
                 - if item.included_info.present?
                   %p.ml-4
                     %em= "(includes: #{item.included_info})"
-    .row.jEffectiveDate
-      .col-sm-4
-        = f.input :effective_date, as: :date_picker, label: 'Effective date or date signed'
-      .col-8.text-right
-        = link_to pre_populated_client_releases_path(), class: 'btn btn-secondary jPrePopulated', data: { href: pre_populated_client_releases_path() } do
-          %i.icon-printer
-          Print Release Form
-    - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
-      .consent-form-fields.hidden
-        = f.input :consent_form_confirmed, as: :boolean
     .row.jConsentFormCoC
-      .col-sm-4
-        = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { class: :select2, multiple: true }
-    .row.jExpirationDate
-      .col-sm-4
-        = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
-    = f.input :file, as: :file, required: true
+      .col-sm-5
+        %h4 Release Information
+        .well
+          = f.input :coc_codes, collection: current_user.coc_codes_for_consent, include_blank: 'All CoCs', input_html: { class: :select2, multiple: true }
+          %br
+          = link_to pre_populated_client_releases_path(), class: 'btn btn-success jPrePopulated', data: { href: pre_populated_client_releases_path() } do
+            %i.icon-printer
+            Print Release Form
+      .col-sm-2.text-center{style: 'padding-top: 8rem;'}
+        OR
+      .col-sm-5
+        %h4 Refuse to Release
+        .well
+          = f.input :consent_revoked_at, as: :date_picker, label: 'Refused all sharing on'
+          .text-right
+            = link_to pre_populated_client_releases_path(), class: 'btn btn-warning jPrePopulated mt-4', data: { href: pre_populated_client_releases_path(), refused: true } do
+              %i.icon-printer
+              Print Refusal Form
+    %h4 Upload Release or Refusal
+    .well
+      = f.input :file, as: :file, required: true
+      .row.jEffectiveDate
+        .col-sm-4
+          = f.input :effective_date, as: :date_picker, label: 'Date Signed'
+      - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
+        .consent-form-fields.hidden
+          = f.input :consent_form_confirmed, as: :boolean
+      .row.jExpirationDate
+        .col-sm-4
+          = f.input :expiration_date, as: :date_picker, label: 'Expiration date'
+      %p Before uploading the release or refusal, ensure you have chosen the appropriate CoC Codes or entered a date above to indicate sharing has been refused.
   .d-flex
-    = link_to polymorphic_path(files_path_generator, client_id: @client.id), class: 'btn btn-secondary ml-auto' do
+    = link_to client_releases_path(@client), class: 'mr-auto mt-2' do
+      %i.icon-arrow-left2
       Cancel &amp; Return to File List
     %button.btn.btn-default.ml-4{type: :submit}
       %i.icon-upload2
@@ -99,13 +115,16 @@
 
 = content_for :page_js do
   :javascript
-    $('.jPrePopulated').on('click', function(e){
+    $('.jPrePopulated').on('click', function(e) {
       // Grab the values we need
-      params = {
+      var params = {
         coc_codes: $('.jConsentFormCoC select').val(),
         expiration_date: $('.jExpirationDate input').val(),
         effective_date: $('.jEffectiveDate input').val()
       }
-      url = $(this).data('href');
+      if($(this).data('refused') !== undefined) {
+        params.refused = 'true';
+      }
+      var url = $(this).data('href');
       $(this).attr('href', url + '.pdf?' + $.param(params));
     });

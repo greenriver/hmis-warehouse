@@ -10,6 +10,7 @@ module Clients
     include PjaxModalController
     include ClientDependentControllers
 
+    skip_before_action :require_window_file_access!
     before_action :require_can_use_separated_consent!
 
     after_action :log_client
@@ -32,7 +33,81 @@ module Clients
     def new
       @file = file_source.new
       @group_name = 'Release of Information'
-      @consent_file_types = @file.class.available_tags[@group_name]
+      @consent_file_types = file_source.available_tags[@group_name]
+    end
+
+    def create
+      @file = file_source.new
+      @group_name = 'Release of Information'
+      @consent_file_types = file_source.available_tags[@group_name]
+      @file.errors.add :tag_list, 'You must specify file contents' if file_params[:tag_list].blank?
+      @file.errors.add :file, 'No uploaded file found' unless file_params[:file]
+      if @file.errors.any?
+        render :new
+        return
+      end
+
+      begin
+        allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
+        file = allowed_params[:file]
+        tag_list = [allowed_params[:tag_list]].select(&:present?)
+        attrs = {
+          file: file,
+          client_id: @client.id,
+          user_id: current_user.id,
+          # content_type: file&.content_type,
+          content: file&.read,
+          note: allowed_params[:note],
+          name: file.original_filename,
+          visible_in_window: window_visible?(allowed_params[:visible_in_window]),
+          effective_date: allowed_params[:effective_date],
+          expiration_date: allowed_params[:expiration_date],
+          consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
+          coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+          consent_revoked_at: allowed_params[:consent_revoked_at],
+        }
+
+        @file.assign_attributes(attrs)
+        @file.tag_list.add(tag_list)
+
+        requires_effective_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_effective_date)
+        requires_expiration_date = GrdaWarehouse::AvailableFileTag.where(name: @file.tag_list).any?(&:requires_expiration_date)
+
+        if requires_effective_date && requires_expiration_date
+          @file.save!(context: :requires_expiration_and_effective_dates)
+        elsif requires_effective_date
+          @file.save!(context: :requires_effective_date)
+        elsif requires_expiration_date
+          @file.save!(context: :requires_expiration_date)
+        else
+          @file.save!
+        end
+
+        # Keep various client fields in sync with files if appropriate
+        @client.sync_cas_attributes_with_files
+      rescue StandardError
+        # flash[:error] = e.message
+        render action: :new
+        return
+      end
+      redirect_to client_releases_path
+    end
+
+    def update
+      attrs = if can_confirm_housing_release?
+        file_params
+      elsif can_manage_client_files? || can_use_separated_consent?
+        file_params.except(:consent_form_confirmed)
+      else
+        not_authorized!
+      end
+      @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
+
+      if attrs.key?(:consent_form_signed_on)
+        attrs[:effective_date] = attrs[:consent_form_signed_on]
+        attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+      end
+      @file.update(attrs)
     end
 
     def file_params
@@ -109,7 +184,7 @@ module Clients
     end
 
     def consent_editable?
-      can_confirm_housing_release? || can_manage_client_files?
+      true
     end
 
     def all_file_scope
@@ -160,6 +235,8 @@ module Clients
     end
 
     def selected_coc_codes
+      return ['None'] if params[:refused].present?
+
       permitted_params[:coc_codes]&.map(&:presence)&.compact || []
     end
     helper_method :selected_coc_codes
@@ -173,5 +250,13 @@ module Clients
       permitted_params[:expiration_date]
     end
     helper_method :selected_expiration_date
+
+    def appropriate_file_path(options)
+      client_release_path(options)
+    end
+
+    def appropriate_delete_modal_path(options)
+      show_delete_modal_client_release_path(options)
+    end
   end
 end

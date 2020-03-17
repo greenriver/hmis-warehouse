@@ -141,7 +141,6 @@ module Health
     end
 
     private def permitted_request_params
-      # FIXME: this needs to use strong params in a more appropriate way
       params.require(:health_sdh_case_management_note).permit(
         :title,
         :total_time_spent_in_minutes,

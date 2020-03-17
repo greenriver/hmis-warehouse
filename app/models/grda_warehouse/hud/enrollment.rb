@@ -371,6 +371,7 @@ module GrdaWarehouse::Hud
     has_many :assessment_questions, through: :assessments
     has_many :direct_assessment_results, **hud_enrollment_belongs('AssessmentResult'), inverse_of: :enrollment
     has_many :assessment_results, through: :assessments
+    has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
 
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)

@@ -188,7 +188,11 @@ Rails.application.routes.draw do
   namespace :warehouse_reports do
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
-    resources :youth_intakes, only: [:index]
+    resources :youth_intakes, only: [:index] do
+      collection do
+        get :details
+      end
+    end
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :incomes, only: [:index]
@@ -217,16 +221,8 @@ Rails.application.routes.draw do
       post :update_clients, on: :collection
     end
     resources :anomalies, only: [:index]
-    resources :touch_point_exports, only: [:index] do
-      collection do
-        get :download
-      end
-    end
-    resources :confidential_touch_point_exports, only: [:index] do
-      collection do
-        get :download
-      end
-    end
+    resources :touch_point_exports, only: [:index, :create, :show, :destroy]
+    resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :hmis_exports, except: [:edit, :update, :new] do
       collection do
         get :running
@@ -324,6 +320,7 @@ Rails.application.routes.draw do
       resources :process, only: [:index]
       resources :apr, only: [:index]
       resources :vacancies, only: [:index]
+      resources :ce_assessments, only: [:index]
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update
@@ -356,6 +353,7 @@ Rails.application.routes.draw do
           post :submit
           post :acknowledge
           get :details
+          get :accept
         end
       end
       resources :patient_referrals, only: [:index] do
@@ -406,6 +404,7 @@ Rails.application.routes.draw do
       patch :unmerge
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
+      get :enrollment_details
     end
     resource :history, only: [:show], controller: 'clients/history' do
       get :pdf, on: :collection

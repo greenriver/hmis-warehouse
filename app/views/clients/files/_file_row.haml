@@ -16,11 +16,11 @@
         - else
           - anchor = 'other'
         - if file.uploaded_by?(current_user)
-          = link_to(polymorphic_path(file_path_generator, id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-danger btn-sm') do
+          = link_to(appropriate_file_path(id: file.id, anchor: anchor), method: :delete, data: {confirm: "Would you really like to delete this file?"}, class: 'btn btn-danger btn-sm') do
             %span.icon-cross
             Delete
         - else
-          = link_to(polymorphic_path(file_path_generator, id: file.id, action: :show_delete_modal), data: {loads_in_pjax_modal: true}, class: 'btn btn-danger btn-sm') do
+          = link_to(appropriate_delete_modal_path(id: file.id), data: {loads_in_pjax_modal: true}, class: 'btn btn-danger btn-sm') do
             %span.icon-cross
             Delete
 
@@ -30,7 +30,7 @@
         %em This file is visible in the window
       .jThumb.mt-2{data: {file: file.id}}
       - if file.content.present?
-        = link_to polymorphic_path(file_path_generator, id: file.id), class: 'btn btn-link icon-lg mt-2' do
+        = link_to appropriate_file_path(id: file.id), class: 'btn btn-link icon-lg mt-2' do
           %i.icon-download2
     .col-4
       - file.tag_list.each do |tag|
@@ -56,14 +56,14 @@
           .active-release.mb-2{data: {toggle: :tooltip, title: 'You will need to refresh the page to see changes to active release forms'}}
             %i.icon-flag
             Active
-        - if (can_manage_client_files? || can_confirm_housing_release?) && @consent_editable
-          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+        - if @consent_editable
+          = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
             = f.input :consent_form_signed_on, as: :date_picker, label: 'Effective Date/Signed On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
           - if can_confirm_housing_release? && ! GrdaWarehouse::Config.get(:auto_confirm_consent)
-            = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+            = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
               .mt-2
                 = f.input :consent_form_confirmed, as: :boolean, input_html: { class: 'submit-on-change' }, label: _('Consent form confirmed')
-          = simple_form_for file, remote: true, url: polymorphic_path(file_path_generator, id: file.id) do |f|
+          = simple_form_for file, remote: true, url: appropriate_file_path(id: file.id) do |f|
             = f.input :consent_revoked_at, as: :date_picker, label: 'Revoked or Refused On', input_html: { disabled: true, class: 'submit-on-change enable-on-load' }
         - else
           - if file.consent_form_confirmed

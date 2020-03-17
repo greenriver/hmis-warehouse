@@ -1,0 +1,4 @@
+InventoryID,ProjectID,CoCCode,InformationDate,Availability,UnitInventory,BedInventory,CHVetBedInventory,YouthVetBedInventory,VetBedInventory,CHBedInventory,YouthBedInventory,CHBedInventory,OtherBedInventory,ESBedType,InventoryStartDate,InventoryEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+1,148,XX-500,2017-04-01,,20,35,30,2,3,,0,,,,2017-04-01,,35,2017-04-0113:03:00,2017-04-0113:03:00,cordell,77ebf652741208fa9a36c52556058416
+2,117,XX-500,2017-04-01,,10,20,0,10,10,,,,,,2016-04-01,,35,2016-04-0113:03:00,2016-04-0113:03:00,cordell,77ebf652741208fa9a36c52556058416
+

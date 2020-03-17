@@ -336,9 +336,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Support # rubocop:disa
     def completeness_support_columns(column)
       @completeness_support_columns ||= client_support_columns
       case column
+      when :veteran
+        @completeness_support_columns['Veteran Status'] = :veteran_status
       when :dob
         @completeness_support_columns['DOB Quality'] = :dob_data_quality
-      when :first_name, :last_name
+      when :first_name, :last_name, :name
         @completeness_support_columns['Name Quality'] = :name_data_quality
       when :ssn
         @completeness_support_columns['SSN Quality'] = :ssn_data_quality

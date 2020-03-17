@@ -118,8 +118,8 @@ module GrdaWarehouse::Hud
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs, inverse_of: :client
     has_many :income_benefits, through: :enrollments, source: :income_benefits, inverse_of: :client
     has_many :employment_educations, through: :enrollments, source: :employment_educations, inverse_of: :client
-    has_many :events, through: :enrollments, source: :events, inverse_of: :client
-    has_many :events, through: :enrollments, inverse_of: :enrollment
+    has_many :current_living_situations, through: :enrollments
+    has_many :events, through: :enrollments
     has_many :assessments, through: :enrollments, source: :assessments, inverse_of: :client
     has_many :assessment_questions, through: :assessments, source: :assessment_questions
     has_many :assessment_results, through: :assessments, source: :assessment_results
@@ -134,6 +134,7 @@ module GrdaWarehouse::Hud
     has_many :direct_income_benefits, **hud_assoc(:PersonalID, 'IncomeBenefit'), inverse_of: :direct_client
     has_many :direct_employment_educations, **hud_assoc(:PersonalID, 'EmploymentEducation'), inverse_of: :direct_client
     has_many :direct_events, **hud_assoc(:PersonalID, 'Event'), inverse_of: :direct_client
+    has_many :direct_current_living_situations, **hud_assoc(:PersonalID, 'CurrentLivingSituation'), inverse_of: :direct_client
     has_many :direct_assessments, **hud_assoc(:PersonalID, 'Assessment'), inverse_of: :direct_client
     has_many :direct_assessment_questions, **hud_assoc(:PersonalID, 'AssessmentQuestion'), inverse_of: :enrollment
     has_many :direct_assessment_results, **hud_assoc(:PersonalID, 'AssessmentResult'), inverse_of: :enrollment
@@ -146,6 +147,11 @@ module GrdaWarehouse::Hud
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
     has_many :source_employment_educations, through: :source_enrollments, source: :employment_educations
+    has_many :source_current_living_situations, through: :source_enrollments, source: :current_living_situations
+    has_many :source_events, through: :source_enrollments, source: :events
+    has_many :source_assessments, through: :source_enrollments, source: :assessments
+    has_many :source_assessment_questions, through: :source_enrollments, source: :direct_assessment_questions
+    has_many :source_assessment_results, through: :source_enrollments, source: :assessment_results
     has_many :source_exits, through: :source_enrollments, source: :exit
     has_many :source_projects, through: :source_enrollments, source: :project
     has_many :permanent_source_exits, -> do
@@ -243,7 +249,41 @@ module GrdaWarehouse::Hud
     end
 
     def default_shelter_agency_contacts
-      source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email)
+      (source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email) + source_hmis_forms.pathways.pluck(:staff_email)).compact
+    end
+
+    def pathways_assessments
+      source_hmis_forms.pathways
+    end
+
+    def most_recent_pathways_assessment
+      pathways_assessments.newest_first.first
+    end
+
+    def most_recent_pathways_assessment_collected_on
+      most_recent_pathways_assessment&.collected_at
+    end
+
+    # Do we have any declines that make us ineligible
+    # that occurred more recently than our most-recent pathways
+    # assessment?
+    def pathways_ineligible?
+      most_recent_pathways_ineligible_cas_response.present?
+    end
+
+    def most_recent_pathways_ineligible_cas_response
+      @most_recent_pathways_ineligible_cas_response ||= cas_reports.ineligible_in_warehouse.
+        declined.
+        match_closed.
+        match_failed.
+        where(updated_at: most_recent_pathways_assessment_collected_on..Time.current).
+        order(updated_at: :desc)&.first
+    end
+
+    def pathways_ineligible_on
+      return false unless pathways_ineligible?
+
+      most_recent_pathways_ineligible_cas_response.updated_at&.to_date
     end
 
     # do include ineligible clients for client dashboard, but don't include cohorts excluded from
@@ -285,7 +325,7 @@ module GrdaWarehouse::Hud
       where(data_source: GrdaWarehouse::DataSource.destination)
     end
     scope :source, -> do
-      where(data_source: GrdaWarehouse::DataSource.importable)
+      where(data_source: GrdaWarehouse::DataSource.source)
     end
 
     scope :searchable, -> do
@@ -639,9 +679,9 @@ module GrdaWarehouse::Hud
 
         if user.can_view_clients_with_roi_in_own_coc?
           # At a high level if you can see clients with ROI in your COC, you need to be able
-            # to see everyone for searching purposes.
-            # limits will be imposed on accessing the actual client dashboard pages
-            # current_scope
+          # to see everyone for searching purposes.
+          # limits will be imposed on accessing the actual client dashboard pages
+          # current_scope
 
           # If the user has coc-codes specified, this will limit to users
           # with a valid consent form in the coc or with no-coc specified
@@ -702,7 +742,7 @@ module GrdaWarehouse::Hud
 
     scope :consent_form_valid, -> do
       case(release_duration)
-      when 'One Year'
+      when 'One Year', 'Two Years'
         where(
           arel_table[:housing_release_status].matches("%#{full_release_string}").
           and(
@@ -863,10 +903,10 @@ module GrdaWarehouse::Hud
       client_scope = source_clients.searchable_by(user)
       names = client_scope.includes(:data_source).map do |m|
         {
-          ds: m.data_source.short_name,
-          ds_id: m.data_source.id,
+          ds: m.data_source&.short_name,
+          ds_id: m.data_source&.id,
           name: m.full_name,
-          health: m.data_source.authoritative_type == 'health'
+          health: m.data_source&.authoritative_type == 'health'
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
@@ -1008,7 +1048,11 @@ module GrdaWarehouse::Hud
       elsif GrdaWarehouse::Vispdat::Base.any_visible_by?(user)
         client_vispdats_path(self)
       elsif GrdaWarehouse::ClientFile.any_visible_by?(user)
-        client_files_path(self)
+        if user.can_use_separated_consent?
+          client_releases_path(self)
+        else
+          client_files_path(self)
+        end
       elsif GrdaWarehouse::YouthIntake::Base.any_visible_by?(user)
         client_youth_intakes_path(self)
       elsif GrdaWarehouse::CoordinatedEntryAssessment::Base.any_visible_by?(user)
@@ -1108,14 +1152,12 @@ module GrdaWarehouse::Hud
       processed_service_history&.eto_coordinated_entry_assessment_score || 0
     end
 
-    # if we are pulling RRH assessments from ETO, use that
-    # Otherwise, use highest assessment score from any cohort clients
+    # Pathways and RRH assessment scores get stored in rrh_assessment_score
+    # If we don't have that, use highest assessment score from any cohort clients
     def assessment_score_for_cas
-      if GrdaWarehouse::HmisForm.rrh_assessment.exists?
-        score_for_rrh_assessment
-      else
-        assessment_score_from_cohort_clients
-      end
+      return rrh_assessment_score if rrh_assessment_score.present? && rrh_assessment_score.positive?
+
+      assessment_score_from_cohort_clients
     end
 
     def assessment_score_from_cohort_clients
@@ -1140,6 +1182,8 @@ module GrdaWarehouse::Hud
     def self.consent_validity_period
       if release_duration == 'One Year'
         1.years
+      elsif release_duration = 'Two Years'
+        2.years
       elsif release_duration == 'Indefinite'
         100.years
       else
@@ -1148,7 +1192,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.revoke_expired_consent
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
           if client.consent_form_signed_on < consent_validity_period.ago
@@ -1165,7 +1209,7 @@ module GrdaWarehouse::Hud
     def release_current_status
       consent_text = if housing_release_status.blank?
         'None on file'
-      elsif release_duration == 'One Year'
+      elsif release_duration.in?(['One Year', 'Two Years'])
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
         else
@@ -1199,7 +1243,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_form_valid?
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
@@ -1278,7 +1322,10 @@ module GrdaWarehouse::Hud
       ].include?('Yes')
     end
 
+    # Use the Pathways answer if available, otherwise, HMIS
     def domestic_violence?
+      return pathways_domestic_violence if pathways_domestic_violence
+
       source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
     end
 
@@ -1516,7 +1563,7 @@ module GrdaWarehouse::Hud
 
     def fake_client_image_data
       gender = if self[:Gender].in?([1,3]) then 'male' else 'female' end
-      age_group = if age > 18 then 'adults' else 'children' end
+      age_group = if age.blank? || age > 18 then 'adults' else 'children' end
       image_directory = File.join('public', 'fake_photos', age_group, gender)
       available = Dir[File.join(image_directory, '*.jpg')]
       image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
@@ -1961,8 +2008,8 @@ module GrdaWarehouse::Hud
     # SSN can be full 9 or last 4
     # Names can potentially be switched.
     def self.strict_search(criteria, client_scope: none)
-      first_name = criteria[:first_name]&.strip&.gsub(/[^a-z0-9]/i, '')
-      last_name = criteria[:last_name]&.strip&.gsub(/[^a-z0-9]/i, '')
+      first_name = criteria[:first_name]&.strip
+      last_name = criteria[:last_name]&.strip
       dob = criteria[:dob]&.to_date
       ssn = criteria[:ssn]&.gsub(/[^0-9]/i, '')
       ssn = nil if ssn.present? && ssn.length < 4
@@ -2036,7 +2083,7 @@ module GrdaWarehouse::Hud
     alias_method :age_on, :age
 
     def uuid
-      @uuid ||= if data_source.munged_personal_id
+      @uuid ||= if data_source&.munged_personal_id
         self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
       else
         self.PersonalID
@@ -2693,9 +2740,12 @@ module GrdaWarehouse::Hud
       days.compact.max
     end
 
-    # Pull the maximum total monthly income from any open enrollments, looking
+    # Use the Pathways value if it is present and non-zero
+    # Otherwise, pull the maximum total monthly income from any open enrollments, looking
     # only at the most recent assessment per enrollment
     def max_current_total_monthly_income
+      return income_total_monthly if income_total_monthly.present? && income_total_monthly.positive?
+
       source_enrollments.open_on_date(Date.current).map do |enrollment|
         enrollment.income_benefits.limit(1).
           order(InformationDate: :desc).
@@ -2807,7 +2857,7 @@ module GrdaWarehouse::Hud
     end
 
     def ongoing_enrolled_project_ids
-      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
     end
 
     def ongoing_enrolled_project_types
