@@ -15,29 +15,12 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
+    has_paper_trail
 
     self.table_name = :Client
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
-
-    has_many :client_files
-    has_many :health_files
-    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
-    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
-    has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
-    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
-    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
-    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
-    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
-
-    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
-    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
-
-    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
-    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
-
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
-
 
     def self.hud_csv_headers(version: nil)
       [
@@ -80,8 +63,21 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    has_paper_trail
-    include ArelHelper
+    has_many :client_files
+    has_many :health_files
+    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
+    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
+    has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
+    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
+    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
+    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
+
+    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
+
+    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
+    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
