@@ -967,11 +967,17 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
+    # Include clients with an indefinite and impairing disability
+    # and those who have had their disability verified manually
     scope :chronically_disabled, -> (end_date=Date.current) do
       start_date = end_date - 3.years
-      joins(:source_enrollment_disabilities).
-        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
-        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
+      where(
+        id: joins(:source_enrollment_disabilities).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+          merge(GrdaWarehouse::Hud::Disability.chronically_disabled).select(:id)
+      ).or(
+        where(id: where.not(disability_verified_on: nil).select(:id))
+      )
     end
 
     def chronically_disabled?
