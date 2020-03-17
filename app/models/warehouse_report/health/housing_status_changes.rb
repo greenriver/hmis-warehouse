@@ -23,9 +23,9 @@ class WarehouseReport::Health::HousingStatusChanges
   end
 
   def populate_report_data
-    populate_from_patients
     from_sdh_notes
-    from_epic
+    from_epic_housing_statuses
+    from_epic_case_notes
     from_touchpoints
     @report_data_present = true
   end
@@ -39,28 +39,6 @@ class WarehouseReport::Health::HousingStatusChanges
       scope = scope.merge(Health::PatientReferral.at_acos(@selected_acos)) if @selected_acos.present?
       scope
     end
-  end
-
-  def populate_from_patients
-    # FIXME: what bucket should each patient go into?
-    # patient_scope.
-    #   with_housing_status.
-    #   where(housing_status_timestamp: @range).
-    #   pluck(
-    #     :client_id,
-    #     :housing_status,
-    #     hpr_t[:accountable_care_organization_id].to_sql,
-    #     :housing_status_timestamp,
-    #   ).
-    #   each do |client_id, housing_status, aco_id, timetamp|
-    #     add_housing_status(
-    #       group: :starting,
-    #       client_id: client_id,
-    #       housing_status: housing_status,
-    #       aco_id:aco_id,
-    #       source: 'EPIC Patient',
-    #     )
-    #   end
   end
 
   def from_sdh_notes
@@ -107,7 +85,52 @@ class WarehouseReport::Health::HousingStatusChanges
       end
   end
 
-  def from_epic
+  def from_epic_housing_statuses
+    patient_scope.
+      joins(:epic_housing_statuses).
+      merge(Health::EpicHousingStatus.within_range(@range)).
+      group(
+        :client_id,
+        h_ehs_t[:status].to_sql,
+        hpr_t[:accountable_care_organization_id].to_sql,
+      ).
+      minimum(h_ehs_t[:collected_on].to_sql).
+      each do |data, timestamp|
+      client_id, housing_status, aco_id = data
+      add_housing_status(
+        group: :starting,
+        timestamp: timestamp,
+        client_id: client_id,
+        housing_status: housing_status,
+        aco_id: aco_id,
+        source: 'EPIC',
+      )
+    end
+
+    patient_scope.
+      joins(:epic_case_notes).
+      joins(:epic_housing_statuses).
+      merge(Health::EpicHousingStatus.within_range(@range)).
+      group(
+        :client_id,
+        h_ehs_t[:status].to_sql,
+        hpr_t[:accountable_care_organization_id].to_sql,
+      ).
+      maximum(h_ehs_t[:collected_on].to_sql).
+      each do |data, timestamp|
+      client_id, housing_status, aco_id = data
+      add_housing_status(
+        group: :ending,
+        timestamp: timestamp,
+        client_id: client_id,
+        housing_status: housing_status,
+        aco_id: aco_id,
+        source: 'EPIC',
+      )
+    end
+  end
+
+  def from_epic_case_notes
     patient_scope.
       joins(:epic_case_notes).
       merge(Health::EpicCaseNote.with_housing_status.within_range(@range)).
