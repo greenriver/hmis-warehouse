@@ -42,182 +42,69 @@ class WarehouseReport::Health::HousingStatusChanges
   end
 
   def from_sdh_notes
-    patient_scope.
+    statuses = patient_scope.
       joins(:sdh_case_management_notes).
       merge(Health::SdhCaseManagementNote.with_housing_status.within_range(@range)).
-      group(
+      pluck(
         :client_id,
         h_sdhcmn_t[:housing_status].to_sql,
         hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      minimum(h_sdhcmn_t[:date_of_contact].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        add_housing_status(
-          group: :starting,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'Care Hub',
-        )
-      end
-
-    patient_scope.
-      joins(:sdh_case_management_notes).
-      merge(Health::SdhCaseManagementNote.with_housing_status.within_range(@range)).
-      group(
-        :client_id,
-        h_sdhcmn_t[:housing_status].to_sql,
-        hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      maximum(h_sdhcmn_t[:date_of_contact].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        add_housing_status(
-          group: :ending,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'Care Hub',
-        )
-      end
+        h_sdhcmn_t[:date_of_contact].to_sql,
+      )
+    add_housing_statuses(statuses: statuses, group: :starting, source: 'Care Hub')
+    add_housing_statuses(statuses: statuses, group: :ending, source: 'Care Hub')
   end
 
   def from_epic_housing_statuses
-    patient_scope.
+    statuses = patient_scope.
       joins(:epic_housing_statuses).
       merge(Health::EpicHousingStatus.within_range(@range)).
-      group(
+      pluck(
         :client_id,
         h_ehs_t[:status].to_sql,
         hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      minimum(h_ehs_t[:collected_on].to_sql).
-      each do |data, timestamp|
-      client_id, housing_status, aco_id = data
-      add_housing_status(
-        group: :starting,
-        timestamp: timestamp,
-        client_id: client_id,
-        housing_status: housing_status,
-        aco_id: aco_id,
-        source: 'EPIC',
+        h_ehs_t[:collected_on].to_sql,
       )
-    end
-
-    patient_scope.
-      joins(:epic_case_notes).
-      joins(:epic_housing_statuses).
-      merge(Health::EpicHousingStatus.within_range(@range)).
-      group(
-        :client_id,
-        h_ehs_t[:status].to_sql,
-        hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      maximum(h_ehs_t[:collected_on].to_sql).
-      each do |data, timestamp|
-      client_id, housing_status, aco_id = data
-      add_housing_status(
-        group: :ending,
-        timestamp: timestamp,
-        client_id: client_id,
-        housing_status: housing_status,
-        aco_id: aco_id,
-        source: 'EPIC',
-      )
-    end
+    add_housing_statuses(statuses: statuses, group: :starting, source: 'EPIC')
+    add_housing_statuses(statuses: statuses, group: :ending, source: 'EPIC')
   end
 
   def from_epic_case_notes
-    patient_scope.
+    statuses = patient_scope.
       joins(:epic_case_notes).
       merge(Health::EpicCaseNote.with_housing_status.within_range(@range)).
-      group(
+      pluck(
         :client_id,
         h_ecn_t[:homeless_status].to_sql,
         hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      minimum(h_ecn_t[:contact_date].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        add_housing_status(
-          group: :starting,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'EPIC',
-        )
-      end
-
-    patient_scope.
-      joins(:epic_case_notes).
-      merge(Health::EpicCaseNote.with_housing_status.within_range(@range)).
-      group(
-        :client_id,
-        h_ecn_t[:homeless_status].to_sql,
-        hpr_t[:accountable_care_organization_id].to_sql,
-      ).
-      maximum(h_ecn_t[:contact_date].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        add_housing_status(
-          group: :ending,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'EPIC',
-        )
-      end
+        h_ecn_t[:contact_date].to_sql,
+      )
+    add_housing_statuses(statuses: statuses, group: :starting, source: 'EPIC')
+    add_housing_statuses(statuses: statuses, group: :ending, source: 'EPIC')
   end
 
   def from_touchpoints
-    GrdaWarehouse::Hud::Client.
+    statuses = GrdaWarehouse::Hud::Client.
       where(id: patient_scope.pluck(:client_id)).
       joins(:source_hmis_forms).
       merge(GrdaWarehouse::HmisForm.with_housing_status.within_range(@range)).
-      group(
+      pluck(
         :id,
-        hmis_form_t[:housing_status].to_sql
-      ).
-      minimum(hmis_form_t[:collected_at].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        aco_id = aco_id_for_client_id(client_id)
-        add_housing_status(
-          group: :starting,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'ETO',
-        )
-      end
+        hmis_form_t[:housing_status].to_sql,
+        hmis_form_t[:collected_at].to_sql,
+      )
 
-    GrdaWarehouse::Hud::Client.
-      where(id: patient_scope.pluck(:client_id)).
-      joins(:source_hmis_forms).
-      merge(GrdaWarehouse::HmisForm.with_housing_status.within_range(@range)).
-      group(
-        :id,
-        hmis_form_t[:housing_status].to_sql
-      ).
-      maximum(hmis_form_t[:collected_at].to_sql).
-      each do |data, timestamp|
-        client_id, housing_status, aco_id = data
-        aco_id = aco_id_for_client_id(client_id)
-        add_housing_status(
-          group: :ending,
-          timestamp: timestamp,
-          client_id: client_id,
-          housing_status: housing_status,
-          aco_id: aco_id,
-          source: 'ETO',
-        )
-      end
+    statuses = statuses.map do |(client_id, status, timestamp)|
+      [
+        client_id,
+        status,
+        aco_id_for_client_id(client_id),
+        timestamp,
+      ]
+    end
+
+    add_housing_statuses(statuses: statuses, group: :starting, source: 'ETO')
+    add_housing_statuses(statuses: statuses, group: :ending, source: 'ETO')
   end
 
   def housing_status_buckets
@@ -256,6 +143,13 @@ class WarehouseReport::Health::HousingStatusChanges
   def count_for_aco(group:, housing_status:, aco_id:)
     report_data[aco_id].values.map{ |a| a[group] }.count{ |m| m[:clean_housing_status] == housing_status }
   end
+
+  def add_housing_statuses(statuses:, group:, source:)
+    statuses.each do |(client_id, status, aco_id, timestamp)|
+      add_housing_status(group: group, timestamp: timestamp, client_id: client_id, housing_status: status, aco_id: aco_id, source: source)
+    end
+  end
+
 
   def add_housing_status(group:, timestamp:, client_id:, housing_status:, aco_id:, source:)
     @report_data[aco_id] ||= {}
