@@ -637,6 +637,7 @@ ActiveRecord::Schema.define(version: 2020_01_28_142909) do
     t.date "start_date"
     t.date "end_date"
     t.integer "length_of_stay"
+    t.boolean "juvenile"
     t.index ["client_id"], name: "index_warehouse_returns_on_client_id"
     t.index ["first_date_in_program"], name: "index_warehouse_returns_on_first_date_in_program"
     t.index ["project_type"], name: "index_warehouse_returns_on_project_type"
