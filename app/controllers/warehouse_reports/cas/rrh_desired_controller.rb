@@ -36,14 +36,6 @@ module WarehouseReports::Cas
       ] + hmis_form_source.rrh_columns
     end
 
-    private def client_scope
-      client_source.destination.no_release_on_file
-    end
-
-    private def client_source
-      GrdaWarehouse::Hud::Client
-    end
-
     private def hmis_form_source
       GrdaWarehouse::HmisForm
     end
