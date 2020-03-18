@@ -2,7 +2,7 @@
   - collected_on = @client.most_recent_pathways_assessment_collected_on
   - warehouse_ineligible = @client.pathways_ineligible?
   - days = 90
-  - inactive = @client.homeless_service_in_last_n_days?(days)
+  - active = @client.homeless_service_in_last_n_days?(days)
   - if collected_on.present? || warehouse_ineligible || inactive
     %h3.mt-0= _('Pathways')
     - if collected_on.present?
@@ -12,7 +12,7 @@
             .icon-file-text
           .c-tag__content
             %span #{_('Pathways')} Assessment #{collected_on.to_date}
-    - if collected_on.present?
+    - unless active
       .c-tag.c-tag--warning.client-flag
         .c-tag__wrapper
           .c-tag__icon
