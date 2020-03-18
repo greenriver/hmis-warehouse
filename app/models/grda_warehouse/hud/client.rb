@@ -1609,32 +1609,39 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end
 
-    def fetch_updated_source_hmis_clients
+    def fetch_updated_source_hmis_clients(save: false)
       return nil unless accessible_via_qaaws?
       source_eto_client_lookups.map do |api_client|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_client.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(
+        options = {
           api: api,
           client_id: api_client.client_id,
           participant_site_identifier: api_client.participant_site_identifier,
           site_id: api_client.site_id,
           subject_id: api_client.subject_id,
           data_source_id: api_client.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_demographics(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(options)
+        end
       end.compact
     end
 
-    def fetch_updated_source_hmis_forms
+    # Note:
+    def fetch_updated_source_hmis_forms(save: false)
       return nil unless accessible_via_qaaws?
+
       source_eto_touch_point_lookups.map do |api_touch_point|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_touch_point.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(
+        options = {
           api: api,
           client_id: api_touch_point.client_id,
           touch_point_id: api_touch_point.assessment_id,
@@ -1642,7 +1649,12 @@ module GrdaWarehouse::Hud
           subject_id: api_touch_point.subject_id,
           response_id: api_touch_point.response_id,
           data_source_id: api_touch_point.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_touch_point(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(options)
+        end
       end.compact
     end
 
