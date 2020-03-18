@@ -306,7 +306,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         subject_id: subject_id,
         response_id: response_id,
         assessment_id: touch_point_id,
-        data_source_id: @data_source_id,
+        data_source_id: data_source_id,
         site_id: site_id,
       ).first_or_initialize
       #   { assessment_title: 'Title',
