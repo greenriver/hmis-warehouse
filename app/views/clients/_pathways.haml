@@ -1,7 +1,9 @@
 - if @client.pathways_assessments.exists?
   - collected_on = @client.most_recent_pathways_assessment_collected_on
   - warehouse_ineligible = @client.pathways_ineligible?
-  - if collected_on.present? || warehouse_ineligible
+  - days = 90
+  - active = @client.homeless_service_in_last_n_days?(days)
+  - if collected_on.present? || warehouse_ineligible || inactive
     %h3.mt-0= _('Pathways')
     - if collected_on.present?
       .c-tag.c-tag--info.client-flag
@@ -10,6 +12,13 @@
             .icon-file-text
           .c-tag__content
             %span #{_('Pathways')} Assessment #{collected_on.to_date}
+    - unless active
+      .c-tag.c-tag--warning.client-flag
+        .c-tag__wrapper
+          .c-tag__icon
+            .icon-calendar
+          .c-tag__content
+            %span No Homeless Services in Past #{days} Days
     - if warehouse_ineligible
       - decision = @client.most_recent_pathways_ineligible_cas_response
       .c-tag.c-tag--warning.client-flag

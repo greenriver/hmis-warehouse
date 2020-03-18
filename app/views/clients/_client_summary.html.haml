@@ -19,7 +19,7 @@
       .d-none--empty.mr-8.mb-6<
         = render 'clients/pathways'
 
-      .row.align-items-start.d-flex.flex-wrap
+      .d-none--empty.mb-6<
         = render 'clients/rollup/cohorts'
         - if can_view_clients?
           = render 'cas_matches'

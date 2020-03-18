@@ -14,7 +14,7 @@
           - sc_count = c.source_clients.count
           - colspan = if sc_count == 1 then 2 else 4 end
           - if sc_count == 1
-            - client_name = "#{client_name} in #{c.source_clients.first.data_source.short_name}"
+            - client_name = "#{client_name} in #{c.source_clients.first.data_source&.short_name}"
           %td{colspan: colspan}
             .d-flex.align-items-center
               .c-checkbox.c-checkbox--round.mr-4
@@ -42,7 +42,7 @@
                     .c-checkbox.c-checkbox--round.mr-4
                       = check_box_tag input_id, sc.id, nil, id: sc.id
                       %label{for:sc.id, tabindex:'1' }
-                    %span= "#{sc.full_name} in #{sc.data_source.short_name} <br /> #{sc.uuid}".html_safe
+                    %span= "#{sc.full_name} in #{sc.data_source&.short_name} <br /> #{sc.uuid}".html_safe
                 %td
                   = sc.DOB
                 %td
