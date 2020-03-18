@@ -264,6 +264,12 @@ module GrdaWarehouse::Hud
       most_recent_pathways_assessment&.collected_at
     end
 
+    def homeless_service_in_last_n_days?(n=90)
+      return true unless date_of_last_homeless_service
+
+      date_of_last_homeless_service > n.to_i.days.ago
+    end
+
     # Do we have any declines that make us ineligible
     # that occurred more recently than our most-recent pathways
     # assessment?
