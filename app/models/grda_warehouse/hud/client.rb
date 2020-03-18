@@ -265,7 +265,7 @@ module GrdaWarehouse::Hud
     end
 
     def homeless_service_in_last_n_days?(n=90)
-      return true unless date_of_last_homeless_service
+      return false unless date_of_last_homeless_service
 
       date_of_last_homeless_service > n.to_i.days.ago
     end
