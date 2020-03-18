@@ -36,6 +36,28 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
   end
 
+  scope :interested_in_some_rrh, -> do
+    where.not(rrh_desired: nil).
+    or(
+      where.not(rrh_th_desired: nil)
+    ).
+    or(
+      where.not(dv_rrh_aggregate: nil)
+    ).
+    or(
+      where.not(youth_rrh_desired: nil)
+    ).
+    or(
+      where.not(adult_rrh_desired: nil)
+    ).
+    or(
+      where.not(youth_rrh_aggregate: nil)
+    ).
+    or(
+      where.not(veteran_rrh_desired: nil)
+    )
+  end
+
   scope :confidential, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.confidential)
   end
@@ -111,6 +133,18 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   scope :vispdat_pregnant, -> do
     where(vispdat_pregnant: 'Yes')
+  end
+
+  def self.rrh_columns
+    [
+      :rrh_desired,
+      :rrh_th_desired,
+      :dv_rrh_aggregate,
+      :youth_rrh_desired,
+      :adult_rrh_desired,
+      :youth_rrh_aggregate,
+      :veteran_rrh_desired,
+    ]
   end
 
   def self.set_missing_vispdat_scores
