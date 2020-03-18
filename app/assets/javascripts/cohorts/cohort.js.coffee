@@ -45,12 +45,15 @@ class App.Cohorts.Cohort
 
     @grid_options = {
       columnDefs: @grid_column_headers,
-      enableSorting: true,
-      enableFilter: true,
+      defaultColDef:
+        sortable: true,
+        filter: true,
+        resizeable: true,
+      # enableSorting: true,
+      # enableFilter: true,
       singleClickEdit: true,
       rowSelection: 'multiple',
       rowDeselection: true,
-      enableColResize: true,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
       onSortChanged: (data) ->
@@ -91,7 +94,7 @@ class App.Cohorts.Cohort
       valueGetter: (params) ->
         params.node.rowIndex + 1
       suppressMenu: true
-      suppressSorting: true
+      sortable: false
       cellStyle: {color: 'rgba(0, 0, 0, 0.54)', 'background-color': '#f5f7f7'}
     }
     @grid_column_headers = $.map @column_headers, (column, index) =>
