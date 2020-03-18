@@ -147,6 +147,11 @@ module GrdaWarehouse::Hud
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
     has_many :source_employment_educations, through: :source_enrollments, source: :employment_educations
+    has_many :source_current_living_situations, through: :source_enrollments, source: :current_living_situations
+    has_many :source_events, through: :source_enrollments, source: :events
+    has_many :source_assessments, through: :source_enrollments, source: :assessments
+    has_many :source_assessment_questions, through: :source_enrollments, source: :direct_assessment_questions
+    has_many :source_assessment_results, through: :source_enrollments, source: :assessment_results
     has_many :source_exits, through: :source_enrollments, source: :exit
     has_many :source_projects, through: :source_enrollments, source: :project
     has_many :permanent_source_exits, -> do
@@ -737,7 +742,7 @@ module GrdaWarehouse::Hud
 
     scope :consent_form_valid, -> do
       case(release_duration)
-      when 'One Year'
+      when 'One Year', 'Two Years'
         where(
           arel_table[:housing_release_status].matches("%#{full_release_string}").
           and(
@@ -962,11 +967,17 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
+    # Include clients with an indefinite and impairing disability
+    # and those who have had their disability verified manually
     scope :chronically_disabled, -> (end_date=Date.current) do
       start_date = end_date - 3.years
-      joins(:source_enrollment_disabilities).
-        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
-        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
+      where(
+        id: joins(:source_enrollment_disabilities).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+          merge(GrdaWarehouse::Hud::Disability.chronically_disabled).select(:id)
+      ).or(
+        where(id: where.not(disability_verified_on: nil).select(:id))
+      )
     end
 
     def chronically_disabled?
@@ -1177,6 +1188,8 @@ module GrdaWarehouse::Hud
     def self.consent_validity_period
       if release_duration == 'One Year'
         1.years
+      elsif release_duration = 'Two Years'
+        2.years
       elsif release_duration == 'Indefinite'
         100.years
       else
@@ -1185,7 +1198,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.revoke_expired_consent
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
           if client.consent_form_signed_on < consent_validity_period.ago
@@ -1202,7 +1215,7 @@ module GrdaWarehouse::Hud
     def release_current_status
       consent_text = if housing_release_status.blank?
         'None on file'
-      elsif release_duration == 'One Year'
+      elsif release_duration.in?(['One Year', 'Two Years'])
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
         else
@@ -1236,7 +1249,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_form_valid?
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
@@ -2850,7 +2863,7 @@ module GrdaWarehouse::Hud
     end
 
     def ongoing_enrolled_project_ids
-      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id].to_sql)
+      service_history_enrollments.ongoing.joins(:project).distinct.pluck(p_t[:id])
     end
 
     def ongoing_enrolled_project_types

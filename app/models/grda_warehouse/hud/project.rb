@@ -566,6 +566,10 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def name_and_type(include_confidential_names: false)
+      "#{name} (#{HUD.project_type_brief(computed_project_type)})"
+    end
+
     def self.project_names_for_coc coc_code
       in_coc(coc_code: coc_code).order(ProjectName: :asc).pluck(:ProjectName)
     end

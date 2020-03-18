@@ -110,7 +110,7 @@ module Bo
       start_time = @start_time
       weeks = []
       while start_time < Date.current
-        end_time = [start_time + 1.week, Time.now].min
+        end_time = [start_time + 1.months, Time.now].min
         weeks << [start_time, end_time]
         start_time = end_time
       end
@@ -147,11 +147,19 @@ module Bo
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
           Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
-          response = fetch_touch_point_modification_dates(
-            start_time: start_time,
-            end_time: end_time,
-            tp_id: tp_id,
-          )
+          begin
+            response = fetch_touch_point_modification_dates(
+              start_time: start_time,
+              end_time: end_time,
+              tp_id: tp_id,
+            )
+          rescue Bo::Soap::RequestFailed => e
+            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message}"
+            Rails.logger.info msg
+            @notifier.ping msg if send_notifications && msg.present?
+
+            response = nil
+          end
           rows += response if response.present?
         end
       end

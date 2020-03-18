@@ -19,6 +19,10 @@
         title: 'History',
         permission: show_demographic,
       },
+      enrollment_details_client_path(@client) => {
+        title: 'Enrollment Details',
+        permission: can_view_clients?,
+      },
       polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',
         permission: can_edit_clients?

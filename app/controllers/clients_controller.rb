@@ -14,12 +14,12 @@ class ClientsController < ApplicationController
   helper ClientHelper
 
   before_action :require_can_access_some_client_search!, only: [:index]
-  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image]
+  before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :enrollment_details]
 
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
   # This should no longer be needed
@@ -212,6 +212,9 @@ class ClientsController < ApplicationController
       head(:forbidden)
       nil
     end
+  end
+
+  def enrollment_details
   end
 
   protected def client_source

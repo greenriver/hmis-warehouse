@@ -4,7 +4,7 @@
     .col-sm-4
       .form-inputs
         = f.input :email, required: false, autofocus: true
-        = f.input :password, required: false
+        = f.input :password, required: false, input_html: { autocomplete: :off }
   .row
     .col-sm-6
       .form-actions

@@ -249,11 +249,11 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.youth_rrh_aggregate = hmis_form.youth_rrh_aggregate_answer
         hmis_form.dv_rrh_aggregate = hmis_form.dv_rrh_aggregate_answer
         hmis_form.rrh_th_desired = hmis_form.rrh_th_desired_answer
-        # hmis_form.veteran_rrh_desired = hmis_form.veteran_rrh_desired_answer
         hmis_form.sro_ok = hmis_form.sro_ok_answer
         hmis_form.other_accessibility = hmis_form.other_accessibility_answer
         hmis_form.disabled_housing = hmis_form.disabled_housing_answer
         hmis_form.evicted = hmis_form.evicted_answer
+        hmis_form.ssvf_eligible = hmis_form.ssvf_eligible_answer
         hmis_form.neighborhood_interests = hmis_form.neighborhood_interests_answer
         hmis_form.staff_email = hmis_form.staff_email_answer
         hmis_form.client_phones = hmis_form.client_phones_answer

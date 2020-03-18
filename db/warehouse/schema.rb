@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_04_153159) do
+ActiveRecord::Schema.define(version: 2020_03_12_175312) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -199,6 +199,7 @@ ActiveRecord::Schema.define(version: 2020_03_04_153159) do
     t.boolean "pathways_other_accessibility", default: false, null: false
     t.boolean "pathways_disabled_housing", default: false, null: false
     t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1178,6 +1179,7 @@ ActiveRecord::Schema.define(version: 2020_03_04_153159) do
     t.integer "vacancy_id"
     t.string "housing_type"
     t.boolean "ineligible_in_warehouse", default: false, null: false
+    t.string "actor_type"
     t.index ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true
   end
 
@@ -1982,6 +1984,7 @@ ActiveRecord::Schema.define(version: 2020_03_04_153159) do
     t.string "client_case_managers"
     t.string "client_day_shelters"
     t.string "client_night_shelters"
+    t.boolean "ssvf_eligible", default: false
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
@@ -2036,6 +2039,52 @@ ActiveRecord::Schema.define(version: 2020_03_04_153159) do
     t.integer "data_source_id", null: false
     t.index ["effective_date"], name: "index_hud_create_logs_on_effective_date"
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
+  end
+
+  create_table "hud_report_ce_apr_clients", force: :cascade do |t|
+    t.boolean "youth", default: false
+    t.boolean "child", default: false
+    t.boolean "adult_or_hoh", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "hud_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "question", null: false
+    t.string "cell_name"
+    t.boolean "universe", default: false
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
+  end
+
+  create_table "hud_report_instances", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "coc_code"
+    t.string "report_name"
+    t.date "start_date"
+    t.date "end_date"
+    t.json "options"
+    t.string "state"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
+    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
   end
 
   create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|

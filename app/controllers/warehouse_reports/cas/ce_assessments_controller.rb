@@ -12,13 +12,15 @@ module WarehouseReports::Cas
 
     def index
       @report = assessment_source.new(filter: @filter)
-      @clients = @report.clients.
-        page(params[:page].to_i).
-        per(50).
-        select(@report.columns).
-        order(@report.order)
       respond_to do |format|
-        format.html {}
+        format.html do
+          @client_page = @report.clients.
+            page(params[:page].to_i).
+            per(50)
+          @clients = @client_page.
+            select(@report.columns).
+            order(@report.order)
+        end
         format.xlsx do
           filename = 'CE Assessments.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
