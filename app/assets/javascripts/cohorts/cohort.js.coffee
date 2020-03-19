@@ -23,6 +23,7 @@ class App.Cohorts.Cohort
     @search_selector = options['search_selector']
     @search_actions_selector = options['search_actions_selector']
     @population = options['population']
+    @thresholds = options['thresholds']
 
     # Testing
     # @client_count = 15
@@ -74,6 +75,12 @@ class App.Cohorts.Cohort
         if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id
           old_value = @editing_initial_value
         @after_edit(params.colDef.field, cohort_client_id, old_value, params.value, params.rowIndex)
+      getRowStyle: (params) =>
+        color = {}
+        for threshold in @thresholds
+          if params.node.rowIndex == threshold.row
+            color = 'border-top': "4px solid #{threshold.color}"
+        color
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
