@@ -153,16 +153,21 @@ class WarehouseReport::Health::HousingStatusChanges
 
   def add_housing_status(group:, timestamp:, client_id:, housing_status:, aco_id:, source:)
     @report_data[aco_id] ||= {}
-    @report_data[aco_id][client_id] ||= {starting: OpenStruct.new(timestamp: nil), ending: OpenStruct.new(timestamp: nil)}
-    report_client = @report_data[aco_id][client_id][group]
-    if report_client[:timestamp].blank? ||
-      (group == :starting && report_client[:timestamp] > timestamp) ||
-      (group == :ending && report_client[:timestamp] < timestamp)
+    # Default to the first one we find so that everyone has at least a starting and ending value
+    @report_data[aco_id][client_id] ||= {
+      starting: OpenStruct.new(timestamp: timestamp),
+      ending: OpenStruct.new(timestamp: timestamp)
+    }
+    report_row = @report_data[aco_id][client_id][group]
+    icoming_newer = report_row[:timestamp] > timestamp
+    # Move the start back if the next one is older
+    # Move the end forward if the next one is newer
+    if(group == :starting && icoming_newer) || (group == :ending && ! icoming_newer)
       @report_data[aco_id][client_id][group] = OpenStruct.new(
         timestamp: timestamp,
         housing_status: housing_status,
         clean_housing_status: self.class.health_housing_outcome_status(housing_status),
-        source: source
+        source: source,
       )
     end
   end
