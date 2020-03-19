@@ -22,6 +22,10 @@ class WarehouseReport::Health::HousingStatusChanges
     @report_data
   end
 
+  def unique_client_data
+    report_data.values.uniq
+  end
+
   def populate_report_data
     from_sdh_notes
     from_epic_housing_statuses
@@ -51,8 +55,7 @@ class WarehouseReport::Health::HousingStatusChanges
         hpr_t[:accountable_care_organization_id].to_sql,
         h_sdhcmn_t[:date_of_contact].to_sql,
       )
-    add_housing_statuses(statuses: statuses, group: :starting, source: 'Care Hub')
-    add_housing_statuses(statuses: statuses, group: :ending, source: 'Care Hub')
+    add_housing_statuses(statuses: statuses, source: 'Care Hub')
   end
 
   def from_epic_housing_statuses
@@ -65,8 +68,7 @@ class WarehouseReport::Health::HousingStatusChanges
         hpr_t[:accountable_care_organization_id].to_sql,
         h_ehs_t[:collected_on].to_sql,
       )
-    add_housing_statuses(statuses: statuses, group: :starting, source: 'EPIC')
-    add_housing_statuses(statuses: statuses, group: :ending, source: 'EPIC')
+    add_housing_statuses(statuses: statuses, source: 'EPIC')
   end
 
   def from_epic_case_notes
@@ -79,8 +81,7 @@ class WarehouseReport::Health::HousingStatusChanges
         hpr_t[:accountable_care_organization_id].to_sql,
         h_ecn_t[:contact_date].to_sql,
       )
-    add_housing_statuses(statuses: statuses, group: :starting, source: 'EPIC')
-    add_housing_statuses(statuses: statuses, group: :ending, source: 'EPIC')
+    add_housing_statuses(statuses: statuses, source: 'EPIC')
   end
 
   def from_touchpoints
@@ -103,8 +104,7 @@ class WarehouseReport::Health::HousingStatusChanges
       ]
     end
 
-    add_housing_statuses(statuses: statuses, group: :starting, source: 'ETO')
-    add_housing_statuses(statuses: statuses, group: :ending, source: 'ETO')
+    add_housing_statuses(statuses: statuses, source: 'ETO')
   end
 
   def housing_status_buckets
@@ -144,26 +144,42 @@ class WarehouseReport::Health::HousingStatusChanges
     report_data[aco_id].values.map{ |a| a[group] }.count{ |m| m[:clean_housing_status] == housing_status }
   end
 
-  def add_housing_statuses(statuses:, group:, source:)
+  def add_housing_statuses(statuses:, source:)
     statuses.each do |(client_id, status, aco_id, timestamp)|
-      add_housing_status(group: group, timestamp: timestamp, client_id: client_id, housing_status: status, aco_id: aco_id, source: source)
+      add_housing_status(timestamp: timestamp.to_date, client_id: client_id, housing_status: status, aco_id: aco_id, source: source)
     end
   end
 
 
-  def add_housing_status(group:, timestamp:, client_id:, housing_status:, aco_id:, source:)
+  def add_housing_status(timestamp:, client_id:, housing_status:, aco_id:, source:)
     @report_data[aco_id] ||= {}
     # Default to the first one we find so that everyone has at least a starting and ending value
     @report_data[aco_id][client_id] ||= {
-      starting: OpenStruct.new(timestamp: timestamp),
-      ending: OpenStruct.new(timestamp: timestamp)
+      starting: OpenStruct.new(
+        timestamp: timestamp,
+        housing_status: housing_status,
+        clean_housing_status: self.class.health_housing_outcome_status(housing_status),
+        source: source,
+      ),
+      ending: OpenStruct.new(
+        timestamp: timestamp,
+        housing_status: housing_status,
+        clean_housing_status: self.class.health_housing_outcome_status(housing_status),
+        source: source,
+      )
     }
-    report_row = @report_data[aco_id][client_id][group]
-    icoming_newer = report_row[:timestamp] > timestamp
+
     # Move the start back if the next one is older
-    # Move the end forward if the next one is newer
-    if(group == :starting && icoming_newer) || (group == :ending && ! icoming_newer)
-      @report_data[aco_id][client_id][group] = OpenStruct.new(
+    if @report_data[aco_id][client_id][:starting].timestamp > timestamp
+      @report_data[aco_id][client_id][:starting] = OpenStruct.new(
+        timestamp: timestamp,
+        housing_status: housing_status,
+        clean_housing_status: self.class.health_housing_outcome_status(housing_status),
+        source: source,
+      )
+    end
+    if @report_data[aco_id][client_id][:ending].timestamp < timestamp
+      @report_data[aco_id][client_id][:ending] = OpenStruct.new(
         timestamp: timestamp,
         housing_status: housing_status,
         clean_housing_status: self.class.health_housing_outcome_status(housing_status),
