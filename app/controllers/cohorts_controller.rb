@@ -156,7 +156,7 @@ class CohortsController < ApplicationController
         label: label,
         color: color,
       }
-    end.compact
+    end.compact.sort_by { |r| r[:row] }
   end
 
   private def table_params
