@@ -1,0 +1,9 @@
+- content_for :filters_col_full do
+  .row
+    .col
+      = f.input :location, collection: available_locations, selected: @collection_location, include_blank: 'All', label: 'Collection Location', input_html: { class: :select2 }
+
+- content_for :filter_actions do
+  = f.submit 'Update', class: 'btn btn-primary mt-no-label'
+
+= render 'warehouse_reports/filters', f:f
