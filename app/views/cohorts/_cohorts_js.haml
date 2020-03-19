@@ -25,7 +25,8 @@
           updated_ats: #{@cohort_client_updates.to_json.html_safe},
           search_selector: '#cohort-search',
           search_actions_selector: '.jSearchActions',
-          population: "#{@population}"
+          population: "#{@population}",
+          thresholds: #{@thresholds.to_json.html_safe}
         }
         $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
 

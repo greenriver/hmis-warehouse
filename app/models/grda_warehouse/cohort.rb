@@ -358,6 +358,20 @@ module GrdaWarehouse
       }
     end
 
+    def self.threshold_keys
+      (1..visible_thresholds).map do |i|
+        [
+          "threshold_row_#{i}",
+          "threshold_color_#{i}",
+          "threshold_label_#{i}",
+        ]
+      end.flatten
+    end
+
+    def self.visible_thresholds
+      3
+    end
+
     def self.prepare_active_cohorts
       client_ids = GrdaWarehouse::CohortClient.joins(:cohort, :client).merge(GrdaWarehouse::Cohort.active).distinct.pluck(:client_id)
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: client_ids)
