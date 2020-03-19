@@ -1190,7 +1190,7 @@ module GrdaWarehouse::Hud
     def self.consent_validity_period
       if release_duration == 'One Year'
         1.years
-      elsif release_duration = 'Two Years'
+      elsif release_duration == 'Two Years'
         2.years
       elsif release_duration == 'Indefinite'
         100.years

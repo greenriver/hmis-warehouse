@@ -13,6 +13,7 @@ module WarehouseReports::Cas
 
     def index
       @forms = hmis_form_scope.joins(:destination_client).
+        merge(client_scope).
         select(*form_columns).
         order(collected_at: :desc)
       @forms = @forms.where(collection_location: @collection_location) if @collection_location
@@ -34,6 +35,14 @@ module WarehouseReports::Cas
         :staff,
         :staff_email,
       ] + hmis_form_source.rrh_columns
+    end
+
+    private def client_scope
+      client_source.destination.no_release_on_file
+    end
+
+    private def client_source
+      GrdaWarehouse::Hud::Client
     end
 
     private def hmis_form_source
