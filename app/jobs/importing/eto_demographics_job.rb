@@ -8,12 +8,8 @@ module Importing
   class EtoDemographicsJob < BaseJob
     queue_as :low_priority
 
-    def initialize(client_ids:)
-      @client_ids = client_ids
-    end
-
-    def perform
-      EtoApi::Tasks::UpdateEtoData.new(client_ids: @client_ids).update_demographics!
+    def perform(client_ids:)
+      EtoApi::Tasks::UpdateEtoData.new(client_ids: client_ids).update_demographics!
     end
 
     def max_attempts

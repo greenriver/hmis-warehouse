@@ -8,12 +8,8 @@ module Importing
   class EtoTouchPointsJob < BaseJob
     queue_as :low_priority
 
-    def initialize(touch_point_client_ids:)
-      @touch_point_client_ids = touch_point_client_ids
-    end
-
-    def perform
-      EtoApi::Tasks::UpdateEtoData.new(touch_point_client_ids: @touch_point_client_ids).update_touch_points!
+    def perform(touch_point_client_ids:)
+      EtoApi::Tasks::UpdateEtoData.new(touch_point_client_ids: touch_point_client_ids).update_touch_points!
       GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
     end
 

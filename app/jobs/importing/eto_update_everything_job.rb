@@ -8,11 +8,7 @@ module Importing
   class EtoUpdateEverythingJob < BaseJob
     queue_as :low_priority
 
-    def initialize(start_date: 4.years.ago)
-      @start_date = start_date
-    end
-
-    def perform
+    def perform(start_date: 4.years.ago)
       # Ensure we know about all the available touch points
       GrdaWarehouse::HMIS::Assessment.update_touch_points
 
@@ -20,7 +16,7 @@ module Importing
       EtoApi::Eto.site_identifiers.each do |identifier, _|
         Bo::ClientIdLookup.new(
           api_site_identifier: identifier,
-          start_time: @start_date,
+          start_time: start_date,
         ).update_all!
       end
 
