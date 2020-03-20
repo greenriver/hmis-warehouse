@@ -61,12 +61,9 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           [[client_id, subject_id], eto_last_updated]
         end.to_h
 
-        if @client_ids.present?
-          eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.
-            where(data_source_id: @data_source_id).
-            eto_client_lookups = eto_client_lookups.where(client_id: @client_ids)
-        end
-        eto_client_lookups.pluck(*eto_client_lookup_columns).
+        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id)
+        eto_client_lookups = eto_client_lookups.where(client_id: @client_ids) if @client_ids.present?
+        eto_client_lookups = eto_client_lookups.pluck(*eto_client_lookup_columns).
           map do |row|
           Hash[eto_client_lookup_columns.zip(row)]
         end

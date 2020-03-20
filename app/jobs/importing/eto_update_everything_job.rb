@@ -26,11 +26,11 @@ module Importing
 
       # Break items remaining to fetch into 500 item chunks in delayed jobs
       GrdaWarehouse::EtoQaaws::ClientLookup.distinct.
-        pluck(:client_id).each_slice(5) do |client_ids|
+        pluck(:client_id).each_slice(500) do |client_ids|
         Importing::EtoDemographicsJob.perform_later(client_ids: client_ids)
       end
       GrdaWarehouse::EtoQaaws::TouchPointLookup.distinct.
-        pluck(:client_id).each_slice(5) do |client_ids|
+        pluck(:client_id).each_slice(500) do |client_ids|
           Importing::EtoTouchPointsJob.perform_later(touch_point_client_ids: client_ids)
         end
     end
