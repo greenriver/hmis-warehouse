@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+gem "rails", '~>5.2.4'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
@@ -7,12 +9,12 @@ gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 11'
+# gem 'composite_primary_keys', '~> 11'
+gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '~>5.2'
 gem "bootsnap"
 gem 'bcrypt'
 gem "haml-rails"

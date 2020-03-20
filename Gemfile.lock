@@ -1,3 +1,11 @@
+GIT
+  remote: https://github.com/greenriver/composite_primary_keys.git
+  revision: 898aacd832b6bae6fb3eca88b340477944fa6007
+  branch: active-record-5.2.4-compatability
+  specs:
+    composite_primary_keys (11.2.0)
+      activerecord (~> 5.2.4.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -1578,7 +1586,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (~> 11)
+  composite_primary_keys!
   curb
   daemons
   delayed_job_active_record
@@ -1636,7 +1644,7 @@ DEPENDENCIES
   puma (~> 3.12.3)
   rack-attack
   rack-mini-profiler
-  rails (~> 5.2)
+  rails (~> 5.2.4)
   rails-controller-testing
   rails-erd
   ransack
