@@ -23,7 +23,71 @@ class WarehouseReport::Health::HousingStatusChanges
   end
 
   def unique_client_data
-    report_data.values.uniq
+    @unique_client_data ||= report_data.values.uniq
+  end
+
+  def data_for_housing_type_chart
+    @data_for_housing_type_chart ||= [
+      ['x', 'Permanent', 'Shelter', 'Doubled Up', 'Street', 'Temporary', 'Unknown'],
+      [
+        'Starting',
+        group_count(group: :starting, status: :permanent),
+        group_count(group: :starting, status: :shelter),
+        group_count(group: :starting, status: :doubling_up),
+        group_count(group: :starting, status: :street),
+        group_count(group: :starting, status: :temporary),
+        group_count(group: :starting, status: :unknown),
+      ],
+      [
+        'Ending',
+        group_count(group: :ending, status: :permanent),
+        group_count(group: :ending, status: :shelter),
+        group_count(group: :ending, status: :doubling_up),
+        group_count(group: :ending, status: :street),
+        group_count(group: :ending, status: :temporary),
+        group_count(group: :ending, status: :unknown),
+      ],
+    ]
+  end
+
+  def data_for_housing_trend_chart
+    @data_for_housing_trend_chart ||= [
+      [
+        'x',
+        'Started housed, ended housed',
+        'Started unhoused, ended housed',
+        'Started housed, ended unhoused',
+        'Started unhoused, ended unhoused',
+      ],
+      [
+        'Patients',
+        count_trend_group(starting_status: housed_statuses, ending_status: housed_statuses),
+        count_trend_group(starting_status: unhoused_statuses, ending_status: housed_statuses),
+        count_trend_group(starting_status: housed_statuses, ending_status: unhoused_statuses),
+        count_trend_group(starting_status: unhoused_statuses, ending_status: unhoused_statuses),
+      ],
+    ]
+  end
+
+  private def housed_statuses
+    @housed_statuses ||= [:permanent, :temporary]
+  end
+
+  private def unhoused_statuses
+    @unhoused_statuses ||= [:shelter, :doubling_up, :street, :unknown]
+  end
+
+  private def group_count(group:, status:)
+    unique_client_data.map(&:values).flatten.select do |c|
+      c[group].clean_housing_status == status
+    end.count
+  end
+
+  private def count_trend_group(starting_status:, ending_status:)
+    unique_client_data.map(&:values).flatten.select do |c|
+      c[:starting].clean_housing_status.in?(starting_status) &&
+      c[:ending].clean_housing_status.in?(ending_status)
+    end.count
   end
 
   def populate_report_data

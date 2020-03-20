@@ -9,20 +9,18 @@ class App.Health.HousingStatus
 
 
   _build_charts: () =>
-    console.log(@data)
-    @data = {
+    data = {
       x: 'x',
-      columns: [
-        ['x', 'Permanent', 'Shelter', 'Doubled Up', 'Street', 'Temporary', 'Unknown'],
-        ['Starting', 10, 20, 30, 1, 3, 5],
-        ['Ending', 3, 4, 7, 2, 3, 9],
-      ],
+      columns: @data,
       type: 'bar',
+      color: @_colors,
+      labels: true,
     }
     bb.generate({
-      data: @data,
+      data: data,
       bindto: @chart_selector,
       axis: {
+        rotated: true,
         x: {
           type: 'category',
         }
@@ -33,7 +31,7 @@ class App.Health.HousingStatus
     key = d
     if key.id?
       key = key.id
-    colors = [ '#bb2716', '#00549e', '#bb2716', '#00549e' ]
+    colors = [ '#51ACFF', '#45789C', ]
     if key in ['All']
       color = '#288BEE'
     else

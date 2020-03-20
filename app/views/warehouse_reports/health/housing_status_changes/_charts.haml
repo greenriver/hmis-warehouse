@@ -1,7 +1,0 @@
-.jHousingChart
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var housing_status_chart = new App.Health.HousingStatus('.jHousingChart', #{@report.unique_client_data.to_json.html_safe});
-    })(jQuery);
