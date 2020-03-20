@@ -1052,6 +1052,8 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.16)
       ruby-rc4 (>= 0.1.5)
+    composite_primary_keys (11.2.0)
+      activerecord (~> 5.2.1)
     concurrent-ruby (1.1.6)
     crass (1.0.6)
     curb (0.9.10)
@@ -1466,15 +1468,14 @@ GEM
     simple_form (5.0.1)
       actionpack (>= 5.0)
       activemodel (>= 5.0)
-    simplecov (0.17.1)
+    simplecov (0.18.5)
       docile (~> 1.1)
-      json (>= 1.8, < 3)
-      simplecov-html (~> 0.10.0)
-    simplecov-console (0.6.0)
+      simplecov-html (~> 0.11)
+    simplecov-console (0.7.2)
       ansi
       simplecov
       terminal-table
-    simplecov-html (0.10.2)
+    simplecov-html (0.12.2)
     slack-notifier (2.3.2)
     soundex (0.1.2)
     spreadsheet (1.2.5)
@@ -1517,7 +1518,7 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.6)
-    unicode-display_width (1.6.0)
+    unicode-display_width (1.6.1)
     validate_url (1.0.8)
       activemodel (>= 3.0.0)
       public_suffix

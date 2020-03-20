@@ -1,0 +1,19 @@
+.row.mb-6
+  .col
+    %h3 Starting / Ending Housing Status (#{pluralize(@report.unique_client_data.count, 'patient')})
+    .jHousingChart
+  .col
+    %h3 Housing Status Key
+    .well
+      %p If only one encounter, housing status will remain the same.
+      %dl
+        %dt Transitional Housing includes the following:
+        %dd "Transitional Housing / Residential Treatment Program or Transitional Housing" or "Residential Treatment Program or Motel."
+        %dt Permanent Housing includes the following:
+        %dd "Assisted Living / Nursing Home / Rest Home," "Assisted Living Facility, Nursing Home, Rest Home," "Supportive Housing," "Housing with No Supports," "Housing with no Support Services," and "Housing with no Supportive Services."
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var status_chart = new App.Health.HousingStatus('.jHousingChart', #{@report.data_for_housing_type_chart.to_json.html_safe});
+    })(jQuery);

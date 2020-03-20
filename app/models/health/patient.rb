@@ -51,6 +51,7 @@ module Health
     has_many :epic_careplans, through: :epic_patients
     has_many :epic_chas, through: :epic_patients
     has_many :epic_ssms, through: :epic_patients
+    has_many :epic_housing_statuses, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: 'Health::Claims::EdNyuSeverity', primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :ed_ip_visits, primary_key: :medicaid_id, foreign_key: :medicaid_id
