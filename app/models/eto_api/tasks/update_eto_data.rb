@@ -87,6 +87,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         new_count = (to_fetch.map { |m| [m[:client_id], m[:subject_id]] }.uniq - existing_hmis_clients.keys.uniq).count
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
+        # Give some space to the Slack API
+        sleep(2)
         @notifier.ping msg
         # Rails.logger.info "Pre fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         to_fetch.each do |row|
@@ -105,6 +107,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         # Rails.logger.info "All demo fetched demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         msg = "Fetched #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
+        # Give some space to the Slack API
+        sleep(2)
         @notifier.ping msg
       end
       # prevent returning the config
@@ -176,6 +180,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         Rails.logger.info msg
+        # Give some space to the Slack API
+        sleep(2)
         @notifier.ping msg
 
         touch_points_saved = 0
@@ -194,6 +200,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         end
         msg = "Fetched #{touch_points_saved} of #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
+        # Give some space to the Slack API
+        sleep(2)
         @notifier.ping msg
       end
       # prevent returning the config
