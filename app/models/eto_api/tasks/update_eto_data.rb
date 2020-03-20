@@ -12,13 +12,22 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
 
-    def initialize(batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false)
+    def initialize( # rubocop:disable Metrics/ParameterLists
+      batch_time: 45.minutes,
+      run_time: 5.hours,
+      trace: false,
+      one_off: false,
+      client_ids: nil,
+      touch_point_client_ids: nil
+    )
       @trace = trace
       @batch_time = batch_time
       @restart = Time.now + @batch_time
       @run_time = run_time
       @stop_time = Time.now + run_time
       @one_off = one_off
+      @client_ids = client_ids
+      @touch_point_client_ids = touch_point_client_ids
 
       setup_notifier('ETO API Importer -- QaaWS based')
     end
@@ -41,20 +50,27 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         api.connect
         existing_hmis_clients = GrdaWarehouse::HmisClient.joins(:client).
-          merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id)).
-          pluck(
-            :client_id,
-            :subject_id,
-            :eto_last_updated,
-          ).
+          merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id))
+        existing_hmis_clients = existing_hmis_clients.where(client_id: @client_ids) if @client_ids.present?
+        existing_hmis_clients.pluck(
+          :client_id,
+          :subject_id,
+          :eto_last_updated,
+        ).
           map do |client_id, subject_id, eto_last_updated|
-            [[client_id, subject_id], eto_last_updated]
-          end.to_h
+          [[client_id, subject_id], eto_last_updated]
+        end.to_h
 
-        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id).pluck(*eto_client_lookup_columns).
+        if @client_ids.present?
+          eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.
+            where(data_source_id: @data_source_id).
+            eto_client_lookups = eto_client_lookups.where(client_id: @client_ids)
+        end
+        eto_client_lookups.pluck(*eto_client_lookup_columns).
           map do |row|
-            Hash[eto_client_lookup_columns.zip(row)]
-          end
+          Hash[eto_client_lookup_columns.zip(row)]
+        end
+
         to_fetch = []
 
         eto_client_lookups.each do |row|
@@ -116,26 +132,29 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
 
         api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         api.connect
-        existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id).
-          pluck(
-            :client_id,
-            :site_id,
-            :assessment_id,
-            :subject_id,
-            :response_id,
-            :eto_last_updated,
-          ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
-            [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
-          end.to_h
+        existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id)
+        existing_touch_points = existing_touch_points.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
+        existing_touch_points.pluck(
+          :client_id,
+          :site_id,
+          :assessment_id,
+          :subject_id,
+          :response_id,
+          :eto_last_updated,
+        ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
+          [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
+        end.to_h
 
         eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.
           joins(:hmis_assessment).
           merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
-          where(data_source_id: @data_source_id).
-          pluck(*eto_touch_point_lookup_columns).
+          where(data_source_id: @data_source_id)
+        eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
+        eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).
           map do |row|
-            Hash[eto_touch_point_lookup_columns.zip(row)]
-          end
+          Hash[eto_touch_point_lookup_columns.zip(row)]
+        end
+
         to_fetch = []
         # Rails.logger.info "Pre-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         eto_touch_point_lookups.each do |row|
