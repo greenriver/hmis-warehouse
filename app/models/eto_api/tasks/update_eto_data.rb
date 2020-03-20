@@ -160,7 +160,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           # timezones seem to get very confused, just check the date.
           next unless existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
 
-          @notifier.ping "#{row[:client_id]} existing_updated: #{existing_updated.to_date}; last_updated: #{row[:last_updated].to_date}"
+          # @notifier.ping "#{row[:client_id]} existing_updated: #{existing_updated.to_date}; last_updated: #{row[:last_updated].to_date}"
 
           to_fetch << {
             client_id: row[:client_id],
