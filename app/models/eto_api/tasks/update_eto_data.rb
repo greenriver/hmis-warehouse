@@ -52,7 +52,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         existing_hmis_clients = GrdaWarehouse::HmisClient.joins(:client).
           merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id))
         existing_hmis_clients = existing_hmis_clients.where(client_id: @client_ids) if @client_ids.present?
-        existing_hmis_clients.pluck(
+        existing_hmis_clients = existing_hmis_clients.pluck(
           :client_id,
           :subject_id,
           :eto_last_updated,
@@ -134,7 +134,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         api.connect
         existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id)
         existing_touch_points = existing_touch_points.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
-        existing_touch_points.pluck(
+        existing_touch_points = existing_touch_points.pluck(
           :client_id,
           :site_id,
           :assessment_id,
@@ -150,7 +150,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
           where(data_source_id: @data_source_id)
         eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
-        eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).
+        eto_touch_point_lookups = eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).
           map do |row|
           Hash[eto_touch_point_lookup_columns.zip(row)]
         end
