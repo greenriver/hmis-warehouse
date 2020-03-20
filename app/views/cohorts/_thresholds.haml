@@ -1,0 +1,9 @@
+- if @thresholds.present?
+  .well.d-flex
+    - (@thresholds).each do |threshold|
+      .threshold.d-flex.mr-8
+        .threshold-color.p-2.mr-2{style: "background-color: #{threshold[:color]}"}
+        .threshold-label
+          = threshold[:label]
+          threshold at row
+          = threshold[:row]

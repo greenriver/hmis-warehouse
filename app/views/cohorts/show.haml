@@ -1,10 +1,7 @@
-=# stylesheet_link_tag 'handsontable.full.min.css'
 = javascript_include_tag 'moment.min.js'
-=# javascript_include_tag 'handsontable.full.js'
-=# javascript_include_tag 'ag-grid/ag-grid.min.js'
-= stylesheet_link_tag 'https://unpkg.com/ag-grid/dist/styles/ag-grid.css'
-= stylesheet_link_tag 'https://unpkg.com/ag-grid/dist/styles/ag-theme-balham.css'
-= javascript_include_tag 'https://unpkg.com/ag-grid/dist/ag-grid.min.noStyle.js'
+= stylesheet_link_tag 'https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css'
+= stylesheet_link_tag 'https://unpkg.com/ag-grid-community/dist/styles/ag-theme-balham.css'
+= javascript_include_tag 'https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js'
 
 
 - title = @cohort.name
@@ -21,7 +18,7 @@
 = render 'nav'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
 = render 'text_size_options'
-
+= render 'thresholds'
 
 .row
   .col-sm-12.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.mt-2

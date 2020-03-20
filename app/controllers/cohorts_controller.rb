@@ -13,6 +13,7 @@ class CohortsController < ApplicationController
   before_action :require_can_access_cohort!, only: [:show]
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
+  before_action :set_thresholds, only: [:show]
 
   def index
     scope = cohort_scope
@@ -120,7 +121,7 @@ class CohortsController < ApplicationController
   end
 
   def cohort_params
-    params.require(:grda_warehouse_cohort).permit(
+    opts = [
       :name,
       :short_name,
       :effective_date,
@@ -135,7 +136,27 @@ class CohortsController < ApplicationController
       :assessment_trigger,
       :tag_id,
       user_ids: [],
-    )
+    ] + GrdaWarehouse::Cohort.threshold_keys
+    params.require(:grda_warehouse_cohort).permit(opts)
+  end
+
+  # @thresholds is an array of objects
+  private def set_thresholds
+    thresholds = @cohort.attributes.select do |k, v|
+      k.in?(GrdaWarehouse::Cohort.threshold_keys) && v.present?
+    end
+    @thresholds = (1..GrdaWarehouse::Cohort.visible_thresholds).map do |i|
+      row = thresholds["threshold_row_#{i}"]
+      label = thresholds["threshold_label_#{i}"]
+      color = thresholds["threshold_color_#{i}"]
+      next unless row && label && color
+
+      {
+        row: row,
+        label: label,
+        color: color,
+      }
+    end.compact.sort_by { |r| r[:row] }
   end
 
   private def table_params
