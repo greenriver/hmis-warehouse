@@ -12,13 +12,12 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
 
-    def initialize( # rubocop:disable Metrics/ParameterLists
+    def initialize(
       batch_time: 45.minutes,
       run_time: 5.hours,
       trace: false,
       one_off: false,
-      client_ids: nil,
-      touch_point_client_ids: nil
+      client_ids: nil
     )
       @trace = trace
       @batch_time = batch_time
@@ -27,7 +26,6 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       @stop_time = Time.now + run_time
       @one_off = one_off
       @client_ids = client_ids
-      @touch_point_client_ids = touch_point_client_ids
 
       setup_notifier('ETO API Importer -- QaaWS based')
     end
@@ -134,7 +132,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         api.connect
         existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id)
-        existing_touch_points = existing_touch_points.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
+        existing_touch_points = existing_touch_points.where(client_id: @client_ids) if @client_ids.present?
         existing_touch_points = existing_touch_points.pluck(
           :client_id,
           :site_id,
@@ -150,7 +148,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           joins(:hmis_assessment).
           merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
           where(data_source_id: @data_source_id)
-        eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @touch_point_client_ids) if @touch_point_client_ids.present?
+        eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @client_ids) if @client_ids.present?
         eto_touch_point_lookups = eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).
           map do |row|
           Hash[eto_touch_point_lookup_columns.zip(row)]
@@ -173,6 +171,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
             subject_id: row[:subject_id],
             response_id: row[:response_id],
             data_source_id: row[:data_source_id],
+            last_updated: row[:last_updated],
           }
         end
         # Rails.logger.info "Post-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
@@ -195,6 +194,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
             subject_id: row[:subject_id],
             response_id: row[:response_id],
             data_source_id: row[:data_source_id],
+            last_updated: row[:last_updated],
           )
           touch_points_saved += 1 if saved
         end
@@ -309,7 +309,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       options[value]
     end
 
-    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated:) # rubocop:disable Metrics/ParameterLists
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
@@ -426,12 +426,16 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       hmis_form.api_response = api_response
       hmis_form.answers = answers
       hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
-      # Persist updated date from ETO
-      hmis_form.eto_last_updated = api.parse_date(api_response['AuditDate'])
+
+      # Persist updated date from ETO, sometimes the API returns an AuditDate that is
+      # earlier than the QaaWS last updated, use the most recent, so we don't fetch
+      # this over and over.
+      api_updated_at = api.parse_date(api_response['AuditDate'])
+      hmis_form.eto_last_updated = [last_updated, api_updated_at].max
       hmis_form
     end
 
-    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated:) # rubocop:disable Metrics/ParameterLists
       hmis_form = fetch_touch_point(
         api: api,
         site_id: site_id,
@@ -440,6 +444,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         subject_id: subject_id,
         response_id: response_id,
         data_source_id: data_source_id,
+        last_updated: last_updated,
       )
       return unless hmis_form
 

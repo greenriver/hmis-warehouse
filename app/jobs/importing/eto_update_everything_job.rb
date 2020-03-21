@@ -27,7 +27,7 @@ module Importing
         end
       GrdaWarehouse::EtoQaaws::TouchPointLookup.distinct.
         pluck(:client_id).each_slice(500) do |client_ids|
-          Importing::EtoTouchPointsJob.perform_later(touch_point_client_ids: client_ids)
+          Importing::EtoTouchPointsJob.perform_later(client_ids: client_ids)
         end
     end
 
