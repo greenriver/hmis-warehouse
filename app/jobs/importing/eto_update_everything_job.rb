@@ -16,7 +16,7 @@ module Importing
       EtoApi::Eto.site_identifiers.each do |identifier, _|
         Bo::ClientIdLookup.new(
           api_site_identifier: identifier,
-          start_time: start_date,
+          start_time: start_date.to_date,
         ).update_all!
       end
 
