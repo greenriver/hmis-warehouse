@@ -52,15 +52,8 @@ namespace :eto do
     task :demographics_and_touch_points, [:start_date] => [:environment, "log:info_to_stdout"] do |t, args|
       # start_date = args.start_date&.to_date || 6.months.ago
       start_date = args.start_date&.to_date || 4.years.ago
+      Importing::EtoUpdateEverythingJob.perform_later(start_date: start_date)
 
-      # Ensure we know about all the available touch points
-      GrdaWarehouse::HMIS::Assessment.update_touch_points
-
-      EtoApi::Eto.site_identifiers.each do |identifier, _|
-        Bo::ClientIdLookup.new(api_site_identifier: identifier, start_time: start_date).update_all!
-      end
-      EtoApi::Tasks::UpdateEtoData.new.run!
-      GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
     end
   end
 end
