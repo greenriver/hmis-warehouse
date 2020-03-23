@@ -87,7 +87,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         # Give some space to the Slack API
         sleep(2)
-        @notifier.ping msg
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
         # Rails.logger.info "Pre fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         to_fetch.each do |row|
           # Rails.logger.info "Fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
@@ -107,7 +108,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         Rails.logger.info msg
         # Give some space to the Slack API
         sleep(2)
-        @notifier.ping msg
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
       end
       # prevent returning the config
       true
@@ -181,7 +183,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         Rails.logger.info msg
         # Give some space to the Slack API
         sleep(2)
-        @notifier.ping msg
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
 
         touch_points_saved = 0
         to_fetch.each do |row|
@@ -202,7 +205,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         Rails.logger.info msg
         # Give some space to the Slack API
         sleep(2)
-        @notifier.ping msg
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if touch_points_saved > 10
       end
       # prevent returning the config
       true
