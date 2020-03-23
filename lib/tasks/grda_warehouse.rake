@@ -278,7 +278,7 @@ namespace :grda_warehouse do
 
   desc "Full import routine"
   task daily: [:environment, "log:info_to_stdout"] do
-    Importing::RunDailyImportsJob.new.perform
+    Importing::RunDailyImportsJob.new.perform_later
   end
 
   desc "Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset"
