@@ -40,7 +40,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
     @fake_patterns ||= {
       FirstName:  -> (value) { fake_name(type: :first) },
       LastName: -> (value) { fake_name(type: :last) },
-      SSN: -> (value) { fake_ssn(value) if value.present?},
+      SSN: -> (value) { fake_ssn(value).to_s[0,9] if value.present?},
       DOB: -> (value) {
         Faker::Date.between(from: 70.years.ago, to: 1.years.ago) if value.present?
       },

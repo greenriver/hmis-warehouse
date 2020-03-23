@@ -50,7 +50,7 @@ every 1.hour do
 end
 
 every 5.minutes do
-  # FIXME Need to be back-grounded
+  # Defers to delayed jobs
   rake 'reporting:run_project_data_quality_reports'
   rake 'reporting:run_ad_hoc_processing'
 end
@@ -83,9 +83,11 @@ end
 
 if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
   every 1.day, at: '11:00 am' do
+    # Defers to delayed jobs
     rake "health:daily"
   end
   every :monday, at: '6am' do
+    # Defers to delayed jobs
     rake "health:queue_eligibility_determination"
   end
 end
