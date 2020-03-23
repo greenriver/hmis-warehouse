@@ -15,29 +15,12 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
+    has_paper_trail
 
     self.table_name = :Client
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
-
-    has_many :client_files
-    has_many :health_files
-    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
-    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
-    has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
-    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
-    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
-    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
-    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
-
-    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
-    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
-
-    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
-    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
-
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
-
 
     def self.hud_csv_headers(version: nil)
       [
@@ -80,8 +63,21 @@ module GrdaWarehouse::Hud
       ].freeze
     end
 
-    has_paper_trail
-    include ArelHelper
+    has_many :client_files
+    has_many :health_files
+    has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
+    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
+    has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
+    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
+    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
+    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
+
+    has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
+    has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
+
+    has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
+    has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
@@ -147,6 +143,11 @@ module GrdaWarehouse::Hud
     has_many :source_disabilities, through: :source_clients, source: :disabilities
     has_many :source_enrollment_disabilities, through: :source_enrollments, source: :disabilities
     has_many :source_employment_educations, through: :source_enrollments, source: :employment_educations
+    has_many :source_current_living_situations, through: :source_enrollments, source: :current_living_situations
+    has_many :source_events, through: :source_enrollments, source: :events
+    has_many :source_assessments, through: :source_enrollments, source: :assessments
+    has_many :source_assessment_questions, through: :source_enrollments, source: :direct_assessment_questions
+    has_many :source_assessment_results, through: :source_enrollments, source: :assessment_results
     has_many :source_exits, through: :source_enrollments, source: :exit
     has_many :source_projects, through: :source_enrollments, source: :project
     has_many :permanent_source_exits, -> do
@@ -257,6 +258,12 @@ module GrdaWarehouse::Hud
 
     def most_recent_pathways_assessment_collected_on
       most_recent_pathways_assessment&.collected_at
+    end
+
+    def homeless_service_in_last_n_days?(n=90)
+      return false unless date_of_last_homeless_service
+
+      date_of_last_homeless_service > n.to_i.days.ago
     end
 
     # Do we have any declines that make us ineligible
@@ -737,7 +744,7 @@ module GrdaWarehouse::Hud
 
     scope :consent_form_valid, -> do
       case(release_duration)
-      when 'One Year'
+      when 'One Year', 'Two Years'
         where(
           arel_table[:housing_release_status].matches("%#{full_release_string}").
           and(
@@ -962,11 +969,17 @@ module GrdaWarehouse::Hud
       disabled_client_scope.pluck(:id)
     end
 
+    # Include clients with an indefinite and impairing disability
+    # and those who have had their disability verified manually
     scope :chronically_disabled, -> (end_date=Date.current) do
       start_date = end_date - 3.years
-      joins(:source_enrollment_disabilities).
-        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
-        merge(GrdaWarehouse::Hud::Disability.chronically_disabled)
+      where(
+        id: joins(:source_enrollment_disabilities).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(start_date..end_date)).
+          merge(GrdaWarehouse::Hud::Disability.chronically_disabled).select(:id)
+      ).or(
+        where(id: where.not(disability_verified_on: nil).select(:id))
+      )
     end
 
     def chronically_disabled?
@@ -1177,6 +1190,8 @@ module GrdaWarehouse::Hud
     def self.consent_validity_period
       if release_duration == 'One Year'
         1.years
+      elsif release_duration == 'Two Years'
+        2.years
       elsif release_duration == 'Indefinite'
         100.years
       else
@@ -1185,7 +1200,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.revoke_expired_consent
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
           if client.consent_form_signed_on < consent_validity_period.ago
@@ -1202,7 +1217,7 @@ module GrdaWarehouse::Hud
     def release_current_status
       consent_text = if housing_release_status.blank?
         'None on file'
-      elsif release_duration == 'One Year'
+      elsif release_duration.in?(['One Year', 'Two Years'])
         if consent_form_valid?
           "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
         else
@@ -1236,7 +1251,7 @@ module GrdaWarehouse::Hud
     end
 
     def consent_form_valid?
-      if release_duration == 'One Year'
+      if release_duration.in?(['One Year', 'Two Years'])
         release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
@@ -1619,32 +1634,39 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end
 
-    def fetch_updated_source_hmis_clients
+    def fetch_updated_source_hmis_clients(save: false)
       return nil unless accessible_via_qaaws?
       source_eto_client_lookups.map do |api_client|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_client.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(
+        options = {
           api: api,
           client_id: api_client.client_id,
           participant_site_identifier: api_client.participant_site_identifier,
           site_id: api_client.site_id,
           subject_id: api_client.subject_id,
           data_source_id: api_client.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_demographics(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(options)
+        end
       end.compact
     end
 
-    def fetch_updated_source_hmis_forms
+    # Note:
+    def fetch_updated_source_hmis_forms(save: false)
       return nil unless accessible_via_qaaws?
+
       source_eto_touch_point_lookups.map do |api_touch_point|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_touch_point.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(
+        options = {
           api: api,
           client_id: api_touch_point.client_id,
           touch_point_id: api_touch_point.assessment_id,
@@ -1652,7 +1674,12 @@ module GrdaWarehouse::Hud
           subject_id: api_touch_point.subject_id,
           response_id: api_touch_point.response_id,
           data_source_id: api_touch_point.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_touch_point(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(options)
+        end
       end.compact
     end
 

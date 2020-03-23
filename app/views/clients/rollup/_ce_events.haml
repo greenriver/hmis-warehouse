@@ -1,0 +1,41 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ct = GrdaWarehouse::Hud::Client.arel_table
+  ev_t = GrdaWarehouse::Hud::Event.arel_table
+  events = @client.
+    source_events.
+    preload( enrollment: :client ).
+    select( ct[:id], et[:EntryDate], ev_t[:data_source_id], et[:EnrollmentID], ev_t[:PersonalID], ev_t[:EventDate], ev_t[:Event], ev_t[:ProbSolDivRRResult], ev_t[:ReferralCaseManageAfter], ev_t[:ReferralResult]).
+    order(et[:EntryDate].desc, ev_t[:EventDate].desc).
+    distinct
+- if events.any?
+  %table.table
+    %colgroup
+      %col(style="width:0")
+      %col
+      %col
+      %col
+      %col
+      %col
+      %col
+    %thead
+      %tr
+        %th
+        %th Entry Date
+        %th Event Date
+        %th Event
+        %th Problem Solving/Diversion/Rapid Resolution intervention or service
+        %th Referral
+        %th Referral Result
+    %tbody
+      - events.each do |event|
+        %tr
+          %td.id-sqr{ 'data-id' => event.enrollment.client.id }
+          %td.date-cell= l event.enrollment.EntryDate
+          %td= event.EventDate
+          %td= HUD.no_yes_missing event.ProbSolDivRRResult
+          %td= HUD.no_yes_missing event.ReferralCaseManageAfter
+          %td= HUD.referral_result event.ReferralResult
+- else
+  .no-data
+    No Events on file

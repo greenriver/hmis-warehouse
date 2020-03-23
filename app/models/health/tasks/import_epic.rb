@@ -39,6 +39,7 @@ module Health::Tasks
         import_files()
         update_consent()
         sync_epic_pilot_patients()
+        update_housing_statuses()
         return change_counts()
       end
     end
@@ -116,6 +117,17 @@ module Health::Tasks
       klass.where(id_in_source: @to_revoke).revoke_consent
       notify "Restoring consent for #{@to_restore.size} patients"
       klass.where(id_in_source: @to_restore).restore_consent
+    end
+
+    def update_housing_statuses
+      Health::EpicPatient.
+        where.not(housing_status: nil, housing_status_timestamp: nil).
+        find_each do |patient|
+          status = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
+            status.status = patient.housing_status
+          end
+          status.update(status: patient.housing_status)
+        end
     end
 
     # keep pilot patients in sync with epic export

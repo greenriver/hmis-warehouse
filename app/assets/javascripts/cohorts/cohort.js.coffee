@@ -23,6 +23,7 @@ class App.Cohorts.Cohort
     @search_selector = options['search_selector']
     @search_actions_selector = options['search_actions_selector']
     @population = options['population']
+    @thresholds = options['thresholds']
 
     # Testing
     # @client_count = 15
@@ -45,12 +46,15 @@ class App.Cohorts.Cohort
 
     @grid_options = {
       columnDefs: @grid_column_headers,
-      enableSorting: true,
-      enableFilter: true,
+      defaultColDef:
+        sortable: true,
+        filter: true,
+        resizeable: true,
+      # enableSorting: true,
+      # enableFilter: true,
       singleClickEdit: true,
       rowSelection: 'multiple',
       rowDeselection: true,
-      enableColResize: true,
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
       onSortChanged: (data) ->
@@ -71,6 +75,12 @@ class App.Cohorts.Cohort
         if @editing_field_name == params.colDef.field && @editing_cohort_client_id == cohort_client_id
           old_value = @editing_initial_value
         @after_edit(params.colDef.field, cohort_client_id, old_value, params.value, params.rowIndex)
+      getRowStyle: (params) =>
+        color = {}
+        for threshold in @thresholds
+          if params.node.rowIndex == threshold.row
+            color = 'border-top': "4px solid #{threshold.color}"
+        color
       components:
           dateCellEditor: DateCellEditor,
           dateCellRenderer: DateCellRenderer,
@@ -91,7 +101,7 @@ class App.Cohorts.Cohort
       valueGetter: (params) ->
         params.node.rowIndex + 1
       suppressMenu: true
-      suppressSorting: true
+      sortable: false
       cellStyle: {color: 'rgba(0, 0, 0, 0.54)', 'background-color': '#f5f7f7'}
     }
     @grid_column_headers = $.map @column_headers, (column, index) =>

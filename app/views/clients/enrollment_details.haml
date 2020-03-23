@@ -1,0 +1,20 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'breadcrumbs'
+
+.o-page
+  .o-page__header.d-block
+    .row
+      .col-sm-10
+        = render 'clients/aliases'
+      .col-sm-2.text-right
+        .o-page__action.d-block
+          - if can_track_anomalies?
+            = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary' do
+              Track Issues
+  = render 'tab_navigation', current: enrollment_details_client_path(@client)
+
+  - if can_view_clients?
+    = render 'enrollment_rollups'
+
+= render 'client_rollup_js'

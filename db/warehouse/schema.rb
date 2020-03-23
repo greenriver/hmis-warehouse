@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_10_141315) do
+ActiveRecord::Schema.define(version: 2020_03_19_123357) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1185,6 +1185,7 @@ ActiveRecord::Schema.define(version: 2020_03_10_141315) do
     t.integer "vacancy_id"
     t.string "housing_type"
     t.boolean "ineligible_in_warehouse", default: false, null: false
+    t.string "actor_type"
     t.index ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true
   end
 
@@ -1577,6 +1578,21 @@ ActiveRecord::Schema.define(version: 2020_03_10_141315) do
     t.boolean "visible_in_cas", default: true, null: false
     t.string "assessment_trigger"
     t.integer "tag_id"
+    t.integer "threshold_row_1"
+    t.string "threshold_color_1"
+    t.string "threshold_label_1"
+    t.integer "threshold_row_2"
+    t.string "threshold_color_2"
+    t.string "threshold_label_2"
+    t.integer "threshold_row_3"
+    t.string "threshold_color_3"
+    t.string "threshold_label_3"
+    t.integer "threshold_row_4"
+    t.string "threshold_color_4"
+    t.string "threshold_label_4"
+    t.integer "threshold_row_5"
+    t.string "threshold_color_5"
+    t.string "threshold_label_5"
     t.index ["deleted_at"], name: "index_cohorts_on_deleted_at"
   end
 

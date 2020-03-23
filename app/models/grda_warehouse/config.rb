@@ -37,6 +37,7 @@ module GrdaWarehouse
       [
         'Indefinite',
         'One Year',
+        'Two Years',
         'Use Expiration Date',
       ]
     end

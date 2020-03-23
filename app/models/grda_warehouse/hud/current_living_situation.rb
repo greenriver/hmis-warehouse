@@ -35,7 +35,8 @@ module GrdaWarehouse::Hud
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs
-    has_many :client, through: :enrollment
+    has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_current_living_situations
+    has_one :client, through: :enrollment, inverse_of: :current_living_situations
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client')
     belongs_to :data_source
 

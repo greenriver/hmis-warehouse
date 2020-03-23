@@ -371,6 +371,7 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
+      resources :housing_status_changes, only: [:index]
       resources :cp_roster, only: [:index, :show, :destroy] do
         collection do
           post :roster
@@ -403,6 +404,7 @@ Rails.application.routes.draw do
       patch :unmerge
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
+      get :enrollment_details
     end
     resource :history, only: [:show], controller: 'clients/history' do
       get :pdf, on: :collection

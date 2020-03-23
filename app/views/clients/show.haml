@@ -1,10 +1,5 @@
 - title = @client.full_name
 - content_for :title, title
-:css
-  .rollup-container:empty:after {
-    content: 'loading...';
-  }
-
 = render 'breadcrumbs'
 
 .o-page
@@ -27,17 +22,4 @@
 
   #scratchpad
 
-  -# load in all the bits of aggregate statistics via ajax
-  = content_for :page_js do
-    - source_clients = @client.source_clients.preload(:data_source, :organizations)
-    - if can_view_confidential_enrollment_details?
-      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence ] ] }.to_h
-    - else
-      - js_clients = source_clients.each_with_index.map{ |c, i| [ c.id, [ i, c.uuid, c.data_source&.short_name, c.organizations.map{ |o| o.name unless source_clients.joins(enrollments: :project).where(Project: {OrganizationID: o.OrganizationID, data_source_id: o.data_source_id}).where(Project: {confidential: true}).any?}.compact.to_sentence] ] }.to_h
-    :javascript
-      var rollupPath = #{rollup_client_path(@client, partial: '').to_json.html_safe};
-      var clients = #{js_clients.to_json.html_safe};
-      var manyClients = #{source_clients.many?.to_json.html_safe};
-      var high = #{@client.source_clients.size + 1};
-      var rollups = new App.Rollups.Loader($('.rollup'), rollupPath, manyClients, clients, high);
-      rollups.collapsible('.jAssessmentTypeToggle');
+= render 'client_rollup_js'
