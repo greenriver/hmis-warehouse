@@ -130,7 +130,14 @@ namespace :grda_warehouse do
     when 'hmis_611'
       Importers::HMISSixOneOne::Sftp.available_connections.each do |key, conf|
         ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-        Importers::HMISSixOneOne::Sftp.new(data_source_id: ds.id, host: conf['host'], username: conf['username'], password: conf['password'], path: conf['path']).import!
+        options = {
+          data_source_id: ds.id,
+          host: conf['host'],
+          username: conf['username'],
+          password: conf['password'],
+          path: conf['path'],
+        }
+        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::Sftp', options: options)
       end
     end
   end
@@ -142,7 +149,6 @@ namespace :grda_warehouse do
     case hmis_version
     when 'hmis_611'
       Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
-
         options = {
           data_source_id: conf['data_source_id'],
           region: conf['region'],
@@ -152,11 +158,10 @@ namespace :grda_warehouse do
           path: conf['path'],
           file_password: conf['file_password']
         }
-        Importers::HMISSixOneOne::S3.new(options).import!
+        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::S3', options: options)
       end
     when 'hmis_2020'
       Importers::HmisTwentyTwenty::S3.available_connections.each do |key, conf|
-
         options = {
           data_source_id: conf['data_source_id'],
           region: conf['region'],
@@ -166,7 +171,7 @@ namespace :grda_warehouse do
           path: conf['path'],
           file_password: conf['file_password']
         }
-        Importers::HmisTwentyTwenty::S3.new(options).import!
+        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisTwentyTwenty::S3', options: options)
       end
     end
   end
@@ -299,7 +304,7 @@ namespace :grda_warehouse do
 
   desc "Warm Cohort Cache"
   task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Cohort.prepare_active_cohorts
+    GrdaWarehouse::Cohort.delay.prepare_active_cohorts
   end
 
   desc "Process Recurring HMIS Exports"
