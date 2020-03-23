@@ -14,6 +14,7 @@ module Importing
 
     def initialize
       setup_notifier('DailyImporter')
+      super
     end
 
     def advisory_lock_key
