@@ -1,0 +1,18 @@
+.row.mb-6
+  .col
+    %h3 Housing Trends (#{pluralize(@report.unique_client_data.count, 'patient')})
+    .jTrendChart
+  .col
+    %h3 Housing Trends Key
+    .well
+      %dl
+        %dt Housed includes the following:
+        %dd Permanent and Transitional Housing
+        %dt Unhoused includes the following:
+        %dd Shelter, Street, Doubled Up, and Unknown
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe});
+    })(jQuery);
