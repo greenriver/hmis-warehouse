@@ -24,7 +24,7 @@ Dotenv.load('.env', '.env.local')
 # All installs get these
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
-  # FIXME Needs to be back-grounded
+  # Defers to delayed jobs
   rake "grda_warehouse:daily"
 end
 shifted_time = Time.parse(daily_schedule) - 2.hours
