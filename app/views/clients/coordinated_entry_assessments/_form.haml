@@ -83,32 +83,46 @@
 .well.assessment.assessment-homelessness
   .row
     .col-8
-      = f.input :homeless_six_months, label: 'Check this box if the person has been homeless for 6 months or more'
+      = f.input :homeless_six_months, label: 'Check this box if the person has been homeless for 6 months or more', input_html: { class: :jHomelessTrigger }
   %p.alert.alert-danger
     %i.icon-warning.mr-2
     Please stop here if the length of time homeless is not 6 months or more.
-%h3 Mortality Factors
-.well.assessment.assessment-mortality-factors
-  %p
-    These fields affect the assessment score. Each factor is worth 1 point when selected.
-  = f.input :mortality_hospitilization_3, label: 'More than three hospitalizations or emergency room visits in a year'
-  = f.input :mortality_emergency_room_3, label: 'More than three emergency room visits in the previous three months'
-  = f.input :mortality_over_60, label: 'Age 60 or Older'
-  = f.input :mortality_cirrhosis, label: 'Cirrhosis of the liver'
-  = f.input :mortality_renal_disease, label: 'End stage renal disease'
-  = f.input :mortality_frostbite, label: 'History of frostbite, immersion foot, or hypothermia'
-  = f.input :mortality_hiv, label: 'HIV, AIDS'
-  = f.input :mortality_tri_morbid, label: 'Tri-morbidity (co-occurring psychiatric, substance abuse, and chronic medical condition)'
-%h3 Additional Risk Factors Information
-.well.assessment.assessment-additional-risks
-  %p
-    These fields affect the assessment score. Each factor is worth 1 point when selected.
-  = f.input :lacks_access_to_shelter, label: 'Lacks access to homeless shelters (e.g. Due to shelter capacity issues or being barred)'
-  = f.input :high_potential_for_vicitimization, label: 'High Potential for victimization'
-  = f.input :danger_of_harm, label: 'Danger of self harm or harm to others/community'
-  = f.input :acute_medical_condition, label: 'Chronic or acute medical condition w/extreme lack of judgment regarding safety'
-  = f.input :acute_psychiatric_condition, label: 'Chronic or acute Psychiatric Condition with extreme lack of judgment regarding safety'
-  = f.input :acute_substance_abuse, label: 'Chronic or acute Substance Abuse with extreme lack of judgment regarding safety'
+.jHomeless
+  %h3 Mortality Factors
+  .well.assessment.assessment-mortality-factors
+    %p
+      These fields affect the assessment score. Each factor is worth 1 point when selected.
+    = f.input :mortality_hospitilization_3, label: 'More than three hospitalizations or emergency room visits in a year'
+    = f.input :mortality_emergency_room_3, label: 'More than three emergency room visits in the previous three months'
+    = f.input :mortality_over_60, label: 'Age 60 or Older'
+    = f.input :mortality_cirrhosis, label: 'Cirrhosis of the liver'
+    = f.input :mortality_renal_disease, label: 'End stage renal disease'
+    = f.input :mortality_frostbite, label: 'History of frostbite, immersion foot, or hypothermia'
+    = f.input :mortality_hiv, label: 'HIV, AIDS'
+    = f.input :mortality_tri_morbid, label: 'Tri-morbidity (co-occurring psychiatric, substance abuse, and chronic medical condition)'
+  %h3 Additional Risk Factors Information
+  .well.assessment.assessment-additional-risks
+    %p
+      These fields affect the assessment score. Each factor is worth 1 point when selected.
+    = f.input :lacks_access_to_shelter, label: 'Lacks access to homeless shelters (e.g. Due to shelter capacity issues or being barred)'
+    = f.input :high_potential_for_vicitimization, label: 'High Potential for victimization'
+    = f.input :danger_of_harm, label: 'Danger of self harm or harm to others/community'
+    = f.input :acute_medical_condition, label: 'Chronic or acute medical condition w/extreme lack of judgment regarding safety'
+    = f.input :acute_psychiatric_condition, label: 'Chronic or acute Psychiatric Condition with extreme lack of judgment regarding safety'
+    = f.input :acute_substance_abuse, label: 'Chronic or acute Substance Abuse with extreme lack of judgment regarding safety'
 - unless @assessment.completed?
   = f.submit 'Save for later', class: 'btn btn-primary'
   = f.submit 'Complete', class: 'btn btn-secondary'
+
+  = content_for :page_js do
+    :javascript
+      $(document).ready(function() {
+        $('.jHomelessTrigger').on('change', function(e) {
+          if($(this).is(':checked')) {
+            $('.jHomeless').removeClass('hide');
+          } else {
+            $('.jHomeless').addClass('hide');
+          }
+        });
+        $('.jHomelessTrigger').trigger('change');
+      });
