@@ -10,7 +10,7 @@
 
     - else
       %li.c-header-nav__item
-        - unless current_page?(new_user_session_path)
+        - unless controller_name == 'sessions'
           = simple_form_for(User.new, as: :user, url: session_path(:user), wrapper: :inline_form) do |f|
             .d-flex.mini-login-form
               = f.input :email, required: false, autofocus: true, label: false, placeholder: 'email', wrapper_html: { class: 'ml-auto'}
