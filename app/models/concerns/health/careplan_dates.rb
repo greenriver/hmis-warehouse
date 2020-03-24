@@ -41,7 +41,7 @@ module Health::CareplanDates # rubocop:disable Style/ClassAndModuleChildren
         after_enrollment_date.
         where(patient_id: patient_ids).
         where(activity: :pctp_signed).
-        group(:patient_id).maximum(:date_of_activity)
+        group(:patient_id).minimum(:date_of_activity)
     end
 
     private def with_careplans_in_122_days?(patient, as: :boolean) # rubocop:disable Naming/MethodParameterName

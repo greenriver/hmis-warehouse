@@ -157,12 +157,10 @@ module Health
     def careplan_signed_in_122_days?
       return false unless enrollment_start_date
 
-      range = (enrollment_start_date..Date.current)
       careplan_date = patient&.qualifying_activities&.
         after_enrollment_date&.
         submittable&.
         where(activity: :pctp_signed)&.
-        where(date_of_activity: range)&.
         minimum(:date_of_activity)
 
       (careplan_date - enrollment_start_date).to_i <= 122
