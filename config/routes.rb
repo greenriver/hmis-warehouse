@@ -657,6 +657,7 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      resource :locations, only: :show
       patch :reactivate, on: :member
       member do
         post :unlock
@@ -730,7 +731,9 @@ Rails.application.routes.draw do
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end
-  resource :account, only: [:edit, :update]
+  resource :account, only: [:edit, :update] do
+    get :locations, on: :member
+  end
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
