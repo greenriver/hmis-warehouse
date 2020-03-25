@@ -6,6 +6,15 @@
 
 module GrdaWarehouse::HealthEmergency
   class Triage < GrdaWarehouseBase
-  include HealthEmergency
+    belongs_to :user
+    belongs_to :agency
 
+    def exposure_options
+      [ 'Yes', 'No' ]
+    end
+
+    def symptom_options
+      [ 'Yes', 'No' ]
+    end
+  end
 end

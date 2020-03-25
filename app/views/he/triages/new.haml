@@ -1,0 +1,6 @@
+%h1 Enter New Guest Triage
+= render 'form'
+
+- if @triages.present?
+  .mt-4
+    = render 'table'
