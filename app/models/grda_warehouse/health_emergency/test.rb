@@ -6,6 +6,15 @@
 
 module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
-  include HealthEmergency
+    include HealthEmergency
 
+    def status
+      return 'Unknown' if tested_on.blank?
+      return 'Positive' if result == 'Positive'
+      return 'Negative' if result == 'Negative'
+      return 'Tested' if tested_on.present?
+
+      'Unknown'
+    end
+  end
 end

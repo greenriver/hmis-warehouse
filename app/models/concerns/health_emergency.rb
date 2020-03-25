@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HealthCharts
+module HealthEmergency
   extend ActiveSupport::Concern
   included do
     acts_as_paranoid

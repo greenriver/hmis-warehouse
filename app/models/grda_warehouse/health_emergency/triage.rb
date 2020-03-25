@@ -6,6 +6,14 @@
 
 module GrdaWarehouse::HealthEmergency
   class Triage < GrdaWarehouseBase
-  include HealthEmergency
+    include HealthEmergency
 
+    def status
+      return "Referred on #{referred_on}" if referred_to && referred_on
+      return 'Referred' if referred_to
+      return 'Cleared' if exposure == 'No' && symptoms == 'No'
+
+      'Unknown'
+    end
+  end
 end
