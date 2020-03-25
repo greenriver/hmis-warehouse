@@ -63,6 +63,12 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_health_emergencies
+      {
+        'Boston COVID-19' => :boston_covid_19,
+      }
+    end
+
     def self.cache_store
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
