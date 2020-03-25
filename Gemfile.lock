@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
-  revision: 898aacd832b6bae6fb3eca88b340477944fa6007
+  revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
   specs:
     composite_primary_keys (11.2.0)
-      activerecord (~> 5.2.4.2)
+      activerecord (~> 5.2.1)
 
 GEM
   remote: https://rubygems.org/
@@ -1052,8 +1052,6 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.16)
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (11.2.0)
-      activerecord (~> 5.2.1)
     concurrent-ruby (1.1.6)
     crass (1.0.6)
     curb (0.9.10)

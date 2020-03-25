@@ -235,6 +235,18 @@ task :trigger_job_restarts do
 end
 after 'deploy:symlink:release', :trigger_job_restarts
 
+
+task :clean_bootsnap_cache do
+  on roles(:app, :util, :cron, :web) do
+    within shared_path do
+      execute 'du', '-ms', 'tmp/cache/bootsnap-compile-cache'
+      execute 'find', 'tmp/cache/bootsnap-compile-cache', '-name', '"*"', '-type', 'f', '-mtime', '+7', '-exec', 'rm', '{}', '\;'
+      execute 'du', '-ms', 'tmp/cache/bootsnap-compile-cache'
+    end
+  end
+end
+after 'deploy:symlink:release', :clean_bootsnap_cache
+
 if ENV['RELOAD_NGINX']=='true'
   task :reload_nginx do
     on roles(:web) do

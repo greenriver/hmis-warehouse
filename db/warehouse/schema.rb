@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_19_123357) do
+ActiveRecord::Schema.define(version: 2020_03_24_151503) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1278,6 +1278,7 @@ ActiveRecord::Schema.define(version: 2020_03_19_123357) do
     t.boolean "acute_psychiatric_condition", default: false
     t.boolean "acute_substance_abuse", default: false
     t.boolean "location_no_preference"
+    t.integer "vulnerability_score"
     t.index ["assessor_id"], name: "index_ce_assessments_on_assessor_id"
     t.index ["client_id"], name: "index_ce_assessments_on_client_id"
     t.index ["deleted_at"], name: "index_ce_assessments_on_deleted_at"

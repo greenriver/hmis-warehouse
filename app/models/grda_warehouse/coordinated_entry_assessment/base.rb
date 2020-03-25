@@ -62,7 +62,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     ####################
     # Callbacks
     ####################
-    before_save :calculate_score, :calculate_priority_score
+    before_save :calculate_scores, :calculate_priority_score
     after_update :notify_users
 
     ####################
@@ -116,8 +116,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
       false
     end
 
-    def calculate_score
-      score = [
+    def calculate_scores
+      self.vulnerability_score = [
         mortality_hospitilization_3,
         mortality_emergency_room_3,
         mortality_over_60,
@@ -133,7 +133,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         acute_psychiatric_condition,
         acute_substance_abuse,
       ].count(true)
-      score += [
+      self.score = [
         optional_score(:homelessness),
         optional_score(:substance_use),
         optional_score(:mental_health),
@@ -145,7 +145,6 @@ module GrdaWarehouse::CoordinatedEntryAssessment
         optional_score(:community_involvement),
         optional_score(:survival_skills),
       ].compact.sum
-      self.score = score
     end
 
     def optional_score(attribute)
@@ -153,8 +152,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
       value == 99 ? 0 : value
     end
 
-    def calculate_score!
-      calculate_score
+    def calculate_scores!
+      calculate_scores
       save
     end
 
