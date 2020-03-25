@@ -8,3 +8,5 @@
   - if can_enable_2fa?
     %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_two_factor_path))}
       = link_to 'Two-Factor Authentication', edit_account_two_factor_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(locations_account_path))}
+    = link_to 'Login History', locations_account_path, class: 'nav-link'
