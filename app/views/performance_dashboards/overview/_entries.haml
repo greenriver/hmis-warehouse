@@ -1,0 +1,12 @@
+%h2 Entering
+
+.row
+  .col-12
+    = "Total #{@report.entering.count}"
+
+.row
+  .col-12
+    %dl
+      - @report.entering_by_age.each do |bucket, ids|
+        %dt= bucket.to_s.humanize
+        %dd= ids.count

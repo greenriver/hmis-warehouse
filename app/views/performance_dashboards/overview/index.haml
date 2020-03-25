@@ -1,3 +1,11 @@
 %h1 Overview
 = simple_form_for :filters, method: :get do |f|
   = render 'performance_dashboards/filters', f: f
+
+.row
+  .col-4
+    = render 'entries'
+  .col-4
+    = render 'exits'
+  .col-4
+    = render 'overall'

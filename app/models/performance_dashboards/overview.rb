@@ -6,6 +6,31 @@
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base
 
+  def entering(by_enrollment: false)
+    @entering ||= if by_enrollment
+      entries.pluck(:id, :age)
+    else
+      entries.pluck(:client_id, :age)
+    end
+  end
+
+  def entering_by_age(by_enrollment: false)
+    buckets = {
+      under_eighteen: [],
+      eighteen_to_twenty_four: [],
+      twenty_five_to_sixty_one: [],
+      over_sixty_one: [],
+    }
+    entering(by_enrollment: by_enrollment).each do |(id, age)|
+      next if age.blank?
+      buckets[:under_eighteen] << id if age < 18
+      buckets[:eighteen_to_twenty_four] << id if age >= 18 && age <= 24
+      buckets[:twenty_five_to_sixty_one] << id if age >= 25 && age <= 61
+      buckets[:over_sixty_one] << id if age > 61
+    end
+    buckets
+  end
+
   # An entry is an enrollment where the entry date is within the report range, and there are no entries in the
   # specified project types for the prior 24 months.
   def entries
