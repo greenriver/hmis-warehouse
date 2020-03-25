@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
-  revision: 898aacd832b6bae6fb3eca88b340477944fa6007
+  revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
   specs:
     composite_primary_keys (11.2.0)
