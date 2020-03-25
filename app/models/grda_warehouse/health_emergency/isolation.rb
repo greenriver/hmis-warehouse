@@ -6,12 +6,13 @@
 
 module GrdaWarehouse::HealthEmergency
   class Isolation < GrdaWarehouseBase
-  include HealthEmergency
+    include HealthEmergency
 
-  def status
-    return 'In Isolation' if start_date && end_date.blank?
-    return "In Isolation until #{end_date}" if start_date
+    def status
+      return 'In Isolation' if start_date && end_date.blank?
+      return "In Isolation until #{end_date}" if start_date
 
-    'Unknown'
+      'Unknown'
+    end
   end
 end
