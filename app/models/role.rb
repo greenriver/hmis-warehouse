@@ -414,6 +414,14 @@ class Role < ApplicationRecord
         description: 'Can delete data sources, organizations or projects. Deleting any of these will delete all associated inventory and enrollment information.',
         administrative: true,
       },
+      can_edit_health_emergency_triage: {
+        description: 'Ability to edit and delete triage records during a health emergency.',
+        administrative: false,
+      },
+      can_edit_health_emergency_clinical: {
+        description: 'Ability to edit and delete clinical records during a health emergency.',
+        administrative: false,
+      },
     }
   end
 
