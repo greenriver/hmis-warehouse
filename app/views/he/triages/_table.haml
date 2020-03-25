@@ -1,0 +1,26 @@
+%table.table
+  %thead
+    %tr
+      %th User
+      %th Agency
+      %th Location
+      %th Exposure?
+      %th Symptoms?
+      %th First Symptoms On
+      %th Referred On
+      %th Referred To
+      %th
+  %tbody
+    - @triages.each do |triage|
+      %tr
+        %td= triage.user.name
+        %td= triage.agency.name
+        %td= triage.location
+        %td= triage.exposure
+        %td= triage.symptoms
+        %td= triage.first_symptoms_on
+        %td= triage.referred_on
+        %td= triage.referred_to
+        %td
+          = link_to client_he_triage_path(client_id: triage.client_id, id: triage.id), method: :delete, data: {confirm: 'Are you sure you want to delete this entry?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+            %i.icon-cross
