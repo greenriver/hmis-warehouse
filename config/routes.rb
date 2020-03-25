@@ -529,6 +529,9 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :performance_dashboards do
+    resources :overview, only: [:index]
+  end
 
   resources :cohort_column_options, except: [:destroy]
 

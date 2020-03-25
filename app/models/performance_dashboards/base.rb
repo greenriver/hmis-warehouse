@@ -20,7 +20,7 @@ class PerformanceDashboards::Base
   # @param ethnicities [Array<Integer>] uses HUD ethnicity values, when blank, defaults to any ethnicity
   # @param veteran_statuses [Array<Integer] uses HUD options, when blank, default to any status
   # @param project_types [Array<Integer>] uses HUD options, when blank, defaults to [ES, SO, TH, SH]
-  def initialize(start_date:, end_date:, coc_codes: nil, household_type: nil, hoh_only: false,
+  def initialize(start_date:, end_date:, coc_codes: [], household_type: nil, hoh_only: false,
     age_ranges: [], genders: [], races: {}, ethnicities: [], veteran_statuses: [],  project_types: nil)
     @start_date = start_date
     @end_date = end_date
@@ -33,6 +33,27 @@ class PerformanceDashboards::Base
     @ethnicities = ethnicities
     @veteran_statuses = veteran_statuses
     @project_types = project_types || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+  end
+
+  def self.coc_codes
+    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
+  end
+
+  def household_types
+    {
+      without_children: 'Households without children',
+      with_children: 'Households with both adults and children',
+      only_children: 'Households with only children',
+    }.invert
+  end
+
+  def age_ranges
+    {
+      under_eighteen: '< 18',
+      eighteen_to_twenty_four: '18 - 24',
+      twenty_five_to_sixty_one: '25 - 61',
+      over_sixty_one: '62+',
+    }.invert
   end
 
   # @return filtered scope
