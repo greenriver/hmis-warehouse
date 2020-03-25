@@ -10,7 +10,7 @@ class LoginActivity < ApplicationRecord
   def location_description
     description = ''
     description += "#{city}, " if city
-    description += "region " if region
+    description += "#{region} " if region
     description += country if country
     description
   end
