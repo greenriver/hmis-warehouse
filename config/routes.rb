@@ -448,6 +448,11 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     healthcare_routes(window: false)
+    namespace :he do
+      get :boston_covid_19
+      resources :triage, only: [:new, :create, :destroy]
+      resources :clinical, only: [:new, :create, :destroy]
+    end
   end
 
   # scope
