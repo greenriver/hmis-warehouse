@@ -15,6 +15,10 @@
       },
     }
     hmis = {
+      simple_client_path(@client) => {
+        title: 'Demographics',
+        permission: !show_demographic,
+      },
       client_history_path(@client) => {
         title: 'History',
         permission: show_demographic,
