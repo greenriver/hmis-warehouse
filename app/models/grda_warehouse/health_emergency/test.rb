@@ -7,6 +7,22 @@
 module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include HealthEmergency
+    belongs_to :user
+    belongs_to :agency
+
+    def requested_options
+      [
+        'Yes',
+        'No',
+      ]
+    end
+
+    def result_options
+      [
+        'Positive',
+        'Negative',
+      ]
+    end
 
     def status
       return 'Unknown' if tested_on.blank?

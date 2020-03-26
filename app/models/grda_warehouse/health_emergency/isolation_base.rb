@@ -7,7 +7,10 @@
 module GrdaWarehouse::HealthEmergency
   class IsolationBase < GrdaWarehouseBase
     include HealthEmergency
-    self.abstract_class = true
+    #self.abstract_class = true
     self.table_name = 'health_emergency_isolations'
+
+    belongs_to :user
+    belongs_to :agency
   end
 end

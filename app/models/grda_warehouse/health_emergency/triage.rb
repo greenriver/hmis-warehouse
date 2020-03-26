@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::HealthEmergency
   class Triage < GrdaWarehouseBase
-    include ::HealthEmergency
+    include HealthEmergency
     belongs_to :user
     belongs_to :agency
 

@@ -451,7 +451,13 @@ Rails.application.routes.draw do
     namespace :he do
       get :boston_covid_19
       resources :triages, only: [:new, :create, :destroy]
-      resources :clinicals, only: [:new, :create, :destroy]
+      resources :clinicals, only: [:new, :destroy] do
+        post :test, on: :collection
+        delete :destroy_test, on: :member
+        post :isolation, on: :collection
+        post :quarantine, on: :collection
+        delete :destroy_isolation, on: :member
+      end
     end
   end
 
