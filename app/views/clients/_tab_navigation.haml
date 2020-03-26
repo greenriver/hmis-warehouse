@@ -14,7 +14,14 @@
         permission: show_demographic,
       },
     }
-    hmis = {
+    hmis = {}
+    hmis.merge!({
+      client_he_boston_covid_19_path(@client) => {
+        title: 'Health Emergency',
+        permission: can_view_or_search_clients_or_window?,
+      },
+    }) if health_emergency?
+    hmis.merge!({
       client_history_path(@client) => {
         title: 'History',
         permission: show_demographic,
@@ -67,7 +74,7 @@
         title: 'Audit',
         permission: can_audit_clients?,
       },
-    }
+    })
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
