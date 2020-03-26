@@ -1,12 +1,8 @@
 - show_link = false unless defined?(show_link)
 .client__details.client__details--health-emergency.health-emergency
-  .d-flex
-    %h3 Health Emergency Status
-    - if show_link
-      .ml-auto
-        = link_to polymorphic_path(['client_he', health_emergency], client_id: client) do
-          Update Information
-  .health-emergency__badges.d-flex
+  .client__details-header
+    %h3.text-danger Health Emergency Status
+  .o-pills.health-emergency__badges
     .triage-status.badge-pill.badge-dark.d-flex.mr-2
       %dl.d-flex
         %dt Triage
@@ -19,3 +15,6 @@
       %dl.d-flex
         %dt Isolation
         %dd= client.health_emergency_isolation_status
+    - if show_link
+      = link_to polymorphic_path(['client_he', health_emergency], client_id: client), class: 'btn btn-primary btn-sm ml-4' do
+        Update Information

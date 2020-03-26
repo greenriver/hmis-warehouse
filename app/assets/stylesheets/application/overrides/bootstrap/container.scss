@@ -1,4 +1,8 @@
+@import '../../helpers';
+
 .container-fluid {
-  padding-right: 30px;
-  padding-left: 30px;
+  @include media-breakpoint-up(md) {
+    padding-right: 30px;
+    padding-left: 30px;
+  }
 }

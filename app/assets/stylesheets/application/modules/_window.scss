@@ -6,8 +6,12 @@
 
 .clients__client-card .c-card__content{
   display: flex;
-  align-items: flex-start;
+  // align-items: flex-start;
   flex-wrap: wrap;
+  flex-direction: column;
+  @include media-breakpoint-up(md) {
+    flex-direction: row;
+  }
 }
 
 .client__view_client {
