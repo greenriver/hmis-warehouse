@@ -1,9 +1,11 @@
+- show_link = false unless defined?(show_link)
 .client__details.client__details--health-emergency
   .d-flex
     %h3 Health Emergency Status
-    .ml-auto
-      = link_to polymorphic_path(['client_he', health_emergency], client_id: client) do
-        Update Information
+    - if show_link
+      .ml-auto
+        = link_to polymorphic_path(['client_he', health_emergency], client_id: client) do
+          Update Information
   .triage-status.badge-pill.badge-dark.d-flex
     %dl.d-flex
       %dt Triage:
