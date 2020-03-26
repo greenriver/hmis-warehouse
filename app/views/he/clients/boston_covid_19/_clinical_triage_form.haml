@@ -1,0 +1,9 @@
+= simple_form_for @test, url: test_client_he_clinicals_path do |f|
+  .row
+    .col-md-8
+      = f.input :test_requested, collection: @test.requested_options, include_blank: true, as: :radio_buttons
+      = f.input :location, label: 'Where did the test occur?'
+    .col-md-4
+  .row
+    .col
+      = f.submit 'Add Clinical Triage'

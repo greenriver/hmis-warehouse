@@ -9,14 +9,12 @@
         = render 'clients/aliases'
   = render 'clients/tab_navigation', current: polymorphic_path(['client_he', health_emergency], client_id: @client)
   %section.o-dashboard__block--primary.client__summary
-    - if @client.image
-      .client__image{ style: "background-image: url(#{ image_client_path(@client) })" }
-
-  %h2 Triage Information
-  = render 'he/triages/table'
-
-  %h2 Testing Information
-  = render 'he/clinicals/tests_table'
-
-  %h2 Isolation and Quarantine Information
-  = render 'he/clinicals/isolations_table'
+  .row
+    .col-sm-3
+      - if @client.image
+        .client__image{ style: "background-image: url(#{ image_client_path(@client) })" }
+    .col-sm-9
+      = render "he/clients/#{health_emergency}/triage"
+      = render "he/clients/#{health_emergency}/clinical"
+  %h2 History
+  = render "he/clients/#{health_emergency}/history"

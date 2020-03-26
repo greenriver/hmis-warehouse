@@ -10,9 +10,15 @@ module He
     include HealthEmergencyController
 
     def boston_covid_19
-      @triages = GrdaWarehouse::HealthEmergency::Triage.where(client_id: params[:client_id].to_i).newest_first
-      @tests = GrdaWarehouse::HealthEmergency::Test.where(client_id: params[:client_id]).newest_first
-      @isolations = GrdaWarehouse::HealthEmergency::IsolationBase.where(client_id: params[:client_id]).newest_first
+      @triage = GrdaWarehouse::HealthEmergency::Triage.new(agency: current_user.agency)
+      @test = GrdaWarehouse::HealthEmergency::Test.new(agency: current_user.agency)
+      @isolation = GrdaWarehouse::HealthEmergency::Isolation.new(agency: current_user.agency)
+      @quarantine = GrdaWarehouse::HealthEmergency::Quarantine.new(agency: current_user.agency)
+
+      @triages = @client.health_emergency_triages.newest_first
+      @tests = @client.health_emergency_test.newest_first
+      @isolations = @client.health_emergency_isolations.newest_first
+      @quarantines = @client.health_emergency_quarantines.newest_first
     end
   end
 end

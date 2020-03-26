@@ -1,0 +1,23 @@
+#clinical-triage-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render "he/clients/#{health_emergency}/clinical_triage_form"
+
+  = render 'common/panel_collapse', id: 'clinical-triage', title: 'Clinical Triage'
+
+#isolation-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render "he/clients/#{health_emergency}/isolation_form"
+
+  = render 'common/panel_collapse', id: 'isolation-info', title: 'Isolation'
+
+#quarantine-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render "he/clients/#{health_emergency}/quarantine_form"
+
+  = render 'common/panel_collapse', id: 'quarantine-info', title: 'Quarantine'
+
+#test-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render "he/clients/#{health_emergency}/test_form"
+
+  = render 'common/panel_collapse', id: 'test-info', title: 'Testing Results'

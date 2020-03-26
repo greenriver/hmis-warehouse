@@ -9,10 +9,11 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     def requested_options
-      [
-        'Yes',
-        'No',
-      ]
+      {
+        'Unknown' => '',
+        'Yes' => 'Yes',
+        'No' => 'No',
+      }
     end
 
     def result_options

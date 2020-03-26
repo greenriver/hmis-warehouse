@@ -9,17 +9,19 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     def exposure_options
-      [
-        'Yes',
-        'No',
-      ]
+      {
+        'Unknown' => '',
+        'Yes' => 'Yes',
+        'No' => 'No',
+      }
     end
 
     def symptom_options
-      [
-        'Yes',
-        'No',
-      ]
+      {
+        'Unknown' => '',
+        'Yes' => 'Yes',
+        'No' => 'No',
+      }
     end
 
     def status

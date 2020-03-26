@@ -10,11 +10,6 @@ module He
     include HealthEmergencyController
     before_action :require_can_edit_health_emergency_triage!
 
-    def new
-      @triage = GrdaWarehouse::HealthEmergency::Triage.new
-      @triages = GrdaWarehouse::HealthEmergency::Triage.where(client_id: params[:client_id].to_i).newest_first
-    end
-
     def create
       user_data = {
         user_id: current_user.id,
@@ -22,13 +17,13 @@ module He
         agency_id: current_user.agency.id,
       }
       @triage = GrdaWarehouse::HealthEmergency::Triage.create(triage_params.merge(user_data))
-      redirect_to action: :new
+      redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
     def destroy
       @triage = GrdaWarehouse::HealthEmergency::Triage.find(params[:id].to_i)
       @triage.destroy
-      redirect_to action: :new
+      redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
     def triage_params

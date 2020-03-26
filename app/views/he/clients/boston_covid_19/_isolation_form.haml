@@ -1,0 +1,13 @@
+= simple_form_for @isolation, url: isolation_client_he_clinicals_path do |f|
+  .row
+    .col-md-8
+      = f.input :isolation_requested_at, as: :date_picker, label: "When was #{@client.name} asked to isolate?"
+      = f.input :location, label: 'Isolation location'
+      = f.input :started_on,  as: :date_picker, label: 'Isolation start date'
+      = f.input :scheduled_to_end_on,  as: :date_picker, label: 'Scheduled isolation end date'
+      = f.input :ended_on,  as: :date_picker, label: 'Actual isolation end date'
+    .col-md-4
+
+  .row
+    .col
+      = f.submit 'Add Isolation Information'

@@ -85,6 +85,8 @@ gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
 # gem 'jquery-datatables-rails'
+# gem 'bootstrap4-datetime-picker-rails'
+gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
 
 # ETO API related
 gem "rest-client", "~> 2.0"

@@ -40,6 +40,7 @@
 //= require inputmask/inputmask/bindings/inputmask.binding.min
 //= require billboard/billboard.min
 //= require moment.min.js
+//= require bootstrap-datetimepicker
 
 
 //////////////////////////

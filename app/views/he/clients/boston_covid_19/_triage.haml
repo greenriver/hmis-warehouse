@@ -1,0 +1,5 @@
+#triage-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render "he/clients/#{health_emergency}/triage_form"
+
+  = render 'common/panel_collapse', id: 'triage-info', title: 'Triage'
