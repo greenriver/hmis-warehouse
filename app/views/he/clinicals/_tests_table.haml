@@ -1,0 +1,22 @@
+%table.table
+  %thead
+    %tr
+      %th User
+      %th Agency
+      %th Requested?
+      %th Location
+      %th Tested On
+      %th Result
+      %th
+  %tbody
+    - @tests.each do |test|
+      %tr
+        %td= test.user.name
+        %td= test.agency.name
+        %td= test.test_requested
+        %td= test.location
+        %td= test.tested_on
+        %td= test.result
+        %td
+          = link_to destroy_test_client_he_clinical_path(client_id: test.client_id, id: test.id), method: :delete, data: {confirm: 'Are you sure you want to delete this entry?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+            %i.icon-cross

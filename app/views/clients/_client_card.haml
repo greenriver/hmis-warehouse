@@ -20,7 +20,7 @@
     .c-card__detail-col.c-card__detail-col--reversed-mobile
       - if health_emergency?
         .client__content-block
-          = render 'health_emergency', client: client, show_link: true
+          = render "clients/#{health_emergency}", client: client, show_link: true
       .client__details.client__details--demographics
         .client__content-block
           - if @show_ssn
