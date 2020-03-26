@@ -261,12 +261,22 @@ $client-image-height: 200px;
   background-position: center center;
   flex: 1 1 auto;
   margin-bottom: space(4);
+  border-radius: 5px;
   @include media-breakpoint-up(sm) {
     max-width: rem($client-image-height);
     min-width: rem($client-image-height);
     min-height: rem($client-image-height);
     max-height: rem($client-image-height + 50px);
     margin-bottom: 0;
+  }
+}
+
+.client__image--w-100 {
+  min-width: 100%;
+  min-height: 33vh;
+  @include media-breakpoint-up(lg) {
+    height: auto;
+    min-height: 300px;
   }
 }
 
