@@ -756,6 +756,7 @@ Rails.application.routes.draw do
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
+      get :form
       get :careplan
       get :health_team
       get :icon_font

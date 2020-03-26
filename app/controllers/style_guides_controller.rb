@@ -28,6 +28,10 @@ class StyleGuidesController < ApplicationController
   def add_team_member
   end
 
+  def form
+    @form = OpenStruct.new
+  end
+
   def health_team
     @member = Health::Team::Member.new
     @patient = Health::Patient.pilot.first

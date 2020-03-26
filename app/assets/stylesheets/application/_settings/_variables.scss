@@ -66,3 +66,7 @@ $font-weights: (
   semibold : 600,
   bold     : 700,
 );
+
+$input-bg:          $white !default;
+$input-disabled: #eeeeee !default;
+$input-disabled-bg: $gray-025 !default;
