@@ -16,7 +16,7 @@
     }
     hmis = {}
     hmis.merge!({
-      client_he_boston_covid_19_path(@client) => {
+      polymorphic_path(['client_he', health_emergency], client_id: @client) => {
         title: 'Health Emergency',
         permission: can_view_or_search_clients_or_window?,
       },

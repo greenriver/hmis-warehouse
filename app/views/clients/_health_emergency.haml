@@ -2,7 +2,7 @@
   .d-flex
     %h3 Health Emergency Status
     .ml-auto
-      = link_to client_he_boston_covid_19_path(client) do
+      = link_to polymorphic_path(['client_he', health_emergency], client_id: client) do
         Update Information
   .triage-status.badge-pill.badge-dark.d-flex
     %dl.d-flex
