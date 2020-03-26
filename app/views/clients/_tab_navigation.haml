@@ -124,5 +124,6 @@
       },
     }
   - if health_emergency?
-    = render 'clients/health_emergency', client: @client
+    .client-tabs__health-emergency
+      = render 'clients/health_emergency', client: @client
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
