@@ -271,18 +271,21 @@ $client-image-height: 200px;
 }
 
 .client__details{
+  padding-left: space(4);
   padding-right: space(4);
-  flex: 0 0 33%;
-  max-width: 33%;
-}
-
-@include media-breakpoint-down(sm) {
-  .client__details{
-    flex: 0 0 100%;
-    margin-bottom: space(4);
+  &:last-child {
+    .client__content-block {
+      margin-bottom: 0;
+    }
   }
 }
 
+.client__content-block {
+  margin-bottom: space(4);
+  &:empty {
+    display: none;
+  }
+}
 
 .client__details--status,
 .client__details--demographics {
@@ -309,7 +312,7 @@ $client-image-height: 200px;
 }
 
 .clients__users {
-  margin-top: 2rem;
+  // margin-top: 2rem;
 }
 
 .clients__users h4 {

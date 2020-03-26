@@ -187,3 +187,28 @@
   color: red;
   &.open { }
 }
+
+.c-card__detail-col {
+  flex: 0 0 33%;
+  max-width: 33%;
+  padding-top: space(4);
+  @include media-breakpoint-down(sm) {
+    flex: 0 0 100%;
+    margin-bottom: space(4);
+  }
+}
+.c-card__content .c-card__detail-col {
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.c-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  padding: space(2) space(4);
+  border-top: $gray-015 1px solid;
+  margin-top: space(4);
+}
