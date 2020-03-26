@@ -13,4 +13,10 @@
         %td= item.status
         %td= item.user&.name
         %td= item.agency&.name
+        %td
+      %tr
+        %td{colspan: 5}
+          = render item
+
+
 
