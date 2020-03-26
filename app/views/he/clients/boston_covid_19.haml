@@ -13,6 +13,7 @@
     - if @client.image
       .col-sm-12.col-md-4.col-lg-3.col-xl-2.mb-4
         .client__image.client__image--w-100{ style: "background-image: url(#{ image_client_path(@client) })" }
+        = render "he/clients/#{health_emergency}/ama_restriction_form"
     .col-sm-12.col-md-8.col-lg-9.col-xl-10
       = render "he/clients/#{health_emergency}/triage"
       = render "he/clients/#{health_emergency}/clinical"

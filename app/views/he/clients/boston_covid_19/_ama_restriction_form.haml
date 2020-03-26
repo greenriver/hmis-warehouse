@@ -1,0 +1,10 @@
+= simple_form_for @ama_restriction, url: client_he_ama_restrictions_path do |f|
+  .row
+    .col-md-8
+      = f.input :restricted, collection: @ama_restriction.restriction_options, label: 'Medical Restriction?', include_blank: true, as: :radio_buttons
+      = f.input :note
+    .col-md-4
+
+  .row
+    .col
+      = f.submit 'Add Restriction'

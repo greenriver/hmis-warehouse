@@ -3,6 +3,7 @@
   .client__details-header
     %h3.text-danger Health Emergency Status
   .o-pills.health-emergency__badges
+    = pill_badge labels: ['Medical Restriction', client.health_emergency_ama_restriction_status]
     = pill_badge labels: ['Triage', client.health_emergency_triage_status]
     = pill_badge labels: ['Test', client.health_emergency_test_status]
     = pill_badge labels: ['Isolation', client.health_emergency_isolation_status]
