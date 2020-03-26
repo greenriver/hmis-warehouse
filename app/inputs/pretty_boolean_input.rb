@@ -11,9 +11,7 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
     name = "#{object_name}[#{attribute_name}]"
     id = name.to_s.parameterize
     pre_label = template.content_tag(:span, '', class: 'c-checkbox__pre-label')
-    if options[:pre_label].present?
-      pre_label = template.content_tag(:span, options[:pre_label], class: 'c-checkbox__pre-label')
-    end
+    pre_label = template.content_tag(:span, options[:pre_label], class: 'c-checkbox__pre-label') if options[:pre_label].present?
     check =
       template.content_tag(:span, template.content_tag(:span, '', class: 'c-checkbox__check-icon'), class: 'c-checkbox__check-container')
     label_text_el = template.content_tag(:span, label_text)
@@ -27,6 +25,5 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
   end
 
   def label
-
   end
 end

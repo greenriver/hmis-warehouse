@@ -1,5 +1,16 @@
-#clinical-triage-accordion.panel-group.panel-collapsible
-  - content_for :panel_collapse_content, flush: true do
-    = render "he/clients/#{health_emergency}/clinical_triage_form"
+%table.table
+  %thead
+    %tr
+      %th Date
+      %th Status
+      %th Entered By
+      %th Agency
+      %th
+  %tbody
+    - @history.each do |item|
+      %tr
+        %td= item.created_at.to_date
+        %td= item.status
+        %td= item.user&.name
+        %td= item.agency&.name
 
-  = render 'common/panel_collapse', id: 'clinical-triage', title: 'Clinical Triage'

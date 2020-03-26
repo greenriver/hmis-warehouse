@@ -15,10 +15,12 @@ module He
       @isolation = GrdaWarehouse::HealthEmergency::Isolation.new(agency: current_user.agency)
       @quarantine = GrdaWarehouse::HealthEmergency::Quarantine.new(agency: current_user.agency)
 
-      @triages = @client.health_emergency_triages.newest_first
-      @tests = @client.health_emergency_test.newest_first
-      @isolations = @client.health_emergency_isolations.newest_first
-      @quarantines = @client.health_emergency_quarantines.newest_first
+      @triages = @client.health_emergency_triages.newest_first.to_a
+      @tests = @client.health_emergency_test.newest_first.to_a
+      @isolations = @client.health_emergency_isolations.newest_first.to_a
+      @quarantines = @client.health_emergency_quarantines.newest_first.to_a
+
+      @history = (@triages + @tests + @isolations + @quarantines)&.sort_by(&:created_at)
     end
   end
 end
