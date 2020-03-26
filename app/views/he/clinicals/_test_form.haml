@@ -1,0 +1,14 @@
+= simple_form_for @test, url: test_client_he_clinicals_path do |f|
+  .row
+    .col-md-3
+      = f.input :location
+    .col-md-3
+      = f.input :test_requested, collection: @test.requested_options, include_blank: true, input_html: { class: :select2 }
+    .col-md-3
+      = f.input :tested_on,  as: :date_picker
+    .col-md-3
+      = f.input :result, collection: @test.result_options, include_blank: true, input_html: { class: :select2 }
+
+  .row
+    .col
+      = f.submit 'Add Test'
