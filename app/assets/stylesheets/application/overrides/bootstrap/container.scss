@@ -1,7 +1,7 @@
 @import '../../helpers';
 
 .container-fluid {
-  @include media-breakpoint-up(sm) {
+  @include media-breakpoint-up(md) {
     padding-right: 30px;
     padding-left: 30px;
   }

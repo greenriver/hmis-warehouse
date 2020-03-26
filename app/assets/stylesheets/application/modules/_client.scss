@@ -280,6 +280,11 @@ $client-image-height: 200px;
   }
 }
 
+.client__details-header {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .client__content-block {
   margin-bottom: space(4);
   &:empty {

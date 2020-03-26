@@ -1,7 +1,7 @@
 - window_link = client.window_link_for?(current_user)
 - show_window_link = window_link.present?
 .clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id, href: window_link}, class: show_window_link ? 'js-client' : nil}
-  .c-card__content.p-0
+  .c-card__content.p-0.pt-sm-4
     .c-card__detail-col
       .client__details.client__details--identity
         .client__content-block
@@ -17,7 +17,7 @@
               .client__client-name
                 .client-aka
                   = aka
-    .c-card__detail-col
+    .c-card__detail-col.c-card__detail-col--reversed-mobile
       - if health_emergency?
         .client__content-block
           = render 'health_emergency', client: client, show_link: true
