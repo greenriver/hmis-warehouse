@@ -8,7 +8,6 @@ module He
   class ClinicalsController < ApplicationController
     include ClientDependentControllers
     include HealthEmergencyController
-    before_action :require_health_emergency!
     before_action :require_can_edit_health_emergency_clinical!
 
     def new
