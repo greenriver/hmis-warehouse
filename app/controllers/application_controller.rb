@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
   before_action :set_gettext_locale
   before_action :enforce_2fa!
   before_action :require_training!
+  before_action :health_emergency?
 
   prepend_before_action :skip_timeout
 
@@ -202,6 +203,16 @@ class ApplicationController < ActionController::Base
 
     ApplicationRecord.setup_config
   end
+
+  def health_emergency?
+    health_emergency.present?
+  end
+  helper_method :health_emergency?
+
+  def health_emergency
+    @health_emergency ||= GrdaWarehouse::Config.get(:health_emergency)
+  end
+  helper_method :health_emergency
 
   def pjax_request?
     false

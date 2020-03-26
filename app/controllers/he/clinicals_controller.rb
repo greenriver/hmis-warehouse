@@ -9,6 +9,7 @@ module He
     include ClientDependentControllers
     include HealthEmergency
     before_action :require_health_emergency!
+    before_action :can_edit_health_emergency_clinical!
     before_action :require_can_edit_health_emergency_clinical!
 
     def new

@@ -1,0 +1,13 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.o-page
+  .o-page__header.d-block
+    .row
+      .col-sm-10
+        = render 'clients/aliases'
+  = render 'clients/tab_navigation', current: polymorphic_path(['client_he', health_emergency], client_id: @client)
+  %section.o-dashboard__block--primary.client__summary
+    - if @client.image
+      .client__image{ style: "background-image: url(#{ image_client_path(@client) })" }

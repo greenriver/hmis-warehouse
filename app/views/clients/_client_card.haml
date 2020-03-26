@@ -15,8 +15,8 @@
           .client__client-name
             .client-aka
               = aka
-    - if @health_emergency
-      = render 'health_emergency', client: client
+    - if health_emergency?
+      = render 'health_emergency', client: client, show_link: true
     .client__details.client__details--demographics
       - if @show_ssn
         .client__ssns

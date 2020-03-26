@@ -7,8 +7,7 @@
 module He
   class TriagesController < ApplicationController
     include ClientDependentControllers
-    include HealthEmergency
-    before_action :require_health_emergency!
+    include HealthEmergencyController
     before_action :require_can_edit_health_emergency_triage!
 
     def new
