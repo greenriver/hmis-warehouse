@@ -1,0 +1,41 @@
+@import '../helpers';
+
+.client__details--health-emergency
+{
+  background-color: lighten($brand-danger-l, 10%);
+  padding: 1rem;
+}
+.client-tabs__health-emergency
+{
+  background-color: lighten($brand-danger-l, 10%);
+  margin-bottom: - space(4);
+  margin-left: -30px;
+  margin-right: -30px;
+  padding: 0.25rem 30px;
+}
+.client-tabs__health-emergency h3
+{
+  font-size: 1.2rem;
+  color: $brand-danger;
+  text-transform: uppercase;
+}
+.health-emergency dl
+{
+  margin-bottom: 0;
+}
+.health-emergency dt
+{
+  font-size: 0.9rem;
+  border-right: 1px solid white;
+  padding: 0.25rem 0.5rem ;
+  text-transform: uppercase;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+.health-emergency dd
+{
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+}
