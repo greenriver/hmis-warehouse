@@ -11,3 +11,12 @@
   %section.o-dashboard__block--primary.client__summary
     - if @client.image
       .client__image{ style: "background-image: url(#{ image_client_path(@client) })" }
+
+  %h2 Triage Information
+  = render 'he/triages/table'
+
+  %h2 Testing Information
+  = render 'he/clinicals/tests_table'
+
+  %h2 Isolation and Quarantine Information
+  = render 'he/clinicals/isolations_table'
