@@ -1,6 +1,10 @@
-%h1 Enter New Guest Triage
+%h1 Triage Information
+
+%h2 Enter New Triage
 = render 'form'
 
+%h2.mt-4 Triages
 - if @triages.present?
-  .mt-4
-    = render 'table'
+  = render 'table'
+- else
+  No Recorded Triages

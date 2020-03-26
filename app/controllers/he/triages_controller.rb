@@ -12,7 +12,7 @@ module He
 
     def new
       @triage = GrdaWarehouse::HealthEmergency::Triage.new
-      @triages = GrdaWarehouse::HealthEmergency::Triage.where(client_id: params[:client_id].to_i).order(created_at: :desc)
+      @triages = GrdaWarehouse::HealthEmergency::Triage.where(client_id: params[:client_id].to_i).newest_first
     end
 
     def create
