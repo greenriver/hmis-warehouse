@@ -30,6 +30,7 @@ class ClientsController < ApplicationController
   helper_method :sort_column, :sort_direction
 
   def index
+    @health_emergency = GrdaWarehouse::Config.get(:health_emergency).present?
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
     @clients = client_scope.none
@@ -38,9 +39,18 @@ class ClientsController < ApplicationController
     elsif current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
+    preloads = [:processed_service_history, :users, :user_clients, source_clients: :data_source]
+    if @health_emergency
+      preloads + [
+        :health_emergency_triages,
+        :health_emergency_test,
+        :health_emergency_isolations,
+        :health_emergency_quarantines,
+      ]
+    end
     @clients = @clients.
       distinct.
-      preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
+      preload(preloads).
       page(params[:page]).per(20)
     if current_user.can_access_window_search? || current_user.can_access_client_search?
       sort_filter_index

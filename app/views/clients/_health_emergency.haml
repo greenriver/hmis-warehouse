@@ -1,0 +1,18 @@
+.client__details.client__details--health-emergency
+  .d-flex
+    %h3 Health Emergency Status
+    .ml-auto
+      = link_to client_he_boston_covid_19_path(client) do
+        Update Information
+  .triage-status.badge-pill.badge-dark.d-flex
+    %dl.d-flex
+      %dt Triage:
+      %dd= client.health_emergency_triage_status
+  .test-status.badge-pill.badge-dark.d-flex
+    %dl.d-flex
+      %dt Test:
+      %dd= client.health_emergency_test_status
+  .isolation-status.badge-pill.badge-dark.d-flex
+    %dl.d-flex
+      %dt Isolation:
+      %dd= client.health_emergency_isolation_status

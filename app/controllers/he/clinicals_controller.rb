@@ -5,7 +5,10 @@
 ###
 
 module He
-  class ClinicalController < ApplicationController
+  class ClinicalsController < ApplicationController
     include ClientDependentControllers
+    include HealthEmergency
+    before_action :require_health_emergency!
+    before_action :can_edit_health_emergency_clinical!
   end
 end

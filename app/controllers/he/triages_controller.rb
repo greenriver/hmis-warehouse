@@ -7,8 +7,9 @@
 module He
   class TriagesController < ApplicationController
     include ClientDependentControllers
-
-    # FIXME: access control
+    include HealthEmergency
+    before_action :require_health_emergency!
+    before_action :require_can_edit_health_emergency_triage!
 
     def new
       @triage = GrdaWarehouse::HealthEmergency::Triage.new

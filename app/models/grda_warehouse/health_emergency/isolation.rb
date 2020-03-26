@@ -5,8 +5,7 @@
 ###
 
 module GrdaWarehouse::HealthEmergency
-  class Isolation < GrdaWarehouseBase
-    include HealthEmergency
+  class Isolation < IsolationBase
 
     def status
       return 'In Isolation' if start_date && end_date.blank?

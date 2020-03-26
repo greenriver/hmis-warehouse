@@ -6,16 +6,12 @@
 
 module HealthEmergency
   extend ActiveSupport::Concern
+
   included do
-    acts_as_paranoid
-    has_paper_trail
+    def require_health_emergency!
+      return true if GrdaWarehouse::Config.get(:health_emergency).present?
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :user
-    belongs_to :agency
-
-    scope :newest_first, -> do
-      order(created_at: :desc)
+      not_authorized!
     end
   end
 end
