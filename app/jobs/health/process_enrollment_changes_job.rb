@@ -9,6 +9,13 @@ module Health
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 
+      pidsls = Health::Cp.all.map { |cp| cp.pid + cp.sl }
+      receiver_id = enrollment.receiver_id
+      unless pidsls.include?(receiver_id)
+        enrollment.update(status: "Unexpected receiver ID #{receiver_id}")
+        return
+      end
+
       begin
         # counters
         new_patients = 0
