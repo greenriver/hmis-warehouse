@@ -280,7 +280,7 @@ module ApplicationHelper
     end
   end
 
-  def pill_badge labels: [], wrapper_classes: []
+  def pill_badge labels: [], wrapper_classes: ['badge-dark']
     tag.div class: ['badge-pill'] + wrapper_classes do
       tag.dl class: 'badge-pill__content' do
         concat(

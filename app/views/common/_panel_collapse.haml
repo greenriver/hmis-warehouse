@@ -12,10 +12,12 @@
       - if content_for?(:panel_collapse_heading)
         = yield :panel_collapse_heading
       - else
-        .toggle.ml-auto.d-flex.align-items-center
+        .d-flex.align-items-center
           %h4.panel-title= title
-          - if allow_toggle == 'yes'
-            .ml-auto
+          .ml-auto.d-flex.align-items-center
+            .mr-6
+              = yield "panel_collapse_heading_content_#{id}"
+            - if allow_toggle == 'yes'
               - if default_open == 'yes'
                 %i.icon-arrow-circled-down.j-toggle-arrow
               - else

@@ -3,10 +3,9 @@
   .client__details-header
     %h3.text-danger Health Emergency Status
   .o-pills.health-emergency__badges
-    - common_pill_attrs = {wrapper_classes: ['badge-dark']}
-    = pill_badge labels: ['Triage', client.health_emergency_triage_status], **common_pill_attrs
-    = pill_badge labels: ['Test', client.health_emergency_test_status], **common_pill_attrs
-    = pill_badge labels: ['Isolation', client.health_emergency_isolation_status], **common_pill_attrs
+    = pill_badge labels: ['Triage', client.health_emergency_triage_status]
+    = pill_badge labels: ['Test', client.health_emergency_test_status]
+    = pill_badge labels: ['Isolation', client.health_emergency_isolation_status]
     - if show_link
       = link_to polymorphic_path(['client_he', health_emergency], client_id: client), class: 'btn btn-primary btn-sm ml-4' do
         Update Information
