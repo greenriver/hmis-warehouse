@@ -7,9 +7,8 @@
 module He
   class ClinicalsController < ApplicationController
     include ClientDependentControllers
-    include HealthEmergency
+    include HealthEmergencyController
     before_action :require_health_emergency!
-    before_action :can_edit_health_emergency_clinical!
     before_action :require_can_edit_health_emergency_clinical!
 
     def new
@@ -17,8 +16,8 @@ module He
       @isolation = GrdaWarehouse::HealthEmergency::Isolation.new
       @quarantine = GrdaWarehouse::HealthEmergency::Quarantine.new
 
-      @tests = GrdaWarehouse::HealthEmergency::Test.where(client_id: params[:client_id]).order(created_at: :desc)
-      @isolations = GrdaWarehouse::HealthEmergency::IsolationBase.where(client_id: params[:client_id]).order(created_at: :desc)
+      @tests = GrdaWarehouse::HealthEmergency::Test.where(client_id: params[:client_id]).newest_first
+      @isolations = GrdaWarehouse::HealthEmergency::IsolationBase.where(client_id: params[:client_id]).newest_first
     end
 
     def test

@@ -6,9 +6,7 @@
 
 module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
-    include HealthEmergency
-    belongs_to :user
-    belongs_to :agency
+    include ::HealthEmergency
 
     def requested_options
       [
