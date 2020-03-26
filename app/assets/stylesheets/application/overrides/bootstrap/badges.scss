@@ -1,0 +1,25 @@
+.badge-pill__content {
+  display: flex;
+  margin-bottom: 0;
+}
+
+.badge-pill__content dt,
+.badge-pill__content dd {
+  font-size: rem(13px);
+  padding: 0.25rem 0.5rem;
+}
+
+.badge-pill__content dt {
+  text-transform: uppercase;
+  border-right: 1px solid white;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.badge-pill__content dd {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-style: italic;
+  font-weight: bold;
+  padding-right: 1rem;
+}

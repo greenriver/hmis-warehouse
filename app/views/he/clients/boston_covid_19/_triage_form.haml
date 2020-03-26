@@ -1,7 +1,7 @@
 = simple_form_for @triage, url: client_he_triages_path do |f|
   .row
     .col-md-8
-      = f.input :agency, label: 'Where do you work?', collection: Agency.all, input_html: { class: :select2 }, selected: @triage.agency.id
+      = f.input :agency, label: 'Where do you work?', collection: Agency.all, input_html: { class: :select2 }, selected: @triage.agency&.id
       = f.input :location, label: 'Where is this being collected?'
       = f.input :exposure, collection: @triage.exposure_options, include_blank: true, label: "Has #{@client.name} been exposed?", as: :radio_buttons
       = f.input :symptoms, collection: @triage.symptom_options, include_blank: true, label: "Does #{@client.name} have symptoms?", as: :radio_buttons

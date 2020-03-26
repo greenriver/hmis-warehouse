@@ -279,4 +279,15 @@ module ApplicationHelper
       link_to_if(false, name, options, html_options, &block)
     end
   end
+
+  def pill_badge labels: [], wrapper_classes: []
+    tag.div class: ['badge-pill'] + wrapper_classes do
+      tag.dl class: 'badge-pill__content' do
+        concat(
+          tag.dt(labels.first) +
+          tag.dd(labels.last)
+        )
+      end
+    end
+  end
 end
