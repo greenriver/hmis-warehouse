@@ -1,16 +1,20 @@
 = simple_form_for @triage, url: client_he_triages_path do |f|
   .row
-    .col-md-8
-      = f.input :agency, label: 'Where do you work?', collection: Agency.all, input_html: { class: :select2 }, selected: @triage.agency&.id
-      = f.input :location, label: 'Where is this being collected?'
-      = f.input :exposure, collection: @triage.exposure_options, include_blank: true, label: "Has #{@client.name} been exposed?", as: :radio_buttons
-      = f.input :symptoms, collection: @triage.symptom_options, include_blank: true, label: "Does #{@client.name} have symptoms?", as: :radio_buttons
-      = f.input :first_symptoms_on, label: 'First symptom date',  as: :date_picker
-      = f.input :referred_on, as: :string, input_html: { class: :date_time_picker }
-      = f.input :referred_to
-    .col-md-4
-      %h4 Current/Last Status
+    - if can_edit_health_emergency_triage?
+      .col-md-8
+        = f.input :agency, label: 'Where do you work?', collection: Agency.all, input_html: { class: :select2 }, selected: @triage.agency&.id
+        = f.input :location, label: 'Where is this being collected?'
+        = f.input :exposure, collection: @triage.exposure_options, include_blank: true, label: "Has #{@client.name} been exposed?", as: :radio_buttons
+        = f.input :symptoms, collection: @triage.symptom_options, include_blank: true, label: "Does #{@client.name} have symptoms?", as: :radio_buttons
+        = f.input :first_symptoms_on, label: 'First symptom date',  as: :date_picker
+        = f.input :referred_on, as: :string, input_html: { class: :date_time_picker }
+        = f.input :referred_to
+      .col-md-4
+        = render "he/clients/#{health_emergency}/previous_triage"
+      .col
+        = f.submit 'Add Triage'
+    - else
+      .col
+        = render "he/clients/#{health_emergency}/previous_triage"
 
-  .row
-    .col
-      = f.submit 'Add Triage'
+
