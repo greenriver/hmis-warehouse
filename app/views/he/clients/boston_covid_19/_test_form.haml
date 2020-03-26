@@ -1,10 +1,13 @@
 = simple_form_for @test, url: test_client_he_clinicals_path do |f|
   .row
-    .col-md-8
-      = f.input :tested_on,  as: :date_picker, label: 'Test date'
-      = f.input :result, collection: @test.result_options, include_blank: true, as: :radio_buttons
-    .col-md-4
-
-  .row
-    .col
-      = f.submit 'Add Test Results'
+    - if can_edit_health_emergency_clinical?
+      .col-md-8
+        = f.input :tested_on,  as: :date_picker, label: 'Test date'
+        = f.input :result, collection: @test.result_options, include_blank: true, as: :radio_buttons
+      .col-md-4
+        = render "he/clients/#{health_emergency}/previous_test"
+      .col
+        = f.submit 'Add Test Results'
+    - else
+      .col
+        = render "he/clients/#{health_emergency}/previous_test"
