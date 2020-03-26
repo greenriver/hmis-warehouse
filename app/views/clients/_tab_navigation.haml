@@ -19,6 +19,7 @@
       polymorphic_path(['client_he', health_emergency], client_id: @client) => {
         title: 'Health Emergency',
         permission: can_view_or_search_clients_or_window?,
+        item_class: 'health-emergency',
       },
     }) if health_emergency?
     hmis.merge!({
@@ -125,5 +126,5 @@
     }
   - if health_emergency?
     .client-tabs__health-emergency.health-emergency
-      = render 'clients/health_emergency', client: @client
+      = render "clients/#{health_emergency}", client: @client
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
