@@ -274,7 +274,7 @@ $client-image-height: 200px;
 .client__image--w-100 {
   min-width: 100%;
   min-height: 33vh;
-  @include media-breakpoint-up(lg) {
+  @include media-breakpoint-up(md) {
     height: auto;
     min-height: 300px;
   }

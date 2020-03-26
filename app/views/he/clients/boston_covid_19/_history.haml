@@ -1,4 +1,4 @@
-%table.table
+%table.table.table-hover
   %thead
     %tr
       %th Date
@@ -9,7 +9,7 @@
       %th
   %tbody
     - @history.each do |item|
-      %tr
+      %tr.table__detail-row-rollup.j-toggle-row-content
         %td= item.created_at.to_date
         %td= item.title
         %td
@@ -17,10 +17,11 @@
             = pill_badge labels: [item.pill_title, item.status]
         %td= item.user&.name
         %td= item.agency&.name
-        %td
-      %tr
-        %td{colspan: 5}
+        %td.text-right
+          %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+      %tr.collapse.no-hover
+        %td.p-0{colspan: 5, style: 'width: 50px; text-align: right'}
           = render item, flex: 'd-flex'
-
-
-
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')
