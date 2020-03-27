@@ -1,7 +1,9 @@
 %nav.o-header__nav.c-header-nav
   %ul.list-unstyled
+    = yield :prepended_nav_items
+
     - if user_signed_in?
-      %li.c-header-nav__item
+      %li.c-header-nav__item.border-right-0
         = render 'layouts/messages'
 
       %li.c-header-nav__mobile-link

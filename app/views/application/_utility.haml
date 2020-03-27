@@ -1,5 +1,6 @@
-.crumbs
-  = yield :crumbs
+- if content_for? :crumbs
+  .crumbs
+    = yield :crumbs
 
 - notice_types = {'success' => 'success', 'notice' => 'info', 'alert' => 'warning', 'error' => 'danger' }
 - flash.each do |type, msg|
