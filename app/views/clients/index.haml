@@ -2,8 +2,12 @@
 - content_for :title,  t('.title')
 - sort_options = GrdaWarehouse::Hud::Client.sort_options
 .o-page
-  .o-page__header
+  .o-page__header.d-flex
     %h1= content_for :title
+    - if can_edit_clients?
+      = link_to client_matches_path, class: 'btn btn-secondary ml-auto' do
+        %span.icon-shrink2
+        = _('Process Duplicates')
   .o-page__controls
     .row
       .col-sm-8
@@ -17,12 +21,6 @@
     .o-page__sort
       = render 'clients/filter'
       = render 'clients/sort', sort_options: sort_options
-
-    - if can_edit_clients?
-      = link_to client_matches_path, class: 'btn btn-secondary ml-auto' do
-        %span.icon-shrink2
-        = _('Process Duplicates')
-
   .table-utilities
     - if params[:q].present?
       %p.mr-5= page_entries_info @clients, entry_name: _('client')

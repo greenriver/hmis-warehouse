@@ -157,7 +157,9 @@
 }
 
 .utility {
-  margin-left: 250px;
+  @include media-breakpoint-up(sm) {
+    margin-left: 250px;
+  }
   .alert {
     margin-bottom: space(4);
   }

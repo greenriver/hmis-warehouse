@@ -69,8 +69,10 @@
 }
 
 .o-page__search {
-  min-width: 400px;
-  max-width: 500px;
+  @include media-breakpoint-up(sm) {
+    min-width: 400px;
+    max-width: 500px;
+  }
   margin-right: space(4);
 }
 

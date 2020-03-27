@@ -34,9 +34,9 @@
 }
 
 .c-boolean-button input:checked ~ label {
-  color: darken($brand-success, 10%);
-  background: $brand-success-ll;
-  border-color: $brand-success-l;
+  color: darken($brand-primary, 10%);
+  background: $brand-primary-ll;
+  border-color: $brand-primary-l;
   box-shadow: 0 4px 15px -5px rgba(0,0,0,.2);
   font-weight: bold;
 }

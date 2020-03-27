@@ -10,7 +10,7 @@ class BooleanButtonGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     button_group = template.content_tag(:div, class: 'o-boolean-button-group') do
       current_value = object.send(attribute_name)
       collection.each_with_index do |(label, value, _attrs), _index|
-        checked = value == current_value
+        checked = value.to_s == current_value.to_s
         name = "#{object_name}[#{attribute_name}]"
         id = name.to_s.parameterize + '_' + value.to_s
         template.concat(
