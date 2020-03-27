@@ -7,9 +7,10 @@
 .c-boolean-button input ~ label{
   @include button($white);
   align-items: center;
-  margin-right: space(1);
+  margin-right: space(2);
   border: 1px solid $brand-primary;
   max-height: 40px;
+  font-weight: normal;
   cursor: pointer;
   &:hover {
     border: 1px solid $brand-primary;
@@ -33,8 +34,11 @@
 }
 
 .c-boolean-button input:checked ~ label {
-  background: $brand-primary;
-  color: $white;
+  color: darken($brand-success, 10%);
+  background: $brand-success-ll;
+  border-color: $brand-success-l;
+  box-shadow: 0 4px 15px -5px rgba(0,0,0,.2);
+  font-weight: bold;
 }
 
 .c-boolean-button input:disabled:checked ~ label,
