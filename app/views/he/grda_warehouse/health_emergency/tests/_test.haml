@@ -2,10 +2,19 @@
 %div{class: flex}
   %dl.mr-4
     %dt Testing Date
-    %dd= item.tested_on
+    %dd= item.tested_on.presence || 'Blank'
   %dl.mr-4
     %dt Result
-    %dd= item.result
+    %dd= item.result.presence || 'Blank'
+  %dl.mr-4
+    %dt Notes
+    %dd= item.notes || 'Blank'
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name
 
 - if can_edit_health_emergency_clinical?
   .d-flex

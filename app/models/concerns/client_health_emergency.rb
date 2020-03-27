@@ -29,14 +29,25 @@ module ClientHealthEmergency
     health_emergency_tests&.max_by(&:created_at)&.status || 'Unknown'
   end
 
-  def health_emergency_isolation_status
-    isolations = [
+  def health_emergency_isolation_quarantine_pill_title
+    most_recent_health_emergency_isolation_or_quarantine&.pill_title || 'Isolation'
+  end
+
+  def most_recent_health_emergency_isolation_or_quarantine
+    @most_recent_health_emergency_isolation_or_quarantine ||= max_health_emergency_isolations_and_quarantines.max_by(&:created_at)
+  end
+
+  private def max_health_emergency_isolations_and_quarantines
+    @max_health_emergency_isolations_and_quarantines ||= [
       health_emergency_isolations&.max_by(&:created_at),
       health_emergency_quarantines&.max_by(&:created_at),
     ].compact
-    return 'Unknown' unless isolations
+  end
 
-    isolations.max_by(&:created_at)&.status || 'Unknown'
+  def health_emergency_isolation_status
+    return 'Unknown' unless max_health_emergency_isolations_and_quarantines
+
+    most_recent_health_emergency_isolation_or_quarantine&.status || 'Unknown'
   end
 
   # Only show AMA if there is an active one

@@ -3,7 +3,7 @@
     .col-md-8
       = f.input :restricted, collection: @ama_restriction.restriction_options, label: 'Medical Restriction?', include_blank: true, as: :boolean_button_group
       = f.input :note, as: :text
+      = f.submit 'Add Restriction'
     .col-md-4.border-left
       = render "he/clients/#{health_emergency}/previous_ama_restriction"
-    .col
-      = f.submit 'Add Restriction'
+

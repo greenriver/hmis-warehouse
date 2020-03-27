@@ -5,7 +5,16 @@
     %dd= item.test_requested.presence || 'Unknown'
   %dl.mr-4
     %dt Location of Test
-    %dd= item.location
+    %dd= item.location.presence || 'Blank'
+  %dl.mr-4
+    %dt Notes
+    %dd= item.notes || 'Blank'
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name
 
 - if can_edit_health_emergency_clinical?
   .d-flex

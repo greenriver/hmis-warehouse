@@ -12,6 +12,10 @@ module GrdaWarehouse::HealthEmergency
       'Clinical Triage'
     end
 
+    def show_pill_in_history?
+      false
+    end
+
     def requested_options
       {
         'Unknown' => '',

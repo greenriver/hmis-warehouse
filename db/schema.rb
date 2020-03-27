@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_25_201541) do
+ActiveRecord::Schema.define(version: 2020_03_27_222948) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -408,6 +408,7 @@ ActiveRecord::Schema.define(version: 2020_03_25_201541) do
     t.boolean "training_required", default: false
     t.boolean "can_edit_health_emergency_triage", default: false
     t.boolean "can_edit_health_emergency_clinical", default: false
+    t.boolean "can_see_health_emergency", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 

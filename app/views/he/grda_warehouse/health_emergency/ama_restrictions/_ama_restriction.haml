@@ -9,6 +9,9 @@
   %dl.mr-4
     %dt Entered By
     %dd= item.user&.name
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name
 
 - if can_edit_health_emergency_clinical?
   .d-flex

@@ -8,13 +8,22 @@
     %dd= item.symptoms.presence || 'Unknown'
   %dl.mr-4
     %dt First symptoms presented
-    %dd= item.first_symptoms_on&.to_date
+    %dd= item.first_symptoms_on&.to_date.presence || 'Blank'
   %dl.mr-4
     %dt Referred to
-    %dd= item.referred_to
+    %dd= item.referred_to.presence || 'Blank'
   %dl.mr-4
     %dt Referred on
-    %dd= item.referred_on
+    %dd= item.referred_on.presence || 'Blank'
+  %dl.mr-4
+    %dt Notes
+    %dd= item.notes || 'Blank'
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name
 - if can_edit_health_emergency_triage?
   .d-flex
     = link_to client_he_triage_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger btn-sm ml-auto', data: { confirm: "Really delete this #{item.title}?"} do

@@ -205,7 +205,7 @@ class ApplicationController < ActionController::Base
   end
 
   def health_emergency?
-    health_emergency.present?
+    health_emergency.present? && current_user&.can_see_health_emergency?
   end
   helper_method :health_emergency?
 
