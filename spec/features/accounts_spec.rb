@@ -65,7 +65,7 @@ RSpec.feature 'Accounts', type: :feature do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
           click_button 'Log in'
-          expect(page).to_not have_content 'Sign In'
+          expect(page).to have_content 'Sign Out'
         end
       end
     end
