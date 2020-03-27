@@ -168,6 +168,11 @@ class User < ApplicationRecord
     "#{two_factor_issuer} #{email}"
   end
 
+  def my_root_path
+    return clients_path if can_access_some_client_search?
+    root_path
+  end
+
   # ensure we have a secret
   def set_initial_two_factor_secret!
     return if otp_secret.present?

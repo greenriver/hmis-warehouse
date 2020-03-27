@@ -13,6 +13,10 @@
         title: 'Dashboard', #'Basic Info & Programs'
         permission: show_demographic,
       },
+      simple_client_path(@client) => {
+        title: 'Demographics',
+        permission: !show_demographic,
+      },
     }
     hmis = {}
     hmis.merge!({
@@ -23,10 +27,6 @@
       },
     }) if health_emergency?
     hmis.merge!({
-      simple_client_path(@client) => {
-        title: 'Demographics',
-        permission: !show_demographic,
-      },
       client_history_path(@client) => {
         title: 'History',
         permission: show_demographic,
