@@ -8,7 +8,8 @@ module ClientHealthEmergency
   extend ActiveSupport::Concern
   included do
     has_many :health_emergency_triages, class_name: '::GrdaWarehouse::HealthEmergency::Triage'
-    has_many :health_emergency_test, class_name: '::GrdaWarehouse::HealthEmergency::Test'
+    has_many :health_emergency_clinical_triages, class_name: '::GrdaWarehouse::HealthEmergency::ClinicalTriage'
+    has_many :health_emergency_tests, class_name: '::GrdaWarehouse::HealthEmergency::Test'
     has_many :health_emergency_isolations, class_name: '::GrdaWarehouse::HealthEmergency::Isolation'
     has_many :health_emergency_quarantines, class_name: '::GrdaWarehouse::HealthEmergency::Quarantine'
     has_many :health_emergency_isolations_or_quarantines, class_name: '::GrdaWarehouse::HealthEmergency::IsolationBase'
@@ -20,8 +21,12 @@ module ClientHealthEmergency
     health_emergency_triages&.max_by(&:created_at)&.status || 'Unknown'
   end
 
+  def health_emergency_clinical_triage_status
+    health_emergency_clinical_triages&.max_by(&:created_at)&.status || 'Unknown'
+  end
+
   def health_emergency_test_status
-    health_emergency_test&.max_by(&:created_at)&.status || 'Unknown'
+    health_emergency_tests&.max_by(&:created_at)&.status || 'Unknown'
   end
 
   def health_emergency_isolation_status

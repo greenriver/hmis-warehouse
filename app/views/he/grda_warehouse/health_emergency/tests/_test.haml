@@ -1,19 +1,11 @@
 - item = test
 %div{class: flex}
-  - if item.test_requested.present?
-    %dl.mr-4
-      %dt Testing Requested?
-      %dd= item.test_requested
-    %dl.mr-4
-      %dt Location of Test
-      %dd= item.location
-  - else
-    %dl.mr-4
-      %dt Testing Date
-      %dd= item.tested_on
-    %dl.mr-4
-      %dt Result
-      %dd= item.result
+  %dl.mr-4
+    %dt Testing Date
+    %dd= item.tested_on
+  %dl.mr-4
+    %dt Result
+    %dd= item.result
 
 - if can_edit_health_emergency_clinical?
   .d-flex

@@ -453,11 +453,17 @@ Rails.application.routes.draw do
       get :boston_covid_19
       resources :triages, only: [:create, :destroy]
       resources :clinicals, only: [:destroy] do
-        post :test, on: :collection
-        delete :destroy_test, on: :member
-        post :isolation, on: :collection
-        post :quarantine, on: :collection
-        delete :destroy_isolation, on: :member
+        collection do
+          post :triage
+          post :test
+          post :isolation
+          post :quarantine
+        end
+        member do
+          delete :destroy_triage
+          delete :destroy_test
+          delete :destroy_isolation
+        end
       end
       resources :ama_restrictions, only: [:create, :destroy]
     end

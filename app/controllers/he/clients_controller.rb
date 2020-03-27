@@ -11,22 +11,24 @@ module He
 
     def boston_covid_19
       @triage = GrdaWarehouse::HealthEmergency::Triage.new(agency: current_user.agency)
+      @clinical_triage = GrdaWarehouse::HealthEmergency::ClinicalTriage.new(agency: current_user.agency)
       @test = GrdaWarehouse::HealthEmergency::Test.new(agency: current_user.agency)
       @isolation = GrdaWarehouse::HealthEmergency::Isolation.new(agency: current_user.agency)
       @quarantine = GrdaWarehouse::HealthEmergency::Quarantine.new(agency: current_user.agency)
       @ama_restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.new(agency: current_user.agency)
 
       @triages = @client.health_emergency_triages.newest_first.to_a
-      @tests = @client.health_emergency_test.newest_first.to_a
+      @clinical_triages = @client.health_emergency_clinical_triages.newest_first.to_a
+      @tests = @client.health_emergency_tests.newest_first.to_a
       @isolations = @client.health_emergency_isolations.newest_first.to_a
       @quarantines = @client.health_emergency_quarantines.newest_first.to_a
       @ama_restrictions = @client.health_emergency_ama_restrictions.newest_first.to_a
 
-      @history = (@triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
+      @history = (@triages + @clinical_triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
 
       @isolation_newer = calculate_isolations_status
-      @last_clinical_triage = @tests.detect { |m| m.test_requested.present? }
-      @last_test = @tests.detect { |m| m.tested_on.present? }
+      @last_clinical_triage = @clinical_triages.first
+      @last_test = @tests.first
     end
 
     private def calculate_isolations_status

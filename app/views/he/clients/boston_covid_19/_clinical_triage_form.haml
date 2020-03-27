@@ -1,8 +1,8 @@
-= simple_form_for @test, url: test_client_he_clinicals_path do |f|
+= simple_form_for @clinical_triage, url: triage_client_he_clinicals_path do |f|
   .row
     - if can_edit_health_emergency_clinical?
       .col-md-8
-        = f.input :test_requested, collection: @test.requested_options, include_blank: true, as: :radio_buttons
+        = f.input :test_requested, collection: @clinical_triage.requested_options, include_blank: true, as: :radio_buttons
         = f.input :location, label: 'Where did the test occur?'
       .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_clinical_triage"
