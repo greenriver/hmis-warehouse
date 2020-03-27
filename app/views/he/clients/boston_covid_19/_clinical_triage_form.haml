@@ -2,7 +2,7 @@
   .row
     - if can_edit_health_emergency_clinical?
       .col-md-8
-        = f.input :test_requested, collection: @clinical_triage.requested_options, include_blank: true, as: :radio_buttons
+        = f.input :test_requested, collection: @clinical_triage.requested_options, include_blank: true, as: :boolean_button_group
         = f.input :location, label: 'Where did the test occur?'
       .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_clinical_triage"
