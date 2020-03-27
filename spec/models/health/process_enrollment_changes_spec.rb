@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
+  let!(:receiver) { create :receiver }
+
   it 'enrolls a new patient' do
     referrals = Health::PatientReferral.count
 
