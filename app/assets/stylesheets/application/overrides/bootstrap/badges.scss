@@ -1,3 +1,5 @@
+@import '../../helpers';
+
 .badge-pill__content {
   display: flex;
   margin-bottom: 0;
@@ -11,15 +13,22 @@
 
 .badge-pill__content dt {
   text-transform: uppercase;
-  border-right: 1px solid white;
   margin-bottom: 0;
   margin-top: 0;
 }
 
 .badge-pill__content dd {
+  border-left: 1px solid white;
   margin-top: 0;
   margin-bottom: 0;
   font-style: italic;
-  font-weight: bold;
+  font-weight: 800;
   padding-right: 1rem;
+}
+
+// Not ideal — component needs to be update to be more flexbile
+.table {
+  .badge-pill__content dd {
+    white-space: nowrap;
+  }
 }

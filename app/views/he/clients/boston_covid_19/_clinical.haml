@@ -9,7 +9,7 @@
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/ama_restriction_form"
   - if @client.health_emergency_ama_restriction_status.present?
-    - content_for "panel_collapse_heading_content_#{id}" do
+    - content_for "panel_collapse_heading_content_under_title_#{id}" do
       = render "he/clients/#{health_emergency}/in_header_status", labels: ['Medical', @client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
   = render 'common/panel_collapse', id: id, title: @ama_restriction.title
 
@@ -19,7 +19,7 @@
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/isolation_form"
   - if @isolation_newer
-    - content_for "panel_collapse_heading_content_#{id}" do
+    - content_for "panel_collapse_heading_content_under_title_#{id}" do
       = render "he/clients/#{health_emergency}/in_header_status", labels: ['Isolation', @client.health_emergency_isolation_status]
   = render 'common/panel_collapse', id: id, title: @isolation.title
 
@@ -28,7 +28,7 @@
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/quarantine_form"
   - if defined?(@isolation_newer) && ! @isolation_newer
-    - content_for "panel_collapse_heading_content_#{id}" do
+    - content_for "panel_collapse_heading_content_under_title_#{id}" do
       = render "he/clients/#{health_emergency}/in_header_status", labels: ['Quarantine', @client.health_emergency_isolation_status]
   = render 'common/panel_collapse', id: id, title: @quarantine.title
 
@@ -36,6 +36,6 @@
 #test-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/test_form"
-  - content_for "panel_collapse_heading_content_#{id}" do
+  - content_for "panel_collapse_heading_content_under_title_#{id}" do
     = render "he/clients/#{health_emergency}/in_header_status", labels: ['Test', @client.health_emergency_test_status]
   = render 'common/panel_collapse', id: id, title: @test.title

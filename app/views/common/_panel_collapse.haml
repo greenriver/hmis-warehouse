@@ -13,7 +13,8 @@
         = yield :panel_collapse_heading
       - else
         .d-flex.align-items-center
-          %h4.panel-title= title
+          .panel-title-wrapper
+            %h4.panel-title= title
           .ml-auto.d-flex.align-items-center
             .mr-6
               = yield "panel_collapse_heading_content_#{id}"
@@ -22,6 +23,8 @@
                 %i.icon-arrow-circled-down.j-toggle-arrow
               - else
                 %i.icon-arrow-circled-right.j-toggle-arrow
+        .mb-4
+          = yield "panel_collapse_heading_content_under_title_#{id}"
     .panel-collapse.collapse{id: id, class: ('show' if default_open == 'yes')}
       .panel-body{class: ('panel-body--padded' if panel_body_padded == 'y')}
         = yield "panel_collapse_content#{content}".to_sym
