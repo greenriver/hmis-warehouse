@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_27_143205) do
+ActiveRecord::Schema.define(version: 2020_03_27_203519) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1884,6 +1884,7 @@ ActiveRecord::Schema.define(version: 2020_03_27_143205) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.text "notes"
     t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
@@ -1900,6 +1901,7 @@ ActiveRecord::Schema.define(version: 2020_03_27_143205) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.text "notes"
     t.index ["agency_id"], name: "index_health_emergency_clinical_triages_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_clinical_triages_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_clinical_triages_on_created_at"
@@ -1920,6 +1922,7 @@ ActiveRecord::Schema.define(version: 2020_03_27_143205) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.text "notes"
     t.index ["agency_id"], name: "index_health_emergency_isolations_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_isolations_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_isolations_on_created_at"
@@ -1938,6 +1941,7 @@ ActiveRecord::Schema.define(version: 2020_03_27_143205) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.text "notes"
     t.index ["agency_id"], name: "index_health_emergency_tests_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_tests_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_tests_on_created_at"
@@ -1958,6 +1962,7 @@ ActiveRecord::Schema.define(version: 2020_03_27_143205) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.text "notes"
     t.index ["agency_id"], name: "index_health_emergency_triages_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_triages_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_triages_on_created_at"

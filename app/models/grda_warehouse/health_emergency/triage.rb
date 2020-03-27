@@ -9,7 +9,7 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     def title
-      'Triage'
+      'Screening'
     end
 
     def exposure_options

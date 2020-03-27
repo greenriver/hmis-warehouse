@@ -107,7 +107,6 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow service_range' do
       sign_in user
       get service_range_client_path(destination, format: :json)
-      follow_redirect!
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -132,21 +131,18 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow chronic_days' do
       sign_in user
       get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
       expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(destination)
-      follow_redirect!
       expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow unmerge' do
       sign_in user
       patch unmerge_client_path(destination)
-      follow_redirect!
       expect(response).to redirect_to(user.my_root_path)
     end
   end

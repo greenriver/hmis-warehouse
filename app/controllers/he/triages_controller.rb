@@ -35,6 +35,7 @@ module He
           :first_symptoms_on,
           :referred_on,
           :referred_to,
+          :notes,
         )
     end
   end

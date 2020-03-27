@@ -2,7 +2,7 @@
 %div{class: flex}
   %dl.mr-4
     %dt Testing Requested?
-    %dd= item.test_requested
+    %dd= item.test_requested.presence || 'Unknown'
   %dl.mr-4
     %dt Location of Test
     %dd= item.location

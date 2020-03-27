@@ -17,10 +17,10 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def result_options
-      [
-        'Positive',
-        'Negative',
-      ]
+      {
+        'Positive' => 'Positive',
+        'Negative' => 'Negative',
+      }
     end
 
     def status

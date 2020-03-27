@@ -12,7 +12,7 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def status
-      return "In Quarantine until #{started_on}" if started_on
+      return "Since #{started_on}" if started_on
 
       'Unknown'
     end

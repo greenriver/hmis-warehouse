@@ -25,6 +25,7 @@ module He
         permit(
           :location,
           :test_requested,
+          :notes,
         )
     end
 
@@ -44,6 +45,7 @@ module He
           :location,
           :tested_on,
           :result,
+          :notes,
         )
     end
 
@@ -65,6 +67,7 @@ module He
           :started_on,
           :ended_on,
           :scheduled_to_end_on,
+          :notes,
         )
     end
 
@@ -86,6 +89,7 @@ module He
           :started_on,
           :ended_on,
           :scheduled_to_end_on,
+          :notes,
         )
     end
 
