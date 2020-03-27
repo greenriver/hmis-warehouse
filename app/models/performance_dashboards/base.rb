@@ -57,7 +57,7 @@ class PerformanceDashboards::Base
   end
 
   # @return filtered scope
-  def report_scope
+  def report_scope(all_project_types: false)
     # Report range
     scope = report_scope_source.
       open_between(start_date: @start_date, end_date: @end_date)
@@ -140,7 +140,7 @@ class PerformanceDashboards::Base
     scope = scope.joins(:client).where(c_t[:VeteranStatus].in(@veteran_statuses)) if @veteran_statuses.present?
 
     # Project Types
-    scope = scope.where(project_type: @project_types)
+    scope = scope.where(project_type: @project_types) unless all_project_types
 
     scope
   end

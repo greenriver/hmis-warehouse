@@ -31,6 +31,66 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     buckets
   end
 
+  def exiting(by_enrollment: false)
+    exiting ||= if by_enrollment
+      exits.pluck(:id, :age, :destination)
+    else
+      exits.pluck(:client_id, :age, :destination)
+    end
+  end
+
+  def exiting_by_age(by_enrollment: false)
+    buckets = {
+      under_eighteen: [],
+      eighteen_to_twenty_four: [],
+      twenty_five_to_sixty_one: [],
+      over_sixty_one: [],
+    }
+    exiting(by_enrollment: by_enrollment).each do |(id, age, _destination)|
+      next if age.blank?
+      buckets[:under_eighteen] << id if age < 18
+      buckets[:eighteen_to_twenty_four] << id if age >= 18 && age <= 24
+      buckets[:twenty_five_to_sixty_one] << id if age >= 25 && age <= 61
+      buckets[:over_sixty_one] << id if age > 61
+    end
+    buckets
+  end
+
+  def exiting_by_destination(by_enrollment: false)
+    exiting(by_enrollment: by_enrollment).group_by { |(_id, _age, destination)| destination }
+  end
+
+  def homeless(by_enrollment: by_enrollment)
+    report_scope(all_project_types: true).homeless
+  end
+
+  def newly_homeless(by_enrollment: by_enrollment)
+    previous_period = report_scope_source.
+      entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
+      homeless
+
+    homeless.
+      where.not(client_id: previous_period.select(:client_id))
+  end
+
+  def literally_homeless(by_enrollment: by_enrollment)
+    report_scope(all_project_types: true).homeless(chronic_types_only: true)
+  end
+
+  def newly_literally_homeless(by_enrollment: by_enrollment)
+    previous_period = report_scope_source.
+      entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
+      homeless(chronic_types_only: true)
+
+    literally_homeless.
+      where.not(client_id: previous_period.select(:client_id))
+  end
+
+  def housed
+    exits.where.not(move_in_date: nil).
+      or(exits.where(housing_status_at_exit: 4)) # Stably housed
+  end
+
   # An entry is an enrollment where the entry date is within the report range, and there are no entries in the
   # specified project types for the prior 24 months.
   def entries

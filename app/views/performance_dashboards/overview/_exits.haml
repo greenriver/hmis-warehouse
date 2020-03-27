@@ -1,1 +1,19 @@
 %h2 Exiting
+
+.row
+  .col-12
+    = "Total #{@report.exiting.count}"
+
+.row
+  .col-12
+    %dl
+      - @report.exiting_by_age.each do |bucket, ids|
+        %dt= bucket.to_s.humanize
+        %dd= ids.count
+
+.row
+  .col-12
+    %dl
+      - @report.exiting_by_destination.each do |bucket, ids|
+        %dt= HUD.destination(bucket)
+        %dd= ids.count

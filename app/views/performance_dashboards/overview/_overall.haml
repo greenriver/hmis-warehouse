@@ -1,1 +1,21 @@
 %h2 Overall
+
+.row
+  .col-12
+    = "Homeless #{@report.homeless.count}"
+
+.row
+  .col-12
+    = "Newly Homeless #{@report.newly_homeless.count}"
+
+.row
+  .col-12
+    = "Literally Homeless #{@report.literally_homeless.count}"
+
+.row
+  .col-12
+    = "Newly Literally Homeless #{@report.newly_literally_homeless.count}"
+
+.row
+  .col-12
+    = "Housed #{@report.housed.count}"

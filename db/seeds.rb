@@ -485,6 +485,14 @@ def report_list
         limitable: true,
       },
     ],
+    'Performance Dashboard' => [
+      {
+        url: 'performance_dashboards/overview',
+        name: 'Performance Overview',
+        description: 'Overview of warehouse performance.',
+        limitable: false,
+      },
+    ]
   }
 end
 
