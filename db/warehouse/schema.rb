@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_25_200620) do
+ActiveRecord::Schema.define(version: 2020_03_26_203618) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1873,6 +1873,22 @@ ActiveRecord::Schema.define(version: 2020_03_25_200620) do
     t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
+  end
+
+  create_table "health_emergency_ama_restrictions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id", null: false
+    t.string "restricted"
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_ama_restrictions_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_ama_restrictions_on_user_id"
   end
 
   create_table "health_emergency_isolations", force: :cascade do |t|

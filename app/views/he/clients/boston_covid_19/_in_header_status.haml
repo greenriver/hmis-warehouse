@@ -1,3 +1,6 @@
 .d-flex.ml-auto.align-items-center
   %span.mr-2.text-body Current Status:
-  = pill_badge labels: labels
+  - if defined?(wrapper_classes)
+    = pill_badge labels: labels, wrapper_classes: wrapper_classes
+  - else
+    = pill_badge labels: labels
