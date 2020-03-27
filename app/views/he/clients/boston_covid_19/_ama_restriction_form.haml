@@ -2,9 +2,8 @@
   .row
     .col-md-8
       = f.input :restricted, collection: @ama_restriction.restriction_options, label: 'Medical Restriction?', include_blank: true, as: :radio_buttons
-      = f.input :note
+      = f.input :note, as: :text
     .col-md-4
-
-  .row
+      = render "he/clients/#{health_emergency}/previous_ama_restriction"
     .col
       = f.submit 'Add Restriction'

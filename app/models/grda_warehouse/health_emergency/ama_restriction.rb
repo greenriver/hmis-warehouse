@@ -11,16 +11,17 @@ module GrdaWarehouse::HealthEmergency
     def restriction_options
       {
         'Yes' => 'Yes',
-        'No' => 'No',
+        'No' => '',
       }
     end
 
+    # Only show a status if one has been set
     def status
       note_text = " (#{note})" if note.present?
-      return "Restricted#{note_text}" if restricted == 'Yes'
-      return "No Restriction#{note_text}" if restricted == 'No'
+      return "Restricted" if restricted == 'Yes'
+      # return "No Restriction#{note_text}" if restricted == 'No'
 
-      'Unknown'
+      # 'Unknown'
     end
   end
 end

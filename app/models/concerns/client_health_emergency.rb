@@ -34,7 +34,8 @@ module ClientHealthEmergency
     isolations.max_by(&:created_at)&.status || 'Unknown'
   end
 
+  # Only show AMA if there is an active one
   def health_emergency_ama_restriction_status
-    health_emergency_ama_restrictions&.max_by(&:created_at)&.status || 'Unknown'
+    health_emergency_ama_restrictions&.max_by(&:created_at)&.status
   end
 end

@@ -22,7 +22,7 @@ module He
       @quarantines = @client.health_emergency_quarantines.newest_first.to_a
       @ama_restrictions = @client.health_emergency_ama_restrictions.newest_first.to_a
 
-      @history = (@triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)
+      @history = (@triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
     end
   end
 end

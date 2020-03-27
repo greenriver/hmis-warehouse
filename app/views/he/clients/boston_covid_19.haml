@@ -8,13 +8,12 @@
       .col-sm-10
         = render 'clients/aliases'
   = render 'clients/tab_navigation', current: polymorphic_path(['client_he', health_emergency], client_id: @client)
-  %section.o-dashboard__block--primary.client__summary
+
   .row
     - if @client.image
-      .col-sm-12.col-md-4.col-lg-3.col-xl-2.mb-4
+      .col-sm-12.col-md-4.col-xl-3.mb-4
         .client__image.client__image--w-100{ style: "background-image: url(#{ image_client_path(@client) })" }
-        = render "he/clients/#{health_emergency}/ama_restriction_form"
-    .col-sm-12.col-md-8.col-lg-9.col-xl-10
+    .col-sm-12.col-md-8.col-xl-9
       = render "he/clients/#{health_emergency}/triage"
       = render "he/clients/#{health_emergency}/clinical"
   %h2 History
