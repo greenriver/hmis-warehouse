@@ -1,0 +1,47 @@
+@import '../helpers';
+
+.c-boolean-button {
+  position: relative;
+}
+
+.c-boolean-button input ~ label{
+  @include button($white);
+  margin-right: space(1);
+  border: 1px solid $brand-primary;
+  max-height: 40px;
+}
+
+.c-boolean-button input {
+  position: absolute;
+  left: -9999px;
+}
+
+.c-boolean-button input:checked,
+.c-boolean-button input:not(:checked) {
+}
+
+.c-boolean-button input:checked ~ label,
+.c-boolean-button input:not(:checked) ~ label {
+}
+
+.c-boolean-button input:not(:checked) ~ label {
+}
+
+.c-boolean-button input:checked ~ label {
+  background: $brand-primary;
+  color: $white;
+}
+
+.c-boolean-button input:disabled:checked ~ label,
+.c-boolean-button input.disabled:checked ~ label,
+.c-boolean-button input.disabled:not(:checked) ~ label,
+.c-boolean-button input:disabled:not(:checked) ~ label {
+}
+
+.c-boolean-button input:not(:checked):disabled ~ label,
+.c-boolean-button input:not(:checked).disabled ~ label {
+}
+
+.c-boolean-button input:disabled:checked ~ label,
+.c-boolean-button input.disabled:checked ~ label {
+}

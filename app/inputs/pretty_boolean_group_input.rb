@@ -9,7 +9,6 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
     radio_group = template.content_tag(:div) do
       current_value = object.send(attribute_name)
-      pre_label = template.content_tag(:span, '', class: 'c-checkbox__pre-label')
       pre_label = template.content_tag(:span, options[:pre_label], class: 'c-checkbox__pre-label') if options[:pre_label].present?
       check =
         template.content_tag(:span, template.content_tag(:span, '', class: 'c-checkbox__check-icon'), class: 'c-checkbox__check-container')
