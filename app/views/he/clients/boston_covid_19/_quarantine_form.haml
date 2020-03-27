@@ -7,7 +7,7 @@
         = f.input :started_on,  as: :date_picker, label: 'Quarantine start date'
         = f.input :scheduled_to_end_on,  as: :date_picker, label: 'Scheduled quarantine end date'
         = f.input :ended_on,  as: :date_picker, label: 'Actual quarantine end date'
-      .col-md-4
+      .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_quarantine"
       .col
         = f.submit 'Add Quarantine Information'

@@ -9,7 +9,7 @@
         = f.input :first_symptoms_on, label: 'First symptom date',  as: :date_picker
         = f.input :referred_on, as: :string, input_html: { class: :date_time_picker }
         = f.input :referred_to
-      .col-md-4
+      .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_triage"
       .col
         = f.submit 'Add Triage'

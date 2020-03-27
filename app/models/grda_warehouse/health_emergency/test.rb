@@ -9,6 +9,8 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     def title
+      return 'Clinical Triage' if test_requested.present?
+
       'Testing Results'
     end
 

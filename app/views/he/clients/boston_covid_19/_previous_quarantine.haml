@@ -1,1 +1,4 @@
-FIXME: Current quarantine info
+- item = @quarantines.first
+- if item.present?
+  %h4 Most Recent #{item.title}
+  = render item, flex: ''

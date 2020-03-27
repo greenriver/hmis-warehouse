@@ -1,1 +1,4 @@
-FIXME: Current clinical triage info
+- item = @triages.first
+- if item.present?
+  %h4 Most Recent #{item.title}
+  = render item, flex: ''

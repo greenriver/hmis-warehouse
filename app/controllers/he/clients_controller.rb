@@ -25,13 +25,15 @@ module He
       @history = (@triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
 
       @isolation_newer = calculate_isolations_status
+      @last_clinical_triage = @tests.detect { |m| m.test_requested.present? }
+      @last_test = @tests.detect { |m| m.tested_on.present? }
     end
 
     private def calculate_isolations_status
       return unless @isolations.any? || @quarantines.any?
 
-      max_isolation_date = @isolations&.first&.created_at&.max
-      max_quarantine_date = @quarantines&.first&.created_at&.max
+      max_isolation_date = @isolations&.first&.created_at
+      max_quarantine_date = @quarantines&.first&.created_at
       return max_isolation_date > max_quarantine_date if @isolations.any? && @quarantines.any?
       return true if @isolations.any?
       return false if @quarantines.any?

@@ -1,8 +1,12 @@
 - item = ama_restriction
-.d-flex
-  %dl
-    %dt Agency
-    %dd= item.agency&.name
+%div{class: flex}
+  %dl.mr-4
+    %dt Medical Restriction?
+    %dd= item.restricted
+  %dl.mr-4
+    %dt Note
+    %dd= item.note
+
 - if can_edit_health_emergency_clinical?
   .d-flex
     = link_to client_he_ama_restriction_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger ml-auto', data: { confirm: "Really delete this #{item.title}?"} do

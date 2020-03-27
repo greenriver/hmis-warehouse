@@ -1,18 +1,18 @@
 - item = triage
-.d-flex
-  %dl
+%div{class: flex}
+  %dl.mr-4
     %dt Exposed
     %dd= item.exposure
-  %dl.ml-4
+  %dl.mr-4
     %dt Symptomatic
     %dd= item.symptoms
-  %dl.ml-4
+  %dl.mr-4
     %dt First symptoms presented
     %dd= item.first_symptoms_on&.to_date
-  %dl.ml-4
+  %dl.mr-4
     %dt Referred to
     %dd= item.referred_to
-  %dl.ml-4
+  %dl.mr-4
     %dt Referred on
     %dd= item.referred_on
 - if can_edit_health_emergency_triage?

@@ -4,7 +4,7 @@
       .col-md-8
         = f.input :test_requested, collection: @test.requested_options, include_blank: true, as: :radio_buttons
         = f.input :location, label: 'Where did the test occur?'
-      .col-md-4
+      .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_clinical_triage"
       .col
         = f.submit 'Add Clinical Triage'

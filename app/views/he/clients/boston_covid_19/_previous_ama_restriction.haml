@@ -1,1 +1,4 @@
-FIXME: Current AMA restriction
+- item = @ama_restrictions.first
+- if item.present?
+  %h4 Most Recent #{item.title}
+  = render item, flex: ''
