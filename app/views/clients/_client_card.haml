@@ -4,9 +4,9 @@
 .clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id, href: window_link}, class: show_window_link ? 'js-client' : nil}
   .c-card__content.p-0.pt-sm-4
     .row
-      .col-12.col-sm-6
+      .col-12.col-sm
         = render 'clients/search/aliases', client: client
-      .col-12.col-sm-6
+      .col-12.col-sm
         = render 'clients/search/health_emergency', client: client
         = render 'clients/search/cas', client: client
         = render 'clients/search/demographics', client: client
