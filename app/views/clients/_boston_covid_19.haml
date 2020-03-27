@@ -1,7 +1,7 @@
 - show_link = false unless defined?(show_link)
 .client__details.client__details--health-emergency.health-emergency
   .client__details-header
-    %h3.text-danger Health Emergency Status
+    %h3.text-danger COVID-19 Status
   .o-pills.health-emergency__badges
     - if client.health_emergency_ama_restriction_status.present?
       = pill_badge labels: ['Medical', client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']

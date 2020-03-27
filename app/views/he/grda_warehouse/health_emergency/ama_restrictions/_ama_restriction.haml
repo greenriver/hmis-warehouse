@@ -6,6 +6,9 @@
   %dl.mr-4
     %dt Note
     %dd= item.note
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
 
 - if can_edit_health_emergency_clinical?
   .d-flex
