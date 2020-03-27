@@ -394,6 +394,7 @@ Rails.application.routes.draw do
   end
   resources :clients, except: [:update, :destroy] do
     member do
+      get :simple
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment

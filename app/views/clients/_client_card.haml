@@ -1,5 +1,6 @@
+- disable_link = false unless defined?(disable_link)
 - window_link = client.window_link_for?(current_user)
-- show_window_link = window_link.present?
+- show_window_link = window_link.present? && !disable_link
 .clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id, href: window_link}, class: show_window_link ? 'js-client' : nil}
   .c-card__content.p-0.pt-sm-4
     .c-card__detail-col
