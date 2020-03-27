@@ -24,6 +24,7 @@ module He
     def destroy
       @restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.find(params[:id].to_i)
       @restriction.destroy
+      flash[:notice] = 'Medical Restriction Activity Removed'
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 

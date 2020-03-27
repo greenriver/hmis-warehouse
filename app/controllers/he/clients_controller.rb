@@ -23,6 +23,18 @@ module He
       @ama_restrictions = @client.health_emergency_ama_restrictions.newest_first.to_a
 
       @history = (@triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
+
+      @isolation_newer = calculate_isolations_status
+    end
+
+    private def calculate_isolations_status
+      return unless @isolations.any? || @quarantines.any?
+
+      max_isolation_date = @isolations&.first&.created_at&.max
+      max_quarantine_date = @quarantines&.first&.created_at&.max
+      return max_isolation_date > max_quarantine_date if @isolations.any? && @quarantines.any?
+      return true if @isolations.any?
+      return false if @quarantines.any?
     end
   end
 end

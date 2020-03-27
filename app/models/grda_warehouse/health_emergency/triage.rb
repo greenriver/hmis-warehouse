@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class Triage < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def title
+      'Triage'
+    end
+
     def exposure_options
       {
         'Unknown' => '',

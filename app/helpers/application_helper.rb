@@ -280,12 +280,12 @@ module ApplicationHelper
     end
   end
 
-  def pill_badge labels: [], wrapper_classes: ['badge-dark']
+  def pill_badge(labels: [], wrapper_classes: ['badge-dark'])
     tag.div class: ['badge-pill'] + wrapper_classes do
       tag.dl class: 'badge-pill__content' do
         concat(
           tag.dt(labels.first) +
-          tag.dd(labels.last)
+          tag.dd(labels.last),
         )
       end
     end

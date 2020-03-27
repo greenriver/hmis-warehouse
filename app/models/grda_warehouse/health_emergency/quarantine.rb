@@ -7,9 +7,12 @@
 module GrdaWarehouse::HealthEmergency
   class Quarantine < IsolationBase
 
+    def title
+      'Quarantine'
+    end
+
     def status
-      return 'In Quarantine' if started_on && ended_on.blank?
-      return "In Quarantine until #{ended_on}" if started_on
+      return "In Quarantine until #{started_on}" if started_on
 
       'Unknown'
     end

@@ -75,12 +75,14 @@ module He
     def destroy_test
       @test = GrdaWarehouse::HealthEmergency::Test.find(params[:id].to_i)
       @test.destroy
+      flash[:notice] = "#{@test.title} Activity Removed"
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
     def destroy_isolation
       @isolation = GrdaWarehouse::HealthEmergency::IsolationBase.find(params[:id].to_i)
       @isolation.destroy
+      flash[:notice] = "#{@isolation.title} Activity Removed"
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
   end

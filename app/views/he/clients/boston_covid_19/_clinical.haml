@@ -8,26 +8,29 @@
 #medical-restriction-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/ama_restriction_form"
-  - content_for "panel_collapse_heading_content_#{id}" do
-    = render "he/clients/#{health_emergency}/in_header_status", labels: ['Medical', @client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
-  = render 'common/panel_collapse', id: id, title: 'Medical Restriction'
+  - if @client.health_emergency_ama_restriction_status.present?
+    - content_for "panel_collapse_heading_content_#{id}" do
+      = render "he/clients/#{health_emergency}/in_header_status", labels: ['Medical', @client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
+  = render 'common/panel_collapse', id: id, title: @ama_restriction.title
 
 
 - id = 'isolation-info'
 #isolation-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/isolation_form"
-  - content_for "panel_collapse_heading_content_#{id}" do
-    = render "he/clients/#{health_emergency}/in_header_status", labels: ['Isolation', @client.health_emergency_isolation_status]
-  = render 'common/panel_collapse', id: id, title: 'Isolation'
+  - if @isolation_newer
+    - content_for "panel_collapse_heading_content_#{id}" do
+      = render "he/clients/#{health_emergency}/in_header_status", labels: ['Isolation', @client.health_emergency_isolation_status]
+  = render 'common/panel_collapse', id: id, title: @isolation.title
 
 - id = 'quarantine-info'
 #quarantine-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/quarantine_form"
-  -# - content_for "panel_collapse_heading_content_#{id}" do
-    = render "he/clients/#{health_emergency}/in_header_status", labels: ['Quarantine', @client.health_emergency_isolation_status]
-  = render 'common/panel_collapse', id: id, title: 'Quarantine'
+  - if defined?(@isolation_newer) && ! @isolation_newer
+    - content_for "panel_collapse_heading_content_#{id}" do
+      = render "he/clients/#{health_emergency}/in_header_status", labels: ['Quarantine', @client.health_emergency_isolation_status]
+  = render 'common/panel_collapse', id: id, title: @quarantine.title
 
 - id = 'test-info'
 #test-accordion.panel-group.panel-collapsible
@@ -35,4 +38,4 @@
     = render "he/clients/#{health_emergency}/test_form"
   - content_for "panel_collapse_heading_content_#{id}" do
     = render "he/clients/#{health_emergency}/in_header_status", labels: ['Test', @client.health_emergency_test_status]
-  = render 'common/panel_collapse', id: id, title: 'Testing Results'
+  = render 'common/panel_collapse', id: id, title: @test.title

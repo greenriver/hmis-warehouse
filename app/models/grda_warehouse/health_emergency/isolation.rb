@@ -7,9 +7,12 @@
 module GrdaWarehouse::HealthEmergency
   class Isolation < IsolationBase
 
+    def title
+      'Isolation'
+    end
+
     def status
-      return 'In Isolation' if started_on && ended_on.blank?
-      return "In Isolation until #{started_on}" if started_on
+      return "In Isolation from #{started_on}" if started_on
 
       'Unknown'
     end

@@ -19,3 +19,11 @@
   color: $brand-danger;
   text-transform: uppercase;
 }
+.nav-tabs >
+{
+  li.health-emergency.nav-item > a,
+  li.health-emergency.nav-item.active > a
+  {
+    color: $brand-danger;
+  }
+}

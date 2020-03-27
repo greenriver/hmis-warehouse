@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def title
+      'Testing Results'
+    end
+
     def requested_options
       {
         'Unknown' => '',

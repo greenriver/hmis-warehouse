@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class AmaRestriction < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def title
+      'Medical Restriction'
+    end
+
     def restriction_options
       {
         'Yes' => 'Yes',
