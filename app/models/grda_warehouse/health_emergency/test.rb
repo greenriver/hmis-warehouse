@@ -14,6 +14,14 @@ module GrdaWarehouse::HealthEmergency
       'Testing Results'
     end
 
+    def pill_title
+      'Test'
+    end
+
+    def show_pill_in_history?
+      test_requested.blank?
+    end
+
     def requested_options
       {
         'Unknown' => '',

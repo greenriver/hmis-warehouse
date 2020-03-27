@@ -18,4 +18,12 @@ module HealthEmergency
       order(created_at: :desc)
     end
   end
+
+  def pill_title
+    title
+  end
+
+  def show_pill_in_history?
+    true
+  end
 end

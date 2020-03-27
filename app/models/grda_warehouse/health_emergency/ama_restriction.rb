@@ -12,6 +12,14 @@ module GrdaWarehouse::HealthEmergency
       'Medical Restriction'
     end
 
+    def pill_title
+      'Medical'
+    end
+
+    def show_pill_in_history?
+      restricted == 'Yes'
+    end
+
     def restriction_options
       {
         'Yes' => 'Yes',

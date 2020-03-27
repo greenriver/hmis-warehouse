@@ -12,7 +12,9 @@
       %tr
         %td= item.created_at.to_date
         %td= item.title
-        %td= item.status
+        %td
+          - if item.show_pill_in_history?
+            = pill_badge labels: [item.pill_title, item.status]
         %td= item.user&.name
         %td= item.agency&.name
         %td
