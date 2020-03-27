@@ -6,9 +6,14 @@
 
 .c-boolean-button input ~ label{
   @include button($white);
+  align-items: center;
   margin-right: space(1);
   border: 1px solid $brand-primary;
   max-height: 40px;
+  cursor: pointer;
+  &:hover {
+    border: 1px solid $brand-primary;
+  }
 }
 
 .c-boolean-button input {
