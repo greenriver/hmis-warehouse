@@ -16,7 +16,7 @@
     .col-sm-12.col-md-8.col-xl-9
       = render "he/clients/#{health_emergency}/triage"
       = render "he/clients/#{health_emergency}/clinical"
-  .c-card
-    .c-card__content
+  .c-card.c-card--flush
+    .c-card__header
       %h2 History
-      = render "he/clients/#{health_emergency}/history"
+    = render "he/clients/#{health_emergency}/history"
