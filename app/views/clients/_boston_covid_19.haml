@@ -1,5 +1,6 @@
 - show_link = false unless defined?(show_link)
-.client__details.client__details--health-emergency.health-emergency
+- link_path = polymorphic_path(['client_he', health_emergency], client_id: client)
+.client__details.client__details--health-emergency.health-emergency{data: {id: client.id, href: link_path}, class: show_link ? 'js-client' : nil}
   .client__details-header
     %h3.text-danger COVID-19 Status
   .o-pills.health-emergency__badges
@@ -9,5 +10,5 @@
     = pill_badge labels: [client.health_emergency_isolation_quarantine_pill_title, client.health_emergency_isolation_status]
     = pill_badge labels: [GrdaWarehouse::HealthEmergency::Test.new.pill_title, client.health_emergency_test_status]
     - if show_link
-      = link_to polymorphic_path(['client_he', health_emergency], client_id: client), class: 'btn btn-primary btn-sm ml-4' do
+      = link_to link_path, class: 'btn btn-primary btn-sm ml-auto' do
         Update Information

@@ -24,6 +24,9 @@
   align-items: stretch;
   margin-bottom: 0;
 }
+.o-header__nav form.new_user {
+  margin-top: 1rem;
+}
 
 .c-header-nav__group,
 .c-header-nav__item {
@@ -113,7 +116,7 @@ $nav-btn-states: (
   padding: 4px 5px;
   align-self: flex-start;
   z-index: $zIndex-2--site-name;
-  max-width: 33vw;
+  max-width: 44vw;
   @include media-breakpoint-up(sm) {
     min-height: 6rem;
     max-width: 228px;
