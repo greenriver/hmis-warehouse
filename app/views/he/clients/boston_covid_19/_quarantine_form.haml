@@ -2,13 +2,13 @@
   .row
     - if can_edit_health_emergency_clinical?
       .col-md-8
-        = f.input :isolation_requested_at, as: :date_picker, label: "When was #{@client.name} asked to quarantine?"
+        = f.input :isolation_requested_at, as: :string, label: "When was #{@client.name} asked to quarantine?", input_html: { class: :date_time_picker }
         = f.input :location, label: 'Quarantine location'
         = f.input :started_on,  as: :date_picker, label: 'Quarantine start date'
         = f.input :scheduled_to_end_on,  as: :date_picker, label: 'Scheduled quarantine end date'
         = f.input :ended_on,  as: :date_picker, label: 'Discharged on'
         = f.input :notes, as: :text
-        = f.submit 'Add Quarantine Information'
+        = f.submit "Add #{@quarantine.title}"
       .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_quarantine"
     - else

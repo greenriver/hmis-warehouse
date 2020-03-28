@@ -29,9 +29,10 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def status
-      return "Referred on #{referred_on}" if referred_to && referred_on
-      return 'Referred' if referred_to
+      return "Referred #{referred_on}" if referred_to.present? && referred_on
+      return 'Referred' if referred_to.present?
       return 'Cleared' if exposure == 'No' && symptoms == 'No'
+      return 'Screened' if exposure || symptoms
 
       'Unknown'
     end

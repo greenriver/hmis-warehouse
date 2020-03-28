@@ -8,13 +8,16 @@
     %dd= item.location.presence || 'Blank'
   %dl.mr-4
     %dt Notes
-    %dd= item.notes || 'Blank'
+    %dd= simple_format(item.notes) || 'Blank'
   %dl.mr-4
     %dt Entered By
     %dd= item.user&.name
   %dl.mr-4
+    %dt Entered At
+    %dd= item.created_at
+  %dl.mr-4
     %dt Agency
-    %dd= item.agency&.name
+    %dd= item.agency&.name || 'Unknown'
 
 - if can_edit_health_emergency_clinical?
   .d-flex

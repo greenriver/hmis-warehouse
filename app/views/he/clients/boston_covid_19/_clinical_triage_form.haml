@@ -5,7 +5,7 @@
         = f.input :test_requested, collection: @clinical_triage.requested_options, include_blank: true, as: :boolean_button_group
         = f.input :location, label: 'Where did the test occur?'
         = f.input :notes, as: :text
-        = f.submit 'Add Clinical Triage'
+        = f.submit "Add #{@clinical_triage.title}"
       .col-md-4.border-left
         = render "he/clients/#{health_emergency}/previous_clinical_triage"
     - else

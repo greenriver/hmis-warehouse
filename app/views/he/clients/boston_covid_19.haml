@@ -16,7 +16,8 @@
     .col-sm-12.col-md-8.col-xl-9.order-md-first
       = render "he/clients/#{health_emergency}/triage"
       = render "he/clients/#{health_emergency}/clinical"
-  .c-card.c-card--flush
-    .c-card__header
-      %h2 History
-    = render "he/clients/#{health_emergency}/history"
+  - if can_see_health_emergency_history?
+    .c-card.c-card--flush
+      .c-card__header
+        %h2 History
+      = render "he/clients/#{health_emergency}/history"

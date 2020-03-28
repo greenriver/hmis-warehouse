@@ -1,7 +1,7 @@
 - item = isolation
 %div{class: flex}
   %dl.mr-4
-    %dt Isolation Requested On
+    %dt Isolation Requested As Of
     %dd= item.isolation_requested_at.presence || 'Blank'
   %dl.mr-4
     %dt Isolation location
@@ -17,13 +17,17 @@
     %dd= item.ended_on.presence || 'Blank'
   %dl.mr-4
     %dt Notes
-    %dd= item.notes || 'Blank'
+    %dd= simple_format(item.notes) || 'Blank'
   %dl.mr-4
     %dt Entered By
     %dd= item.user&.name
   %dl.mr-4
+    %dt Entered At
+    %dd= item.created_at
+  %dl.mr-4
     %dt Agency
-    %dd= item.agency&.name
+    %dd= item.agency&.name || 'Unknown'
+
 - if can_edit_health_emergency_clinical?
   .d-flex
     = link_to destroy_isolation_client_he_clinical_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger btn-sm ml-auto', data: { confirm: "Really delete this #{item.title}?"} do

@@ -418,12 +418,16 @@ class Role < ApplicationRecord
         description: 'Ability to see any health emergency information when health emergencies are enabled.',
         administrative: false,
       },
-      can_edit_health_emergency_triage: {
-        description: 'Ability to edit and delete triage records during a health emergency.',
+      can_edit_health_emergency_screening: {
+        description: 'Ability to edit and delete screening records during a health emergency.',
         administrative: false,
       },
       can_edit_health_emergency_clinical: {
         description: 'Ability to edit and delete clinical records during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_history: {
+        description: 'Ability to see client emergency history during a health emergency.',
         administrative: false,
       },
     }
