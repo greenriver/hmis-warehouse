@@ -15,7 +15,8 @@ module He
       user_data = {
         user_id: current_user.id,
         client_id: params[:client_id],
-        agency_id: current_user.agency.id,
+        agency_id: current_user.agency&.id,
+        emergency_type: health_emergency,
       }
       @restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.create(restriction_params.merge(user_data))
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
