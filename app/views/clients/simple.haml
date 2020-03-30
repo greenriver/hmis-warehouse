@@ -1,0 +1,5 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'breadcrumbs'
+= render 'tab_navigation', current: simple_client_path(@client)
+= render 'client_card', client: @client, disable_link: true

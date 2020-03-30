@@ -1,4 +1,4 @@
-@import '../_settings/variables';
+@import '../../_settings/variables';
 @import 'bootstrap/mixins';
 
 @mixin card {
@@ -239,102 +239,6 @@
   }
 }
 
-@mixin checkbox-default($size: 30px, $round: false) {
-  $border-radius: 5px;
-  @if ($round == true) { $border-radius: 50%; }
-  display: flex;
-  align-items: flex-start;
-  position: relative;
-  cursor: pointer;
-  margin-bottom: 0;
-  transition: .15s ease-in-out;
-  display: flex;
-  align-items: center;
-  min-height: rem($size);
-  min-width: rem($size);
-  &::before,
-  &::after {
-    position: absolute;
-    height: rem($size);
-    width: rem($size);
-    left: 0;
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  &::before {
-    content: '';
-    display: block;
-    background: $white;
-    border: 2px solid $gray-040;
-    transition: .15s ease-in-out;
-    color: $gray-025;
-    border-radius: $border-radius;
-  }
-  &::after {
-    $icon: map-get($icons, checkmark);
-    font-family: 'icons';
-    content: $icon;
-    color: $gray-020;
-  }
-  span {
-    padding-left: calc(#{rem($size)} + #{space(2)})
-  }
-}
-
-@mixin checkbox-checked() {
-  &::before {
-    background: $brand-success-l;
-    border-color: $brand-success;
-  }
-  &::after {
-    color: darken($brand-success, 10%);
-  }
-  &:hover,
-  &:focus {
-    &::before {
-      background: rgba($brand-success-l, .5);
-      transform: scale(.95);
-    }
-    &::after {
-      color: lighten(desaturate($brand-success, 35%), 10%);
-      transform: scale(.95);
-    }
-  }
-  &:active {
-    outline: 0;
-    box-shadow: none;
-    &::before,
-    &::after {
-      transform: scale(.75);
-    }
-  }
-}
-
-@mixin checkbox-not-checked() {
-  &:hover,
-  &:focus {
-    &::before {
-      transform: scale(.95);
-      background: rgba($brand-success-l, .5);
-      border-color: $brand-success;
-    }
-    &::after {
-      transform: scale(.95);
-      color: lighten(desaturate($brand-success, 35%), 10%);
-    }
-  }
-  &:active {
-    outline: 0;
-    box-shadow: none;
-    &::before,
-    &::after {
-      transform: scale(.75);
-    }
-  }
-}
-
 @mixin tag-pill {
   border-radius: 10px;
   padding: space(1) space(3);
@@ -394,63 +298,5 @@
     background-color: $input-disabled-bg;
     // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
     opacity: 1;
-  }
-}
-
-@mixin button($color: $brand-primary) {
-  display: inline-block;
-  color: $body-color;
-  text-align: center;
-  vertical-align: middle;
-  user-select: none;
-  background-color: transparent;
-  border: $btn-border-width solid transparent;
-
-  // Custom styles
-  @include custom-button-styles;
-  // ~~~~~~~~~~~~~~~~~~~~~~~~
-
-  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
-  @include transition($btn-transition);
-
-  @include hover {
-    color: $body-color;
-    text-decoration: none;
-  }
-
-  &:focus,
-  &.focus {
-    outline: 0;
-    box-shadow: $btn-focus-box-shadow;
-  }
-
-  // Disabled comes first so active can properly restyle
-  &.disabled,
-  &:disabled {
-    opacity: $btn-disabled-opacity;
-    @include box-shadow(none);
-  }
-
-  &:not(:disabled):not(.disabled):active,
-  &:not(:disabled):not(.disabled).active {
-    @include box-shadow($btn-active-box-shadow);
-
-    &:focus {
-      @include box-shadow($btn-focus-box-shadow, $btn-active-box-shadow);
-    }
-  }
-
-  @include button-variant($color, $color);
-}
-
-@mixin custom-button-styles {
-  @include open-sans-bold;
-  padding: $input-btn-padding-y $input-btn-padding-x;
-  min-height: rem(40px);
-  display: inline-flex;
-  align-items: baseline;
-  [class^='icon'],
-  span {
-    margin-right: space(2);
   }
 }
