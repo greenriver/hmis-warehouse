@@ -72,7 +72,7 @@ module Talentlms
       return false if login.nil?
 
       result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
-      result['completion_status'] == 'Completed'
+      result['completed_on'] if result['completion_status'] == 'Completed'
     end
 
     # Get the URL to send the user to for a course
