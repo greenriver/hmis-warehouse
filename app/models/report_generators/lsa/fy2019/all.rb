@@ -528,8 +528,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def fetch_summary_results
-      load 'lib/rds_sql_server/lsa/fy2019/lsa_summary.rb'
-      summary = RdsSqlServer::Lsa::Fy2019::LSAReportSummary.new
+      load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
+      summary = LsaSqlServer::LSAReportSummary.new
       summary_data = summary.fetch_results
       people = {headers: summary_data.columns.first, data: summary_data.rows.first}
       enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
