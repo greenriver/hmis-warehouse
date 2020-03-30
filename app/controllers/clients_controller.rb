@@ -13,13 +13,13 @@ class ClientsController < ApplicationController
   helper ClientMatchHelper
   helper ClientHelper
 
-  before_action :require_can_access_some_client_search!, only: [:index]
+  before_action :require_can_access_some_client_search!, only: [:index, :simple]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :enrollment_details]
 
-  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :simple]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
   # This should no longer be needed
@@ -38,9 +38,18 @@ class ClientsController < ApplicationController
     elsif current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
+    preloads = [:processed_service_history, :users, :user_clients, source_clients: :data_source]
+    if health_emergency?
+      preloads + [
+        :health_emergency_triages,
+        :health_emergency_test,
+        :health_emergency_isolations,
+        :health_emergency_quarantines,
+      ]
+    end
     @clients = @clients.
       distinct.
-      preload(:processed_service_history, :users, :user_clients, source_clients: :data_source).
+      preload(preloads).
       page(params[:page]).per(20)
     if current_user.can_access_window_search? || current_user.can_access_client_search?
       sort_filter_index
@@ -51,6 +60,7 @@ class ClientsController < ApplicationController
   end
 
   def show
+    @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     log_item(@client)
     @note = GrdaWarehouse::ClientNotes::Base.new
   end
@@ -179,6 +189,9 @@ class ClientsController < ApplicationController
         render json: @range.map(&:to_s)
       end
     end
+  end
+
+  def simple
   end
 
   # This is only valid for Potentially chronic (not HUD Chronic)

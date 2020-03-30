@@ -12,14 +12,20 @@
       - if content_for?(:panel_collapse_heading)
         = yield :panel_collapse_heading
       - else
-        .toggle.ml-auto.d-flex.align-items-center
-          %h4.panel-title= title
-          - if allow_toggle == 'yes'
-            .ml-auto
+        .d-flex.align-items-center
+          .d-flex.panel-title-wrapper.flex-wrap.align-items-center
+            %h4.panel-title.mr-4= title
+            .mb-4.mb-sm-0
+              = yield "panel_collapse_heading_content_under_title_#{id}"
+          .ml-auto.d-flex.align-items-center
+            .mr-6
+              = yield "panel_collapse_heading_content_#{id}"
+            - if allow_toggle == 'yes'
               - if default_open == 'yes'
                 %i.icon-arrow-circled-down.j-toggle-arrow
               - else
                 %i.icon-arrow-circled-right.j-toggle-arrow
+
     .panel-collapse.collapse{id: id, class: ('show' if default_open == 'yes')}
       .panel-body{class: ('panel-body--padded' if panel_body_padded == 'y')}
         = yield "panel_collapse_content#{content}".to_sym

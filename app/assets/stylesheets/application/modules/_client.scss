@@ -261,6 +261,7 @@ $client-image-height: 200px;
   background-position: center center;
   flex: 1 1 auto;
   margin-bottom: space(4);
+  border-radius: 5px;
   @include media-breakpoint-up(sm) {
     max-width: rem($client-image-height);
     min-width: rem($client-image-height);
@@ -270,19 +271,36 @@ $client-image-height: 200px;
   }
 }
 
-.client__details{
-  padding-right: space(4);
-  flex: 0 0 33%;
-  max-width: 33%;
-}
-
-@include media-breakpoint-down(sm) {
-  .client__details{
-    flex: 0 0 100%;
-    margin-bottom: space(4);
+.client__image--w-100 {
+  min-width: 100%;
+  min-height: 33vh;
+  @include media-breakpoint-up(md) {
+    height: auto;
+    min-height: 300px;
   }
 }
 
+.client__details{
+  padding-left: space(4);
+  padding-right: space(4);
+  &:last-child {
+    .client__content-block {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.client__details-header {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.client__content-block {
+  margin-bottom: space(4);
+  &:empty {
+    display: none;
+  }
+}
 
 .client__details--status,
 .client__details--demographics {
@@ -309,7 +327,7 @@ $client-image-height: 200px;
 }
 
 .clients__users {
-  margin-top: 2rem;
+  // margin-top: 2rem;
 }
 
 .clients__users h4 {

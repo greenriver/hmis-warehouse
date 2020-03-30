@@ -13,8 +13,20 @@
         title: 'Dashboard', #'Basic Info & Programs'
         permission: show_demographic,
       },
+      simple_client_path(@client) => {
+        title: 'Demographics',
+        permission: !show_demographic,
+      },
     }
-    hmis = {
+    hmis = {}
+    hmis.merge!({
+      polymorphic_path(['client_he', health_emergency], client_id: @client) => {
+        title: 'Health Emergency',
+        permission: can_view_or_search_clients_or_window?,
+        item_class: 'health-emergency',
+      },
+    }) if health_emergency?
+    hmis.merge!({
       client_history_path(@client) => {
         title: 'History',
         permission: show_demographic,
@@ -67,7 +79,7 @@
         title: 'Audit',
         permission: can_audit_clients?,
       },
-    }
+    })
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
@@ -116,4 +128,7 @@
         permission: show_health_hpc,
       },
     }
+  - if health_emergency?
+    .client-tabs__health-emergency.health-emergency
+      = render "clients/#{health_emergency}", client: @client
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

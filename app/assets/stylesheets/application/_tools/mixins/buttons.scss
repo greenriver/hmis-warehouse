@@ -1,0 +1,57 @@
+@mixin button($color: $brand-primary) {
+  display: inline-block;
+  color: $body-color;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  background-color: transparent;
+  border: $btn-border-width solid transparent;
+
+  // Custom styles
+  @include custom-button-styles;
+  // ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-line-height, $btn-border-radius);
+  @include transition($btn-transition);
+
+  @include hover {
+    color: $body-color;
+    text-decoration: none;
+  }
+
+  &:focus,
+  &.focus {
+    outline: 0;
+    box-shadow: $btn-focus-box-shadow;
+  }
+
+  // Disabled comes first so active can properly restyle
+  &.disabled,
+  &:disabled {
+    opacity: $btn-disabled-opacity;
+    @include box-shadow(none);
+  }
+
+  &:not(:disabled):not(.disabled):active,
+  &:not(:disabled):not(.disabled).active {
+    @include box-shadow($btn-active-box-shadow);
+
+    &:focus {
+      @include box-shadow($btn-focus-box-shadow, $btn-active-box-shadow);
+    }
+  }
+
+  @include button-variant($color, $color);
+}
+
+@mixin custom-button-styles {
+  @include open-sans-bold;
+  padding: $input-btn-padding-y $input-btn-padding-x;
+  min-height: rem(40px);
+  display: inline-flex;
+  align-items: baseline;
+  [class^='icon'],
+  span {
+    margin-right: space(2);
+  }
+}

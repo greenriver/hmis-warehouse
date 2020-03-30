@@ -15,6 +15,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
+    include ClientHealthEmergency
     has_paper_trail
 
     self.table_name = :Client
