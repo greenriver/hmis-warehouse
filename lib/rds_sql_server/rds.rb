@@ -57,17 +57,14 @@ class Rds
   define_method(:start!)     { client.start_db_instance(db_instance_identifier: identifier) }
   define_method(:stop!)      { client.stop_db_instance(db_instance_identifier: identifier) }
   define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
-  define_method(:host)       { my_instance&.endpoint&.address }
+  define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
-  define_method(:database)   { DB_NAME }
+  define_method(:database)   { identifier.underscore }
 
   def test!
     create!
     wait!
     create_database!
-
-    require_relative 'bootstraper'
-    Bootstraper.new.run!
 
     # terminate!
   end
@@ -80,7 +77,7 @@ class Rds
   end
 
   def create!
-    return if exists?
+    return if ENV['LSA_DB_HOST'].present? || exists?
 
     # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
     @response = client.create_db_instance(
@@ -137,19 +134,24 @@ class Rds
     load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
 
     Timeout.timeout(MAX_WAIT_TIME) do
-      db_exists = 0
-      while db_exists.zero?
-        db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
-          if not exists(select * from sys.databases where name = '#{database}')
-            select 0;
-          else
-            select 1;
-        SQL
-        Rails.logger.debug 'No DB yet' if db_exists.zero?
+      db_exists = false
+      while db_exists == false
+        db_exists = db_exists?
+        Rails.logger.debug 'No DB yet' unless db_exists
         # puts "No DB yet" if db_exists == 0
         sleep 5
       end
     end
+  end
+
+  def db_exists?
+    db_exists = SqlServerBootstrapModel.connection.execute(<<~SQL)
+      if not exists(select * from sys.databases where name = '#{database}')
+        select 0;
+      else
+        select 1;
+    SQL
+    db_exists.positive?
   end
 
   def create_database!
