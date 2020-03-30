@@ -141,6 +141,16 @@ class User < ApplicationRecord
     user != self
   end
 
+  def training_status
+    return "Not Started" unless Talentlms::Login.find_by(user: self)
+
+    if last_training_completed
+      "Completed #{last_training_completed}"
+    else
+      "In Progress"
+    end
+  end
+
   # def role_keys
   #   [:admin, :dnd_staff, :housing_subsidy_admin]
   #     .select { |role| attributes[role.to_s] }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_28_122429) do
+ActiveRecord::Schema.define(version: 2020_03_30_180135) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -563,6 +563,7 @@ ActiveRecord::Schema.define(version: 2020_03_28_122429) do
     t.string "otp_backup_codes", array: true
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
+    t.date "last_training_completed"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true

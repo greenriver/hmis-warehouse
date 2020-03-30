@@ -34,7 +34,7 @@ module Talentlms
     def create_account(user)
       login = "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
       password = SecureRandom.hex(8)
-      server_domain = ENV['HOSTNAME']
+      server_domain = ENV['FQDN']
       account = {
         first_name: user.first_name,
         last_name: user.last_name,
@@ -72,7 +72,7 @@ module Talentlms
       return false if login.nil?
 
       result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
-      result['completion_status'] == 'Completed'
+      result['completed_on'] if result['completion_status'] == 'Completed'
     end
 
     # Get the URL to send the user to for a course
