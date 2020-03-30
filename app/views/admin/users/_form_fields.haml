@@ -45,6 +45,7 @@
           %p
             Course Progress:
             %i #{@user.training_status}
-          = f.input :training_completed, hint: "Training is required before #{@user.name} can  access client data. Checking this box will override that requirement."
+          - unless @user.last_training_completed.present?
+            = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
 
 = render '/users/user_viewable_entities', f: f, roles: Role.editable
