@@ -19,6 +19,7 @@ AllCops:
     - 'app/models/cohort_columns/**/*.rb'
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
+    - 'app/models/health_emergency/**/*.rb'
 
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_24_151503) do
+ActiveRecord::Schema.define(version: 2020_03_28_124124) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1628,6 +1628,7 @@ ActiveRecord::Schema.define(version: 2020_03_24_151503) do
     t.boolean "only_most_recent_import", default: false
     t.boolean "expose_coc_code", default: false, null: false
     t.boolean "auto_confirm_consent", default: false, null: false
+    t.string "health_emergency"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1872,6 +1873,106 @@ ActiveRecord::Schema.define(version: 2020_03_24_151503) do
     t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
+  end
+
+  create_table "health_emergency_ama_restrictions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "restricted"
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_ama_restrictions_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_ama_restrictions_on_user_id"
+  end
+
+  create_table "health_emergency_clinical_triages", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "test_requested"
+    t.string "location"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_clinical_triages_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_clinical_triages_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_clinical_triages_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_clinical_triages_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_clinical_triages_on_user_id"
+  end
+
+  create_table "health_emergency_isolations", force: :cascade do |t|
+    t.string "type", null: false
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.datetime "isolation_requested_at"
+    t.string "location"
+    t.date "started_on"
+    t.date "scheduled_to_end_on"
+    t.date "ended_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_isolations_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_isolations_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_isolations_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_isolations_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_isolations_on_user_id"
+  end
+
+  create_table "health_emergency_tests", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "test_requested"
+    t.string "location"
+    t.date "tested_on"
+    t.string "result"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_tests_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_tests_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_tests_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_tests_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_tests_on_user_id"
+  end
+
+  create_table "health_emergency_triages", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "location"
+    t.string "exposure"
+    t.string "symptoms"
+    t.date "first_symptoms_on"
+    t.date "referred_on"
+    t.string "referred_to"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_triages_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_triages_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_triages_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_triages_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_triages_on_user_id"
   end
 
   create_table "helps", id: :serial, force: :cascade do |t|
