@@ -9,7 +9,7 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     def title
-      'Clinical Triage'
+      'Clinical Screening'
     end
 
     def show_pill_in_history?

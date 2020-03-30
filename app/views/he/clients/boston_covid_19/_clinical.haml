@@ -2,7 +2,7 @@
 #clinical-triage-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
     = render "he/clients/#{health_emergency}/clinical_triage_form"
-  = render 'common/panel_collapse', id: id, title: 'Clinical Triage'
+  = render 'common/panel_collapse', id: id, title: 'Clinical Screening'
 
 - id = 'medical-restriction'
 #medical-restriction-accordion.panel-group.panel-collapsible
