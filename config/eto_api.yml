@@ -13,3 +13,10 @@
     enterprise: <%= ENV['ETO_API_ENTERPRISE2'] %>
     data_source_id: <%= ENV['ETO_API_DATA_SOURCE2'] %>
     hud_touch_point_id: <%= ENV['ETO_API_HUD_TOUCH_POINT_ID2'] %>
+
+  <%= ENV['ETO_API_SITE3'] %>:
+    email: <%= ENV['ETO_API_USER3'] %>
+    password: <%= ENV['ETO_API_PASS3'] %>
+    enterprise: <%= ENV['ETO_API_ENTERPRISE3'] %>
+    data_source_id: <%= ENV['ETO_API_DATA_SOURCE3'] %>
+    hud_touch_point_id: <%= ENV['ETO_API_HUD_TOUCH_POINT_ID3'] %>

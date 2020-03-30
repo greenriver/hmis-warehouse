@@ -313,7 +313,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       options[value]
     end
 
-    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated:) # rubocop:disable Metrics/ParameterLists
+    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
@@ -435,11 +435,11 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       # earlier than the QaaWS last updated, use the most recent, so we don't fetch
       # this over and over.
       api_updated_at = api.parse_date(api_response['AuditDate'])
-      hmis_form.eto_last_updated = [last_updated, api_updated_at].max
+      hmis_form.eto_last_updated = [last_updated, api_updated_at].compact.max
       hmis_form
     end
 
-    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated:) # rubocop:disable Metrics/ParameterLists
+    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
       hmis_form = fetch_touch_point(
         api: api,
         site_id: site_id,
