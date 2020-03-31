@@ -1,5 +1,5 @@
 - if can_view_vspdat?
-  .m-4
+  - content_for "client_card_assessments__#{client.id}" do
     - vispdat = client.vispdats.completed.scores.first
     %strong VI-SPDAT:
     %span.label{ class: "label-#{vispdat&.score_class}" }= vispdat&.score

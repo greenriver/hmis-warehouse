@@ -1,12 +1,6 @@
-.m-4
-  - if ( akas = client_aliases(client)).empty?
-    - main_client_name = client.source_clients.searchable_by(current_user).first.data_source&.short_name
-  - else
-    - main_client_name = akas.shift
+- akas = client_aliases(client)
+- if akas.any?
   .clients__client-additional-names
-    .client__client-name
-      .client-aka
-        = main_client_name
     - akas.each_with_index do | aka, i |
       .client__client-name
         .client-aka
