@@ -6,8 +6,10 @@
 
 class PerformanceDashboards::BaseController < ApplicationController
   def set_filter
-    @start_date = params.dig(:filters, :start_date)&.to_date || Date.current
-    @end_date = params.dig(:filters, :end_date)&.to_date || @start_date - 1.year
+    @end_date = params.dig(:filters, :end_date)&.to_date || Date.current
+    @start_date = params.dig(:filters, :start_date)&.to_date || @end_date - 1.year
+    comparison_pattern = params.dig(:filters, :comparison_pattern)
+    @comparison_pattern = if PerformanceDashboards::Overview.valid_comparison_pattern?(comparison_pattern) then comparison_pattern&.to_sym else :prior_period end
     @coc_codes = params.dig(:filters, :coc_codes)&.select { |code| PerformanceDashboards::Overview.coc_codes.include?(code) } || []
     @household_type = params.dig(:filters, :household_type)&.to_sym
     @hoh_only = params.dig(:filters, :hoh_only) == '1'

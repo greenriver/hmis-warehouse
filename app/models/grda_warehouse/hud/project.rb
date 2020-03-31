@@ -152,6 +152,16 @@ module GrdaWarehouse::Hud
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph] + RESIDENTIAL_PROJECT_TYPES[:th]
+    PERFORMANCE_REPORTING = {   # duplicate of code in various places
+      ph: [3,9,10,13],
+      th: [2],
+      es: [1],
+      so: [4],
+      sh: [8],
+      ca: [14],
+      rrh: [13],
+      psh: [3, 10]
+    }
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects

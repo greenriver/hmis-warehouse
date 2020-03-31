@@ -35,6 +35,8 @@ class PerformanceDashboards::Base
     @project_types = project_types || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
   end
 
+  attr_reader :start_date, :end_date
+
   def self.coc_codes
     GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
   end
@@ -44,7 +46,7 @@ class PerformanceDashboards::Base
       without_children: 'Households without children',
       with_children: 'Households with both adults and children',
       only_children: 'Households with only children',
-    }.invert
+    }.invert.freeze
   end
 
   def age_ranges
@@ -53,7 +55,18 @@ class PerformanceDashboards::Base
       eighteen_to_twenty_four: '18 - 24',
       twenty_five_to_sixty_one: '25 - 61',
       over_sixty_one: '62+',
-    }.invert
+    }.invert.freeze
+  end
+
+  def self.comparison_patterns
+    {
+      prior_period: 'Prior Period',
+      prior_year: 'Same period, prior year',
+    }.invert.freeze
+  end
+
+  def self.valid_comparison_pattern?(pattern)
+    comparison_patterns.values.include?(pattern&.to_sym)
   end
 
   # @return filtered scope
