@@ -1,7 +1,9 @@
 %nav.o-header__nav.c-header-nav
   %ul.list-unstyled
+    = yield :prepended_nav_items
+
     - if user_signed_in?
-      %li.c-header-nav__item
+      %li.c-header-nav__item.border-right-0
         = render 'layouts/messages'
 
       %li.c-header-nav__mobile-link
@@ -10,6 +12,10 @@
 
     - else
       %li.c-header-nav__item
-        = link_to(new_user_session_path, :class => 'c-header-nav__link user-state--link') do
-          Sign In
-          %span.icon-enter
+        - unless controller_name == 'sessions'
+          = simple_form_for(User.new, as: :user, url: session_path(:user), wrapper: :inline_form) do |f|
+            .d-flex.mini-login-form
+              = f.input :email, required: false, autofocus: true, label: false, placeholder: 'email', wrapper_html: { class: 'ml-auto'}
+              = f.input :password, required: false, label: false, placeholder: 'password', input_html: { autocomplete: :off }, wrapper_html: { class: 'ml-2'}
+              = f.button :button, class: 'btn-sm btn btn-icon-only btn-primary ml-2', data: {toggle: :tooltip, title: 'Log in'} do
+                %i.icon.icon-enter

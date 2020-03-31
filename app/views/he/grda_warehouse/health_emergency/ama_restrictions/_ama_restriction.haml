@@ -1,0 +1,23 @@
+- item = ama_restriction
+%div{class: flex}
+  %dl.mr-4
+    %dt Medical Restriction?
+    %dd= item.restricted
+  %dl.mr-4
+    %dt Notes
+    %dd= simple_format(item.note)
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Entered At
+    %dd= item.created_at
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name || 'Unknown'
+
+- if can_edit_health_emergency_clinical?
+  .d-flex
+    = link_to client_he_ama_restriction_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger btn-sm ml-auto', data: { confirm: "Really delete this #{item.title}?"} do
+      %i.icon-cross
+      Delete

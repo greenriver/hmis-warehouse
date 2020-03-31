@@ -1,0 +1,27 @@
+@import '../../helpers';
+
+.table-hover tr {
+  cursor: pointer;
+}
+
+.table-hover tr.no-hover {
+  background: none !important;
+  cursor: normal;
+}
+
+
+.table__detail-row-rollup {
+  &.open td {
+    background: lighten($tab-bg, 30%);
+  }
+}
+
+.table__toggle-icon {
+  color: $link-color;
+  font-size: 20px;
+  &.toggled {
+    &::before {
+      content: '\e908';
+    }
+  }
+}

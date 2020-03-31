@@ -58,9 +58,13 @@ class App.Cohorts.Cohort
       getRowNodeId: (data) ->
         data.meta.cohort_client_id
       onSortChanged: (data) ->
-        data.api.refreshCells()
+        # data.api.refreshCells()
+        # Use the more expensive redrawRows to preserve the thresholds
+        data.api.redrawRows()
       onFilterChanged: (data) ->
-        data.api.refreshCells()
+        # data.api.refreshCells()
+        # Use the more expensive redrawRows to preserve the thresholds
+        data.api.redrawRows()
       onCellEditingStarted: (params) =>
         @editing_field_name = params.colDef.field
         @editing_cohort_client_id = params.data[params.colDef.field].cohort_client_id

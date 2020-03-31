@@ -292,7 +292,7 @@ module Health
     end
 
     def opt_data(json)
-      json.dig('data') || json
+      json&.dig('data') || json
     end
 
   end
