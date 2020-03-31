@@ -15,6 +15,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
+    include ClientHealthEmergency
     has_paper_trail
 
     self.table_name = :Client
@@ -1517,56 +1518,52 @@ module GrdaWarehouse::Hud
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
-        logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
-        image_data = nil
-        if Rails.env.production?
-          # Use the uploaded client image if available, otherwise use the API, if we have access
-          unless image_data = local_client_image_data()
-            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            api_configs = EtoApi::Base.api_configs
-            source_api_ids.detect do |api_id|
-              api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
-              return nil unless api_key.present?
-              api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
-              image_data = api.client_image(
-                client_id: api_id.id_in_data_source,
-                site_id: api_id.site_id_in_data_source
-              ) rescue nil
-              (image_data && image_data.length > 0)
-            end
-          end
-        else
-          unless image_data = local_client_image_data()
-            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            image_data = fake_client_image_data
-          end
-        end
-        image_data
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+      # Use an uploaded headshot if available
+      faked_image_data = local_client_image_data() || fake_client_image_data
+      return faked_image_data unless Rails.env.production?
+
+      # Use the uploaded client image if available, otherwise use the API, if we have access
+      image_data = local_client_image_data()
+      return image_data if image_data
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+
+      api_configs = EtoApi::Base.api_configs
+      source_api_ids.detect do |api_id|
+        api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+        return nil unless api_key.present?
+
+        api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
+        image_data = api.client_image(
+          client_id: api_id.id_in_data_source,
+          site_id: api_id.site_id_in_data_source
+        ) rescue nil
+        (image_data && image_data.length > 0)
       end
+
+      set_local_client_image_cache(image_data)
+      image_data
     end
 
     def image_for_source_client(cache_for=10.minutes)
       return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
-        logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
-        image_data = nil
-        if Rails.env.production?
-          return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-          api_configs = EtoApi::Base.api_configs
-          api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
-          return nil unless api_key.present?
-          api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
-          image_data = api.client_image(
-            client_id: api_id.id_in_data_source,
-            site_id: api_id.site_id_in_data_source
-          ) rescue nil
-          return image_data
-        else
-          image_data = fake_client_image_data
-        end
-        image_data || self.class.no_image_on_file_image
-      end
+
+      image_data = nil
+      return fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+
+      api_configs = EtoApi::Base.api_configs
+      api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+      return nil unless api_key.present?
+
+      api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
+      image_data = api.client_image(
+        client_id: api_id.id_in_data_source,
+        site_id: api_id.site_id_in_data_source
+      ) rescue nil
+      set_local_client_image_cache(image_data)
+
+      image_data || self.class.no_image_on_file_image
     end
 
     def fake_client_image_data
@@ -1583,8 +1580,31 @@ module GrdaWarehouse::Hud
     # in the file-system, we'll only show those that would be available to people
     # with window access
     def local_client_image_data
-      headshot = client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first rescue nil
-      headshot.as_thumb if headshot
+      headshot = uploaded_local_image
+      return headshot.as_thumb if headshot
+
+      local_client_image_cache&.content
+    end
+
+    private def uploaded_local_image
+      client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
+    end
+
+    private def local_client_image_cache
+      client_files.window.where(name: 'Client Headshot Cache').where(updated_at: 1.days.ago..DateTime.tomorrow).limit(1)&.first
+    end
+
+    def set_local_client_image_cache(image_data)
+      self.class.transaction do
+        client_files.window.where(name: 'Client Headshot Cache')&.delete_all
+        GrdaWarehouse::ClientFile.create(
+          client_id: id,
+          user_id: User.setup_system_user.id,
+          content: image_data,
+          name: 'Client Headshot Cache',
+          visible_in_window: true,
+        )
+      end
     end
 
     def accessible_via_api?

@@ -127,6 +127,13 @@ module Health
         detect{|h| h.keys.include? :I08}[:I08][:value][:raw])
     end
 
+    def receiver_id
+      return nil unless as_json.present?
+      as_json[:interchanges].
+        detect{|h| h.keys.include? :ISA}[:ISA].
+        detect{|h| h.keys.include? :I07}[:I07][:value][:raw]
+    end
+
     def as_json
       return {} unless content.present?
       @json ||= begin

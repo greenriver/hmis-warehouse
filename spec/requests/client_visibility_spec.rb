@@ -68,7 +68,7 @@ RSpec.describe ClientsController, type: :request do
       end
       it 'user cannot see client dashboard' do
         get client_path(window_destination_client)
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(user.my_root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -169,7 +169,7 @@ RSpec.describe ClientsController, type: :request do
       end
       it 'user cannot see client dashboard' do
         get client_path(window_destination_client)
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(user.my_root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -200,7 +200,7 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
       end
@@ -270,7 +270,7 @@ RSpec.describe ClientsController, type: :request do
       end
       it 'user cannot see client dashboard' do
         get client_path(window_destination_client)
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(user.my_root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -361,7 +361,7 @@ RSpec.describe ClientsController, type: :request do
       end
       it 'user cannot see client dashboard' do
         get client_path(window_destination_client)
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(user.my_root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -464,7 +464,7 @@ RSpec.describe ClientsController, type: :request do
       end
       it 'user cannot see client dashboard' do
         get client_path(window_destination_client)
-        expect(response).to redirect_to(root_path)
+        expect(response).to redirect_to(user.my_root_path)
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -495,7 +495,7 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
       end
@@ -537,7 +537,7 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc' do
@@ -557,7 +557,7 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
@@ -577,7 +577,7 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
         describe 'when the client has a valid consent in another coc' do
@@ -593,11 +593,11 @@ RSpec.describe ClientsController, type: :request do
           end
           it 'user cannot see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
           it 'user cannot see client dashboard for window client' do
             get client_path(window_destination_client)
-            expect(response).to redirect_to(root_path)
+            expect(response).to redirect_to(user.my_root_path)
           end
         end
       end
