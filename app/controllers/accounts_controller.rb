@@ -26,6 +26,11 @@ class AccountsController < ApplicationController
     redirect_to edit_account_path
   end
 
+  def locations
+    @locations = @user.login_activities.order(created_at: :desc).
+      page(params[:page]).per(50)
+  end
+
   private def account_params
     params.require(:user).
       permit(

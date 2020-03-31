@@ -1,0 +1,7 @@
+%ul.nav.nav-tabs
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_user_audit_path()))}
+    = link_to 'Audit Trail', admin_user_audit_path(@user), class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_user_edit_history_path()))}
+    = link_to 'Edit History', admin_user_edit_history_path(@user), class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(admin_user_locations_path()))}
+    = link_to 'Login Locations', admin_user_locations_path(@user), class: 'nav-link'

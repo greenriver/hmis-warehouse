@@ -1,0 +1,17 @@
+= simple_form_for @isolation, url: isolation_client_he_clinicals_path do |f|
+  .row
+    - if can_edit_health_emergency_clinical?
+      .col-md-8
+        = f.input :isolation_requested_at, as: :string, label: "When was #{@client.name} asked to isolate?", input_html: { class: :date_time_picker }
+        = f.input :location, label: 'Isolation location'
+        = f.input :started_on,  as: :date_picker, label: 'Isolation start date'
+        = f.input :scheduled_to_end_on,  as: :date_picker, label: 'Scheduled isolation end date'
+        = f.input :ended_on,  as: :date_picker, label: 'Discharged on'
+        = f.input :notes, as: :text
+        = f.submit "Add #{@isolation.title}"
+      .col-md-4.border-left
+        = render "he/clients/#{health_emergency}/previous_isolation"
+    - else
+      .col
+        = render "he/clients/#{health_emergency}/previous_isolation"
+

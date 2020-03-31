@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_02_19_145902) do
+ActiveRecord::Schema.define(version: 2020_03_30_180135) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -406,6 +406,10 @@ ActiveRecord::Schema.define(version: 2020_02_19_145902) do
     t.boolean "can_delete_projects", default: false
     t.boolean "can_delete_data_sources", default: false
     t.boolean "training_required", default: false
+    t.boolean "can_edit_health_emergency_clinical", default: false
+    t.boolean "can_see_health_emergency", default: false
+    t.boolean "can_edit_health_emergency_screening", default: false
+    t.boolean "can_see_health_emergency_history", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -559,6 +563,7 @@ ActiveRecord::Schema.define(version: 2020_02_19_145902) do
     t.string "otp_backup_codes", array: true
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
+    t.date "last_training_completed"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true

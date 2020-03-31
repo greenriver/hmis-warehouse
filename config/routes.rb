@@ -394,6 +394,7 @@ Rails.application.routes.draw do
   end
   resources :clients, except: [:update, :destroy] do
     member do
+      get :simple
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
@@ -448,6 +449,24 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     healthcare_routes(window: false)
+    namespace :he do
+      get :boston_covid_19
+      resources :triages, only: [:create, :destroy]
+      resources :clinicals, only: [:destroy] do
+        collection do
+          post :triage
+          post :test
+          post :isolation
+          post :quarantine
+        end
+        member do
+          delete :destroy_triage
+          delete :destroy_test
+          delete :destroy_isolation
+        end
+      end
+      resources :ama_restrictions, only: [:create, :destroy]
+    end
   end
 
   # scope
@@ -660,6 +679,7 @@ Rails.application.routes.draw do
       resource :recreate_invitation, only: :create
       resource :audit, only: :show
       resource :edit_history, only: :show
+      resource :locations, only: :show
       patch :reactivate, on: :member
       member do
         post :unlock
@@ -733,7 +753,9 @@ Rails.application.routes.draw do
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end
-  resource :account, only: [:edit, :update]
+  resource :account, only: [:edit, :update] do
+    get :locations, on: :member
+  end
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
@@ -745,6 +767,7 @@ Rails.application.routes.draw do
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
+      get :form
       get :careplan
       get :health_team
       get :icon_font

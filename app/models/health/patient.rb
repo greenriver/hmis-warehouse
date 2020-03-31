@@ -304,6 +304,7 @@ module Health
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
+    delegate :careplan_signed_in_122_days?, to: :patient_referral
 
     self.source_key = :PAT_ID
 
@@ -442,7 +443,6 @@ module Health
     private def expired_participation_form?
       @expired_participation_form ||= participation_forms.expired.after_enrollment_date.exists?
     end
-
 
     def release_status
       @release_status ||= if active_release? && ! expiring_release?

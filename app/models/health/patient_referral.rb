@@ -145,12 +145,25 @@ module Health
 
     def engagement_date
       return nil unless enrollment_start_date.present?
+
       next_month = enrollment_start_date.at_beginning_of_month.next_month
       if enrollment_start_date < '2018-09-01'.to_date
         (next_month + 120.days).to_date
       else
         (next_month + 90.days).to_date
       end
+    end
+
+    def careplan_signed_in_122_days?
+      return false unless enrollment_start_date
+
+      careplan_date = patient&.qualifying_activities&.
+        after_enrollment_date&.
+        submittable&.
+        where(activity: :pctp_signed)&.
+        minimum(:date_of_activity)
+
+      (careplan_date - enrollment_start_date).to_i <= 122
     end
 
     def name

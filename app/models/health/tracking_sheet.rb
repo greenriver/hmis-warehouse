@@ -147,6 +147,7 @@ module Health
         'QA_LAST' => most_recent_qa_from_case_note(patient.id),
         'literally homeless' => patient.client.literally_homeless_last_three_years,
         'disabled' => patient.client.currently_disabled? ? 'Y' : 'N',
+        'CAREPLAN SIGNED WITHIN 122 DAYS' => with_careplans_in_122_days?(patient, as: :text),
       }
     end
   end
