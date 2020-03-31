@@ -19,7 +19,8 @@ class ClientsController < ApplicationController
   before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details, :simple]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_search_client, only: [:simple]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
   # This should no longer be needed
