@@ -8,10 +8,11 @@
     .col-sm-3
       %ul.nav.flex-column.nav-pills
         %li.nav-item{ role: :presentation }
-          = link_to admin_available_file_tags_path do
-            Available File Tags
+          = link_to 'Available File Tags', admin_available_file_tags_path, class: 'nav-link'
         %li.nav-item{ role: :presentation }
           = link_to 'Public Files', admin_public_files_path, class: 'nav-link'
+        %li.nav-item{ role: :presentation }
+          = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-link'
     .col-sm-4
       = f.input :eto_api_available, label: 'Is the ETO API available?'
       = f.input :healthcare_available, label: 'Enable Healthcare section?'

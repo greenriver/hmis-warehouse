@@ -729,6 +729,7 @@ Rails.application.routes.draw do
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
+    resources :talentlms
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end

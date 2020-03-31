@@ -10,6 +10,10 @@ module Talentlms
   class Config < GrdaWarehouseBase
     self.table_name = :talentlms_configs
 
+    validates :subdomain, presence: true
+    validates :api_key, presence: true
+    validates :courseid, presence: true
+
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY']
 
     # Submit a 'get' request to TalentLMS
