@@ -1,3 +1,5 @@
+@import '../helpers';
+
 .d-none--empty {
   &:empty {
     display: none;
@@ -11,4 +13,10 @@
 .hidden,
 .hide {
   display: none;
+}
+
+.d-sm-none {
+  @include media-breakpoint-down(sm) {
+    display: none;
+  }
 }

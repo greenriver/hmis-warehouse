@@ -26,3 +26,139 @@
     border-radius: 50%;
   }
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// From CAS
+
+/* .c-checkbox { } */
+
+.c-checkbox input:checked,
+.c-checkbox input:not(:checked) {
+  position: absolute;
+  left: -9999px;
+}
+
+.c-checkbox input:checked ~ label,
+.c-checkbox input:not(:checked) ~ label {
+  @include checkbox-default;
+}
+
+.c-checkbox input:not(:checked) ~ label {
+  @include checkbox-not-checked;
+}
+
+.c-checkbox input:checked ~ label {
+  @include checkbox-checked;
+}
+
+.c-checkbox input:disabled:checked ~ label,
+.c-checkbox input.disabled:checked ~ label,
+.c-checkbox input.disabled:not(:checked) ~ label,
+.c-checkbox input:disabled:not(:checked) ~ label {
+  background: $input-disabled !important;
+  border-color: $input-disabled !important;
+  pointer-events: none !important;
+  cursor: not-allowed;
+  .c-checkbox__check-container {
+    opacity: .75;
+  }
+}
+
+.c-checkbox input:not(:checked):disabled ~ label,
+.c-checkbox input:not(:checked).disabled ~ label {
+  .c-checkbox__check-icon {
+    display: none;
+  }
+}
+
+.c-checkbox input:disabled:checked ~ label,
+.c-checkbox input.disabled:checked ~ label {
+  background: rgba($brand-success-l, .2) !important;
+  .c-checkbox__check-icon {
+    display: block;
+  }
+}
+
+.c-checkbox--round label {
+  &::before {
+    border-radius: 50% !important;
+  }
+}
+
+.c-checkbox--round input:checked ~ label,
+.c-checkbox--round input:not(:checked) ~ label {
+  padding: space(2);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  min-height: 50px;
+  .c-checkbox__check-container {
+    margin-right: space(2);
+  }
+  .c-checkbox__check-container,
+  .c-checkbox__check-icon {
+    border-radius: 50%;
+  }
+  .c-checkbox__check-icon {
+    transform: scale(.65);
+    transform-origin: 50% 50%;
+    flex: 0 0 auto;
+    height: 100%;
+    width: 100%;
+    &::before {
+      content: '';
+    }
+  }
+  &:focus,
+  &:hover {
+    .c-checkbox__check-icon {
+      transform: scale(.5);
+    }
+  }
+  &:active {
+    .c-checkbox__check-container {
+      transform: scale(1);
+    }
+    .c-checkbox__check-icon {
+      transform: scale(.3);
+      transform-origin: center center;
+    }
+  }
+}
+
+.c-checkbox--round input:not(:checked) ~ label {
+  &:focus,
+  &:hover {
+    background: lighten($gray-020, 2%);
+    .c-checkbox__check-icon {
+      background: $brand-success-l;
+    }
+  }
+  .c-checkbox__check-container {
+    background: $white;
+  }
+  .c-checkbox__check-icon {
+    border-radius: 50%;
+    background: $gray-020;
+    transform: scale(.65);
+  }
+}
+
+.c-checkbox--round input:checked ~ label {
+  .c-checkbox__check-icon {
+    border-radius: 50%;
+    background: $brand-success;
+  }
+  &:focus,
+  &:hover {
+    .c-checkbox__check-icon {
+      transform: scale(.65);
+    }
+  }
+}
+
+.c-checkbox__hint {
+  display: block;
+  font-style: italic;
+  font-size: 13px;
+  color: $gray-060;
+}

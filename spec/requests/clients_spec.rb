@@ -77,77 +77,73 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow index' do
       sign_in user
       get clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow show' do
       sign_in user
       get client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow new' do
       sign_in user
       get new_client_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow create' do
       sign_in user
       post clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow service_range' do
       sign_in user
       get service_range_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow rollup' do
       sign_in user
       get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow assessment' do
       sign_in user
       get assessment_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow chronic_days' do
       sign_in user
       get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(destination)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow unmerge' do
       sign_in user
       patch unmerge_client_path(destination)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
+      expect(response).to redirect_to(user.my_root_path)
     end
   end
 
@@ -164,25 +160,25 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow show' do
       sign_in user
       get client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow new' do
       sign_in user
       get new_client_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow create' do
       sign_in user
       post clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow service_range' do
@@ -195,19 +191,19 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow rollup' do
       sign_in user
       get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow assessment' do
       sign_in user
       get assessment_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow chronic_days' do
@@ -252,19 +248,19 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow new' do
       sign_in user
       get new_client_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow create' do
       sign_in user
       post clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'allows service_range' do
@@ -333,13 +329,13 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow new' do
       sign_in user
       get new_client_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow create' do
       sign_in user
       post clients_path
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'allows edit' do
@@ -405,7 +401,7 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow show' do
       sign_in user
       get client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'allows new' do
@@ -423,7 +419,7 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow edit' do
       sign_in user
       get edit_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow service_range' do
@@ -436,19 +432,19 @@ RSpec.describe ClientsController, type: :request do
     it 'doesn\'t allow rollup' do
       sign_in user
       get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow assessment' do
       sign_in user
       get assessment_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(destination)
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(user.my_root_path)
     end
 
     it 'doesn\'t allow chronic_days' do

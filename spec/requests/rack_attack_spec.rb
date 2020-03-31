@@ -86,7 +86,7 @@ describe Rack::Attack, type: :request do
       sign_in user
     end
     describe 'and hitting the homepage' do
-      let(:throttled_at) { 51 }
+      let(:throttled_at) { 151 }
       let(:request_limit) { (throttled_at * 4).to_i }
       let(:path) { '/' }
 
@@ -101,7 +101,7 @@ describe Rack::Attack, type: :request do
       end
     end
     describe 'and hitting client rollups' do
-      let(:throttled_at) { 101 }
+      let(:throttled_at) { 251 }
       let(:request_limit) { (throttled_at * 4).to_i }
       let(:path) { '/clients/1/rollup/residential_enrollments' }
 

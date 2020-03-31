@@ -18,8 +18,9 @@ class UserTrainingController < ApplicationController
         # Ensure the user is enrolled in the course
         lms.enroll(current_user, config.courseid)
 
-        if lms.complete?(current_user, config.courseid)
-          current_user.update(training_completed: true)
+        completed_on = lms.complete?(current_user, config.courseid)
+        if completed_on.present?
+          current_user.update(training_completed: true, last_training_completed: completed_on.to_date)
           redirect_to after_sign_in_path_for(current_user)
         else
           # Construct TalentLMS Course URL

@@ -1,0 +1,15 @@
+.mb-4= page_entries_info @locations
+%p= paginate(@locations)
+%table.table.table-striped
+  %thead
+    %tr
+      %th Login Time
+      %th IP Address
+      %th Location
+  %tbody
+    - @locations.each do |location|
+      %tr
+        %td= location.created_at
+        %td= location.ip
+        %td= location.location_description
+%p= paginate(@locations)

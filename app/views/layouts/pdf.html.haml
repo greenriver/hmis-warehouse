@@ -33,7 +33,8 @@
           - if Rails.env.development?
             = branch_info
           = _('Ending Veteran & Chronic Homelessness in Boston')
-        = render 'layouts/warehouse_alert'
+        - content_for :prepended_nav_items do
+          = render 'layouts/warehouse_alert'
         = render 'layouts/header_nav'
 
     .l-main__wrapper
@@ -43,7 +44,7 @@
       .l-main__content{ class: ('with-menu' if user_signed_in?) }
         %main
           .container-fluid.mb-4{class: container_classes}
-            .utility.d-none--empty<
+            .utility<
               = render "utility"
             - if content_for? :modal_title
               %h1

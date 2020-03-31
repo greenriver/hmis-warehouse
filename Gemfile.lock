@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
-  revision: 898aacd832b6bae6fb3eca88b340477944fa6007
+  revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
   specs:
     composite_primary_keys (11.2.0)
@@ -991,6 +991,8 @@ GEM
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 1.14.3, < 2)
       sassc-rails (>= 2.0.0)
+    bootstrap3-datetimepicker-rails (4.17.47)
+      momentjs-rails (>= 2.8.1)
     brakeman (4.8.0)
     builder (3.2.4)
     bumbler (0.6.0)
@@ -1252,6 +1254,8 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    momentjs-rails (2.20.1)
+      railties (>= 3.1)
     msgpack (1.3.1)
     multi_json (1.14.1)
     multipart-post (2.1.1)
@@ -1568,6 +1572,7 @@ DEPENDENCIES
   bcrypt
   bootsnap
   bootstrap (~> 4.3.1)
+  bootstrap3-datetimepicker-rails (~> 4.17.42)
   brakeman
   bumbler
   bundler-audit
