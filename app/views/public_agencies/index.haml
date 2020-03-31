@@ -2,10 +2,27 @@
 .row
   .col-sm-8
     %h1= content_for :title
-.agency-list
-  %ul
-  - @agencies.each do |agency|
-    %li= agency.description_and_coc_code
+%table.table.datatable.agency-list
+  %thead
+    %tr
+      %th Agency
+      %th CoC
+  %tbody
+    - @agencies.each do |agency|
+      - agency.consent_limits.each do |coc|
+        %tr
+          %td= agency.name
+          %td= coc.description_and_coc_code
+
 - if @coc_map.present?
   .coc-map
     %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
+
+= content_for :page_js do
+  :javascript
+    $('.datatable').DataTable({
+      searching: true,
+      ordering: true,
+      pageLength: 50,
+      lengthChange: false
+    });

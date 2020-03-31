@@ -1,0 +1,9 @@
+= simple_form_for @ama_restriction, url: client_he_ama_restrictions_path do |f|
+  .row
+    .col-md-8
+      = f.input :restricted, collection: @ama_restriction.restriction_options, label: 'Medical Restriction?', include_blank: true, as: :boolean_button_group
+      = f.input :note, as: :text, label: 'Notes'
+      = f.submit "Set #{@ama_restriction.title}"
+    .col-md-4.border-left
+      = render "he/clients/#{health_emergency}/previous_ama_restriction"
+

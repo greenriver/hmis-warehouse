@@ -252,3 +252,12 @@ textarea.form-control {
 {
   font-weight: font-weight(normal);
 }
+.mini-login-form
+{
+  max-width: 20em;
+  .form-control
+  {
+    height: calc(1em + 1rem + 2px);
+    font-size: 0.8rem;
+  }
+}

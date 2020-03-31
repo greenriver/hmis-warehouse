@@ -1,0 +1,26 @@
+- item = clinical_triage
+%div{class: flex}
+  %dl.mr-4
+    %dt Testing Requested?
+    %dd= item.test_requested.presence || 'Unknown'
+  %dl.mr-4
+    %dt Location of Test
+    %dd= item.location.presence || 'Blank'
+  %dl.mr-4
+    %dt Notes
+    %dd= simple_format(item.notes) || 'Blank'
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Entered At
+    %dd= item.created_at
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name || 'Unknown'
+
+- if can_edit_health_emergency_clinical?
+  .d-flex
+    = link_to destroy_triage_client_he_clinical_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger ml-auto', data: { confirm: "Really delete this #{item.title}?"} do
+      %i.icon-cross
+      Delete
