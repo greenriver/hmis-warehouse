@@ -3,17 +3,16 @@
     - if @show_ssn
       - ssns = client.source_clients.searchable_by(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
       - if ssns.present?
-        .col-md-6.client__ssns
+        .col-md-6.client__ssns.mb-2
+          %h3 SSN
           - # Note always mask SSN for list
           - ssns.each do |ssn_for_lists|
             .client__ssn
-              %strong SSN:
-              = ssn_for_lists
+              .no-wrap= ssn_for_lists
     .col-md-6.client__dobs
       - # Note only show year and age for list
+      %h3 Year of Birth (age)
       - client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
         .client__dob
-          %strong Year of Birth:
-          = "#{dob&.year},"
-          %strong Age:
-          = age
+
+          .no-wrap= "#{dob&.year} (#{age})"

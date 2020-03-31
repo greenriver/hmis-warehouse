@@ -13,26 +13,19 @@
 
 -# Header Content block rendered
 -# within `clients/client_card_wrapper` partial
-- content_for "client_card_header__#{id}" do
-  - if ( akas = client_aliases(client)).empty?
-    - main_client_name = client.source_clients.searchable_by(current_user).first.data_source&.short_name
-  - else
-    - main_client_name = akas.shift
-  .client__client-name
-    .client-primary-name
-      = main_client_name
+-# - content_for "client_card_header__#{id}" do
+-#   - if ( akas = client_aliases(client)).empty?
+-#     - main_client_name = client.source_clients.searchable_by(current_user).first.data_source&.short_name
+-#   - else
+-#     - main_client_name = akas.shift
+-#   .client__client-name
+-#     .client-primary-name
+-#       = main_client_name
 -# Primary content block rendered
 -# within `clients/client_card_wrapper` partial
 - content_for "client_card_content-primary__#{id}" do
   .c-card__content-block.px-0
-    %h3 Aliases
     = render 'clients/search/aliases', client: client
-
-  -# Flags
-  -# (a third)
-  - if content_for? "client_card_flags__#{client.id}"
-    .c-card__content-block.px-0
-      = yield "client_card_flags__#{client.id}"
 
 -# Secondary content block rendered
 -# within `clients/client_card_wrapper` partial
@@ -49,7 +42,6 @@
     -# (a third)
     - if content_for? "client_card_demographics__#{client.id}"
       .col-md-12.col-lg-6.c-card__content-block
-        %h3 Demographics
         = yield "client_card_demographics__#{client.id}"
 
     -# Assessments
@@ -58,6 +50,12 @@
       .col-md-12.col-lg-6.c-card__content-block
         %h3 Assessments
         = yield "client_card_assessments__#{client.id}"
+
+    -# Flags
+    -# (a third)
+    - if content_for? "client_card_flags__#{client.id}"
+      .c-card__content-block
+        = yield "client_card_flags__#{client.id}"
 
     -# Relationships (only table — logic in partial called above
     -# determines if it should be rendered here or in the footer)
