@@ -60,3 +60,10 @@
     @return white;
   }
 }
+
+@mixin flex($grow: 1, $shrink: 1, $basis: auto) {
+  flex: $grow $shrink $basis;
+  flex-grow: $grow;
+  flex-shrink: $shrink;
+  flex-basis: $basis;
+}
