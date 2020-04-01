@@ -9,10 +9,13 @@
           - ssns.each do |ssn_for_lists|
             .client__ssn
               .no-wrap= ssn_for_lists
-    .col-md-6.client__dobs
-      - # Note only show year and age for list
-      %h3 Year of Birth (age)
-      - client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.compact.each do |dob, age|
-        .client__dob
-
-          .no-wrap= "#{dob&.year} (#{age})"
+    - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.compact
+    - if ages.any?
+      .col-md-6.client__dobs
+        - # Note only show year and age for list
+        %h3 Year of Birth (age)
+        - ages.each do |dob, age|
+          .client__dob
+            .no-wrap
+              - if dob.present?
+                #{dob&.year} (#{age})
