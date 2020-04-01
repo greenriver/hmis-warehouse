@@ -36,6 +36,7 @@ class PerformanceDashboards::Base
   end
 
   attr_reader :start_date, :end_date
+  attr_accessor :comparison_pattern
 
   def self.coc_codes
     GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
@@ -60,8 +61,9 @@ class PerformanceDashboards::Base
 
   def self.comparison_patterns
     {
-      prior_period: 'Prior Period',
       prior_year: 'Same period, prior year',
+      prior_period: 'Prior Period',
+      no_comparison_period: 'No comparison period',
     }.invert.freeze
   end
 
@@ -72,91 +74,124 @@ class PerformanceDashboards::Base
   # @return filtered scope
   def report_scope(all_project_types: false)
     # Report range
-    scope = report_scope_source.
-      open_between(start_date: @start_date, end_date: @end_date)
-
-    # CoCs
-    scope = scope.
-      joins(:enrollment_coc_at_entry).
-      where(ec_t[:CocCode].in(@coc_codes)) if @coc_codes.present?
-
-    # Household Types
-    case @household_type
-    when :without_children
-      scope = scope.where(other_clients_under_18: 0)
-    when :with_children
-      scope = scope.where(other_clients_under_18: 1)
-    when :only_children
-      scope = scope.where(children_only: true)
-    end
-
-    # HoH
-    scope = scope.where(head_of_household: true) if @hoh_only
-
-    # Age Ranges
-    if @age_ranges.present?
-      age_scope = nil
-      age_scope = add_alternative(age_scope, report_scope_sourcewhere(she_t[:age].lt(18))) if @age_ranges.include?(:under_eighteen)
-
-      if @age_ranges.include?(:eighteen_to_twenty_four)
-        age_scope = add_alternative(
-          age_scope,
-          report_scope_source.where(
-            she_t[:age].gteq(18).
-            and(she_t[:age].lteq(24)),
-          )
-        )
-      end
-
-      if @age_ranges.include?(:twenty_five_to_sixty_one)
-        age_scope = add_alternative(
-          age_scope,
-          report_scope_source.where(
-            she_t[:age].gteq(25).
-            and(she_t[:age].lteq(61)),
-          ),
-        )
-      end
-
-      if @age_ranges.include?(:over_sixty_one)
-        age_scope = add_alternative(
-          age_scope,
-          report_scope_source.where(she_t[:age].gt(61),
-        ))
-      end
-
-      scope = scope.merge(age_scope)
-    end
-
-    # Genders
-    scope = scope.joins(:client).where(c_t[:Gender].in(@genders)) if @genders.present?
-
-    # Races
-    if @races.present?
-      keys = @races.keys
-      race_scope = nil
-
-      race_scope = add_alternative(race_scope, race_alternative(:AmIndALNative)) if keys.include?('AmIndAKNative')
-      race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
-      race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
-      race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
-      race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
-      race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
-
-      scope = scope.merge(race_scope)
-    end
-
-    # Ethnicities
-    scope = scope.joins(:client).where(c_t[:Ethnicity].in(@ethnicities)) if @ethnicities.present?
-
-    # Veteran Statuses
-    scope = scope.joins(:client).where(c_t[:VeteranStatus].in(@veteran_statuses)) if @veteran_statuses.present?
-
-    # Project Types
-    scope = scope.where(project_type: @project_types) unless all_project_types
-
+    scope = filter_for_range(report_scope_source)
+    scope = filter_for_cocs(scope)
+    scope = filter_for_household_type(scope)
+    scope = filter_for_head_of_household(scope)
+    scope = filter_for_age(scope)
+    scope = filter_for_gender(scope)
+    scope = filter_for_race(scope)
+    scope = filter_for_ethnicity(scope)
+    scope = filter_for_veteran_status(scope)
+    scope = filter_for_project_type(scope, all_project_types: all_project_types)
     scope
   end
+  
+  private def filter_for_range(scope)
+    scope.open_between(start_date: @start_date, end_date: @end_date)
+  end
+  
+  private def filter_for_cocs(scope)
+    return scope unless @coc_codes.present?
+    
+    scope.joins(:enrollment_coc_at_entry).
+      where(ec_t[:CocCode].in(@coc_codes)) 
+  end
+  
+  private def filter_for_household_type(scope)
+    return scope unless @household_type.present?
+    
+    case @household_type
+    when :without_children
+      scope.where(other_clients_under_18: 0)
+    when :with_children
+      scope.where(other_clients_under_18: 1)
+    when :only_children
+      scope.where(children_only: true)
+    end
+  end
+  
+  private def filter_for_head_of_household(scope)
+    return scope unless @hoh_only
+    
+    scope.where(head_of_household: true) 
+  end
+  
+  private def filter_for_age(scope)
+    return scope unless @age_ranges.present?
+    
+    age_scope = nil
+    age_scope = add_alternative(age_scope, report_scope_sourcewhere(she_t[:age].lt(18))) if @age_ranges.include?(:under_eighteen)
+
+    if @age_ranges.include?(:eighteen_to_twenty_four)
+      age_scope = add_alternative(
+        age_scope,
+        report_scope_source.where(
+          she_t[:age].gteq(18).
+          and(she_t[:age].lteq(24)),
+        )
+      )
+    end
+
+    if @age_ranges.include?(:twenty_five_to_sixty_one)
+      age_scope = add_alternative(
+        age_scope,
+        report_scope_source.where(
+          she_t[:age].gteq(25).
+          and(she_t[:age].lteq(61)),
+        ),
+      )
+    end
+
+    if @age_ranges.include?(:over_sixty_one)
+      age_scope = add_alternative(
+        age_scope,
+        report_scope_source.where(she_t[:age].gt(61),
+      ))
+    end
+
+    scope.merge(age_scope)
+  end
+  
+  private def filter_for_gender(scope)
+    return scope unless @genders.present?
+    
+    scope.joins(:client).where(c_t[:Gender].in(@genders))
+  end
+  
+  private def filter_for_race(scope)
+    return scope unless @races.present?
+
+    keys = @races.keys
+    race_scope = nil
+    race_scope = add_alternative(race_scope, race_alternative(:AmIndALNative)) if keys.include?('AmIndAKNative')
+    race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
+    race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
+    race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
+    race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
+    race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
+
+    scope.merge(race_scope)
+  end
+  
+  private def filter_for_ethnicity(scope)
+    return scope unless @ethnicities.present?
+    
+    scope.joins(:client).where(c_t[:Ethnicity].in(@ethnicities))
+  end
+  
+  private def filter_for_veteran_status(scope)
+    return scope unless @veteran_statuses.present?
+    
+    scope.joins(:client).where(c_t[:VeteranStatus].in(@veteran_statuses))
+  end
+  
+  private def filter_for_project_type(scope, all_project_types: nil)
+    return scope if all_project_types
+    
+    scope.where(project_type: @project_types)
+  end
+  
 
   def report_scope_source
     GrdaWarehouse::ServiceHistoryEnrollment

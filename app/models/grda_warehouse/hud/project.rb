@@ -130,14 +130,18 @@ module GrdaWarehouse::Hud
     HOMELESS_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh, :th).flatten
     HOMELESS_SHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :sh, :th).flatten
     HOMELESS_UNSHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten
-
-    PROJECT_TYPE_TITLES = {
-        ph: 'Permanent Housing',
-        es: 'Emergency Shelter',
-        th: 'Transitional Housing',
-        sh: 'Safe Haven',
-        so: 'Street Outreach',
-      }
+    
+    PROJECT_GROUP_TITLES = {
+      ph: 'Permanent Housing (PH, PSH, & RRH)',
+      es: 'Emergency Shelter (ES)',
+      th: 'Transitional Housing (TH)',
+      sh: 'Safe Haven (SH)',
+      so: 'Street Outreach (SO)',
+      rrh: 'Rapid Re-Housing (RRH)',
+      ca: 'Coordinated Assessment (CA)',
+      psh: 'Permanent Supportive Housing (PSH)'
+    }
+    PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so])}
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     PROJECT_TYPE_COLORS = {

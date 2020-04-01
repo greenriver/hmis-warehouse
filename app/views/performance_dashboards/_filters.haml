@@ -1,28 +1,31 @@
 .well
   .row
-    .col-4
+    .col-sm-4
       = f.input :start_date, as: :date_picker, input_html: { value: @start_date }
-    .col-4
+    .col-sm-4
       = f.input :end_date, as: :date_picker, input_html: { value: @end_date }
-    .col-4
-      = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @coc_codes, required: false, input_html: { multiple: true, class: 'select2' }
+    .col-sm-4
+      = f.input :comparison_pattern, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @comparison_pattern, input_html: { class: :select2 }
   .row
-    .col-3
+    .col-sm-3
+      = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @coc_codes, required: false, input_html: { multiple: true, class: :select2 }
+    .col-sm-3
+      = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @project_type_codes, required: false, input_html: { multiple: true, class: 'select2' }
+    .col-sm-3
       = f.input :household_type, collection: @report.household_types, include_blank: 'All households', selected: @household_type, required: false, input_html: { class: 'select2' }
-    .col-3
+    .col-sm-3
       = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, input_html: { checked: @hoh_only }, wrapper_html: { class: 'mt-7'}
-    .col-3
-      = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.invert, selected: @project_type_codes, required: false, input_html: { multiple: true, class: 'select2' }
-    .col-3
+  .row
+    .col-sm-4
+      = f.input :age_ranges, collection: @report.age_ranges, selected: @age_ranges, required: false, input_html: { multiple: true, class: 'select2' }
+    .col-sm-4
+      = f.input :genders, collection: HUD.genders.invert, selected: @genders, required: false, input_html: { multiple: true, class: 'select2' }
+    .col-sm-4
       = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert, selected: @veteran_statuses, required: false, input_html: { multiple: true, class: 'select2' }
   .row
-    .col-3
-      = f.input :age_ranges, collection: @report.age_ranges, selected: @age_ranges, required: false, input_html: { multiple: true, class: 'select2' }
-    .col-3
-      = f.input :genders, collection: HUD.genders.invert, selected: @genders, required: false, input_html: { multiple: true, class: 'select2' }
-    .col-3
+    .col-sm-6
       = f.input :races, collection: HUD.races.invert, selected: @races.keys, required: false, input_html: { multiple: true, class: 'select2' }
-    .col-3
+    .col-sm-6
       = f.input :ethnicities, collection: HUD.ethnicities.invert, selected: @ethnicities, required: false, input_html: { multiple: true, class: 'select2' }
   %hr
   .mt-4
