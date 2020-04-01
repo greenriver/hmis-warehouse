@@ -253,7 +253,7 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = enrollments.last
           age = enrollment[:age]
           if age.blank?
-            @unknown [client_id] = age
+            @unknown[client_id] = age
           elsif adult?(age)
             @adults[client_id] = age
           elsif child?(age)
