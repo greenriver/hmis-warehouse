@@ -1,21 +1,21 @@
 - content_for "client_card_demographics__#{client.id}" do
-  .row
-    - if @show_ssn
-      - ssns = client.source_clients.searchable_by(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
-      - if ssns.present?
+  - ssns = client.source_clients.searchable_by(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
+  - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.select(&:present?)
+  - if (@show_ssn && ssns.present?) || ages.any?
+    .row
+      - if @show_ssn && ssns.present?
         .col-md-6.client__ssns.mb-2
           %h3 SSN
           - # Note always mask SSN for list
           - ssns.each do |ssn_for_lists|
             .client__ssn
               .no-wrap= ssn_for_lists
-    - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.compact
-    - if ages.any?
-      .col-md-6.client__dobs
-        - # Note only show year and age for list
-        %h3 Year of Birth (age)
-        - ages.each do |dob, age|
-          .client__dob
-            .no-wrap
-              - if dob.present?
-                #{dob&.year} (#{age})
+      - if ages.any?
+        .col-md-6.client__dobs
+          - # Note only show year and age for list
+          %h3 Year of Birth (age)
+          - ages.each do |dob, age|
+            .client__dob
+              .no-wrap
+                - if dob.present?
+                  #{dob&.year} (#{age})
