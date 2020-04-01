@@ -14,7 +14,7 @@ module Admin
 
     def create
       @config = Talentlms::Config.first_or_initialize
-      @config.update_attributes(config_params)
+      @config.assign_attributes(config_params)
       if config.valid?
         @config.save
         redirect_to action: :index
