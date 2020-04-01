@@ -256,8 +256,12 @@ module Health
     private def with_careplans_in_122_days(patient_ids)
       patient_ids.select do |p_id|
         careplan_date = qa_signature_dates[p_id]&.to_date
-        enrollment_date = patient_referrals[p_id][1]
-        careplan_date.present? && careplan_date.between?(@range.first, @range.last) && (careplan_date - enrollment_date).to_i <= 122
+        enrollment_date = patient_referrals[p_id][1]&.to_date
+
+        careplan_date.present? &&
+          enrollment_date.present? &&
+          careplan_date.between?(@range.first, @range.last) &&
+          (careplan_date - enrollment_date).to_i <= 122
       end
     end
 
