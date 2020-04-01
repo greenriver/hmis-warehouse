@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class AmaRestriction < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def visible_to?(user)
+      user.can_see_health_emergency_medical_restriction?
+    end
+
     def title
       'Medical Restriction'
     end
