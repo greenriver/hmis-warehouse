@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def visible_to?(user)
+      user.can_see_health_emergency_clinical?
+    end
+
     def title
       'Testing Results'
     end

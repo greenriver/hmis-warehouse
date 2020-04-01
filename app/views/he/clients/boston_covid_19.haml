@@ -14,6 +14,7 @@
       .col-sm-12.col-md-4.col-xl-3.order-md-last.mb-4
         .client__image.client__image--w-100{ style: "background-image: url(#{ image_client_path(@client) })" }
     .col-sm-12.col-md-8.col-xl-9.order-md-first
+      = render "he/clients/#{health_emergency}/ama_restriction"
       = render "he/clients/#{health_emergency}/triage"
       = render "he/clients/#{health_emergency}/clinical"
   - if can_see_health_emergency_history?

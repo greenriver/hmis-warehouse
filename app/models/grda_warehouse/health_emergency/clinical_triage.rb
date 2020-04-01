@@ -8,6 +8,10 @@ module GrdaWarehouse::HealthEmergency
   class ClinicalTriage < GrdaWarehouseBase
     include ::HealthEmergency
 
+    def visible_to?(user)
+      user.can_see_health_emergency_clinical?
+    end
+
     def title
       'Clinical Screening'
     end

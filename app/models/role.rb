@@ -418,6 +418,10 @@ class Role < ApplicationRecord
         description: 'Ability to see any health emergency information when health emergencies are enabled.',
         administrative: false,
       },
+      can_edit_health_emergency_medical_restriction: {
+        description: 'Ability to edit medical restrictions during a health emergency.',
+        administrative: false,
+      },
       can_edit_health_emergency_screening: {
         description: 'Ability to edit and delete screening records during a health emergency.',
         administrative: false,
@@ -428,6 +432,18 @@ class Role < ApplicationRecord
       },
       can_see_health_emergency_history: {
         description: 'Ability to see client emergency history during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_medical_restriction: {
+        description: 'Ability to see medical restrictions during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_screening: {
+        description: 'Ability to see and delete screening records during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_clinical: {
+        description: 'Ability to see and delete clinical records during a health emergency.',
         administrative: false,
       },
     }
