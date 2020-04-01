@@ -1,6 +1,6 @@
 - content_for "client_card_demographics__#{client.id}" do
   - ssns = client.source_clients.searchable_by(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
-  - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age]}.uniq.select(&:present?)
+  - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age].compact}.uniq.select(&:present?)
   - if (@show_ssn && ssns.present?) || ages.any?
     .row
       - if @show_ssn && ssns.present?
