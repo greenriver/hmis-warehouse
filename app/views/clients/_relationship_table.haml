@@ -1,0 +1,19 @@
+%table.table.table-sm
+  %thead
+    %tr
+      %th
+        - if show_relationship_link
+          = link_to polymorphic_path(users_path_generator, client_id: client.id) do
+            %span.icon-users
+        Contact
+      %th Phone
+      %th Agency
+      %th Role
+  %tbody
+    - client.user_clients.non_confidential.each do |uc|
+      - user = uc.user
+      %tr
+        %td= mail_to user.email, user.name
+        %td= user.phone
+        %td= user.agency&.name
+        %td= uc.relationship

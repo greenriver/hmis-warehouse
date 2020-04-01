@@ -315,6 +315,21 @@ $client-image-height: 200px;
   font-weight: 800;
 }
 
+.client__client-name .client-primary-name,
+.client__client-name .client-aka {
+  display: flex;
+  align-items: baseline;
+}
+
+.client__client-name .client-primary-name {
+  @include font-open-sans-condensed;
+  font-size: 2rem;
+  em {
+    align-self: center;
+    font-size: inhreit;
+  }
+}
+
 .clients__client-name {
   font-size: 1.2rem;
   font-size: 1.35rem;

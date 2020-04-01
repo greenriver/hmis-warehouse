@@ -12,6 +12,11 @@
 
 .c-card__header {
   padding: space(3) space(3) 0 space(3);
+  flex: 1 1 auto;
+}
+
+.c-card__header--bordered {
+  border-bottom: $gray-015 1px solid;
 }
 
 .c-card__header--external {
@@ -36,6 +41,10 @@
   &.highlight {
     animation: highlight 2s;
   }
+}
+
+.c-card__content-container {
+  @include flex(1, 1, auto);
 }
 
 .c-card__content .form-control,
@@ -225,9 +234,39 @@
 .c-card__footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   width: 100%;
-  padding: space(2) space(4);
   border-top: $gray-015 1px solid;
-  margin-top: space(4);
+  flex-wrap: wrap;
+  padding: 0 space(4);
+  .btn {
+    display: block;
+  }
+}
+
+.c-card__footer-content {
+  padding: space(3) 0;
+}
+
+.c-card__footer-content--left {
+  margin-right: space(4);
+}
+
+.c-card__footer-content--right {
+  margin-left: auto;
+}
+
+.c-card__content-block {
+  padding: space(4);
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+.c-card__content-block--full-bleed {
+  padding: 0;
+}
+
+.c-card__content-block--danger {
+  background-color: lighten($brand-danger-l, 10%);
+  padding: space(4);
 }

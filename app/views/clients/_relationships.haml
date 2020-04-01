@@ -1,27 +1,22 @@
 - show_relationship_link = can_assign_users_to_clients? || can_view_client_user_assignments?
-.m-4.clients__users
-  - if client.user_clients.non_confidential.any?
-    %table.table.table-sm
-      %thead
-        %tr
-          %th
-            - if show_relationship_link
-              = link_to polymorphic_path(users_path_generator, client_id: client.id) do
-                %span.icon-users
-            Contact
-          %th Phone
-          %th Agency
-          %th Role
-      %tbody
-        - client.user_clients.non_confidential.each do |uc|
-          - user = uc.user
-          %tr
-            %td= mail_to user.email, user.name
-            %td= user.phone
-            %td= user.agency&.name
-            %td= uc.relationship
+- showing_in_card = false unless defined?(showing_in_card)
+
+-# Too much logic here (we may need to break this out into seperate
+-# partials for card/non-card instances)
+- if client.user_clients.non_confidential.any?
+  - if showing_in_card
+    - content_for "client_card_relationships__#{client.id}" do
+      = render 'relationship_table', client: client, show_relationship_link: show_relationship_link
   - else
-    - if show_relationship_link
+    = render 'relationship_table', client: client, show_relationship_link: show_relationship_link
+- else
+  - if show_relationship_link
+    - if showing_in_card
+      - content_for "client_card_footer_left__#{client.id}" do
+        = link_to polymorphic_path(users_path_generator, client_id: client.id) do
+          %span.icon-users
+          Manage Relationships
+    - else
       = link_to polymorphic_path(users_path_generator, client_id: client.id) do
         %span.icon-users
         Manage Relationships
