@@ -39,27 +39,49 @@ module Health::Tracing
     end
 
     def source_clients
-      source_client_scope.where(
-        c_t[:FirstName].lower.matches("#{names.first.downcase}%").
-        or(c_t[:LastName].lower.matches("#{names.last.downcase}%"))
-      )
+      if names.first == names.last
+        source_client_scope.where(
+          c_t[:FirstName].lower.matches("#{names.first.downcase}%").
+          or(c_t[:LastName].lower.matches("#{names.last.downcase}%"))
+        )
+      else
+        source_client_scope.where(
+          c_t[:FirstName].lower.matches("#{names.first.downcase}%").
+          and(c_t[:LastName].lower.matches("#{names.last.downcase}%"))
+        )
+      end
     end
 
     def existing_cases
-      case_source.
+      query = case_source.
         where(health_emergency: GrdaWarehouse::Config.get(:health_emergency_tracing)).
-        where(
+        or(case_source.where(id: case_contacts.select(:case_id)))
+      if names.first == names.last
+        query = query.where(
           htca_t[:first_name].lower.matches("#{names.first.downcase}%").
           or(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
-        ).
-        or(case_source.where(id: case_contacts.select(:case_id)))
+        )
+      else
+        query = query.where(
+          htca_t[:first_name].lower.matches("#{names.first.downcase}%").
+          and(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
+        )
+      end
+      query
     end
 
     def case_contacts
-      contact_source.where(
-        htco_t[:first_name].lower.matches("#{names.first.downcase}%").
-        or(htco_t[:last_name].lower.matches("#{names.last.downcase}%"))
-      )
+      if names.first == names.last
+        contact_source.where(
+          htco_t[:first_name].lower.matches("#{names.first.downcase}%").
+          or(htco_t[:last_name].lower.matches("#{names.last.downcase}%"))
+        )
+      else
+        contact_source.where(
+          htco_t[:first_name].lower.matches("#{names.first.downcase}%").
+          and(htco_t[:last_name].lower.matches("#{names.last.downcase}%"))
+        )
+      end
     end
 
     private def source_client_scope

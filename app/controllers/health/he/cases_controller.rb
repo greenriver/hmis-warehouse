@@ -59,6 +59,7 @@ module Health::He
 
     def case_params
       params.require(:health_tracing_case).permit(
+        :client_id,
         :investigator,
         :date_listed,
         :alert_in_epic,

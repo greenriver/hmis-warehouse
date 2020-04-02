@@ -33,6 +33,10 @@ module Health::Tracing
       ]
     end
 
+    def name
+      "#{first_name} #{last_name}"
+    end
+
     def age date=Date.current
       GrdaWarehouse::Hud::Client.age(date: date.to_date, dob: dob)
     end
