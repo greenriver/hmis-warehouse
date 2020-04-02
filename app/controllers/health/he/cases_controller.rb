@@ -12,6 +12,22 @@ module Health::He
       @case = Health::Tracing::Case.new
     end
 
+    def new_warehouse
+      client = GrdaWarehouse::Hud::Client.viewable_by(current_user).find(params[:id].to_i)
+      case_data = {
+        health_emergency: health_emergency_contact_tracing,
+        client_id: client.id,
+        first_name: client.first_name,
+        last_name: client.last_name,
+        dob: client.DOB,
+        gender: client.Gender,
+        race: races(client),
+        ethnicity: client.Ethnicity,
+      }
+      @case = Health::Tracing::Case.create(case_data)
+      render :edit
+    end
+
     def edit
       @case = Health::Tracing::Case.find(params[:id].to_i)
     end
@@ -61,6 +77,10 @@ module Health::He
         :notes,
         race: [],
       )
+    end
+
+    def races(client)
+      HUD.races.keys.select { |race| client.public_send(race) == 1 }
     end
   end
 end
