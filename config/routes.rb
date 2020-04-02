@@ -643,6 +643,14 @@ Rails.application.routes.draw do
       end
     end
     resources :my_patients, only: [:index]
+    namespace :he do
+      get :search
+      resources :cases, only: [:create, :edit, :destroy, :update]
+      resources :locations, only: [:create, :destroy, :update]
+      resources :contacts, only: [:create, :destroy, :update]
+      resources :site_managers, only: [:create, :destroy, :update]
+      resources :staff, only: [:create, :destroy, :update, :edit]
+    end
   end
 
   namespace :api do
