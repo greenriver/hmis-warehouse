@@ -1,0 +1,7 @@
+- content_for :title, "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Contact Tracing"
+%h1= content_for :title
+
+= simple_form_for @manager, url: health_he_case_site_managers_path do |f|
+  = render 'form', f: f
+
+  = f.submit "Add New Site Leader"
