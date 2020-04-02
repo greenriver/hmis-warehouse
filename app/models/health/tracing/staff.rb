@@ -13,6 +13,27 @@ module Health::Tracing
     has_paper_trail
 
     belongs_to :case
+
+    def symptomatic_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
+
+    def referred_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
+
+    def test_result_options
+      [
+        'Negative',
+        'Positive',
+      ]
+    end
   end
 end
 

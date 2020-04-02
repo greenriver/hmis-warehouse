@@ -1,0 +1,31 @@
+= content_for :crumbs do
+  = link_to health_he_case_path(@case) do
+    = "« #{@case.first_name} #{@case.last_name}"
+- content_for :title, "Staff Members"
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right.mb-4
+    = link_to new_health_he_case_staff_path(@case), class: 'btn btn-primary' do
+      %span.icon-plus
+      Add A Staff Member
+
+.row
+  .col-sm
+    %table.table
+      %thead
+        %tr
+          %th Name
+          %th Site
+          %th Date Interviewed
+          %th
+      %tbody
+        - @staffs.each do |staff|
+          %tr
+            %td= link_to "#{staff.first_name} #{staff.last_name}", edit_health_he_case_staff_path(@case, staff)
+            %td= staff.site_name
+            %td= staff.date_interviewed
+            %td
+              = link_to health_he_case_staff_path(@case, staff), method: :delete, class: 'btn btn-link btn-link--danger' do
+                %i.icon-cross

@@ -649,7 +649,7 @@ Rails.application.routes.draw do
         resources :locations, only: [:create, :destroy, :update]
         resources :contacts, only: [:create, :destroy, :update]
         resources :site_managers
-        resources :staff, only: [:create, :destroy, :update, :edit]
+        resources :staff
       end
     end
   end

@@ -1,0 +1,10 @@
+.col-md-4
+  = f.input :date_interviewed, as: :date_picker
+  = f.input :first_name
+  = f.input :last_name
+  = f.input :site_name
+  = f.input :nature_of_exposure
+  = f.input :symtomatic, as: :radio_buttons, collection: @staff.symptomatic_options
+  = f.input :referred_for_testing, as: :radio_buttons, collection: @staff.referred_options
+  = f.input :test_result, as: :radio_buttons, collection: @staff.test_result_options
+  = f.input :notes, as: :text

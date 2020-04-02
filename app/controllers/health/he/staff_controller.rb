@@ -7,13 +7,55 @@
 module Health::He
   class StaffController < HealthController
     include ContactTracingController
-    def create
+    before_action :set_case
+    before_action :set_staff, only: [:edit, :update, :destroy]
+
+    def index
+      @staffs = @case.staffs
     end
 
-    def destroy
+    def new
+      @staff = @case.staffs.build
+    end
+
+    def create
+      @case.staffs.create(staff_params)
+      redirect_to action: :index
+    end
+
+    def edit
     end
 
     def update
+      @staff.update(staff_params)
+      redirect_to action: :index
+    end
+
+    def destroy
+      @staff.destroy
+      redirect_to action: :index
+    end
+
+    def staff_params
+      params.require(:health_tracing_staff).permit(
+        :date_interviewed,
+        :first_name,
+        :last_name,
+        :site_name,
+        :nature_of_exposure,
+        :symtomatic,
+        :referred_for_testing,
+        :test_result,
+        :notes,
+      )
+    end
+
+    def set_case
+      @case = Health::Tracing::Case.find(params[:case_id])
+    end
+
+    def set_staff
+      @staff = @case.staffs.find(params[:id])
     end
   end
 end
