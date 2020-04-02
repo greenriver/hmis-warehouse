@@ -69,6 +69,16 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_health_emergency_tracings
+      {
+        'COVID-19' => :covid_19,
+      }
+    end
+
+    def self.currrent_health_emergency_tracing_title
+      available_health_emergency_tracings.invert[get(:health_emergency_tracing)] || ''
+    end
+
     def self.cache_store
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
