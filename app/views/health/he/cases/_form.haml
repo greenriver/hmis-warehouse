@@ -1,4 +1,5 @@
 .col-md-4
+  = f.input :client_id, as: :hidden
   = f.input :investigator, label: 'Investigator Name'
   = f.input :date_listed, as: :date_picker
   = f.input :alert_in_epic, as: :radio_buttons, collection: @case.alert_options, label: 'Alert in EPIC?'
