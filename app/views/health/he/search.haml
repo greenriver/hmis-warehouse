@@ -1,0 +1,15 @@
+- @prompt = 'Search Cases'
+- content_for :title, "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Contact Tracing"
+.o-page
+  .o-page__header.d-flex
+    %h1= content_for :title
+  .o-page__controls
+    .row
+      .col-sm-8
+        %p
+          Search by index case name, HMIS client name, or contact name.  It is often most efficient to search using the first few characters of the first name and last name, eg. to find
+          %em Jane Smith
+          you might search for
+          %em ja sm.
+        .o-page__search
+          = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}

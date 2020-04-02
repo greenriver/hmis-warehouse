@@ -7,6 +7,9 @@
 module Health::He
   class CasesController < HealthController
     include ContactTracingController
+    def new
+    end
+
     def edit
     end
 
