@@ -543,6 +543,10 @@ class Role < ApplicationRecord
         description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
       },
+      can_edit_health_emergency_contact_tracing: {
+        description: 'Grants access to the contact tracing section when there is an active health emergency',
+        administrative: false,
+      },
     }
   end
 

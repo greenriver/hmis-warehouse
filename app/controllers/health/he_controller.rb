@@ -6,6 +6,7 @@
 
 module Health
   class HeController < HealthController
+    include ContactTracingController
     def search
     end
   end

@@ -6,6 +6,7 @@
 
 module Health::He
   class ContactsController < HealthController
+    include ContactTracingController
     def create
     end
 
