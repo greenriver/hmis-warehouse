@@ -16,17 +16,19 @@ module Health::Tracing
     end
 
     def names
-      if query.include?(',')
-        last, first = query.split(',').map(&:strip)
-      elsif query.include?(' ')
-        first, last = query.split(' ').map(&:strip)
-      else
-        last = first = query
+      @names ||= begin
+        if query.include?(',')
+          last, first = query.split(',').map(&:strip)
+        elsif query.include?(' ')
+          first, last = query.split(' ').map(&:strip)
+        else
+          last = first = query
+        end
+        OpenStruct.new(
+          first: first,
+          last: last
+        )
       end
-      OpenStruct.new(
-        first: first,
-        last: last
-      )
     end
 
     # Prefer cases over clients

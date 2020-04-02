@@ -645,15 +645,12 @@ Rails.application.routes.draw do
     resources :my_patients, only: [:index]
     namespace :he do
       get :search
-      resources :cases, only: [:new, :create, :edit, :destroy, :update] do
-        member do
-          get :new_warehouse
-        end
+      resources :cases do
+        resources :locations, only: [:create, :destroy, :update]
+        resources :contacts, only: [:create, :destroy, :update]
+        resources :site_managers, only: [:create, :destroy, :update]
+        resources :staff, only: [:create, :destroy, :update, :edit]
       end
-      resources :locations, only: [:create, :destroy, :update]
-      resources :contacts, only: [:create, :destroy, :update]
-      resources :site_managers, only: [:create, :destroy, :update]
-      resources :staff, only: [:create, :destroy, :update, :edit]
     end
   end
 

@@ -32,5 +32,9 @@ module Health::Tracing
         'Yes',
       ]
     end
+
+    def age date=Date.current
+      GrdaWarehouse::Hud::Client.age(date: date.to_date, dob: dob)
+    end
   end
 end

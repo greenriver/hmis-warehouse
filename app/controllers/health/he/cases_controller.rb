@@ -9,23 +9,25 @@ module Health::He
     include ContactTracingController
 
     def new
-      @case = Health::Tracing::Case.new
+      client = GrdaWarehouse::Hud::Client.viewable_by(current_user).find_by(id: params[:client_id].to_i)
+      case_data = {}
+      if client.present?
+        case_data = {
+          health_emergency: health_emergency_contact_tracing,
+          client_id: client.id,
+          first_name: client.first_name,
+          last_name: client.last_name,
+          dob: client.DOB,
+          gender: client.Gender,
+          race: races(client),
+          ethnicity: client.Ethnicity,
+        }
+      end
+      @case = Health::Tracing::Case.new(case_data)
     end
 
-    def new_warehouse
-      client = GrdaWarehouse::Hud::Client.viewable_by(current_user).find(params[:id].to_i)
-      case_data = {
-        health_emergency: health_emergency_contact_tracing,
-        client_id: client.id,
-        first_name: client.first_name,
-        last_name: client.last_name,
-        dob: client.DOB,
-        gender: client.Gender,
-        race: races(client),
-        ethnicity: client.Ethnicity,
-      }
-      @case = Health::Tracing::Case.create(case_data)
-      render :edit
+    def show
+      @case = Health::Tracing::Case.find(params[:id].to_i)
     end
 
     def edit

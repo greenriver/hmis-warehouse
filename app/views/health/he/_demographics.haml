@@ -1,0 +1,8 @@
+.row
+  - if index_case.dob.present?
+    .col-md-6.client__dobs
+      - # Note only show year and age for list
+      %h3 Year of Birth (age)
+      .client__dob
+        .no-wrap
+          #{index_case.dob&.year} (#{index_case.age})
