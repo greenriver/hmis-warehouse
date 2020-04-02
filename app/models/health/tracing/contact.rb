@@ -14,5 +14,9 @@ module Health::Tracing
 
     belongs_to :case
     has_many :locations
+
+    def name
+      "#{first_name} #{last_name}"
+    end
   end
 end
