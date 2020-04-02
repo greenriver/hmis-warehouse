@@ -17,5 +17,20 @@ module Health::Tracing
     has_many :contacts
     has_many :site_leaders
     has_many :staffs
+
+    def alert_options
+      [
+        'Blank',
+        'Active',
+        'Removed',
+      ]
+    end
+
+    def yes_no_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
   end
 end
