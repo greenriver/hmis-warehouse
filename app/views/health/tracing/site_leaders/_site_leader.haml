@@ -1,0 +1,4 @@
+- @manager = manager
+- @case = tracing_case
+= simple_form_for @manager, url: health_he_case_site_manager_path(@case, @manager), wrapper: :readonly do |f|
+  = render 'health/he/site_managers/form', f: f
