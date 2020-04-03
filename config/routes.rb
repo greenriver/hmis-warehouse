@@ -646,7 +646,7 @@ Rails.application.routes.draw do
     namespace :he do
       get :search
       resources :cases do
-        resources :locations, only: [:create, :destroy, :update]
+        resources :locations, except: [:index]
         resources :contacts
         resources :site_managers
         resources :staff

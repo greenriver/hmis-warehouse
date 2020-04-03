@@ -1,0 +1,4 @@
+= simple_form_for @location, url: health_he_case_location_path(@case, @location) do |f|
+  = render 'form', f: f
+
+  = f.submit "Update Location"

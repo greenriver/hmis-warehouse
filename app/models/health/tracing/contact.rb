@@ -15,6 +15,34 @@ module Health::Tracing
     belongs_to :case
     has_many :locations
 
+    def symptomatic_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
+
+    def referred_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
+
+    def test_result_options
+      [
+        'Negative',
+        'Positive',
+      ]
+    end
+
+    def yes_no_options
+      [
+        'No',
+        'Yes',
+      ]
+    end
+
     def name
       "#{first_name} #{last_name}"
     end
