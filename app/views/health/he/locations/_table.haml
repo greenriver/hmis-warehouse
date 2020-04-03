@@ -1,4 +1,4 @@
-- hide_locations = defined?(hide_locations) || false
+- hide_locations = if defined?(hide_locations) then hide_locations else false end
 - unless hide_locations
   .form-group
     - readonly_class = if readonly then 'readonly-label' else '' end
@@ -13,7 +13,7 @@
             - else
               .location.pt-2= link_to location.location, edit_health_he_case_location_path(@case, location), data: { loads_in_pjax_modal: true }
             - unless readonly
-              = link_to health_he_case_location_path(@case, location), method: :delete, remote: true, class: 'btn btn-sm btn-danger ml-auto' do
+              = link_to health_he_case_location_path(@case, location), method: :delete, remote: true, class: 'btn btn-sm btn-danger ml-auto', data: {confirm: 'Are you sure you want to delete this location?'} do
                 %i.icon-cross
                 Delete
 

@@ -1,13 +1,18 @@
-.col-md-8
-  .c-card.mb-4
-    .c-card__header.c-card__header--external
-      %h3 Basic Information
-    .c-card__content.mb-4
-      = f.input :client_id, as: :hidden
-      = f.input :investigator, label: 'Investigator Name'
-    .c-card__header.c-card__header--external
-      %h3 Index Case
-    .c-card__content
-      = f.input :first_name
-      = f.input :last_name
-      = f.input :dob, as: :date_picker
+.row
+  .col-md-8
+    .c-card.mb-4
+      .c-card__header.c-card__header--external
+        %h3 Basic Information
+      .c-card__content.mb-4
+        = f.input :client_id, as: :hidden
+        = f.input :investigator, label: 'Investigator Name'
+    .c-card.mb-4
+      .c-card__header.c-card__header--external
+        %h3 Index Case
+      .c-card__content
+        = f.input :first_name
+        = f.input :last_name
+        = f.input :dob, as: :date_picker
+= f.input :gender, as: :hidden
+= f.input :race, as: :hidden
+= f.input :ethnicity, as: :hidden

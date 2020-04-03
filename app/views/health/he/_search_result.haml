@@ -13,20 +13,21 @@
               = render 'clients/search/aliases', client: item
             - if item.is_a?(Health::Tracing::Case)
               = render 'search_aliases', index_case: item
-        .col-sm-12.col-md-7.col-lg-8
-          - if item.is_a?(GrdaWarehouse::Hud::Client)
-            = render 'clients/search/demographics', client: item
-          - elsif item.is_a?(Health::Tracing::Case)
-            = render 'demographics', index_case: item
-          - if content_for? "client_card_demographics__#{id}"
-            .col-md-12.col-lg-6.c-card__content-block
-              = yield "client_card_demographics__#{id}"
-          - if item.is_a?(Health::Tracing::Case)
-            = render 'contacts', index_case: item
-            - if content_for? "client_card_contacts__#{id}"
-              .col-md-12.col-lg-6.c-card__content-block
-                %h3 Contacts
-                = yield "client_card_contacts__#{id}"
+        .col-sm-12.col-md-7.col-lg-8.c-card__content-block
+          .row
+            - if item.is_a?(GrdaWarehouse::Hud::Client)
+              = render 'clients/search/demographics', client: item
+            - elsif item.is_a?(Health::Tracing::Case)
+              = render 'demographics', index_case: item
+            - if content_for? "client_card_demographics__#{id}"
+              .col-md-12.col-lg-6.mb-4
+                = yield "client_card_demographics__#{id}"
+            - if item.is_a?(Health::Tracing::Case)
+              = render 'contacts', index_case: item
+              - if content_for? "client_card_contacts__#{id}"
+                .col-md-12.col-lg-6
+                  %h3 Contacts
+                  = yield "client_card_contacts__#{id}"
     -# Card Footer
     -# Include call to actions
     .c-card__footer
