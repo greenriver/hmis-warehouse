@@ -19,18 +19,18 @@ module Health::Tracing
     has_many :staffs
 
     def alert_options
-      [
-        'Blank',
-        'Active',
-        'Removed',
-      ]
+      {
+        'Blank' => '',
+        'Active' => 'Active',
+        'Removed' => 'Active',
+      }
     end
 
     def yes_no_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'No' => '',
+        'Yes' => 'Yes',
+      }
     end
 
     def name
