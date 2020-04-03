@@ -44,7 +44,7 @@ module Health::He
         :last_name,
         :site_name,
         :nature_of_exposure,
-        :symtomatic,
+        :symptomatic,
         :referred_for_testing,
         :test_result,
         :notes,

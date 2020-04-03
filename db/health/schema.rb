@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_03_004129) do
+ActiveRecord::Schema.define(version: 2020_04_03_180901) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1302,7 +1302,7 @@ ActiveRecord::Schema.define(version: 2020_04_03_004129) do
     t.string "nature_of_exposure"
     t.string "location_of_contact"
     t.string "sleeping_location"
-    t.string "symtomatic"
+    t.string "symptomatic"
     t.date "symptom_onset_date"
     t.string "referred_for_testing"
     t.string "test_result"

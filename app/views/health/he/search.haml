@@ -12,7 +12,7 @@
           you might search for
           %em ja sm.
         .o-page__search
-          = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+          = render 'search_form', tooltip: 'Search with full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
   - if params[:q].present?
     = render 'new_case'
     - @results.each do |item|

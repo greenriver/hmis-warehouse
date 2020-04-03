@@ -1,22 +1,24 @@
-.form-group
-  - readonly_class = if readonly then 'readonly-label' else '' end
-  %label.sleeping{class: readonly_class}
-    Sleeping Locations
-  .controls
-    %ul.pl-0.mt-2
-      - @case.locations.each do |location|
-        %li.d-flex.mb-2.pb-2.border-bottom
-          - if readonly
-            .location= location.location
-          - else
-            .location.pt-2= link_to location.location, edit_health_he_case_location_path(@case, location), data: { loads_in_pjax_modal: true }
-          - unless readonly
-            = link_to health_he_case_location_path(@case, location), method: :delete, remote: true, class: 'btn btn-sm btn-danger ml-auto' do
-              %i.icon-cross
-              Delete
+- hide_locations = defined?(hide_locations) || false
+- unless hide_locations
+  .form-group
+    - readonly_class = if readonly then 'readonly-label' else '' end
+    %label.sleeping{class: readonly_class}
+      Sleeping Locations
+    .controls
+      %ul.pl-0.mt-2
+        - @case.locations.each do |location|
+          %li.d-flex.mb-2.pb-2.border-bottom
+            - if readonly
+              .location= location.location
+            - else
+              .location.pt-2= link_to location.location, edit_health_he_case_location_path(@case, location), data: { loads_in_pjax_modal: true }
+            - unless readonly
+              = link_to health_he_case_location_path(@case, location), method: :delete, remote: true, class: 'btn btn-sm btn-danger ml-auto' do
+                %i.icon-cross
+                Delete
 
-  - unless readonly
-    .d-flex
-      = link_to new_health_he_case_location_path(@case), class: 'btn btn-secondary ml-auto', data: { loads_in_pjax_modal: true } do
-        %span.icon-plus
-        Add Sleeping Location
+    - unless readonly
+      .d-flex
+        = link_to new_health_he_case_location_path(@case), class: 'btn btn-secondary ml-auto', data: { loads_in_pjax_modal: true } do
+          %span.icon-plus
+          Add Sleeping Location
