@@ -58,14 +58,21 @@ module Health::Tracing
       if names.first == names.last
         query = query.where(
           htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
-          or(htca_t[:first_name].lower.matches("#{names.first.downcase}%").
-          or(htca_t[:last_name].lower.matches("#{names.last.downcase}%")))
+          or(htca_t[:first_name].lower.matches("#{names.first.downcase}%")).
+          or(htca_t[:last_name].lower.matches("#{names.last.downcase}%")).
+          or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%"))
         )
       else
         query = query.where(
           htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
-          or(htca_t[:first_name].lower.matches("#{names.first.downcase}%").
-          and(htca_t[:last_name].lower.matches("#{names.last.downcase}%")))
+          or(
+            htca_t[:first_name].lower.matches("#{names.first.downcase}%").
+            and(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
+          ).
+          or(
+            htca_t[:aliases].lower.matches("%#{names.first.downcase}%").
+            or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%"))
+          )
         )
       end
       query
@@ -75,12 +82,15 @@ module Health::Tracing
       if names.first == names.last
         contact_source.where(
           htco_t[:first_name].lower.matches("#{names.first.downcase}%").
-          or(htco_t[:last_name].lower.matches("#{names.last.downcase}%"))
+          or(htco_t[:last_name].lower.matches("#{names.last.downcase}%")).
+          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%"))
         )
       else
         contact_source.where(
           htco_t[:first_name].lower.matches("#{names.first.downcase}%").
-          and(htco_t[:last_name].lower.matches("#{names.last.downcase}%"))
+          and(htco_t[:last_name].lower.matches("#{names.last.downcase}%")).
+          or(htco_t[:aliases].lower.matches("%#{names.first.downcase}%")).
+          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%"))
         )
       end
     end
