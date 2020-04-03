@@ -16,31 +16,32 @@ module Health::Tracing
     has_many :locations
 
     def symptomatic_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'No' => '',
+        'Yes' => 'Yes',
+      }
     end
 
     def referred_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'No' => '',
+        'Yes' => 'Yes',
+      }
     end
 
     def test_result_options
-      [
-        'Negative',
-        'Positive',
-      ]
+      {
+        'Unknown' => '',
+        'Negative' => 'Negative',
+        'Positive' => 'Positive',
+      }
     end
 
     def yes_no_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'No' => '',
+        'Yes' => 'Yes',
+      }
     end
 
     def name
