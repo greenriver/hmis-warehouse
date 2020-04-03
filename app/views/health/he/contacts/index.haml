@@ -23,9 +23,15 @@
           %th
       %tbody
         - @contacts.each do |contact|
-          %tr
+          %tr.table__detail-row-rollup.j-toggle-row-content
             %td= link_to contact.name, edit_health_he_case_contact_path(@case, contact)
             %td= contact.date_interviewed
-            %td
-              = link_to health_he_case_contact_path(@case, contact), method: :delete, class: 'btn btn-link btn-link--danger' do
-                %i.icon-cross
+            %td.text-right
+              %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+          %tr.collapse.no-hover
+            %td{colspan: 6}
+              = render contact, contact: contact, tracing_case: @case
+
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')

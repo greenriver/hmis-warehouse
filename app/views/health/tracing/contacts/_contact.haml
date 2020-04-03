@@ -1,0 +1,4 @@
+- @contact = contact
+- @case = tracing_case
+= simple_form_for @contact, url: health_he_case_contact_path(@case, @contact), wrapper: :readonly do |f|
+  = render 'health/he/contacts/form', f: f
