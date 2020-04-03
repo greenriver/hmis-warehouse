@@ -23,7 +23,4 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
       template.content_tag(:label, pre_label + check + label_and_hint, for: id)
     end
   end
-
-  def label
-  end
 end

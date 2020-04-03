@@ -15,7 +15,7 @@ class CollectionRadioButtonsInput < SimpleForm::Inputs::CollectionRadioButtonsIn
       existing_classes = label_html_options.try(:[], :class)
       existing_classes << 'd-block'
       existing_classes << 'readonly-value'
-      template.label_tag(nil, value, label_html_options.merge(class: existing_classes))
+      template.label_tag('p', value, label_html_options.merge(class: existing_classes))
     else
       super(wrapper_options)
     end

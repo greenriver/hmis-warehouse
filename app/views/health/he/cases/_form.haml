@@ -1,21 +1,33 @@
-.col-md-4
-  = f.input :client_id, as: :hidden
-  = f.input :investigator, label: 'Investigator Name'
-  = f.input :date_listed, as: :date_picker
-  = f.input :alert_in_epic, as: :radio_buttons, collection: @case.alert_options, label: 'Alert in EPIC?'
-  = f.input :complete, as: :radio_buttons, collection: @case.yes_no_options, label: "Investigation Complete?"
-  = f.input :date_interviewed, as: :date_picker
-  = f.input :infectious_start_date, as: :date_picker
-  = f.input :testing_date, as: :date_picker
-  = f.input :isolation_start_date, as: :date_picker
-  = f.input :first_name
-  = f.input :last_name
-  = f.input :aliases
-  = f.input :dob, as: :date_picker
-  = f.input :gender, as: :radio_buttons, collection: HUD.genders.invert
-  = f.input :race, as: :check_boxes, collection: HUD.races.invert
-  = f.input :ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert
-  = f.input :preferred_language
-  = f.input :occupation
-  = f.input :recent_incarceration
-  = f.input :notes, as: :text
+.col-md-8
+  .c-card.mb-4
+    .c-card__header.c-card__header--external
+      %h3 Investigation Information
+    .c-card__content
+      = f.input :client_id, as: :hidden
+      = f.input :investigator, label: 'Investigator Name'
+      = f.input :date_listed, as: :date_picker
+      = f.input :alert_in_epic, as: :boolean_button_group, collection: @case.alert_options, label: 'Alert in EPIC?'
+      = f.input :complete, as: :radio_buttons, collection: @case.yes_no_options, label: "Investigation Complete?"
+  .c-card.mb-4
+    .c-card__header.c-card__header--external
+      %h3 Period of Interest
+    .c-card__content
+      = f.input :date_interviewed, as: :date_picker
+      = f.input :infectious_start_date, as: :date_picker
+      = f.input :testing_date, as: :date_picker
+      = f.input :isolation_start_date, as: :date_picker
+  .c-card.mb-4
+    .c-card__header.c-card__header--external
+      %h3 Index Case
+    .c-card__content
+      = f.input :first_name
+      = f.input :last_name
+      = f.input :aliases
+      = f.input :dob, as: :date_picker
+      = f.input :gender, as: :radio_buttons, collection: HUD.genders.invert
+      = f.input :race, as: :check_boxes, collection: HUD.races.invert
+      = f.input :ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert
+      = f.input :preferred_language
+      = f.input :occupation
+      = f.input :recent_incarceration
+      = f.input :notes, as: :text

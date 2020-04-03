@@ -27,7 +27,4 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     end
     radio_group
   end
-
-  def label
-  end
 end
