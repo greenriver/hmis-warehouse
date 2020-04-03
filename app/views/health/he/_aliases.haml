@@ -4,5 +4,6 @@
       CASE
     %span.client__client-name-title
       = @case.name
+      = "(#{@case.aliases})" if @case.aliases.present?
   - if @case.client.present?
     = render 'clients/aliases'

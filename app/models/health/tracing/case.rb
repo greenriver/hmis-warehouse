@@ -37,6 +37,17 @@ module Health::Tracing
       "#{first_name} #{last_name}"
     end
 
+    def matching_contacts(first_name, last_name)
+      first_name = first_name.downcase
+      last_name = last_name.downcase
+      contacts.select do |c|
+        c.first_name.downcase.starts_with?(first_name) ||
+          c.last_name.downcase.starts_with?(last_name) ||
+          c.aliases.downcase.include?(first_name) ||
+          c.aliases.downcase.include?(last_name)
+      end
+    end
+
     def age date=Date.current
       GrdaWarehouse::Hud::Client.age(date: date.to_date, dob: dob)
     end
