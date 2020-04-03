@@ -11,13 +11,13 @@
             - if readonly
               %td= location.location
             - else
-              %td= link_to location.location, edit_health_he_case_location_path(@case, location)
+              %td= link_to location.location, edit_health_he_case_location_path(@case, location), data: { loads_in_pjax_modal: true }
             - unless readonly
               %td
                 = link_to health_he_case_location_path(@case, location), method: :delete, class: 'btn btn-link btn-link--danger' do
                   %i.icon-cross
 
   - unless readonly
-    = link_to new_health_he_case_location_path(@case) do
+    = link_to new_health_he_case_location_path(@case), data: { loads_in_pjax_modal: true } do
       %span.icon-plus
       Add Sleeping Location

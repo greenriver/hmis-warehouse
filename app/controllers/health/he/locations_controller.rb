@@ -7,6 +7,7 @@
 module Health::He
   class LocationsController < HealthController
     include ContactTracingController
+    include PjaxModalController
 
     before_action :set_case
     before_action :set_location, only: [:edit, :update, :destroy]
