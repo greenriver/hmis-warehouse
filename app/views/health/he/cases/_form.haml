@@ -1,3 +1,4 @@
+- radio_wrapper_class = if f.options[:wrapper] == :readonly then :readonly else :vertical_collection end
 .col-md-8
   .c-card.mb-4
     .c-card__header.c-card__header--external
@@ -7,7 +8,7 @@
       = f.input :investigator, label: 'Investigator Name'
       = f.input :date_listed, as: :date_picker
       = f.input :alert_in_epic, as: :boolean_button_group, collection: @case.alert_options, label: 'Alert in EPIC?'
-      = f.input :complete, as: :radio_buttons, collection: @case.yes_no_options, label: "Investigation Complete?"
+      = f.input :complete, as: :boolean_button_group, collection: @case.yes_no_options, label: "Investigation Complete?"
   .c-card.mb-4
     .c-card__header.c-card__header--external
       %h3 Period of Interest
@@ -24,9 +25,9 @@
       = f.input :last_name
       = f.input :aliases
       = f.input :dob, as: :date_picker
-      = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert)
-      = f.input :race, as: :check_boxes, collection: {'Unknown' => ''}.merge(HUD.races.invert)
-      = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert)
+      = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
+      = f.input :race, as: :check_boxes, collection: HUD.races.invert.except('none'), wrapper: radio_wrapper_class
+      = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert), wrapper: radio_wrapper_class
       = f.input :preferred_language
       .jLocations
         = render 'health/he/locations/table', readonly: f.options[:wrapper] == :readonly
