@@ -1,5 +1,5 @@
 - content_for :modal_title, 'Add Sleeping Location'
 
-= simple_form_for @location, url: health_he_case_locations_path do |f|
+= simple_form_for @location, url: health_he_case_locations_path, remote: request.xhr?, class: 'location-form' do |f|
   = render 'form', f: f
   = f.submit 'Add Location'

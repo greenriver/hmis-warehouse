@@ -13,24 +13,23 @@
       %span.icon-plus
       Add Contact
 
-.row
-  .col-sm
-    %table.table
-      %thead
-        %tr
-          %th Name
-          %th Date Interviewed
-          %th
-      %tbody
-        - @contacts.each do |contact|
-          %tr.table__detail-row-rollup.j-toggle-row-content
-            %td= link_to contact.name, edit_health_he_case_contact_path(@case, contact)
-            %td= contact.date_interviewed
-            %td.text-right
-              %i.icon-arrow-circled-right.table__toggle-icon.pr-4
-          %tr.collapse.no-hover
-            %td{colspan: 3}
-              = render contact, contact: contact, tracing_case: @case
+.c-card.c-card--flush
+  %table.table.table-hover.table-responsive-sm
+    %thead
+      %tr
+        %th Name
+        %th Date Interviewed
+        %th
+    %tbody
+      - @contacts.each do |contact|
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= link_to contact.name, edit_health_he_case_contact_path(@case, contact)
+          %td= contact.date_interviewed
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 3}
+            = render contact, contact: contact, tracing_case: @case
 
 - content_for :page_js do
   :javascript

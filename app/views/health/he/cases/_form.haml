@@ -28,7 +28,8 @@
       = f.input :race, as: :check_boxes, collection: {'Unknown' => ''}.merge(HUD.races.invert)
       = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert)
       = f.input :preferred_language
-      = render 'health/he/locations/table', f: f
+      .jLocations
+        = render 'health/he/locations/table', readonly: f.options[:wrapper] == :readonly
       = f.input :occupation
       = f.input :recent_incarceration
       = f.input :notes, as: :text

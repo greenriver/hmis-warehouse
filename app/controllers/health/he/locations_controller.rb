@@ -17,8 +17,8 @@ module Health::He
     end
 
     def create
-      @case.locations.create(location_params)
-      redirect_to edit_health_he_case_path(@case)
+      @location = @case.locations.create(location_params)
+      redirect_to edit_health_he_case_path(@case) unless request.xhr?
     end
 
     def edit
@@ -26,12 +26,16 @@ module Health::He
 
     def update
       @location.update(location_params)
-      redirect_to edit_health_he_case_path(@case)
+      redirect_to edit_health_he_case_path(@case) unless request.xhr?
     end
 
     def destroy
       @location.destroy
-      redirect_to edit_health_he_case_path(@case)
+      # respond_to do |format|
+      #   format.html do
+      redirect_to edit_health_he_case_path(@case) unless request.xhr?
+      #   end
+      # end
     end
 
     def location_params

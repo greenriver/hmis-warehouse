@@ -15,24 +15,26 @@ module Health::Tracing
     belongs_to :case
 
     def symptomatic_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'Unknown' => '',
+        'No' => 'No',
+        'Yes' => 'Yes',
+      }
     end
 
     def referred_options
-      [
-        'No',
-        'Yes',
-      ]
+      {
+        'No' => '',
+        'Yes' => 'Yes',
+      }
     end
 
     def test_result_options
-      [
-        'Negative',
-        'Positive',
-      ]
+      {
+        'Unknown' => '',
+        'Negative' => 'Negative',
+        'Positive' => 'Positive',
+      }
     end
 
     def name

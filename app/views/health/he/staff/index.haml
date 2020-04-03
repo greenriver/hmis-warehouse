@@ -13,26 +13,25 @@
       %span.icon-plus
       Add A Staff Member
 
-.row
-  .col-sm
-    %table.table
-      %thead
-        %tr
-          %th Name
-          %th Site
-          %th Date Interviewed
-          %th
-      %tbody
-        - @staffs.each do |staff|
-          %tr.table__detail-row-rollup.j-toggle-row-content
-            %td= link_to staff.name, edit_health_he_case_staff_path(@case, staff)
-            %td= staff.site_name
-            %td= staff.date_interviewed
-            %td.text-right
-              %i.icon-arrow-circled-right.table__toggle-icon.pr-4
-          %tr.collapse.no-hover
-            %td{colspan: 4}
-              = render staff, staff: staff, tracing_case: @case
+.c-card.c-card--flush
+  %table.table.table-hover.table-responsive-sm
+    %thead
+      %tr
+        %th Name
+        %th Site
+        %th Date Interviewed
+        %th
+    %tbody
+      - @staffs.each do |staff|
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= link_to staff.name, edit_health_he_case_staff_path(@case, staff)
+          %td= staff.site_name
+          %td= staff.date_interviewed
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 4}
+            = render staff, staff: staff, tracing_case: @case
 
 - content_for :page_js do
   :javascript

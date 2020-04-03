@@ -13,26 +13,25 @@
       %span.icon-plus
       Add A Site Leader
 
-.row
-  .col-sm
-    %table.table
-      %thead
-        %tr
-          %th Site Name
-          %th Site Leader
-          %th Contacted?
-          %th
-      %tbody
-        - @managers.each do |manager|
-          %tr.table__detail-row-rollup.j-toggle-row-content
-            %td= link_to manager.site_name, edit_health_he_case_site_manager_path(@case, manager)
-            %td= manager.site_leader_name
-            %td= manager.contacted_on
-            %td.text-right
-              %i.icon-arrow-circled-right.table__toggle-icon.pr-4
-          %tr.collapse.no-hover
-            %td{colspan: 4}
-              = render manager, manager: manager, tracing_case: @case
+.c-card.c-card--flush
+  %table.table.table-hover.table-responsive-sm
+    %thead
+      %tr
+        %th Site Name
+        %th Site Leader
+        %th Contacted?
+        %th
+    %tbody
+      - @managers.each do |manager|
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= link_to manager.site_name, edit_health_he_case_site_manager_path(@case, manager)
+          %td= manager.site_leader_name
+          %td= manager.contacted_on
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 4}
+            = render manager, manager: manager, tracing_case: @case
 
 - content_for :page_js do
   :javascript
