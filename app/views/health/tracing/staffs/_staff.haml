@@ -2,3 +2,10 @@
 - @case = tracing_case
 = simple_form_for @staff, url: health_he_case_staff_path(@case, @staff), wrapper: :readonly do |f|
   = render 'health/he/staff/form', f: f
+
+.row
+  .col-md-8
+    .text-right.mr-2
+      = link_to health_he_case_staff_path(@case, @staff), method: :delete, class: 'btn btn-sm btn-danger' do
+        %i.icon-cross
+          Delete
