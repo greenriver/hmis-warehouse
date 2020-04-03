@@ -33,6 +33,7 @@
           %tr.collapse.no-hover
             %td{colspan: 4}
               = render manager, manager: manager, tracing_case: @case
+
 - content_for :page_js do
   :javascript
     new App.TableWithToggleRows('.j-toggle-row-content')
