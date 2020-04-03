@@ -22,7 +22,7 @@ module Health::Tracing
       {
         'Blank' => '',
         'Active' => 'Active',
-        'Removed' => 'Active',
+        'Removed' => 'Removed',
       }
     end
 
