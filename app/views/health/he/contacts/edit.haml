@@ -1,7 +1,7 @@
 - content_for :title, 'Edit Contact'
-
 = render 'health/he/aliases'
 = render 'health/he/tab_navigation', active: :contacts
+
 %h1= content_for :title
 
 = simple_form_for @contact, url: health_he_case_contact_path(@case, @contact) do |f|

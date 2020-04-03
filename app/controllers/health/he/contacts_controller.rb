@@ -25,6 +25,8 @@ module Health::He
     end
 
     def destroy
+      @contact.destroy
+      redirect_to action: :index
     end
 
     def update
@@ -41,6 +43,29 @@ module Health::He
         :date_interviewed,
         :first_name,
         :last_name,
+        :aliases,
+        :phone_number,
+        :address,
+        :dob,
+        :estimated_age,
+        :gender,
+        :ethnicity,
+        :preferred_language,
+        :relationship_to_index_case,
+        :location_of_exposure,
+        :nature_of_exposure,
+        :location_of_contact,
+        :sleeping_location,
+        :symtomatic,
+        :symptom_onset_date,
+        :referred_for_testing,
+        :test_result,
+        :isolated,
+        :isolation_location,
+        :quarantine,
+        :quarantine_location,
+        :notes,
+        race: [],
       )
     end
   end
