@@ -7,13 +7,40 @@
 module Health::He
   class LocationsController < HealthController
     include ContactTracingController
-    def create
+
+    before_action :set_case
+    before_action :set_location, only: [:edit, :update, :destroy]
+
+    def new
+      @location = @case.locations.build
     end
 
-    def destroy
+    def create
+      @case.locations.create(location_params)
+      redirect_to edit_health_he_case_path(@case)
+    end
+
+    def edit
     end
 
     def update
+      @location.update(location_params)
+      redirect_to edit_health_he_case_path(@case)
+    end
+
+    def destroy
+      @location.destroy
+      redirect_to edit_health_he_case_path(@case)
+    end
+
+    def location_params
+      params.require(:health_tracing_location).permit(
+        :location,
+      )
+    end
+
+    def set_location
+      @location = @case.locations.find(params[:id].to_i)
     end
   end
 end

@@ -16,6 +16,7 @@
   = f.input :race, as: :check_boxes, collection: HUD.races.invert
   = f.input :ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert
   = f.input :preferred_language
+  = render 'health/he/locations/table', f: f
   = f.input :occupation
   = f.input :recent_incarceration
   = f.input :notes, as: :text

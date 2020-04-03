@@ -1,0 +1,23 @@
+- readonly = f.options[:wrapper] == :readonly
+.form-group
+  .string
+    Sleeping Locations
+  .controls
+    %table.table-sm
+      %thead
+      %tbody
+        - @case.locations.each do |location|
+          %tr
+            - if readonly
+              %td= location.location
+            - else
+              %td= link_to location.location, edit_health_he_case_location_path(@case, location)
+            - unless readonly
+              %td
+                = link_to health_he_case_location_path(@case, location), method: :delete, class: 'btn btn-link btn-link--danger' do
+                  %i.icon-cross
+
+  - unless readonly
+    = link_to new_health_he_case_location_path(@case) do
+      %span.icon-plus
+      Add Sleeping Location
