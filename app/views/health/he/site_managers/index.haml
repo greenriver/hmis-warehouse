@@ -1,7 +1,7 @@
 = content_for :crumbs do
   = link_to health_he_case_path(id: @case) do
     = "« #{@case.first_name} #{@case.last_name}"
-- content_for :title, "Site Leaders"
+- content_for :title, 'Site Leaders'
 
 = render 'health/he/aliases'
 = render 'health/he/tab_navigation', active: :site_managers

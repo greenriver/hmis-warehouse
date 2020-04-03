@@ -14,6 +14,7 @@
         .o-page__search
           = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
   - if params[:q].present?
+    = render 'new_case'
     - @results.each do |item|
       = render 'search_result', item: item
     = render 'application/js_link', base_path: 'clients/'

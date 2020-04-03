@@ -1,4 +1,7 @@
-- content_for :title, "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Contact Tracing"
+- content_for :title, 'New Contact'
+
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :contacts
 %h1= content_for :title
 
 = simple_form_for @contact, url: health_he_case_contacts_path do |f|
