@@ -12,7 +12,7 @@ module Health::Tracing
     def results
       return [] unless query.present?
 
-      existing_cases.preload(:contacts, client: :source_clients).limit(50).to_a + clients.limit(50).to_a
+      existing_cases.preload(:contacts, client: :source_clients).limit(50).to_a.uniq + clients.limit(50).to_a
     end
 
     def names
