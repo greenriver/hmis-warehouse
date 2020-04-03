@@ -1,3 +1,4 @@
+- radio_wrapper_class = if f.options[:wrapper] == :readonly then :readonly else :vertical_collection end
 .col-md-8
   .c-card.mb-4
     .c-card__header.c-card__header--external
@@ -17,9 +18,9 @@
       = f.input :address
       = f.input :dob, as: :date_picker
       = f.input :estimated_age
-      = f.input :gender, as: :radio_buttons, collection: HUD.genders.invert
-      = f.input :race, as: :check_boxes, collection: HUD.races.invert
-      = f.input :ethnicity, as: :radio_buttons, collection: HUD.ethnicities.invert
+      = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
+      = f.input :race, as: :check_boxes, collection: HUD.races.invert.except('none'), wrapper: radio_wrapper_class
+      = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert), wrapper: radio_wrapper_class
       = f.input :preferred_language
       = f.input :relationship_to_index_case
       = f.input :location_of_exposure
