@@ -25,5 +25,13 @@ module ContactTracingController
       @health_emergency_contact_tracing ||= GrdaWarehouse::Config.get(:health_emergency_tracing)
     end
     helper_method :health_emergency_contact_tracing
+
+    private def set_case
+      @case = Health::Tracing::Case.find(params[:case_id].to_i)
+    end
+
+    private def set_client
+      @client = @case.client
+    end
   end
 end

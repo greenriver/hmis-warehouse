@@ -1,4 +1,4 @@
-- contacts = index_case.contacts.select{|c| m.first_name.starts_with?(@result.names.first) || m.last_name.starts_with?(@result.names.last) }
+- contacts = index_case.contacts.select{|c| c.first_name.downcase.starts_with?(@searcher.names.first.downcase) || c.last_name.downcase.starts_with?(@searcher.names.last.downcase) }
 - if contacts.any?
   - content_for "client_card_contacts__#{index_case.id}" do
     .col-md-6.client__contacts.mb-2

@@ -7,6 +7,8 @@
 module Health::He
   class CasesController < HealthController
     include ContactTracingController
+    before_action :set_case, only: [:show, :edit, :update, :destroy]
+    before_action :set_client, only: [:show, :edit, :update, :destroy]
 
     def new
       client = GrdaWarehouse::Hud::Client.viewable_by(current_user).find_by(id: params[:client_id].to_i)
@@ -27,11 +29,9 @@ module Health::He
     end
 
     def show
-      @case = Health::Tracing::Case.find(params[:id].to_i)
     end
 
     def edit
-      @case = Health::Tracing::Case.find(params[:id].to_i)
     end
 
     def create
@@ -43,18 +43,20 @@ module Health::He
     end
 
     def destroy
-      @case = Health::Tracing::Case.find(params[:id].to_i)
       @case.destroy
       redirect_to health_he_search_path
     end
 
     def update
-      @case = Health::Tracing::Case.find(params[:id].to_i)
       case_data = {
         health_emergency: health_emergency_contact_tracing,
       }
       Health::Tracing::Case.update(case_params.merge(case_data))
       redirect_to edit_health_he_case_path(@case)
+    end
+
+    private def set_case
+      @case = Health::Tracing::Case.find(params[:id].to_i)
     end
 
     def case_params

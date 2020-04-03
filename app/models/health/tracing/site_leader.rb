@@ -13,6 +13,10 @@ module Health::Tracing
     has_paper_trail
 
     belongs_to :case
+
+    def name
+      "#{first_name} #{last_name}"
+    end
   end
 end
 

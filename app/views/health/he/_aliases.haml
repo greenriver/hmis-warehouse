@@ -1,7 +1,8 @@
-.clients__client-additional-names
-  .client__client-name
-    .client-aka.ml-9
-      content_tag(:em, sn, class: "ds-#{id}")
-      = index_case.name
-- if index_case.client.present?
-  = render 'clients/search/aliases', client: index_case.client
+%ul.client__aliases.d-flex.list-unstyled.mb-0
+  %li.client__client-name
+    %span.ds-case
+      CASE
+    %span.client__client-name-title
+      = @case.name
+  - if @case.client.present?
+    = render 'clients/aliases'

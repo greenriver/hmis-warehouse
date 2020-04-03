@@ -54,17 +54,18 @@ module Health::Tracing
 
     def existing_cases
       query = case_source.
-        where(health_emergency: GrdaWarehouse::Config.get(:health_emergency_tracing)).
-        or(case_source.where(id: case_contacts.select(:case_id)))
+        where(health_emergency: GrdaWarehouse::Config.get(:health_emergency_tracing))
       if names.first == names.last
         query = query.where(
-          htca_t[:first_name].lower.matches("#{names.first.downcase}%").
-          or(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
+          htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
+          or(htca_t[:first_name].lower.matches("#{names.first.downcase}%").
+          or(htca_t[:last_name].lower.matches("#{names.last.downcase}%")))
         )
       else
         query = query.where(
-          htca_t[:first_name].lower.matches("#{names.first.downcase}%").
-          and(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
+          htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
+          or(htca_t[:first_name].lower.matches("#{names.first.downcase}%").
+          and(htca_t[:last_name].lower.matches("#{names.last.downcase}%")))
         )
       end
       query

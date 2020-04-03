@@ -8,6 +8,7 @@ module Health::He
   class SiteManagersController < HealthController
     include ContactTracingController
     before_action :set_case
+    before_action :set_client
     before_action :set_manager, only: [:edit, :update, :destroy]
 
     def index
@@ -44,11 +45,7 @@ module Health::He
       )
     end
 
-    def set_case
-      @case = Health::Tracing::Case.find(params[:case_id])
-    end
-
-    def set_manager
+    private def set_manager
       @manager = @case.site_leaders.find(params[:id])
     end
   end

@@ -2,7 +2,8 @@
   = link_to health_he_case_path(@case) do
     = "« #{@case.first_name} #{@case.last_name}"
 - content_for :title, "Staff Members"
-
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :staff
 .row
   .col-sm-8
     %h1= content_for :title

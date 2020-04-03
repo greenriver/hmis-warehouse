@@ -647,7 +647,7 @@ Rails.application.routes.draw do
       get :search
       resources :cases do
         resources :locations, only: [:create, :destroy, :update]
-        resources :contacts, only: [:create, :destroy, :update]
+        resources :contacts
         resources :site_managers
         resources :staff
       end

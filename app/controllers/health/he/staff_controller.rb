@@ -8,6 +8,7 @@ module Health::He
   class StaffController < HealthController
     include ContactTracingController
     before_action :set_case
+    before_action :set_client
     before_action :set_staff, only: [:edit, :update, :destroy]
 
     def index
@@ -50,11 +51,7 @@ module Health::He
       )
     end
 
-    def set_case
-      @case = Health::Tracing::Case.find(params[:case_id])
-    end
-
-    def set_staff
+    private def set_staff
       @staff = @case.staffs.find(params[:id])
     end
   end
