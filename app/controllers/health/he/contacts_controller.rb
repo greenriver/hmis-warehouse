@@ -12,7 +12,7 @@ module Health::He
     before_action :set_contact, only: [:edit, :update, :destroy]
 
     def new
-      @contact = @case.contacts.build
+      @contact = @case.contacts.build(investigator: @case.investigator)
     end
 
     def index
@@ -40,7 +40,9 @@ module Health::He
 
     def contact_params
       params.require(:health_tracing_contact).permit(
+        :investigator,
         :date_interviewed,
+        :alert_in_epic,
         :first_name,
         :last_name,
         :aliases,

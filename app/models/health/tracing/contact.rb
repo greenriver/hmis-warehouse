@@ -15,6 +15,14 @@ module Health::Tracing
     belongs_to :case
     has_many :locations
 
+    def alert_options
+      {
+        'Blank' => '',
+        'Active' => 'Active',
+        'Removed' => 'Removed',
+      }
+    end
+
     def symptomatic_options
       {
         'No' => '',

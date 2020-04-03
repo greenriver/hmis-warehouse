@@ -5,7 +5,9 @@
       .c-card__header.c-card__header--external
         %h3 Investigation Information
       .c-card__content
+        = f.input :investigator, label: 'Investigator Name'
         = f.input :date_interviewed, as: :date_picker
+        = f.input :alert_in_epic, as: :boolean_button_group, collection: @contact.alert_options, label: 'Alert in EPIC?'
 .row
   .col-md-8
     .c-card.mb-4
