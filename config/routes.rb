@@ -643,6 +643,15 @@ Rails.application.routes.draw do
       end
     end
     resources :my_patients, only: [:index]
+    namespace :he do
+      get :search
+      resources :cases do
+        resources :locations, except: [:index]
+        resources :contacts
+        resources :site_managers
+        resources :staff
+      end
+    end
   end
 
   namespace :api do
@@ -747,6 +756,7 @@ Rails.application.routes.draw do
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
+    resources :talentlms
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end

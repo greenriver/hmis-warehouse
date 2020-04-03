@@ -1,0 +1,10 @@
+- content_for :title, 'Edit Staff Member'
+
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :staff
+%h1= content_for :title
+
+= simple_form_for @staff, url: health_he_case_staff_path(@case, @staff) do |f|
+  = render 'form', f: f
+
+  = f.submit "Update Staff Member"

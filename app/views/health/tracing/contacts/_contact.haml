@@ -1,0 +1,11 @@
+- @contact = contact
+- @case = tracing_case
+= simple_form_for @contact, url: health_he_case_contact_path(@case, @contact), wrapper: :readonly do |f|
+  = render 'health/he/contacts/form', f: f
+
+.row
+  .col-md-8
+    .text-right.mr-2
+      = link_to health_he_case_contact_path(@case, @contact), method: :delete, class: 'btn btn-sm btn-danger', data: {confirm: 'Are you sure you want to delete this contact?'} do
+        %i.icon-cross
+          Delete

@@ -1,0 +1,14 @@
+- content_for :title, "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Contact Tracing Case"
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :case
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4
+    .ml-auto
+      = link_to edit_health_he_case_path(@case), class: 'btn btn-primary' do
+        %i.icon.icon-pencil
+        Edit
+= simple_form_for @case, url: health_he_case_path(@case), wrapper: :readonly do |f|
+  = render 'form', f: f
+

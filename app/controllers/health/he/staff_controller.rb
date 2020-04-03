@@ -1,0 +1,58 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
+module Health::He
+  class StaffController < HealthController
+    include ContactTracingController
+    before_action :set_case
+    before_action :set_client
+    before_action :set_staff, only: [:edit, :update, :destroy]
+
+    def index
+      @staffs = @case.staffs
+    end
+
+    def new
+      @staff = @case.staffs.build
+    end
+
+    def create
+      @case.staffs.create(staff_params)
+      redirect_to action: :index
+    end
+
+    def edit
+    end
+
+    def update
+      @staff.update(staff_params)
+      redirect_to action: :index
+    end
+
+    def destroy
+      @staff.destroy
+      redirect_to action: :index
+    end
+
+    def staff_params
+      params.require(:health_tracing_staff).permit(
+        :date_interviewed,
+        :first_name,
+        :last_name,
+        :site_name,
+        :nature_of_exposure,
+        :symptomatic,
+        :referred_for_testing,
+        :test_result,
+        :notes,
+      )
+    end
+
+    private def set_staff
+      @staff = @case.staffs.find(params[:id])
+    end
+  end
+end

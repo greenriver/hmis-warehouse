@@ -1,0 +1,50 @@
+- id = item.id
+- if item.is_a?(GrdaWarehouse::Hud::Client)
+  - link = new_health_he_case_path(client_id: item.id)
+- elsif item.is_a?(Health::Tracing::Case)
+  - link = health_he_case_path(item)
+.clients__client-card.clients__client.c-card.c-card--linked{data: {id: id, href: link }, class: 'js-client'}
+  .c-card__content.p-0
+    .c-card__content-container
+      .row.px-4
+        .col-sm-12.col-md-5.col-lg-4
+          .c-card__content-block.px-0
+            - if item.is_a?(GrdaWarehouse::Hud::Client)
+              = render 'clients/search/aliases', client: item
+            - if item.is_a?(Health::Tracing::Case)
+              = render 'search_aliases', index_case: item
+        .col-sm-12.col-md-7.col-lg-8.c-card__content-block
+          .row
+            - if item.is_a?(GrdaWarehouse::Hud::Client)
+              = render 'clients/search/demographics', client: item
+            - elsif item.is_a?(Health::Tracing::Case)
+              = render 'demographics', index_case: item
+            - if content_for? "client_card_demographics__#{id}"
+              .col-md-12.col-lg-6.mb-4
+                = yield "client_card_demographics__#{id}"
+            - if item.is_a?(Health::Tracing::Case)
+              = render 'contacts', index_case: item
+              - if content_for? "client_card_contacts__#{id}"
+                .col-md-12.col-lg-6
+                  %h3 Contacts
+                  = yield "client_card_contacts__#{id}"
+    -# Card Footer
+    -# Include call to actions
+    .c-card__footer
+      - if item.is_a?(GrdaWarehouse::Hud::Client)
+        .c-card__footer-content.c-card__footer-content--left
+          = link_to client_path(item) do
+            HMIS Client
+        .c-card__footer-content.c-card__footer-content--right
+          = link_to new_health_he_case_path(client_id: item.id), class: 'btn btn-primary' do
+            %i.icon.icon-plus
+            Add Case
+      - elsif item.is_a?(Health::Tracing::Case)
+        - if item.client
+          .c-card__footer-content.c-card__footer-content--left
+            = link_to client_path(item.client) do
+              HMIS Client
+        .c-card__footer-content.c-card__footer-content--right
+          = link_to edit_health_he_case_path(item), class: 'btn btn-primary' do
+            %i.icon.icon-pencil
+            Update Case

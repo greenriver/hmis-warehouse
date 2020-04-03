@@ -1,0 +1,10 @@
+- content_for :title, 'Edit Site Leader'
+
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :site_managers
+%h1= content_for :title
+
+= simple_form_for @manager, url: health_he_case_site_manager_path(@case, @manager) do |f|
+  = render 'form', f: f
+
+  = f.submit "Update Site Leader"

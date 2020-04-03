@@ -9,13 +9,17 @@ class CollectionCheckBoxesInput < SimpleForm::Inputs::CollectionCheckBoxesInput
     if @builder.options[:wrapper] == :readonly
       label_method = detect_collection_methods.first
       value_method = detect_collection_methods.last
-      selected_value = object.send(attribute_name)
-      selected_object = collection.select { |m| m.send(value_method).to_s == selected_value.to_s }
-      value = selected_object.map { |m| m.send(label_method) }.first
+      selected_value = object.send(attribute_name) || []
+      selected_object = collection.select { |m| m.send(value_method).to_s.in?(selected_value) }
+      value = selected_object.map { |m| m.send(label_method) }.join(', ')
       existing_classes = label_html_options.try(:[], :class)
       existing_classes << 'd-block'
       existing_classes << 'readonly-value'
-      template.label_tag(nil, value, label_html_options.merge(class: existing_classes))
+      if value.present?
+        template.label_tag('p', value, label_html_options.merge(class: existing_classes))
+      else
+        template.content_tag(:em, 'Blank', label_html_options)
+      end
     else
       super(wrapper_options)
     end
