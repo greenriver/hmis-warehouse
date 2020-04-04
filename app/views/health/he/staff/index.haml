@@ -19,6 +19,7 @@
       %tr
         %th Name
         %th Site
+        %th Notified?
         %th Date Interviewed
         %th
     %tbody
@@ -26,6 +27,7 @@
         %tr.table__detail-row-rollup.j-toggle-row-content
           %td= link_to staff.name.presence || 'Unknown', edit_health_he_case_staff_path(@case, staff)
           %td= staff.site_name
+          %td= staff.notified.presence || 'No'
           %td= staff.date_interviewed
           %td.text-right
             %i.icon-arrow-circled-right.table__toggle-icon.pr-4
