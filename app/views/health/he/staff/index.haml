@@ -24,7 +24,7 @@
     %tbody
       - @staffs.each do |staff|
         %tr.table__detail-row-rollup.j-toggle-row-content
-          %td= link_to staff.name, edit_health_he_case_staff_path(@case, staff)
+          %td= link_to staff.name.presence || 'Unknown', edit_health_he_case_staff_path(@case, staff)
           %td= staff.site_name
           %td= staff.date_interviewed
           %td.text-right

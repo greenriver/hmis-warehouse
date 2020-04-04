@@ -19,6 +19,7 @@
         = f.input :aliases
         = f.input :phone_number
         = f.input :address
+        = f.input :notified, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: 'Contact Notified?'
         = f.input :dob, as: :date_picker
         = f.input :estimated_age
         = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
@@ -27,15 +28,15 @@
         = f.input :preferred_language
         = f.input :relationship_to_index_case
         = f.input :location_of_exposure
-        = f.input :nature_of_exposure
-        = f.input :location_of_contact
+        = f.input :nature_of_exposure, hint: 'Frequency, duration, timing'
+        = f.input :location_of_contact, label: 'Location where contact may be found'
         = f.input :sleeping_location
         = f.input :symptomatic, as: :boolean_button_group, collection: @contact.symptomatic_options, include_blank: true
         = f.input :symptom_onset_date, as: :date_picker
         = f.input :referred_for_testing, as: :boolean_button_group, collection: @contact.referred_options, include_blank: true
         = f.input :test_result, as: :boolean_button_group, collection: @contact.test_result_options, include_blank: true
-        = f.input :isolated, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true
+        = f.input :isolated, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: 'Went to Isolation?'
         = f.input :isolation_location
-        = f.input :quarantine, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true
+        = f.input :quarantine, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: 'Went to Quarantine?'
         = f.input :quarantine_location
         = f.input :notes, as: :text

@@ -1,7 +1,7 @@
 = content_for :crumbs do
   = link_to health_he_case_path(id: @case) do
     = "« #{@case.first_name} #{@case.last_name}"
-- content_for :title, 'Site Leaders'
+- content_for :title, 'Site Manager Notifications'
 
 = render 'health/he/aliases'
 = render 'health/he/tab_navigation', active: :site_managers
@@ -11,14 +11,14 @@
   .col-sm-4.text-right.mb-4
     = link_to new_health_he_case_site_manager_path(@case), class: 'btn btn-primary' do
       %span.icon-plus
-      Add A Site Leader
+      Add A Site Manager Notification
 
 .c-card.c-card--flush
   %table.table.table-hover.table-responsive-sm
     %thead
       %tr
         %th Site Name
-        %th Site Leader
+        %th Site Manager
         %th Contacted?
         %th
     %tbody

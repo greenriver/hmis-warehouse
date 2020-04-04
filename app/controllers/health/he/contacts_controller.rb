@@ -58,6 +58,7 @@ module Health::He
         :nature_of_exposure,
         :location_of_contact,
         :sleeping_location,
+        :notified,
         :symptomatic,
         :symptom_onset_date,
         :referred_for_testing,

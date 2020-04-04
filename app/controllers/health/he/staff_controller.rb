@@ -43,6 +43,7 @@ module Health::He
         :first_name,
         :last_name,
         :site_name,
+        :notified,
         :nature_of_exposure,
         :symptomatic,
         :referred_for_testing,

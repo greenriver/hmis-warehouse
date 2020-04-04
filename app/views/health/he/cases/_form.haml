@@ -15,7 +15,8 @@
         %h3 Period of Interest
       .c-card__content
         = f.input :date_interviewed, as: :date_picker
-        = f.input :infectious_start_date, as: :date_picker
+        = f.input :infectious_start_date, as: :date_picker, hint: 'Day 1 Infectious Period = Date of Sx start minus 2 days'
+        = f.input :day_two, as: :date_picker, label: 'Infectious Start Date + 14 days'
         = f.input :testing_date, as: :date_picker
         = f.input :isolation_start_date, as: :date_picker
     .c-card.mb-4
@@ -24,6 +25,7 @@
       .c-card__content
         = f.input :first_name
         = f.input :last_name
+        = f.input :phone
         = f.input :aliases
         = f.input :dob, as: :date_picker
         = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class

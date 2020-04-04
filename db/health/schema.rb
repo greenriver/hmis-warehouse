@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_03_203318) do
+ActiveRecord::Schema.define(version: 2020_04_04_144432) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -530,6 +530,7 @@ ActiveRecord::Schema.define(version: 2020_04_03_203318) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -573,6 +574,7 @@ ActiveRecord::Schema.define(version: 2020_04_03_203318) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1277,6 +1279,9 @@ ActiveRecord::Schema.define(version: 2020_04_03_203318) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "day_two"
+    t.string "phone"
+    t.index ["aliases"], name: "index_tracing_cases_on_aliases"
     t.index ["client_id"], name: "index_tracing_cases_on_client_id"
     t.index ["first_name", "last_name"], name: "index_tracing_cases_on_first_name_and_last_name"
   end
@@ -1314,6 +1319,8 @@ ActiveRecord::Schema.define(version: 2020_04_03_203318) do
     t.datetime "updated_at", null: false
     t.string "investigator"
     t.string "alert_in_epic"
+    t.string "notified"
+    t.index ["aliases"], name: "index_tracing_contacts_on_aliases"
     t.index ["case_id"], name: "index_tracing_contacts_on_case_id"
     t.index ["first_name", "last_name"], name: "index_tracing_contacts_on_first_name_and_last_name"
   end
@@ -1352,6 +1359,7 @@ ActiveRecord::Schema.define(version: 2020_04_03_203318) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "notified"
     t.index ["case_id"], name: "index_tracing_staffs_on_case_id"
   end
 

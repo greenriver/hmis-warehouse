@@ -23,6 +23,10 @@ module Health::Tracing
     end
 
     def referred_options
+      yes_no_options
+    end
+
+    def yes_no_options
       {
         'No' => '',
         'Yes' => 'Yes',
