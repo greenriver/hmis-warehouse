@@ -18,12 +18,14 @@
     %thead
       %tr
         %th Name
+        %th Contact Notified?
         %th Date Interviewed
         %th
     %tbody
       - @contacts.each do |contact|
         %tr.table__detail-row-rollup.j-toggle-row-content
           %td= link_to contact.name.presence || 'Unknown', edit_health_he_case_contact_path(@case, contact)
+          %td= contact.notified.presence || 'No'
           %td= contact.date_interviewed
           %td.text-right
             %i.icon-arrow-circled-right.table__toggle-icon.pr-4
