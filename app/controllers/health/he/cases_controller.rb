@@ -52,7 +52,7 @@ module Health::He
       case_data = {
         health_emergency: health_emergency_contact_tracing,
       }
-      Health::Tracing::Case.update(case_params.merge(case_data))
+      @case.update(case_params.merge(case_data))
       redirect_to health_he_case_path(@case)
     end
 
