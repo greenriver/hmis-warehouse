@@ -15,8 +15,8 @@
         %h3 Period of Interest
       .c-card__content
         = f.input :date_interviewed, as: :date_picker
-        = f.input :infectious_start_date, as: :date_picker, hint: 'Day 1 Infectious Period = Date of Sx start minus 2 days'
-        = f.input :day_two, as: :date_picker, label: 'Infectious Start Date + 14 days'
+        = f.input :infectious_start_date, as: :date_picker, hint: 'Day 1 Infectious Period = Date of Sx start minus 2 days', input_html: {class: 'jInfectiousStartDate'}
+        = f.input :day_two, as: :date_picker, label: 'Infectious Start Date + 14 days', input_html: {class: 'jDayTwo'}
         = f.input :testing_date, as: :date_picker
         = f.input :isolation_start_date, as: :date_picker
     .c-card.mb-4
@@ -37,3 +37,5 @@
         = f.input :occupation
         = f.input :recent_incarceration
         = f.input :notes, as: :text
+
+= render 'health/he/period_of_interest_js'

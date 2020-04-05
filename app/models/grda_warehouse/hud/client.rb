@@ -2505,6 +2505,10 @@ module GrdaWarehouse::Hud
       # move any health files (these should really be attached to patients)
       Health::HealthFile.where(client_id: previous_id).
         update_all(client_id: new_id)
+
+      # move any contact tracings
+      Health::Tracing::Case.where(client_id: previous_id).
+        update_all(client_id: new_id)
     end
 
     def force_full_service_history_rebuild
