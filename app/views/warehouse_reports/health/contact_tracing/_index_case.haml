@@ -1,0 +1,67 @@
+.card
+  .card-body
+    .card-header
+      = index_case.name
+      = "(#{index_case.aliases})" unless index_case.aliases.blank?
+    .card-body
+      %h3 Index Case
+      %table.table
+        %thead
+          %tr
+            %th Investigator
+            %th EPIC Alert Status
+            %th age
+            %th Birty Year
+          %tbody
+            %tr
+              %td= index_case.investigator
+              %td= index_case.alert_in_epic
+              %td= index_case.age
+              %td= index_case.dob.year
+      .row
+        .col
+          %h3 Contacts
+          %table.table
+            %thead
+              %tr
+                %th Investigator
+                %th Epic Alert Status
+                %th Name
+                %th Contact Notified
+            %tbody
+              - @by_case[:contacts][index_case.id].each do |contact|
+                %tr
+                  %td= contact.investigator
+                  %td= contact.alert_in_epic
+                  %td= contact.name
+                  %td= contact.notified
+      .row
+        .col
+          %h3 Site Managers
+          %table.table
+            %thead
+              %tr
+                %th Site
+                %th Leader Name
+                %th Notification Date
+            %tbody
+              - @by_case[:managers][index_case.id].each do |manager|
+                %tr
+                  %td= manager.site_name
+                  %td= manager.site_leader_name
+                  %td= manager.contacted_on
+      .row
+        .col
+          %h3 Staff
+          %table.table
+            %thead
+              %tr
+                %th Name
+                %th Site
+                %th Notified?
+            %tbody
+              - @by_case[:staff][index_case.id].each do |staff|
+                %tr
+                  %td= staff.name
+                  %td= staff.site_name
+                  %td= staff.notified

@@ -18,6 +18,14 @@ module Health::Tracing
     has_many :site_leaders
     has_many :staffs
 
+    scope :ongoing, -> () do
+      where.not(complete: 'Yes')
+    end
+
+    scope :completed, -> () do
+      where(complete: 'Yes')
+    end
+
     def alert_options
       {
         'Blank' => '',

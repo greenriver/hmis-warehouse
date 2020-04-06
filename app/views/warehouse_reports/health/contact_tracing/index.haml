@@ -1,0 +1,16 @@
+%ul.mb-2.nav.nav-tabs
+  %li.nav-item
+    %a.nav-link.active{href: '#ongoing', role: "presentation", data: {toggle: :tab}, aria: {controls:"ongoing", selected:"true"}}
+      Ongoing Investigations
+  %li.nav-item
+    %a.nav-link{href: '#completed', role: "presentation", data: {toggle: :tab}, aria: {controls:"completed", selected:"false"}}
+      Completed Investigations
+
+.tab-content
+  .tab-pane.show.active.fade#ongoing{role: 'tabpanel', aria: {labelledby: 'ongoing'}}
+    - @ongoing.each do |index_case|
+      = render 'index_case', index_case: index_case
+
+  .tab-pane.show.fade#completed{role: 'tabpanel', aria: {labelledby: 'completed'}}
+    - @completed.each do |index_case|
+      = render 'index_case', index_case: index_case

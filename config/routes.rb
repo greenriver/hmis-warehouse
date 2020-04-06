@@ -379,6 +379,7 @@ Rails.application.routes.draw do
         end
       end
       resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
+      resources :contact_tracing, only: [:index]
     end
   end
 
