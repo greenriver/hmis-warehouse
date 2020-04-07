@@ -18,11 +18,11 @@ module GrdaWarehouse::Tasks
       # Fail gracefully if there's no ETO API
       return unless GrdaWarehouse::Config.get(:eto_api_available)
 
-      @notifier.ping('Updating clients from HMIS Forms...') if @send_notifications
+      # @notifier.ping('Updating clients from HMIS Forms...') if @send_notifications
       GrdaWarehouse::HmisForm.set_pathways_results
       update_rrh_assessment_data()
       update_pathways_assessment_data()
-      @notifier.ping('Updated clients from HMIS Forms') if @send_notifications
+      # @notifier.ping('Updated clients from HMIS Forms') if @send_notifications
     end
 
     def update_rrh_assessment_data

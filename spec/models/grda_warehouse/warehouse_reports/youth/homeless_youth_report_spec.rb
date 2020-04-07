@@ -50,11 +50,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     # A1
 
     it 'counts homeless street outreach contacts' do
-      expect(report.one_a.count).to eq 2
+      expect(report.one_a.count).to eq 1
     end
 
     it 'counts at risk street outreach contacts' do
-      expect(report.one_b.count).to eq 2
+      expect(report.one_b.count).to eq 1
     end
 
     # A2
