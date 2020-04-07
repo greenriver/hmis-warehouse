@@ -12,6 +12,7 @@ module WarehouseReports::Health
     before_action :load_by_case
 
     def index
+      @paginated = @cases.page(params[:page]).per(5)
     end
 
     def download
