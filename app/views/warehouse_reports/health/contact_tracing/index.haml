@@ -26,3 +26,7 @@
           Download
     - @completed.each do |index_case|
       = render 'index_case', index_case: index_case
+
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')
