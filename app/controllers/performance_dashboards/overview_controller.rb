@@ -7,10 +7,10 @@
 module PerformanceDashboards
   class OverviewController < BaseController
     before_action :set_filter
+    before_action :set_report
     before_action :set_key, only: [:details]
 
     def index
-      @report = PerformanceDashboards::Overview.new(@filter)
       if @report.include_comparison?
         @comparison = @report
       else
@@ -19,6 +19,10 @@ module PerformanceDashboards
     end
 
     def details
+    end
+
+    private def set_report
+      @report = PerformanceDashboards::Overview.new(@filter)
     end
 
     private def set_key

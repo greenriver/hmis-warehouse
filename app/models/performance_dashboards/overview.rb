@@ -5,6 +5,7 @@
 ###
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base
+  include PerformanceDashboardOverviewDetail
 
   def self.detail_method(key)
     available_keys[key.to_sym]
@@ -140,26 +141,5 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     report_scope.
       exit.
       where.not(client_id: next_period.select(:client_id))
-  end
-
-  def detail_for(options, by_enrollment: false)
-    return unless options[:key]
-    case options[:key]
-    when :entering
-      ids = entering(by_enrollment: by_enrollment)
-    end
-  end
-
-  private def entering_details(ids)
-    
-  end
-
-  private def entering_detail_columns
-    {
-      'First Name' => c_t[:FirstName],
-      'First Name' => c_t[:FirstName],
-      'Project' => she_t[:project_name],
-      'Entry Date' => she_t[:first_date_in_program],
-    }
   end
 end

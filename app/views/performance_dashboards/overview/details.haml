@@ -1,2 +1,13 @@
-= debug @filter
-= debug @key
+- rows = @report.detail_for({key: @key})
+- if rows.any?
+  %p Showing #{rows.count}
+  %table.table.table-striped
+    %thead
+      %tr
+        - @report.header_for({key: @key}) do |header|
+          %th= header
+    %tbody
+      - rows.each do |row|
+        %tr
+          - row.each do |col|
+            %td= col
