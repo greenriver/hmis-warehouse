@@ -1,11 +1,41 @@
 %h1 Overview
-= simple_form_for :filters, method: :get do |f|
-  = render 'performance_dashboards/filters', f: f
+- id = 'filter'
+#filter-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = simple_form_for :filters, method: :get do |f|
+      = render 'performance_dashboards/filters', f: f
+  - content_for "panel_collapse_heading_content_under_title_#{id}" do
+    = render 'filter_status'
+  = render 'common/panel_collapse', id: id, title: 'Universe', default_open: filter_open
 
-.row
-  .col-4
-    = render 'entries'
-  .col-4
-    = render 'exits'
-  .col-4
-    = render 'overall'
+.col-12
+  = render 'overall'
+%ul.mb-2.nav.nav-tabs{role: :tablist}
+  - class_name = if breakdown == :age then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :age), class: ['nav-link', class_name]) do
+      By Age
+  - class_name = if breakdown == :gender then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :gender), class: ['nav-link', class_name]) do
+      By Gender
+  - class_name = if breakdown == :household then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :household), class: ['nav-link', class_name]) do
+      By Household Type
+  - class_name = if breakdown == :veteran then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :veteran), class: ['nav-link', class_name]) do
+      By Veteran Status
+  - class_name = if breakdown == :race then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :race), class: ['nav-link', class_name]) do
+      By Race
+  - class_name = if breakdown == :ethnicity then 'active' else '' end
+  %li.nav-item{role: :presentation}
+    = link_to(filter_params.merge(breakdown: :ethnicity), class: ['nav-link', class_name]) do
+      By Ethnicity
+
+= render "by_#{breakdown}"
+
+

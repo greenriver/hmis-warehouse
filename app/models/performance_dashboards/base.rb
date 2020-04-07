@@ -20,26 +20,29 @@ class PerformanceDashboards::Base
   # @param ethnicities [Array<Integer>] uses HUD ethnicity values, when blank, defaults to any ethnicity
   # @param veteran_statuses [Array<Integer] uses HUD options, when blank, default to any status
   # @param project_types [Array<Integer>] uses HUD options, when blank, defaults to [ES, SO, TH, SH]
-  def initialize(start_date:, end_date:, coc_codes: [], household_type: nil, hoh_only: false,
-    age_ranges: [], genders: [], races: {}, ethnicities: [], veteran_statuses: [],  project_types: nil)
-    @start_date = start_date
-    @end_date = end_date
-    @coc_codes = coc_codes
-    @household_type = household_type
-    @hoh_only = hoh_only
-    @age_ranges = age_ranges
-    @genders = genders
-    @races = races
-    @ethnicities = ethnicities
-    @veteran_statuses = veteran_statuses
-    @project_types = project_types || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+  def initialize(filter)
+    @start_date = filter[:start_date]
+    @end_date = filter[:end_date]
+    @coc_codes = filter[:coc_codes]
+    @household_type = filter[:household_type]
+    @hoh_only = filter[:hoh_only]
+    @age_ranges = filter[:age_ranges]
+    @genders = filter[:genders]
+    @races = filter[:races]
+    @ethnicities = filter[:ethnicities]
+    @veteran_statuses = filter[:veteran_statuses]
+    @project_types = filter[:project_types] || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
   end
 
   attr_reader :start_date, :end_date
-  attr_accessor :comparison_pattern
+  attr_accessor :comparison_pattern, :project_type_codes
 
   def self.coc_codes
     GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
+  end
+
+  def include_comparison?
+    comparison_pattern == :no_comparison_period
   end
 
   def household_types
@@ -50,6 +53,10 @@ class PerformanceDashboards::Base
     }.invert.freeze
   end
 
+  def household_type(type)
+    household_types.invert[type]
+  end
+
   def age_ranges
     {
       under_eighteen: '< 18',
@@ -57,6 +64,12 @@ class PerformanceDashboards::Base
       twenty_five_to_sixty_one: '25 - 61',
       over_sixty_one: '62+',
     }.invert.freeze
+  end
+
+  def chosen_age_ranges(ranges)
+    ranges.map do |range|
+      age_ranges.invert[range]
+    end.join(', ')
   end
 
   def self.comparison_patterns
@@ -86,21 +99,21 @@ class PerformanceDashboards::Base
     scope = filter_for_project_type(scope, all_project_types: all_project_types)
     scope
   end
-  
+
   private def filter_for_range(scope)
     scope.open_between(start_date: @start_date, end_date: @end_date)
   end
-  
+
   private def filter_for_cocs(scope)
     return scope unless @coc_codes.present?
-    
+
     scope.joins(:enrollment_coc_at_entry).
-      where(ec_t[:CocCode].in(@coc_codes)) 
+      where(ec_t[:CocCode].in(@coc_codes))
   end
-  
+
   private def filter_for_household_type(scope)
     return scope unless @household_type.present?
-    
+
     case @household_type
     when :without_children
       scope.where(other_clients_under_18: 0)
@@ -110,18 +123,23 @@ class PerformanceDashboards::Base
       scope.where(children_only: true)
     end
   end
-  
+
   private def filter_for_head_of_household(scope)
     return scope unless @hoh_only
-    
-    scope.where(head_of_household: true) 
+
+    scope.where(head_of_household: true)
   end
-  
+
   private def filter_for_age(scope)
     return scope unless @age_ranges.present?
-    
+
     age_scope = nil
-    age_scope = add_alternative(age_scope, report_scope_sourcewhere(she_t[:age].lt(18))) if @age_ranges.include?(:under_eighteen)
+    if @age_ranges.include?(:under_eighteen)
+      age_scope = add_alternative(
+        age_scope,
+        report_scope_source.where(she_t[:age].lt(18))
+      )
+    end
 
     if @age_ranges.include?(:eighteen_to_twenty_four)
       age_scope = add_alternative(
@@ -152,19 +170,19 @@ class PerformanceDashboards::Base
 
     scope.merge(age_scope)
   end
-  
+
   private def filter_for_gender(scope)
     return scope unless @genders.present?
-    
+
     scope.joins(:client).where(c_t[:Gender].in(@genders))
   end
-  
+
   private def filter_for_race(scope)
     return scope unless @races.present?
 
     keys = @races.keys
     race_scope = nil
-    race_scope = add_alternative(race_scope, race_alternative(:AmIndALNative)) if keys.include?('AmIndAKNative')
+    race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
     race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
     race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
     race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
@@ -173,25 +191,25 @@ class PerformanceDashboards::Base
 
     scope.merge(race_scope)
   end
-  
+
   private def filter_for_ethnicity(scope)
     return scope unless @ethnicities.present?
-    
+
     scope.joins(:client).where(c_t[:Ethnicity].in(@ethnicities))
   end
-  
+
   private def filter_for_veteran_status(scope)
     return scope unless @veteran_statuses.present?
-    
+
     scope.joins(:client).where(c_t[:VeteranStatus].in(@veteran_statuses))
   end
-  
+
   private def filter_for_project_type(scope, all_project_types: nil)
     return scope if all_project_types
-    
+
     scope.where(project_type: @project_types)
   end
-  
+
 
   def report_scope_source
     GrdaWarehouse::ServiceHistoryEnrollment

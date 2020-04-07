@@ -1,0 +1,10 @@
+.d-flex
+  .d-flex.ml-2.align-items-center
+    = pill_badge labels: ['Range', (@filter.start_date..@filter.end_date).to_s]
+
+  - if @filter.household_type.present?
+    .d-flex.ml-2.align-items-center
+      = pill_badge labels: ['Household Type', @report.household_type(@filter.household_type.to_sym)]
+  - if @filter.age_ranges != defaults.age_ranges
+    .d-flex.ml-2.align-items-center
+      = pill_badge labels: ['Ages', @report.chosen_age_ranges(@filter.age_ranges)]

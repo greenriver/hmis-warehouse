@@ -6,58 +6,85 @@
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base
 
-  def entering(by_enrollment: false)
-    @entering ||= if by_enrollment
-      entries.pluck(:id, :age)
-    else
-      entries.pluck(:client_id, :age)
-    end
+  def self.detail_method(key)
+    available_keys[key.to_sym]
+  end
+
+  def self.available_keys
+    {
+      entering: :entering,
+    }
+  end
+
+  def entering
+    entries.distinct
   end
 
   def entering_by_age(by_enrollment: false)
-    buckets = {
-      under_eighteen: [],
-      eighteen_to_twenty_four: [],
-      twenty_five_to_sixty_one: [],
-      over_sixty_one: [],
-    }
-    entering(by_enrollment: by_enrollment).each do |(id, age)|
-      next if age.blank?
-      buckets[:under_eighteen] << id if age < 18
-      buckets[:eighteen_to_twenty_four] << id if age >= 18 && age <= 24
-      buckets[:twenty_five_to_sixty_one] << id if age >= 25 && age <= 61
-      buckets[:over_sixty_one] << id if age > 61
+    buckets = buckets = age_buckets.map{|b| [b, []]}.to_h
+    records = if by_enrollment
+      entering.pluck(:id, :age)
+    else
+      entering.pluck(:client_id, :age)
+    end
+    records.each do |(id, age)|
+      buckets[age_bucket(age)] << id
     end
     buckets
   end
 
-  def exiting(by_enrollment: false)
-    exiting ||= if by_enrollment
-      exits.pluck(:id, :age, :destination)
-    else
-      exits.pluck(:client_id, :age, :destination)
-    end
+  def exiting
+    exits.distinct
   end
 
   def exiting_by_age(by_enrollment: false)
-    buckets = {
-      under_eighteen: [],
-      eighteen_to_twenty_four: [],
-      twenty_five_to_sixty_one: [],
-      over_sixty_one: [],
-    }
-    exiting(by_enrollment: by_enrollment).each do |(id, age, _destination)|
-      next if age.blank?
-      buckets[:under_eighteen] << id if age < 18
-      buckets[:eighteen_to_twenty_four] << id if age >= 18 && age <= 24
-      buckets[:twenty_five_to_sixty_one] << id if age >= 25 && age <= 61
-      buckets[:over_sixty_one] << id if age > 61
+    buckets = age_buckets.map{|b| [b, []]}.to_h
+    records = if by_enrollment
+      exiting.pluck(:id, :age)
+    else
+      exiting.pluck(:client_id, :age)
+    end
+    records.each do |(id, age, _destination)|
+      buckets[age_bucket(age)] << id
     end
     buckets
   end
 
+  private def age_buckets
+    [
+      :under_eighteen,
+      :eighteen_to_twenty_four,
+      :twenty_five_to_sixty_one,
+      :over_sixty_one,
+      :unknown,
+    ]
+  end
+
+  def age_bucket(age)
+    return :unknown unless age
+    if age < 18
+      :under_eighteen
+    elsif age >= 18 && age <= 24
+      :eighteen_to_twenty_four
+    elsif age >= 25 && age <= 61
+      :twenty_five_to_sixty_one
+    elsif  age > 61
+      :over_sixty_one
+    end
+  end
+
   def exiting_by_destination(by_enrollment: false)
-    exiting(by_enrollment: by_enrollment).group_by { |(_id, _age, destination)| destination }
+    records = if by_enrollment
+      exiting.pluck(:id, :destination)
+    else
+      exiting.pluck(:client_id, :destination)
+    end
+    destinations = {}
+    records.each do |id, destination|
+      destinations[destination] ||= []
+      destinations[destination] << id
+    end
+    destinations
   end
 
   def homeless(by_enrollment: by_enrollment)
@@ -113,5 +140,26 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     report_scope.
       exit.
       where.not(client_id: next_period.select(:client_id))
+  end
+
+  def detail_for(options, by_enrollment: false)
+    return unless options[:key]
+    case options[:key]
+    when :entering
+      ids = entering(by_enrollment: by_enrollment)
+    end
+  end
+
+  private def entering_details(ids)
+    
+  end
+
+  private def entering_detail_columns
+    {
+      'First Name' => c_t[:FirstName],
+      'First Name' => c_t[:FirstName],
+      'Project' => she_t[:project_name],
+      'Entry Date' => she_t[:first_date_in_program],
+    }
   end
 end
