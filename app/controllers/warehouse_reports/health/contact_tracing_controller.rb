@@ -47,20 +47,24 @@ module WarehouseReports::Health
       info[:dob] << index_case.dob&.strftime('%m/%d/%y')
       info[:testing_date] << index_case.testing_date&.strftime('%m/%d/%y')
       info[:infectious_date] << index_case.infectious_start_date&.strftime('%m/%d/%y')
+
+      contacts_for_case = @by_case[:contacts][index_case.id] || []
+      staff_for_case =  @by_case[:staff][index_case.id] || []
+
       # By site
-      sites = (@by_case[:contacts][index_case.id].map(&:sleeping_location) +
-        @by_case[:staff][index_case.id].map(&:site_name)).uniq.sort
+      sites = (contacts_for_case.map(&:sleeping_location) +
+        staff_for_case.map(&:site_name)).uniq.sort
       sites.each do |site_name|
         # Site label
         info[:site_name] << site_name
         # Staff
-        staff_for_site = @by_case[:staff][index_case.id].select { |staff| staff.site_name == site_name }
+        staff_for_site = staff_for_case.select { |staff| staff.site_name == site_name }
         staff_for_site.each do |staff|
           info[:staff] << staff.name
           info[:staff_notified] << staff.notified
         end
         # Contacts
-        contacts_for_site = @by_case[:contacts][index_case.id].select { |contact| contact.sleeping_location == site_name }
+        contacts_for_site = contacts_for_case.select { |contact| contact.sleeping_location == site_name }
         contacts_for_site.each do |contact|
           info[:contact] << [contact.name, contact.dob&.strftime('%m/%d/%y')].compact.join(' ')
           info[:contact_notified] << contact.notified
