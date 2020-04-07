@@ -9,7 +9,11 @@ class TextInput < SimpleForm::Inputs::TextInput
   def input(wrapper_options = nil)
     if @builder.options[:wrapper] == :readonly
       formatted_value = object.send(attribute_name)
-      template.content_tag(:div, simple_format(formatted_value), label_html_options)
+      if formatted_value.present?
+        template.content_tag(:div, simple_format(formatted_value), label_html_options)
+      else
+        template.content_tag(:em, 'Blank', label_html_options)
+      end
     else
       super(wrapper_options)
     end

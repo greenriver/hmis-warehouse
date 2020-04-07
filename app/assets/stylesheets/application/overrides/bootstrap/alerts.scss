@@ -15,6 +15,9 @@
 .alert a:link {
   text-decoration: underline;
 }
+.alert a.btn:link {
+  text-decoration: none;
+}
 
 .alert a:hover,
 .alert a:focus {

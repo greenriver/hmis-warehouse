@@ -9,9 +9,10 @@
         = f.input :ended_on,  as: :date_picker, label: 'Discharged on'
         = f.input :notes, as: :text
         = f.submit "Add #{@quarantine.title}"
-      .col-md-4.border-left
-        = render "he/clients/#{health_emergency}/previous_quarantine"
-    - else
+      - if can_see_health_emergency_clinical?
+        .col-md-4.border-left
+          = render "he/clients/#{health_emergency}/previous_quarantine"
+    - elsif can_see_health_emergency_clinical?
       .col
         = render "he/clients/#{health_emergency}/previous_quarantine"
 

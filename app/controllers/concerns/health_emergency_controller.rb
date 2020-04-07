@@ -19,7 +19,7 @@ module HealthEmergencyController
     end
 
     private def set_client
-      @client = searchable_client_scope.find(params[:client_id].to_i)
+      @client = searchable_client_scope(id: params[:client_id].to_i).find(params[:client_id].to_i)
     end
   end
 end

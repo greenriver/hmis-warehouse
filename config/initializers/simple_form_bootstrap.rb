@@ -99,9 +99,9 @@ SimpleForm.setup do |config|
     b.optional :pattern
     b.optional :min_max
     b.optional :readonly
-    b.use :label
+    b.use :label, class: 'readonly-label'
 
-    b.wrapper tag: 'div', class: 'controls' do |ba|
+    b.wrapper tag: 'div', class: 'controls readonly-input' do |ba|
       ba.use :hint,  wrap_with: { tag: 'p', class: 'help-block label-helper label-helper--info' }
       ba.use :error, wrap_with: { tag: 'p', class: 'error-block' }
       ba.use :input, class: 'form-control'
@@ -136,7 +136,6 @@ SimpleForm.setup do |config|
   # vertical input for radio buttons and check boxes
   config.wrappers :vertical_collection, item_wrapper_class: 'form-check', item_label_class: 'form-check-label', tag: 'fieldset', class: 'form-group', error_class: 'form-group-invalid', valid_class: 'form-group-valid' do |b|
     b.use :html5
-    b.optional :readonly
     b.wrapper :legend_tag, tag: 'legend', class: 'col-form-label pt-0' do |ba|
       ba.use :label_text
     end

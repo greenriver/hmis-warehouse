@@ -1,0 +1,24 @@
+- show_window_link = window_link.present? && !disable_link
+
+.clients__client-card.clients__client.c-card.c-card--linked{data: {id: id, href: window_link}, class: show_window_link ? 'js-client' : nil}
+  .c-card__content.p-0
+    - if content_for? "client_card_header__#{id}"
+      .c-card__header.c-card__header--bordered
+        = yield "client_card_header__#{id}"
+    .c-card__content-container
+      .row.px-4
+        .col-sm-12.col-md-5.col-lg-4
+          = yield "client_card_content-primary__#{id}"
+        .col-sm-12.col-md-7.col-lg-8
+          = yield "client_card_content-secondary__#{id}"
+    -# Card Footer
+    -# Include call to actions
+    .c-card__footer
+      - if content_for? "client_card_footer_left__#{id}"
+        .c-card__footer-content.c-card__footer-content--left
+          = yield "client_card_footer_left__#{id}"
+      - if show_window_link || content_for?("client_card_footer_right__#{id}")
+        .c-card__footer-content.c-card__footer-content--right
+          - if show_window_link
+            = link_to 'View', window_link, class: 'btn btn-secondary ml-auto pr-8 pl-8'
+          = yield "client_card_footer_right__#{id}"

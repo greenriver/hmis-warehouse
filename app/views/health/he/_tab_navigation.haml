@@ -1,0 +1,28 @@
+:ruby
+  case_id = params[:case_id] || params[:id]
+  tabs = {
+    case: {
+      title: 'Case',
+      path: health_he_case_path(id: case_id),
+    },
+    contacts: {
+      title: 'Close Contacts',
+      path: health_he_case_contacts_path(case_id: case_id),
+    },
+    site_managers: {
+      title: 'Site Manager Notifications',
+      path: health_he_case_site_managers_path(case_id: case_id),
+    },
+    staff: {
+      title: 'Staff Contacts',
+      path: health_he_case_staff_index_path(case_id: case_id),
+    },
+  }
+%ul.mb-2.nav.nav-tabs{role: :tablist}
+  - tabs.each do |key, tab|
+    - active_class = ''
+    - if active == key
+      - active_class = 'active'
+    %li.nav-item{role: :presentation}
+      - tab_title = tab[:title]
+      = link_to tab_title, tab[:path], role: :tab, aria: {controls: tab_title}, class: "nav-link #{active_class}"

@@ -1,26 +1,74 @@
-- disable_link = false unless defined?(disable_link)
+- id = client.id
 - window_link = client.window_link_for?(current_user)
-- show_window_link = window_link.present? && !disable_link
-.clients__client-card.clients__client.c-card.c-card--linked{data: {id: client.id, href: window_link}, class: show_window_link ? 'js-client' : nil}
-  .c-card__content.p-0.pt-sm-4
-    .row
-      .col-12.col-sm
-        = render 'clients/search/aliases', client: client
-      .col-12.col-sm
+- disable_link = false unless defined?(disable_link)
+
+-# Content Block partials
+-# Contain content blocks that are later yielded in
+-# the "client_card_content-secondary__#{id}" content block
+-# within `clients/client_card_wrapper` partial
+= render 'clients/search/cas', client: client
+= render 'clients/search/demographics', client: client
+= render 'clients/search/assessments', client: client
+= render 'relationships', client: client, showing_in_card: true
+
+-# Header Content block rendered
+-# within `clients/client_card_wrapper` partial
+-# - content_for "client_card_header__#{id}" do
+-#   - if ( akas = client_aliases(client)).empty?
+-#     - main_client_name = client.source_clients.searchable_by(current_user).first.data_source&.short_name
+-#   - else
+-#     - main_client_name = akas.shift
+-#   .client__client-name
+-#     .client-primary-name
+-#       = main_client_name
+-# Primary content block rendered
+-# within `clients/client_card_wrapper` partial
+- content_for "client_card_content-primary__#{id}" do
+  .c-card__content-block.px-0
+    = render 'clients/search/aliases', client: client
+
+-# Secondary content block rendered
+-# within `clients/client_card_wrapper` partial
+- content_for "client_card_content-secondary__#{id}" do
+  .row.flex-wrap
+    -# Health Emergency
+    -# (full width)
+    - if health_emergency?
+      .col-sm-12.c-card__content-block.c-card__content-block--danger
         = render 'clients/search/health_emergency', client: client
-        = render 'clients/search/cas', client: client
-        = render 'clients/search/demographics', client: client
-    .w-100
-    .row
-      .col.col-sm-6
-        = render 'relationships', client: client
-      .col.col-sm-6
-        = render 'clients/search/assessments', client: client
 
 
-    -# Card Footer
-    -# Include call to actions
-    .c-card__footer
-      .client__view_client
-        - if show_window_link
-          = link_to 'View', window_link, class: 'btn btn-secondary ml-auto pr-8 pl-8'
+    -# Demographics
+    -# (a third)
+    - if content_for? "client_card_demographics__#{client.id}"
+      .col-md-12.col-lg-6.c-card__content-block
+        = yield "client_card_demographics__#{client.id}"
+
+    -# Assessments
+    -# (a third)
+    - if content_for? "client_card_assessments__#{client.id}"
+      .col-md-12.col-lg-6.c-card__content-block
+        %h3 Assessments
+        = yield "client_card_assessments__#{client.id}"
+
+    -# Flags
+    -# (a third)
+    - if content_for? "client_card_flags__#{client.id}"
+      .c-card__content-block
+        = yield "client_card_flags__#{client.id}"
+
+    -# Relationships (only table — logic in partial called above
+    -# determines if it should be rendered here or in the footer)
+    -# (full width)
+    - if content_for? "client_card_relationships__#{client.id}"
+      .col-sm-12.c-card__content-block
+        %h3 Relationships
+        = yield "client_card_relationships__#{client.id}"
+
+
+-# Card Wrapper
+-# Receives and renders all content blocks in correct place
+= render 'clients/client_card_wrapper',
+  id: client.id,
+  disable_link: disable_link,
+  window_link: window_link

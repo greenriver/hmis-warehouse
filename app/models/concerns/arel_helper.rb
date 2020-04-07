@@ -244,6 +244,14 @@ module ArelHelper
     GrdaWarehouse::YouthIntake::Base.arel_table
   end
 
+  def htca_t
+    Health::Tracing::Case.arel_table
+  end
+
+  def htco_t
+    Health::Tracing::Contact.arel_table
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
@@ -535,6 +543,14 @@ module ArelHelper
 
     def yib_t
       GrdaWarehouse::YouthIntake::Base.arel_table
+    end
+
+    def htca_t
+      Health::Tracing::Case.arel_table
+    end
+
+    def htco_t
+      Health::Tracing::Contact.arel_table
     end
   end
 end

@@ -11,8 +11,9 @@
         = f.input :referred_to
         = f.input :notes, as: :text
         = f.submit "Add #{@triage.title}"
-      .col-md-4.border-left
-        = render "he/clients/#{health_emergency}/previous_triage"
-    - else
+      - if can_see_health_emergency_screening?
+        .col-md-4.border-left
+          = render "he/clients/#{health_emergency}/previous_triage"
+    - elsif can_see_health_emergency_screening?
       .col
         = render "he/clients/#{health_emergency}/previous_triage"

@@ -10,6 +10,7 @@ module Admin::Health
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
     before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :disenrolled, :new]
+    before_action :set_sender
 
     include PatientReferral
     helper_method :tab_path_params
@@ -53,7 +54,6 @@ module Admin::Health
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
-      @sender = Health::Cp.sender.first
       render 'index'
     end
 
@@ -160,6 +160,10 @@ module Admin::Health
         flash[:error] = 'Error: Please select patients to assign.'
         redirect_to review_admin_health_patient_referrals_path
       end
+    end
+
+    private def set_sender
+      @sender = Health::Cp.sender.first
     end
 
     private

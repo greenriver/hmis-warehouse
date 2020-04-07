@@ -1,0 +1,10 @@
+- content_for :title, "Edit #{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Contact Tracing Case"
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :case
+
+%h1= content_for :title
+
+= simple_form_for @case, url: health_he_case_path(@case) do |f|
+  = render 'form', f: f
+
+  = f.submit "Update Case"

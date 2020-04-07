@@ -180,7 +180,7 @@ module ApplicationHelper
       id = name[:ds_id]
       full_name = name[:name]
       content_tag(:em, sn, class: "ds-#{id}") + " #{full_name}"
-    end
+    end.uniq
   end
 
   def human_locale(locale)

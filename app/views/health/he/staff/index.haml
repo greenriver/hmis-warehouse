@@ -1,0 +1,40 @@
+= content_for :crumbs do
+  = link_to health_he_case_path(@case) do
+    = "« #{@case.first_name} #{@case.last_name}"
+
+- content_for :title, 'Staff Members'
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :staff
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right.mb-4
+    = link_to new_health_he_case_staff_path(@case), class: 'btn btn-primary' do
+      %span.icon-plus
+      Add A Staff Member
+
+.c-card.c-card--flush
+  %table.table.table-hover.table-responsive-sm
+    %thead
+      %tr
+        %th Name
+        %th Site
+        %th Notified?
+        %th Date Interviewed
+        %th
+    %tbody
+      - @staffs.each do |staff|
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= link_to staff.name.presence || 'Unknown', edit_health_he_case_staff_path(@case, staff)
+          %td= staff.site_name
+          %td= staff.notified.presence || 'No'
+          %td= staff.date_interviewed
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 4}
+            = render staff, staff: staff, tracing_case: @case
+
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')

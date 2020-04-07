@@ -1,0 +1,38 @@
+= content_for :crumbs do
+  = link_to health_he_case_path(id: @case) do
+    = "« #{@case.first_name} #{@case.last_name}"
+- content_for :title, 'Contacts'
+
+= render 'health/he/aliases'
+= render 'health/he/tab_navigation', active: :contacts
+.row
+  .col-sm-8
+    %h1= content_for :title
+  .col-sm-4.text-right.mb-4
+    = link_to new_health_he_case_contact_path(@case), class: 'btn btn-primary' do
+      %span.icon-plus
+      Add Contact
+
+.c-card.c-card--flush
+  %table.table.table-hover.table-responsive-sm
+    %thead
+      %tr
+        %th Name
+        %th Contact Notified?
+        %th Date Interviewed
+        %th
+    %tbody
+      - @contacts.each do |contact|
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= link_to contact.name.presence || 'Unknown', edit_health_he_case_contact_path(@case, contact)
+          %td= contact.notified.presence || 'No'
+          %td= contact.date_interviewed
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 3}
+            = render contact, contact: contact, tracing_case: @case
+
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')
