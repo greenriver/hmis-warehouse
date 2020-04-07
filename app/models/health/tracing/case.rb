@@ -41,6 +41,37 @@ module Health::Tracing
       }
     end
 
+    def self.label_for(column_name)
+      @label_for ||= {
+        investigator: 'Investigator name',
+        date_listed: 'Date listed',
+        alert_in_epic: 'Alert in EPIC?',
+        complete: 'Investigation complete?',
+        date_interviewed: 'Date interviewed',
+        infectious_start_date: 'Infectious start date',
+        day_two: 'Infectious start date + 14 days',
+        testing_date: 'Testing Date',
+        isolation_start_date: 'Isolation start date',
+        first_name: 'First name',
+        last_name: 'Last name',
+        phone: 'Phone',
+        aliases: 'Aliases',
+        dob: 'DOB',
+        gender: 'Gender',
+        race: 'Race',
+        ethnicity: 'Ethnicity',
+        preferred_language: 'Preferred language',
+        occupation: 'Occupation',
+        recent_incarceration: 'Recent incarceration',
+        notes: 'Notes',
+      }
+      @label_for[column_name]
+    end
+
+    def label_for(column_name)
+      self.class.label_for(column_name)
+    end
+
     def name
       "#{first_name} #{last_name}"
     end
