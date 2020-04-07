@@ -8,9 +8,21 @@
 
 .tab-content
   .tab-pane.show.active.fade#ongoing{role: 'tabpanel', aria: {labelledby: 'ongoing'}}
+    .row
+      .col-sm-8
+        %h1 Ongoing Investigations
+      .col-sm-4.text-right.mb-4
+        = link_to download_warehouse_reports_health_contact_tracing_index_path, class: 'btn btn-primary' do
+          Download
     - @ongoing.each do |index_case|
       = render 'index_case', index_case: index_case
 
   .tab-pane.show.fade#completed{role: 'tabpanel', aria: {labelledby: 'completed'}}
+    .row
+      .col-sm-8
+        %h1 Ongoing Investigations
+      .col-sm-4.text-right.mb-4
+        = link_to download_warehouse_reports_health_contact_tracing_index_path(tab: 'completed'), class: 'btn btn-primary' do
+          Download
     - @completed.each do |index_case|
       = render 'index_case', index_case: index_case

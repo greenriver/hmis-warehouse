@@ -8,10 +8,10 @@
       %table.table
         %thead
           %tr
-            %th Investigator
-            %th EPIC Alert Status
-            %th age
-            %th Birty Year
+            %th= index_case.label_for(:investigator)
+            %th= index_case.label_for(:alert_in_epic)
+            %th Age
+            %th Birth Year
           %tbody
             %tr
               %td= index_case.investigator
