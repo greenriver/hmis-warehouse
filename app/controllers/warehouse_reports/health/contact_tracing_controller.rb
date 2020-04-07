@@ -44,9 +44,9 @@ module WarehouseReports::Health
       columns.keys.each { |name| info[name] = [] }
       # Index Case info
       info[:name] << index_case.name
-      info[:dob] << index_case.dob.strftime('%m/%d/%y')
-      info[:testing_date] << index_case.testing_date.strftime('%m/%d/%y')
-      info[:infectious_date] << index_case.infectious_start_date.strftime('%m/%d/%y')
+      info[:dob] << index_case.dob&.strftime('%m/%d/%y')
+      info[:testing_date] << index_case.testing_date&.strftime('%m/%d/%y')
+      info[:infectious_date] << index_case.infectious_start_date&.strftime('%m/%d/%y')
       # By site
       sites = (@by_case[:contacts][index_case.id].map(&:sleeping_location) +
         @by_case[:staff][index_case.id].map(&:site_name)).uniq.sort

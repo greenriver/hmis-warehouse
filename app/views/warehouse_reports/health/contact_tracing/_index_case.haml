@@ -33,7 +33,8 @@
                   %th Name
                   %th Contact Notified
               %tbody
-                - @by_case[:contacts][index_case.id].each do |contact|
+                - contacts = @by_case[:contacts][index_case.id] || []
+                - contacts.each do |contact|
                   %tr
                     %td= contact.investigator
                     %td= contact.alert_in_epic
@@ -49,7 +50,8 @@
                   %th Leader Name
                   %th Notification Date
               %tbody
-                - @by_case[:managers][index_case.id].each do |manager|
+                - managers = @by_case[:managers][index_case.id] || []
+                - managers.each do |manager|
                   %tr
                     %td= manager.site_name
                     %td= manager.site_leader_name
@@ -64,7 +66,8 @@
                   %th Site
                   %th Notified?
               %tbody
-                - @by_case[:staff][index_case.id].each do |staff|
+                - staffs = @by_case[:staff][index_case.id] || []
+                - staffs.each do |staff|
                   %tr
                     %td= staff.name
                     %td= staff.site_name
