@@ -382,6 +382,9 @@ Rails.application.routes.draw do
       resources :contact_tracing, only: [:index] do
         get :download, on: :collection
       end
+      resources :completed_contact_tracing, only: [:index] do
+        get :download, on: :collection
+      end
     end
   end
 

@@ -8,17 +8,13 @@ module WarehouseReports::Health
   class ContactTracingController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_edit_health_emergency_contact_tracing!
-    before_action :load
+    before_action :load_cases
+    before_action :load_by_case
 
     def index
     end
 
     def download
-      if params[:tab] == 'completed'
-        @cases = @completed
-      else
-        @cases = @ongoing
-      end
       render xlsx: 'download', filename: "Contact Tracing #{Date.current}.xlsx"
     end
 
@@ -85,9 +81,11 @@ module WarehouseReports::Health
       contact.isolation_location || contact.quarantine_location
     end
 
-    def load
-      @ongoing = Health::Tracing::Case.ongoing
-      @completed = Health::Tracing::Case.completed
+    def load_cases
+      @cases = Health::Tracing::Case.ongoing
+    end
+
+    def load_by_case
       @contacts = Health::Tracing::Contact.all
       @managers = Health::Tracing::SiteLeader.all
       @staff = Health::Tracing::Staff.all
