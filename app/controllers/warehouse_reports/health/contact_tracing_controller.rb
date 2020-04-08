@@ -12,7 +12,7 @@ module WarehouseReports::Health
     before_action :load_by_case
 
     def index
-      @paginated = @cases.page(params[:page]).per(5)
+      @paginated = @cases.page(params[:page]).per(25)
     end
 
     def download
@@ -41,9 +41,9 @@ module WarehouseReports::Health
       columns.keys.each { |name| info[name] = [] }
       # Index Case info
       info[:name] << index_case.name
-      info[:dob] << index_case.dob&.strftime('%m/%d/%y')
-      info[:testing_date] << index_case.testing_date&.strftime('%m/%d/%y')
-      info[:infectious_date] << index_case.infectious_start_date&.strftime('%m/%d/%y')
+      info[:dob] << index_case.dob&.strftime('%m/%d/%Y')
+      info[:testing_date] << index_case.testing_date&.strftime('%m/%d/%Y')
+      info[:infectious_date] << index_case.infectious_start_date&.strftime('%m/%d/%Y')
 
       contacts_for_case = @by_case[:contacts][index_case.id] || []
       staff_for_case =  @by_case[:staff][index_case.id] || []
@@ -63,7 +63,7 @@ module WarehouseReports::Health
         # Contacts
         contacts_for_site = contacts_for_case.select { |contact| contact.sleeping_location == site_name }
         contacts_for_site.each do |contact|
-          info[:contact] << [contact.name, contact.dob&.strftime('%m/%d/%y')].compact.join(' ')
+          info[:contact] << [contact.name, contact.dob&.strftime('%m/%d/%Y')].compact.join(' ')
           info[:contact_notified] << contact.notified
           info[:contact_disposition] << disposition(contact)
           info[:notes] << contact.notes
@@ -83,7 +83,7 @@ module WarehouseReports::Health
     end
 
     def load_cases
-      @cases = Health::Tracing::Case.ongoing
+      @cases = Health::Tracing::Case.ongoing.order(last_name: :asc, first_name: :asc)
     end
 
     def load_by_case

@@ -12,8 +12,20 @@
       Download
 
 %p= paginate @paginated
-- @paginated.each do |index_case|
-  = render 'index_case', index_case: index_case
+.card
+  .card-body.p-0
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Index Case
+          %th= @paginated.first.label_for(:investigator)
+          %th= @paginated.first.label_for(:date_listed)
+          %th Age
+          %th Birth Year
+          %th
+      %tbody
+        - @paginated.each do |index_case|
+          = render 'index_case', index_case: index_case
 
 - content_for :page_js do
   :javascript

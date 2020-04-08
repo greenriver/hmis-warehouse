@@ -1,7 +1,7 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "Contact Investigation") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  background = sheet.styles.add_style(bg_color: "CCFFCC", border: Axlsx::STYLE_THIN_BORDER)
+  background = sheet.styles.add_style(bg_color: "E2EFDA", border: Axlsx::STYLE_THIN_BORDER)
   headers = columns.values
   sheet.add_row(headers, :style => title)
 
