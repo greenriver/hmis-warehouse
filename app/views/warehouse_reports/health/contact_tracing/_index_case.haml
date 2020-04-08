@@ -1,7 +1,7 @@
 %tr.table__detail-row-rollup.j-toggle-row-content
   %td
     = link_to health_he_case_path(index_case) do
-      = index_case.name
+      = index_case.name || 'Unknown'
       = "(#{index_case.aliases})" if index_case.aliases.present?
   %td= index_case.investigator
   %td= index_case.date_listed || index_case.created_at.to_date
