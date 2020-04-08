@@ -4,4 +4,4 @@
       .c-card__content
         = f.input :site_name
         = f.input :site_leader_name
-        = f.input :contacted_on, as: :date_picker, label: 'Notification date'
+        = f.input :contacted_on, as: :date_picker, label: @manager.label_for(:contacted_on)

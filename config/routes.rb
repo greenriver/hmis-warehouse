@@ -379,6 +379,12 @@ Rails.application.routes.draw do
         end
       end
       resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
+      resources :contact_tracing, only: [:index] do
+        get :download, on: :collection
+      end
+      resources :completed_contact_tracing, only: [:index] do
+        get :download, on: :collection
+      end
     end
   end
 

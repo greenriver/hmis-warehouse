@@ -6,17 +6,17 @@
         %h3 Investigation Information
       .c-card__content
         = f.input :client_id, as: :hidden
-        = f.input :investigator, label: 'Investigator Name'
+        = f.input :investigator, label: @case.label_for(:investigator)
         = f.input :date_listed, as: :date_picker
-        = f.input :alert_in_epic, as: :boolean_button_group, collection: @case.alert_options, label: 'Alert in EPIC?'
-        = f.input :complete, as: :boolean_button_group, collection: @case.yes_no_options, label: "Investigation Complete?"
+        = f.input :alert_in_epic, as: :boolean_button_group, collection: @case.alert_options, label: @case.label_for(:alert_in_epic)
+        = f.input :complete, as: :boolean_button_group, collection: @case.yes_no_options, label: @case.label_for(:complete)
     .c-card.mb-4
       .c-card__header.c-card__header--external
         %h3 Period of Interest
       .c-card__content
         = f.input :date_interviewed, as: :date_picker
         = f.input :infectious_start_date, as: :date_picker, hint: 'Day 1 Infectious Period = Date of Sx start minus 2 days', input_html: {class: 'jInfectiousStartDate'}
-        = f.input :day_two, as: :date_picker, label: 'Infectious Start Date + 14 days', input_html: {class: 'jDayTwo'}
+        = f.input :day_two, as: :date_picker, label: @case.label_for(:day_two), input_html: {class: 'jDayTwo'}
         = f.input :testing_date, as: :date_picker
         = f.input :isolation_start_date, as: :date_picker
     .c-card.mb-4

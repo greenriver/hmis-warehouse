@@ -14,6 +14,19 @@ module Health::Tracing
 
     belongs_to :case
 
+    def self.label_for(column_name)
+      @label_for ||= {
+        site_name: 'Site name',
+        site_leader_name: 'Site leader name',
+        contacted_on: 'Notification date',
+      }
+      @label_for[column_name]
+    end
+
+    def label_for(column_name)
+      self.class.label_for(column_name)
+    end
+
     def name
       "#{first_name} #{last_name}"
     end

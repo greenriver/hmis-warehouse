@@ -41,6 +41,25 @@ module Health::Tracing
       }
     end
 
+    def self.label_for(column_name)
+      @label_for ||= {
+        first_name: 'First name',
+        last_name: 'Last name',
+        site_name: 'Site name',
+        notified: 'Notified?',
+        nature_of_exposure: 'Nature of exposure',
+        symptomatic: 'Symptomatic?',
+        referred_for_testing: 'Referred for testing?',
+        test_result: 'Test result',
+        notes: '',
+      }
+      @label_for[column_name]
+    end
+
+    def label_for(column_name)
+      self.class.label_for(column_name)
+    end
+
     def name
       "#{first_name} #{last_name}"
     end

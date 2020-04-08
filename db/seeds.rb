@@ -484,6 +484,12 @@ def report_list
         description: 'Upload and attach ED & IP visits to patient records.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/health/contact_tracing',
+        name: 'Contact Tracing',
+        description: 'Review and download contact tracing records.',
+        limitable: false,
+      },
     ],
     'Performance Dashboard' => [
       {

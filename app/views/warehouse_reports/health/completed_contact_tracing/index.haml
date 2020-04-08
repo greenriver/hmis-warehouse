@@ -1,0 +1,20 @@
+%ul.nav.nav-tabs
+  %li.nav-item
+    = link_to 'Ongoing Investigations', warehouse_reports_health_contact_tracing_index_path, class: 'nav-link'
+  %li.nav-item.active
+    = link_to 'Completed Investigations', warehouse_reports_health_completed_contact_tracing_index_path, class: 'nav-link'
+
+.row
+  .col-sm-8
+    %h1 Completed Investigations
+  .col-sm-4.text-right.mb-4
+    = link_to download_warehouse_reports_health_completed_contact_tracing_index_path, class: 'btn btn-primary' do
+      Download
+
+%p= paginate @paginated
+- @paginated.each do |index_case|
+  = render 'index_case', index_case: index_case
+
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')
