@@ -1,7 +1,10 @@
 .row
   .col-sm-6
     %h2 Entering
-    = link_to "Total #{@report.entering_by_age_total_count}", details_performance_dashboards_overview_index_path(filter_params.merge(options: {key: :entering, age: true, breakdown: 'By Age'})), data: {loads_in_pjax_modal: true}
+    = link_to "Total #{pluralize(@report.entering_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(filter_params.merge(options: {key: :entering, age: true, breakdown: 'By Age'})), data: {loads_in_pjax_modal: true}
+
+    .entering-by-age-chart
+
     %dl
       - @report.entering_by_age.each do |bucket, ids|
         %dt= bucket.to_s.humanize
@@ -14,3 +17,17 @@
       - @report.exiting_by_age.each do |bucket, ids|
         %dt= bucket.to_s.humanize
         %dd= ids.count
+
+- columns = [@report.entering_by_age_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_age_data_for_chart[:columns]
+= debug columns
+- categories = @report.entering_by_age_data_for_chart[:categories]
+= content_for :page_js do
+  :javascript
+
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var entering_by_age_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.entering-by-age-chart', columns, categories);
+    })(jQuery);

@@ -21,23 +21,31 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     entries.distinct
   end
 
-  def entering_by_age_total_count
-    entering.pluck(:client_id, :age).uniq.count
+  def entering_total_count
+    entering.select(:client_id).count
   end
 
+  # NOTE: always count the most-recently started enrollment within the range
   def entering_by_age
     buckets = buckets = age_buckets.map{|b| [b, []]}.to_h
-    counted = []
-    entering.order(age: :desc).pluck(:client_id, :age).each do |(id, age)|
-      buckets[age_bucket(age)] << id unless id.in?(counted)
+    counted = Set.new
+    entering.order(first_date_in_program: :desc).
+      pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
+      buckets[age_bucket(age)] << id unless counted.include?(id)
       counted << id
     end
     buckets
   end
 
   def entering_by_age_data_for_chart
-    columns = [(@start_date..@end_date).to_s]
-    columns += entering_by_age.values
+    @entering_by_age_data_for_chart ||= begin
+      columns = [(@start_date..@end_date).to_s]
+      columns += entering_by_age.values.map(&:count)
+      {
+      columns: columns,
+      categories: entering_by_age.keys.map(&:to_s).map(&:humanize),
+      }
+    end
   end
 
   def exiting

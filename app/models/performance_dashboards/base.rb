@@ -32,6 +32,7 @@ class PerformanceDashboards::Base
     @ethnicities = filter[:ethnicities]
     @veteran_statuses = filter[:veteran_statuses]
     @project_types = filter[:project_types] || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    @comparison_pattern = filter[:comparison_pattern]
   end
 
   attr_reader :start_date, :end_date
@@ -42,7 +43,7 @@ class PerformanceDashboards::Base
   end
 
   def include_comparison?
-    comparison_pattern == :no_comparison_period
+    comparison_pattern != :no_comparison_period
   end
 
   def household_types

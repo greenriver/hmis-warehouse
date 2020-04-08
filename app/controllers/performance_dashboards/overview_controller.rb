@@ -12,9 +12,9 @@ module PerformanceDashboards
 
     def index
       if @report.include_comparison?
-        @comparison = @report
-      else
         @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
+      else
+        @comparison = @report
       end
     end
 

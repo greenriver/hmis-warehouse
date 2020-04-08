@@ -37,12 +37,13 @@ module PerformanceDashboardOverviewDetail
     title
   end
 
+  # Only return the most-recent matching enrollment for each client
   private def entering_details(options)
     entering.
       joins(:client).
-      order(c_t[:LastName].asc, c_t[:FirstName].asc).
+      order(she_t[:first_date_in_program].desc).
       pluck(*entering_detail_columns(options).values).
-      group_by(&:first)
+      index_by(&:first)
   end
 
   private def entering_detail_columns(options)
