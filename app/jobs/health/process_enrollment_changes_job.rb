@@ -120,21 +120,26 @@ module Health
     end
 
     def update_patient(transaction, referral)
-      pid_sl = Health::AccountableCareOrganization.split_pid_sl(Health::Enrollment.aco_pid_sl(transaction))
-      aco = Health::AccountableCareOrganization.find_by(
-        mco_pid: pid_sl[:pid],
-        mco_sl: pid_sl[:sl],
-      )
-
-      referral.update(
+      updates = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
-        aco: aco,
-      )
+      }
+
+      health_enrollment_aco_pid_sl = Health::Enrollment.aco_pid_sl(transaction)
+      if health_enrollment_aco_pid_sl
+        pid_sl = Health::AccountableCareOrganization.split_pid_sl(health_enrollment_aco_pid_sl)
+        aco = Health::AccountableCareOrganization.find_by(
+          mco_pid: pid_sl[:pid],
+          mco_sl: pid_sl[:sl],
+        )
+        updates[:aco] = aco
+      end
+
+      referral.update(updates)
     end
   end
 end
