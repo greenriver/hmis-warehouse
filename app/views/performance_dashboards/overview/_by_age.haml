@@ -1,7 +1,7 @@
 .row
   .col-sm-6
     %h2 Entering
-    = link_to "Total #{@report.entering.pluck(:id, :age).uniq.count}", details_performance_dashboards_overview_index_path(filter_params.merge(options: {key: :entering})), data: {loads_in_pjax_modal: true}
+    = link_to "Total #{@report.entering_by_age_total_count}", details_performance_dashboards_overview_index_path(filter_params.merge(options: {key: :entering, age: true, breakdown: 'By Age'})), data: {loads_in_pjax_modal: true}
     %dl
       - @report.entering_by_age.each do |bucket, ids|
         %dt= bucket.to_s.humanize

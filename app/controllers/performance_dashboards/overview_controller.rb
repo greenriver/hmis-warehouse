@@ -19,6 +19,23 @@ module PerformanceDashboards
     end
 
     def details
+      @options = option_params[:options]
+      @breakdown = params.dig(:options, :breakdown)
+    end
+
+    private def option_params
+      params.permit(
+        options: [
+          :key,
+          :age,
+          :gender,
+          :household_type,
+          :veteran,
+          :race,
+          :ethnicity,
+          :breakdown,
+        ],
+      )
     end
 
     private def set_report

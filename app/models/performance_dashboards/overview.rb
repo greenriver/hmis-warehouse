@@ -21,31 +21,32 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     entries.distinct
   end
 
-  def entering_by_age(by_enrollment: false)
+  def entering_by_age_total_count
+    entering.pluck(:client_id, :age).uniq.count
+  end
+
+  def entering_by_age
     buckets = buckets = age_buckets.map{|b| [b, []]}.to_h
-    records = if by_enrollment
-      entering.pluck(:id, :age)
-    else
-      entering.pluck(:client_id, :age)
-    end
-    records.each do |(id, age)|
-      buckets[age_bucket(age)] << id
+    counted = []
+    entering.order(age: :desc).pluck(:client_id, :age).each do |(id, age)|
+      buckets[age_bucket(age)] << id unless id.in?(counted)
+      counted << id
     end
     buckets
+  end
+
+  def entering_by_age_data_for_chart
+    columns = [(@start_date..@end_date).to_s]
+    columns += entering_by_age.values
   end
 
   def exiting
     exits.distinct
   end
 
-  def exiting_by_age(by_enrollment: false)
+  def exiting_by_age
     buckets = age_buckets.map{|b| [b, []]}.to_h
-    records = if by_enrollment
-      exiting.pluck(:id, :age)
-    else
-      exiting.pluck(:client_id, :age)
-    end
-    records.each do |(id, age, _destination)|
+    exiting.pluck(:client_id, :age).each do |(id, age, _destination)|
       buckets[age_bucket(age)] << id
     end
     buckets
@@ -63,36 +64,32 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
 
   def age_bucket(age)
     return :unknown unless age
+
     if age < 18
       :under_eighteen
     elsif age >= 18 && age <= 24
       :eighteen_to_twenty_four
     elsif age >= 25 && age <= 61
       :twenty_five_to_sixty_one
-    elsif  age > 61
+    else
       :over_sixty_one
     end
   end
 
-  def exiting_by_destination(by_enrollment: false)
-    records = if by_enrollment
-      exiting.pluck(:id, :destination)
-    else
-      exiting.pluck(:client_id, :destination)
-    end
+  def exiting_by_destination
     destinations = {}
-    records.each do |id, destination|
+    exiting.pluck(:client_id, :destination).each do |id, destination|
       destinations[destination] ||= []
       destinations[destination] << id
     end
     destinations
   end
 
-  def homeless(by_enrollment: by_enrollment)
+  def homeless
     report_scope(all_project_types: true).homeless
   end
 
-  def newly_homeless(by_enrollment: by_enrollment)
+  def newly_homeless
     previous_period = report_scope_source.
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       homeless
@@ -101,11 +98,11 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       where.not(client_id: previous_period.select(:client_id))
   end
 
-  def literally_homeless(by_enrollment: by_enrollment)
+  def literally_homeless
     report_scope(all_project_types: true).homeless(chronic_types_only: true)
   end
 
-  def newly_literally_homeless(by_enrollment: by_enrollment)
+  def newly_literally_homeless
     previous_period = report_scope_source.
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       homeless(chronic_types_only: true)

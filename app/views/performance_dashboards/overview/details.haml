@@ -1,13 +1,20 @@
-- rows = @report.detail_for({key: @key})
+- title = "Support for #{@report.support_title(key: @key, breakdown: @breakdown)}"
+= content_for :modal_title, title
+- rows = @report.detail_for(@options)
 - if rows.any?
-  %p Showing #{rows.count}
+  - enrollments = rows.values.flatten(1)
+  %p Showing #{pluralize(rows.count, 'client')} with #{pluralize(enrollments.count, 'enrollment')}.
   %table.table.table-striped
     %thead
       %tr
-        - @report.header_for({key: @key}) do |header|
+        - @report.header_for(@options).each do |header|
           %th= header
     %tbody
-      - rows.each do |row|
+      - enrollments.each do |row|
         %tr
-          - row.each do |col|
-            %td= col
+          - row.each_with_index do |col, i|
+            %td
+              - if i == 0
+                = link_to col, client_path(id: col)
+              - else
+                = col
