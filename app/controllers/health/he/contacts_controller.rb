@@ -6,7 +6,7 @@
 
 module Health::He
   class ContactsController < HealthController
-    include ContactTracingController
+    include IndividualContactTracingController
     before_action :set_case
     before_action :set_client
     before_action :set_contact, only: [:edit, :update, :destroy]
