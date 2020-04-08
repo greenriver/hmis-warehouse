@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module ContactTracingController
+module IndividualContactTracingController
   extend ActiveSupport::Concern
 
   included do

@@ -73,7 +73,7 @@ module Health::Tracing
     end
 
     def name
-      "#{first_name} #{last_name}"
+      "#{first_name.presence || 'Unknown'} #{last_name.presence || 'Unknown'}"
     end
 
     def matching_contacts(first_name, last_name)

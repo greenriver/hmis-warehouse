@@ -6,7 +6,7 @@
 
 module Health::He
   class LocationsController < HealthController
-    include ContactTracingController
+    include IndividualContactTracingController
     include PjaxModalController
 
     before_action :set_case

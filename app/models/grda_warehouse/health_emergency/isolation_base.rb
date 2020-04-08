@@ -12,5 +12,12 @@ module GrdaWarehouse::HealthEmergency
     def visible_to?(user)
       user.can_see_health_emergency_clinical?
     end
+
+    def location_options
+      self.class.distinct.
+        where.not(location: [nil, '']).
+        order(:location).
+        pluck(:location)
+    end
   end
 end

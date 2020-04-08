@@ -3,7 +3,7 @@
     - if can_edit_health_emergency_clinical?
       .col-md-8
         = f.input :isolation_requested_at, as: :string, label: "When was #{@client.name} asked to quarantine?", input_html: { class: :date_time_picker }
-        = f.input :location, label: 'Quarantine location'
+        = f.input :location, label: 'Quarantine location', collection: @quarantine.location_options, input_html: { class: 'select2', data: {tags: true} }
         = f.input :started_on,  as: :date_picker, label: 'Quarantine start date'
         = f.input :scheduled_to_end_on,  as: :date_picker, label: 'Scheduled quarantine end date'
         = f.input :ended_on,  as: :date_picker, label: 'Discharged on'
