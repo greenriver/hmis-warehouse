@@ -51,6 +51,7 @@ module Admin::Health
     def rejected
       @active_patient_referral_tab = 'rejected'
       @patient_referrals = Health::PatientReferral.rejected.
+        not_confirmed_rejected.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
@@ -59,7 +60,14 @@ module Admin::Health
 
     def disenrolled
       @active_patient_referral_tab = 'disenrolled'
-      @patient_referrals = Health::PatientReferral.pending_disenrollment # TODO
+      @patient_referrals = Health::PatientReferral.pending_disenrollment.not_confirmed_rejected
+      load_index_vars
+      render 'index'
+    end
+
+    def disenrollment_accepted
+      @active_patient_referral_tab = 'disenrollment_accepted'
+      @patient_referrals = Health::PatientReferral.rejection_confirmed
       load_index_vars
       render 'index'
     end
@@ -174,6 +182,7 @@ module Admin::Health
         { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'disenrollment_accepted', tab_text: 'Accepted Removals', path: disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) },
       ]
     end
 

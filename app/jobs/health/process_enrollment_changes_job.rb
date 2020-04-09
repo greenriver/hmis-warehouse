@@ -114,6 +114,7 @@ module Health
         pending_disenrollment_date: nil,
         removal_acknowledged: false,
         rejected: false,
+        rejected_reason: :Remove_Removal,
         agency_id: nil,
       )
     end
