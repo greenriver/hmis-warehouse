@@ -1,0 +1,13 @@
+= simple_form_for @filter, url: warehouse_reports_health_emergency_testing_results_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-3
+        = f.input :start, as: :date_picker
+      .col-sm-3
+        = f.input :end, as: :date_picker
+      .col-sm-6
+        = f.input :project_ids, label: 'Projects', collection: available_locations, required: true, input_html: { class: :select2, multiple: :multiple }, hint: 'Clients will be limited to those with service at chosen projects since the start date.'
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update View'
+
+  = render 'warehouse_reports/filters', f:f

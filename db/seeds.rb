@@ -491,6 +491,14 @@ def report_list
         limitable: false,
       },
     ],
+    'Health Emergency' => [
+      {
+        url: 'warehouse_reports/health_emergency/testing_results',
+        name: 'Testing Results',
+        description: 'Review testing results.',
+        limitable: false,
+      },
+    ],
   }
 end
 
