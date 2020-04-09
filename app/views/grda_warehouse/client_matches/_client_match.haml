@@ -17,7 +17,7 @@
           %th
             Existing
             %br
-            = client_a.data_source.short_name
+            = client_a.data_source&.short_name
             - unless match.accepted?
               = link_to edit_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
                 = client_a.PersonalID.slice(0,4)
@@ -31,7 +31,7 @@
           %th
             Proposed
             %br
-            = client_b.data_source.short_name
+            = client_b.data_source&.short_name
             - unless match.accepted?
               = link_to edit_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
                 = client_b.PersonalID.slice(0,4)

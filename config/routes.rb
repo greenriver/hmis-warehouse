@@ -308,6 +308,9 @@ Rails.application.routes.draw do
         get :download, on: :member
       end
     end
+    namespace :health_emergency do
+      resources :testing_results, only: [:index]
+    end
     namespace :cas do
       resources :decision_efficiency, only: [:index] do
         collection do
@@ -729,6 +732,7 @@ Rails.application.routes.draw do
           get :assigned
           get :rejected
           get :disenrolled
+          get :disenrollment_accepted
           post :bulk_assign_agency
         end
         post :assign_agency
