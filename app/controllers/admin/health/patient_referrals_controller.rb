@@ -78,18 +78,15 @@ module Admin::Health
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          # Don't destroy the patient, we'll limit patients
-          # to patient_referrals.not_confirmed_rejected
-          # patient.destroy if patient.present?
-
-          # Removal accepts a pending disenrollment
+          # Rejecting a referral dis-enrolls the patient
+          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current
           if @patient_referral.pending_disenrollment_date.present?
-            disenrollment_date = @patient_referral.pending_disenrollment_date
             @patient_referral.update(
-              disenrollment_date: disenrollment_date,
               pending_disenrollment_date: nil,
               removal_acknowledged: true,
             )
+          else
+            @patient_referral.save
           end
 
           flash[:notice] = 'Patient has been rejected.'
@@ -117,6 +114,7 @@ module Admin::Health
 
     def update
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current if params[:removal_acknowledged] == '1'
       @patient_referral.update(patient_referral_params)
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
