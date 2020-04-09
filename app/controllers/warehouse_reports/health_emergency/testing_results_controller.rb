@@ -10,6 +10,7 @@ module WarehouseReports::HealthEmergency
     include PjaxModalController
     include WarehouseReportAuthorization
     include WarehouseReportsHealthEmergencyController
+    before_action :require_can_see_health_emergency_clinical!
 
     before_action :set_filter
 
