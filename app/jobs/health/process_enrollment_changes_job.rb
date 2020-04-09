@@ -26,7 +26,7 @@ module Health
         enrollment.enrollments.each do |transaction|
           referral = referral(transaction)
           if referral.present?
-            if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
+            if referral.disenrolled?
               re_enroll_patient(transaction, referral)
               returning_patients += 1
             else
@@ -108,11 +108,14 @@ module Health
     end
 
     def re_enroll_patient(_transaction, referral)
+      # Remove disenrollment flags, and return patient to "to be assigned"
       referral.update(
         disenrollment_date: nil,
         pending_disenrollment_date: nil,
+        removal_acknowledged: false,
+        rejected: false,
+        agency_id: nil,
       )
-      # TODO: any other work to re-enroll
     end
 
     def disenroll_patient(transaction, referral)
