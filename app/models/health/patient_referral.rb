@@ -98,6 +98,17 @@ module Health
     scope :with_patient, -> { where.not patient_id: nil }
     scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
+    scope :active_within_range, -> (start_date:, end_date:) do
+      at = arel_table
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = at[:enrollment_start_date]
+      d_2_end = at[:disenrollment_date]
+      # Currently does not count as an overlap if one starts on the end of the other
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    end
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end

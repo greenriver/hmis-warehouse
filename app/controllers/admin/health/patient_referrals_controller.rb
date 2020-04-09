@@ -182,7 +182,7 @@ module Admin::Health
         { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params) },
-        { id: 'disenrollment_accepted', tab_text: 'Accepted Removals', path: disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'disenrollment_accepted', tab_text: 'Acknowledged Removals', path: disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) },
       ]
     end
 
