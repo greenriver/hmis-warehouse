@@ -33,7 +33,7 @@ module WarehouseReports::HealthEmergency
       @filter = if filter_params.present?
         ::Filters::DateRangeAndSources.new(filter_params)
       else
-        ::Filters::DateRangeAndSources.new
+        ::Filters::DateRangeAndSources.new(start: '2020-03-18'.to_date)
       end
     end
 
