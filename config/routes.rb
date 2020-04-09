@@ -732,6 +732,7 @@ Rails.application.routes.draw do
           get :assigned
           get :rejected
           get :disenrolled
+          get :disenrollment_accepted
           post :bulk_assign_agency
         end
         post :assign_agency

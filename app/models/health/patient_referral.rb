@@ -232,6 +232,10 @@ module Health
       end
     end
 
+    def disenrolled?
+      disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
+    end
+
     def display_claimed_by_other(agencies)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size
