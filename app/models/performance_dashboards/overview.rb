@@ -70,6 +70,15 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     ]
   end
 
+  def age_bucket_titles
+    age_buckets.map do |key|
+      [
+        key,
+        key.to_s.humanize
+      ]
+    end.to_h
+  end
+
   def age_bucket(age)
     return :unknown unless age
 
@@ -82,6 +91,19 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
     else
       :over_sixty_one
     end
+  end
+
+  def age_query(key)
+    return '0=1' unless key
+
+    @age_queries ||= {
+      under_eighteen: she_t[:age].lt(18),
+      eighteen_to_twenty_four: she_t[:age].between(18..24),
+      twenty_five_to_sixty_one: she_t[:age].between(25..61),
+      over_sixty_one: she_t[:age].gt(61),
+      unknown: she_t[:age].eq(nil),
+    }
+    @age_queries[key.to_sym]
   end
 
   def exiting_by_destination

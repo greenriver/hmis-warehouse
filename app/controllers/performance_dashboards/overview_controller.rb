@@ -27,6 +27,7 @@ module PerformanceDashboards
       params.permit(
         options: [
           :key,
+          :sub_key,
           :age,
           :gender,
           :household_type,

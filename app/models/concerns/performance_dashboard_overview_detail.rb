@@ -26,23 +26,19 @@ module PerformanceDashboardOverviewDetail
   end
 
   def support_title(key:, sub_key: nil, breakdown:)
-    title = case key.to_sym
-    when :entering
-      'Clients Entering'
-    when :exiting
-      'Clients Exiting'
-    end
-    title += " #{sub_key.to_s.humanize}" if sub_key
-    title += " #{breakdown}"
+    title = 'Clients'
+    title += " #{sub_key.to_s.humanize.titleize}" if sub_key
+    title += " #{key.to_s.titleize} #{breakdown}"
     title
   end
 
   # Only return the most-recent matching enrollment for each client
   private def entering_details(options)
-    entering.
+    details = entering.
       joins(:client).
-      order(she_t[:first_date_in_program].desc).
-      pluck(*entering_detail_columns(options).values).
+      order(she_t[:first_date_in_program].desc)
+    details = details.where(age_query(options[:sub_key])) if options[:sub_key]&.to_sym
+    details.pluck(*entering_detail_columns(options).values).
       index_by(&:first)
   end
 

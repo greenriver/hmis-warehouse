@@ -5,6 +5,7 @@
 ###
 
 class PerformanceDashboards::BaseController < ApplicationController
+  include WarehouseReportAuthorization
   include PjaxModalController
 
   def set_filter
@@ -32,6 +33,11 @@ class PerformanceDashboards::BaseController < ApplicationController
     @comparison_filter[:start_date] = comparison_start
     @comparison_filter[:end_date] = comparison_end
   end
+
+  private def show_client_details?
+    @show_client_details ||= current_user.can_view_clients?
+  end
+  helper_method :show_client_details?
 
   def defaults
     OpenStruct.new(
