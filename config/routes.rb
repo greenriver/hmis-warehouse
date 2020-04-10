@@ -310,6 +310,7 @@ Rails.application.routes.draw do
     end
     namespace :health_emergency do
       resources :testing_results, only: [:index]
+      resources :medical_restrictions, only: [:index]
     end
     namespace :cas do
       resources :decision_efficiency, only: [:index] do

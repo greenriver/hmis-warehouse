@@ -498,6 +498,12 @@ def report_list
         description: 'Review testing results.',
         limitable: false,
       },
+      {
+        url: 'warehouse_reports/health_emergency/medical_restrictions',
+        name: 'Active Medical Restrictions',
+        description: 'List active medical restrictions.',
+        limitable: false,
+      },
     ],
   }
 end

@@ -14,8 +14,8 @@
       - @results.each do |result|
         - client = result.client
         %tr
-          %td= link_to client.id, client_path(client)
-          %td= link_to client.name, client_path(client)
+          %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= result.tested_on
           %td= result.result
           %td= simple_format(result.notes)
