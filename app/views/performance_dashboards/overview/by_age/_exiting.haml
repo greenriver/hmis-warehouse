@@ -1,14 +1,14 @@
-- key = :entering
+- key = :exiting
 - detail_params = filter_params.merge(options: {key: key, age: true, breakdown: breakdown})
-%h2 Entering
-= link_to_if show_client_details?, "Total #{pluralize(@report.entering_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
+%h2 Exiting
+= link_to_if show_client_details?, "Total #{pluralize(@report.exiting_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
 
-.jChart.entering-by-age-chart
+.jChart.exiting-by-age-chart
 
-- columns = [@report.entering_by_age_data_for_chart[:columns]]
+- columns = [@report.exiting_by_age_data_for_chart[:columns]]
 - if @report.include_comparison?
-  - columns << @comparison.entering_by_age_data_for_chart[:columns]
-- categories = @report.entering_by_age_data_for_chart[:categories]
+  - columns << @comparison.exiting_by_age_data_for_chart[:columns]
+- categories = @report.exiting_by_age_data_for_chart[:categories]
 
 = content_for :page_js do
   :javascript
@@ -33,5 +33,5 @@
           }
         }
       };
-      var entering_by_age_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.entering-by-age-chart', columns, categories, options);
+      var exiting_by_age_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.exiting-by-age-chart', columns, categories, options);
     })(jQuery);

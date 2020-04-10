@@ -16,6 +16,7 @@ module PerformanceDashboards
     def details
       @options = option_params[:options]
       @breakdown = params.dig(:options, :breakdown)
+      @sub_key = params.dig(:options, :sub_key)
       if params.dig(:options, :report) == 'comparison'
         @detail = @comparison
       else

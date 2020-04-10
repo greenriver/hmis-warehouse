@@ -211,6 +211,9 @@ class PerformanceDashboards::Base
     scope.where(project_type: @project_types)
   end
 
+  def date_range_words
+    "#{start_date} - #{end_date}"
+  end
 
   def report_scope_source
     GrdaWarehouse::ServiceHistoryEnrollment

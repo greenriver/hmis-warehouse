@@ -3,9 +3,4 @@
   .col-sm-6
     = render 'performance_dashboards/overview/by_age/entering', breakdown: breakdown
   .col-sm-6
-    %h2 Exiting
-    = "Total #{@report.exiting.count}"
-    %dl
-      - @report.exiting_by_age.each do |bucket, ids|
-        %dt= bucket.to_s.humanize
-        %dd= ids.count
+    = render 'performance_dashboards/overview/by_age/exiting', breakdown: breakdown

@@ -45,20 +45,20 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
   _follow_link: (d, element) =>
     return unless @options.follow_link == 'true'
 
-    chart_id = $(element).closest('.jChart').attr('id')
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
-    # console.log(d, @chart, @chart.groups())
+    console.log(d, @chart, @chart.groups())
+    console.log(@options.params)
     report = 'report'
     if @chart.data()[1].id == d.id
       report = 'comparison'
+      @options.params.filters.start_date = @options.date_ranges.comparison.start_date
+      @options.params.filters.end_date = @options.date_ranges.comparison.end_date
     # If we clicked on a point, send us to the list of associated clients
-    params =
-      options:
-        key: @options.key
-        sub_key: bucket
-        breakdown: @options.breakdown
-        report: report
+    @options.params.options.report = report
+    @options.params.options.sub_key = bucket
+    console.log(@options.params)
 
-    url = @options.link_base + '?' + $.param(params)
+    url = @options.link_base + '?' + $.param(@options.params)
+    console.log(url)
     window.open url

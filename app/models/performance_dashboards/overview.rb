@@ -5,7 +5,9 @@
 ###
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base
-  include PerformanceDashboardOverviewDetail
+  include PerformanceDashboard::Overview::Detail
+  include PerformanceDashboard::Overview::Entering
+  include PerformanceDashboard::Overview::Exiting
 
   def self.detail_method(key)
     available_keys[key.to_sym]
@@ -14,50 +16,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   def self.available_keys
     {
       entering: :entering,
+      exiting: :exiting,
     }
-  end
-
-  def entering
-    entries.distinct
-  end
-
-  def entering_total_count
-    entering.select(:client_id).count
-  end
-
-  # NOTE: always count the most-recently started enrollment within the range
-  def entering_by_age
-    buckets = buckets = age_buckets.map{|b| [b, []]}.to_h
-    counted = Set.new
-    entering.order(first_date_in_program: :desc).
-      pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
-      buckets[age_bucket(age)] << id unless counted.include?(id)
-      counted << id
-    end
-    buckets
-  end
-
-  def entering_by_age_data_for_chart
-    @entering_by_age_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
-      columns += entering_by_age.values.map(&:count)
-      {
-      columns: columns,
-      categories: entering_by_age.keys.map(&:to_s).map(&:humanize),
-      }
-    end
-  end
-
-  def exiting
-    exits.distinct
-  end
-
-  def exiting_by_age
-    buckets = age_buckets.map{|b| [b, []]}.to_h
-    exiting.pluck(:client_id, :age).each do |(id, age, _destination)|
-      buckets[age_bucket(age)] << id
-    end
-    buckets
   end
 
   private def age_buckets
@@ -153,9 +113,11 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       where(project_type: @project_types)
 
-    report_scope.
-      entry.
-      where.not(client_id: previous_period.select(:client_id))
+    entries_current_period.where.not(client_id: previous_period.select(:client_id))
+  end
+
+  def entries_current_period
+    report_scope.entry
   end
 
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
@@ -165,8 +127,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
       open_between(start_date: @end_date + 1.day, end_date: Date.current).
       where(project_type: @project_types)
 
-    report_scope.
-      exit.
-      where.not(client_id: next_period.select(:client_id))
+    exits_current_period.where.not(client_id: next_period.select(:client_id))
+  end
+
+  def exits_current_period
+    report_scope.exit
   end
 end
