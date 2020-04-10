@@ -1,0 +1,25 @@
+- if @restrictions
+  %p= page_entries_info @restrictions, entry_name: 'restrictions'
+  %p= paginate @restrictions
+  %table.table.table-striped
+    %thead
+      %tr
+        %th
+        %th Client ID
+        %th Name
+        %th Age
+        %th Restricted Added
+        %th Notes
+    %tbody
+      - @restrictions.each do |restriction|
+        - client = restriction.client
+        %tr
+          %td
+            - if client.image
+              .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
+          %td= link_to client.id, client_path(client)
+          %td= link_to client.name, client_path(client)
+          %td= client.age
+          %td= restriction.created_at.to_date
+          %td= simple_format(restriction.notes)
+  %p= paginate @restrictions

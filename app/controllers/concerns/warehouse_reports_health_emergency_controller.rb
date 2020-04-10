@@ -9,11 +9,44 @@ module WarehouseReportsHealthEmergencyController
 
   included do
     before_action :require_health_emergency!
+    before_action :set_filter
 
     def require_health_emergency!
       return true if health_emergency?
 
       not_authorized!
     end
+
+    private def project_ids
+      @filter.effective_project_ids_from_projects.presence || GrdaWarehouse::Hud::Project.viewable_by(current_user).pluck(:id)
+    end
+
+    private def set_filter
+      @filter = if filter_params.present?
+        ::Filters::DateRangeAndSources.new(filter_params)
+      else
+        ::Filters::DateRangeAndSources.new(start: '2020-03-18'.to_date, end: Date.current + 2.days)
+      end
+    end
+
+    private def filter_params
+      return unless params[:filters_date_range_and_sources].present?
+
+      params.require(:filters_date_range_and_sources).permit(
+        :start,
+        :end,
+        project_ids: [],
+      )
+    end
+
+    private def available_locations
+      GrdaWarehouse::Hud::Project.viewable_by(current_user).map do |p|
+        [
+          p.name_and_type,
+          p.id,
+        ]
+      end
+    end
+    helper_method :available_locations
   end
 end

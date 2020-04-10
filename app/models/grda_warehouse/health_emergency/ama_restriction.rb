@@ -8,6 +8,20 @@ module GrdaWarehouse::HealthEmergency
   class AmaRestriction < GrdaWarehouseBase
     include ::HealthEmergency
 
+    scope :visible_to, -> (user) do
+      return current_scope if user.can_see_health_emergency_clinical?
+
+      none
+    end
+
+    scope :active, -> do
+      where(restricted: 'Yes')
+    end
+
+    scope :added_within_range, -> (range=Date.current..Date.current) do
+      where(created_at: range)
+    end
+
     def visible_to?(user)
       user.can_see_health_emergency_medical_restriction?
     end
