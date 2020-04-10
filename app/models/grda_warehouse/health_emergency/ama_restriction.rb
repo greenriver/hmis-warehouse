@@ -18,7 +18,10 @@ module GrdaWarehouse::HealthEmergency
       where(restricted: 'Yes')
     end
 
-    scope :added_within_range, -> (range=Date.current..Date.current) do
+    scope :added_within_range, -> (range=DateTime.current..DateTime.current) do
+      # FIXME: unclear why, but because we get dates and compare to times, postgres gets very unhappy
+      end_date = range.last + 2.days
+      range = Time.zone.at(range.first.to_time)..Time.zone.at(end_date.to_time)
       where(created_at: range)
     end
 

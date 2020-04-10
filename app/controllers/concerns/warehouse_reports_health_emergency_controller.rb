@@ -25,7 +25,7 @@ module WarehouseReportsHealthEmergencyController
       @filter = if filter_params.present?
         ::Filters::DateRangeAndSources.new(filter_params)
       else
-        ::Filters::DateRangeAndSources.new(start: '2020-03-18'.to_date, end: Date.current + 2.days)
+        ::Filters::DateRangeAndSources.new(start: '2020-03-18'.to_date, end: Date.current)
       end
     end
 

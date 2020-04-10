@@ -14,14 +14,23 @@ module WarehouseReports::HealthEmergency
 
     def index
       @results = test_scope.tested_within_range(@filter.range).
-        joins(client: [:processed_service_history, :service_history_enrollments]).
-        merge(
+        joins(client: [:processed_service_history, :service_history_enrollments])
+
+      if @filter.effective_project_ids_from_projects.present?
+        @results = @results.merge(
           GrdaWarehouse::ServiceHistoryEnrollment.
             joins(:project).
             service_within_date_range(start_date: @filter.start, end_date: Date.current).
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
-        ).
-        distinct.
+        )
+      else
+        @results = @results.merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.
+            joins(:project).
+            merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
+        )
+      end
+      @results = @results.distinct.
         page(params[:page]).
         per(25)
     end
