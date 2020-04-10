@@ -11,16 +11,16 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
-      if @report.include_comparison?
-        @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
-      else
-        @comparison = @report
-      end
     end
 
     def details
       @options = option_params[:options]
       @breakdown = params.dig(:options, :breakdown)
+      if params.dig(:options, :report) == 'comparison'
+        @detail = @comparison
+      else
+        @detail = @report
+      end
     end
 
     private def option_params
@@ -41,6 +41,11 @@ module PerformanceDashboards
 
     private def set_report
       @report = PerformanceDashboards::Overview.new(@filter)
+      if @report.include_comparison?
+        @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
+      else
+        @comparison = @report
+      end
     end
 
     private def set_key

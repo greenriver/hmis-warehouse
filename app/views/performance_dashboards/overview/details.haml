@@ -1,12 +1,13 @@
-- title = "Support for #{@report.support_title(key: @key, sub_key: @sub_key, breakdown: @breakdown)}"
+- title = "Support for #{@detail.support_title(key: @key, sub_key: @sub_key, breakdown: @breakdown)}"
 = content_for :modal_title, title
-- rows = @report.detail_for(@options)
+%p= (@detail.start_date..@detail.end_date).to_s
+- rows = @detail.detail_for(@options)
 - if rows.any?
   %p Showing #{pluralize(rows.count, 'client')}.
   %table.table.table-striped
     %thead
       %tr
-        - @report.header_for(@options).each do |header|
+        - @detail.header_for(@options).each do |header|
           %th= header
     %tbody
       - rows.values.each do |row|

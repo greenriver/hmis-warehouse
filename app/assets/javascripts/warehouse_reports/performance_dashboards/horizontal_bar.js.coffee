@@ -49,12 +49,16 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
     # console.log(d, @chart, @chart.groups())
+    report = 'report'
+    if @chart.data()[1].id == d.id
+      report = 'comparison'
     # If we clicked on a point, send us to the list of associated clients
     params =
       options:
         key: @options.key
         sub_key: bucket
         breakdown: @options.breakdown
+        report: report
 
     url = @options.link_base + '?' + $.param(params)
-    # window.open url
+    window.open url
