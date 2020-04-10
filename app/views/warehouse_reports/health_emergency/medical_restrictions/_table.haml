@@ -17,8 +17,8 @@
           %td
             - if client.image
               .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
-          %td= link_to client.id, client_path(client)
-          %td= link_to client.name, client_path(client)
+          %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= client.age
           %td= restriction.created_at.to_date
           %td= simple_format(restriction.notes)
