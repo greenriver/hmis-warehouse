@@ -1,6 +1,7 @@
 - if @restrictions
-  %p= page_entries_info @restrictions, entry_name: 'restrictions'
-  %p= paginate @restrictions
+  - if @html
+    %p= page_entries_info @restrictions, entry_name: 'restrictions'
+    %p= paginate @restrictions
   %table.table.table-striped
     %thead
       %tr
@@ -15,11 +16,15 @@
         - client = restriction.client
         %tr
           %td
-            - if client.image
-              .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
-          %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
-          %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
+            - if @html
+              - if client.image
+                .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
+            - if @pdf
+              = image_tag("data:image/jpeg;base64,#{Base64.encode64(client.image)}", width: 300)
+          %td= link_to_if @html, client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= link_to_if @html, client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= client.age
           %td= restriction.created_at.to_date
           %td= simple_format(restriction.notes)
-  %p= paginate @restrictions
+  - if @html
+    %p= paginate @restrictions

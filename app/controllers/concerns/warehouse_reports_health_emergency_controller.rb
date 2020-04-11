@@ -30,14 +30,15 @@ module WarehouseReportsHealthEmergencyController
     end
 
     private def filter_params
-      return unless params[:filters_date_range_and_sources].present?
+      return unless params[:filter].present?
 
-      params.require(:filters_date_range_and_sources).permit(
+      params.require(:filter).permit(
         :start,
         :end,
         project_ids: [],
       )
     end
+    helper_method :filter_params
 
     private def available_locations
       GrdaWarehouse::Hud::Project.viewable_by(current_user).map do |p|

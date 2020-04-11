@@ -29,9 +29,50 @@ module WarehouseReports::HealthEmergency
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
         )
       end
-      @restrictions = @restrictions.distinct.
-        page(params[:page]).
-        per(25)
+      @restrictions = @restrictions.distinct
+      respond_to do |format|
+        format.html do
+          @pdf = false
+          @html = true
+          @restrictions = @restrictions.page(params[:page]).
+            per(25)
+        end
+        format.pdf do
+          @pdf = true
+          @html = false
+          render_pdf!
+        end
+      end
+    end
+
+    private def render_pdf!
+      file_name = "Medical Restrictions #{DateTime.current.to_s(:db)}"
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+    end
+
+    def pdf
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        debug: {
+          # headless: false,
+          # devtools: true
+        },
+      }
+
+      html = render_to_string('warehouse_reports/health_emergency/medical_restrictions/index')
+      Grover.new(html, grover_options).to_pdf
     end
 
     private def restriction_scope
