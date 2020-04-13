@@ -2037,7 +2037,8 @@ module GrdaWarehouse::Hud
           joins(:warehouse_client_source).searchable.
           where(where).
           preload(:destination_client).
-          map{|m| m.destination_client.id}
+          map{|m| m.destination_client&.id}.
+          compact
       rescue RangeError => e
         return none
       end
