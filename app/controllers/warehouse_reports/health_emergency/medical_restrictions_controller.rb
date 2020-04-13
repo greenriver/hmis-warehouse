@@ -38,6 +38,9 @@ module WarehouseReports::HealthEmergency
             per(25)
         end
         format.pdf do
+          @restrictions = @restrictions.to_a.sort_by do |a|
+            [a.client.LastName, a.client.FirstName]
+          end
           @pdf = true
           @html = false
           render_pdf!
