@@ -446,6 +446,10 @@ class Role < ApplicationRecord
         description: 'Ability to see and delete clinical records during a health emergency.',
         administrative: false,
       },
+      receives_medical_restriction_notifications: {
+        description: 'Email notifications will be sent whenever a medical restriction is added or removed',
+        administrative: false,
+      }
     }
   end
 

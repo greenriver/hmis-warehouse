@@ -156,6 +156,14 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Your Active Veterans report has finished')
   end
 
+  def health_emergency_medical_restriction_change(user_id)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    @report_url = warehouse_reports_health_emergency_medical_restrictions_url
+    mail(to: @user.email, subject: 'Medical Restriction Change')
+  end
+
   def health_member_status_report_finished(user_id)
     @user = User.find(user_id)
     return unless @user.active?

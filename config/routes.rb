@@ -308,6 +308,10 @@ Rails.application.routes.draw do
         get :download, on: :member
       end
     end
+    namespace :health_emergency do
+      resources :testing_results, only: [:index]
+      resources :medical_restrictions, only: [:index]
+    end
     namespace :cas do
       resources :decision_efficiency, only: [:index] do
         collection do
@@ -364,7 +368,9 @@ Rails.application.routes.draw do
       resources :premium_payments, only: [:index, :show, :create, :destroy]
       resources :eligibility
       resources :eligibility_results, only: [:show]
-      resources :enrollments
+      resources :enrollments do
+        get :download, on: :member
+      end
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
       resources :encounters, only: [:index, :show, :create, :destroy]
@@ -734,6 +740,7 @@ Rails.application.routes.draw do
           get :assigned
           get :rejected
           get :disenrolled
+          get :disenrollment_accepted
           post :bulk_assign_agency
         end
         post :assign_agency

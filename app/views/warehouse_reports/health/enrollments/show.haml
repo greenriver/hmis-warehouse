@@ -6,9 +6,14 @@
 - content_for :title, title
 %h1= content_for :title
 
+.text-right
+  = link_to download_warehouse_reports_health_enrollment_path(@file), class: 'btn btn-secondary mt-4 ml-2' do
+    %span.icon-download2
+    Download EDI
+
 %p= paginate @transactions
 - @transactions.each do |transaction|
   .panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
       %pre= JSON.pretty_generate transaction
-    = render 'common/panel_collapse', id: Health::Enrollment.subscriber_id(transaction), title: "#{Health::Enrollment.first_name(transaction)} #{Health::Enrollment.last_name(transaction)} (#{Health::Enrollment.subscriber_id(transaction)})"
+    = render 'common/panel_collapse', id: Health::Enrollment.subscriber_id(transaction), title: Health::Enrollment.describe(transaction)

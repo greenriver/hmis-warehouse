@@ -498,7 +498,21 @@ def report_list
         description: 'Overview of warehouse performance.',
         limitable: false,
       },
-    ]
+    ],
+    'Health Emergency' => [
+      {
+        url: 'warehouse_reports/health_emergency/testing_results',
+        name: 'Testing Results',
+        description: 'Review testing results.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health_emergency/medical_restrictions',
+        name: 'Active Medical Restrictions',
+        description: 'List active medical restrictions.',
+        limitable: false,
+      },
+    ],
   }
 end
 
