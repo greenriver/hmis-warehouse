@@ -6,6 +6,8 @@
 
 module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndModuleChildren
   extend ActiveSupport::Concern
+  include PerformanceDashboard::Overview::Exiting::Age
+  include PerformanceDashboard::Overview::Exiting::Gender
 
   def exiting
     exits.distinct
@@ -15,42 +17,13 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
     exiting.select(:client_id).count
   end
 
-  def exiting_by_age
-    buckets = age_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exiting.order(first_date_in_program: :desc).
-      pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
-      buckets[age_bucket(age)] << id unless counted.include?(id)
-      counted << id
-    end
-    buckets
-  end
-
-  def exiting_by_age_data_for_chart
-    @exiting_by_age_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
-      columns += exiting_by_age.values.map(&:count)
-      {
-        columns: columns,
-        categories: exiting_by_age.keys.map(&:to_s).map(&:humanize),
-      }
-    end
-  end
-
   # Only return the most-recent matching enrollment for each client
   private def exiting_details(options)
-    sub_key = options[:sub_key]&.to_sym
-    ids = if sub_key
-      exiting_by_age[sub_key]
-    else
-      exiting_by_age.values.flatten
+    if options[:age]
+      exiting_by_age_details(options)
+    elsif options[:gender]
+      exiting_by_gender_details(options)
     end
-    details = entries_current_period.joins(:client).
-      where(client_id: ids).
-      order(she_t[:first_date_in_program].desc)
-    details = details.where(age_query(sub_key)) if sub_key
-    details.pluck(*exiting_detail_columns(options).values).
-      index_by(&:first)
   end
 
   private def exiting_detail_columns(options)
@@ -64,6 +37,7 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
     }
     # Add any additional columns
     columns['Age'] = she_t[:age] if options[:age]
+    columns['Gender'] = c_t[:Gender] if options[:gender]
     columns
   end
 

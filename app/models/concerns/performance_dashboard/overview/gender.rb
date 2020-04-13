@@ -44,6 +44,6 @@ module PerformanceDashboard::Overview::Gender # rubocop:disable Style/ClassAndMo
       over_sixty_one: she_t[:gender].gt(61),
       unknown: she_t[:gender].eq(nil),
     }
-    @gender_queries[key.to_sym]
+    @gender_queries[key.to_i]
   end
 end

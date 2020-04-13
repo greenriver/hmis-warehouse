@@ -29,10 +29,19 @@ module PerformanceDashboard::Overview::Detail # rubocop:disable Style/ClassAndMo
     end
   end
 
-  def support_title(key:, sub_key: nil, breakdown:)
-    title = 'Clients'
-    title += " #{sub_key.to_s.humanize.titleize}" if sub_key
-    title += " #{key.to_s.titleize} #{breakdown}"
+  def support_title(options)
+    key = options[:key].to_s
+    sub_key = options[:sub_key]
+    breakdown = options[:breakdown]
+    title = 'Clients: '
+    if sub_key
+      if options[:age].present?
+        title += " #{age_bucket_titles[sub_key.to_sym]}"
+      elsif options[:gender].present?
+        title += " #{gender_bucket_titles[sub_key.to_i]}"
+      end
+    end
+    title += " #{key.titleize} #{breakdown}"
     title
   end
 end

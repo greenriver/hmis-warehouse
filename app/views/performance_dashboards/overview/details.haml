@@ -1,4 +1,4 @@
-- title = "Support for #{@detail.support_title(key: @key, sub_key: @sub_key, breakdown: @breakdown)}"
+- title = "Support for #{@detail.support_title(@options)}"
 = content_for :modal_title, title
 %p= @detail.date_range_words
 - rows = @detail.detail_for(@options)
