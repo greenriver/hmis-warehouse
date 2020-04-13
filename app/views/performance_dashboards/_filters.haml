@@ -22,9 +22,11 @@
   .col-sm-3
     = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert, selected: @filter[:veteran_statuses], required: false, input_html: { multiple: true, class: 'select2' }
 .row
-  .col-sm-6
+  .col-sm-4
+    = f.input :sub_population, collection: PerformanceDashboards::Overview.sub_populations, label: 'Sub-Population', include_blank: false, selected: @filter[:sub_population], input_html: { class: :select2 }
+  .col-sm-4
     = f.input :races, collection: HUD.races.invert, selected: @filter[:races].keys, required: false, input_html: { multiple: true, class: 'select2' }
-  .col-sm-6
+  .col-sm-4
     = f.input :ethnicities, collection: HUD.ethnicities.invert, selected: @filter[:ethnicities], required: false, input_html: { multiple: true, class: 'select2' }
 %hr
 .mt-4

@@ -21,18 +21,19 @@ class PerformanceDashboards::Base
   # @param veteran_statuses [Array<Integer] uses HUD options, when blank, default to any status
   # @param project_types [Array<Integer>] uses HUD options, when blank, defaults to [ES, SO, TH, SH]
   def initialize(filter)
-    @start_date = filter[:start_date]
-    @end_date = filter[:end_date]
-    @coc_codes = filter[:coc_codes]
-    @household_type = filter[:household_type]
-    @hoh_only = filter[:hoh_only]
-    @age_ranges = filter[:age_ranges]
-    @genders = filter[:genders]
-    @races = filter[:races]
-    @ethnicities = filter[:ethnicities]
-    @veteran_statuses = filter[:veteran_statuses]
-    @project_types = filter[:project_types] || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    @comparison_pattern = filter[:comparison_pattern]
+    @start_date = filter.start_date
+    @end_date = filter.end_date
+    @coc_codes = filter.coc_codes
+    @household_type = filter.household_type
+    @hoh_only = filter.hoh_only
+    @age_ranges = filter.age_ranges
+    @genders = filter.genders
+    @races = filter.races
+    @ethnicities = filter.ethnicities
+    @veteran_statuses = filter.veteran_statuses
+    @project_types = filter.project_types || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    @comparison_pattern = filter.comparison_pattern
+    @sub_population = valid_sub_population(filter.sub_population)
   end
 
   attr_reader :start_date, :end_date
@@ -85,11 +86,20 @@ class PerformanceDashboards::Base
     comparison_patterns.values.include?(pattern&.to_sym)
   end
 
+  def self.sub_populations
+    Reporting::MonthlyReports::Base.available_types.map{|k, klass| [klass.new.sub_population_title, k]}.to_h
+  end
+
+  def valid_sub_population(population)
+    self.class.sub_populations.values.detect{|m| m == population&.to_sym} || :all_clients
+  end
+
   # @return filtered scope
   def report_scope(all_project_types: false)
     # Report range
     scope = filter_for_range(report_scope_source)
     scope = filter_for_cocs(scope)
+    scope = filter_for_sub_population(scope)
     scope = filter_for_household_type(scope)
     scope = filter_for_head_of_household(scope)
     scope = filter_for_age(scope)
@@ -209,6 +219,10 @@ class PerformanceDashboards::Base
     return scope if all_project_types
 
     scope.where(project_type: @project_types)
+  end
+
+  private def filter_for_sub_population(scope)
+    scope.public_send(@sub_population)
   end
 
   def date_range_words

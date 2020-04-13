@@ -33,6 +33,7 @@ module PerformanceDashboards
           :gender,
           :household_type,
           :veteran,
+          :sub_population,
           :race,
           :ethnicity,
           :breakdown,
