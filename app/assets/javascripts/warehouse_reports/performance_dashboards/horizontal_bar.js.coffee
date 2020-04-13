@@ -47,8 +47,7 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
 
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
-    console.log(d, @chart, @chart.groups())
-    console.log(@options.params)
+    console.log(d, @chart, @chart.categories(), @options.sub_keys, @options.params, bucket_title, bucket)
     report = 'report'
     if @chart.data()[1].id == d.id
       report = 'comparison'

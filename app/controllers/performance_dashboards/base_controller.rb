@@ -46,7 +46,7 @@ class PerformanceDashboards::BaseController < ApplicationController
       start_date: Date.current - 1.year,
       comparison_pattern: PerformanceDashboards::Overview.comparison_patterns.values.first,
       coc_codes: [],
-      household_type: nil,
+      household_type: :all,
       hoh_only: nil,
       project_type_codes: GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys,
       veteran_statuses: [],

@@ -49,6 +49,7 @@ class PerformanceDashboards::Base
 
   def household_types
     {
+      all: 'All household types',
       without_children: 'Households without children',
       with_children: 'Households with both adults and children',
       only_children: 'Households with only children',

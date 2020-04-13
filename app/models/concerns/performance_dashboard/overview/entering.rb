@@ -8,6 +8,7 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
   extend ActiveSupport::Concern
   include PerformanceDashboard::Overview::Entering::Age
   include PerformanceDashboard::Overview::Entering::Gender
+  include PerformanceDashboard::Overview::Entering::Household
 
   def entering
     entries.distinct
@@ -23,6 +24,8 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
       entering_by_age_details(options)
     elsif options[:gender]
       entering_by_gender_details(options)
+    elsif options[:household]
+      entering_by_household_details(options)
     end
   end
 
@@ -38,6 +41,12 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
     # Add any additional columns
     columns['Age'] = she_t[:age] if options[:age]
     columns['Gender'] = c_t[:Gender] if options[:gender]
+    if options[:household]
+      columns['Age'] = she_t[:age]
+      columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
+      columns['Individual Adult'] = she_t[:individual_adult]
+      columns['Child Only'] = she_t[:children_only]
+    end
     columns
   end
 
