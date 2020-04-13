@@ -1934,7 +1934,7 @@ module GrdaWarehouse::Hud
         group_by(&:first).
         max_by(&:first)
       return [] unless sh.present?
-      
+
       sh.last.map do |_,project_name, data_source_id, project_id|
         confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
@@ -2037,7 +2037,8 @@ module GrdaWarehouse::Hud
           joins(:warehouse_client_source).searchable.
           where(where).
           preload(:destination_client).
-          map{|m| m.destination_client.id}
+          map{|m| m.destination_client&.id}.
+          compact
       rescue RangeError => e
         return none
       end
