@@ -1,0 +1,20 @@
+- if @results
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Client
+        %th Tested on
+        %th Test location
+        %th Test result
+        %th Added?
+    %tbody
+      - @results.find_each do |result|
+        - client = result.client
+        %tr
+          %td
+            - if client
+              = link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= result.tested_on
+          %td= result.test_location
+          %td= result.test_result
+          %td= checkmark_or_x(result.test_id.present?)

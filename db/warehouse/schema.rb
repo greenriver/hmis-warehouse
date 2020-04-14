@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_08_133149) do
+ActiveRecord::Schema.define(version: 2020_04_14_121843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1935,6 +1935,27 @@ ActiveRecord::Schema.define(version: 2020_04_08_133149) do
     t.index ["user_id"], name: "index_health_emergency_isolations_on_user_id"
   end
 
+  create_table "health_emergency_test_batches", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "uploaded_count"
+    t.integer "matched_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.string "import_errors"
+    t.string "file"
+    t.string "name"
+    t.string "size"
+    t.string "content_type"
+    t.binary "content"
+    t.index ["created_at"], name: "index_health_emergency_test_batches_on_created_at"
+    t.index ["deleted_at"], name: "index_health_emergency_test_batches_on_deleted_at"
+    t.index ["updated_at"], name: "index_health_emergency_test_batches_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_test_batches_on_user_id"
+  end
+
   create_table "health_emergency_tests", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "client_id", null: false
@@ -1975,6 +1996,27 @@ ActiveRecord::Schema.define(version: 2020_04_08_133149) do
     t.index ["created_at"], name: "index_health_emergency_triages_on_created_at"
     t.index ["updated_at"], name: "index_health_emergency_triages_on_updated_at"
     t.index ["user_id"], name: "index_health_emergency_triages_on_user_id"
+  end
+
+  create_table "health_emergency_uploaded_tests", force: :cascade do |t|
+    t.bigint "batch_id"
+    t.integer "client_id"
+    t.integer "test_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.date "dob"
+    t.string "gender"
+    t.string "ssn"
+    t.date "tested_on"
+    t.string "test_location"
+    t.string "test_result"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["batch_id"], name: "index_health_emergency_uploaded_tests_on_batch_id"
+    t.index ["created_at"], name: "index_health_emergency_uploaded_tests_on_created_at"
+    t.index ["deleted_at"], name: "index_health_emergency_uploaded_tests_on_deleted_at"
+    t.index ["updated_at"], name: "index_health_emergency_uploaded_tests_on_updated_at"
   end
 
   create_table "helps", id: :serial, force: :cascade do |t|

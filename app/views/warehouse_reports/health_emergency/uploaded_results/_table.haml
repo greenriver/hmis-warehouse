@@ -1,0 +1,23 @@
+- if @results
+  %p= page_entries_info @results, entry_name: 'batch'
+  %p= paginate @results
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Uploaded on
+        %th Uploaded by
+        %th Status
+        %th Results Uploaded
+        %th Matched to Clients
+    %tbody
+      - @results.each do |batch|
+        %tr
+          %td= batch.created_at
+          %td= batch.user&.name_with_email
+          %td= batch.status
+          %td
+            - if batch.uploaded_count&.positive?
+              = link_to warehouse_reports_health_emergency_uploaded_result_batches_path(batch) do
+                = batch.uploaded_count
+          %td= batch.matched_count
+  %p= paginate @results
