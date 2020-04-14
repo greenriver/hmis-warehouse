@@ -8,7 +8,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   acts_as_paranoid
   mount_uploader :file, AdHocDataSourceUploader
   include ArelHelper
-  include Import::ClientMatching
+  include ::Import::ClientMatching
 
   belongs_to :ad_hoc_data_source
   has_many :ad_hoc_clients, foreign_key: :batch_id, dependent: :destroy
