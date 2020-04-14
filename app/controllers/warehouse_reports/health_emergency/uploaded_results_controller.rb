@@ -22,6 +22,11 @@ module WarehouseReports::HealthEmergency
       @upload = upload_source.new
     end
 
+    def show
+      @batch = upload_scope.find(params[:id].to_i)
+      @results = @batch.uploaded_tests
+    end
+
     def create
       @upload = upload_source.create(upload_params.merge(user_id: current_user.id))
       @upload.delay.process!

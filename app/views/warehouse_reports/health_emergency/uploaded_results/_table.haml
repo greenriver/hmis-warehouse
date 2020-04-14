@@ -17,7 +17,7 @@
           %td= batch.status
           %td
             - if batch.uploaded_count&.positive?
-              = link_to warehouse_reports_health_emergency_uploaded_result_batches_path(batch) do
+              = link_to warehouse_reports_health_emergency_uploaded_result_path(batch) do
                 = batch.uploaded_count
           %td= batch.matched_count
   %p= paginate @results
