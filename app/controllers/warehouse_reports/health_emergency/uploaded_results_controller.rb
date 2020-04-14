@@ -28,7 +28,8 @@ module WarehouseReports::HealthEmergency
     end
 
     def create
-      @upload = upload_source.create(upload_params.merge(user_id: current_user.id))
+      file = upload_params[:file]
+      @upload = upload_source.create(upload_params.merge(user_id: current_user.id, content: file.read))
       @upload.delay.process!
       respond_with(@upload, location: warehouse_reports_health_emergency_uploaded_results_path)
     end

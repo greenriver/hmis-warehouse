@@ -76,11 +76,12 @@ module GrdaWarehouse::HealthEmergency
     end
 
     private def upload
-      @upload ||= Roo::Spreadsheet.open(file)
+      @upload ||= Roo::Spreadsheet.open(reconstitute_path)
     end
 
     def process!
       start
+      reconstitute_upload
       if check_header!
         match_clients!
         add_test_results!
@@ -90,6 +91,22 @@ module GrdaWarehouse::HealthEmergency
       end
       self.completed_at = Time.current
       save(validate: false)
+      remove_upload
+    end
+
+    private def remove_upload
+      File.delete(reconstitute_path)
+    end
+
+    private def reconstitute_path
+      File.join(['tmp', "test_batch_#{id}.xlsx"])
+    end
+
+    def reconstitute_upload
+      Rails.logger.info "Re-constituting upload file to: #{reconstitute_path}"
+      File.open(reconstitute_path, 'w+b') do |file|
+        file.write(content)
+      end
     end
 
     private def match_clients!
