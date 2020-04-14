@@ -11,19 +11,19 @@ module Import::ClientMatching # rubocop:disable Style/ClassAndModuleChildren
     return [] unless client.first_name && client.last_name
 
     key = [client.first_name&.downcase&.gsub(/\s+/, ''), client.last_name&.downcase&.gsub(/\s+/, '')]
-    clients_by_name[key]&.map { |c| c[:destination_id] } || []
+    clients_by_name[key]&.map { |c| c[:destination_id] }&.uniq || []
   end
 
   private def ssn_matches(client)
     return [] unless valid_social?(client.ssn)
 
-    clients_by_ssn[client.ssn]&.map { |c| c[:destination_id] } || []
+    clients_by_ssn[client.ssn]&.map { |c| c[:destination_id] }&.uniq || []
   end
 
   private def dob_matches(client)
     return [] unless client.dob
 
-    clients_by_dob[client.dob]&.map { |c| c[:destination_id] } || []
+    clients_by_dob[client.dob]&.map { |c| c[:destination_id] }&.uniq || []
   end
 
   def all_clients
