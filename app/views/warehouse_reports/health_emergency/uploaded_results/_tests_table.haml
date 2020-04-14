@@ -3,6 +3,10 @@
     %thead
       %tr
         %th Client
+        %th First Name
+        %th Last Name
+        %th DOB
+        %th SSN
         %th Tested on
         %th Test location
         %th Test result
@@ -14,6 +18,10 @@
           %td
             - if client
               = link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= result.first_name
+          %td= result.last_name
+          %td= ssn(result.ssn)
+          %td= result.dob
           %td= result.tested_on
           %td= result.test_location
           %td= result.test_result
