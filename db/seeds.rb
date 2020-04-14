@@ -504,6 +504,12 @@ def report_list
         description: 'List active medical restrictions.',
         limitable: false,
       },
+      {
+        url: 'warehouse_reports/health_emergency/uploaded_results',
+        name: 'Upload Test Results',
+        description: 'Upload and batch add test results to clients.',
+        limitable: false,
+      },
     ],
   }
 end
