@@ -39,6 +39,7 @@ class NotifyUser < DatabaseMailer
     @file = GrdaWarehouse::ClientFile.find(file_id)
     @client = @file.client
     users_to_notify = @client.user_clients.includes(:user)
+
     users_to_notify.each do |user_client|
       next if user_client.expired?
       next unless user_client.client_notifications?
@@ -46,14 +47,10 @@ class NotifyUser < DatabaseMailer
       user = user_client&.user
       next unless user.active?
 
-      @url = if user.can_manage_client_files?
-        client_files_url(@client)
-      elsif user.can_manage_window_client_files?
-        window_client_files_url(@client)
-      end
-      next if @url.nil?
+      @url = client_files_url(@client)
+      next if @url.blank?
 
-      mail(to: user&.email, subject: 'A file was uploaded.')
+      mail(to: user.email, subject: 'A file was uploaded.') if user.email
     end
   end
 
@@ -75,7 +72,7 @@ class NotifyUser < DatabaseMailer
       end
       next if @url.nil?
 
-      mail(to: user&.email, subject: 'A note was added.')
+      mail(to: user.email, subject: 'A note was added.') if user.email
     end
   end
 
