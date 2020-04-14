@@ -112,7 +112,8 @@ module Health
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end
-    scope :pending_disenrollment, -> { where(hpr_t[:pending_disenrollment_date].lt(Date.current)) }
+    # scope :pending_disenrollment, -> { where(hpr_t[:pending_disenrollment_date].lt(Date.current)) }
+    scope :pending_disenrollment, -> { where.not(pending_disenrollment_date: nil) }
     scope :at_acos, -> (aco_ids) do
       where(accountable_care_organization_id: aco_ids)
     end
