@@ -23,9 +23,10 @@ module PerformanceDashboard::Overview::Entering::Age # rubocop:disable Style/Cla
     @entering_by_age_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
       columns += entering_by_age.values.map(&:count)
+      categories = entering_by_age.keys.map(&:to_s).map(&:humanize)
       {
         columns: columns,
-        categories: entering_by_age.keys.map(&:to_s).map(&:humanize),
+        categories: categories,
       }
     end
   end

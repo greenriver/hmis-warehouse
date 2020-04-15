@@ -41,6 +41,8 @@ module PerformanceDashboard::Overview::Detail # rubocop:disable Style/ClassAndMo
         title += " #{gender_bucket_titles[sub_key.to_i]}"
       elsif options[:household].present?
         title += " #{household_bucket_titles[sub_key.to_i]}"
+      elsif options[:veteran].present?
+        title += " #{veteran_bucket_titles[sub_key.to_i]}"
       end
     end
     title += " #{key.titleize} #{breakdown}"

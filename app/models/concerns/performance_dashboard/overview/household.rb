@@ -32,7 +32,7 @@ module PerformanceDashboard::Overview::Household # rubocop:disable Style/ClassAn
     return '0=1' unless key
 
     @household_queries ||= {
-      without_children: she_t[:individual_adult].eq(true),
+      without_children: she_t[:individual_adult].eq(true).or(she_t[:age].eq(nil)),
       with_children: she_t[:age].gt(17).and(she_t[:other_clients_under_18].gt(0)),
       only_children: she_t[:children_only].eq(true),
     }

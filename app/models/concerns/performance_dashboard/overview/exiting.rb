@@ -9,6 +9,7 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
   include PerformanceDashboard::Overview::Exiting::Age
   include PerformanceDashboard::Overview::Exiting::Gender
   include PerformanceDashboard::Overview::Exiting::Household
+  include PerformanceDashboard::Overview::Exiting::Veteran
 
   def exiting
     exits.distinct
@@ -26,6 +27,8 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
       exiting_by_gender_details(options)
     elsif options[:household]
       exiting_by_household_details(options)
+    elsif options[:veteran]
+      exiting_by_veteran_details(options)
     end
   end
 
@@ -47,6 +50,7 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
       columns['Individual Adult'] = she_t[:individual_adult]
       columns['Child Only'] = she_t[:children_only]
     end
+    columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     columns
   end
 

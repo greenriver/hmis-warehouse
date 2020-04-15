@@ -24,10 +24,10 @@ module PerformanceDashboard::Overview::Exiting::Household # rubocop:disable Styl
   def exiting_by_household_data_for_chart
     @exiting_by_household_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
-      columns += exiting_by_household.values.map(&:count)
+      columns += exiting_by_household.values.map(&:count).drop(1) # ignore :all
       categories = exiting_by_household.keys.map do |type|
         household_type(type)
-      end
+      end.drop(1) # ignore :all
       {
         columns: columns,
         categories: categories,

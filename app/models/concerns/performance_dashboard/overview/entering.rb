@@ -9,6 +9,7 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
   include PerformanceDashboard::Overview::Entering::Age
   include PerformanceDashboard::Overview::Entering::Gender
   include PerformanceDashboard::Overview::Entering::Household
+  include PerformanceDashboard::Overview::Entering::Veteran
 
   def entering
     entries.distinct
@@ -26,6 +27,8 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
       entering_by_gender_details(options)
     elsif options[:household]
       entering_by_household_details(options)
+    elsif options[:veteran]
+      entering_by_veteran_details(options)
     end
   end
 
@@ -47,6 +50,7 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
       columns['Individual Adult'] = she_t[:individual_adult]
       columns['Child Only'] = she_t[:children_only]
     end
+    columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     columns
   end
 

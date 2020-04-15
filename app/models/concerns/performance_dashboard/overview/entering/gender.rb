@@ -25,9 +25,10 @@ module PerformanceDashboard::Overview::Entering::Gender # rubocop:disable Style/
     @entering_by_gender_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
       columns += entering_by_gender.values.map(&:count)
+      categories = entering_by_gender.keys.map { |g| HUD.gender(g) }
       {
         columns: columns,
-        categories: entering_by_gender.keys.map { |g| HUD.gender(g) },
+        categories: categories,
       }
     end
   end

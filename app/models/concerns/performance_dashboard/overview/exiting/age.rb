@@ -22,9 +22,10 @@ module PerformanceDashboard::Overview::Exiting::Age # rubocop:disable Style/Clas
     @exiting_by_age_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
       columns += exiting_by_age.values.map(&:count)
+      categories = exiting_by_age.keys.map(&:to_s).map(&:humanize)
       {
         columns: columns,
-        categories: exiting_by_age.keys.map(&:to_s).map(&:humanize),
+        categories: categories,
       }
     end
   end

@@ -25,9 +25,10 @@ module PerformanceDashboard::Overview::Exiting::Gender # rubocop:disable Style/C
     @exiting_by_gender_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
       columns += exiting_by_gender.values.map(&:count)
+      categories = exiting_by_gender.keys.map { |g| HUD.gender(g) }
       {
         columns: columns,
-        categories: exiting_by_gender.keys.map { |g| HUD.gender(g) },
+        categories: categories,
       }
     end
   end
