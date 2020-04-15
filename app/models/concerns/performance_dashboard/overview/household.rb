@@ -36,6 +36,6 @@ module PerformanceDashboard::Overview::Household # rubocop:disable Style/ClassAn
       with_children: she_t[:age].gt(17).and(she_t[:other_clients_under_18].gt(0)),
       only_children: she_t[:children_only].eq(true),
     }
-    @household_queries[key.to_i]
+    @household_queries[key.to_sym]
   end
 end

@@ -25,15 +25,18 @@ module PerformanceDashboard::Overview::Entering::Household # rubocop:disable Sty
     @entering_by_household_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
       columns += entering_by_household.values.map(&:count)
+      categories = entering_by_household.keys.map do |type|
+        household_type(type)
+      end
       {
         columns: columns,
-        categories: entering_by_household.values,
+        categories: categories,
       }
     end
   end
 
   private def entering_by_household_details(options)
-    sub_key = options[:sub_key]&.to_i
+    sub_key = options[:sub_key]&.to_sym
     ids = if sub_key
       entering_by_household[sub_key]
     else

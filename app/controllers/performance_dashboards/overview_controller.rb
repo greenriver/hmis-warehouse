@@ -31,7 +31,7 @@ module PerformanceDashboards
           :sub_key,
           :age,
           :gender,
-          :household_type,
+          :household,
           :veteran,
           :sub_population,
           :race,

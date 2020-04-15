@@ -57,7 +57,7 @@ class PerformanceDashboards::Base
   end
 
   def household_type(type)
-    household_types.invert[type]
+    household_types.invert[type] || 'Unknown'
   end
 
   def age_ranges
@@ -124,7 +124,7 @@ class PerformanceDashboards::Base
   end
 
   private def filter_for_household_type(scope)
-    return scope unless @household_type.present?
+    return scope unless @household_type.present? && @household_type != :all
 
     case @household_type
     when :without_children
