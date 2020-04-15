@@ -135,15 +135,18 @@ module GrdaWarehouse::HealthEmergency
     private def add_test_results!
       GrdaWarehouse::HealthEmergency::UploadedTest.test_addition_pending.
         find_each do |uploaded_test|
-          test = GrdaWarehouse::HealthEmergency::Test.create(
-            user_id: user.id,
-            agency_id: user.agency&.id,
+          test = GrdaWarehouse::HealthEmergency::Test.where(
             client_id: uploaded_test.client_id,
             tested_on: uploaded_test.tested_on,
             result: uploaded_test.test_result,
             location: uploaded_test.test_location,
             emergency_type: GrdaWarehouse::Config.get(:health_emergency),
-          )
+          ).first_or_create do |test|
+            test.assign_attributes(
+              user_id: user.id,
+              agency_id: user.agency&.id
+            )
+          end
           uploaded_test.update(test_id: test.id)
         end
     end
