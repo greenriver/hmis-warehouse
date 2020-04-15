@@ -1,0 +1,6 @@
+- title = "Uploaded #{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Testing Results"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+= render 'tests_table'

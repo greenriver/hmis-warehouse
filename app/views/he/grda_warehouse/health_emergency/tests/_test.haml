@@ -6,6 +6,10 @@
   %dl.mr-4
     %dt Result
     %dd= item.result.presence || 'Blank'
+  - if item.location
+    %dl.mr-4
+      %dt Location
+      %dd= item.location
   %dl.mr-4
     %dt Notes
     %dd= simple_format(item.notes) || 'Blank'
