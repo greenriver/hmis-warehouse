@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_04_144432) do
+ActiveRecord::Schema.define(version: 2020_04_15_205728) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -530,7 +530,6 @@ ActiveRecord::Schema.define(version: 2020_04_04_144432) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -574,7 +573,6 @@ ActiveRecord::Schema.define(version: 2020_04_04_144432) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -905,7 +903,7 @@ ActiveRecord::Schema.define(version: 2020_04_04_144432) do
     t.string "record_status"
     t.date "record_updated_on"
     t.date "exported_on"
-    t.boolean "removal_acknowledged", default: false
+    t.boolean "removal_acknowledged", default: false, null: false
     t.datetime "effective_date"
     t.date "disenrollment_date"
     t.string "stop_reason_description"
