@@ -10,6 +10,8 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
   include PerformanceDashboard::Overview::Entering::Gender
   include PerformanceDashboard::Overview::Entering::Household
   include PerformanceDashboard::Overview::Entering::Veteran
+  include PerformanceDashboard::Overview::Entering::Race
+  include PerformanceDashboard::Overview::Entering::Ethnicity
 
   def entering
     entries.distinct
@@ -29,6 +31,10 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
       entering_by_household_details(options)
     elsif options[:veteran]
       entering_by_veteran_details(options)
+    elsif options[:race]
+      entering_by_race_details(options)
+    elsif options[:ethnicity]
+      entering_by_ethnicity_details(options)
     end
   end
 
@@ -51,6 +57,12 @@ module PerformanceDashboard::Overview::Entering # rubocop:disable Style/ClassAnd
       columns['Child Only'] = she_t[:children_only]
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
+    if options[:race]
+      HUD.races.each do |k, title|
+        columns[title] = c_t[k.to_sym]
+      end
+    end
+    columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
     columns
   end
 

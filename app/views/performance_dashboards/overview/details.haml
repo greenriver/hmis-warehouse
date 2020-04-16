@@ -3,11 +3,12 @@
 %p= @detail.date_range_words
 - rows = @detail.detail_for(@options)
 - if rows.any?
+  - headers = @detail.header_for(@options)
   %p Showing #{pluralize(rows.count, 'client')}.
   %table.table.table-striped
     %thead
       %tr
-        - @detail.header_for(@options).each do |header|
+        - headers.each do |header|
           %th= header
     %tbody
       - rows.values.each do |row|
@@ -17,4 +18,4 @@
               - if i == 0
                 = link_to col, client_path(id: col)
               - else
-                = col
+                = @report.detail_column_display(header: headers[i], column: col)

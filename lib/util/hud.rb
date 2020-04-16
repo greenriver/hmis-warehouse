@@ -73,7 +73,7 @@ module HUD
       'BlackAfAmerican' => 'Black or African American',
       'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
       'White' => 'White',
-      'RaceNone' => 'none',
+      'RaceNone' => 'None',
     }
   end
 

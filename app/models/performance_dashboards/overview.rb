@@ -9,6 +9,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Gender
   include PerformanceDashboard::Overview::Household
   include PerformanceDashboard::Overview::Veteran
+  include PerformanceDashboard::Overview::Race
+  include PerformanceDashboard::Overview::Ethnicity
   include PerformanceDashboard::Overview::Detail
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting

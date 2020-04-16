@@ -29,6 +29,27 @@ module PerformanceDashboard::Overview::Detail # rubocop:disable Style/ClassAndMo
     end
   end
 
+  def detail_column_display(header:, column:)
+    case header
+    when 'Gender'
+      HUD.gender(column)
+    when 'Ethnicity'
+      HUD.ethnicity(column)
+    when HUD.race('AmIndAKNative'), HUD.race('Asian'), HUD.race('BlackAfAmerican'), HUD.race('NativeHIOtherPacific'), HUD.race('White'), HUD.race('RaceNone')
+      HUD.no_yes_reasons_for_missing_data(column)
+    when 'Veteran Status'
+      HUD.veteran_status(column)
+    when 'Individual Adult', 'Child Only'
+      yn(column)
+    else
+      column
+    end
+  end
+
+  def yn(boolean)
+    boolean ? 'Yes' : 'No'
+  end
+
   def support_title(options)
     key = options[:key].to_s
     sub_key = options[:sub_key]
@@ -43,6 +64,10 @@ module PerformanceDashboard::Overview::Detail # rubocop:disable Style/ClassAndMo
         title += " #{household_bucket_titles[sub_key.to_i]}"
       elsif options[:veteran].present?
         title += " #{veteran_bucket_titles[sub_key.to_i]}"
+      elsif options[:race].present?
+        title += " #{race_bucket_titles[sub_key.to_s]}"
+      elsif options[:ethnicity].present?
+        title += " #{ethnicity_bucket_titles[sub_key.to_i]}"
       end
     end
     title += " #{key.titleize} #{breakdown}"

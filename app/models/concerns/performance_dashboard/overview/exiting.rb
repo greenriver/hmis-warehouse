@@ -10,6 +10,8 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
   include PerformanceDashboard::Overview::Exiting::Gender
   include PerformanceDashboard::Overview::Exiting::Household
   include PerformanceDashboard::Overview::Exiting::Veteran
+  include PerformanceDashboard::Overview::Exiting::Race
+  include PerformanceDashboard::Overview::Exiting::Ethnicity
 
   def exiting
     exits.distinct
@@ -29,6 +31,10 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
       exiting_by_household_details(options)
     elsif options[:veteran]
       exiting_by_veteran_details(options)
+    elsif options[:race]
+      exiting_by_race_details(options)
+    elsif options[:ethnicity]
+      exiting_by_ethnicity_details(options)
     end
   end
 
@@ -51,6 +57,12 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
       columns['Child Only'] = she_t[:children_only]
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
+    if options[:race]
+      HUD.races.each do |k, title|
+        columns[title] = c_t[k.to_sym]
+      end
+    end
+    columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
     columns
   end
 
