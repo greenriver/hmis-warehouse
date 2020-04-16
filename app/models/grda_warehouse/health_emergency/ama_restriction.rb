@@ -37,7 +37,7 @@ module GrdaWarehouse::HealthEmergency
       'Medical'
     end
 
-    def show_pill_in_history?
+    def show_pill_in_search_results?
       restricted == 'Yes'
     end
 
@@ -50,11 +50,8 @@ module GrdaWarehouse::HealthEmergency
 
     # Only show a status if one has been set
     def status
-      note_text = " (#{note})" if note.present?
-      return "Restricted" if restricted == 'Yes'
-      # return "No Restriction#{note_text}" if restricted == 'No'
-
-      # 'Unknown'
+      return 'Restricted' if restricted == 'Yes'
+      return 'Cleared' if restricted.blank?
     end
   end
 end

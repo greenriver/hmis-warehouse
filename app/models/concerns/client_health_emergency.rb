@@ -52,6 +52,10 @@ module ClientHealthEmergency
 
   # Only show AMA if there is an active one
   def health_emergency_ama_restriction_status
-    health_emergency_ama_restrictions&.max_by(&:created_at)&.status
+    ama = health_emergency_ama_restrictions&.max_by(&:created_at)
+    return unless ama.present?
+    return unless ama.show_pill_in_search_results?
+
+    ama.status
   end
 end
