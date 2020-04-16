@@ -44,7 +44,7 @@ module GrdaWarehouse::HealthEmergency
     def restriction_options
       {
         'Yes' => 'Yes',
-        'No' => '',
+        'Cleared' => '',
       }
     end
 
