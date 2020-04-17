@@ -136,11 +136,11 @@ module Health
       health_enrollment_aco_pid_sl = Health::Enrollment.aco_pid_sl(transaction)
       if health_enrollment_aco_pid_sl
         pid_sl = Health::AccountableCareOrganization.split_pid_sl(health_enrollment_aco_pid_sl)
-        aco = Health::AccountableCareOrganization.find_by(
+        aco = Health::AccountableCareOrganization.active.find_by(
           mco_pid: pid_sl[:pid],
           mco_sl: pid_sl[:sl],
         )
-        updates[:aco] = aco
+        updates[:aco] = aco if aco.present?
       end
 
       referral.update(updates)
