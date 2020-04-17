@@ -27,8 +27,11 @@ module WarehouseReports::Health
       ids = []
       referral_scope.where(medicaid_id: @inquiry.eligible_ids).each do |referral|
         medicaid_id = referral.medicaid_id
-        aco_id = Health::AccountableCareOrganization.active.find_by(edi_name: @inquiry.aco_names[medicaid_id])&.id
-        ids << medicaid_id unless aco_id == referral.accountable_care_organization_id
+        edi_name = @inquiry.aco_names[medicaid_id]
+        if edi_name.present?
+          aco_id = Health::AccountableCareOrganization.active.find_by(edi_name: edi_name)&.id
+          ids << medicaid_id unless aco_id == referral.accountable_care_organization_id
+        end
       end
       ids
     end
