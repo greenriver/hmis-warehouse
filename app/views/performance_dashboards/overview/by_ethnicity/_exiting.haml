@@ -1,6 +1,7 @@
 - key = :exiting
 - detail_params = filter_params.merge(options: {key: key, ethnicity: true, breakdown: breakdown})
 %h2 Exiting
+%p.description Clients exiting a project matching the filters above who has not been seen in any project matching the filters above since.
 = link_to_if show_client_details?, "Total #{pluralize(@report.exiting_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
 
 .jChart.exiting-by-ethnicity-chart

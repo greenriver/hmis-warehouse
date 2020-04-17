@@ -1,6 +1,7 @@
 - key = :entering
 - detail_params = filter_params.merge(options: {key: key, household: true, breakdown: breakdown})
 %h2 Entering
+%p.description Clients entering a project matching the filters above who has not been seen in any project matching the filters above for the past 24 months.
 = link_to_if show_client_details?, "Total #{pluralize(@report.entering_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
 
 .jChart.entering-by-household-chart
