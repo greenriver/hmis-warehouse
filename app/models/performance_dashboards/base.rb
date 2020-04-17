@@ -36,7 +36,7 @@ class PerformanceDashboards::Base
     @sub_population = valid_sub_population(filter.sub_population)
   end
 
-  attr_reader :start_date, :end_date
+  attr_reader :start_date, :end_date, :coc_codes
   attr_accessor :comparison_pattern, :project_type_codes
 
   def self.coc_codes
@@ -69,11 +69,54 @@ class PerformanceDashboards::Base
     }.invert.freeze
   end
 
-  def chosen_age_ranges(ranges)
-    ranges.map do |range|
+  def chosen_age_ranges
+    @age_ranges.map do |range|
       age_ranges.invert[range]
     end.join(', ')
   end
+
+  def chosen_genders
+    @genders.map do |gender|
+      HUD.gender(gender)
+    end
+  end
+
+  def chosen_coc_codes
+    @coc_codes.join(', ')
+  end
+
+  def chosen_veteran_statuses
+    @veteran_statuses.map do |veteran_status|
+      HUD.veteran_status(veteran_status)
+    end
+  end
+
+  def chosen_project_types
+    @project_types.map do |type|
+      HUD.project_type(type)
+    end.uniq
+  end
+
+  def chosen_household_type
+    household_type(@household_type.to_sym)
+  end
+
+  def chosen_sub_population
+    Reporting::MonthlyReports::Base.available_types[@sub_population]&.new&.sub_population_title
+  end
+
+  def chosen_races
+    @races.keys.map do |race|
+      HUD.race(race)
+    end
+  end
+
+  def chosen_ethnicities
+    @ethnicities.map do |ethnicity|
+      HUD.ethnicity(ethnicity)
+    end
+  end
+
 
   def self.comparison_patterns
     {
@@ -120,7 +163,7 @@ class PerformanceDashboards::Base
     return scope unless @coc_codes.present?
 
     scope.joins(:enrollment_coc_at_entry).
-      where(ec_t[:CocCode].in(@coc_codes))
+      where(ec_t[:CoCCode].in(@coc_codes))
   end
 
   private def filter_for_household_type(scope)
@@ -139,7 +182,7 @@ class PerformanceDashboards::Base
   private def filter_for_head_of_household(scope)
     return scope unless @hoh_only
 
-    scope.where(head_of_household: true)
+    scope.where(she_t[:head_of_household].eq(true))
   end
 
   private def filter_for_age(scope)

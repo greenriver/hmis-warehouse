@@ -5,9 +5,12 @@
   - content_for :panel_collapse_content, flush: true do
     = simple_form_for :filters, method: :get do |f|
       = render 'performance_dashboards/filters', f: f
-  - content_for "panel_collapse_heading_content_under_title_#{id}" do
-    = render 'filter_status'
   = render 'common/panel_collapse', id: id, title: 'Universe', default_open: filter_open
+- id = 'active-filters'
+#active-filters-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render 'active_filters'
+  = render 'common/panel_collapse', id: id, title: 'Summary of Selected Filters', default_open: active_filter_open
 
 .col-12
   = render 'overall'

@@ -66,6 +66,13 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :filter_open
 
+  def active_filter_open
+    return 'yes' if params[:filters].present?
+
+    'no'
+  end
+  helper_method :active_filter_open
+
   def breakdown
     @breakdown ||= params[:breakdown]&.to_sym || :age
   end
