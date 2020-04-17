@@ -8,7 +8,7 @@
 # Risk: None - contains no PHI
 module Health
   class AccountableCareOrganization < HealthBase
-
+    before_save :clean_up
     validates_presence_of :name
 
     has_many :patient_referrals
@@ -22,6 +22,10 @@ module Health
         pid: pid_sl[0, pid_sl.length - 1],
         sl:  pid_sl[-1],
       }
+    end
+
+    def clean_up
+      edi_name.squeeze!(' ')
     end
   end
 end
