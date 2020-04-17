@@ -11,6 +11,7 @@
           %th Short Name
           %th MCO PID
           %th MCO SL
+          %th EDI Name
 
       %tbody
         - @accountable_care_organizations.each do |accountable_care_organization|
@@ -19,6 +20,7 @@
             %td= accountable_care_organization.short_name
             %td= accountable_care_organization.mco_pid
             %td= accountable_care_organization.mco_sl
+            %td= accountable_care_organization.edi_name
 
   .col-sm-4
     = link_to new_admin_health_accountable_care_organization_path, class: 'btn btn-primary' do
