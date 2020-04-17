@@ -135,6 +135,7 @@ Rails.application.routes.draw do
       :youth_families,
       :individual_adults,
       :non_veterans,
+      :parents,
       :parenting_childrens,
       :parenting_children,
       :parenting_youths,

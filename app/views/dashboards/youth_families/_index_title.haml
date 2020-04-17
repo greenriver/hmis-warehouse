@@ -4,4 +4,4 @@
 - if @html
   = render 'dashboards/tabs', active: 'youth_families'
 %p.text-muted
-  Clients in families enrolled in homeless projects (ES, SH, SO, TH) where the head of household is between 18 and 24 years of age and the enrollment contains at least one client under 18.
+  = GrdaWarehouse::Hud::Client.dashboard_youth_families_warning

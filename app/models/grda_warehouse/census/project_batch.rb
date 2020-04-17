@@ -25,6 +25,7 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_youth_client_counts, :youth)
       add_clients_to_census_buckets(get_family_client_counts, :families)
       add_clients_to_census_buckets(get_youth_families_client_counts, :youth_families)
+      add_clients_to_census_buckets(get_parents_client_counts, :parents)
       add_clients_to_census_buckets(get_individual_client_counts, :individuals)
       add_clients_to_census_buckets(get_parenting_youth_client_counts, :parenting_youth)
       add_clients_to_census_buckets(get_parenting_juvenile_client_counts, :parenting_juveniles)
@@ -84,6 +85,10 @@ module GrdaWarehouse::Census
 
     def get_youth_families_client_counts
       get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.youth_families)
+    end
+
+    def get_parents_client_counts
+      get_client_and_project_counts(GrdaWarehouse::ServiceHistoryEnrollment.family_parents)
     end
 
     def get_individual_client_counts

@@ -487,6 +487,39 @@ ActiveRecord::Schema.define(version: 2020_04_17_173338) do
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_parenting_youth_p_type_hoh"
   end
 
+  create_table "warehouse_partitioned_monthly_reports_parents", id: false, force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('warehouse_partitioned_monthly_reports_id_seq'::regclass)" }, null: false
+    t.integer "month", null: false
+    t.integer "year", null: false
+    t.string "type"
+    t.integer "client_id", null: false
+    t.integer "head_of_household", default: 0, null: false
+    t.string "household_id"
+    t.integer "project_id", null: false
+    t.integer "organization_id", null: false
+    t.integer "destination_id"
+    t.boolean "first_enrollment", default: false, null: false
+    t.boolean "enrolled", default: false, null: false
+    t.boolean "active", default: false, null: false
+    t.boolean "entered", default: false, null: false
+    t.boolean "exited", default: false, null: false
+    t.integer "project_type", null: false
+    t.date "entry_date"
+    t.date "exit_date"
+    t.integer "days_since_last_exit"
+    t.integer "prior_exit_project_type"
+    t.integer "prior_exit_destination_id"
+    t.datetime "calculated_at", null: false
+    t.integer "enrollment_id"
+    t.date "mid_month"
+    t.index ["client_id"], name: "index_month_parents_client_id"
+    t.index ["id"], name: "index_month_parents_id", unique: true
+    t.index ["mid_month", "active", "entered"], name: "index_month_parents_act_enter"
+    t.index ["mid_month", "active", "exited"], name: "index_month_parents_act_exit"
+    t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_parents_dest_enr"
+    t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_parents_p_type_hoh"
+  end
+
   create_table "warehouse_partitioned_monthly_reports_unaccompanied_minors", id: false, force: :cascade do |t|
     t.bigint "id", default: -> { "nextval('warehouse_partitioned_monthly_reports_id_seq'::regclass)" }, null: false
     t.integer "month", null: false

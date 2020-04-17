@@ -2294,6 +2294,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
     t.jsonb "youth_families", default: []
+    t.jsonb "parents", default: []
   end
 
   create_table "nightly_census_by_project_type_clients", id: :serial, force: :cascade do |t|
@@ -2404,6 +2405,14 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.jsonb "th_youth_families", default: []
     t.jsonb "so_youth_families", default: []
     t.jsonb "sh_youth_families", default: []
+    t.jsonb "literally_homeless_parents", default: []
+    t.jsonb "system_parents", default: []
+    t.jsonb "homeless_parents", default: []
+    t.jsonb "ph_parents", default: []
+    t.jsonb "es_parents", default: []
+    t.jsonb "th_parents", default: []
+    t.jsonb "so_parents", default: []
+    t.jsonb "sh_parents", default: []
   end
 
   create_table "nightly_census_by_project_types", id: :serial, force: :cascade do |t|
@@ -2519,6 +2528,14 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.integer "th_youth_families", default: 0
     t.integer "so_youth_families", default: 0
     t.integer "sh_youth_families", default: 0
+    t.integer "literally_homeless_parents", default: 0
+    t.integer "system_parents", default: 0
+    t.integer "homeless_parents", default: 0
+    t.integer "ph_parents", default: 0
+    t.integer "es_parents", default: 0
+    t.integer "th_parents", default: 0
+    t.integer "so_parents", default: 0
+    t.integer "sh_parents", default: 0
   end
 
   create_table "nightly_census_by_projects", id: :serial, force: :cascade do |t|
@@ -2540,6 +2557,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
     t.integer "youth_families", default: 0
+    t.integer "parents", default: 0
   end
 
   create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|
