@@ -53,6 +53,7 @@ module Reports::Lsa::Fy2018
         ['Individual Adults', :individual_adults],
         ['Non Veteran', :non_veteran],
         ['Family', :family],
+        ['Youth Families', :youth_families],
         ['Children', :children],
         ['Unaccompanied Minors', :unaccompanied_minors],
       ]

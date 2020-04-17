@@ -21,6 +21,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::ActiveClients,
           unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::ActiveClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::ActiveClients,
+          youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::ActiveClients,
         },
         entered: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients,
@@ -33,6 +34,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::EnteredClients,
           unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::EnteredClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::EnteredClients,
+          youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::EnteredClients,
         },
         housed: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients,
@@ -45,6 +47,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           children: GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients,
           unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::HousedClients,
           family: GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients,
+          youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::HousedClients,
         },
       }
     end
@@ -55,6 +58,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         'Veterans' => :veteran,
         'Youth' => :youth,
         'Family' => :family,
+        'Youth Families' => :youth_families,
         'Children' => :children,
         'Parenting Youth' => :parenting_youth,
         'Parenting Juveniles' => :parenting_children,

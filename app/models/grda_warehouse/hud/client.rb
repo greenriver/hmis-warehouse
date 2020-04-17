@@ -431,6 +431,16 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :youth_families, -> (start_date: Date.current, end_date: Date.current) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          youth_families.
+          select(:client_id)
+      )
+    end
+
     scope :veteran, -> do
       where(VeteranStatus: 1)
     end

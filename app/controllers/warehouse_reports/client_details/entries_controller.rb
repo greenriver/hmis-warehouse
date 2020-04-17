@@ -82,6 +82,7 @@ module WarehouseReports::ClientDetails
         individual_adults: scope.individual_adult,
         non_veteran: scope.non_veteran,
         family: scope.family,
+        youth_families: scope.youth_families,
         children: scope.children_only,
       }
       scope_hash[sub_population.to_sym]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_14_121843) do
+ActiveRecord::Schema.define(version: 2020_04_17_164547) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2293,6 +2293,7 @@ ActiveRecord::Schema.define(version: 2020_04_14_121843) do
     t.datetime "updated_at", null: false
     t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
+    t.jsonb "youth_families", default: []
   end
 
   create_table "nightly_census_by_project_type_clients", id: :serial, force: :cascade do |t|
@@ -2395,6 +2396,14 @@ ActiveRecord::Schema.define(version: 2020_04_14_121843) do
     t.jsonb "th_unaccompanied_minors", default: []
     t.jsonb "so_unaccompanied_minors", default: []
     t.jsonb "sh_unaccompanied_minors", default: []
+    t.jsonb "literally_homeless_youth_families", default: []
+    t.jsonb "system_youth_families", default: []
+    t.jsonb "homeless_youth_families", default: []
+    t.jsonb "ph_youth_families", default: []
+    t.jsonb "es_youth_families", default: []
+    t.jsonb "th_youth_families", default: []
+    t.jsonb "so_youth_families", default: []
+    t.jsonb "sh_youth_families", default: []
   end
 
   create_table "nightly_census_by_project_types", id: :serial, force: :cascade do |t|
@@ -2502,6 +2511,14 @@ ActiveRecord::Schema.define(version: 2020_04_14_121843) do
     t.integer "th_unaccompanied_minors", default: 0
     t.integer "so_unaccompanied_minors", default: 0
     t.integer "sh_unaccompanied_minors", default: 0
+    t.integer "literally_homeless_youth_families", default: 0
+    t.integer "system_youth_families", default: 0
+    t.integer "homeless_youth_families", default: 0
+    t.integer "ph_youth_families", default: 0
+    t.integer "es_youth_families", default: 0
+    t.integer "th_youth_families", default: 0
+    t.integer "so_youth_families", default: 0
+    t.integer "sh_youth_families", default: 0
   end
 
   create_table "nightly_census_by_projects", id: :serial, force: :cascade do |t|
@@ -2522,6 +2539,7 @@ ActiveRecord::Schema.define(version: 2020_04_14_121843) do
     t.datetime "updated_at", null: false
     t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
+    t.integer "youth_families", default: 0
   end
 
   create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|

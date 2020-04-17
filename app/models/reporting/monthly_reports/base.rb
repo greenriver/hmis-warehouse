@@ -30,6 +30,7 @@ module Reporting::MonthlyReports
         individual_adults: Reporting::MonthlyReports::IndividualAdults,
         non_veteran: Reporting::MonthlyReports::NonVeteran,
         family: Reporting::MonthlyReports::Family,
+        youth_families: Reporting::MonthlyReports::YouthFamilies,
         children: Reporting::MonthlyReports::Children,
       }
     end

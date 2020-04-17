@@ -300,6 +300,27 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       end
     end
 
+    scope :youth_families, -> do
+      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
+        where(
+          presented_as_individual: false,
+          age: 18..25
+        )
+      else
+        where(
+          # Client is in enrollment household with more than one member
+          arel_table[:presented_as_individual].eq(false).
+          # Client is an youth
+          and(arel_table[:age].gt(17)).
+          and(arel_table[:age].lt(25)).
+          # Enrollment household contains at least one child
+          and(arel_table[:other_clients_under_18].gt(0)).
+          # Client is the head of household
+          and(arel_table[:head_of_household].eq(true))
+        )
+      end
+    end
+
     scope :individual, -> do
       where(presented_as_individual: true)
     end
@@ -355,6 +376,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         :veteran,
         :non_veteran,
         :family,
+        :youth_families,
         :individual,
         :youth,
         :children,

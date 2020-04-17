@@ -54,6 +54,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         individual_adults: scope.individual_adult,
         non_veteran: scope.non_veteran,
         family: scope.family,
+        youth_families: scope.youth_families,
         children: scope.children_only,
         unaccompanied_minors: scope.unaccompanied_minors,
       }
