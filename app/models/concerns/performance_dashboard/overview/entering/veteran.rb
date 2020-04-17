@@ -46,7 +46,7 @@ module PerformanceDashboard::Overview::Entering::Veteran # rubocop:disable Style
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(veteran_query(sub_key)) if sub_key
-    details.pluck(*entering_detail_columns(options).values).
+    details.pluck(*detail_columns(options).values).
       index_by(&:first)
   end
 end

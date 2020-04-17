@@ -14,6 +14,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Detail
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
+  include PerformanceDashboard::Overview::Enrolled
 
   def self.detail_method(key)
     available_keys[key.to_sym]
@@ -92,5 +93,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
 
   def exits_current_period
     report_scope.exit
+  end
+
+  def open_enrollments
+    report_scope.open_between(start_date: @start_date, end_date: @end_date)
   end
 end

@@ -38,35 +38,7 @@ module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndM
     end
   end
 
-  private def exiting_detail_columns(options)
-    columns = {
-      'Client ID' => she_t[:client_id],
-      'First Name' => c_t[:FirstName],
-      'Last Name' => c_t[:LastName],
-      'Project' => she_t[:project_name],
-      'Entry Date' => she_t[:first_date_in_program],
-      'Exit Date' => she_t[:last_date_in_program],
-    }
-    # Add any additional columns
-    columns['Age'] = she_t[:age] if options[:age]
-    columns['Gender'] = c_t[:Gender] if options[:gender]
-    if options[:household]
-      columns['Age'] = she_t[:age]
-      columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
-      columns['Individual Adult'] = she_t[:individual_adult]
-      columns['Child Only'] = she_t[:children_only]
-    end
-    columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
-    if options[:race]
-      HUD.races.each do |k, title|
-        columns[title] = c_t[k.to_sym]
-      end
-    end
-    columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
-    columns
-  end
-
   private def exiting_detail_headers(options)
-    exiting_detail_columns(options).keys
+    detail_columns(options).keys
   end
 end

@@ -44,7 +44,7 @@ module PerformanceDashboard::Overview::Entering::Gender # rubocop:disable Style/
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(gender_query(sub_key)) if sub_key
-    details.pluck(*entering_detail_columns(options).values).
+    details.pluck(*detail_columns(options).values).
       map do |row|
         row[-1] = "#{HUD.gender(row.last)} (#{row.last})"
         row

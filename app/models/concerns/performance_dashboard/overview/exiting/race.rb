@@ -46,7 +46,7 @@ module PerformanceDashboard::Overview::Exiting::Race # rubocop:disable Style/Cla
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(race_query(sub_key)) if sub_key
-    details.pluck(*exiting_detail_columns(options).values).
+    details.pluck(*detail_columns(options).values).
       index_by(&:first)
   end
 end

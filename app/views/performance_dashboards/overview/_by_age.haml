@@ -1,6 +1,5 @@
 - breakdown = 'By Age'
-.row
-  .col-sm-6
-    = render 'performance_dashboards/overview/by_age/entering', breakdown: breakdown
-  .col-sm-6
-    = render 'performance_dashboards/overview/by_age/exiting', breakdown: breakdown
+
+= render 'performance_dashboards/overview/by_age/entering', breakdown: breakdown
+= render 'performance_dashboards/overview/by_age/enrolled', breakdown: breakdown
+= render 'performance_dashboards/overview/by_age/exiting', breakdown: breakdown
