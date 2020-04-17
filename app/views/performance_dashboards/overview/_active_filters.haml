@@ -20,7 +20,7 @@
           %dl.mr-4
             %dt Clients Limited
             %dd Counting only Heads of Households
-      - if @filter.household_type.present?
+      - if @filter.household_type != defaults.household_type
         .col-sm-6
           %dl.mr-4
             %dt Household Type
@@ -54,7 +54,7 @@
           %dl.mr-4
           %dt Sub-Population
           %dd= @report.chosen_sub_population
-      - if @filter.races != defaults.races
+      - if @filter.races.present? && @filter.races != defaults.races
         .col-sm-6
           %dl.mr-4
           %dt Races

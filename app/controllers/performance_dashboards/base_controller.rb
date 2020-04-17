@@ -121,6 +121,7 @@ class PerformanceDashboards::BaseController < ApplicationController
         :start_date,
         :household_type,
         :hoh_only,
+        :sub_population,
         coc_codes: [],
         project_types: [],
         veteran_statuses: [],

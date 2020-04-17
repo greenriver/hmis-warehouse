@@ -70,7 +70,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   # specified project types for the prior 24 months.
   def entries
     previous_period = report_scope_source.
-      entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
+      open_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       where(project_type: @project_types)
 
     entries_current_period.where.not(client_id: previous_period.select(:client_id))
