@@ -68,6 +68,18 @@ module Health
       end
     end
 
+    def aco_names
+      return eligibility_response.aco_names unless has_batch
+
+      @aco_names ||= begin
+        names = {}
+        batch_responses.each do |response|
+          names.merge!(response.aco_names)
+        end
+        names
+      end
+    end
+
     def batch_responses
       @batch_responses ||= Health::EligibilityResponse.where(eligibility_inquiry_id: batches.select(:id))
     end

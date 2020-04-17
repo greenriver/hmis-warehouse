@@ -38,6 +38,8 @@ module Health
           patient.update!(coverage_level: Health::Patient.coverage_level_managed_value,
                           previous_aco_name: previous_aco,
                           aco_name: aco)
+          aco_id = Health::AccountableCareOrganization.active.find_by(edi_name: aco)&.id
+          patient.patient_referral.update!(accountable_care_organization_id: aco_id) if aco_id.present?
         end
 
         # Mark ineligible patients
@@ -54,7 +56,8 @@ module Health
     end
 
     def patient_scope(ids)
-      Health::Patient.where(medicaid_id: ids)
+      Health::Patient.where(medicaid_id: ids).
+        preload(:patient_referral)
     end
   end
 end
