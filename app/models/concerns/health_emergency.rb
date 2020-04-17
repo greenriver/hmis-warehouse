@@ -26,4 +26,8 @@ module HealthEmergency
   def show_pill_in_history?
     true
   end
+
+  def show_pill_in_search_results?
+    show_pill_in_history?
+  end
 end
