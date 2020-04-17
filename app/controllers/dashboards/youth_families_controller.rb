@@ -16,7 +16,7 @@ module Dashboards
     helper_method :sub_population_key
 
     def active_report_class
-      Reporting::MonthlyReports::YouthFamily
+      Reporting::MonthlyReports::YouthFamilies
     end
   end
 end
