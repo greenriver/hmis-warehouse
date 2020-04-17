@@ -25,7 +25,9 @@ module Health
     end
 
     def clean_up
-      edi_name.squeeze!(' ')
+      name.squish!
+      short_name.squish!
+      edi_name.squish!
     end
   end
 end
