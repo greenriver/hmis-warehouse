@@ -1,0 +1,24 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.o-page
+  .o-page__header.d-block
+    .row
+      .col-sm-10
+        = render 'clients/aliases'
+  = render 'clients/tab_navigation', current: polymorphic_path(['client_he', health_emergency], client_id: @client)
+
+  .row
+    - if @client.image
+      .col-sm-12.col-md-4.col-xl-3.order-md-last.mb-4
+        .client__image.client__image--w-100{ style: "background-image: url(#{ image_client_path(@client) })" }
+    .col-sm-12.col-md-8.col-xl-9.order-md-first
+      = render "he/clients/#{health_emergency}/ama_restriction"
+      = render "he/clients/#{health_emergency}/triage"
+      = render "he/clients/#{health_emergency}/clinical"
+  - if can_see_health_emergency_history?
+    .c-card.c-card--flush
+      .c-card__header
+        %h2 History
+      = render "he/clients/#{health_emergency}/history"

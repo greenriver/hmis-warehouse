@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def section_1_scope
-      served_during_report_range.
+      started_after_report_start.
         where(street_outreach_contact: "Yes")
     end
 

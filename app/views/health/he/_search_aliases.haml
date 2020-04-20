@@ -1,0 +1,9 @@
+.clients__client-additional-names
+  .client__client-name
+    .client-aka
+      %em.ds-case
+        CASE
+      = index_case.name
+      = "(#{index_case.aliases})" if index_case.aliases.present?
+- if index_case.client.present?
+  = render 'clients/search/aliases', client: index_case.client

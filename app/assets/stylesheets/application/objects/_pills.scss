@@ -1,0 +1,18 @@
+@import '../helpers';
+
+.o-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.o-pills {
+  .badge-pill {
+    margin-top: space(1);
+    margin-bottom: space(1);
+    margin-right: space(1);
+    &:last-of-type {
+      margin-right: space(4);
+    }
+  }
+}

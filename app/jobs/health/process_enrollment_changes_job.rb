@@ -9,6 +9,13 @@ module Health
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 
+      pidsls = Health::Cp.all.map { |cp| cp.pid + cp.sl }
+      receiver_id = enrollment.receiver_id
+      unless pidsls.include?(receiver_id)
+        enrollment.update(status: "Unexpected receiver ID #{receiver_id}")
+        return
+      end
+
       begin
         # counters
         new_patients = 0
@@ -19,7 +26,7 @@ module Health
         enrollment.enrollments.each do |transaction|
           referral = referral(transaction)
           if referral.present?
-            if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
+            if referral.disenrolled?
               re_enroll_patient(transaction, referral)
               returning_patients += 1
             else
@@ -101,11 +108,15 @@ module Health
     end
 
     def re_enroll_patient(_transaction, referral)
+      # Remove disenrollment flags, and return patient to "to be assigned"
       referral.update(
         disenrollment_date: nil,
         pending_disenrollment_date: nil,
+        removal_acknowledged: false,
+        rejected: false,
+        rejected_reason: :Remove_Removal,
+        agency_id: nil,
       )
-      # TODO: any other work to re-enroll
     end
 
     def disenroll_patient(transaction, referral)
@@ -113,21 +124,26 @@ module Health
     end
 
     def update_patient(transaction, referral)
-      pid_sl = Health::AccountableCareOrganization.split_pid_sl(Health::Enrollment.aco_pid_sl(transaction))
-      aco = Health::AccountableCareOrganization.find_by(
-        mco_pid: pid_sl[:pid],
-        mco_sl: pid_sl[:sl],
-      )
-
-      referral.update(
+      updates = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
-        aco: aco,
-      )
+      }
+
+      health_enrollment_aco_pid_sl = Health::Enrollment.aco_pid_sl(transaction)
+      if health_enrollment_aco_pid_sl
+        pid_sl = Health::AccountableCareOrganization.split_pid_sl(health_enrollment_aco_pid_sl)
+        aco = Health::AccountableCareOrganization.active.find_by(
+          mco_pid: pid_sl[:pid],
+          mco_sl: pid_sl[:sl],
+        )
+        updates[:aco] = aco if aco.present?
+      end
+
+      referral.update(updates)
     end
   end
 end

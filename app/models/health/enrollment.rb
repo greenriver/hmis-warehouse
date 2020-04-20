@@ -18,6 +18,18 @@ module Health
 
     belongs_to :user
 
+    def self.describe(transaction)
+      @maintenance_types ||= {
+        '021' => 'Enrollment',
+        '024' => 'Disenrollment',
+        '001' => 'Change',
+        '030' => 'Audit',
+      }
+      "#{@maintenance_types[maintenance_type(transaction)]}: " +
+        "#{first_name(transaction)} #{last_name(transaction)}" +
+        " (#{subscriber_id(transaction)})"
+    end
+
     def enrollments
       transactions.select{ |transaction| self.class.maintenance_type(transaction) == '021'}
     end
@@ -125,6 +137,13 @@ module Health
       Date.parse(as_json[:interchanges].
         detect{|h| h.keys.include? :ISA}[:ISA].
         detect{|h| h.keys.include? :I08}[:I08][:value][:raw])
+    end
+
+    def receiver_id
+      return nil unless as_json.present?
+      as_json[:interchanges].
+        detect{|h| h.keys.include? :ISA}[:ISA].
+        detect{|h| h.keys.include? :I07}[:I07][:value][:raw]
     end
 
     def as_json

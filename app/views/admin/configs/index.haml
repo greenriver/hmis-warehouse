@@ -6,42 +6,61 @@
 = simple_form_for @config, url: admin_configs_path do |f|
   .row
     .col-sm-3
-      %ul.nav.flex-column.nav-pills
-        %li.nav-item{ role: :presentation }
-          = link_to admin_available_file_tags_path do
-            Available File Tags
-        %li.nav-item{ role: :presentation }
-          = link_to 'Public Files', admin_public_files_path, class: 'nav-link'
+      %nav.nav.flex-column
+        = link_to 'Available File Tags', admin_available_file_tags_path, class: 'nav-item nav-link'
+        = link_to 'Public Files', admin_public_files_path, class: 'nav-item nav-link'
+        = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-item nav-link'
     .col-sm-4
-      = f.input :eto_api_available, label: 'Is the ETO API available?'
-      = f.input :healthcare_available, label: 'Enable Healthcare section?'
-      = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
-      = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations, input_html: {class: :select2}
-      = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
-      = f.input :consent_visible_to_all, label: 'Should everyone with client file access be able to see all consent forms?'
-      = f.input :auto_confirm_consent, label: 'Should consent forms be confirmed automatically?'
-      = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
-      = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
-      = f.input :verified_homeless_history_visible_to_all, label: 'Should everyone with client file access be able to see all verified homeless history files?'
-      = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
-      = f.input :cas_url, label: 'CAS Site URL'
-      = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
-      = f.input :chronic_definition, collection: GrdaWarehouse::Config.available_chronic_definitions, input_html: {class: :select2}
-      = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', input_html: {class: :select2}
+      %section.o-section-card
+        %h3 Release of Information
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :release_duration, collection: GrdaWarehouse::Config.available_release_durations, input_html: {class: :select2}
+          = f.input :allow_partial_release, label: 'Allow partial CAS releases?'
+          = f.input :consent_visible_to_all, label: 'Should everyone with client file access be able to see all consent forms?'
+          = f.input :auto_confirm_consent, label: 'Should consent forms be confirmed automatically?'
+          = f.input :window_access_requires_release, label: 'Block access to the window if a client doesn\'t have a release?'
+          = f.input :show_partial_ssn_in_window_search_results, label: 'Show partial SSNs in the window search results? (no means don\'t show anything)'
+
+      %section.o-section-card
+        %h3 Client Calculations
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :project_type_override, label: 'Override ALL project types?', hint: 'Treat the Project Type Override as a global override instead of just an override for federal reporting.'
+          = f.input :so_day_as_month, label: 'Extrapolate all street outreach contacts to cover the entire month?'
+          = f.input :chronic_definition, collection: GrdaWarehouse::Config.available_chronic_definitions, input_html: {class: :select2}
+          = f.input :verified_homeless_history_visible_to_all, label: 'Should everyone with client file access be able to see all verified homeless history files?'
+          = f.input :allow_multiple_file_tags, label: 'Should client files be allowed to have more than one tag?'
+          = f.input :vispdat_prioritization_scheme, collection: GrdaWarehouse::Config.available_vispdat_prioritization_schemes, label: 'How should we prioritize VI-SPDAT scores for CAS', include_blank: false, input_html: {class: :select2}
+          = f.input :show_vispdats_on_dashboards, label: "Show VI-SPDAT as a filter on the dashboards?"
+          = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)', input_html: {class: :select2}
+          = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
+          = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
+
     .col-sm-4
-      = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
-      = f.input :continuum_name, as: :string, label: 'Continuum Name'
-      = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
-      = f.input :allow_multiple_file_tags, label: 'Should client files be allowed to have more than one tag?'
-      = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
-      -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
-      = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', input_html: {class: :select2}
-      = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
-      = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
-      = f.input :vispdat_prioritization_scheme, collection: GrdaWarehouse::Config.available_vispdat_prioritization_schemes, label: 'How should we prioritize VI-SPDAT scores for CAS', include_blank: false, input_html: {class: :select2}
-      = f.input :show_vispdats_on_dashboards, label: "Show VI-SPDAT as a filter on the dashboards?"
-      = f.input :family_calculation_method, collection: GrdaWarehouse::Config.family_calculation_methods, label: 'Method used to identify families (exclusive of HUD reporting)', input_html: {class: :select2}
-      = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
-      = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
+      %section.o-section-card
+        %h3 Connections
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :eto_api_available, label: 'Is the ETO API available?'
+          = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
+          = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
+          = f.input :continuum_name, as: :string, label: 'Continuum Name'
+          = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
+          -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
+
+      %section.o-section-card
+        %h3 Healthcare
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :healthcare_available, label: 'Enable Healthcare section?'
+          = f.input :health_emergency, collection: GrdaWarehouse::Config.available_health_emergencies, label: 'Ongoing health emergency?', include_blank: 'No current emergency', input_html: {class: :select2}
+          = f.input :health_emergency_tracing, collection: GrdaWarehouse::Config.available_health_emergency_tracings, label: 'Tracing contacts for', include_blank: 'No current emergency', input_html: {class: :select2}
+
+      %section.o-section-card
+        %h3 CAS
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :cas_url, label: 'CAS Site URL'
+          = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', input_html: {class: :select2}
+          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', input_html: {class: :select2}
+          = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
+          = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
+          = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'

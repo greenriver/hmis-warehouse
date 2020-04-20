@@ -1,0 +1,28 @@
+%table.table.table-hover.table-responsive-sm
+  %thead
+    %tr
+      %th Date
+      %th Activity
+      %th Status
+      %th Entered By
+      %th Agency
+      %th
+  %tbody
+    - @history.each do |item|
+      - if item.visible_to?(current_user)
+        %tr.table__detail-row-rollup.j-toggle-row-content
+          %td= item.created_at.to_date
+          %td= item.title
+          %td
+            - if item.show_pill_in_history?
+              = pill_badge labels: [item.pill_title, item.status]
+          %td= item.user&.name
+          %td= item.agency&.name
+          %td.text-right
+            %i.icon-arrow-circled-right.table__toggle-icon.pr-4
+        %tr.collapse.no-hover
+          %td{colspan: 6}
+            = render item, flex: 'd-flex'
+- content_for :page_js do
+  :javascript
+    new App.TableWithToggleRows('.j-toggle-row-content')

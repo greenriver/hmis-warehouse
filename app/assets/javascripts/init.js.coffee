@@ -21,7 +21,17 @@ $ ->
   $('.datepicker.enable-on-load, .date_picker.enable-on-load')
     .prop('disabled', false)
     .datepicker()
-
+  $('.datetimepicker, .date_time_picker').datetimepicker({
+    sideBySide: true,
+    stepping: 15,
+    format: "MMM D, YYYY h:mm a",
+    icons: {
+      time: "icon icon-clock",
+      date: "icon icon-calendar",
+      up: "icon icon-arrow-up",
+      down: "icon icon-arrow-down"
+    }
+  })
   poller = $('[data-poll-every]').first()
   if poller.length > 0
     setInterval ->

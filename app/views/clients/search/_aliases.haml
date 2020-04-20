@@ -1,0 +1,7 @@
+- akas = client_aliases(client)
+- if akas.any?
+  .clients__client-additional-names
+    - akas.each_with_index do | aka, i |
+      .client__client-name
+        .client-aka
+          = aka

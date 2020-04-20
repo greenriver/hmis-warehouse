@@ -1,0 +1,75 @@
+:scss
+  section,
+  h1 {
+    margin-bottom: 15px;
+  }
+  .intro {
+    border: 1px solid #CCC;
+    padding: 15px;
+    background: #f9f9f9;
+    margin-bottom: 30px;
+  }
+  h2 {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #CCC;
+  }
+  h3 {
+    margin-bottom: 15px;
+    ~ pre {
+      margin-top: -10px;
+    }
+  }
+  section section {
+    margin-bottom: 100px;
+  }
+
+- validate_html = { input_html: {class: 'validate'}}
+- form_defaults = { required: false }
+
+.container.py-4
+  %h1 Form
+  %section
+    = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+      .row
+        .col-6
+          %h4 Default input
+          = f.input :first_name
+
+          %h4 Required with validation
+          = f.input :last_name, required: true, **validate_html
+
+          %h4 Disabled
+          = f.input :disabled, disabled: true
+
+          %h4 Number
+          = f.input :random_number, as: :numeric, required: true, **validate_html
+
+          %h4 Normal Select
+          = f.input :sel,  collection: ['Choice 1', 'Choice 2']
+
+          %h4 "Pretty" boolean
+          = f.input :is_currently_youth, as: :pretty_boolean, wrapper: :custom_boolean, disabled: false
+
+          -# %h4 Select 2
+          -# = f.input :select2, as: :select2, collection: ['Choice 1', 'Choice 2']
+
+          %h4 Password
+          = f.input :password, as: :password, required: true, **validate_html
+
+          %h4 Textarea Input
+          = f.input :textarea, as: :text, required: true, **validate_html
+
+          %h4 Date picker Input
+          = f.input :date, as: :date_picker, value: '2010-04-25'
+
+      .row
+        .col-12
+          %section
+            %h4 Submit
+            = f.submit value: 'Create', class: 'btn btn-primary'
+            = f.submit value: 'Cancel', class: 'btn btn-secondary'
+            = f.submit value: 'Breaking Change', class: 'btn btn-warning'
+            = f.submit value: 'Delete (Descructive)', class: 'btn btn-danger'
+
+          %section

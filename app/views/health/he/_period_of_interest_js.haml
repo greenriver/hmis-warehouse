@@ -1,0 +1,9 @@
+= content_for :page_js do
+  :javascript
+    $('.jInfectiousStartDate').on('change', function(e){
+      var start_date = $(this).val();
+      if(start_date !== '') {
+        var two_weeks = moment(start_date, 'MMM D, YYYY').add(14, 'days').format('MMM D, YYYY');
+        $('.jDayTwo').val(two_weeks);
+      }
+    });

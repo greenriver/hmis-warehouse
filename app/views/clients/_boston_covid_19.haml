@@ -1,0 +1,16 @@
+- show_link = false unless defined?(show_link)
+- link_path = polymorphic_path(['client_he', health_emergency], client_id: client)
+.health-emergency{data: {id: client.id, href: link_path}, class: show_link ? 'js-client' : nil}
+  .client__details-header
+    %h3.text-danger COVID-19 Status
+  .o-pills.health-emergency__badges
+    - if client.health_emergency_ama_restriction_status.present? && can_see_health_emergency_medical_restriction?
+      = pill_badge labels: [GrdaWarehouse::HealthEmergency::AmaRestriction.new.pill_title, client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
+    - if can_see_health_emergency_screening?
+      = pill_badge labels: [GrdaWarehouse::HealthEmergency::Triage.new.pill_title, client.health_emergency_triage_status]
+    - if can_see_health_emergency_clinical?
+      = pill_badge labels: [client.health_emergency_isolation_quarantine_pill_title, client.health_emergency_isolation_status]
+      = pill_badge labels: [GrdaWarehouse::HealthEmergency::Test.new.pill_title, client.health_emergency_test_status]
+    - if show_link
+      = link_to link_path, class: 'btn btn-primary btn-sm' do
+        Update Information

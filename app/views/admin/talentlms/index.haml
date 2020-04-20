@@ -1,0 +1,13 @@
+= content_for :crumbs do
+  = link_to admin_configs_path do
+    &laquo; Site Configuration
+.row
+  .col-sm-4
+    %h1 TalentLMS Configuration
+
+    = simple_form_for @config, url: admin_talentlms_path, method: :post do |f|
+      = f.input :subdomain
+      = f.input :api_key, label: 'API Key'
+      = f.input :courseid, label: 'Course ID'
+
+      = f.submit 'Save Configuration'

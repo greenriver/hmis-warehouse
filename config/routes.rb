@@ -308,6 +308,11 @@ Rails.application.routes.draw do
         get :download, on: :member
       end
     end
+    namespace :health_emergency do
+      resources :testing_results, only: [:index]
+      resources :uploaded_results, only: [:index, :create, :new, :show]
+      resources :medical_restrictions, only: [:index]
+    end
     namespace :cas do
       resources :decision_efficiency, only: [:index] do
         collection do
@@ -364,7 +369,9 @@ Rails.application.routes.draw do
       resources :premium_payments, only: [:index, :show, :create, :destroy]
       resources :eligibility
       resources :eligibility_results, only: [:show]
-      resources :enrollments
+      resources :enrollments do
+        get :download, on: :member
+      end
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
       resources :encounters, only: [:index, :show, :create, :destroy]
@@ -379,6 +386,12 @@ Rails.application.routes.draw do
         end
       end
       resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
+      resources :contact_tracing, only: [:index] do
+        get :download, on: :collection
+      end
+      resources :completed_contact_tracing, only: [:index] do
+        get :download, on: :collection
+      end
     end
   end
 
@@ -449,6 +462,24 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     healthcare_routes(window: false)
+    namespace :he do
+      get :boston_covid_19
+      resources :triages, only: [:create, :destroy]
+      resources :clinicals, only: [:destroy] do
+        collection do
+          post :triage
+          post :test
+          post :isolation
+          post :quarantine
+        end
+        member do
+          delete :destroy_triage
+          delete :destroy_test
+          delete :destroy_isolation
+        end
+      end
+      resources :ama_restrictions, only: [:create, :destroy]
+    end
   end
 
   # scope
@@ -625,6 +656,15 @@ Rails.application.routes.draw do
       end
     end
     resources :my_patients, only: [:index]
+    namespace :he do
+      get :search
+      resources :cases do
+        resources :locations, except: [:index]
+        resources :contacts
+        resources :site_managers
+        resources :staff
+      end
+    end
   end
 
   namespace :api do
@@ -696,6 +736,7 @@ Rails.application.routes.draw do
           get :assigned
           get :rejected
           get :disenrolled
+          get :disenrollment_accepted
           post :bulk_assign_agency
         end
         post :assign_agency
@@ -729,6 +770,7 @@ Rails.application.routes.draw do
     resources :administrative_events, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :warehouse_alerts
     resources :public_files, only: [:index, :create, :destroy]
+    resources :talentlms
 
     resources :delayed_jobs, only: [:index, :update, :destroy]
   end
@@ -746,6 +788,7 @@ Rails.application.routes.draw do
 
   unless Rails.env.production?
     resource :style_guide, only: :none do
+      get :form
       get :careplan
       get :health_team
       get :icon_font

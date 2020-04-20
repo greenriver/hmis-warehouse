@@ -3,24 +3,24 @@
 
 = render 'menus/health_admin_tabs'
 .row
-  .col-sm-8
-    %table.table.table-sm
-      %thead
-        %tr
-          %th Name
-          %th Short Name
-          %th MCO PID
-          %th MCO SL
-
-      %tbody
-        - @accountable_care_organizations.each do |accountable_care_organization|
-          %tr
-            %td= link_to accountable_care_organization.name, edit_admin_health_accountable_care_organization_path(accountable_care_organization)
-            %td= accountable_care_organization.short_name
-            %td= accountable_care_organization.mco_pid
-            %td= accountable_care_organization.mco_sl
-
-  .col-sm-4
+  .col.text-right
     = link_to new_admin_health_accountable_care_organization_path, class: 'btn btn-primary' do
       %i.icon-plus
       New ACO
+
+.row
+  .col
+    %ul.nav.nav-tabs
+      %li.nav-item
+        %a.nav-link.active{href: '#active', role: "presentation", data: {toggle: :tab}}
+          Active
+      %li.nav-item
+        %a.nav-link{href: '#inactive', role: "presentation", data: {toggle: :tab}}
+          Inactive
+
+    .tab-content
+      .tab-pane.fade.show.active#active
+        = render 'table', accountable_care_organizations: @accountable_care_organizations.active
+
+      .tab-pane.fade#inactive
+        = render 'table', accountable_care_organizations: @accountable_care_organizations.inactive

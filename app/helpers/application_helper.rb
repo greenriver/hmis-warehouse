@@ -180,7 +180,7 @@ module ApplicationHelper
       id = name[:ds_id]
       full_name = name[:name]
       content_tag(:em, sn, class: "ds-#{id}") + " #{full_name}"
-    end
+    end.uniq
   end
 
   def human_locale(locale)
@@ -277,6 +277,17 @@ module ApplicationHelper
       link_to(name, options, html_options, &block)
     else
       link_to_if(false, name, options, html_options, &block)
+    end
+  end
+
+  def pill_badge(labels: [], wrapper_classes: ['badge-dark'])
+    tag.div class: ['badge-pill'] + wrapper_classes do
+      tag.dl class: 'badge-pill__content' do
+        concat(
+          tag.dt(labels.first) +
+          tag.dd(labels.last),
+        )
+      end
     end
   end
 end

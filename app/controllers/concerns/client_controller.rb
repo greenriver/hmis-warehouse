@@ -296,6 +296,22 @@ module ClientController
       @client = client_source.find(0)
     end
 
+    protected def set_search_client
+      id = params[:id].to_i
+      @client = client_search_scope.find_by(id: id)
+      return if @client.present?
+
+      client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
+      if client_id
+        redirect_to controller: controller_name, action: action_name, id: client_id
+        return
+      end
+
+      # Throw a 404 by looking for a non-existent client
+      # Using 0 here against the client model will be *much* faster than trying the search again
+      @client = client_source.find(0)
+    end
+
     protected def set_client_start_date
       @start_date = @client.date_of_first_service
     end

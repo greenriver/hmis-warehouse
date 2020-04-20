@@ -40,7 +40,9 @@ module ControllerAuthorization
   end
 
   def not_authorized!
-    redirect_to(root_path, alert: 'Sorry you are not authorized to do that.')
+    your_root_path = root_path
+    your_root_path = current_user.my_root_path if current_user
+    redirect_to(your_root_path, alert: 'Sorry you are not authorized to do that.')
   end
 
   # This should no longer be needed

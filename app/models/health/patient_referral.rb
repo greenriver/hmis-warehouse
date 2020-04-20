@@ -98,9 +98,21 @@ module Health
     scope :with_patient, -> { where.not patient_id: nil }
     scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
+    scope :active_within_range, -> (start_date:, end_date:) do
+      at = arel_table
+      # Excellent discussion of why this works:
+      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+      d_1_start = start_date
+      d_1_end = end_date
+      d_2_start = at[:enrollment_start_date]
+      d_2_end = at[:disenrollment_date]
+      # Currently does not count as an overlap if one starts on the end of the other
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    end
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end
+    # scope :pending_disenrollment, -> { where(hpr_t[:pending_disenrollment_date].lt(Date.current)) }
     scope :pending_disenrollment, -> { where.not(pending_disenrollment_date: nil) }
     scope :at_acos, -> (aco_ids) do
       where(accountable_care_organization_id: aco_ids)
@@ -230,6 +242,10 @@ module Health
       else
         'A'
       end
+    end
+
+    def disenrolled?
+      disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
     end
 
     def display_claimed_by_other(agencies)
