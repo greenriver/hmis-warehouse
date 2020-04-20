@@ -65,6 +65,7 @@ module Admin::Health
         :mco_pid,
         :mco_sl,
         :edi_name,
+        :active,
       )
     end
   end
