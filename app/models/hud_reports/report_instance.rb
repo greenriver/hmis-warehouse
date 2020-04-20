@@ -12,6 +12,17 @@ module HudReports
     belongs_to :user
     has_many :report_cells
 
+    # An answer cell in a question
+    #
+    # @param question [String] the question name (e.g., 'Q1')
+    # @param cell [String] the cell name (e.g, 'B2')
+    # @return [ReportCell] the answer cell
+    def answer(question:, cell: nil)
+      report_cells.
+        where(question: question, cell_name: cell, universe: false).
+        first_or_create
+    end
+
     # The universe of clients for a question
     #
     # @param question [String] the question name (e.g., 'Q1')

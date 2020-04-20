@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_12_175312) do
+ActiveRecord::Schema.define(version: 2020_04_20_144827) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -881,7 +881,7 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
-    t.index "(COALESCE(act_as_project_type, \"ProjectType\"))", name: "project_project_override_index"
+    t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_date_updated"
@@ -1272,6 +1272,7 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.boolean "acute_psychiatric_condition", default: false
     t.boolean "acute_substance_abuse", default: false
     t.boolean "location_no_preference"
+    t.integer "vulnerability_score"
     t.index ["assessor_id"], name: "index_ce_assessments_on_assessor_id"
     t.index ["client_id"], name: "index_ce_assessments_on_client_id"
     t.index ["deleted_at"], name: "index_ce_assessments_on_deleted_at"
@@ -1572,6 +1573,21 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.boolean "visible_in_cas", default: true, null: false
     t.string "assessment_trigger"
     t.integer "tag_id"
+    t.integer "threshold_row_1"
+    t.string "threshold_color_1"
+    t.string "threshold_label_1"
+    t.integer "threshold_row_2"
+    t.string "threshold_color_2"
+    t.string "threshold_label_2"
+    t.integer "threshold_row_3"
+    t.string "threshold_color_3"
+    t.string "threshold_label_3"
+    t.integer "threshold_row_4"
+    t.string "threshold_color_4"
+    t.string "threshold_label_4"
+    t.integer "threshold_row_5"
+    t.string "threshold_color_5"
+    t.string "threshold_label_5"
     t.index ["deleted_at"], name: "index_cohorts_on_deleted_at"
   end
 
@@ -1606,6 +1622,8 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.boolean "only_most_recent_import", default: false
     t.boolean "expose_coc_code", default: false, null: false
     t.boolean "auto_confirm_consent", default: false, null: false
+    t.string "health_emergency"
+    t.string "health_emergency_tracing"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1852,6 +1870,149 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
   end
 
+  create_table "health_emergency_ama_restrictions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "restricted"
+    t.string "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_ama_restrictions_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_ama_restrictions_on_user_id"
+  end
+
+  create_table "health_emergency_clinical_triages", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "test_requested"
+    t.string "location"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_clinical_triages_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_clinical_triages_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_clinical_triages_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_clinical_triages_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_clinical_triages_on_user_id"
+  end
+
+  create_table "health_emergency_isolations", force: :cascade do |t|
+    t.string "type", null: false
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.datetime "isolation_requested_at"
+    t.string "location"
+    t.date "started_on"
+    t.date "scheduled_to_end_on"
+    t.date "ended_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_isolations_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_isolations_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_isolations_on_created_at"
+    t.index ["location"], name: "index_health_emergency_isolations_on_location"
+    t.index ["updated_at"], name: "index_health_emergency_isolations_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_isolations_on_user_id"
+  end
+
+  create_table "health_emergency_test_batches", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "uploaded_count"
+    t.integer "matched_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.string "import_errors"
+    t.string "file"
+    t.string "name"
+    t.string "size"
+    t.string "content_type"
+    t.binary "content"
+    t.index ["created_at"], name: "index_health_emergency_test_batches_on_created_at"
+    t.index ["deleted_at"], name: "index_health_emergency_test_batches_on_deleted_at"
+    t.index ["updated_at"], name: "index_health_emergency_test_batches_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_test_batches_on_user_id"
+  end
+
+  create_table "health_emergency_tests", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "test_requested"
+    t.string "location"
+    t.date "tested_on"
+    t.string "result"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_tests_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_tests_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_tests_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_tests_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_tests_on_user_id"
+  end
+
+  create_table "health_emergency_triages", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.string "location"
+    t.string "exposure"
+    t.string "symptoms"
+    t.date "first_symptoms_on"
+    t.date "referred_on"
+    t.string "referred_to"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.text "notes"
+    t.string "emergency_type"
+    t.index ["agency_id"], name: "index_health_emergency_triages_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_triages_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_triages_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_triages_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_triages_on_user_id"
+  end
+
+  create_table "health_emergency_uploaded_tests", force: :cascade do |t|
+    t.bigint "batch_id"
+    t.integer "client_id"
+    t.integer "test_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.date "dob"
+    t.string "gender"
+    t.string "ssn"
+    t.date "tested_on"
+    t.string "test_location"
+    t.string "test_result"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["batch_id"], name: "index_health_emergency_uploaded_tests_on_batch_id"
+    t.index ["created_at"], name: "index_health_emergency_uploaded_tests_on_created_at"
+    t.index ["deleted_at"], name: "index_health_emergency_uploaded_tests_on_deleted_at"
+    t.index ["updated_at"], name: "index_health_emergency_uploaded_tests_on_updated_at"
+  end
+
   create_table "helps", id: :serial, force: :cascade do |t|
     t.string "controller_path", null: false
     t.string "action_name", null: false
@@ -2041,6 +2202,19 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
   end
 
+  create_table "hud_report_apr_clients", force: :cascade do |t|
+    t.integer "age"
+    t.boolean "head_of_household"
+    t.boolean "parenting_youth"
+    t.date "first_date_in_program"
+    t.date "last_date_in_program"
+    t.boolean "veteran"
+    t.integer "longest_stay"
+    t.boolean "chronically_homeless"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "hud_report_ce_apr_clients", force: :cascade do |t|
     t.boolean "youth", default: false
     t.boolean "child", default: false
@@ -2057,6 +2231,7 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.json "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "summary"
     t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
   end
 
@@ -2072,6 +2247,7 @@ ActiveRecord::Schema.define(version: 2020_03_12_175312) do
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "project_ids"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 

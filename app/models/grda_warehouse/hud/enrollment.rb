@@ -670,5 +670,9 @@ module GrdaWarehouse::Hud
 
       return ! other_homeless
     end
+
+    def chronically_homeless_at_start?
+      return false; # TODO
+    end
   end # End Enrollment
 end

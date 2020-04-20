@@ -11,5 +11,7 @@ module HudReports
 
     belongs_to :report_cell, class_name: 'HudReports::ReportCell'
     belongs_to :universe_membership, polymorphic: true
+
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   end
 end
