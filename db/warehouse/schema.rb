@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_17_164547) do
+ActiveRecord::Schema.define(version: 2020_04_20_123748) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2294,7 +2294,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
     t.jsonb "youth_families", default: []
-    t.jsonb "parents", default: []
+    t.jsonb "family_parents", default: []
   end
 
   create_table "nightly_census_by_project_type_clients", id: :serial, force: :cascade do |t|
@@ -2557,7 +2557,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_164547) do
     t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
     t.integer "youth_families", default: 0
-    t.integer "parents", default: 0
+    t.integer "family_parents", default: 0
   end
 
   create_table "non_hmis_uploads", id: :serial, force: :cascade do |t|

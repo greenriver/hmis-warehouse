@@ -25,7 +25,7 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_youth_client_counts(project_type), project_type_code, :youth)
       add_clients_to_census_buckets(get_family_client_counts(project_type), project_type_code, :families)
       add_clients_to_census_buckets(get_youth_families_client_counts(project_type), project_type_code, :youth_families)
-      add_clients_to_census_buckets(get_parents_client_counts(project_type), project_type_code, :parents)
+      add_clients_to_census_buckets(get_parents_client_counts(project_type), project_type_code, :family_parents)
       add_clients_to_census_buckets(get_individual_client_counts(project_type), project_type_code, :individuals)
       add_clients_to_census_buckets(get_parenting_youth_client_counts(project_type), project_type_code, :parenting_youth)
       add_clients_to_census_buckets(get_parenting_juvenile_client_counts(project_type), project_type_code, :parenting_juveniles)
@@ -85,9 +85,9 @@ module GrdaWarehouse::Census
       add_clients_to_census_buckets(get_literally_homeless_youth_families_client_counts(), :literally_homeless, :youth_families)
       add_clients_to_census_buckets(get_system_youth_families_client_counts(), :system, :youth_families)
 
-      add_clients_to_census_buckets(get_homeless_parents_client_counts(), :homeless, :parents)
-      add_clients_to_census_buckets(get_literally_homeless_parents_client_counts(), :literally_homeless, :parents)
-      add_clients_to_census_buckets(get_system_parents_client_counts(), :system, :parents)
+      add_clients_to_census_buckets(get_homeless_parents_client_counts(), :homeless, :family_parents)
+      add_clients_to_census_buckets(get_literally_homeless_parents_client_counts(), :literally_homeless, :family_parents)
+      add_clients_to_census_buckets(get_system_parents_client_counts(), :system, :family_parents)
 
       add_clients_to_census_buckets(get_homeless_individual_client_counts(), :homeless, :individuals)
       add_clients_to_census_buckets(get_literally_homeless_individual_client_counts(), :literally_homeless, :individuals)

@@ -5,13 +5,13 @@
 ###
 
 module Dashboards
-  class ParentsController < BaseController
+  class FamilyParentsController < BaseController
     include ArelHelper
 
     before_action :require_can_view_censuses!
 
     def sub_population_key
-      :parents
+      :family_parents
     end
     helper_method :sub_population_key
 
