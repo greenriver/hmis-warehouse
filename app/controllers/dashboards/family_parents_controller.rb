@@ -5,7 +5,7 @@
 ###
 
 module Dashboards
-  class ParentsController < BaseController
+  class FamilyParentsController < BaseController
     include ArelHelper
 
     before_action :require_can_view_censuses!

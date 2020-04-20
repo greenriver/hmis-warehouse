@@ -24,7 +24,7 @@ module Reporting::MonthlyReports
         all_clients: Reporting::MonthlyReports::AllClients,
         veteran: Reporting::MonthlyReports::Veteran,
         youth: Reporting::MonthlyReports::Youth,
-        :family_parents Reporting::MonthlyReports::Parents,
+        family_parents: Reporting::MonthlyReports::Parents,
         parenting_youth: Reporting::MonthlyReports::ParentingYouth,
         parenting_children: Reporting::MonthlyReports::ParentingChildren,
         unaccompanied_minors: Reporting::MonthlyReports::UnaccompaniedMinors,

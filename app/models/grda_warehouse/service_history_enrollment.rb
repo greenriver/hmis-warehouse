@@ -284,8 +284,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :family_parents, -> do
-      return family if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-
       # Client is the head of household
       family.where(arel_table[:head_of_household].eq(true))
     end
