@@ -17,7 +17,7 @@ module Reporting::MonthlyReports
     end
 
     def sub_population
-      :parents
+      :family_parents
     end
   end
 end
