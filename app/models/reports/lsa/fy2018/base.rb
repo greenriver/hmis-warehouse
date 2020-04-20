@@ -48,11 +48,13 @@ module Reports::Lsa::Fy2018
         ['All Clients', :all_clients],
         ['Veteran', :veteran],
         ['Youth', :youth],
+        ['Parents', :parents],
         ['Parenting Youth', :parenting_youth],
         ['Parenting Children', :parenting_children],
         ['Individual Adults', :individual_adults],
         ['Non Veteran', :non_veteran],
         ['Family', :family],
+        ['Youth Families', :youth_families],
         ['Children', :children],
         ['Unaccompanied Minors', :unaccompanied_minors],
       ]

@@ -7,8 +7,7 @@
 .warehouse-reports__chronic
   .row
     .col
-      - if @sub_population == :family
-        = GrdaWarehouse::Hud::Client.report_family_warning
+      = render 'common/population_warnings'
     .col.pull-right
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel

@@ -49,11 +49,13 @@ module ReportGenerators::SystemPerformance::Fy2019
         all_clients: scope,
         veteran: scope.veteran,
         youth: scope.unaccompanied_youth,
+        parents: scope.family_parents,
         parenting_youth: scope.parenting_youth,
         parenting_children: scope.parenting_juvenile,
         individual_adults: scope.individual_adult,
         non_veteran: scope.non_veteran,
         family: scope.family,
+        youth_families: scope.youth_families,
         children: scope.children_only,
         unaccompanied_minors: scope.unaccompanied_minors,
       }

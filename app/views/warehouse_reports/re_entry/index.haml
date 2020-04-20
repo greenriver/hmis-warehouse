@@ -23,8 +23,7 @@
       %p
         The following #{pluralize(@enrollments.distinct.select(:client_id).count, 'client')} had #{@enrollments.count} re-entries between #{@range.start} and #{@range.end}.
       %p
-        - if @sub_population == :family
-          = GrdaWarehouse::Hud::Client.report_family_warning
+        = render 'common/population_warnings'
 
   %table.table.table-condensed.table-hover
     %thead

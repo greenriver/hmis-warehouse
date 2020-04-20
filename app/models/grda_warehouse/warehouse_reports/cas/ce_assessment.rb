@@ -154,6 +154,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
       'Veterans' => :veteran,
       'Youth' => :youth,
       'Family' => :family,
+      'Youth Family' => :families,
       'Children' => :children,
       'Parenting Youth' => :parenting_youth,
       'Parenting Juveniles' => :parenting_children,
