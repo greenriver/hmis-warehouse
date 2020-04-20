@@ -18,6 +18,33 @@ SqlServerBase.connection.execute <<~SQL
     create index affiliation_date_updated ON [hmis_Affiliation] ([DateUpdated]);
     create index affiliation_export_id ON [hmis_Affiliation] ([ExportID]);
     create unique index unk_Affiliation ON [hmis_Affiliation] ( [AffiliationID]);
+
+  IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_Assessment' AND xtype='U')
+    DROP TABLE [hmis_Assessment]
+    CREATE TABLE [hmis_Assessment] (
+
+  create_table "Assessment", id: :serial, force: :cascade do |t|
+    t.string "AssessmentID", limit: 32, null: false
+    t.string "EnrollmentID", null: false
+    t.string "PersonalID", null: false
+    t.date "AssessmentDate", null: false
+    t.string "AssessmentLocation", null: false
+    t.integer "AssessmentType", null: false
+    t.integer "AssessmentLevel", null: false
+    t.integer "PrioritizationStatus", null: false
+    t.datetime "DateCreated", null: false
+    t.datetime "DateUpdated", null: false
+    t.string "UserID", limit: 32, null: false
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.datetime "pending_date_deleted"
+    t.string "source_hash"
+    t.index ["AssessmentID", "data_source_id"], name: "assessment_a_id_ds_id"
+    t.index ["PersonalID", "EnrollmentID", "data_source_id", "AssessmentID"], name: "assessment_p_id_en_id_ds_id_a_id"
+    t.index ["pending_date_deleted"], name: "index_Assessment_on_pending_date_deleted"
+  end
+
   IF EXISTS (SELECT * FROM sysobjects WHERE name='hmis_Client' AND xtype='U')
     DROP TABLE [hmis_Client]
     CREATE TABLE [hmis_Client] (

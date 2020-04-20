@@ -2,17 +2,16 @@ require_relative '../../sql_server_base'
 module LsaSqlServer
   module_function def models_by_filename
     {
+      'Project.csv' => LsaSqlServer::Project,
+      'Organization.csv' => LsaSqlServer::Organization,
+      'Funder.csv' => LsaSqlServer::Funder,
+      'ProjectCoC.csv' => LsaSqlServer::ProjectCoc,
+      'Inventory.csv' => LsaSqlServer::Inventory,
       'LSAReport.csv' => LsaSqlServer::LSAReport,
-      'LSAHousehold.csv' => LsaSqlServer::LSAHousehold,
       'LSAPerson.csv' => LsaSqlServer::LSAPerson,
+      'LSAHousehold.csv' => LsaSqlServer::LSAHousehold,
       'LSAExit.csv' => LsaSqlServer::LSAExit,
       'LSACalculated.csv' => LsaSqlServer::LSACalculated,
-      'Organization.csv' => LsaSqlServer::Organization,
-      'Project.csv' => LsaSqlServer::Project,
-      'Funder.csv' => LsaSqlServer::Funder,
-      'Inventory.csv' => LsaSqlServer::Inventory,
-      'Geography.csv' => LsaSqlServer::Geography,
-      # 'LSAHDXOnly.csv' => LsaSqlServer::LSAHDXOnly,
     }.freeze
   end
 
@@ -109,31 +108,55 @@ module LsaSqlServer
         :HHAdultAge,
         :HHParent,
         :ESTStatus,
-        :RRHStatus,
-        :RRHMoveIn,
-        :PSHStatus,
-        :PSHMoveIn,
-        :ESDays,
-        :THDays,
-        :ESTDays,
         :ESTGeography,
         :ESTLivingSit,
         :ESTDestination,
-        :RRHPreMoveInDays,
-        :RRHPSHPreMoveInDays,
-        :RRHHousedDays,
-        :SystemDaysNotPSHHoused,
+        :ESTChronic,
+        :ESTVet,
+        :ESTDisability,
+        :ESTFleeingDV,
+        :ESTAC3Plus,
+        :ESTAdultAge,
+        :ESTParent,
+        :RRHStatus,
+        :RRHMoveIn,
         :RRHGeography,
         :RRHLivingSit,
         :RRHDestination,
-        :SystemHomelessDays,
-        :Other3917Days,
-        :TotalHomelessDays,
+        :RRHPreMoveInDays,
+        :RRHChronic,
+        :RRHVet,
+        :RRHDisability,
+        :RRHFleeingDV,
+        :RRHAC3Plus,
+        :RRHAdultAge,
+        :RRHParent,
+        :PSHStatus,
+        :PSHMoveIn,
         :PSHGeography,
         :PSHLivingSit,
         :PSHDestination,
         :PSHHousedDays,
+        :PSHChronic,
+        :PSHVet,
+        :PSHDisability,
+        :PSHFleeingDV,
+        :PSHAC3Plus,
+        :PSHAdultAge,
+        :PSHParent,
+        :ESDays,
+        :THDays,
+        :ESTDays,
+        :RRHPSHPreMoveInDays,
+        :RRHHousedDays,
+        :SystemDaysNotPSHHoused,
+        :SystemHomelessDays,
+        :Other3917Days,
+        :TotalHomelessDays,
         :SystemPath,
+        :ESTAHAR,
+        :RRHAHAR,
+        :PSHAHAR,
         :ReportID,
       ]
     end
@@ -146,7 +169,6 @@ module LsaSqlServer
     def self.csv_columns
       [
         :RowTotal,
-        :Age,
         :Gender,
         :Race,
         :Ethnicity,
@@ -155,19 +177,49 @@ module LsaSqlServer
         :CHTime,
         :CHTimeStatus,
         :DVStatus,
-        :HHTypeEST,
-        :HoHEST,
+        :ESTAgeMin,
+        :ESTAgeMax,
+        :AdultEST,
+        :HHChronicEST,
+        :HHVetEST,
+        :HHDisabilityEST,
+        :HHFleeingDVEST,
+        :HHAdultAgeAOEST,
+        :HHAdultAgeACEST,
+        :HHParentEST,
+        :AC3PlusEST,
+        :AHAREST,
+        :AHARHoHEST,
+        :RRHAgeMin,
+        :RRHAgeMax,
         :HHTypeRRH,
         :HoHRRH,
+        :AdultRRH,
+        :HHChronicRRH,
+        :HHVetRRH,
+        :HHDisabilityRRH,
+        :HHFleeingDVRRH,
+        :HHAdultAgeAORRH,
+        :HHAdultAgeACRRH,
+        :HHParentRRH,
+        :AC3PlusRRH,
+        :AHARRRH,
+        :AHARHoHRRH,
+        :PSHAgeMin,
+        :PSHAgeMax,
         :HHTypePSH,
         :HoHPSH,
-        :HHChronic,
-        :HHVet,
-        :HHDisability,
-        :HHFleeingDV,
-        :HHAdultAge,
-        :HHParent,
-        :AC3Plus,
+        :AdultPSH,
+        :HHChronicPSH,
+        :HHVetPSH,
+        :HHDisabilityPSH,
+        :HHFleeingDVPSH,
+        :HHAdultAgeAOPSH,
+        :HHAdultAgeACPSH,
+        :HHParentPSH,
+        :AC3PlusPSH,
+        :AHARPSH,
+        :AHARHoHPSH,
         :ReportID,
       ]
     end
@@ -224,16 +276,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      [
-        :OrganizationID,
-        :OrganizationName,
-        :OrganizationCommonName,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
+      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020')
     end
   end
 
@@ -242,27 +285,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      [
-        :ProjectID,
-        :OrganizationID,
-        :ProjectName,
-        :ProjectCommonName,
-        :OperatingStartDate,
-        :OperatingEndDate,
-        :ContinuumProject,
-        :ProjectType,
-        :ResidentialAffiliation,
-        :TrackingMethod,
-        :TargetPopulation,
-        :VictimServicesProvider,
-        :HousingType,
-        :PITCount,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
+      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2020')
     end
   end
 
@@ -271,19 +294,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      [
-        :FunderID,
-        :ProjectID,
-        :Funder,
-        :GrantID,
-        :StartDate,
-        :EndDate,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
+      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020')
     end
   end
 
@@ -292,54 +303,16 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      [
-        :InventoryID,
-        :ProjectID,
-        :CoCCode,
-        :InformationDate,
-        :HouseholdType,
-        :Availability,
-        :UnitInventory,
-        :BedInventory,
-        :CHBedInventory,
-        :VetBedInventory,
-        :YouthBedInventory,
-        :BedType,
-        :InventoryStartDate,
-        :InventoryEndDate,
-        :HMISParticipatingBeds,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
+      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020')
     end
   end
 
-  class Geography < SqlServerBase
-    self.table_name = :lsa_Geography
+  class ProjectCoc < SqlServerBase
+    self.table_name = :lsa_ProjectCoC
     include TsqlImport
 
     def self.csv_columns
-      [
-        :GeographyID,
-        :ProjectID,
-        :CoCCode,
-        :InformationDate,
-        :Geocode,
-        :GeographyType,
-        :Address1,
-        :Address2,
-        :City,
-        :State,
-        :ZIP,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ]
+      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020')
     end
   end
 
