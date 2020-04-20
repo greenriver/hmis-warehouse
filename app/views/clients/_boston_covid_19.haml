@@ -1,8 +1,12 @@
 - show_link = false unless defined?(show_link)
 - link_path = polymorphic_path(['client_he', health_emergency], client_id: client)
 .health-emergency{data: {id: client.id, href: link_path}, class: show_link ? 'js-client' : nil}
-  .client__details-header
+  .client__details-header.d-flex.mb-4
     %h3.text-danger COVID-19 Status
+    - if can_see_health_emergency_clinical? && health_emergency_test_status.present?
+      .ml-auto.text-muted
+        Last bulk upload of tests:
+        = health_emergency_test_status
   .o-pills.health-emergency__badges
     - if client.health_emergency_ama_restriction_status.present? && can_see_health_emergency_medical_restriction?
       = pill_badge labels: [GrdaWarehouse::HealthEmergency::AmaRestriction.new.pill_title, client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
