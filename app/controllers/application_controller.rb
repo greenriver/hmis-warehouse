@@ -214,6 +214,11 @@ class ApplicationController < ActionController::Base
   end
   helper_method :health_emergency
 
+  def health_emergency_test_status
+    @health_emergency_test_status ||= GrdaWarehouse::HealthEmergency::TestBatch.completed.maximum(:completed_at) if health_emergency? && current_user.can_see_health_emergency_clinical?
+  end
+  helper_method :health_emergency_test_status
+
   def pjax_request?
     false
   end

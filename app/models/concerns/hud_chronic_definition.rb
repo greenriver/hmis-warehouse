@@ -122,7 +122,7 @@ module HudChronicDefinition
       disabled?(on_date: on_date, client_id: hoh_id)
     end
 
-    def disabled?(on_date:, client_id:)
+    def disabled?(on_date:, client_id: id)
       @disabled_clients ||= Rails.cache.fetch('chronically_disabled_clients', expires_in: 8.hours) do
         GrdaWarehouse::Hud::Client.chronically_disabled(on_date).pluck(:id)
       end
