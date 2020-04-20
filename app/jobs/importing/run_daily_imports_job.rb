@@ -150,7 +150,7 @@ module Importing
 
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
-        Reporting::PopulationDashboardPopulateJob.perform_later sub_population: 'all'
+        Reporting::PopulationDashboardPopulateJob.perform_later(sub_population: 'all')
 
         create_statistical_matches
         generate_logging_info

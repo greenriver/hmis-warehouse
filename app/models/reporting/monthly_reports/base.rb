@@ -24,12 +24,14 @@ module Reporting::MonthlyReports
         all_clients: Reporting::MonthlyReports::AllClients,
         veteran: Reporting::MonthlyReports::Veteran,
         youth: Reporting::MonthlyReports::Youth,
+        family_parents: Reporting::MonthlyReports::Parents,
         parenting_youth: Reporting::MonthlyReports::ParentingYouth,
         parenting_children: Reporting::MonthlyReports::ParentingChildren,
         unaccompanied_minors: Reporting::MonthlyReports::UnaccompaniedMinors,
         individual_adults: Reporting::MonthlyReports::IndividualAdults,
         non_veteran: Reporting::MonthlyReports::NonVeteran,
         family: Reporting::MonthlyReports::Family,
+        youth_families: Reporting::MonthlyReports::YouthFamilies,
         children: Reporting::MonthlyReports::Children,
       }
     end
@@ -49,7 +51,7 @@ module Reporting::MonthlyReports
       remove_unused_client_ids
       Reporting::MonthlyClientIds.where(report_type: self.class.name).
         distinct.
-        pluck_in_batches(:client_id, batch_size: 5_000) do |batch|
+        pluck_in_batches(:client_id, batch_size: 2_500) do |batch|
           batch = batch.flatten
           set_enrollments_by_client batch
           set_prior_enrollments
