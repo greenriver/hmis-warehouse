@@ -48,7 +48,7 @@ module Reports::Lsa::Fy2018
         ['All Clients', :all_clients],
         ['Veteran', :veteran],
         ['Youth', :youth],
-        ['Parents', :parents],
+        ['Parents', :family_parents],
         ['Parenting Youth', :parenting_youth],
         ['Parenting Children', :parenting_children],
         ['Individual Adults', :individual_adults],
