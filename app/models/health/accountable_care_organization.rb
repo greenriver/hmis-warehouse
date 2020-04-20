@@ -14,6 +14,7 @@ module Health
     has_many :patient_referrals
 
     scope :active, -> { where active: true }
+    scope :inactive, -> { where active: false }
 
     def self.split_pid_sl(pid_sl)
       return { pid: nil, sl: nil } unless pid_sl.present?
