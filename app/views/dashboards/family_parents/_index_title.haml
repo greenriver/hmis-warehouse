@@ -1,0 +1,7 @@
+- content_for :title, 'Parents Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'family_parents'
+%p.text-muted
+  = GrdaWarehouse::Hud::Client.dashboard_parents_warning
