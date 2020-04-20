@@ -285,7 +285,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     scope :family_parents, -> do
       # Client is the head of household
-      family.where(head_of_household: true)
+      family.where(she_t[:head_of_household].eq(true))
     end
 
     scope :family, -> do
@@ -314,7 +314,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         where(
           presented_as_individual: false,
           age: 0..25,
-          other_clients_over_25: false,
+          other_clients_over_25: 0,
         )
       else
         a_t = arel_table
@@ -326,7 +326,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
           and(
             a_t[:age].gt(17).
             and(a_t[:age].lt(25)).
-            and(a_t[:other_clients_under_18].gt(0))
+            and(a_t[:other_clients_under_18].gt(0)).
+            and(a_t[:other_clients_over_25].eq(0))
           ).
           # client is a child and there are adults, but no one over 25
           or(
@@ -361,7 +362,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :parenting_youth, -> do
-      where(parenting_youth: true, head_of_household: true)
+      where(parenting_youth: true).
+      where(she_t[:head_of_household].eq(true))
     end
 
     scope :children_only, -> do
@@ -369,7 +371,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :parenting_juvenile, -> do
-      where(parenting_juvenile: true, head_of_household: true)
+      where(parenting_juvenile: true).
+      where(she_t[:head_of_household].eq(true))
     end
     scope :parenting_children, -> do
       parenting_juvenile
