@@ -431,6 +431,26 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :family_parents, -> (start_date: Date.current, end_date: Date.current) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parents.
+          select(:client_id)
+      )
+    end
+
+    scope :youth_families, -> (start_date: Date.current, end_date: Date.current) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          youth_families.
+          select(:client_id)
+      )
+    end
+
     scope :veteran, -> do
       where(VeteranStatus: 1)
     end
@@ -1397,28 +1417,62 @@ module GrdaWarehouse::Hud
 
     def self.dashboard_family_warning
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-        warning = 'Clients presenting as families enrolled in homeless projects (ES, SH, SO, TH).'
+        'Clients presenting as families enrolled in homeless projects (ES, SH, SO, TH). ' + family_composition_warning
       else # uses project serves families
-        warning = 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the enrollment is at a project with inventory for families.'
+        'Clients enrolled in homeless projects (ES, SH, SO, TH) where the enrollment is at a project with inventory for families. ' + family_composition_warning
       end
-      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-
-      warning + ' ' + family_means_adult_child_warning
     end
 
     def self.report_family_warning
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-        warning = 'Clients are limited to those presenting as families.'
+        'Clients are limited to those where the household includes at least two people.' + family_composition_warning
       else # uses project serves families
-        warning = 'Clients are limited to clients enrolled in a project with inventory for families.'
+        'Clients are limited to clients enrolled in a project with inventory for families.' + family_composition_warning
       end
-      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-
-      warning + ' ' + family_means_adult_child_warning
     end
 
-    def self.family_means_adult_child_warning
-      'Clients are further limited to only Heads of Household who presented with children.'
+    def self.dashboard_parents_warning
+      dashboard_family_warning + family_hoh_warning
+    end
+
+    def self.report_parents_warning
+      report_family_warning + family_hoh_warning
+    end
+
+    def self.dashboard_youth_families_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        'Clients presenting as families with a head of household between the ages of 18 and 25 enrolled in homeless projects (ES, SH, SO, TH). ' + family_composition_warning
+      else # uses project serves families
+        'Clients enrolled in homeless projects (ES, SH, SO, TH) with a head of household between the ages of 18 and 25 where the enrollment is at a project with inventory for families. ' + family_composition_warning
+      end
+    end
+
+    def self.report_youth_families_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        'Clients are limited to those presenting as families with a head of household between the ages of 18 and 25. ' + family_composition_warning
+      else # uses project serves families
+        'Clients are limited to clients enrolled in a project with inventory for families with a head of household between the ages of 18 and 25. ' + family_composition_warning
+      end
+    end
+
+    def self.dashboard_youth_parents_warning
+      dashboard_youth_families_warning + family_hoh_warning
+    end
+
+    def self.report_youth_parents_warning
+      report_youth_families_warning + family_hoh_warning
+    end
+
+    def self.family_composition_warning
+      if GrdaWarehouse::Config.get(:family_calculation_method) == :adult_child
+        'Families are made up of at least two clients where the head of household is an adult (18+) who presented with a client under 18. '
+      else
+        'Families are made up of at least two clients regardless of age. '
+      end
+    end
+
+    def self.family_hoh_warning
+      'Clients are further limited to only Heads of Household. '
     end
 
     # after and before take dates, or something like 3.years.ago

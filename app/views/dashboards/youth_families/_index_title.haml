@@ -1,0 +1,7 @@
+- content_for :title, 'Youth Families Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'youth_families'
+%p.text-muted
+  = GrdaWarehouse::Hud::Client.dashboard_youth_families_warning

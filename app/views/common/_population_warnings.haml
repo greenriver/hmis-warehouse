@@ -1,0 +1,8 @@
+- if @sub_population == :family
+  = GrdaWarehouse::Hud::Client.report_family_warning
+- if @sub_population == :youth_families
+  = GrdaWarehouse::Hud::Client.report_youth_families_warning
+- if @sub_population == :youth_parents
+  = GrdaWarehouse::Hud::Client.report_youth_parents_warning
+- if @sub_population == :family_parents
+  = GrdaWarehouse::Hud::Client.report_parents_warning
