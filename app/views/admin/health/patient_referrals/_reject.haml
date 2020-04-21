@@ -9,8 +9,13 @@
 .patient-referral__reject
   = simple_form_for pr, url: admin_health_patient_referral_reject_path(pr), namespace: dropdown_id, remote: true do |f|
     = f.input :rejected_reason, as: :hidden
+  - if pr.stop_reason_description
+    .mb-4
+      %strong #{@sender.receiver_name} Disenrollment Reason
+      %br
+      = pr.stop_reason_description
   .dropdown
-    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'} do
+    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm' do
       = label
       %span.caret
     %ul.dropdown-menu{aria: {labelledby: dropdown_id}}
