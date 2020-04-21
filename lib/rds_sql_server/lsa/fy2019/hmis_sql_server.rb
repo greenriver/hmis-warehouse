@@ -20,7 +20,12 @@ module HmisSqlServer
       'Project.csv' => HmisSqlServer::Project,
       'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
       'Services.csv' => HmisSqlServer::Service,
-      'Geography.csv' => HmisSqlServer::Geography,
+      'User.csv' => HmisSqlServer::User,
+      'CurrentLivingSituaion.csv' => HmisSqlServer::CurrentLivingSituaion,
+      'Assessment.csv' => HmisSqlServer::Assessment,
+      'AssessmentQuestion.csv' => HmisSqlServer::AssessmentQuestion,
+      'AssessmentResult.csv' => HmisSqlServer::AssessmentResult,
+      'Event.csv' => HmisSqlServer::Event,
     }.freeze
   end
 
@@ -35,48 +40,61 @@ module HmisSqlServer
 
   class Affiliation < LsaBase
     self.table_name = :hmis_Affiliation
+    include ::HMIS::Structure::Affiliation
   end
 
   class Client < LsaBase
     self.table_name = :hmis_Client
-    include ::Hmis::Structure::Client
+    include ::HMIS::Structure::Client
   end
 
   class Disability < LsaBase
     self.table_name = :hmis_Disabilities
+    include ::HMIS::Structure::Disability
   end
   class EmploymentEducation < LsaBase
     self.table_name = :hmis_EmploymentEducation
+    include ::HMIS::Structure::EmploymentEducation
   end
   class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
+    include ::HMIS::Structure::Enrollment
   end
   class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
+    include ::HMIS::Structure::EnrollmentCoC
   end
   class Exit < LsaBase
     self.table_name = :hmis_Exit
+    include ::HMIS::Structure::Exit
   end
   class Export < LsaBase
     self.table_name = :hmis_Export
+    include ::HMIS::Structure::Export
   end
   class Funder < LsaBase
     self.table_name = :hmis_Funder
+    include ::HMIS::Structure::Funder
   end
   class HealthAndDv < LsaBase
     self.table_name = :hmis_HealthAndDV
+    include ::HMIS::Structure::HealthAndDv
   end
   class IncomeBenefit < LsaBase
     self.table_name = :hmis_IncomeBenefits
+    include ::HMIS::Structure::IncomeBenefit
   end
   class Inventory < LsaBase
     self.table_name = :hmis_Inventory
+    include ::HMIS::Structure::Inventory
   end
   class Organization < LsaBase
     self.table_name = :hmis_Organization
+    include ::HMIS::Structure::Organization
   end
   class Project < LsaBase
     self.table_name = :hmis_Project
+    include ::HMIS::Structure::Project
 
     def clean_row_for_import(row:, headers:)
       # Default to no for VictimServicesProvider
@@ -87,11 +105,35 @@ module HmisSqlServer
   end
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
+    include ::HMIS::Structure::ProjectCoc
   end
   class Service < LsaBase
     self.table_name = :hmis_Services
+    include ::HMIS::Structure::Service
   end
-  class Geography < LsaBase
-    self.table_name = :hmis_Geography
+
+  class User < LsaBase
+    self.table_name = :hmis_User
+    include ::HMIS::Structure::User
+  end
+  class CurrentLivingSituaion < LsaBase
+    self.table_name = :hmis_CurrentLivingSituaion
+    include ::HMIS::Structure::CurrentLivingSituaion
+  end
+  class Assessment < LsaBase
+    self.table_name = :hmis_Assessment
+    include ::HMIS::Structure::Assessment
+  end
+  class AssessmentQuestion < LsaBase
+    self.table_name = :hmis_AssessmentQuestions
+    include ::HMIS::Structure::AssessmentQuestion
+  end
+  class AssessmentResult < LsaBase
+    self.table_name = :hmis_AssessmentResults
+    include ::HMIS::Structure::AssessmentResult
+  end
+  class Event < LsaBase
+    self.table_name = :hmis_Event
+    include ::HMIS::Structure::Event
   end
 end

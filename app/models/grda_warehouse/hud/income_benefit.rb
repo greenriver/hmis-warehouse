@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class IncomeBenefit < Base
     include HudSharedScopes
+    include ::HMIS::Structure::IncomeBenefit
+
     self.table_name = 'IncomeBenefits'
     self.hud_key = :IncomeBenefitsID
     acts_as_paranoid column: :DateDeleted

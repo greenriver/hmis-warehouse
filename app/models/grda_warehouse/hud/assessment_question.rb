@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class AssessmentQuestion < Base
     include HudSharedScopes
+    include ::HMIS::Structure::AssessmentQuestion
+
     self.table_name = :AssessmentQuestions
     self.hud_key = :AssessmentQuestionID
     acts_as_paranoid column: :DateDeleted

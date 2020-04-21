@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class CurrentLivingSituation < Base
     include HudSharedScopes
+    include ::HMIS::Structure::CurrentLivingSituaion
+
     self.table_name = :CurrentLivingSituation
     self.hud_key = :CurrentLivingSitID
     acts_as_paranoid column: :DateDeleted

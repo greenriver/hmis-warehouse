@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
+    include ::HMIS::Structure::EnrollmentCoC
+
     self.table_name = 'EnrollmentCoC'
     self.hud_key = :EnrollmentCoCID
     acts_as_paranoid column: :DateDeleted

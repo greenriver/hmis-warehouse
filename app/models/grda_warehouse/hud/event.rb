@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class Event < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Event
+
     self.table_name = :Event
     self.hud_key = :EventID
     acts_as_paranoid column: :DateDeleted

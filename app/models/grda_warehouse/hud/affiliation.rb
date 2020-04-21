@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hud
   class Affiliation < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Affiliation
+
     self.table_name = 'Affiliation'
     self.hud_key = :AffiliationID
     acts_as_paranoid column: :DateDeleted

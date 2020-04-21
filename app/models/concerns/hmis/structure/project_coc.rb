@@ -1,0 +1,138 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
+module HMIS::Structure::ProjectCoc
+  extend ActiveSupport::Concern
+  include ::HMIS::Structure::Base
+
+  module ClassMethods
+    def hud_csv_headers(version: nil)
+      hmis_structure(version: version).keys.freeze
+    end
+
+    def hmis_structure(version: nil)
+      case version
+      when '5.1', '6.11', '6.12'
+        {
+          ProjectCoCID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          CoCCode: {
+            type: :string,
+            limit: 6,
+            null: false,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      when '2020', nil
+        {
+          ProjectCoCID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          CoCCode: {
+            type: :string,
+            limit: 6,
+            null: false,
+          },
+          Geocode: {
+            type: :string,
+            limit: 6,
+            null: false,
+          },
+          Address1: {
+            type: :string,
+            limit: 100,
+          },
+          Address2: {
+            type: :string,
+            limit: 100,
+          },
+          City: {
+            type: :string,
+            limit: 50,
+          },
+          State: {
+            type: :string,
+            limit: 2,
+          },
+          Zip: {
+            type: :string,
+            limit: 5,
+          },
+          GeographyType: {
+            type: :integer,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      end
+    end
+
+    def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      [
+        [:DateCreated],
+        [:DateUpdated],
+        [:ProjectCoCID],
+        [:ProjectType],
+        [:ExportID],
+        [:ProjectID, :CoCCode],
+      ]
+    end
+  end
+end

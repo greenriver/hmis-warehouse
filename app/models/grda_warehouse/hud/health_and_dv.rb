@@ -8,6 +8,8 @@
 module GrdaWarehouse::Hud
   class HealthAndDv < Base
     include HudSharedScopes
+    include ::HMIS::Structure::HealthAndDv
+
     self.table_name = 'HealthAndDV'
     self.hud_key = :HealthAndDVID
     acts_as_paranoid column: :DateDeleted

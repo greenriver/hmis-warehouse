@@ -4,22 +4,27 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Hmis::Structure::Base
+module HMIS::Structure::Base
   extend ActiveSupport::Concern
-  included do
-    def self.as_hmis_table_create(table_name:, version: nil)
-      create_table table_name do |t|
-        hmis_structure(version: version).each do |_column, options|
-          t.send(options[:type], options.execept(:type))
+
+  module ClassMethods
+    def hmis_table_create!(version: nil)
+      return if connection.table_exists?(table_name)
+
+      connection.create_table table_name do |t|
+        hmis_structure(version: version).each do |column, options|
+          t.send(options[:type], column, options.except(:type))
         end
       end
     end
 
-    def self.as_create_indices(table_name:, version: nil)
-      hmis_indices(version: version).map do |columns|
+    def hmis_table_create_indices!(version: nil)
+      hmis_indices(version: version).each do |columns|
         # enforce a short index name
         name = columns.map { |c| c[0..7].downcase }.join('_')
-        add_index table_name, columns, name: name
+        next if connection.index_exists?(table_name, columns, name: name)
+
+        connection.add_index table_name, columns, name: name
       end
     end
   end

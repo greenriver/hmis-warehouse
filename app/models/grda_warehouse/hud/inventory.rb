@@ -14,6 +14,8 @@
 module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Inventory
+
     self.table_name = 'Inventory'
     self.hud_key = :InventoryID
     acts_as_paranoid column: :DateDeleted

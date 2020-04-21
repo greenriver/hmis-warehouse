@@ -4,16 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Hmis::Structure::Client
+module HMIS::Structure::Client
   extend ActiveSupport::Concern
-  include Base
+  include ::HMIS::Structure::Base
 
-  included do
-    def self.hud_csv_headers(version: nil)
+  module ClassMethods
+    def hud_csv_headers(version: nil)
       hmis_structure(version: version).keys.freeze
     end
 
-    def self.hmis_structure(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def hmis_structure(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       # 2020
       {
         PersonalID: {
@@ -151,7 +151,7 @@ module Hmis::Structure::Client
       }
     end
 
-    def self.hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       [
         [:DateCreated],
         [:DateUpdated],

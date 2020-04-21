@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
+    include ::HMIS::Structure::Enrollment
+
     self.table_name = 'Enrollment'
     self.hud_key = :EnrollmentID
     acts_as_paranoid column: :DateDeleted
