@@ -74,12 +74,9 @@ module GrdaWarehouse::Hud
       @hud_key
     end
 
-    ## aliases
-
     def self.related_item_keys
       []
     end
 
   end
-
 end

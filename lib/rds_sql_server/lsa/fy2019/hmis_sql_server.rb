@@ -39,6 +39,7 @@ module HmisSqlServer
 
   class Client < LsaBase
     self.table_name = :hmis_Client
+    include ::Hmis::Structure::Client
   end
 
   class Disability < LsaBase
