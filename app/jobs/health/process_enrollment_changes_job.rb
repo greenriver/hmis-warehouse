@@ -116,6 +116,7 @@ module Health
         rejected: false,
         rejected_reason: :Remove_Removal,
         agency_id: nil,
+        stop_reason_description: nil,
       )
     end
 
