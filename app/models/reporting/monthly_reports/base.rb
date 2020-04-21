@@ -51,7 +51,7 @@ module Reporting::MonthlyReports
       remove_unused_client_ids
       Reporting::MonthlyClientIds.where(report_type: self.class.name).
         distinct.
-        pluck_in_batches(:client_id, batch_size: 5_000) do |batch|
+        pluck_in_batches(:client_id, batch_size: 2_500) do |batch|
           batch = batch.flatten
           set_enrollments_by_client batch
           set_prior_enrollments
