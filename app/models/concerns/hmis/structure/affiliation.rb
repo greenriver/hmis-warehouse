@@ -16,74 +16,40 @@ module HMIS::Structure::Affiliation
     def hmis_structure(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       # 2020
       {
-        ExportID: {
+        AffiliationID: {
           type: :string,
           limit: 32,
           null: false,
         },
-        SourceType: {
-          type: :integer,
-          null: false,
-        },
-        SourceID: {
+        ProjectID: {
           type: :string,
           limit: 32,
+          null: false,
         },
-        SourceName: {
+        ResProjectID: {
           type: :string,
-          limit: 50,
+          limit: 32,
+          null: false,
         },
-        SourceContactFirst: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactLast: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactPhone: {
-          type: :string,
-          limit: 10,
-        },
-        SourceContactExtension: {
-          type: :string,
-          limit: 5,
-        },
-        SourceContactEmail: {
-          type: :string,
-          limit: 320,
-        },
-        ExportDate: {
+        DateCreated: {
           type: :datetime,
           null: false,
         },
-        ExportStartDate: {
-          type: :date,
+        DateUpdated: {
+          type: :datetime,
           null: false,
         },
-        ExportEndDate: {
-          type: :date,
-          null: false,
-        },
-        SoftwareName: {
+        UserID: {
           type: :string,
-          limit: 50,
+          limit: 32,
           null: false,
         },
-        SoftwareVersion: {
+        DateDeleted: {
+          type: :datetime,
+        },
+        ExportID: {
           type: :string,
-          limit: 50,
-        },
-        ExportPeriodType: {
-          type: :integer,
-          null: false,
-        },
-        ExportDirective: {
-          type: :integer,
-          null: false,
-        },
-        HashStatus: {
-          type: :integer,
+          limit: 32,
           null: false,
         },
       }
