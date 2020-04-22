@@ -13,85 +13,498 @@ module HMIS::Structure::Enrollment
       hmis_structure(version: version).keys.freeze
     end
 
-    def hmis_structure(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      # 2020
-      {
-        ExportID: {
-          type: :string,
-          limit: 32,
-          null: false,
-        },
-        SourceType: {
-          type: :integer,
-          null: false,
-        },
-        SourceID: {
-          type: :string,
-          limit: 32,
-        },
-        SourceName: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactFirst: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactLast: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactPhone: {
-          type: :string,
-          limit: 10,
-        },
-        SourceContactExtension: {
-          type: :string,
-          limit: 5,
-        },
-        SourceContactEmail: {
-          type: :string,
-          limit: 320,
-        },
-        ExportDate: {
-          type: :datetime,
-          null: false,
-        },
-        ExportStartDate: {
-          type: :date,
-          null: false,
-        },
-        ExportEndDate: {
-          type: :date,
-          null: false,
-        },
-        SoftwareName: {
-          type: :string,
-          limit: 50,
-          null: false,
-        },
-        SoftwareVersion: {
-          type: :string,
-          limit: 50,
-        },
-        ExportPeriodType: {
-          type: :integer,
-          null: false,
-        },
-        ExportDirective: {
-          type: :integer,
-          null: false,
-        },
-        HashStatus: {
-          type: :integer,
-          null: false,
-        },
-      }
+    def hmis_structure(version: nil)
+      case version
+      when '6.11', '6.12'
+        {
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EntryDate: {
+            type: :date,
+            null: false,
+          },
+          HouseholdID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          RelationshipToHoH: {
+            type: :integer,
+          },
+          LivingSituation: {
+            type: :integer,
+          },
+          LengthOfStay: {
+            type: :integer,
+          },
+          LOSUnderThreshold: {
+            type: :integer,
+          },
+          PreviousStreetESSH: {
+            type: :integer,
+          },
+          DateToStreetESSH: {
+            type: :date,
+          },
+          TimesHomelessPastThreeYears: {
+            type: :integer,
+          },
+          MonthsHomelessPastThreeYears: {
+            type: :integer,
+          },
+          DisablingCondition: {
+            type: :integer,
+          },
+          DateOfEngagement: {
+            type: :date,
+          },
+          MoveInDate: {
+            type: :date,
+          },
+          DateOfPATHStatus: {
+            type: :date,
+          },
+          ClientEnrolledInPATH: {
+            type: :integer,
+          },
+          ReasonNotEnrolled: {
+            type: :integer,
+          },
+          WorstHousingSituation: {
+            type: :integer,
+          },
+          PercentAMI: {
+            type: :integer,
+          },
+          LastPermanentStreet: {
+            type: :string,
+            limit: 100,
+          },
+          LastPermanentCity: {
+            type: :string,
+            limit: 50,
+          },
+          LastPermanentState: {
+            type: :string,
+            limit: 2,
+          },
+          LastPermanentZIP: {
+            type: :string,
+            limit: 5,
+          },
+          AddressDataQuality: {
+            type: :integer,
+          },
+          DateOfBCPStatus: {
+            type: :date,
+          },
+          EligibleForRHY: {
+            type: :integer,
+          },
+          ReasonNoServices: {
+            type: :integer,
+          },
+          RunawayYouth: {
+            type: :integer,
+          },
+          SexualOrientation: {
+            type: :integer,
+          },
+          FormerWardChildWelfare: {
+            type: :integer,
+          },
+          ChildWelfareYears: {
+            type: :integer,
+          },
+          ChildWelfareMonths: {
+            type: :integer,
+          },
+          FormerWardJuvenileJustice: {
+            type: :integer,
+          },
+          JuvenileJusticeYears: {
+            type: :integer,
+          },
+          JuvenileJusticeMonths: {
+            type: :integer,
+          },
+          UnemploymentFam: {
+            type: :integer,
+          },
+          MentalHealthIssuesFam: {
+            type: :integer,
+          },
+          PhysicalDisabilityFam: {
+            type: :integer,
+          },
+          AlcoholDrugAbuseFam: {
+            type: :integer,
+          },
+          InsufficientIncome: {
+            type: :integer,
+          },
+          IncarceratedParent: {
+            type: :integer,
+          },
+          ReferralSource: {
+            type: :integer,
+          },
+          CountOutreachReferralApproaches: {
+            type: :integer,
+          },
+          UrgentReferral: {
+            type: :integer,
+          },
+          TimeToHousingLoss: {
+            type: :integer,
+          },
+          ZeroIncome: {
+            type: :integer,
+          },
+          AnnualPercentAMI: {
+            type: :integer,
+          },
+          FinancialChange: {
+            type: :integer,
+          },
+          HouseholdChange: {
+            type: :integer,
+          },
+          EvictionHistory: {
+            type: :integer,
+          },
+          SubsidyAtRisk: {
+            type: :integer,
+          },
+          LiteralHomelessHistory: {
+            type: :integer,
+          },
+          DisabledHoH: {
+            type: :integer,
+          },
+          CriminalRecord: {
+            type: :integer,
+          },
+          SexOffender: {
+            type: :integer,
+          },
+          DependentUnder6: {
+            type: :integer,
+          },
+          SingleParent: {
+            type: :integer,
+          },
+          HH5Plus: {
+            type: :integer,
+          },
+          IraqAfghanistan: {
+            type: :integer,
+          },
+          FemVet: {
+            type: :integer,
+          },
+          HPScreeningScore: {
+            type: :integer,
+          },
+          ThresholdScore: {
+            type: :integer,
+          },
+          VAMCStation: {
+            type: :string,
+            limit: 5,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      when '2020', nil
+        {
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EntryDate: {
+            type: :date,
+            null: false,
+          },
+          HouseholdID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          RelationshipToHoH: {
+            type: :integer,
+          },
+          LivingSituation: {
+            type: :integer,
+          },
+          LengthOfStay: {
+            type: :integer,
+          },
+          LOSUnderThreshold: {
+            type: :integer,
+          },
+          PreviousStreetESSH: {
+            type: :integer,
+          },
+          DateToStreetESSH: {
+            type: :date,
+          },
+          TimesHomelessPastThreeYears: {
+            type: :integer,
+          },
+          MonthsHomelessPastThreeYears: {
+            type: :integer,
+          },
+          DisablingCondition: {
+            type: :integer,
+          },
+          DateOfEngagement: {
+            type: :date,
+          },
+          MoveInDate: {
+            type: :date,
+          },
+          DateOfPATHStatus: {
+            type: :date,
+          },
+          ClientEnrolledInPATH: {
+            type: :integer,
+          },
+          ReasonNotEnrolled: {
+            type: :integer,
+          },
+          WorstHousingSituation: {
+            type: :integer,
+          },
+          PercentAMI: {
+            type: :integer,
+          },
+          LastPermanentStreet: {
+            type: :string,
+            limit: 100,
+          },
+          LastPermanentCity: {
+            type: :string,
+            limit: 50,
+          },
+          LastPermanentState: {
+            type: :string,
+            limit: 2,
+          },
+          LastPermanentZIP: {
+            type: :string,
+            limit: 5,
+          },
+          AddressDataQuality: {
+            type: :integer,
+          },
+          DateOfBCPStatus: {
+            type: :date,
+          },
+          EligibleForRHY: {
+            type: :integer,
+          },
+          ReasonNoServices: {
+            type: :integer,
+          },
+          RunawayYouth: {
+            type: :integer,
+          },
+          SexualOrientation: {
+            type: :integer,
+          },
+          SexualOrientationOther: {
+            type: :string,
+            limit: 100,
+          },
+          FormerWardChildWelfare: {
+            type: :integer,
+          },
+          ChildWelfareYears: {
+            type: :integer,
+          },
+          ChildWelfareMonths: {
+            type: :integer,
+          },
+          FormerWardJuvenileJustice: {
+            type: :integer,
+          },
+          JuvenileJusticeYears: {
+            type: :integer,
+          },
+          JuvenileJusticeMonths: {
+            type: :integer,
+          },
+          UnemploymentFam: {
+            type: :integer,
+          },
+          MentalHealthIssuesFam: {
+            type: :integer,
+          },
+          PhysicalDisabilityFam: {
+            type: :integer,
+          },
+          AlcoholDrugAbuseFam: {
+            type: :integer,
+          },
+          InsufficientIncome: {
+            type: :integer,
+          },
+          IncarceratedParent: {
+            type: :integer,
+          },
+          ReferralSource: {
+            type: :integer,
+          },
+          CountOutreachReferralApproaches: {
+            type: :integer,
+          },
+          UrgentReferral: {
+            type: :integer,
+          },
+          TimeToHousingLoss: {
+            type: :integer,
+          },
+          ZeroIncome: {
+            type: :integer,
+          },
+          AnnualPercentAMI: {
+            type: :integer,
+          },
+          FinancialChange: {
+            type: :integer,
+          },
+          HouseholdChange: {
+            type: :integer,
+          },
+          EvictionHistory: {
+            type: :integer,
+          },
+          SubsidyAtRisk: {
+            type: :integer,
+          },
+          LiteralHomelessHistory: {
+            type: :integer,
+          },
+          DisabledHoH: {
+            type: :integer,
+          },
+          CriminalRecord: {
+            type: :integer,
+          },
+          SexOffender: {
+            type: :integer,
+          },
+          DependentUnder6: {
+            type: :integer,
+          },
+          SingleParent: {
+            type: :integer,
+          },
+          HH5Plus: {
+            type: :integer,
+          },
+          IraqAfghanistan: {
+            type: :integer,
+          },
+          FemVet: {
+            type: :integer,
+          },
+          HPScreeningScore: {
+            type: :integer,
+          },
+          ThresholdScore: {
+            type: :integer,
+          },
+          VAMCStation: {
+            type: :string,
+            limit: 5,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      end
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       [
+        [:DateCreated],
+        [:DateDeleted],
+        [:DateUpdated],
+        [:EnrollmentID],
+        [:EntryDate],
+        [:PersonalID],
+        [:ProjectID],
+        [:HouseholdID],
         [:ExportID],
+        [:ProjectID, :HouseholdID],
+        [:EnrollmentID, :PersonalID],
+        [:EnrollmentID, :ProjectID, :EntryDate],
+        [:RelationshipToHoH],
+        [:LivingSituation],
+        [:PreviousStreetESSH, :LengthOfStay],
       ]
     end
   end

@@ -13,28 +13,6 @@ module GrdaWarehouse::Hud
     self.hud_key = :CurrentLivingSitID
     acts_as_paranoid column: :DateDeleted
 
-    def self.hud_csv_headers(version: nil)
-      [
-        :CurrentLivingSitID,
-        :EnrollmentID,
-        :PersonalID,
-        :InformationDate,
-        :CurrentLivingSituation,
-        :VerifiedBy,
-        :LeaveSituation14Days,
-        :SubsequentResidence,
-        :ResourcesToObtain,
-        :LeaseOwn60Day,
-        :MovedTwoOrMore,
-        :LocationDetails,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
-
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs
     has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_current_living_situations

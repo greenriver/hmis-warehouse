@@ -13,84 +13,90 @@ module HMIS::Structure::Service
       hmis_structure(version: version).keys.freeze
     end
 
-    def hmis_structure(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      # 2020
-      {
-        ExportID: {
-          type: :string,
-          limit: 32,
-          null: false,
-        },
-        SourceType: {
-          type: :integer,
-          null: false,
-        },
-        SourceID: {
-          type: :string,
-          limit: 32,
-        },
-        SourceName: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactFirst: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactLast: {
-          type: :string,
-          limit: 50,
-        },
-        SourceContactPhone: {
-          type: :string,
-          limit: 10,
-        },
-        SourceContactExtension: {
-          type: :string,
-          limit: 5,
-        },
-        SourceContactEmail: {
-          type: :string,
-          limit: 320,
-        },
-        ExportDate: {
-          type: :datetime,
-          null: false,
-        },
-        ExportStartDate: {
-          type: :date,
-          null: false,
-        },
-        ExportEndDate: {
-          type: :date,
-          null: false,
-        },
-        SoftwareName: {
-          type: :string,
-          limit: 50,
-          null: false,
-        },
-        SoftwareVersion: {
-          type: :string,
-          limit: 50,
-        },
-        ExportPeriodType: {
-          type: :integer,
-          null: false,
-        },
-        ExportDirective: {
-          type: :integer,
-          null: false,
-        },
-        HashStatus: {
-          type: :integer,
-          null: false,
-        },
-      }
+    def hmis_structure(version: nil)
+      case version
+      when '6.11', '6.12', '2020', nil
+        {
+          ServicesID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateProvided: {
+            type: :date,
+            null: false,
+          },
+          RecordType: {
+            type: :integer,
+            null: false,
+          },
+          TypeProvided: {
+            type: :integer,
+            null: false,
+          },
+          OtherTypeProvided: {
+            type: :string,
+            limit: 50,
+          },
+          SubTypeProvided: {
+            type: :integer,
+          },
+          FAAmount: {
+            type: :string,
+            limit: 50,
+          },
+          ReferralOutcome: {
+            type: :integer,
+            null: false,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      end
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
       [
+        [:DateCreated],
+        [:DateDeleted],
+        [:DateProvided],
+        [:RecordType],
+        [:RecordType, :DateProvided],
+        [:DateUpdated],
+        [:EnrollmentID],
+        [:EnrollmentID, :PersonalID],
+        [:PersonalID],
+        [:PersonalID, :RecordType, :EnrollmentID, :DateProvided],
+        [:ServicesID],
         [:ExportID],
       ]
     end

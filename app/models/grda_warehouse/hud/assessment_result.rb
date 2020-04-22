@@ -13,22 +13,6 @@ module GrdaWarehouse::Hud
     self.hud_key = :AssessmentResultID
     acts_as_paranoid column: :DateDeleted
 
-    def self.hud_csv_headers(version: nil)
-      [
-        :AssessmentResultID,
-        :AssessmentID,
-        :EnrollmentID,
-        :PersonalID,
-        :AssessmentResultType,
-        :AssessmentResult,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
-
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment')
     belongs_to :direct_enrollment, **hud_enrollment_belongs
