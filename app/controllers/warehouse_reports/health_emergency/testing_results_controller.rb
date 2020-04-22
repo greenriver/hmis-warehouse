@@ -13,8 +13,10 @@ module WarehouseReports::HealthEmergency
     before_action :require_can_see_health_emergency_clinical!
 
     def index
+      @html = true
       @results = test_scope.tested_within_range(@filter.range).
-        joins(client: [:processed_service_history, :service_history_enrollments])
+        joins(client: [:processed_service_history, service_history_services: :service_history_enrollment]).
+        preload(client: [:processed_service_history, service_history_services: :service_history_enrollment])
 
       if @filter.effective_project_ids_from_projects.present?
         @results = @results.merge(
@@ -30,9 +32,16 @@ module WarehouseReports::HealthEmergency
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
         )
       end
-      @results = @results.distinct.
-        page(params[:page]).
-        per(25)
+      respond_to do |format|
+        format.html do
+          @results = @results.distinct.
+            page(params[:page]).
+            per(25)
+        end
+        format.xlsx do
+          @results = @results.distinct
+        end
+      end
     end
 
     private def test_scope
